@@ -1,0 +1,320 @@
+<html><head>
+<!-- Inserted by TRADOS: --><META HTTP-EQUIV="content-type" CONTENT="text/html; charset=EUC-JP">
+
+<title>README -- Java Platform, Standard Edition Development Kit</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+<center>
+<h1>README</h1>
+<h2>Java<sup><font size=-2>TM</font></sup> Platform, Standard Edition 6<br> Development Kit</h2>
+<b>JDK<sup><font size="-2">TM</font></sup> 6</b>
+</center>
+<p>
+<h2>目次</h2>
+<ul>
+    <li><a href=#introduction>はじめに</a>
+    <li><a href=#install>システム要件およびインストール</a>
+    <li><a href=#docs>JDK ドキュメント</a>
+    <li><a href=#relnotes>リリースノート</a>
+    <li><a href=#compatibility>互換性</a>
+    <li><a href=#bugs>バグ報告とフィードバック</a>
+    <li><a href=#contents>JDK の内容</a>
+    <li><a href=#jre>Java SE Runtime Environment</a>
+    <li><a href=#redistribution>再配布</a>
+    <li><a href=#webpages>Web ページ</a>
+</ul>
+
+<a name="introduction"><h2>はじめに</h2></a>
+<blockquote>
+Java Platform, Standard Edition Development Kit (JDK) のこのリリースをダウンロードいただきありがとうございます。 JDK は、Java プログラミング言語を使用してアプリケーション、アプレット、およびコンポーネントを構築するための開発環境です。  
+<p>
+JDK には、Java プログラミング言語で記述されたプログラムの開発とテスト、および Java プラットフォームでの実行に使用できる各種ツールが付属しています。 これらのツールは、コマンド行から使用するように設計されています。 グラフィカルユーザーインタフェースを備えているのは appletviewer だけです。
+
+<p>
+</blockquote>
+
+
+<a name="install"><h2>システム要件およびインストール</h2></a>
+<blockquote>
+システム要件、インストール手順、およびトラブルシューティングのヒントについては、次の Java Software Web サイトを参照してください。
+<ul>
+    <li><a href="http://java.sun.com/javase/ja/6/webnotes/install/index.html">JDK 6 インストール手順</a>
+</ul>
+
+</blockquote>
+
+
+<a name="docs"><h2>JDK ドキュメント</h2></a>
+<blockquote>
+<a href="http://java.sun.com/javase/6/docs/index.html">Java Platform, Standard Edition のオンラインドキュメント</a>には、API 仕様、機能説明、開発者ガイド、JDK ツールおよびユーティリティーのリファレンスページ、デモ、および関連情報へのリンクが含まれています。  JDK ドキュメントは、使用しているマシンにインストール可能なダウンロードバンドルでも入手できます。 ドキュメントバンドルを入手するには、<a href="http://java.sun.com/javase/ja/6/download.html">ダウンロードページ</a> を参照してください。 API については、<a href="http://java.sun.com/javase/6/docs/api/index.html">Java Platform, Standard Edition の API 仕様</a> を参照してください。API について、コード例よりも仕様に重点をおいた簡単な説明を読むことができます。
+
+</ul>
+</blockquote>
+
+
+<p>
+<a name=relnotes><h2>リリースノート</h2></a>
+<blockquote>
+
+このリリースに関する追加情報については、Java Software Web サイトの <a href=http://java.sun.com/javase/ja/6/webnotes/index.html>Java SE 6 リリースノート</a> を参照してください。 オンライン版のリリースノートは随時更新されるので、定期的にアクセスして最新の情報を確認してください。
+
+</blockquote>
+
+<p>
+<blockquote>
+<h3>Java DB 10.2 Alpha</h3>
+<code>$JAVA_HOME/db</code> サブディレクトリには、Java DB (Sun Microsystems の Apache Derby データベーステクノロジディストリビューション) のクラスライブラリが入っています。
+<ul>
+<li>
+Java DB については、
+<a href="http://developers.sun.com/prodtech/javadb/">http://developers.sun.com/prodtech/javadb/</a> を参照してください。
+<p>
+<li>
+Derby のマニュアルについては、
+<a href="http://db.apache.org/derby/manuals/index.html">http://db.apache.org/derby/manuals/index.html</a> を参照してください。
+Derby  のマニュアルには、「<a href="http://db.apache.org/derby/manuals/getstart/gspr.html">Getting Started with Derby</a>」が入っています。
+<p>
+<li>
+この Alpha バージョンの Java DB の機能については、
+<a href="http://wiki.apache.org/db-derby/TenTwoSnapshot">http://wiki.apache.org/db-derby/TenTwoSnapshot</a> を参照してください。
+</ul>
+<p>
+
+責任放棄事項: 
+</br>
+Alpha リリースの Java DB (Apache Derby) を使用して作成されたデータベースは、正規リリース版の Java DB (Derby) で使用するためにアップグレードすることはできません。
+</blockquote>
+
+<a name=compatibility><h2>互換性</h2></a>
+<blockquote>
+
+<p>
+互換性に関する既知の問題については、Java Software Web サイトで<a href=http://java.sun.com/javase/ja/6/webnotes/compatibility.html>以前のリリースとの互換性</a>を参照してください。 以前のバージョンの Java プラットフォーム用に記述されたプログラムのサポートについては万全を期しています。 互換性を失う変更が必要な箇所もありましたが、ほとんどのソフトウェアはプログラミングをやり直すことなく現在のバージョンに移行できます。  互換性に関する Web ページで説明しているような意図的に互換性を排除したわずかな場合を除いて、プログラミングをやり直さないと移行できない場合はバグであるとみなされます。 潜在的なセキュリティーホールをふさぐため、または実装や設計上のバグを修正するために必要な変更によって、一部の互換性が失われています。
+</blockquote>
+
+
+<a name=bugs></a><h2>バグ報告とフィードバック</h2>
+<blockquote>
+<a href="http://bugs.sun.com/bugdatabase/index.jsp">バグデータベース</a> Web サイトでは、既存のバグ報告の検索と調査、バグ報告の送信、バグ修正の重要度の報告を行うことができます。  バグ報告や機能に関する要望を直接送信するには、次のフォームに記入してください。
+<blockquote>
+<code><a href="http://bugs.sun.com/services/bugreport/index.jsp">http://bugs.sun.com/services/bugreport/index.jsp</a></code>
+</blockquote>
+フィードバックは、<a href="http://java.sun.com/docs/forms/sendusmail.html">Java SE ドキュメントチーム</a>に送信してください。 また、<a href="http://java.sun.com/mail/">Java Software エンジニアリングチームの電子メールアドレス</a>にコメントを直接送信していただくこともできます。 
+<p>
+<b>注</b> - Bug Parade や弊社開発チームからテクニカルサポートを受けることはできません。 サポートオプションについては、Java Software Web サイトの<a href="http://java.sun.com/support/">サポートとサービス</a>を参照してください。
+
+</blockquote>
+
+<a name=contents><h2>JDK の内容</h2></a>
+<blockquote> ここでは、JDK のファイルとディレクトリの概要を説明します。 ファイルとディレクトリの詳細については、お使いのプラットフォームの Java SE ドキュメントの「<a href="http://java.sun.com/javase/6/docs/technotes/tools/index.html#general">JDK File Structure</a>」を参照してください。
+
+<dl>
+    <dt><b>開発ツール</b>
+	<dd><code>bin</code> サブディレクトリに格納されています。 Java プログラミング言語で記述されたプログラムの開発、実行、デバッグ、およびドキュメント作成を支援するツールとユーティリティーです。 詳細については、<a href="http://java.sun.com/javase/6/docs/technotes/tools/index.html">各ツールのマニュアル</a>を参照してください。
+
+    <p>
+        <dt><b>Runtime Environment</b>
+	<dd><code>jre</code> サブディレクトリに格納されています。 JDK で使用される Java SE 実行環境の実装です。 この実行環境には、Java 仮想マシン、クラスライブラリ、および Java プログラミング言語で記述されたプログラムの実行をサポートするその他のファイルが含まれます。
+    <p>
+        <dt><b>追加ライブラリ</b>
+	<dd><code>lib</code> サブディレクトリに格納されています。 開発ツールに必要な追加のクラスライブラリとサポートファイルです。
+    <p>
+        <dt><b>デモアプレットとデモアプリケーション</b>
+	<dd><code>demo</code> サブディレクトリに格納されています。 Java プラットフォーム用のプログラミング例で、ソースコードが含まれます。 Swing やその他の Java Foundation Classes、および Java Platform Debugger Architecture を使用する例も含まれます。
+    <p>
+        <dt><b>C ヘッダーファイル</b>
+	<dd><code>include</code> サブディレクトリに格納されています。 <a href="http://java.sun.com/javase/6/docs/technotes/guides/jni/index.html">Java Native Interface</a>、<a href="http://java.sun.com/javase/6/docs/technotes/guides/jvmti/index.html">JVM<sup><font size=-2>TM</font></sup> Tool Interface</a>、およびその他の Java 2 Platform の機能を使用するネイティブコードプログラミングをサポートするヘッダーファイルです。
+
+    <p>
+        <dt><b>ソースコード</b>
+	<dd><code>src.zip</code> に格納されています。 Java&nbsp;2 コア API を構成するすべてのクラスに対する Java プログラミング言語のソースファイルです。つまり、java.*、javax.*、および一部の org.* パッケージのソースファイルであり、com.sun.* パッケージのソースファイルは含まれません。 このソースコードは情報提供のみを目的としており、開発者が Java プログラミング言語を理解し活用するのに役立ちます。 これらのファイルには、プラットフォーム固有の実装コードは含まれません。これらのファイルを使用して、クラスライブラリを再構築することはできません。  これらのファイルを展開するには、一般的な zip ユーティリティーを使用します。  また、次のように、JDK の <tt>bin</tt> ディレクトリに用意されている Jar ユーティリティーを使用することもできます。
+<pre>
+    jar xvf src.zip
+</pre>
+	
+ 
+</dl>
+</blockquote>
+
+<a name=jre>
+<h2>Java SE Runtime Environment</h2></a>
+<blockquote>
+      Java SE Runtime Environment は、単独でダウンロードできる製品として提供されています。  <a href="http://java.sun.com/javase/ja/6/download.html">ダウンロード Web サイト</a>を参照してください。
+<p>
+      Java SE Runtime Environment を使用すると、Java プログラミング言語で記述されたアプリケーションを実行できます。  JDK と同様に、Java 仮想マシン、Java 2 プラットフォーム API を構成するクラス、およびサポートファイルが含まれます。 JDK とは異なり、コンパイラやデバッガなどの開発ツールは含まれません。 
+      <p>
+      Java SE Runtime Environment は、Runtime Environment のライセンス条項に従って、独自に開発したアプリケーションとともに自由に再配布することができます。 JDK を使用してアプリケーションを開発したのち、エンドユーザーがそのソフトウェアを Java プラットフォームで実行できるように、Runtime Environment とともに出荷することができます。
+</blockquote>
+
+
+<a name="redistribution"><h2>再配布</h2></a>
+<blockquote>
+
+<blockquote>
+<hr>
+     注 - このソフトウェアのライセンスは、ベータ版およびその他のプレリリース版の再配布を許可するものではありません。
+<hr>
+</blockquote>
+
+ソフトウェアライセンス契約の条項、および以下で規定される義務、制限、および例外事項に従い、ソフトウェア (および以下で再配布可能と見なされる、ソフトウェアの一部) を複製および配布できます。
+
+<ol type="a">
+<li> ソフトウェアを完全な改変されていない状態で、かつアプレットおよびアプリケーション (「プログラム」) の一部としてバンドルされた状態でのみ配布する。
+
+<li> プログラムが重要かつ主要な機能をソフトウェアに追加する。
+
+<li> プログラムが Java 対応の汎用デスクトップコンピュータおよびサーバーで実行されることのみを目的とする。
+
+<li> プログラムの実行のみを目的として、ソフトウェアを配布する。
+
+<li> ソフトウェアのコンポーネントと置き換えることを目的として追加のソフトウェアを配布しない。
+
+<li> ソフトウェアに記載されているいかなる所有権表示や告知も除去または変更しない。
+
+<li> 本契約に含まれる条項と合致した、Sun の利益を保護するライセンス契約に従ってのみソフトウェアを配布する。
+
+<li> プログラムおよびソフトウェアの一部またはすべての使用あるいは配布に起因した第三者からの請求、訴訟、または措置に関連して生じるいかなる損害、費用、債務、和解金、および出費 (弁護士費用を含む) から、Sun とそのライセンサを擁護し、補償することに同意する。
+</ol>
+
+
+ここで使用されている「ベンダー」という用語は、自らのプログラムとともに Java SE Development Kit をライセンス供与および配布するライセンシ、開発者、および独立系ソフトウェアベンダー (ISV) を指します。
+<p>
+ベンダーは、Java SE Development Kit バイナリコードライセンス契約の条項に従う必要があります。
+
+
+<h3>必須ファイルとオプションファイル</h3>
+
+Java SE Development Kit を構成するファイルは、必須とオプションの 2 つに分類されます。  オプションファイルは、ベンダーの判断により JDK の再配布から除外することができます。  
+<p>
+JDK の再配布から任意で除外できるファイルおよびディレクトリを次に示します。  これらのオプションファイル一覧に含まれないファイルは、すべて JDK の再配布に含める必要があります。
+
+
+
+<h3>オプションのファイルとディレクトリ</h3>
+
+次のファイルは再配布から任意に除外できます。 これらのファイルは jdk1.6.0_&lt;version&gt; ディレクトリに格納されています。&lt;version&gt; は、アップデートバージョン番号です。  Solaris および Linux のファイル名と区切り記号が示されています。 Windows の実行可能ファイルには末尾に「.exe」が付きます。 名前に <code>_g</code> が付く対応するファイルも除外できます。
+
+<dl>
+<dt><tt>jre/lib/charsets.jar</tt>
+   <dd>文字変換クラス
+<dt><tt>jre/lib/ext/</tt>              
+   <dd><tt>sunjce_provider.jar</tt> - Java 暗号化 API の SunJCE プロバイダ<br> <tt>localedata.jar</tt> - 米国英語以外のロケールに必要なリソースの多くを含む<br> <tt>ldapsec.jar</tt> - LDAP サービスプロバイダがサポートするセキュリティー機能を含む<br> <tt>dnsns.jar</tt> - JNDI DNS プロバイダの InetAddress ラッパー用
+<dt><tt>bin/rmid</tt> および <tt>jre/bin/rmid</tt>
+   <dd>Java RMI 起動システムデーモン
+<dt><tt>bin/rmiregistry</tt> および <tt>jre/bin/rmiregistry</tt>
+   <dd>Java リモートオブジェクトレジストリ
+<dt><tt>bin/tnameserv</tt> および <tt>jre/bin/tnameserv</tt>
+   <dd>Java IDL ネームサーバー
+<dt><tt>bin/keytool</tt> および <tt>jre/bin/keytool</tt>
+   <dd>鍵および証明書の管理ツール
+<dt><tt>bin/kinit</tt> および <tt>jre/bin/kinit</tt>
+   <dd>Kerberos チケット認可チケットの取得およびキャッシュに使用
+<dt><tt>bin/klist</tt> および <tt>jre/bin/klist</tt>
+   <dd>資格キャッシュおよびキータブ内の Kerberos 表示エントリ
+<dt><tt>bin/ktab</tt> および <tt>jre/bin/ktab</tt>
+    <dd>Kerberos キーテーブルマネージャー
+<dt><tt>bin/policytool</tt> および <tt>jre/bin/policytool</tt>
+   <dd>ポリシーファイルの作成および管理ツール
+<dt><tt>bin/orbd</tt> および <tt>jre/bin/orbd</tt>
+   <dd>Object Request Broker Daemon
+<dt><tt>bin/servertool</tt> および <tt>jre/bin/servertool</tt>
+   <dd>Java IDL サーバーツール
+<dt><tt>bin/javaws</tt>、<tt>jre/bin/javaws</tt>、<tt>jre/lib/javaws/</tt> および <tt>jre/lib/javaws.jar</tt>
+   <dd>Java Web Start 
+<dt><tt>src.zip</tt>
+   <dd>ソースファイルのアーカイブ
+</dl>
+<p>
+
+<a name="redistributablejdkfiles"></a>
+<h3>再配布可能な JDK ファイル</h3>
+
+次に示す JDK のファイルセットは、ベンダーの提供する Java SE Runtime Environment の再配布に含めることができます。  これらを個別に再配布することはできません。JRE とともに配布する必要があります。 次のパスは、すべて JDK の最上位ディレクトリからの相対パスです。
+
+<dl>
+<dt><tt>jre/lib/cmm/PYCC.pf</tt>
+  <dd>カラープロファイル。 このファイルは、PYCC カラー領域とその他のカラー領域の間で変換を行う場合にのみ必要です。
+
+<dt><tt>jre/lib/fonts</tt> ディレクトリ内のすべての <tt>.ttf</tt> フォントファイル 
+  <dd>LucidaSansRegular.ttf フォントはすでに Java SE Runtime Environment に含まれているため、JDK から取得する必要はありません。
+
+<dt><tt>jre/lib/audio/soundbank.gm</tt>
+  <dd>この MIDI サウンドバンクは JDK に含まれますが、Java SE Runtime Environment から削除されています。これは Runtime Environment のダウンロードバンドルのサイズを減らすことが目的です。 ただし、サウンドバンクファイルは MIDI の再生に必要なため、ベンダーの判断で JDK の <tt>soundbank.gm</tt> ファイルを Runtime Environment の再配布に含めることができます。  拡張 MIDI サウンドバンクのいくつかのバージョンを Java Sound Web サイト <a href="http://java.sun.com/products/java-media/sound/">http://java.sun.com/products/java-media/sound/</a> で入手できます。 これらの代替のサウンドバンクはどれも、Java SE Runtime Environment の再配布に含めることができます。
+
+<dt>javac バイトコードコンパイラ。以下のファイルで構成されます。
+  <dd><tt>bin/javac</tt> [Solaris(TM) オペレーティングシステムおよび Linux]<br> <tt>bin/sparcv9/javac</tt> [Solaris オペレーティングシステム (SPARC(R) プラットフォーム版)]<br> <tt>bin/amd64/javac</tt> [Solaris オペレーティングシステム (AMD)]<br> <tt>bin/javac.exe</tt> [Microsoft Windows]<br> <tt>lib/tools.jar</tt> [すべてのプラットフォーム]
+
+<dt>Annotation Processing Tool。以下のファイルで構成されます。<br>
+  <dd><tt>bin/apt</tt> [Solaris(TM) オペレーティングシステムおよび Linux]<br> <tt>bin/sparcv9/apt</tt> [Solaris オペレーティングシステム (SPARC(R) プラットフォーム版)]<br> <tt>bin/amd64/apt</tt> [Solaris オペレーティングシステム (AMD)]<br> <tt>bin/apt.exe</tt> [Microsoft Windows]
+
+<dt><tt>jre\bin\server\</tt>
+  <dd>Microsoft Windows プラットフォームでは、JDK に Java HotSpot Server VM と Java HotSpot Client VM の両方が含まれます。 ただし、Microsoft Windows プラットフォーム版の Java SE Runtime Environment には Java HotSpot Client VM しか含まれていません。 Java HotSpot Server VM を Java SE Runtime Environment で使用する場合は、JDK の <tt>jre\bin\server</tt> フォルダを Java SE Runtime Environment の <tt>bin\server</tt> ディレクトリにコピーしてください。 ソフトウェアベンダーは、Java SE Runtime Environment の再配布の際に、Java HotSpot Server VM を再配布することができます。
+</dl>
+
+<h3>無制限強度 Java 暗号化拡張機能</h3>
+一部の国の輸入規制に対応するため、Java SE Development Kit および Java SE Runtime Environment とともに出荷される Java 暗号化拡張機能 (JCE) のポリシーファイルは、強力ではあっても制限付きの暗号方式の使用しか許可していません。  これらのファイルは次の場所に格納されています。
+<blockquote><pre>
+&lt;java-home&gt;/lib/security/local_policy.jar
+&lt;java-home&gt;/lib/security/US_export_policy.jar
+</pre></blockquote>
+<tt>&lt;java-home&gt;</tt> は、JDK の <tt>jre</tt> ディレクトリまたは Java SE Runtime Environment の最上位ディレクトリです。
+<p>
+規制を受けない国のユーザーのために、暗号化強度に制限のない無制限強度バージョンのファイルが JDK Web サイトに用意されています。  これらの国のユーザーは、無制限強度バージョンをダウンロードし、強力暗号化 jar ファイルを無制限強度ファイルで置き換えることができます。  
+
+<h3>jconsole</h3>
+
+<dl>
+<dt><tt>jconsole.jar</tt>
+<dd>jconsole は JDK とは別に再配布できますが、Sun の JRE とともに配布する必要があります。
+</dl>
+
+<h3>推奨標準優先機構</h3>
+
+推奨標準とは、Java Community Process<sup><font size="-1">SM</font></sup> (JCP<sup><font size="-1">SM</font></sup>) 以外の標準プロセスで定義された Java API です。 推奨標準は JCP の外部で定義されるため、このような標準は Java 2 プラットフォームの次のリリースまでの間に改訂されることが予想されます。  推奨標準の新しいバージョンを利用するためには、開発者やソフトウェアベンダーは推奨標準優先機構を使用して、Sun Microsystems がリリースした Java 2 プラットフォームに含まれる推奨標準よりも新しいバージョンの推奨標準を配布することができます。
+<p>
+推奨標準優先機構の詳細については、次のサイトを参照してください。優先指定に使用できるプラットフォームパッケージの一覧も掲載されています。
+<blockquote>
+   <a href="http://java.sun.com/javase/6/docs/technotes/guides/standards/index.html">http://java.sun.com/javase/6/docs/guide/standards/</a>
+</blockquote>
+<p>
+この Web ページに掲載されているパッケージのクラスを置き換えることができるのは、適切な標準団体によって定義された API の最新バージョンを実装するクラスだけです。
+<p>
+Sun の Java SE リファレンス実装の再配布者は、上記の URL のドキュメントに掲載されているパッケージ (Java Platform, Standard Edition (Java SE) の仕様の一部) 以外に、これらの推奨標準パッケージで定義される public API が提供する機能の実装のみが目的のクラスを置き換えることができます。 また、<tt>org.w3c.dom.*</tt> パッケージのクラスや、これらの API の実装のみを目的とするその他のクラスを置き換えることもできます。
+
+<h3>
+cacerts 証明書ファイル<BR>
+</h3>
+<code>&lt;java-home&gt;/lib/security/cacerts</code> にある Java SE 証明書ファイルでルート認証局証明書を追加または削除することができます。 詳細については、keytool ドキュメントの「<a href="http://java.sun.com/javase/6/docs/technotes/tools/solaris/keytool.html#cacerts">The cacerts Certificates File</a>」を参照してください。
+</blockquote>
+
+<a name="webpages"><h2>Web ページ</h2></a>
+<blockquote>
+詳細については、次の Sun Microsystems の Web ページを参照してください。
+<dl>
+    <dt><a href="http://java.sun.com/">http://java.sun.com/</a>
+    <dd>Java Software Web サイト。Java テクノロジ、製品情報、ニュース、および機能についての最新情報が掲載されています。
+
+    <dt><a href="http://java.sun.com/docs">http://java.sun.com/docs</a>
+    <dd>Java プラットフォームのドキュメント。ホワイトペーパーや Java チュートリアルなどのドキュメントにアクセスできます。
+
+    <dt><a href=http://developer.java.sun.com>http://developer.java.sun.com</a>
+    <dd>Developer Services Web サイト。 (無料の登録が必要。) 技術情報、ニュース、および機能の詳細情報、ユーザーフォーラム、サポート情報などが提供されています。
+
+    <dt><a href="http://java.sun.com/products/">http://java.sun.com/products/</a>
+    <dd>Java テクノロジ製品と API
+
+</dl>
+</blockquote>
+
+
+<p>
+<hr>
+<small>Java SE Development Kit は Sun Microsystems<sup><small>TM</small></sup>, Inc. の製品です。<br>
+<p>
+Copyright 2005 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara, California 95054, U.S.A.<BR>All rights reserved.</small>
+<pre>
+
+</pre>
+</body></html>

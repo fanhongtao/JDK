@@ -1,7 +1,7 @@
 /*
- * @(#)UndeclaredThrowableException.java	1.13 04/02/19
+ * @(#)UndeclaredThrowableException.java	1.15 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,9 +34,9 @@ package java.lang.reflect;
  * method."
  *
  * @author	Peter Jones
- * @version	1.13, 04/02/19
+ * @version	1.15, 06/04/07
  * @see		InvocationHandler
- * @since	JDK1.3
+ * @since	1.3
  */
 public class UndeclaredThrowableException extends RuntimeException {
     static final long serialVersionUID = 330127114055056639L;

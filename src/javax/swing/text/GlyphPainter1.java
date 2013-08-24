@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphPainter1.java	1.20 06/04/10
+ * @(#)GlyphPainter1.java	1.21 06/03/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -28,7 +28,7 @@ import java.awt.*;
  * is recommended for the DK.
  *
  * @author  Timothy Prinzing
- * @version 1.20 04/10/06
+ * @version 1.21 03/01/06
  * @see GlyphView
  */
 class GlyphPainter1 extends GlyphView.GlyphPainter {

@@ -78,7 +78,7 @@ import com.sun.org.apache.bcel.internal.Constants;
  * method in the Method's frame will jump to the appropiate method in
  * the Code frame.
  *
- * @version $Id: Class2HTML.java,v 1.1 2003/12/12 09:01:28 rameshm Exp $
+ * @version $Id: Class2HTML.java,v 1.1.2.1 2005/07/31 23:46:59 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
 */
 public class Class2HTML implements Constants
@@ -134,7 +134,7 @@ public class Class2HTML implements Constants
     ClassParser parser=null;
     JavaClass   java_class=null;
     String      zip_file = null;
-    char        sep = java.io.File.separatorChar;
+    char        sep = System.getProperty("file.separator").toCharArray()[0];
     String      dir = "." + sep; // Where to store HTML files
 	
     try {
@@ -142,7 +142,7 @@ public class Class2HTML implements Constants
        */
       for(int i=0; i < argv.length; i++) {
 	if(argv[i].charAt(0) == '-') {  // command line switch
-	  if(argv[i].equals("-d")) {   // Specify target directory, default `.&#264;
+	  if(argv[i].equals("-d")) {   // Specify target directory, default '.'
 	    dir = argv[++i];
 
 	    if(!dir.endsWith("" + sep))

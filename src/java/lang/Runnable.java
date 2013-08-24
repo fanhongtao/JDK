@@ -1,7 +1,7 @@
 /*
- * @(#)Runnable.java	1.24 03/12/19
+ * @(#)Runnable.java	1.26 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,8 +30,9 @@ package java.lang;
  * behavior of the class.
  *
  * @author  Arthur van Hoff
- * @version 1.24, 12/19/03
+ * @version 1.26, 11/17/05
  * @see     java.lang.Thread
+ * @see     java.util.concurrent.Callable
  * @since   JDK1.0
  */
 public

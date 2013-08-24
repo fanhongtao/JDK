@@ -1,7 +1,7 @@
 /*
- * @(#)SelectTx.java	1.33 04/07/26
+ * @(#)SelectTx.java	1.36 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)SelectTx.java	1.30 03/10/26
+ * @(#)SelectTx.java	1.36 06/08/29
  */
 
 package java2d.demos.Transforms;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextLayout;
@@ -56,20 +57,20 @@ import java2d.CustomControls;
  */
 public class SelectTx extends AnimatingControlsSurface {
 
-    protected static final int RIGHT = 0;
-    private static final int LEFT = 1;
-    private static final int XMIDDLE = 2;
-    private static final int DOWN = 3;
-    private static final int UP = 4;
-    private static final int YMIDDLE = 5;
-    private static final int XupYup = 6;
-    private static final int XdownYdown = 7;
-    private static final String[] title = { "Scale" , "Shear", "Rotate" };
+    protected static final int RIGHT   = 0;
+    private   static final int LEFT    = 1;
+    private   static final int XMIDDLE = 2;
+    private   static final int DOWN    = 3;
+    private   static final int UP      = 4;
+    private   static final int YMIDDLE = 5;
+    private   static final int XupYup  = 6;
+    private   static final int XdownYdown = 7;
+    private   static final String[] title = { "Scale" , "Shear", "Rotate" };
+    protected static final int SCALE  = 0;
+    protected static final int SHEAR  = 1;
+    protected static final int ROTATE = 2;
     private Image img, original;
     private int iw, ih;
-    protected static final int SCALE = 0;
-    protected static final int SHEAR = 1;
-    protected static final int ROTATE = 2;
     protected int transformType = SHEAR;
     protected double sx, sy;
     protected double angdeg;
@@ -78,7 +79,7 @@ public class SelectTx extends AnimatingControlsSurface {
 
 
     public SelectTx() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         original = getImage("painting.gif");
         iw = original.getWidth(this);
         ih = original.getHeight(this);
@@ -93,7 +94,7 @@ public class SelectTx extends AnimatingControlsSurface {
 
         img = createImage(iw, ih);
         Graphics big = img.getGraphics();
-        big.drawImage(original, 0, 0, iw, ih, Color.orange, null);
+        big.drawImage(original, 0, 0, iw, ih, ORANGE, null);
         if (transformType == SCALE) {
             direction = RIGHT;
             sx = sy = 1.0;
@@ -196,7 +197,7 @@ public class SelectTx extends AnimatingControlsSurface {
         Font font = g2.getFont();
         FontRenderContext frc = g2.getFontRenderContext();
         TextLayout tl = new TextLayout(title[transformType], font, frc);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         tl.draw(g2, (float) (w/2-tl.getBounds().getWidth()/2), 
             (float) (tl.getAscent()+tl.getDescent()));
 
@@ -225,7 +226,7 @@ public class SelectTx extends AnimatingControlsSurface {
             g2.translate(w/2-iw/2,h/2-ih/2);
         }
         
-        g2.setColor(Color.orange);
+        g2.setColor(ORANGE);
         g2.fillRect(0, 0, iw+10, ih+10);
         g2.drawImage(img, 5, 5, this);
     }
@@ -246,8 +247,8 @@ public class SelectTx extends AnimatingControlsSurface {
             this.demo = demo;
             add(toolbar = new JToolBar());
             toolbar.setFloatable(false);
-            addTool("Scale", false);
-            addTool("Shear", true);
+            addTool("Scale",  false);
+            addTool("Shear",  true);
             addTool("Rotate", false);
         }
 

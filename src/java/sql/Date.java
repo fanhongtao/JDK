@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.33 04/05/18
+ * @(#)Date.java	1.37 06/08/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,6 @@ public class Date extends java.util.Date {
      * @param day 1 to 31
      * @deprecated instead use the constructor <code>Date(long date)</code>
      */
-    @Deprecated
     public Date(int year, int month, int day) {
 	super(year, month, day);
     }
@@ -110,17 +109,6 @@ public class Date extends java.util.Date {
     /**
      * Formats a date in the date escape format yyyy-mm-dd.  
      * <P>
-     * NOTE:  To specify a date format for the class
-     * <code>SimpleDateFormat</code>, use "yyyy.MM.dd" rather than
-     * "yyyy-mm-dd".  In the context of <code>SimpleDateFormat</code>,
-     * "mm" indicates minutes rather than the month.  
-     * For example:
-     * <PRE>
-     *
-     *  Format Pattern                         Result
-     *  --------------                         -------
-     *	"yyyy.MM.dd G 'at' hh:mm:ss z"    ->>  1996.07.10 AD at 15:08:56 PDT
-     * </PRE>
      * @return a String in yyyy-mm-dd format
      */
     public String toString () {
@@ -151,7 +139,6 @@ public class Date extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this method is invoked
     * @see #setHours
     */
-    @Deprecated
     public int getHours() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -164,7 +151,6 @@ public class Date extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this method is invoked
     * @see #setMinutes
     */
-    @Deprecated
     public int getMinutes() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -177,7 +163,6 @@ public class Date extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this method is invoked
     * @see #setSeconds
     */
-    @Deprecated
     public int getSeconds() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -190,7 +175,6 @@ public class Date extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this method is invoked
     * @see #getHours
     */
-    @Deprecated
     public void setHours(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -203,7 +187,6 @@ public class Date extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this method is invoked
     * @see #getMinutes
     */
-    @Deprecated
     public void setMinutes(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -216,7 +199,6 @@ public class Date extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this method is invoked
     * @see #getSeconds
     */
-    @Deprecated
     public void setSeconds(int i) {
 	throw new java.lang.IllegalArgumentException();
     }

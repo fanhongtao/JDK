@@ -1,7 +1,7 @@
 /*
- * @(#)TypeCodeImpl.java	1.94 04/06/21
+ * @(#)TypeCodeImpl.java	1.96 06/08/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -406,7 +406,7 @@ public final class TypeCodeImpl extends TypeCode
 	    setId(id);
 	    _name		= name;
 	    _type_modifier	= type_modifier;
-	    if (_concrete_base != null) {
+	    if (concrete_base != null) {
 		_concrete_base = convertToNative(_orb, concrete_base);
 	    }
 	    _memberCount	= members.length;

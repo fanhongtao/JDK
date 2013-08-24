@@ -1,7 +1,7 @@
 /*
- * @(#)EventListenerList.java	1.36 04/05/05
+ * @(#)EventListenerList.java	1.37 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -74,7 +74,7 @@ import java.lang.reflect.Array;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 05/05/04
+ * @version 1.37 11/17/05
  * @author Georges Saab
  * @author Hans Muller
  * @author James Gosling

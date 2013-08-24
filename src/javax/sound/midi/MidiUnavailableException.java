@@ -1,7 +1,7 @@
 /*
- * @(#)MidiUnavailableException.java	1.13 03/12/19
+ * @(#)MidiUnavailableException.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package javax.sound.midi;
  * {@link Transmitter#setReceiver(Receiver) setReceiver} method of 
  * <code>Transmitter</code>. 
  *
- * @version 1.13, 12/19/03
+ * @version 1.14, 11/17/05
  * @author Kara Kytle
  */
 public class MidiUnavailableException extends Exception {

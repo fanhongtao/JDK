@@ -1,7 +1,7 @@
 /*
- * @(#)SortingFocusTraversalPolicy.java	1.8 06/03/16
+ * @(#)SortingFocusTraversalPolicy.java	1.10 06/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -30,13 +30,13 @@ import java.util.logging.*;
  * behavior by overriding the <code>accept</code> method.
  * <p>
  * This policy takes into account <a
- * href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus traversal
+ * href="../../java/awt/doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus traversal
  * policy providers</a>.  When searching for first/last/next/previous Component,
  * if a focus traversal policy provider is encountered, its focus traversal
  * policy is used to perform the search operation.
  *
  * @author David Mendenhall
- * @version 1.8, 03/16/06
+ * @version 1.10, 08/04/06
  *
  * @see java.util.Comparator
  * @since 1.4
@@ -196,7 +196,7 @@ public class SortingFocusTraversalPolicy
      * default Component to focus. This behavior can be disabled using the
      * <code>setImplicitDownCycleTraversal</code> method.
      * <p>
-     * If aContainer is <a href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
+     * If aContainer is <a href="../../java/awt/doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
      * traversal policy provider</a>, the focus is always transferred down-cycle.
      *
      * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider
@@ -252,7 +252,7 @@ public class SortingFocusTraversalPolicy
 	}
 
 	if (index < 0) {
-	    // Fix for 5070991.
+            // Fix for 5070991.
             // A workaround for a transitivity problem caused by ROW_TOLERANCE,
             // because of that the component may be missed in the binary search.
             // Try to search it again directly.
@@ -263,7 +263,7 @@ public class SortingFocusTraversalPolicy
                 // If we're not in the cycle, then binarySearch returns
                 // (-(insertion point) - 1). The next element is our insertion
                 // point.
-  
+
                 index = -index - 2;
             }
 	}
@@ -311,7 +311,7 @@ public class SortingFocusTraversalPolicy
      * default Component to focus. This behavior can be disabled using the
      * <code>setImplicitDownCycleTraversal</code> method.
      * <p>
-     * If aContainer is <a href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
+     * If aContainer is <a href="../../java/awt/doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
      * traversal policy provider</a>, the focus is always transferred down-cycle.
      *
      * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider

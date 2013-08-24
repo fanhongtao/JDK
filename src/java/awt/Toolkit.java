@@ -1,7 +1,7 @@
 /*
- * @(#)Toolkit.java	1.203 03/12/19
+ * @(#)Toolkit.java	1.221 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,6 +47,9 @@ import sun.awt.DebugHelper;
 import sun.awt.HeadlessToolkit;
 import sun.awt.NullComponentPeer;
 import sun.security.util.SecurityConstants;
+
+import sun.util.CoreResourceBundleControl;
+
 /**
  * This class is the abstract superclass of all actual
  * implementations of the Abstract Window Toolkit. Subclasses of
@@ -99,6 +102,22 @@ import sun.security.util.SecurityConstants;
  * @since       JDK1.0
  */
 public abstract class  Toolkit {
+
+    /**
+     * Creates this toolkit's implementation of the <code>Desktop</code>
+     * using the specified peer interface.
+     * @param     target the desktop to be implemented
+     * @return    this toolkit's implementation of the <code>Desktop</code>
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @see       java.awt.Desktop
+     * @see       java.awt.peer.DesktopPeer
+     * @since 1.6
+     */
+    protected abstract DesktopPeer createDesktopPeer(Desktop target)
+      throws HeadlessException;
+
 
     /**
      * Creates this toolkit's implementation of <code>Button</code> using
@@ -381,6 +400,7 @@ public abstract class  Toolkit {
      * @throws    UnsupportedOperationException if this operation is not implemented
      * @see       java.awt.peer.MouseInfoPeer
      * @see       java.awt.MouseInfo
+     * @since 1.5
      */
     protected MouseInfoPeer getMouseInfoPeer() {
         throw new UnsupportedOperationException("Not implemented");
@@ -771,13 +791,17 @@ public abstract class  Toolkit {
     /**
      * Gets the default toolkit.
      * <p>
-     * If there is a system property named <code>"awt.toolkit"</code>,
-     * that property is treated as the name of a class that is a subclass
-     * of <code>Toolkit</code>.
+     * If a system property named <code>"java.awt.headless"</code> is set
+     * to <code>true</code> then the headless implementation
+     * of <code>Toolkit</code> is used.
      * <p>
-     * If the system property does not exist, then the default toolkit
-     * used is the class named <code>"sun.awt.motif.MToolkit"</code>,
-     * which is a motif implementation of the Abstract Window Toolkit.
+     * If there is no <code>"java.awt.headless"</code> or it is set to
+     * <code>false</code> and there is a system property named
+     * <code>"awt.toolkit"</code>,
+     * that property is treated as the name of a class that is a subclass
+     * of <code>Toolkit</code>;
+     * otherwise the default platform-specific implementation of
+     * <code>Toolkit</code> is used.
      * <p>
      * Also loads additional classes into the VM, using the property
      * 'assistive_technologies' specified in the Sun reference
@@ -794,63 +818,53 @@ public abstract class  Toolkit {
      *                 if one could not be accessed or instantiated.
      */
     public static synchronized Toolkit getDefaultToolkit() {
-	if (toolkit == null) {
-	    try {
-		// We disable the JIT during toolkit initialization.  This
-		// tends to touch lots of classes that aren't needed again
-		// later and therefore JITing is counter-productiive.
-		java.lang.Compiler.disable();
-		
-	        java.security.AccessController.doPrivileged(
-			new java.security.PrivilegedAction() {
-		    public Object run() {
-		        String nm = null;
-			Class cls = null;
-		        try {
-                            String defaultToolkit;
-
-                            if (System.getProperty("os.name").equals("Linux")) { 
-                                defaultToolkit = "sun.awt.X11.XToolkit";
-                            }
-                            else { 
-                                defaultToolkit = "sun.awt.motif.MToolkit";
-                            }
-			    nm = System.getProperty("awt.toolkit",
-						defaultToolkit);
-			    try {
-			    	cls = Class.forName(nm);
-		            } catch (ClassNotFoundException e) {
-			    	ClassLoader cl = ClassLoader.getSystemClassLoader();
+        if (toolkit == null) {
+            try {
+                // We disable the JIT during toolkit initialization.  This
+                // tends to touch lots of classes that aren't needed again
+                // later and therefore JITing is counter-productiive.
+                java.lang.Compiler.disable();
+                
+                java.security.AccessController.doPrivileged(
+                        new java.security.PrivilegedAction() {
+                    public Object run() {
+                        String nm = null;
+                        Class cls = null;
+                        try {
+                            nm = System.getProperty("awt.toolkit", "sun.awt.X11.XToolkit");
+                            try {
+                                cls = Class.forName(nm);
+                            } catch (ClassNotFoundException e) {
+                                ClassLoader cl = ClassLoader.getSystemClassLoader();
                                 if (cl != null) {
-			    	    try {
+                                    try {
                                         cls = cl.loadClass(nm);
-		            	    } catch (ClassNotFoundException ee) {
-			    		throw new AWTError("Toolkit not found: " + nm);
-				    }
+                                    } catch (ClassNotFoundException ee) {
+                                        throw new AWTError("Toolkit not found: " + nm);
+                                    }
                                 }
-	                    }
+                            }
                             if (cls != null) {
-				toolkit = (Toolkit)cls.newInstance();
+                                toolkit = (Toolkit)cls.newInstance();
                                 if (GraphicsEnvironment.isHeadless()) {
                                     toolkit = new HeadlessToolkit(toolkit);
                                 }
-			    }
-		        } catch (InstantiationException e) {
-			    throw new AWTError("Could not instantiate Toolkit: " +
-					   nm);
-		        } catch (IllegalAccessException e) {
-			    throw new AWTError("Could not access Toolkit: " + nm);
-		        }
-		        return null;
-		    }
-	        });
-	        loadAssistiveTechnologies();
-	    } finally {
-		// Make sure to always re-enable the JIT.
-		java.lang.Compiler.enable();
-	    }
-	}
-	return toolkit;
+                            }
+                        } catch (InstantiationException e) {
+                            throw new AWTError("Could not instantiate Toolkit: " + nm);
+                        } catch (IllegalAccessException e) {
+                            throw new AWTError("Could not access Toolkit: " + nm);
+                        }
+                        return null;
+                    }
+                });
+                loadAssistiveTechnologies();
+            } finally {
+                // Make sure to always re-enable the JIT.
+                java.lang.Compiler.enable();
+            }
+        }
+        return toolkit;
     }
 
     /**
@@ -858,15 +872,31 @@ public abstract class  Toolkit {
      * whose format can be either GIF, JPEG or PNG.
      * The underlying toolkit attempts to resolve multiple requests
      * with the same filename to the same returned Image.
+     * <p>
      * Since the mechanism required to facilitate this sharing of
-     * Image objects may continue to hold onto images that are no
-     * longer of use for an indefinite period of time, developers
-     * are encouraged to implement their own caching of images by
-     * using the createImage variant wherever available.
+     * <code>Image</code> objects may continue to hold onto images
+     * that are no longer in use for an indefinite period of time,
+     * developers are encouraged to implement their own caching of
+     * images by using the {@link #createImage(java.lang.String) createImage}
+     * variant wherever available.
+     * If the image data contained in the specified file changes,
+     * the <code>Image</code> object returned from this method may
+     * still contain stale information which was loaded from the
+     * file after a prior call.
+     * Previously loaded image data can be manually discarded by
+     * calling the {@link Image#flush flush} method on the
+     * returned <code>Image</code>.
+     * <p>
+     * This method first checks if there is a security manager installed.
+     * If so, the method calls the security manager's
+     * <code>checkRead</code> method with the file specified to ensure
+     * that the access to the image is allowed.
      * @param     filename   the name of a file containing pixel data
      *                         in a recognized file format.
      * @return    an image which gets its pixel data from
      *                         the specified file.
+     * @throws SecurityException  if a security manager exists and its
+     *                            checkRead method doesn't allow the operation.
      * @see #createImage(java.lang.String)
      */
     public abstract Image getImage(String filename);
@@ -877,14 +907,37 @@ public abstract class  Toolkit {
      * of the following formats: GIF, JPEG or PNG.
      * The underlying toolkit attempts to resolve multiple requests
      * with the same URL to the same returned Image.
+     * <p>
      * Since the mechanism required to facilitate this sharing of
-     * Image objects may continue to hold onto images that are no
-     * longer of use for an indefinite period of time, developers
-     * are encouraged to implement their own caching of images by
-     * using the createImage variant wherever available.
+     * <code>Image</code> objects may continue to hold onto images
+     * that are no longer in use for an indefinite period of time,
+     * developers are encouraged to implement their own caching of
+     * images by using the {@link #createImage(java.net.URL) createImage}
+     * variant wherever available.
+     * If the image data stored at the specified URL changes,
+     * the <code>Image</code> object returned from this method may
+     * still contain stale information which was fetched from the
+     * URL after a prior call.
+     * Previously loaded image data can be manually discarded by
+     * calling the {@link Image#flush flush} method on the
+     * returned <code>Image</code>.
+     * <p>
+     * This method first checks if there is a security manager installed.
+     * If so, the method calls the security manager's
+     * <code>checkPermission</code> method with the
+     * url.openConnection().getPermission() permission to ensure
+     * that the access to the image is allowed. For compatibility
+     * with pre-1.2 security managers, if the access is denied with
+     * <code>FilePermission</code> or <code>SocketPermission</code>,
+     * the method throws the <code>SecurityException</code>
+     * if the corresponding 1.1-style SecurityManager.checkXXX method
+     * also denies permission.
      * @param     url   the URL to use in fetching the pixel data.
      * @return    an image which gets its pixel data from
      *                         the specified URL.
+     * @throws SecurityException  if a security manager exists and its
+     *                            checkPermission method doesn't allow
+     *                            the operation.
      * @see #createImage(java.net.URL)
      */
     public abstract Image getImage(URL url);
@@ -893,10 +946,17 @@ public abstract class  Toolkit {
      * Returns an image which gets pixel data from the specified file.
      * The returned Image is a new object which will not be shared
      * with any other caller of this method or its getImage variant.
+     * <p>
+     * This method first checks if there is a security manager installed.
+     * If so, the method calls the security manager's
+     * <code>checkRead</code> method with the specified file to ensure
+     * that the image creation is allowed.
      * @param     filename   the name of a file containing pixel data
      *                         in a recognized file format.
      * @return    an image which gets its pixel data from
      *                         the specified file.
+     * @throws SecurityException  if a security manager exists and its
+     *                            checkRead method doesn't allow the operation.
      * @see #getImage(java.lang.String)
      */
     public abstract Image createImage(String filename);
@@ -905,9 +965,23 @@ public abstract class  Toolkit {
      * Returns an image which gets pixel data from the specified URL.
      * The returned Image is a new object which will not be shared
      * with any other caller of this method or its getImage variant.
+     * <p>
+     * This method first checks if there is a security manager installed.
+     * If so, the method calls the security manager's
+     * <code>checkPermission</code> method with the
+     * url.openConnection().getPermission() permission to ensure
+     * that the image creation is allowed. For compatibility
+     * with pre-1.2 security managers, if the access is denied with
+     * <code>FilePermission</code> or <code>SocketPermission</code>,
+     * the method throws <code>SecurityException</code>
+     * if the corresponding 1.1-style SecurityManager.checkXXX method
+     * also denies permission.
      * @param     url   the URL to use in fetching the pixel data.
      * @return    an image which gets its pixel data from
      *                         the specified URL.
+     * @throws SecurityException  if a security manager exists and its
+     *                            checkPermission method doesn't allow
+     *                            the operation.
      * @see #getImage(java.net.URL)
      */
     public abstract Image createImage(URL url);
@@ -1106,9 +1180,20 @@ public abstract class  Toolkit {
      * @throws	NullPointerException if frame is null and either jobAttributes
      *		is null or jobAttributes.getDialog() returns
      *		JobAttributes.DialogType.NATIVE.
-     * @throws	IllegalArgumentException if pageAttributes specifies differing
-     *		cross feed and feed resolutions.  This exception is always
-     *          thrown when GraphicsEnvironment.isHeadless() returns true.
+     * @throws  IllegalArgumentException if pageAttributes specifies differing
+     *          cross feed and feed resolutions. Also if this thread has
+     *          access to the file system and jobAttributes specifies
+     *          print to file, and the specified destination file exists but
+     *          is a directory rather than a regular file, does not exist but
+     *          cannot be created, or cannot be opened for any other reason.
+     *          However in the case of print to file, if a dialog is also
+     *          requested to be displayed then the user will be given an
+     *          opportunity to select a file and proceed with printing.
+     *          The dialog will ensure that the selected output file
+     *          is valid before returning from this method.
+     *          <p>   
+     *          This exception is always thrown when GraphicsEnvironment.isHeadless()
+     *          returns true.
      * @throws	SecurityException if this thread is not allowed to initiate a
      *		print job request, or if jobAttributes specifies print to file,
      *		and this thread is not allowed to access the file system
@@ -1518,7 +1603,8 @@ public abstract class  Toolkit {
 	    public Object run() {
 		try {
 		    resources =
-			ResourceBundle.getBundle("sun.awt.resources.awt");
+			ResourceBundle.getBundle("sun.awt.resources.awt", 
+						 CoreResourceBundleControl.getRBControlInstance());
 		} catch (MissingResourceException e) {
 		    // No resource file; defaults will be used.
 		}
@@ -1630,7 +1716,9 @@ public abstract class  Toolkit {
      *
      * A desktop property is a uniquely named value for a resource that
      * is Toolkit global in nature. Usually it also is an abstract 
-     * representation for an underlying platform dependent desktop setting. 
+     * representation for an underlying platform dependent desktop setting.
+     * For more information on desktop properties supported by the AWT see
+     * <a href="doc-files/DesktopProperties.html">AWT Desktop Properties</a>.
      */
     public final synchronized Object getDesktopProperty(String propertyName) {
         // This is a workaround for headless toolkits.  It would be
@@ -1663,6 +1751,11 @@ public abstract class  Toolkit {
 		setDesktopProperty(propertyName, value);
 	    }
 	}
+
+        /* for property "awt.font.desktophints" */
+        if (value instanceof RenderingHints) {
+            value = ((RenderingHints)value).clone();
+        }
 
 	return value;
     }
@@ -1767,6 +1860,56 @@ public abstract class  Toolkit {
     protected final Map<String,Object> desktopProperties
 	= new HashMap<String,Object>();
     protected final PropertyChangeSupport desktopPropsSupport = new PropertyChangeSupport(this);
+
+    /**
+     * Returns whether the always-on-top mode is supported by this toolkit.
+     * To detect whether the always-on-top mode is supported for a
+     * particular Window, use {@link Window#isAlwaysOnTopSupported}.
+     * @return <code>true</code>, if current toolkit supports the always-on-top mode,
+     *     otherwise returns <code>false</code>
+     * @see Window#isAlwaysOnTopSupported
+     * @see Window#setAlwaysOnTop(boolean)
+     * @since 1.6
+     */
+    public boolean isAlwaysOnTopSupported() {
+        return true;
+    }
+
+    /**
+     * Returns whether the given modality type is supported by this toolkit. If
+     * a dialog with unsupported modality type is created, then
+     * <code>Dialog.ModalityType.MODELESS</code> is used instead.
+     *
+     * @param modalityType modality type to be checked for support by this toolkit
+     *
+     * @return <code>true</code>, if current toolkit supports given modality
+     *     type, <code>false</code> otherwise
+     *
+     * @see java.awt.Dialog.ModalityType
+     * @see java.awt.Dialog#getModalityType
+     * @see java.awt.Dialog#setModalityType
+     *
+     * @since 1.6
+     */
+    public abstract boolean isModalityTypeSupported(Dialog.ModalityType modalityType);
+
+    /**
+     * Returns whether the given modal exclusion type is supported by this
+     * toolkit. If an unsupported modal exclusion type property is set on a window,
+     * then <code>Dialog.ModalExclusionType.NO_EXCLUDE</code> is used instead.
+     *
+     * @param modalExclusionType modal exclusion type to be checked for support by this toolkit
+     *
+     * @return <code>true</code>, if current toolkit supports given modal exclusion
+     *     type, <code>false</code> otherwise
+     *
+     * @see java.awt.Dialog.ModalExclusionType
+     * @see java.awt.Window#getModalExclusionType
+     * @see java.awt.Window#setModalExclusionType
+     *
+     * @since 1.6
+     */
+    public abstract boolean isModalExclusionTypeSupported(Dialog.ModalExclusionType modalExclusionType);
 
     private static final DebugHelper dbg = DebugHelper.create(Toolkit.class);
     private static final int LONG_BITS = 64;
@@ -1946,7 +2089,12 @@ public abstract class  Toolkit {
     }
     /**
      * Returns an array of all the <code>AWTEventListener</code>s 
-     * registered on this toolkit.  Listeners can be returned 
+     * registered on this toolkit.
+     * If there is a security manager, its {@code checkPermission} 
+     * method is called with an 
+     * {@code AWTPermission("listenToAllAWTEvents")} permission.
+     * This may result in a SecurityException. 
+     * Listeners can be returned 
      * within <code>AWTEventListenerProxy</code> objects, which also contain 
      * the event mask for the given listener.
      * Note that listener objects
@@ -1990,7 +2138,11 @@ public abstract class  Toolkit {
     /**
      * Returns an array of all the <code>AWTEventListener</code>s 
      * registered on this toolkit which listen to all of the event
-     * types indicates in the <code>eventMask</code> argument.
+     * types specified in the {@code eventMask} argument.
+     * If there is a security manager, its {@code checkPermission} 
+     * method is called with an 
+     * {@code AWTPermission("listenToAllAWTEvents")} permission.
+     * This may result in a SecurityException. 
      * Listeners can be returned
      * within <code>AWTEventListenerProxy</code> objects, which also contain
      * the event mask for the given listener.
@@ -2158,8 +2310,8 @@ public abstract class  Toolkit {
 		 event.id >= MouseEvent.MOUSE_FIRST &&
 		 event.id <= MouseEvent.MOUSE_LAST)
 	     || ((eventBit = eventMask & AWTEvent.WINDOW_EVENT_MASK) != 0 &&
-		 event.id >= WindowEvent.WINDOW_FIRST &&
-		 event.id <= WindowEvent.WINDOW_LAST)
+		 (event.id >= WindowEvent.WINDOW_FIRST &&
+		 event.id <= WindowEvent.WINDOW_LAST))
 	     || ((eventBit = eventMask & AWTEvent.ACTION_EVENT_MASK) != 0 &&
 		 event.id >= ActionEvent.ACTION_FIRST &&
 		 event.id <= ActionEvent.ACTION_LAST)
@@ -2190,7 +2342,9 @@ public abstract class  Toolkit {
                  event.id == WindowEvent.WINDOW_STATE_CHANGED)
              || ((eventBit = eventMask & AWTEvent.WINDOW_FOCUS_EVENT_MASK) != 0 &&
                  (event.id == WindowEvent.WINDOW_GAINED_FOCUS ||
-                  event.id == WindowEvent.WINDOW_LOST_FOCUS))) {  
+                  event.id == WindowEvent.WINDOW_LOST_FOCUS))
+                || ((eventBit = eventMask & sun.awt.SunToolkit.GRAB_EVENT_MASK) != 0 &&
+                    (event instanceof sun.awt.UngrabEvent))) {  
                 // Get the index of the call count for this event type.
                 // Instead of using Math.log(...) we will calculate it with
                 // bit shifts. That's what previous implementation looked like:

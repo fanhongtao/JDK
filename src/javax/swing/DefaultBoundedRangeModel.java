@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultBoundedRangeModel.java	1.46 04/05/05
+ * @(#)DefaultBoundedRangeModel.java	1.48 06/03/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.46 05/05/04
+ * @version 1.48 03/01/06
  * @author David Kloba
  * @author Hans Muller
  * @see BoundedRangeModel
@@ -67,7 +67,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * Throws an <code>IllegalArgumentException</code> if the following
      * constraints aren't satisfied:
      * <pre>
-     * min <= value <= value+extent <= max
+     * min &lt;= value &lt;= value+extent &lt;= max
      * </pre>
      */
     public DefaultBoundedRangeModel(int value, int extent, int min, int max)
@@ -136,7 +136,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * determines where the knob appears. Ensures that the new 
      * value, <I>n</I> falls within the model's constraints:
      * <pre>
-     *     minimum <= value <= value+extent <= maximum
+     *     minimum &lt;= value &lt;= value+extent &lt;= maximum
      * </pre>
      * 
      * @see BoundedRangeModel#setValue
@@ -157,7 +157,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * is greater than or equal to zero and falls within the model's 
      * constraints:
      * <pre>
-     *     minimum <= value <= value+extent <= maximum
+     *     minimum &lt;= value &lt;= value+extent &lt;= maximum
      * </pre>
      * @see BoundedRangeModel#setExtent
      */
@@ -174,7 +174,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * Sets the minimum to <I>n</I> after ensuring that <I>n</I> 
      * that the other three properties obey the model's constraints:
      * <pre>
-     *     minimum <= value <= value+extent <= maximum
+     *     minimum &lt;= value &lt;= value+extent &lt;= maximum
      * </pre>
      * @see #getMinimum
      * @see BoundedRangeModel#setMinimum
@@ -191,7 +191,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * Sets the maximum to <I>n</I> after ensuring that <I>n</I> 
      * that the other three properties obey the model's constraints:
      * <pre>
-     *     minimum <= value <= value+extent <= maximum
+     *     minimum &lt;= value &lt;= value+extent &lt;= maximum
      * </pre>
      * @see BoundedRangeModel#setMaximum
      */
@@ -232,7 +232,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * Sets all of the <code>BoundedRangeModel</code> properties after forcing
      * the arguments to obey the usual constraints:
      * <pre>
-     *     minimum <= value <= value+extent <= maximum
+     *     minimum &lt;= value &lt;= value+extent &lt;= maximum
      * </pre>
      * <p>
      * At most, one <code>ChangeEvent</code> is generated.

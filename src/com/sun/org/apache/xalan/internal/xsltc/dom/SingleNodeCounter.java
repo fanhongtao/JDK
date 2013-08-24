@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2004 The Apache Software Foundation.
+ * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SingleNodeCounter.java,v 1.5 2004/02/16 22:54:59 minchau Exp $
+ * $Id: SingleNodeCounter.java,v 1.2.4.1 2005/09/12 11:58:23 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -22,6 +22,8 @@ package com.sun.org.apache.xalan.internal.xsltc.dom;
 import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import com.sun.org.apache.xalan.internal.xsltc.Translet;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
+import com.sun.org.apache.xml.internal.dtm.Axis;
+
 
 /**
  * @author Jacek Ambroziak
@@ -40,14 +42,19 @@ public abstract class SingleNodeCounter extends NodeCounter {
     public NodeCounter setStartNode(int node) {
 	_node = node;
 	_nodeType = _document.getExpandedTypeID(node);
-	_countSiblings = _document.getAxisIterator(PRECEDINGSIBLING);
+    _countSiblings = _document.getAxisIterator(Axis.PRECEDINGSIBLING);
 	return this;
     }
 
     public String getCounter() {
 	int result;
 	if (_value != Integer.MIN_VALUE) {
-	    result = _value;
+                //See Errata E24
+                if (_value == 0) return "0";
+                else if (Double.isNaN(_value)) return "NaN";
+                else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
+                else if (Double.isInfinite(_value)) return "Infinity";
+                else result = (int) _value;
 	}
 	else {
 	    int next = _node;
@@ -94,7 +101,7 @@ public abstract class SingleNodeCounter extends NodeCounter {
 	    _node = node;
 	    _nodeType = _document.getExpandedTypeID(node);
 	    _countSiblings =
-		_document.getTypedAxisIterator(PRECEDINGSIBLING,
+        _document.getTypedAxisIterator(Axis.PRECEDINGSIBLING,
 					       _document.getExpandedTypeID(node));
 	    return this;
 	}
@@ -102,7 +109,12 @@ public abstract class SingleNodeCounter extends NodeCounter {
 	public String getCounter() {
 	    int result;
 	    if (_value != Integer.MIN_VALUE) {
-		result = _value;
+                //See Errata E24
+                if (_value == 0) return "0";
+                else if (Double.isNaN(_value)) return "NaN";
+                else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
+                else if (Double.isInfinite(_value)) return "Infinity";
+                else result = (int) _value;
 	    }
 	    else {
 		int next;

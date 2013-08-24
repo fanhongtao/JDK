@@ -1,7 +1,7 @@
 /*
- * @(#)JFileChooser.java	1.106 04/06/28
+ * @(#)JFileChooser.java	1.116 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,12 +49,8 @@ import java.lang.ref.WeakReference;
  * sees only .jpg and .gif images:
  * <pre>
  *    JFileChooser chooser = new JFileChooser();
- *    // Note: source for ExampleFileFilter can be found in FileChooserDemo,
- *    // under the demo/jfc directory in the JDK.
- *    ExampleFileFilter filter = new ExampleFileFilter();
- *    filter.addExtension("jpg");
- *    filter.addExtension("gif");
- *    filter.setDescription("JPG & GIF Images");
+ *    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+ *        "JPG & GIF Images", "jpg", "gif");
  *    chooser.setFileFilter(filter);
  *    int returnVal = chooser.showOpenDialog(parent);
  *    if(returnVal == JFileChooser.APPROVE_OPTION) {
@@ -62,12 +58,17 @@ import java.lang.ref.WeakReference;
  *            chooser.getSelectedFile().getName());
  *    }
  * </pre>
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  *
  * @beaninfo
  *   attribute: isContainer false
  * description: A component which allows for the interactive selection of a file.
  *
- * @version 1.106 06/28/04
+ * @version 1.116 08/08/06
  * @author Jeff Dinkins
  *
  */
@@ -253,7 +254,7 @@ public class JFileChooser extends JComponent implements Accessible {
     // Listens to changes in the native setting for showing hidden files.
     // The Listener is removed and the native setting is ignored if
     // setFileHidingEnabled() is ever called.
-    private PropertyChangeListener showFilesListener = null;
+    private transient PropertyChangeListener showFilesListener = null;
 
     private int fileSelectionMode = FILES_ONLY;
 
@@ -350,14 +351,7 @@ public class JFileChooser extends JComponent implements Accessible {
      * Performs common constructor initialization and setup.
      */
     protected void setup(FileSystemView view) {
-        // Track native setting for showing hidden files
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        Object showHiddenProperty = tk.getDesktopProperty(SHOW_HIDDEN_PROP);
-        if (showHiddenProperty instanceof Boolean) {
-            useFileHiding = !((Boolean)showHiddenProperty).booleanValue();
-            showFilesListener = new WeakPCL(this);
-            tk.addPropertyChangeListener(SHOW_HIDDEN_PROP, showFilesListener);
-        }
+        installShowFilesListener();
 
         if(view == null) {
             view = FileSystemView.getFileSystemView();
@@ -366,6 +360,18 @@ public class JFileChooser extends JComponent implements Accessible {
         updateUI(); 
         if(isAcceptAllFileFilterUsed()) {
             setFileFilter(getAcceptAllFileFilter());
+        }
+        enableEvents(AWTEvent.MOUSE_EVENT_MASK);
+    }
+
+    private void installShowFilesListener() {
+        // Track native setting for showing hidden files
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        Object showHiddenProperty = tk.getDesktopProperty(SHOW_HIDDEN_PROP);
+        if (showHiddenProperty instanceof Boolean) {
+            useFileHiding = !((Boolean)showHiddenProperty).booleanValue();
+            showFilesListener = new WeakPCL(this);
+            tk.addPropertyChangeListener(SHOW_HIDDEN_PROP, showFilesListener);
         }
     }
 
@@ -384,7 +390,7 @@ public class JFileChooser extends JComponent implements Accessible {
      *
      * When automatic drag handling is enabled,
      * most look and feels begin a drag-and-drop operation
-     * whenever the user presses the mouse button over a selection
+     * whenever the user presses the mouse button over an item
      * and then moves the mouse a few pixels. 
      * Setting this property to <code>true</code>
      * can therefore have a subtle effect on
@@ -607,7 +613,7 @@ public class JFileChooser extends JComponent implements Accessible {
      * <ul>
      * <li>JFileChooser.CANCEL_OPTION
      * <li>JFileChooser.APPROVE_OPTION
-     * <li>JFileCHooser.ERROR_OPTION if an error occurs or the
+     * <li>JFileChooser.ERROR_OPTION if an error occurs or the
      *			dialog is dismissed
      * </ul>
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
@@ -632,7 +638,7 @@ public class JFileChooser extends JComponent implements Accessible {
      * <ul>
      * <li>JFileChooser.CANCEL_OPTION
      * <li>JFileChooser.APPROVE_OPTION
-     * <li>JFileCHooser.ERROR_OPTION if an error occurs or the
+     * <li>JFileChooser.ERROR_OPTION if an error occurs or the
      *			dialog is dismissed
      * </ul>
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
@@ -715,6 +721,7 @@ public class JFileChooser extends JComponent implements Accessible {
 	rescanCurrentDirectory();
 
 	dialog.show();
+        firePropertyChange("JFileChooserDialogIsClosingProperty", dialog, null);
 	dialog.dispose();
 	dialog = null;
 	return returnValue;
@@ -747,7 +754,8 @@ public class JFileChooser extends JComponent implements Accessible {
      */
     protected JDialog createDialog(Component parent) throws HeadlessException {
 	String title = getUI().getDialogTitle(this);
-        getAccessibleContext().setAccessibleDescription(title);
+        putClientProperty(AccessibleContext.ACCESSIBLE_DESCRIPTION_PROPERTY, 
+                          title);
 
         JDialog dialog;
         Window window = JOptionPane.getWindowForComponent(parent);
@@ -942,8 +950,7 @@ public class JFileChooser extends JComponent implements Accessible {
      *       bound: true
      * description: The tooltip text for the ApproveButton.
      *
-     * @return the text used in the ApproveButton
-     *
+     * @param toolTipText the tooltip text for the approve button
      * @see #setApproveButtonText
      * @see #setDialogType
      * @see #showDialog
@@ -962,7 +969,7 @@ public class JFileChooser extends JComponent implements Accessible {
      * Returns the tooltip text used in the <code>ApproveButton</code>.
      * If <code>null</code>, the UI object will determine the button's text.
      *
-     * @return the text used in the <code>ApproveButton</code>
+     * @return the tooltip text used for the approve button
      *
      * @see #setApproveButtonText
      * @see #setDialogType
@@ -1784,7 +1791,18 @@ public class JFileChooser extends JComponent implements Accessible {
         return (FileChooserUI) ui;
     }
 
-    /** 
+    /**
+     * See <code>readObject</code> and <code>writeObject</code> in
+     * <code>JComponent</code> for more
+     * information about serialization in Swing.
+     */
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        installShowFilesListener();
+    }
+
+    /**
      * See <code>readObject</code> and <code>writeObject</code> in
      * <code>JComponent</code> for more 
      * information about serialization in Swing.

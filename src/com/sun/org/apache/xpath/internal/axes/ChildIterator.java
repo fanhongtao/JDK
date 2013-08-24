@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: ChildIterator.java,v 1.15 2004/02/17 04:32:08 minchau Exp $
+ * $Id: ChildIterator.java,v 1.2.4.2 2005/09/14 19:45:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
 import com.sun.org.apache.xml.internal.dtm.DTM;
+import com.sun.org.apache.xml.internal.dtm.DTMFilter;
 import com.sun.org.apache.xpath.internal.XPathContext;
 import com.sun.org.apache.xpath.internal.compiler.Compiler;
 
@@ -31,6 +32,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public class ChildIterator extends LocPathIterator
 {
+    static final long serialVersionUID = -6935428015142993583L;
 
   /**
    * Create a ChildIterator object.
@@ -46,6 +48,9 @@ public class ChildIterator extends LocPathIterator
           throws javax.xml.transform.TransformerException
   {
     super(compiler, opPos, analysis, false);
+
+    // This iterator matches all kinds of nodes
+    initNodeTest(DTMFilter.SHOW_ALL);
   }
   
   /**

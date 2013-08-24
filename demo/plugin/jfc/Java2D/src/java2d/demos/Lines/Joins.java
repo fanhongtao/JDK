@@ -1,7 +1,7 @@
 /*
- * @(#)Joins.java	1.27 04/07/26
+ * @(#)Joins.java	1.30 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)Joins.java	1.24 03/01/23
+ * @(#)Joins.java	1.30 06/08/29
  */
 
 package java2d.demos.Lines;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -64,7 +65,7 @@ public class Joins extends ControlsSurface implements ChangeListener {
 
 
     public Joins() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         slider = new JSlider(JSlider.VERTICAL, 0, 100, (int)(bswidth*2));
         slider.setPreferredSize(new Dimension(15, 100));
         slider.addChangeListener(this);
@@ -98,7 +99,7 @@ public class Joins extends ControlsSurface implements ChangeListener {
         p.closePath();
         p.closePath();
         g2.translate(w/2, h/2);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(bs.createStrokedShape(p));
     }
 

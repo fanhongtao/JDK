@@ -1,7 +1,7 @@
 /*
- * @(#)ButtonModel.java	1.26 03/12/19
+ * @(#)ButtonModel.java	1.29 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -12,38 +12,58 @@ import java.awt.*;
 import javax.swing.event.*;
 
 /**
- * State Model for buttons.
- * This model is used for check boxes and radio buttons, which are
- * special kinds of buttons, as well as for normal buttons.
- * For check boxes and radio buttons, pressing the mouse selects
- * the button. For normal buttons, pressing the mouse "arms" the
- * button. Releasing the mouse over the button then initiates a
- * <i>button</i> press, firing its action event. Releasing the 
- * mouse elsewhere disarms the button.
+ * State model for buttons.
  * <p>
- * In use, a UI will invoke {@link #setSelected} when a mouse
- * click occurs over a check box or radio button. It will invoke
- * {@link #setArmed} when the mouse is pressed over a regular
- * button and invoke {@link #setPressed} when the mouse is released.
- * If the mouse travels outside the button in the meantime, 
- * <code>setArmed(false)</code> will tell the button not to fire
- * when it sees <code>setPressed</code>. (If the mouse travels 
- * back in, the button will be rearmed.)
- * <blockquote>
- * <b>Note: </b><br>
- * A button is triggered when it is both "armed" and "pressed".
- * </blockquote>
+ * This model is used for regular buttons, as well as check boxes
+ * and radio buttons, which are special kinds of buttons. In practice,
+ * a button's UI takes the responsibility of calling methods on its
+ * model to manage the state, as detailed below:
+ * <p>
+ * In simple terms, pressing and releasing the mouse over a regular
+ * button triggers the button and causes and <code>ActionEvent</code>
+ * to be fired. The same behavior can be produced via a keyboard key
+ * defined by the look and feel of the button (typically the SPACE BAR).
+ * Pressing and releasing this key while the button has
+ * focus will give the same results. For check boxes and radio buttons, the
+ * mouse or keyboard equivalent sequence just described causes the button
+ * to become selected.
+ * <p>
+ * In details, the state model for buttons works as follows
+ * when used with the mouse:
+ * <br>
+ * Pressing the mouse on top of a button makes the model both
+ * armed and pressed. As long as the mouse remains down,
+ * the model remains pressed, even if the mouse moves
+ * outside the button. On the contrary, the model is only
+ * armed while the mouse remains pressed within the bounds of
+ * the button (it can move in or out of the button, but the model
+ * is only armed during the portion of time spent within the button).
+ * A button is triggered, and an <code>ActionEvent</code> is fired,
+ * when the mouse is released while the model is armed
+ * - meaning when it is released over top of the button after the mouse
+ * has previously been pressed on that button (and not already released).
+ * Upon mouse release, the model becomes unarmed and unpressed.
+ * <p>
+ * In details, the state model for buttons works as follows
+ * when used with the keyboard:
+ * <br>
+ * Pressing the look and feel defined keyboard key while the button
+ * has focus makes the model both armed and pressed. As long as this key
+ * remains down, the model remains in this state. Releasing the key sets
+ * the model to unarmed and unpressed, triggers the button, and causes an
+ * <code>ActionEvent</code> to be fired.
  *
- * @version 1.26 12/19/03
+ * @version 1.29 02/14/06
  * @author Jeff Dinkins
  */
 public interface ButtonModel extends ItemSelectable {
     
     /**
-     * Indicates partial commitment towards pressing the
-     * button. 
+     * Indicates partial commitment towards triggering the
+     * button.
      *
-     * @return true if the button is armed, and ready to be pressed
+     * @return <code>true</code> if the button is armed,
+     *         and ready to be triggered
      * @see #setArmed
      */
     boolean isArmed();     
@@ -52,56 +72,51 @@ public interface ButtonModel extends ItemSelectable {
      * Indicates if the button has been selected. Only needed for
      * certain types of buttons - such as radio buttons and check boxes.
      *
-     * @return true if the button is selected
+     * @return <code>true</code> if the button is selected
      */
     boolean isSelected();
         
     /**
-     * Indicates if the button can be selected or pressed by
-     * an input device (such as a mouse pointer). (Check boxes
-     * are selected, regular buttons are "pressed".)
+     * Indicates if the button can be selected or triggered by
+     * an input device, such as a mouse pointer.
      *
-     * @return true if the button is enabled, and therefore
-     *         selectable (or pressable)
+     * @return <code>true</code> if the button is enabled
      */
     boolean isEnabled();
         
     /**
-     * Indicates if button has been pressed.
+     * Indicates if the button is pressed.
      *
-     * @return true if the button has been pressed
+     * @return <code>true</code> if the button is pressed
      */
     boolean isPressed();
 
     /**
      * Indicates that the mouse is over the button.
      *
-     * @return true if the mouse is over the button
+     * @return <code>true</code> if the mouse is over the button
      */
     boolean isRollover();
 
     /**
-     * Marks the button as "armed". If the mouse button is
-     * released while it is over this item, the button's action event
-     * fires. If the mouse button is released elsewhere, the
-     * event does not fire and the button is disarmed.
+     * Marks the button as armed or unarmed.
      * 
-     * @param b true to arm the button so it can be selected
+     * @param b whether or not the button should be armed
      */
     public void setArmed(boolean b);
 
     /**
      * Selects or deselects the button.
      *
-     * @param b true selects the button,
-     *          false deselects the button.
+     * @param b <code>true</code> selects the button,
+     *          <code>false</code> deselects the button
      */
     public void setSelected(boolean b);
 
     /**
      * Enables or disables the button.
      * 
-     * @param b true to enable the button
+     * @param b whether or not the button should be enabled
      * @see #isEnabled
      */
     public void setEnabled(boolean b);
@@ -109,7 +124,7 @@ public interface ButtonModel extends ItemSelectable {
     /**
      * Sets the button to pressed or unpressed.
      * 
-     * @param b true to set the button to "pressed"
+     * @param b whether or not the button should be pressed
      * @see #isPressed
      */
     public void setPressed(boolean b);
@@ -117,21 +132,21 @@ public interface ButtonModel extends ItemSelectable {
     /**
      * Sets or clears the button's rollover state
      * 
-     * @param b true to turn on rollover
+     * @param b whether or not the button is in the rollover state
      * @see #isRollover
      */
     public void setRollover(boolean b);
 
     /**
      * Sets the keyboard mnemonic (shortcut key or
-     * accelerator key) for this button.
+     * accelerator key) for the button.
      *
      * @param key an int specifying the accelerator key
      */
     public void setMnemonic(int key);
 
     /**
-     * Gets the keyboard mnemonic for this model
+     * Gets the keyboard mnemonic for the button.
      *
      * @return an int specifying the accelerator key
      * @see #setMnemonic
@@ -139,67 +154,69 @@ public interface ButtonModel extends ItemSelectable {
     public int  getMnemonic();
 
     /**
-     * Sets the actionCommand string that gets sent as part of the
-     * event when the button is pressed.
+     * Sets the action command string that gets sent as part of the
+     * <code>ActionEvent</code> when the button is triggered.
      *
-     * @param s the String that identifies the generated event
+     * @param s the <code>String</code> that identifies the generated event
+     * @see #getActionCommand
+     * @see java.awt.event.ActionEvent#getActionCommand
      */
     public void setActionCommand(String s);
 
     /**
-     * Returns the action command for this button.
+     * Returns the action command string for the button.
      *
-     * @return the String that identifies the generated event
+     * @return the <code>String</code> that identifies the generated event
      * @see #setActionCommand
      */
     public String getActionCommand();
 
     /**
-     * Identifies the group this button belongs to --
+     * Identifies the group the button belongs to --
      * needed for radio buttons, which are mutually
      * exclusive within their group.
      *
-     * @param group the ButtonGroup this button belongs to
+     * @param group the <code>ButtonGroup</code> the button belongs to
      */
     public void setGroup(ButtonGroup group);
     
     /**
-     * Adds an ActionListener to the button.
+     * Adds an <code>ActionListener</code> to the model.
      *
      * @param l the listener to add
      */
     void addActionListener(ActionListener l);
 
     /**
-     * Removes an ActionListener from the button.
+     * Removes an <code>ActionListener</code> from the model.
      *
      * @param l the listener to remove
      */
     void removeActionListener(ActionListener l);
 
     /**
-     * Adds an ItemListener to the button.
+     * Adds an <code>ItemListener</code> to the model.
      *
      * @param l the listener to add
      */
     void addItemListener(ItemListener l);
 
     /**
-     * Removes an ItemListener from the button.
+     * Removes an <code>ItemListener</code> from the model.
      *
      * @param l the listener to remove
      */
     void removeItemListener(ItemListener l);
 
     /**
-     * Adds a ChangeListener to the button.
+     * Adds a <code>ChangeListener</code> to the model.
      *
      * @param l the listener to add
      */
     void addChangeListener(ChangeListener l);
 
     /**
-     * Removes a ChangeListener from the button.
+     * Removes a <code>ChangeListener</code> from the model.
      *
      * @param l the listener to remove
      */

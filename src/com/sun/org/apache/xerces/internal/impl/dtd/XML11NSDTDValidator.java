@@ -89,11 +89,13 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *  <li>http://apache.org/xml/properties/internal/grammar-pool</li>
  *  <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
  * </ul>
+ * 
+ * @xerces.internal
  *
  * @author Elena Litani, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XML11NSDTDValidator.java,v 1.2 2003/10/10 18:25:40 mrglavas Exp $
+
  */
 public class XML11NSDTDValidator extends XML11DTDValidator {
 

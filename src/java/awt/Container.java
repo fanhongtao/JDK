@@ -1,7 +1,7 @@
 /*
- * @(#)Container.java	1.267 04/05/18
+ * @(#)Container.java	1.286 06/07/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -35,14 +35,15 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.Arrays;
 import javax.accessibility.*;
 import java.beans.PropertyChangeListener;
-import javax.swing.JRootPane;
 
 import sun.awt.AppContext;
 import sun.awt.DebugHelper;
 import sun.awt.SunToolkit;
 import sun.awt.dnd.SunDropTargetEvent;
+import sun.awt.CausedFocusEvent;
 
 /**
  * A generic Abstract Window Toolkit(AWT) container object is a component 
@@ -61,7 +62,7 @@ import sun.awt.dnd.SunDropTargetEvent;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version 	1.267, 05/18/04
+ * @version 	1.286, 07/27/06
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -296,9 +297,7 @@ public class Container extends Component {
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
     final Component[] getComponents_NoClientCode() {
 	synchronized (getTreeLock()) {
-	    Component list[] = new Component[ncomponents];
-	    System.arraycopy(component, 0, list, 0, ncomponents);
-	    return list;
+            return Arrays.copyOf(component, ncomponents);
 	}
     } // getComponents_NoClientCode()
 
@@ -323,9 +322,10 @@ public class Container extends Component {
      */
     @Deprecated
     public Insets insets() {
-	if (this.peer != null && this.peer instanceof ContainerPeer) {
-	    ContainerPeer peer = (ContainerPeer)this.peer;
-	    return (Insets)peer.insets().clone();
+        ComponentPeer peer = this.peer;
+	if (peer instanceof ContainerPeer) {
+	    ContainerPeer cpeer = (ContainerPeer)peer;
+	    return (Insets)cpeer.insets().clone();
 	}
 	return new Insets(0, 0, 0, 0);
     }
@@ -342,6 +342,7 @@ public class Container extends Component {
      * after all the components have been added.
      *
      * @param     comp   the component to be added
+     * @exception NullPointerException if {@code comp} is {@code null}
      * @see #addImpl
      * @see #validate
      * @see javax.swing.JComponent#revalidate()
@@ -358,6 +359,7 @@ public class Container extends Component {
      * <p>
      * This method is obsolete as of 1.1.  Please use the
      * method <code>add(Component, Object)</code> instead.
+     * @exception NullPointerException if {@code comp} is {@code null}
      * @see #add(Component, Object)
      */
     public Component add(String name, Component comp) {
@@ -380,6 +382,9 @@ public class Container extends Component {
      * @param     comp   the component to be added
      * @param     index    the position at which to insert the component, 
      *                   or <code>-1</code> to append the component to the end
+     * @exception NullPointerException if {@code comp} is {@code null}
+     * @exception IllegalArgumentException if {@code index} is invalid (see
+     *            {@link #addImpl} for details)
      * @return    the component <code>comp</code>
      * @see #addImpl
      * @see #remove
@@ -661,7 +666,7 @@ public class Container extends Component {
      * @see #getComponentZOrder(java.awt.Component)
      * @since 1.5
      */
-    public final void setComponentZOrder(Component comp, int index) {
+    public void setComponentZOrder(Component comp, int index) {
          synchronized (getTreeLock()) {
              // Store parent because remove will clear it
              Container curParent = comp.parent; 
@@ -733,9 +738,7 @@ public class Container extends Component {
         if (curParent != this) {
             /* Add component to list; allocate new array if necessary. */
             if (ncomponents == component.length) {
-                Component newcomponents[] = new Component[ncomponents * 2 + 1];
-                System.arraycopy(component, 0, newcomponents, 0, ncomponents);
-                component = newcomponents;
+                component = Arrays.copyOf(component, ncomponents * 2 + 1);
             }
             if (index == -1 || index == ncomponents) {
                 component[ncomponents++] = comp;
@@ -849,12 +852,12 @@ public class Container extends Component {
      *
      * @param comp the component being queried
      * @return  the z-order index of the component; otherwise 
-     *          returns -1 if the component is <code>null</code
+     *          returns -1 if the component is <code>null</code>
      *          or doesn't belong to the container 
      * @see #setComponentZOrder(java.awt.Component, int)
      * @since 1.5
      */
-    public final int getComponentZOrder(Component comp) {
+    public int getComponentZOrder(Component comp) {
         if (comp == null) {
             return -1;
         }
@@ -889,6 +892,7 @@ public class Container extends Component {
      * @param     comp the component to be added
      * @param     constraints an object expressing 
      *                  layout contraints for this component
+     * @exception NullPointerException if {@code comp} is {@code null}
      * @see #addImpl
      * @see #validate
      * @see javax.swing.JComponent#revalidate()
@@ -918,6 +922,9 @@ public class Container extends Component {
      * @param index the position in the container's list at which to insert
      * the component; <code>-1</code> means insert at the end
      * component
+     * @exception NullPointerException if {@code comp} is {@code null}
+     * @exception IllegalArgumentException if {@code index} is invalid (see
+     *            {@link #addImpl} for details)
      * @see #addImpl
      * @see #validate
      * @see javax.swing.JComponent#revalidate()
@@ -947,14 +954,15 @@ public class Container extends Component {
      * the correct type of constraints object results in an
      * <code>IllegalArgumentException</code>.
      * <p>
-     * If the layout manager implements both the <code>LayoutManager</code>
-     * and <code>LayoutManager2</code> interfaces, the 
-     * <code>LayoutManager2</code> methods are called.
+     * If the current layout manager implements {@code LayoutManager2}, then
+     * {@link LayoutManager2#addLayoutComponent(Component,Object)} is invoked on
+     * it. If the current layout manager does not implement
+     * {@code LayoutManager2}, and constraints is a {@code String}, then
+     * {@link LayoutManager#addLayoutComponent(String,Component)} is invoked on it.
      * <p>
-     * Note that if the component already exists
-     * in this container or a child of this container,
-     * it is removed from that container before
-     * being added to this container.
+     * If the component is not an ancestor of this container and has a non-null
+     * parent, it is removed from its current parent before it is added to this
+     * container.
      * <p>
      * This is the method to override if a program needs to track 
      * every add request to a container as all other add methods defer
@@ -971,12 +979,16 @@ public class Container extends Component {
      * @param     index the position in the container's list at which to
      *                 insert the component, where <code>-1</code> 
      *                 means append to the end
-     * @exception IllegalArgumentException if <code>index</code> is invalid
-     * @exception IllegalArgumentException if adding the container's parent
-     *			to itself
-     * @throws IllegalArgumentException if <code>comp</code> has been added
-     *         to the <code>Container</code> more than once
+     * @exception IllegalArgumentException if {@code index} is invalid;
+     *            if {@code comp} is a child of this container, the valid
+     *            range is {@code [-1, getComponentCount()-1]}; if component is
+     *            not a child of this container, the valid range is 
+     *            {@code [-1, getComponentCount()]}
+     *
+     * @exception IllegalArgumentException if {@code comp} is an ancestor of
+     *                                     this container
      * @exception IllegalArgumentException if adding a window to a container
+     * @exception NullPointerException if {@code comp} is {@code null}
      * @see       #add(Component)       
      * @see       #add(Component, int)       
      * @see       #add(Component, java.lang.Object)       
@@ -1025,9 +1037,7 @@ public class Container extends Component {
 
 	    /* Add component to list; allocate new array if necessary. */
 	    if (ncomponents == component.length) {
-		Component newcomponents[] = new Component[ncomponents * 2 + 1];
-		System.arraycopy(component, 0, newcomponents, 0, ncomponents);
-		component = newcomponents;
+                component = Arrays.copyOf(component, ncomponents * 2 + 1);
 	    }
 	    if (index == -1 || index == ncomponents) {
 		component[ncomponents++] = comp;
@@ -1100,8 +1110,20 @@ public class Container extends Component {
      * component from this container's layout via the
      * <code>removeLayoutComponent</code> method.
      *
+     * <p>
+     * Note: If a component has been removed from a container that
+     * had been displayed, {@link #validate} must be
+     * called on that container to reflect changes.
+     * If multiple components are being removed, you can improve
+     * efficiency by calling {@link #validate} only once,
+     * after all the components have been removed.
+     *
      * @param     index   the index of the component to be removed
+     * @throws ArrayIndexOutOfBoundsException if {@code index} is not in
+     *         range {@code [0, getComponentCount()-1]}
      * @see #add
+     * @see #validate
+     * @see #getComponentCount
      * @since JDK1.1
      */
     public void remove(int index) {
@@ -1156,8 +1178,17 @@ public class Container extends Component {
      * component from this container's layout via the
      * <code>removeLayoutComponent</code> method.
      *
+     * <p>
+     * Note: If a component has been removed from a container that
+     * had been displayed, {@link #validate} must be
+     * called on that container to reflect changes.
+     * If multiple components are being removed, you can improve
+     * efficiency by calling {@link #validate} only once,
+     * after all the components have been removed.
+     *
      * @param comp the component to be removed
      * @see #add
+     * @see #validate
      * @see #remove(int)
      */
     public void remove(Component comp) {
@@ -1402,13 +1433,20 @@ public class Container extends Component {
 	}
     }
 
-    /** 
+    /**
      * Invalidates the container.  The container and all parents
      * above it are marked as needing to be laid out.  This method can
      * be called often, so it needs to execute quickly.
+     *
+     * <p> If the {@code LayoutManager} installed on this container is
+     * an instance of {@code LayoutManager2}, then
+     * {@link LayoutManager2#invalidateLayout(Container)} is invoked on
+     * it supplying this {@code Container} as the argument.
+     *
      * @see #validate
      * @see #layout
      * @see LayoutManager
+     * @see LayoutManager2#invalidateLayout(Container)
      */
     public void invalidate() {
         LayoutManager layoutMgr = this.layoutMgr;
@@ -1428,9 +1466,14 @@ public class Container extends Component {
      * removed from the container, or layout-related information
      * changed) after the container has been displayed.
      *
+     * <p>If this {@code Container} is not valid, this method invokes
+     * the {@code validateTree} method and marks this {@code Container}
+     * as valid. Otherwise, no action is performed.
+     *
      * @see #add(java.awt.Component)
      * @see Component#invalidate
      * @see javax.swing.JComponent#revalidate()
+     * @see #validateTree
      */
     public void validate() {
         /* Avoid grabbing lock unless really necessary. */
@@ -1452,7 +1495,7 @@ public class Container extends Component {
 			updateCur = isVisible();
 		    }
 		}
-	    }	    
+	    }
 	    if (updateCur) {
                 updateCursorImmediately();
 	    }
@@ -1464,6 +1507,9 @@ public class Container extends Component {
      * layout for any subtrees marked as needing it (those marked as
      * invalid).  Synchronization should be provided by the method
      * that calls this one:  <code>validate</code>.
+     *
+     * @see #doLayout
+     * @see #validate
      */
     protected void validateTree() {
 	if (!valid) {
@@ -1530,11 +1576,23 @@ public class Container extends Component {
 	}
     }
 
-    /** 
-     * Returns the preferred size of this container.  
-     * @return    an instance of <code>Dimension</code> that represents 
+    /**
+     * Returns the preferred size of this container.  If the preferred size has
+     * not been set explicitly by {@link Component#setPreferredSize(Dimension)}
+     * and this {@code Container} has a {@code non-null} {@link LayoutManager},
+     * then {@link LayoutManager#preferredLayoutSize(Container)}
+     * is used to calculate the preferred size.
+     *
+     * <p>Note: some implementations may cache the value returned from the
+     * {@code LayoutManager}.  Implementations that cache need not invoke
+     * {@code preferredLayoutSize} on the {@code LayoutManager} every time
+     * this method is invoked, rather the {@code LayoutManager} will only
+     * be queried after the {@code Container} becomes invalid.
+     *
+     * @return    an instance of <code>Dimension</code> that represents
      *                the preferred size of this container.
-     * @see       #getMinimumSize       
+     * @see       #getMinimumSize
+     * @see       #getMaximumSize
      * @see       #getLayout
      * @see       LayoutManager#preferredLayoutSize(Container)
      * @see       Component#getPreferredSize
@@ -1569,11 +1627,23 @@ public class Container extends Component {
         }
     }
 
-    /** 
-     * Returns the minimum size of this container.  
-     * @return    an instance of <code>Dimension</code> that represents 
+    /**
+     * Returns the minimum size of this container.  If the minimum size has
+     * not been set explicitly by {@link Component#setMinimumSize(Dimension)}
+     * and this {@code Container} has a {@code non-null} {@link LayoutManager},
+     * then {@link LayoutManager#minimumLayoutSize(Container)}
+     * is used to calculate the minimum size.
+     *
+     * <p>Note: some implementations may cache the value returned from the
+     * {@code LayoutManager}.  Implementations that cache need not invoke
+     * {@code minimumLayoutSize} on the {@code LayoutManager} every time
+     * this method is invoked, rather the {@code LayoutManager} will only
+     * be queried after the {@code Container} becomes invalid.
+     *
+     * @return    an instance of <code>Dimension</code> that represents
      *                the minimum size of this container.
-     * @see       #getPreferredSize       
+     * @see       #getPreferredSize
+     * @see       #getMaximumSize
      * @see       #getLayout
      * @see       LayoutManager#minimumLayoutSize(Container)
      * @see       Component#getMinimumSize
@@ -1610,8 +1680,26 @@ public class Container extends Component {
     }
 
     /** 
-     * Returns the maximum size of this container.  
-     * @see #getPreferredSize
+     * Returns the maximum size of this container.  If the maximum size has
+     * not been set explicitly by {@link Component#setMaximumSize(Dimension)}
+     * and the {@link LayoutManager} installed on this {@code Container}
+     * is an instance of {@link LayoutManager2}, then
+     * {@link LayoutManager2#maximumLayoutSize(Container)}
+     * is used to calculate the maximum size.
+     *
+     * <p>Note: some implementations may cache the value returned from the
+     * {@code LayoutManager2}.  Implementations that cache need not invoke
+     * {@code maximumLayoutSize} on the {@code LayoutManager2} every time
+     * this method is invoked, rather the {@code LayoutManager2} will only
+     * be queried after the {@code Container} becomes invalid.
+     *
+     * @return    an instance of <code>Dimension</code> that represents
+     *                the maximum size of this container.
+     * @see       #getPreferredSize
+     * @see       #getMinimumSize
+     * @see       #getLayout
+     * @see       LayoutManager2#maximumLayoutSize(Container)
+     * @see       Component#getMaximumSize
      */
     public Dimension getMaximumSize() {
 	/* Avoid grabbing the lock if a reasonable cached size value
@@ -1842,6 +1930,8 @@ public class Container extends Component {
      * Adds the specified container listener to receive container events
      * from this container.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param    l the container listener
      *
@@ -1860,6 +1950,8 @@ public class Container extends Component {
      * Removes the specified container listener so it no longer receives
      * container events from this container.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param 	l the container listener
      *
@@ -2076,7 +2168,7 @@ public class Container extends Component {
      *
      * @param filter EventTargetFilter instance to determine whether the
      *        given component is a valid target for this event. 
-     * @param searchHeavyweights if <code>false</false>, the method 
+     * @param searchHeavyweights if <code>false</code>, the method 
      *        will bypass heavyweight components during the search. 
      */
     private Component getMouseEventTarget(int x, int y, boolean includeSelf,
@@ -2110,11 +2202,11 @@ public class Container extends Component {
      *
      * @param filter EventTargetFilter instance to determine whether the
      *        selected component is a valid target for this event. 
-     * @param searchHeavyweightChildren if <code>true</false>, the method 
+     * @param searchHeavyweightChildren if <code>true</code>, the method 
      *        will bypass immediate lightweight children during the search.
      *        If <code>false</code>, the methods will bypass immediate
      *        heavyweight children during the search. 
-     * @param searchHeavyweightDescendants if <code>false</false>, the method 
+     * @param searchHeavyweightDescendants if <code>false</code>, the method 
      *        will bypass heavyweight descendants which are not immediate
      *        children during the search. If <code>true</code>, the method
      *        will traverse both lightweight and heavyweight descendants during
@@ -2581,7 +2673,7 @@ public class Container extends Component {
         // keep the KeyEvents from being dispatched
         // until the focus has been transfered
         long time = Toolkit.getEventQueue().getMostRecentEventTime();
-        Component predictedFocusOwner = (this instanceof  javax.swing.JInternalFrame) ? ((javax.swing.JInternalFrame)(this)).getMostRecentFocusOwner() : null;
+        Component predictedFocusOwner = (Component.isInstanceOf(this, "javax.swing.JInternalFrame")) ? ((javax.swing.JInternalFrame)(this)).getMostRecentFocusOwner() : null;
         if (predictedFocusOwner != null) {
             KeyboardFocusManager.getCurrentKeyboardFocusManager().
                 enqueueKeyEvents(time, predictedFocusOwner); 
@@ -3060,7 +3152,7 @@ public class Container extends Component {
                     toFocus = policy.getDefaultComponent(root);
                 }
                 if (toFocus != null) {
-                    return toFocus.requestFocus(false);
+                    return toFocus.requestFocus(false, CausedFocusEvent.Cause.TRAVERSAL_FORWARD);
                 }
             }
             return false;
@@ -3089,7 +3181,7 @@ public class Container extends Component {
                     toFocus = policy.getDefaultComponent(root);
                 }
                 if (toFocus != null) {
-                    toFocus.requestFocus();
+                    toFocus.requestFocus(CausedFocusEvent.Cause.TRAVERSAL_BACKWARD);
                 }
             }
         } else {
@@ -3235,7 +3327,7 @@ public class Container extends Component {
      * traversal policy. Container with this property as
      * <code>true</code> will be used to acquire focus traversal policy
      * instead of closest focus cycle root ancestor.
-     * @param provide indicates whether this container will be used to
+     * @param provider indicates whether this container will be used to
      *                provide focus traversal policy
      * @see #setFocusTraversalPolicy
      * @see #getFocusTraversalPolicy     
@@ -3294,7 +3386,7 @@ public class Container extends Component {
 	    Component toFocus = getFocusTraversalPolicy().
 	        getDefaultComponent(this);
 	    if (toFocus != null) {
-	        toFocus.requestFocus();
+	        toFocus.requestFocus(CausedFocusEvent.Cause.TRAVERSAL_DOWN);
 	    }
 	}
     }
@@ -3556,6 +3648,7 @@ public class Container extends Component {
      * The class used to obtain the accessible role for this object,
      * as well as implementing many of the methods in the
      * AccessibleContainer interface.
+     * @since 1.3
      */
     protected class AccessibleAWTContainer extends AccessibleAWTComponent {
 
@@ -3604,6 +3697,7 @@ public class Container extends Component {
 	/**
 	 * Fire <code>PropertyChange</code> listener, if one is registered,
 	 * when children are added or removed.
+	 * @since 1.3
 	 */
 	protected class AccessibleContainerHandler 
 	    implements ContainerListener {
@@ -4084,6 +4178,16 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 		return;
 	    }
 
+            // see 5083555
+            // check if srcComponent is in any modal blocked window
+            Component c = nativeContainer;
+            while ((c != null) && !(c instanceof Window)) {
+                c = c.getParent_NoClientCode();
+            }
+            if ((c == null) || ((Window)c).isModalBlocked()) {
+                return;
+            }
+
 	    //
 	    // create an internal 'dragged-over' event indicating
 	    // we are being dragged over from another hw component
@@ -4094,6 +4198,8 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 			       srcEvent.getModifiersEx() | srcEvent.getModifiers(),
 			       srcEvent.getX(),
 			       srcEvent.getY(),
+			       srcEvent.getXOnScreen(),
+			       srcEvent.getYOnScreen(),
 			       srcEvent.getClickCount(),
 			       srcEvent.isPopupTrigger(),
                                srcEvent.getButton());
@@ -4176,6 +4282,8 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
                                        e.getModifiersEx() | e.getModifiers(),
                                        x,
                                        y,
+                                       e.getXOnScreen(),
+                                       e.getYOnScreen(),
                                        e.getClickCount(),
                                        e.isPopupTrigger(),
                                        ((MouseWheelEvent)e).getScrollType(),
@@ -4188,7 +4296,9 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
                                             e.getWhen(), 
                                             e.getModifiersEx() | e.getModifiers(),
                                             x, 
-                                            y, 
+                                            y,
+                                            e.getXOnScreen(),
+                                            e.getYOnScreen(),
                                             e.getClickCount(), 
                                             e.isPopupTrigger(),
                                             e.getButton());

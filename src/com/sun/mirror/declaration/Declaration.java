@@ -1,7 +1,7 @@
 /*
- * @(#)Declaration.java	1.6 04/07/16
+ * @(#)Declaration.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import com.sun.mirror.util.*;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.6 04/07/16
+ * @version 1.7 05/11/17
  *
  * @see Declarations
  * @see TypeMirror

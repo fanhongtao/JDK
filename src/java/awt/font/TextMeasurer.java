@@ -1,7 +1,7 @@
 /*
- * @(#)TextMeasurer.java	1.39 03/12/19
+ * @(#)TextMeasurer.java	1.42 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,6 +35,7 @@ import java.awt.font.FontRenderContext;
 import java.util.Hashtable;
 import java.util.Map;
 
+import sun.font.AttributeValues;
 import sun.font.BidiUtils;
 import sun.font.TextLineComponent;
 import sun.font.TextLabelFactory;
@@ -188,21 +189,15 @@ public final class TextMeasurer implements Cloneable {
         text.first();
                 
         fBidi = new Bidi(text);
-	if (fBidi.isLeftToRight()) {
-	    fBidi = null;
-	}
+        if (fBidi.isLeftToRight()) {
+            fBidi = null;
+        }
 
         text.first();
         Map paragraphAttrs = text.getAttributes();
-        if (paragraphAttrs != null) {
-            try {
-                NumericShaper shaper = (NumericShaper)paragraphAttrs.get(TextAttribute.NUMERIC_SHAPING);
-                if (shaper != null) {
-                    shaper.shape(fChars, 0, fChars.length);
-                }
-            }
-            catch (ClassCastException e) {
-            }
+        NumericShaper shaper = AttributeValues.getNumericShaping(paragraphAttrs);
+        if (shaper != null) {
+            shaper.shape(fChars, 0, fChars.length);
         }
 
         fParagraph = new StyledParagraph(text, fChars);
@@ -213,7 +208,7 @@ public final class TextMeasurer implements Cloneable {
             // paragraph, look for the first non-graphic character
             // and use it and its font to initialize the paragraph.
             // If not, use the first graphic to initialize.
-            fJustifyRatio = TextLine.getJustifyRatio(paragraphAttrs);
+            fJustifyRatio = AttributeValues.getJustification(paragraphAttrs);
             
             boolean haveFont = TextLine.advanceToFirstFont(text);
 
@@ -250,14 +245,14 @@ public final class TextMeasurer implements Cloneable {
         if (collectStats) {
             formattedChars += (endingAt-startingAt);
         }
-	int layoutFlags = 0; // no extra info yet, bidi determines run and line direction
+        int layoutFlags = 0; // no extra info yet, bidi determines run and line direction
         TextLabelFactory factory = new TextLabelFactory(fFrc, fChars, fBidi, layoutFlags);
 
         int[] charsLtoV = null;
         
         if (fBidi != null) {
             fLevels = BidiUtils.getLevels(fBidi);
-	    int[] charsVtoL = BidiUtils.createVisualToLogicalMap(fLevels);
+            int[] charsVtoL = BidiUtils.createVisualToLogicalMap(fLevels);
             charsLtoV = BidiUtils.createInverseMap(charsVtoL);
             fIsDirectionLTR = fBidi.baseIsLeftToRight();
         }
@@ -458,13 +453,14 @@ public final class TextMeasurer implements Cloneable {
         if (fBidi != null) {
             Bidi lineBidi = fBidi.createLineBidi(startPos, limitPos);
             charLevels = BidiUtils.getLevels(lineBidi);
-	    int[] charsVtoL = BidiUtils.createVisualToLogicalMap(charLevels);
+            int[] charsVtoL = BidiUtils.createVisualToLogicalMap(charLevels);
             charsLtoV = BidiUtils.createInverseMap(charsVtoL);
         }
 
         TextLineComponent[] components = makeComponentsOnRange(startPos, limitPos);
 
-        return new TextLine(components, 
+        return new TextLine(fFrc, 
+                            components, 
                             fBaselineOffsets,
                             fChars,
                             startPos,
@@ -533,7 +529,7 @@ public final class TextMeasurer implements Cloneable {
      *  on a line beginning at <code>start</code>, which is not longer
      *  than <code>maxAdvance</code> in graphical width
      * @throws IllegalArgumentException if <code>start</code> is
-     *		less than the beginning of the paragraph.
+     *          less than the beginning of the paragraph.
      */
     public int getLineBreakIndex(int start, float maxAdvance) {
         
@@ -561,8 +557,8 @@ public final class TextMeasurer implements Cloneable {
      * @throws IndexOutOfBoundsException if <code>limit</code> is less
      *         than <code>start</code>
      * @throws IllegalArgumentException if <code>start</code> or 
-     *		<code>limit</code> is not between the beginning of
-     *		the paragraph and the end of the paragraph. 
+     *          <code>limit</code> is not between the beginning of
+     *          the paragraph and the end of the paragraph. 
      */
     public float getAdvanceBetween(int start, int limit) {
         
@@ -586,8 +582,8 @@ public final class TextMeasurer implements Cloneable {
      * @throws IndexOutOfBoundsException if <code>limit</code> is less
      *         than <code>start</code>
      * @throws IllegalArgumentException if <code>start</code> or 
-     *		<code>limit</code> is not between the beginning of
-     *		the paragraph and the end of the paragraph. 
+     *          <code>limit</code> is not between the beginning of
+     *          the paragraph and the end of the paragraph. 
      */
     public TextLayout getLayout(int start, int limit) {
         
@@ -672,9 +668,9 @@ public final class TextMeasurer implements Cloneable {
                 newParagraph.getAttribute(TextAttribute.BIDI_EMBEDDING) != null) {
 
             fBidi = new Bidi(newParagraph);
-	    if (fBidi.isLeftToRight()) {
-		fBidi = null;
-	    }
+            if (fBidi.isLeftToRight()) {
+                fBidi = null;
+            }
         }
         
         fParagraph = StyledParagraph.insertChar(newParagraph, 
@@ -723,9 +719,9 @@ public final class TextMeasurer implements Cloneable {
         
         if (fBidi != null) {
             fBidi = new Bidi(newParagraph);
-	    if (fBidi.isLeftToRight()) {
-		fBidi = null;
-	    }
+            if (fBidi.isLeftToRight()) {
+                fBidi = null;
+            }
         }
         
         fParagraph = StyledParagraph.deleteChar(newParagraph, 

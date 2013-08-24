@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectImpl.java	1.37 03/12/19
+ * @(#)ObjectImpl.java	1.39 06/01/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA.portable;
@@ -496,7 +496,7 @@ abstract public class ObjectImpl implements org.omg.CORBA.Object
         if ( __delegate != null )
            return __delegate.hashCode(this);
         else
-           return System.identityHashCode(this);
+            return super.hashCode();
     }
 
     /**

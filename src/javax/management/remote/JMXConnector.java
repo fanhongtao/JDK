@@ -1,20 +1,17 @@
 /*
- * @(#)JMXConnector.java	1.30 04/05/05
+ * @(#)JMXConnector.java	1.32 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-
 package javax.management.remote;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
-
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServerConnection;
-import javax.management.NotificationBroadcaster;
-import javax.management.NotificationEmitter;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.security.auth.Subject;
@@ -32,7 +29,7 @@ import javax.security.auth.Subject;
  * @since 1.5
  * @since.unbundled 1.0
  */
-public interface JMXConnector {
+public interface JMXConnector extends Closeable {
     /**
       * <p>Name of the attribute that specifies the credentials to send
       * to the connector server during connection.  The value
@@ -211,7 +208,7 @@ public interface JMXConnector {
      * null.
      *
      * @see #removeConnectionNotificationListener
-     * @see NotificationBroadcaster#addNotificationListener
+     * @see javax.management.NotificationBroadcaster#addNotificationListener
      */
     public void
 	addConnectionNotificationListener(NotificationListener listener,
@@ -235,7 +232,7 @@ public interface JMXConnector {
      * @see #removeConnectionNotificationListener(NotificationListener,
      * NotificationFilter, Object)
      * @see #addConnectionNotificationListener
-     * @see NotificationEmitter#removeNotificationListener
+     * @see javax.management.NotificationEmitter#removeNotificationListener
      */
     public void
 	removeConnectionNotificationListener(NotificationListener listener)
@@ -259,7 +256,7 @@ public interface JMXConnector {
      *
      * @see #removeConnectionNotificationListener(NotificationListener)
      * @see #addConnectionNotificationListener
-     * @see NotificationEmitter#removeNotificationListener
+     * @see javax.management.NotificationEmitter#removeNotificationListener
      */
     public void removeConnectionNotificationListener(NotificationListener l,
 						     NotificationFilter f,

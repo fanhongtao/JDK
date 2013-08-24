@@ -1,13 +1,13 @@
 /*
- * @(#)BasicMenuItemUI.java	1.128 03/12/19
+ * @(#)BasicMenuItemUI.java	1.141 06/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -24,7 +24,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.128 12/19/03
+ * @version 1.141 08/09/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -46,6 +46,17 @@ public class BasicMenuItemUI extends MenuItemUI
     protected MouseInputListener mouseInputListener;
     protected MenuDragMouseListener menuDragMouseListener;
     protected MenuKeyListener menuKeyListener;
+    /**
+     * <code>PropertyChangeListener</code> returned from
+     * <code>createPropertyChangeListener</code>. You should not
+     * need to access this field, rather if you want to customize the
+     * <code>PropertyChangeListener</code> override
+     * <code>createPropertyChangeListener</code>.
+     *
+     * @since 1.6
+     * @see #createPropertyChangeListener
+     */
+    protected PropertyChangeListener propertyChangeListener;
     // BasicMenuUI also uses this.
     Handler handler;
     
@@ -60,9 +71,18 @@ public class BasicMenuItemUI extends MenuItemUI
     private static final boolean VERBOSE = false; // show reuse hits/misses
     private static final boolean DEBUG =   false;  // show bad params, misc.
 
-    /* Client Property keys for text and accelerator text widths */
+    /* Client Property keys for icon, text and accelerator widths */
+    static final String MAX_ARROW_ICON_WIDTH =  "maxArrowIconWidth";
+    static final String MAX_CHECK_ICON_WIDTH =  "maxCheckIconWidth";
+    static final String MAX_ICON_WIDTH =  "maxIconWidth";
     static final String MAX_TEXT_WIDTH =  "maxTextWidth";
     static final String MAX_ACC_WIDTH  =  "maxAccWidth";
+
+    /* Client Property keys for the icon and text maximal offsets */
+    static final StringBuffer MAX_ICON_OFFSET =
+                                  new StringBuffer("maxIconOffset");
+    static final StringBuffer MAX_TEXT_OFFSET =
+                                  new StringBuffer("maxTextOffset");
 
     static void loadActionMap(LazyActionMap map) {
         // NOTE: BasicMenuUI also calls into this method.
@@ -101,10 +121,11 @@ public class BasicMenuItemUI extends MenuItemUI
             menuItem.setMargin(UIManager.getInsets(prefix + ".margin"));
         }
 
-        defaultTextIconGap = 4;   // Should be from table
+        LookAndFeel.installProperty(menuItem, "iconTextGap", new Integer(4));
+        defaultTextIconGap = menuItem.getIconTextGap();
 
         LookAndFeel.installBorder(menuItem, prefix + ".border");
-        oldBorderPainted = menuItem.isBorderPainted(); // not used anymore
+        oldBorderPainted = menuItem.isBorderPainted();
         LookAndFeel.installProperty(menuItem, "borderPainted",
                                     UIManager.get(prefix + ".borderPainted"));
         LookAndFeel.installColorsAndFont(menuItem,
@@ -175,7 +196,9 @@ public class BasicMenuItemUI extends MenuItemUI
 	if ((menuKeyListener = createMenuKeyListener(menuItem)) != null) {
 	    menuItem.addMenuKeyListener(menuKeyListener);
 	}
-        menuItem.addPropertyChangeListener(getHandler());
+	if ((propertyChangeListener = createPropertyChangeListener(menuItem)) != null) {
+	    menuItem.addPropertyChangeListener(propertyChangeListener);
+	}
     }
 
     protected void installKeyboardActions() {
@@ -197,12 +220,15 @@ public class BasicMenuItemUI extends MenuItemUI
 
 	
 	//Remove the textWidth and accWidth values from the parent's Client Properties.
-	Container parent = menuItem.getParent();
-	if ( (parent != null && parent instanceof JComponent)  && 
-	     !(menuItem instanceof JMenu && ((JMenu) menuItem).isTopLevelMenu())) {
-	    JComponent p = (JComponent) parent;
+        JComponent p = getMenuItemParent(menuItem);
+        if(p != null) {
+            p.putClientProperty(BasicMenuItemUI.MAX_CHECK_ICON_WIDTH, null );
+            p.putClientProperty(BasicMenuItemUI.MAX_ARROW_ICON_WIDTH, null );
 	    p.putClientProperty(BasicMenuItemUI.MAX_ACC_WIDTH, null );
 	    p.putClientProperty(BasicMenuItemUI.MAX_TEXT_WIDTH, null ); 
+            p.putClientProperty(BasicMenuItemUI.MAX_ICON_WIDTH, null ); 
+            p.putClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET, null );
+            p.putClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET, null );
 	}
 
 	menuItem = null;
@@ -211,6 +237,7 @@ public class BasicMenuItemUI extends MenuItemUI
 
     protected void uninstallDefaults() {
         LookAndFeel.uninstallBorder(menuItem);
+        LookAndFeel.installProperty(menuItem, "borderPainted", oldBorderPainted);
         if (menuItem.getMargin() instanceof UIResource)
             menuItem.setMargin(null);
         if (arrowIcon instanceof UIResource)
@@ -237,11 +264,14 @@ public class BasicMenuItemUI extends MenuItemUI
 	if (menuKeyListener != null) {
 	    menuItem.removeMenuKeyListener(menuKeyListener);
 	}
-        menuItem.removePropertyChangeListener(getHandler());
+	if (propertyChangeListener != null) {
+	    menuItem.removePropertyChangeListener(propertyChangeListener);
+	}
 
         mouseInputListener = null;
         menuDragMouseListener = null;
         menuKeyListener = null;
+        propertyChangeListener = null;
         handler = null;
     }
 
@@ -261,6 +291,19 @@ public class BasicMenuItemUI extends MenuItemUI
 
     protected MenuKeyListener createMenuKeyListener(JComponent c) {
 	return null;
+    }
+
+    /**
+     * Creates a <code>PropertyChangeListener</code> which will be added to
+     * the menu item.
+     * If this method returns null then it will not be added to the menu item.
+     *
+     * @return an instance of a <code>PropertyChangeListener</code> or null
+     * @since 1.6
+     */
+    protected PropertyChangeListener
+                                  createPropertyChangeListener(JComponent c) {
+	return getHandler();
     }
 
     Handler getHandler() {
@@ -344,6 +387,19 @@ public class BasicMenuItemUI extends MenuItemUI
         r.setBounds(zeroRect);
     }
 
+    // Returns parent of this component if it is not a top-level menu
+    // Otherwise returns null
+    private JComponent getMenuItemParent(JMenuItem mi) {
+        Container parent = mi.getParent();
+        if ((parent instanceof JComponent) &&
+             (!(mi instanceof JMenu) ||
+               !((JMenu)mi).isTopLevelMenu())) {
+            return (JComponent) parent;
+        } else {
+            return null;
+        }
+    }
+
     protected Dimension getPreferredMenuItemSize(JComponent c,
                                                      Icon checkIcon,
                                                      Icon arrowIcon,
@@ -383,64 +439,41 @@ public class BasicMenuItemUI extends MenuItemUI
                   text == null ? 0 : defaultTextIconGap,
                   defaultTextIconGap
                   );
-        // find the union of the icon and text rects
-        r.setBounds(textRect);
-        r = SwingUtilities.computeUnion(iconRect.x,
-                                        iconRect.y,
-                                        iconRect.width,
-                                        iconRect.height,
-                                        r);
-        //   r = iconRect.union(textRect);
 
-	
-	// To make the accelerator texts appear in a column, find the widest MenuItem text
-	// and the widest accelerator text.
+        // labelRect contains size of text and label   
+        Rectangle labelRect = iconRect.union(textRect);
 
-	//Get the parent, which stores the information.
-	Container parent = menuItem.getParent();
-	
-	//Check the parent, and see that it is not a top-level menu.
-        if (parent != null && parent instanceof JComponent && 
-	    !(menuItem instanceof JMenu && ((JMenu) menuItem).isTopLevelMenu())) {
-	    JComponent p = (JComponent) parent;
-	    
-	    //Get widest text so far from parent, if no one exists null is returned.
-	    Integer maxTextWidth = (Integer) p.getClientProperty(BasicMenuItemUI.MAX_TEXT_WIDTH);
-	    Integer maxAccWidth = (Integer) p.getClientProperty(BasicMenuItemUI.MAX_ACC_WIDTH);
-	    
-	    int maxTextValue = maxTextWidth!=null ? maxTextWidth.intValue() : 0;
-	    int maxAccValue = maxAccWidth!=null ? maxAccWidth.intValue() : 0;
-	    
-	    //Compare the text widths, and adjust the r.width to the widest.
-	    if (r.width < maxTextValue) {
-		r.width = maxTextValue;
-	    } else {
-		p.putClientProperty(BasicMenuItemUI.MAX_TEXT_WIDTH, new Integer(r.width) );
-	    }
-	    
-	  //Compare the accelarator widths.
-	    if (acceleratorRect.width > maxAccValue) {
-		maxAccValue = acceleratorRect.width;
-		p.putClientProperty(BasicMenuItemUI.MAX_ACC_WIDTH, new Integer(acceleratorRect.width) );
-	    }
-	    
-	    //Add on the widest accelerator 
-	    r.width += maxAccValue;
-	    r.width += defaultTextIconGap;
-	    
-	}
-	
+        // Find the result height
+        r.height = max(labelRect.height, checkIconRect.height,
+                       arrowIconRect.height, acceleratorRect.height);
+        
+        // Find the result width
+
+        // Add the leading gap, 
+        // the closing one will be added by the latest addMaxWidth() call  
+        r.width = defaultTextIconGap;
+
+        // To determine the width of the parent popup menu (through DefaultMenuLayout) 
+        // and to make accelerator texts appear in a column, 
+        // find the widest icon, text, check icon, arrow icon and accelerator text.
+        // For the latest menu item we will know them exactly.
+        // It will be the widest menu item and it will determine 
+        // the width of the parent popup menu.
+        JComponent p = getMenuItemParent(menuItem);
+        addMaxWidth(p, BasicMenuItemUI.MAX_ICON_WIDTH, iconRect.width, 
+                defaultTextIconGap, false);
+        addMaxWidth(p, BasicMenuItemUI.MAX_TEXT_WIDTH, textRect.width, 
+                defaultTextIconGap, false);
+        addMaxWidth(p, BasicMenuItemUI.MAX_ACC_WIDTH, acceleratorRect.width, 
+                defaultTextIconGap, false);
 	if( useCheckAndArrow() ) {
-	    // Add in the checkIcon
-	    r.width += checkIconRect.width;
-	    r.width += defaultTextIconGap;
-
-	    // Add in the arrowIcon
-	    r.width += defaultTextIconGap;
-	    r.width += arrowIconRect.width;
+            // Force gap for the check icon to avoid absence of the gap between 
+            // the text and arrow icon because of the layoutMenuItem() features
+            addMaxWidth(p, BasicMenuItemUI.MAX_CHECK_ICON_WIDTH, 
+                        checkIconRect.width, defaultTextIconGap, true);
+            addMaxWidth(p, BasicMenuItemUI.MAX_ARROW_ICON_WIDTH, 
+                        arrowIconRect.width, defaultTextIconGap, false);
         }	
-
-	r.width += 2*defaultTextIconGap;
 
         Insets insets = b.getInsets();
         if(insets != null) {
@@ -472,6 +505,51 @@ public class BasicMenuItemUI extends MenuItemUI
 	    System.out.println("Current getSize: " + b.getSize() + "\n");
         }*/
 	return r.getSize();
+    }
+
+    private int max(int... values) {
+        int maxValue = Integer.MIN_VALUE;
+        for (int i : values) {
+            if (i > maxValue) {
+                maxValue = i;
+            }
+        }
+        return maxValue;
+    }
+    
+    // Calculates maximal width through specified parent component client property
+    // and adds it to the width of rectangle r 
+    private void addMaxWidth(JComponent parent, 
+                             String propertyName, 
+                             int curWidth,
+                             int defaultTextIconGap,
+                             boolean forceGap) {
+        // Get maximal width from parent client property
+        Integer maxWidth = null;
+        if (parent != null) {
+            maxWidth = (Integer) parent.getClientProperty(propertyName);
+        }    
+        if (maxWidth == null) {
+            maxWidth = 0;
+        }
+        
+        // Store new maximal width in parent client property 
+        if (curWidth > maxWidth) {
+            maxWidth = curWidth;
+            if (parent != null) {
+                parent.putClientProperty(propertyName, maxWidth);
+            }
+        }
+
+        // Add calculated maximal width and gap
+        if (maxWidth > 0) {
+            r.width += defaultTextIconGap;
+            r.width += maxWidth;
+        } else {
+            if (forceGap) {
+                r.width += defaultTextIconGap;
+            }
+        }
     }
 
     /**
@@ -583,8 +661,10 @@ public class BasicMenuItemUI extends MenuItemUI
                 icon = (Icon) b.getIcon();
             }
               
-            if (icon!=null)   
+            if (icon!=null) {
                 icon.paintIcon(c, g, iconRect.x, iconRect.y);
+                g.setColor(holdc);
+            }
         }
 
         // Draw the Text
@@ -602,9 +682,8 @@ public class BasicMenuItemUI extends MenuItemUI
 
 	  //Get the maxAccWidth from the parent to calculate the offset.
 	  int accOffset = 0;
-	  Container parent = menuItem.getParent();
-	  if (parent != null && parent instanceof JComponent) {
-	    JComponent p = (JComponent) parent;
+          JComponent p = getMenuItemParent(menuItem);
+          if(p != null) {
 	    Integer maxValueInt = (Integer) p.getClientProperty(BasicMenuItemUI.MAX_ACC_WIDTH);
 	    int maxValue = maxValueInt != null ?
                 maxValueInt.intValue() : acceleratorRect.width;
@@ -803,6 +882,8 @@ public class BasicMenuItemUI extends MenuItemUI
 	    }
         }
 
+        JComponent p = getMenuItemParent(menuItem);
+
         Rectangle labelRect = iconRect.union(textRect);
         if( BasicGraphicsUtils.isLeftToRight(menuItem) ) {
             textRect.x += menuItemGap;
@@ -815,10 +896,50 @@ public class BasicMenuItemUI extends MenuItemUI
             // Position the Check and Arrow Icons 
             if (useCheckAndArrow()) {
                 checkIconRect.x = viewRect.x + menuItemGap;
+                if(icon == null || checkIcon != null) {
+                    iconRect.x += menuItemGap + checkIconRect.width;
+                }
                 textRect.x += menuItemGap + checkIconRect.width;
-                iconRect.x += menuItemGap + checkIconRect.width;
                 arrowIconRect.x = viewRect.x + viewRect.width - menuItemGap
                                   - arrowIconRect.width;
+            }
+            /* Align icons and text vertically */
+            if(p != null) {
+                Integer maxIconOffset = (Integer)
+                         p.getClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET);
+                Integer maxTextOffset = (Integer)
+                         p.getClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET);
+                int maxIconValue = maxIconOffset == null ? 0 : maxIconOffset;
+                int maxTextValue = maxTextOffset == null ? 0 : maxTextOffset;
+
+                int thisTextOffset = textRect.x - viewRect.x;
+                if(thisTextOffset > maxTextValue) {
+                    p.putClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET,
+                                        new Integer(thisTextOffset));
+                } else {
+                    textRect.x = maxTextValue + viewRect.x;
+                }
+
+                if(icon != null) {
+                    if(horizontalTextPosition == SwingConstants.TRAILING ||
+                       horizontalTextPosition == SwingConstants.RIGHT) {
+                        int thisIconOffset = iconRect.x - viewRect.x;
+                        if(thisIconOffset > maxIconValue) {
+                            p.putClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET,
+                                    new Integer(thisIconOffset));
+                        } else {
+                            iconRect.x = maxIconValue+viewRect.x;
+                        }
+                    } else if(horizontalTextPosition
+                                  == SwingConstants.LEADING ||
+                              horizontalTextPosition == SwingConstants.LEFT) {
+                        iconRect.x = textRect.x + textRect.width + menuItemGap;
+                    } else {
+                        iconRect.x = Math.max(textRect.x + textRect.width/2
+                            - iconRect.width/2, maxIconValue + viewRect.x);
+
+                    }
+                }
             }
         } else {
             textRect.x -= menuItemGap;
@@ -831,9 +952,58 @@ public class BasicMenuItemUI extends MenuItemUI
             if (useCheckAndArrow()) {
                 checkIconRect.x = viewRect.x + viewRect.width - menuItemGap
                                   - checkIconRect.width;
+                if(icon == null || checkIcon != null) {
+                    iconRect.x -= menuItemGap + checkIconRect.width;      
+                }
                 textRect.x -= menuItemGap + checkIconRect.width;
-                iconRect.x -= menuItemGap + checkIconRect.width;      
                 arrowIconRect.x = viewRect.x + menuItemGap;
+            }
+            /* Align icons and text vertically */
+            if(p != null) {
+                Integer maxIconOffset = (Integer)
+                         p.getClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET);
+                Integer maxTextOffset = (Integer)
+                         p.getClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET);
+                int maxIconValue =  maxIconOffset == null ? 0 : maxIconOffset;
+                int maxTextValue =  maxTextOffset == null ? 0 : maxTextOffset;
+
+                int thisTextOffset = viewRect.x + viewRect.width
+                                     - textRect.x - textRect.width;
+                if(thisTextOffset > maxTextValue) {
+                    p.putClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET,
+                                        new Integer(thisTextOffset));
+                } else {
+                    textRect.x = viewRect.x + viewRect.width
+                                 - maxTextValue - textRect.width;
+                }
+
+                int thisIconOffset = 0;
+                if(icon != null) {
+                    if(horizontalTextPosition == SwingConstants.TRAILING ||
+                       horizontalTextPosition == SwingConstants.LEFT) {
+                        thisIconOffset = viewRect.x + viewRect.width
+                                - iconRect.x - iconRect.width;
+                        if(thisIconOffset > maxIconValue) {
+                            p.putClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET,
+                                    new Integer(thisIconOffset));
+                        } else {
+                            iconRect.x = viewRect.x + viewRect.width
+                                    - maxIconValue - iconRect.width;
+                        }
+                    } else if(horizontalTextPosition
+                                  == SwingConstants.LEADING ||
+                              horizontalTextPosition == SwingConstants.RIGHT) {
+                        iconRect.x = textRect.x - menuItemGap - iconRect.width;
+                    } else {
+                        iconRect.x = textRect.x + textRect.width/2
+                                     - iconRect.width/2;
+                        if(iconRect.x + iconRect.width >
+                               viewRect.x + viewRect.width - maxIconValue  ) {
+                            iconRect.x = iconRect.x = viewRect.x +
+                                viewRect.width - maxIconValue - iconRect.width;
+                        }
+                    }
+                }
             }
         }
 
@@ -1125,7 +1295,9 @@ public class BasicMenuItemUI extends MenuItemUI
 		JMenuItem lbl = ((JMenuItem) e.getSource());
 		String text = lbl.getText();
 		BasicHTML.updateRenderer(lbl, text);
-	    }
+            } else if (name  == "iconTextGap") {
+                defaultTextIconGap = ((Number)e.getNewValue()).intValue();
+            }
 	}
     }
 }

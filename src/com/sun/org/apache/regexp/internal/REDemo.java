@@ -1,74 +1,36 @@
+/*
+ * Copyright 1999-2004 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.sun.org.apache.regexp.internal;
 
-/*
- * ====================================================================
- * 
- * The Apache Software License, Version 1.1
- *
- * Copyright (c) 1999 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:  
- *       "This product includes software developed by the 
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "The Jakarta Project", "Jakarta-Regexp", and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */ 
-
-import java.applet.*;
+import java.applet.Applet;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import javax.swing.*;
+import java.awt.event.TextEvent;
+import java.awt.event.TextListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.CharArrayWriter;
+import java.io.PrintWriter;
 
 /**
  * Interactive demonstration and testing harness for regular expressions classes.
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
- * @version $Id: REDemo.java,v 1.1 2000/04/27 01:22:33 jon Exp $
+ * @version $Id: REDemo.java,v 1.1.2.1 2005/08/01 00:02:54 jeffsuttor Exp $
  */
-public class REDemo extends Applet implements TextListener 
+public class REDemo extends Applet implements TextListener
 {
     /**
      * Matcher and compiler objects
@@ -94,27 +56,27 @@ public class REDemo extends Applet implements TextListener
         setLayout(gb);
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(5, 5, 5, 5);
-        c.anchor = c.EAST;
+        c.anchor = GridBagConstraints.EAST;
         gb.setConstraints(add(new Label("Regular expression:", Label.RIGHT)), c);
         c.gridy = 0;
-        c.anchor = c.WEST;
+        c.anchor = GridBagConstraints.WEST;
         gb.setConstraints(add(fieldRE = new TextField("\\[([:javastart:][:javapart:]*)\\]", 40)), c);
         c.gridx = 0;
-        c.gridy = c.RELATIVE;
-        c.anchor = c.EAST;
+        c.gridy = GridBagConstraints.RELATIVE;
+        c.anchor = GridBagConstraints.EAST;
         gb.setConstraints(add(new Label("String:", Label.RIGHT)), c);
         c.gridy = 1;
-        c.gridx = c.RELATIVE;
-        c.anchor = c.WEST;
+        c.gridx = GridBagConstraints.RELATIVE;
+        c.anchor = GridBagConstraints.WEST;
         gb.setConstraints(add(fieldMatch = new TextField("aaa([foo])aaa", 40)), c);
         c.gridy = 2;
-        c.gridx = c.RELATIVE;
-        c.fill = c.BOTH;
+        c.gridx = GridBagConstraints.RELATIVE;
+        c.fill = GridBagConstraints.BOTH;
         c.weighty = 1.0;
         c.weightx = 1.0;
         gb.setConstraints(add(outRE = new TextArea()), c);
         c.gridy = 2;
-        c.gridx = c.RELATIVE;
+        c.gridx = GridBagConstraints.RELATIVE;
         gb.setConstraints(add(outMatch = new TextArea()), c);
 
         // Listen to text changes
@@ -166,7 +128,7 @@ public class REDemo extends Applet implements TextListener
     {
         try
         {
-            // Compile program 
+            // Compile program
             r.setProgram(compiler.compile(expr));
 
             // Dump program into RE feedback area
@@ -242,9 +204,9 @@ public class REDemo extends Applet implements TextListener
      * Main application entrypoint.
      * @param arg Command line arguments
      */
-    static public void _main(String[] arg)
+    static public void main(String[] arg)
     {
-        JFrame f = new JFrame("RE Demo");
+        Frame f = new Frame("RE Demo");
         // f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.addWindowListener(new WindowAdapter()
         {
@@ -253,10 +215,8 @@ public class REDemo extends Applet implements TextListener
                 System.exit(0);
             }
         });
-        Container c = f.getContentPane();
-        c.setLayout(new FlowLayout());
         REDemo demo = new REDemo();
-        c.add(demo);
+        f.add(demo);
         demo.init();
         f.pack();
         f.setVisible(true);

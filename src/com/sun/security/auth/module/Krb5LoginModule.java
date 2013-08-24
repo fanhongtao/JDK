@@ -1,5 +1,5 @@
 /*
- * @(#)Krb5LoginModule.java	1.30 06/09/22
+ * @(#)Krb5LoginModule.java	1.32 06/06/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.

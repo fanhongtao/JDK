@@ -1,7 +1,7 @@
 /*
- * @(#)Main.java	1.9 03/12/19
+ * @(#)Main.java	1.11 05/11/30
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -778,6 +778,7 @@ public class Main {
 	abortButton.setMnemonic(Config.getWindowAbortMnemonic()); 
 	bottomPane.add(abortButton);
 	bottomPane.add(bottomPane.createHorizontalGlue());	
+	bottomPane.setBorder(BorderFactory.createEmptyBorder(0,0,5,0));
 	
 	// Center Pane
 	Box centerPane = new Box(BoxLayout.Y_AXIS);
@@ -789,6 +790,13 @@ public class Main {
 	    _stepLabels[i] = new JLabel(Config.getWindowStep(i));
 	    _stepLabels[i].setEnabled(false);
 	    centerPane.add(_stepLabels[i]);
+
+	    // install label's length will expand,so set a longer size.
+            if(i == STEP_INSTALL) {
+                Dimension dim = new JLabel(Config.
+                        getWindowStepWait(STEP_INSTALL)).getPreferredSize();
+                _stepLabels[i].setPreferredSize(dim);
+            }
 	}
         hidden = new JLabel(Config.getWindowHiddenLabel());
         hidden.setVisible(false);
@@ -801,6 +809,13 @@ public class Main {
 	cont.add(centerPane, "Center");	
 	
 	_installerFrame.pack();
+	Dimension dim = _installerFrame.getSize();
+
+        // hard code to ensure title is completely visible on Sol/lin.
+        if(dim.width < 400) {
+            dim.width = 400;
+            _installerFrame.setSize(dim);
+        }
 	
 	Rectangle size =  _installerFrame.getBounds();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

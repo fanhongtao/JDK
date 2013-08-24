@@ -1,9 +1,39 @@
 /*
- * @(#)JnlpFileHandler.java	1.10 03/10/31
+ * @(#)JnlpFileHandler.java	1.12 05/11/17
+ * 
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
+ *
+ * -Redistribution in binary form must reproduce the above copyright notice,
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
+ *
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
+ * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE,
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ *
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
+
 package jnlp.sample.servlet;
 
 import java.util.*;
@@ -189,41 +219,7 @@ public class JnlpFileHandler {
                 if (document != null && document.getNodeType() == Node.DOCUMENT_NODE) {
                     boolean modified = false;
                     Element root = document.getDocumentElement();
-                    /**
-                     *  This part is for VM Args Test. If the query string has any parameter
-                     * with VM-Args= then this block will add /replace the java-vm-args attribute
-                     * with the value given in the VM-Args parameter. The more than one VM-Args
-                     * should be seperated using "+" symbol i.e. the query string should comply
-                     * with the standard format of the query string.
-                     *
-                     * Added By Elancheran 09/12/03
-                     */
-                    String vmArgs = null;
-                    if( query != null && query.indexOf("VM-Args") != -1) {
-                        String tempStr = query.substring(query.indexOf("VM-Args=") + 8);
-                        if(tempStr.indexOf('&') != -1)
-                            vmArgs = tempStr.substring(0, tempStr.indexOf('&'));
-                        vmArgs = tempStr;
-                        vmArgs = vmArgs.replace('+', ' ');
-                        _log.addDebug("VM-Args given in the query string: " + vmArgs);
-                    }
-                    
-                    if( vmArgs != null ) {
-                        NodeList j2seNL = root.getElementsByTagName("j2se");
-                        if (j2seNL != null) {
-                            Element j2se = (Element) j2seNL.item(0);
-                            String vmOptions = j2se.getAttribute("java-vm-args");
-                            if( vmOptions.length() > 0){
-                                _log.addDebug("Setting the VM-Args given in the query string: " + vmArgs);
-                                j2se.setAttribute("java-vm-args", vmArgs);
-                            } else {
-                                _log.addDebug("Adding new attribute in the string : " + vmArgs);
-                                j2se.setAttribute("java-vm-args", vmArgs);
-                            }
-                            modified = true;
-                        }
-                    }
-                    
+                  
                     if (root.hasAttribute("href") && query != null) {
                         String href = root.getAttribute("href");
                         root.setAttribute("href", href + "?" + query);
@@ -285,8 +281,13 @@ public class JnlpFileHandler {
         String name = respath.substring(idx + 1);    // Exclude /
         String codebase = respath.substring(0, idx + 1); // Include /
         jnlpTemplate = substitute(jnlpTemplate, "$$name",  name);
+	// fix for 5039951: Add $$hostname macro
+	jnlpTemplate = substitute(jnlpTemplate, "$$hostname",
+				  request.getServerName());
         jnlpTemplate = substitute(jnlpTemplate, "$$codebase",  urlprefix + request.getContextPath() + codebase);
         jnlpTemplate = substitute(jnlpTemplate, "$$context", urlprefix + request.getContextPath());
+        // fix for 6256326: add $$site macro to sample jnlp servlet
+        jnlpTemplate = substitute(jnlpTemplate, "$$site", urlprefix);
         return jnlpTemplate;
     }
     

@@ -1,7 +1,7 @@
 /*
- * @(#)FilteredImageSource.java	1.28 03/12/19
+ * @(#)FilteredImageSource.java	1.29 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.awt.image.ColorModel;
  *
  * @see ImageProducer
  *
- * @version	1.28 12/19/03
+ * @version	1.29 11/17/05
  * @author 	Jim Graham
  */
 public class FilteredImageSource implements ImageProducer {

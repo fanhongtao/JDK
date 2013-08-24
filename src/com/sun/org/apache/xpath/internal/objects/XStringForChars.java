@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XStringForChars.java,v 1.8 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XStringForChars.java,v 1.2.4.1 2005/09/14 20:46:27 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class XStringForChars extends XString
 {
+    static final long serialVersionUID = -2235248887220850467L;
   /** The start position in the fsb. */
   int m_start;
   

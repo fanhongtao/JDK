@@ -1,7 +1,7 @@
 /*
- * @(#)IdentityScope.java	1.54 04/05/18
+ * @(#)IdentityScope.java	1.55 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -36,7 +36,7 @@ import java.util.Properties;
  * @see Principal
  * @see Key
  *
- * @version 1.54 04/05/18
+ * @version 1.55 05/11/17
  * @author Benjamin Renaud
  *
  * @deprecated This class is no longer used. Its functionality has been

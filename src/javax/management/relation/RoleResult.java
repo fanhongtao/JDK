@@ -1,7 +1,7 @@
 /*
- * @(#)RoleResult.java	1.23 04/02/10
+ * @(#)RoleResult.java	1.27 05/12/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,6 +24,8 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * Represents the result of a multiple access to several roles of a relation
  * (either for reading or writing).
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-6304063118040985512L</code>.
+ * 
  * @since 1.5
  */
 public class RoleResult implements Serializable {
@@ -64,8 +66,8 @@ public class RoleResult implements Serializable {
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -102,15 +104,15 @@ public class RoleResult implements Serializable {
     /**
      * Constructor.
      *
-     * @param theRoleList  list of roles successfully accessed.
-     * @param theRoleUnresList  list of roles not accessed (with problem
+     * @param list  list of roles successfully accessed.
+     * @param unresolvedList  list of roles not accessed (with problem
      * descriptions).
      */
-    public RoleResult(RoleList theRoleList,
-		      RoleUnresolvedList theRoleUnresList) {
+    public RoleResult(RoleList list,
+		      RoleUnresolvedList unresolvedList) {
 
-	setRoles(theRoleList);
-	setRolesUnresolved(theRoleUnresList);
+	setRoles(list);
+	setRolesUnresolved(unresolvedList);
 	return;
     }
 
@@ -143,16 +145,16 @@ public class RoleResult implements Serializable {
     /**
      * Sets list of roles successfully accessed.
      *
-     * @param theRoleList  list of roles successfully accessed
+     * @param list  list of roles successfully accessed
      *
      * @see #getRoles
      */
-    public void setRoles(RoleList theRoleList) {
-	if (theRoleList != null) {
+    public void setRoles(RoleList list) {
+	if (list != null) {
 
 	    roleList = new RoleList();
 
-	    for (Iterator roleIter = theRoleList.iterator();
+	    for (Iterator roleIter = list.iterator();
 		 roleIter.hasNext();) {
 		Role currRole = (Role)(roleIter.next());
 		roleList.add((Role)(currRole.clone()));
@@ -166,16 +168,16 @@ public class RoleResult implements Serializable {
     /**
      * Sets list of roles unsuccessfully accessed.
      *
-     * @param theRoleUnresList  list of roles unsuccessfully accessed
+     * @param unresolvedList  list of roles unsuccessfully accessed
      *
      * @see #getRolesUnresolved
      */
-    public void setRolesUnresolved(RoleUnresolvedList theRoleUnresList) {
-	if (theRoleUnresList != null) {
+    public void setRolesUnresolved(RoleUnresolvedList unresolvedList) {
+	if (unresolvedList != null) {
 
 	    unresolvedRoleList = new RoleUnresolvedList();
 
-	    for (Iterator roleUnresIter = theRoleUnresList.iterator();
+	    for (Iterator roleUnresIter = unresolvedList.iterator();
 		 roleUnresIter.hasNext();) {
 		RoleUnresolved currRoleUnres =
 		    (RoleUnresolved)(roleUnresIter.next());

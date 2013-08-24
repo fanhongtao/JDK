@@ -1,7 +1,7 @@
 /*
- * @(#)FontPanel.java	1.18 04/07/26
+ * @(#)FontPanel.java	1.20 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)FontPanel.java	1.18 04/07/26
+ * @(#)FontPanel.java	1.20 05/11/17
  */
 
 import java.awt.BorderLayout;
@@ -46,6 +46,8 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -71,13 +73,13 @@ import java.awt.print.PrinterJob;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.text.AttributedString;
+import java.util.EnumSet;
 import java.util.Vector;
 
+import javax.imageio.*;
 import javax.swing.*;
 
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
+import static java.awt.RenderingHints.*;
 
 /**
  * FontPanel.java
@@ -143,12 +145,13 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
 
     /// Text drawing variables
     private String fontName = "Dialog";
-    private int fontSize = 12;
+    private float fontSize = 12;
     private int fontStyle = Font.PLAIN;
     private int fontTransform = NONE;
     private Font testFont = null;
-    private boolean useAntialias = false;
-    private boolean useFractional = false;
+    private Object antiAliasType = VALUE_TEXT_ANTIALIAS_DEFAULT;
+    private Object fractionalMetricsType = VALUE_FRACTIONALMETRICS_DEFAULT;
+    private Object lcdContrast = getDefaultLCDContrast();
     private int drawMethod = DRAW_STRING;
     private int textToUse = RANGE_TEXT;
     private String userText[] = null;
@@ -181,7 +184,10 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
         });
 
         /// Initialize font and its infos
-        testFont = new Font( fontName, fontStyle, fontSize );
+        testFont = new Font(fontName, fontStyle, (int)fontSize);
+	if ((float)((int)fontSize) != fontSize) {
+	    testFont = testFont.deriveFont(fontSize);
+	}
         updateFontInfo();
     }
 
@@ -220,11 +226,13 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
      	    return at;            
     }
 
-    public void setFontParams( Object obj, int size, int style, int transform ) {
+    public void setFontParams(Object obj, float size,
+			      int style, int transform) {
         setFontParams( (String)obj, size, style, transform );
     }
 
-    public void setFontParams( String name, int size, int style, int transform ) {
+    public void setFontParams(String name, float size,
+			      int style, int transform) {
         boolean fontModified = false;
         if ( !name.equals( fontName ) || style != fontStyle )
           fontModified = true;
@@ -235,7 +243,10 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
         fontTransform = transform;
 
         /// Recreate the font as specified
-        testFont = new Font( fontName, fontStyle, fontSize );
+        testFont = new Font(fontName, fontStyle, (int)fontSize);
+	if ((float)((int)fontSize) != fontSize) {
+	    testFont = testFont.deriveFont(fontSize);
+	}
 
         if ( fontTransform != NONE ) {
             AffineTransform at = getAffineTransform( fontTransform );
@@ -251,9 +262,10 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
         }
     }
 
-    public void setRenderingHints( boolean aa, boolean fm ) {
-        useAntialias = aa;
-        useFractional = fm;
+    public void setRenderingHints( Object aa, Object fm, Object contrast) {
+        antiAliasType = ((AAValues)aa).getHint();
+        fractionalMetricsType = ((FMValues)fm).getHint();
+	lcdContrast = contrast;
         updateBackBuffer = true;
         updateFontMetrics = true;
         fc.repaint();
@@ -357,8 +369,11 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
         String options;
 
         options = ( fontName + "\n" + fontSize  + "\n" + fontStyle + "\n" +
-                    fontTransform + "\n"  + g2Transform + "\n"+ textToUse + "\n" + drawMethod + "\n" +
-                    useAntialias + "\n" + useFractional + "\n");
+                    fontTransform + "\n"  + g2Transform + "\n"+
+		    textToUse + "\n" + drawMethod + "\n" +
+                    AAValues.getHintVal(antiAliasType) + "\n" +
+		    FMValues.getHintVal(fractionalMetricsType) + "\n" +
+		    lcdContrast + "\n");
         if ( textToUse == USER_TEXT )
           for ( int i = 0; i < userText.length; i++ )
             options += ( userText[i] + "\n" );
@@ -368,9 +383,10 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
 
     /// Reload all options and refreshes the canvas
     public void loadOptions( boolean grid, boolean force16, int start, int end,
-                             String name, int size, int style, int transform, int g2transform,
-                             int text, int method, boolean aa, boolean fm,
-                             String user[] ) {
+                             String name, float size, int style,
+			     int transform, int g2transform,
+                             int text, int method, int aa, int fm,
+			     int contrast, String user[] ) {
         int range[] = { start, end };
 
         /// Since repaint call has a low priority, these functions will finish
@@ -384,12 +400,13 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
         setFontParams( name, size, style, transform );
         setTransformG2( g2transform ); // ABP
         setDrawMethod( method );
-        setRenderingHints( aa, fm );
+        setRenderingHints(AAValues.getValue(aa), FMValues.getValue(fm),
+			  new Integer(contrast));
     }
 
-    /// Writes the current screen to JPEG file
-    public void doSaveJPEG( String fileName ) {
-        fc.writeJPEG( fileName );
+    /// Writes the current screen to PNG file
+    public void doSavePNG( String fileName ) {
+        fc.writePNG( fileName );
     }
 
     /// When scrolled using the scroll bar, update the backbuffer
@@ -496,32 +513,32 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
             repaint();
         }
 
-        /// Sets the font, hints, and transforms according to the set parameters
+        /// Sets the font, hints, according to the set parameters
         private void setParams( Graphics2D g2 ) {
             g2.setFont( testFont );
-
-            if ( useAntialias ) {
-                if ( drawMethod == TL_OUTLINE || drawMethod == GV_OUTLINE )
-                  g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                       RenderingHints.VALUE_ANTIALIAS_ON );
-                else
-                  g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
-                                       RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
-            }
-            else {
-                g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
-                                     RenderingHints.VALUE_TEXT_ANTIALIAS_OFF );
-                g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                     RenderingHints.VALUE_ANTIALIAS_OFF );
-            }
-
-            if ( useFractional )
-              g2.setRenderingHint( RenderingHints.KEY_FRACTIONALMETRICS,
-                                   RenderingHints.VALUE_FRACTIONALMETRICS_ON );
-            else
-              g2.setRenderingHint( RenderingHints.KEY_FRACTIONALMETRICS,
-                                   RenderingHints.VALUE_FRACTIONALMETRICS_OFF );
-        }
+	    g2.setRenderingHint(KEY_TEXT_ANTIALIASING, antiAliasType);
+	    g2.setRenderingHint(KEY_FRACTIONALMETRICS, fractionalMetricsType);
+	    g2.setRenderingHint(KEY_TEXT_LCD_CONTRAST, lcdContrast);
+	    /* I am preserving a somewhat dubious behaviour of this program.
+	     * Outline text would be drawn anti-aliased by setting the
+	     * graphics anti-aliasing hint if the text anti-aliasing hint
+	     * was set. The dubious element here is that people simply
+	     * using this program may think this is built-in behaviour
+	     * but its not - at least not when the app explictly draws
+	     * outline text.
+	     * This becomes more dubious in cases such as "GASP" where the
+	     * size at which text is AA'ed is not something you can easily
+	     * calculate, so mimicing that behaviour isn't going to be easy.
+	     * So I precisely preserve the behaviour : this is done only
+	     * if the AA value is "ON". Its not applied in the other cases.
+	     */
+	    if (antiAliasType == VALUE_TEXT_ANTIALIAS_ON &&
+		(drawMethod == TL_OUTLINE || drawMethod == GV_OUTLINE)) {
+		g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+	    } else {
+		g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_OFF);
+	    }
+	}
 
         /// Draws the grid (Used for unicode/glyph range drawing)
         private void drawGrid( Graphics2D g2 ) {
@@ -762,7 +779,8 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
 
             maxAscent = fm.getMaxAscent();
             maxDescent = fm.getMaxDescent();
-
+	    if (maxAscent == 0) maxAscent = 10;
+	    if (maxDescent == 0) maxDescent = 5;
             if ( textToUse == RANGE_TEXT || textToUse == ALL_GLYPHS ) {
                 /// Give slight extra room for each character
                 maxAscent += 3;
@@ -893,7 +911,7 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
                 g2.setColor(Color.black);
             }
             
-            /// sets font, RenderingHints, etc...
+            /// sets font, RenderingHints.
             setParams( g2 );
 
             /// If flag is set, recalculate fontMetrics and reset the scrollbar
@@ -1035,8 +1053,9 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
             }
 
             /// Draw information about what is being printed
-            String hints = ( " with antialias " + ( useAntialias ? "on" : "off" ) +
-                             " and fractional metrics " + ( useFractional ? "on" : "off" ));
+            String hints = ( " with antialias " + antiAliasType + "and" +
+                             " fractional metrics " + fractionalMetricsType +
+			     " and lcd contrast = " + lcdContrast);
             String infoLine1 = ( "Printing" + MS_OPENING[textToUse] +
                                  modeSpecificNumStr( drawStart ) + " to " +
                                  modeSpecificNumStr( drawEnd ) + MS_CLOSING[textToUse] );
@@ -1067,20 +1086,13 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
             return PAGE_EXISTS;
         }
 
-        /// Ouputs the current canvas into a given JPEG file
-        public void writeJPEG( String fileName ) {
+        /// Ouputs the current canvas into a given PNG file
+        public void writePNG( String fileName ) {
             try {
-                BufferedOutputStream bos =
-                  new BufferedOutputStream( new FileOutputStream( fileName ));
-                JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder( bos );
-                JPEGEncodeParam jep = encoder.getDefaultJPEGEncodeParam( backBuffer );
-                jep.setQuality( 1.0f, false );
-                encoder.setJPEGEncodeParam( jep );
-                encoder.encode( backBuffer );
-                bos.close();
+		ImageIO.write(backBuffer, "png", new java.io.File(fileName));
             }
             catch ( Exception e ) {
-                f2dt.fireChangeStatus( "ERROR: Failed to Save JPEG image; See stack trace", true );
+                f2dt.fireChangeStatus( "ERROR: Failed to Save PNG image; See stack trace", true );
                 e.printStackTrace();
             }
         }
@@ -1242,5 +1254,135 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
         public CannotDrawException( int i ) {
             id = i;
         }
+    }
+
+    enum FMValues {
+       FMDEFAULT ("DEFAULT",  VALUE_FRACTIONALMETRICS_DEFAULT),
+       FMOFF     ("OFF",      VALUE_FRACTIONALMETRICS_OFF),
+       FMON      ("ON",       VALUE_FRACTIONALMETRICS_ON);
+
+        private String name;
+        private Object hint;
+
+        private static FMValues[] valArray;
+
+        FMValues(String s, Object o) {
+            name = s;
+            hint = o;
+        }
+
+        public String toString() {
+            return name;
+        }
+
+       public Object getHint() {
+           return hint;
+       }
+       public static Object getValue(int ordinal) {
+	   if (valArray == null) {
+	       valArray = (FMValues[])EnumSet.allOf(FMValues.class).toArray(new FMValues[0]);
+	   }
+	   for (int i=0;i<valArray.length;i++) {
+	       if (valArray[i].ordinal() == ordinal) {
+		   return valArray[i];
+	       }
+	   }
+	   return valArray[0];
+       }
+       private static FMValues[] getArray() {
+	   if (valArray == null) {
+	       valArray = (FMValues[])EnumSet.allOf(FMValues.class).toArray(new FMValues[0]);
+	   }
+	   return valArray;
+       }
+
+       public static int getHintVal(Object hint) {
+	   getArray();
+	   for (int i=0;i<valArray.length;i++) {
+	       if (valArray[i].getHint() == hint) {
+		   return i;
+	       }
+	   }
+	   return 0;
+       }
+    }
+
+   enum AAValues {
+       AADEFAULT ("DEFAULT",  VALUE_TEXT_ANTIALIAS_DEFAULT),
+       AAOFF     ("OFF",      VALUE_TEXT_ANTIALIAS_OFF),
+       AAON      ("ON",       VALUE_TEXT_ANTIALIAS_ON),
+       AAGASP    ("GASP",     VALUE_TEXT_ANTIALIAS_GASP),
+       AALCDHRGB ("LCD_HRGB", VALUE_TEXT_ANTIALIAS_LCD_HRGB),
+       AALCDHBGR ("LCD_HBGR", VALUE_TEXT_ANTIALIAS_LCD_HBGR),
+       AALCDVRGB ("LCD_VRGB", VALUE_TEXT_ANTIALIAS_LCD_VRGB),
+       AALCDVBGR ("LCD_VBGR", VALUE_TEXT_ANTIALIAS_LCD_VBGR);
+
+        private String name;
+        private Object hint;
+
+        private static AAValues[] valArray;
+
+        AAValues(String s, Object o) {
+            name = s;
+            hint = o;
+        }
+
+        public String toString() {
+            return name;
+        }
+
+       public Object getHint() {
+           return hint;
+       }
+
+       public static boolean isLCDMode(Object o) {
+	   return (o instanceof AAValues &&
+		   ((AAValues)o).ordinal() >= AALCDHRGB.ordinal());
+       }
+       
+       public static Object getValue(int ordinal) {
+	   if (valArray == null) {
+	       valArray = (AAValues[])EnumSet.allOf(AAValues.class).toArray(new AAValues[0]);
+	   }
+	   for (int i=0;i<valArray.length;i++) {
+	       if (valArray[i].ordinal() == ordinal) {
+		   return valArray[i];
+	       }
+	   }
+	   return valArray[0];
+       }
+
+       private static AAValues[] getArray() {
+	   if (valArray == null) {
+	       Object [] oa = EnumSet.allOf(AAValues.class).toArray(new AAValues[0]);
+	       valArray = (AAValues[])(EnumSet.allOf(AAValues.class).toArray(new AAValues[0]));
+	   }
+	   return valArray;
+       }
+
+       public static int getHintVal(Object hint) {
+	   getArray();
+	   for (int i=0;i<valArray.length;i++) {
+	       if (valArray[i].getHint() == hint) {
+		   return i;
+	       }
+	   }
+	   return 0;
+       }
+
+    }
+
+    private static Integer defaultContrast;
+    static Integer getDefaultLCDContrast() {
+	if (defaultContrast == null) {
+	    GraphicsConfiguration gc =
+	    GraphicsEnvironment.getLocalGraphicsEnvironment().
+		getDefaultScreenDevice().getDefaultConfiguration();
+	Graphics2D g2d =
+	    (Graphics2D)(gc.createCompatibleImage(1,1).getGraphics());
+	defaultContrast = (Integer)
+	    g2d.getRenderingHint(RenderingHints.KEY_TEXT_LCD_CONTRAST);
+	}
+	return defaultContrast;
     }
 }

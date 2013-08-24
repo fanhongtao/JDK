@@ -1,7 +1,7 @@
 /*
- * @(#)IllegalFormatCodePointException.java	1.2 03/12/19
+ * @(#)IllegalFormatCodePointException.java	1.4 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.util;
  * method or constructor in this class will cause a {@link
  * NullPointerException} to be thrown.
  *
- * @version 	1.2, 12/19/03
+ * @version 	1.4, 12/01/05
  * @since 1.5
  */
 public class IllegalFormatCodePointException extends IllegalFormatException {
@@ -47,7 +47,6 @@ public class IllegalFormatCodePointException extends IllegalFormatException {
     }
 
     public String getMessage() {
-
-	return String.format("Code point = %c", c);
+	return String.format("Code point = %#x", c);
     }
 }

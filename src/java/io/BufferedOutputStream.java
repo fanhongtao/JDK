@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedOutputStream.java	1.33 03/12/19
+ * @(#)BufferedOutputStream.java	1.34 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.io;
  * system for each byte written.
  *
  * @author  Arthur van Hoff
- * @version 1.33, 12/19/03
+ * @version 1.34, 11/17/05
  * @since   JDK1.0
  */
 public 

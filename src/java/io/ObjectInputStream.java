@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInputStream.java	1.157 06/04/05
+ * @(#)ObjectInputStream.java	1.175 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,8 +12,11 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -175,11 +178,11 @@ import static java.io.ObjectStreamClass.processQueue;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.157, 06/04/05
+ * @version 1.175, 06/04/21
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
- * @see <a href="../../../guide/serialization/spec/input.doc.html"> Object Serialization Specification, Section 3, Object Input Classes</a>
+ * @see <a href="../../../platform/serialization/spec/input.html"> Object Serialization Specification, Section 3, Object Input Classes</a>
  * @since   JDK1.1
  */
 public class ObjectInputStream 
@@ -238,7 +241,7 @@ public class ObjectInputStream
     private final boolean enableOverride;
     /** if true, invoke resolveObject() */
     private boolean enableResolve;
-    
+
     /**
      * Context during upcalls to class-defined readObject methods; holds 
      * object currently being deserialized and descriptor for current class.
@@ -407,15 +410,12 @@ public class ObjectInputStream
      * the deserialized object may define a readResolve method which returns an
      * object visible to other parties, or readUnshared may return a Class
      * object or enum constant obtainable elsewhere in the stream or through
-     * external means.
-     *
-     * <p>However, for objects which are not enum constants or instances of
-     * java.lang.Class and do not define readResolve methods, readUnshared
-     * guarantees that the returned object reference is unique and cannot be
-     * obtained a second time from the ObjectInputStream that created it, even
-     * if the underlying data stream has been manipulated.  This guarantee
-     * applies only to the base-level object returned by readUnshared, and not
-     * to any transitively referenced sub-objects in the returned object graph.
+     * external means. If the deserialized object defines a readResolve method
+     * and the invocation of that method returns an array, then readUnshared
+     * returns a shallow clone of that array; this guarantees that the returned
+     * array object is unique and cannot be obtained a second time from an
+     * invocation of readObject or readUnshared on the ObjectInputStream,
+     * even if the underlying data stream has been manipulated.
      *
      * <p>ObjectInputStream subclasses which override this method can only be
      * constructed in security contexts possessing the
@@ -432,6 +432,7 @@ public class ObjectInputStream
      *          appeared in stream
      * @throws  OptionalDataException if primitive data is next in stream
      * @throws  IOException if an I/O error occurs during deserialization
+     * @since   1.4
      */
     public Object readUnshared() throws IOException, ClassNotFoundException {
 	// if nested read, passHandle contains handle of enclosing object
@@ -563,20 +564,38 @@ public class ObjectInputStream
      * <code>annotateClass</code>.  This method will be invoked only once for
      * each unique class in the stream.  This method can be implemented by
      * subclasses to use an alternate loading mechanism but must return a
-     * <code>Class</code> object.  Once returned, the serialVersionUID of the
-     * class is compared to the serialVersionUID of the serialized class.  If
-     * there is a mismatch, the deserialization fails and an exception is
-     * raised.
+     * <code>Class</code> object. Once returned, if the class is not an array
+     * class, its serialVersionUID is compared to the serialVersionUID of the
+     * serialized class, and if there is a mismatch, the deserialization fails
+     * and an {@link InvalidClassException} is thrown.
      *
-     * <p>By default the class name is resolved relative to the class that
-     * called <code>readObject</code>.
+     * <p>The default implementation of this method in
+     * <code>ObjectInputStream</code> returns the result of calling
+     * <pre>
+     *     Class.forName(desc.getName(), false, loader)
+     * </pre>
+     * where <code>loader</code> is determined as follows: if there is a
+     * method on the current thread's stack whose declaring class was
+     * defined by a user-defined class loader (and was not a generated to
+     * implement reflective invocations), then <code>loader</code> is class
+     * loader corresponding to the closest such method to the currently
+     * executing frame; otherwise, <code>loader</code> is
+     * <code>null</code>. If this call results in a
+     * <code>ClassNotFoundException</code> and the name of the passed
+     * <code>ObjectStreamClass</code> instance is the Java language keyword
+     * for a primitive type or void, then the <code>Class</code> object
+     * representing that primitive type or void will be returned
+     * (e.g., an <code>ObjectStreamClass</code> with the name
+     * <code>"int"</code> will be resolved to <code>Integer.TYPE</code>).
+     * Otherwise, the <code>ClassNotFoundException</code> will be thrown to
+     * the caller of this method.
      *
-     * @param	desc an instance of class <code>ObjectStreamClass</code>
-     * @return	a <code>Class</code> object corresponding to <code>desc</code>
-     * @throws	IOException any of the usual input/output exceptions
-     * @throws	ClassNotFoundException if class of a serialized object cannot
-     * 		be found
-     */
+     * @param   desc an instance of class <code>ObjectStreamClass</code>
+     * @return  a <code>Class</code> object corresponding to <code>desc</code>
+     * @throws  IOException any of the usual Input/Output exceptions.
+     * @throws  ClassNotFoundException if class of a serialized object cannot
+     *          be found.
+     */     
     protected Class<?> resolveClass(ObjectStreamClass desc)
 	throws IOException, ClassNotFoundException
     {
@@ -628,21 +647,21 @@ public class ObjectInputStream
      * <code>Proxy.getProxyClass</code>; if non-public interfaces are present,
      * their class loader is passed instead (if more than one non-public
      * interface class loader is encountered, an
-     * <code>IllegalAccessError</code> is thrown).  
+     * <code>IllegalAccessError</code> is thrown).
      * If <code>Proxy.getProxyClass</code> throws an
      * <code>IllegalArgumentException</code>, <code>resolveProxyClass</code>
      * will throw a <code>ClassNotFoundException</code> containing the
      * <code>IllegalArgumentException</code>.
      *
-     * @param	interfaces the list of interface names that were
-     *		deserialized in the proxy class descriptor
+     * @param interfaces the list of interface names that were
+     *                deserialized in the proxy class descriptor
      * @return  a proxy class for the specified interfaces
-     * @throws	IOException any exception thrown by the underlying
-     *		<code>InputStream</code>
-     * @throws	ClassNotFoundException if the proxy class or any of the
-     * 		named interfaces could not be found
+     * @throws        IOException any exception thrown by the underlying
+     *                <code>InputStream</code>
+     * @throws        ClassNotFoundException if the proxy class or any of the
+     *                named interfaces could not be found
      * @see ObjectOutputStream#annotateProxyClass(Class)
-     * @since	1.3
+     * @since 1.3
      */
     protected Class<?> resolveProxyClass(String[] interfaces)
 	throws IOException, ClassNotFoundException
@@ -758,10 +777,11 @@ public class ObjectInputStream
     protected void readStreamHeader()
 	throws IOException, StreamCorruptedException
     {
-	if (bin.readShort() != STREAM_MAGIC ||
-	    bin.readShort() != STREAM_VERSION)
-	{
-	    throw new StreamCorruptedException("invalid stream header");
+	short s0 = bin.readShort();
+	short s1 = bin.readShort();
+	if (s0 != STREAM_MAGIC || s1 != STREAM_VERSION) {
+	    throw new StreamCorruptedException(
+		String.format("invalid stream header: %04X%04X", s0, s1));
 	}
     }
 
@@ -992,12 +1012,11 @@ public class ObjectInputStream
     }
 
     /**
-     * Skips bytes, block until all bytes are skipped.
+     * Skips bytes.
      *
      * @param	len the number of bytes to be skipped
      * @return	the actual number of bytes skipped.
-     * @throws	EOFException If end of file is reached.
-     * @throws	IOException If other I/O error has occurred.
+     * @throws	IOException If an I/O error has occurred.
      */
     public int skipBytes(int len) throws IOException {
 	return bin.skipBytes(len);
@@ -1193,6 +1212,13 @@ public class ObjectInputStream
      */
     private void verifySubclass() {
 	Class cl = getClass();
+	if (cl == ObjectInputStream.class) {
+	    return;	
+	}
+	SecurityManager sm = System.getSecurityManager();
+	if (sm == null) {
+	    return;
+	}
 	processQueue(Caches.subclassAuditsQueue, Caches.subclassAudits);
 	WeakClassKey key = new WeakClassKey(cl, Caches.subclassAuditsQueue);
 	Boolean result = Caches.subclassAudits.get(key);
@@ -1203,10 +1229,7 @@ public class ObjectInputStream
 	if (result.booleanValue()) {
 	    return;
 	}
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPermission(SUBCLASS_IMPLEMENTATION_PERMISSION);
-	}
+	sm.checkPermission(SUBCLASS_IMPLEMENTATION_PERMISSION);
     }
 
     /**
@@ -1223,12 +1246,13 @@ public class ObjectInputStream
 			 cl = cl.getSuperclass())
 		    {
 			try {
-			    cl.getDeclaredMethod("readUnshared", new Class[0]);
+			    cl.getDeclaredMethod(
+			        "readUnshared", (Class[]) null);
 			    return Boolean.FALSE;
 			} catch (NoSuchMethodException ex) {
 			}
 			try {
-			    cl.getDeclaredMethod("readFields", new Class[0]);
+			    cl.getDeclaredMethod("readFields", (Class[]) null);
 			    return Boolean.FALSE;
 			} catch (NoSuchMethodException ex) {
 			}
@@ -1329,7 +1353,8 @@ public class ObjectInputStream
 		    }
 
 		default:
-		    throw new StreamCorruptedException();
+		    throw new StreamCorruptedException(
+			String.format("invalid type code: %02X", tc));
 	    }
 	} finally {
 	    depth--;
@@ -1363,7 +1388,8 @@ public class ObjectInputStream
     String readTypeString() throws IOException {
 	int oldHandle = passHandle;
 	try {
-	    switch (bin.peekByte()) {
+	    byte tc = bin.peekByte();
+	    switch (tc) {
 		case TC_NULL:
 		    return (String) readNull();
 
@@ -1375,7 +1401,8 @@ public class ObjectInputStream
 		    return readString(false);
 
 		default:
-		    throw new StreamCorruptedException();
+		    throw new StreamCorruptedException(
+			String.format("invalid type code: %02X", tc));
 	    }
 	} finally {
 	    passHandle = oldHandle;
@@ -1387,7 +1414,7 @@ public class ObjectInputStream
      */
     private Object readNull() throws IOException {
 	if (bin.readByte() != TC_NULL) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 	passHandle = NULL_HANDLE;
 	return null;
@@ -1399,11 +1426,13 @@ public class ObjectInputStream
      */
     private Object readHandle(boolean unshared) throws IOException {
 	if (bin.readByte() != TC_REFERENCE) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 	passHandle = bin.readInt() - baseWireHandle;
 	if (passHandle < 0 || passHandle >= handles.size()) {
-	    throw new StreamCorruptedException("illegal handle value");
+	    throw new StreamCorruptedException(
+		String.format("invalid handle value: %08X", passHandle + 
+		baseWireHandle));
 	}
 	if (unshared) {
 	    // REMIND: what type of exception to throw here?
@@ -1428,7 +1457,7 @@ public class ObjectInputStream
      */
     private Class readClass(boolean unshared) throws IOException {
 	if (bin.readByte() != TC_CLASS) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 	ObjectStreamClass desc = readClassDesc(false);
 	Class cl = desc.forClass();
@@ -1452,7 +1481,8 @@ public class ObjectInputStream
     private ObjectStreamClass readClassDesc(boolean unshared) 
 	throws IOException 
     {
-	switch (bin.peekByte()) {
+	byte tc = bin.peekByte();
+	switch (tc) {
 	    case TC_NULL:
 		return (ObjectStreamClass) readNull();
 
@@ -1466,7 +1496,8 @@ public class ObjectInputStream
 		return readNonProxyDesc(unshared);
 		
 	    default:
-		throw new StreamCorruptedException();
+		throw new StreamCorruptedException(
+		    String.format("invalid type code: %02X", tc));
 	}
     }
     
@@ -1480,7 +1511,7 @@ public class ObjectInputStream
 	throws IOException 
     {
 	if (bin.readByte() != TC_PROXYCLASSDESC) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 	
 	ObjectStreamClass desc = new ObjectStreamClass();
@@ -1498,7 +1529,7 @@ public class ObjectInputStream
 	bin.setBlockDataMode(true);
 	try {
 	    if ((cl = resolveProxyClass(ifaces)) == null) {
-		throw new ClassNotFoundException("null class");
+		resolveEx = new ClassNotFoundException("null class");
 	    }
 	} catch (ClassNotFoundException ex) {
 	    resolveEx = ex;
@@ -1522,7 +1553,7 @@ public class ObjectInputStream
 	throws IOException 
     {
 	if (bin.readByte() != TC_CLASSDESC) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 	
 	ObjectStreamClass desc = new ObjectStreamClass();
@@ -1542,7 +1573,7 @@ public class ObjectInputStream
 	bin.setBlockDataMode(true);
 	try {
 	    if ((cl = resolveClass(readDesc)) == null) {
-		throw new ClassNotFoundException("null class");
+		resolveEx = new ClassNotFoundException("null class");
 	    }
 	} catch (ClassNotFoundException ex) {
 	    resolveEx = ex;
@@ -1562,7 +1593,8 @@ public class ObjectInputStream
      */
     private String readString(boolean unshared) throws IOException {
 	String str;
-	switch (bin.readByte()) {
+	byte tc = bin.readByte();
+	switch (tc) {
 	    case TC_STRING:
 		str = bin.readUTF();
 		break;
@@ -1572,7 +1604,8 @@ public class ObjectInputStream
 		break;
 		
 	    default:
-		throw new StreamCorruptedException();
+		throw new StreamCorruptedException(
+		    String.format("invalid type code: %02X", tc));
 	}
 	passHandle = handles.assign(unshared ? unsharedMarker : str);
 	handles.finish(passHandle);
@@ -1585,7 +1618,7 @@ public class ObjectInputStream
      */
     private Object readArray(boolean unshared) throws IOException {
 	if (bin.readByte() != TC_ARRAY) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 
 	ObjectStreamClass desc = readClassDesc(false);
@@ -1647,7 +1680,7 @@ public class ObjectInputStream
      */
     private Enum readEnum(boolean unshared) throws IOException {
 	if (bin.readByte() != TC_ENUM) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 
 	ObjectStreamClass desc = readClassDesc(false);
@@ -1693,7 +1726,7 @@ public class ObjectInputStream
 	throws IOException 
     {
 	if (bin.readByte() != TC_OBJECT) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 
 	ObjectStreamClass desc = readClassDesc(false);
@@ -1703,8 +1736,9 @@ public class ObjectInputStream
 	try {
 	    obj = desc.isInstantiable() ? desc.newInstance() : null;
 	} catch (Exception ex) {
-	    throw new InvalidClassException(
-		desc.forClass().getName(), "unable to create instance");
+	    throw (IOException) new InvalidClassException(
+		desc.forClass().getName(), 
+		"unable to create instance").initCause(ex);
 	}
 
 	passHandle = handles.assign(unshared ? unsharedMarker : obj);
@@ -1726,6 +1760,9 @@ public class ObjectInputStream
 	    desc.hasReadResolveMethod())
 	{
 	    Object rep = desc.invokeReadResolve(obj);
+	    if (unshared && rep.getClass().isArray()) {
+		rep = cloneArray(rep);
+	    }
 	    if (rep != obj) {
 		handles.setObject(passHandle, obj = rep);
 	    }
@@ -1744,7 +1781,7 @@ public class ObjectInputStream
 	throws IOException 
     {
 	CallbackContext oldContext = curContext;
-	curContext = null;
+	curContext = null;	
 
 	boolean blocked = desc.hasBlockExternalData();
 	if (blocked) {
@@ -1819,9 +1856,9 @@ public class ObjectInputStream
 		    } finally {
 			curContext.setUsed();
 		    }
-
-		    curContext = oldContext;
 		    
+		    curContext = oldContext;
+
 		    /*
 		     * defaultDataEnd may have been set indirectly by custom
 		     * readObject() method when calling defaultReadObject() or
@@ -1923,7 +1960,7 @@ public class ObjectInputStream
      */
     private IOException readFatalException() throws IOException {
 	if (bin.readByte() != TC_EXCEPTION) {
-	    throw new StreamCorruptedException();
+	    throw new InternalError();
 	}
 	clear();
 	return (IOException) readObject0(false);
@@ -1936,7 +1973,8 @@ public class ObjectInputStream
      */
     private void handleReset() throws StreamCorruptedException {
 	if (depth > 0) {
-	    throw new StreamCorruptedException("unexpected reset");
+	    throw new StreamCorruptedException(
+		"unexpected reset; recursion depth: " + depth);
 	}
 	clear();
     }
@@ -2089,7 +2127,8 @@ public class ObjectInputStream
 	    } else if (desc.getLocalDesc().getField(name, type) != null) {
 		return -1;
 	    } else {
-		throw new IllegalArgumentException("no such field");
+		throw new IllegalArgumentException("no such field " + name + 
+						   " with type " + type);
 	    }
 	}
     }
@@ -2104,11 +2143,15 @@ public class ObjectInputStream
 	    final ObjectInputValidation obj;
 	    final int priority;
 	    Callback next;
+	    final AccessControlContext acc;	
 	    
-	    Callback(ObjectInputValidation obj, int priority, Callback next) {
+	    Callback(ObjectInputValidation obj, int priority, Callback next,
+		AccessControlContext acc) 
+	    {
 		this.obj = obj;
 		this.priority = priority;
 		this.next = next;
+		this.acc = acc;
 	    }
 	}
 	
@@ -2137,10 +2180,11 @@ public class ObjectInputStream
 		prev = cur;
 		cur = cur.next;
 	    }
+	    AccessControlContext acc = AccessController.getContext();
 	    if (prev != null) {
-		prev.next = new Callback(obj, priority, cur);
+		prev.next = new Callback(obj, priority, cur, acc);
 	    } else {
-		list = new Callback(obj, priority, list);
+		list = new Callback(obj, priority, list, acc);
 	    }
 	}
 	
@@ -2153,13 +2197,20 @@ public class ObjectInputStream
 	 */
 	void doCallbacks() throws InvalidObjectException {
 	    try {
-		while (list != null) {
-		    list.obj.validateObject();
+	    	while (list != null) {
+		    AccessController.doPrivileged(
+			new PrivilegedExceptionAction() 
+		    {
+        	    	public Object run() throws InvalidObjectException {
+                	    list.obj.validateObject();
+			    return null;
+	            	}
+		    }, list.acc);
 		    list = list.next;
-		}
-	    } catch (InvalidObjectException ex) {
+	        }
+	    } catch (PrivilegedActionException ex) {
 		list = null;
-		throw ex;
+		throw (InvalidObjectException) ex.getException();
 	    }
 	}
 	
@@ -2390,7 +2441,8 @@ public class ObjectInputStream
 			    int len = Bits.getInt(hbuf, 1);
 			    if (len < 0) {
 				throw new StreamCorruptedException(
-				    "illegal block data header length");
+				    "illegal block data header length: " + 
+				    len);
 			    }
 			    return len;
 
@@ -2407,7 +2459,9 @@ public class ObjectInputStream
 
 			default:
 			    if (tc >= 0 && (tc < TC_BASE || tc > TC_MAX)) {
-				throw new StreamCorruptedException();
+				throw new StreamCorruptedException(
+				    String.format("invalid type code: %02X", 
+				    tc));
 			    }
 			    return -1;
 		    }
@@ -2940,7 +2994,7 @@ public class ObjectInputStream
 	 * utflen bytes.
 	 */
 	private String readUTFBody(long utflen) throws IOException {
-	    StringBuffer sbuf = new StringBuffer();
+	    StringBuilder sbuf = new StringBuilder();
 	    if (!blkmode) {
 		end = pos = 0;
 	    }
@@ -2974,7 +3028,7 @@ public class ObjectInputStream
 	 * consuming no more than utflen bytes.  Appends read characters to
 	 * sbuf.  Returns the number of bytes consumed.
 	 */
-	private long readUTFSpan(StringBuffer sbuf, long utflen) 
+	private long readUTFSpan(StringBuilder sbuf, long utflen) 
 	    throws IOException
 	{
 	    int cpos = 0;
@@ -3051,7 +3105,7 @@ public class ObjectInputStream
 	 * data mode to handle UTF-encoded characters which (potentially)
 	 * straddle block-data boundaries.
 	 */
-	private int readUTFChar(StringBuffer sbuf, long utflen) 
+	private int readUTFChar(StringBuilder sbuf, long utflen) 
 	    throws IOException
 	{
 	    int b1, b2, b3;
@@ -3406,7 +3460,34 @@ public class ObjectInputStream
     }
 
     /**
-     * Context during upcalls to class-defined readObject methods; holds 
+     * Method for cloning arrays in case of using unsharing reading
+     */
+    private static Object cloneArray(Object array) {
+	if (array instanceof Object[]) {
+	    return ((Object[]) array).clone();
+	} else if (array instanceof boolean[]) {
+	    return ((boolean[]) array).clone();
+	} else if (array instanceof byte[]) {
+	    return ((byte[]) array).clone();
+	} else if (array instanceof char[]) {
+	    return ((char[]) array).clone();
+	} else if (array instanceof double[]) {
+	    return ((double[]) array).clone();
+	} else if (array instanceof float[]) {
+	    return ((float[]) array).clone();
+	} else if (array instanceof int[]) {
+	    return ((int[]) array).clone();
+	} else if (array instanceof long[]) {
+	    return ((long[]) array).clone();
+	} else if (array instanceof double[]) {
+	    return ((double[]) array).clone();
+	} else {
+	    throw new AssertionError();
+	}
+    }
+
+    /**
+     * Context that during upcalls to class-defined readObject methods; holds 
      * object currently being deserialized and descriptor for current class. 
      * This context keeps a boolean state to indicate that defaultReadObject 
      * or readFields has already been invoked with this context or the class's

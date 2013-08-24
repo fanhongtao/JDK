@@ -62,11 +62,11 @@ import  java.io.*;
  * the source that corresponds to a relative address in the byte code. This
  * is used for debugging purposes.
  *
- * @version $Id: LineNumber.java,v 1.1.1.1 2001/10/29 20:00:02 jvanzyl Exp $
+ * @version $Id: LineNumber.java,v 1.1.2.1 2005/07/31 23:46:21 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     LineNumberTable
  */
-public final class LineNumber implements Cloneable, Node {
+public final class LineNumber implements Cloneable, Node, Serializable {
   private int start_pc;    // Program Counter (PC) corresponds to line
   private int line_number; // number in source file
 
@@ -80,7 +80,7 @@ public final class LineNumber implements Cloneable, Node {
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   LineNumber(DataInputStream file) throws IOException
   {
@@ -112,7 +112,7 @@ public final class LineNumber implements Cloneable, Node {
    * Dump line number/pc pair to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

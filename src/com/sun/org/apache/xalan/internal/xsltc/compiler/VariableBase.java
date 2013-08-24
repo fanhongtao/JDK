@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: VariableBase.java,v 1.23 2004/02/24 02:57:28 zongaro Exp $
+ * $Id: VariableBase.java,v 1.5 2005/09/28 13:48:18 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -34,7 +34,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeSetType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -64,9 +64,6 @@ class VariableBase extends TopLevelElement {
     // Used to make sure parameter field is not added twice
     protected boolean    _ignore = false;
 
-    // Used to order top-level variables so that there are no forward references
-    protected int        _weight = 0;
-
     /**
      * Disable this variable/parameter
      */
@@ -88,25 +85,6 @@ class VariableBase extends TopLevelElement {
      */
     public void removeReference(VariableRefBase vref) {
 	_refs.remove(vref);
-    }
-
-    /**
-     *
-     */
-    public void addDependency(VariableBase other) {
-	if (_dependencies == null) {
-	    _dependencies = new Vector();
-	}
-	if (!_dependencies.contains(other)) {
-	    _dependencies.addElement(other);
-	}
-    }
-
-    /**
-     *
-     */
-    public Vector getDependencies() {
-	return _dependencies;
     }
 
     /**
@@ -230,7 +208,7 @@ class VariableBase extends TopLevelElement {
 	String name = getAttribute("name");
 
         if (name.length() > 0) {
-            if (!XMLChar.isValidQName(name)) {
+            if (!XML11Char.isXML11ValidQName(name)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
                 parser.reportError(Constants.ERROR, err);           
             }   

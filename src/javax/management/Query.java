@@ -1,7 +1,7 @@
 /*
- * @(#)Query.java	1.26 04/02/10
+ * @(#)Query.java	1.31 05/12/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -97,7 +97,10 @@ package javax.management;
       * @param q1 A query expression.
       * @param q2 Another query expression.
       *
-      * @return  The conjunction of the two arguments.
+      * @return  The conjunction of the two arguments.  The returned object
+      * will be serialized as an instance of the non-public class {@link
+      * <a href="../../serialized-form.html#javax.management.AndQueryExp">
+      * javax.management.AndQueryExp</a>}.
       */
      public static QueryExp and(QueryExp q1, QueryExp q2)  { 
 	 return new AndQueryExp(q1, q2);
@@ -110,7 +113,10 @@ package javax.management;
       * @param q1 A query expression.
       * @param q2 Another query expression.
       *
-      * @return  The disjunction of the two arguments.
+      * @return  The disjunction of the two arguments.  The returned object
+      * will be serialized as an instance of the non-public class {@link
+      * <a href="../../serialized-form.html#javax.management.OrQueryExp">
+      * javax.management.OrQueryExp</a>}.
       */
      public static QueryExp or(QueryExp q1, QueryExp q2)  { 
 	 return new OrQueryExp(q1, q2);
@@ -123,7 +129,12 @@ package javax.management;
       * @param v1 A value expression.
       * @param v2 Another value expression.
       *
-      * @return  A "greater than" constraint on the arguments.
+      * @return A "greater than" constraint on the arguments.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryRelQueryExp">
+      * javax.management.BinaryRelQueryExp</a>} with a {@code relOp} equal
+      * to {@link #GT}.
       */
      public static QueryExp gt(ValueExp v1, ValueExp v2)  { 
 	 return new BinaryRelQueryExp(GT, v1, v2);
@@ -136,7 +147,12 @@ package javax.management;
       * @param v1 A value expression.
       * @param v2 Another value expression.
       *
-      * @return  A "greater than or equal to" constraint on the arguments.
+      * @return A "greater than or equal to" constraint on the
+      * arguments.  The returned object will be serialized as an
+      * instance of the non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryRelQueryExp">
+      * javax.management.BinaryRelQueryExp</a>} with a {@code relOp} equal
+      * to {@link #GE}.
       */
      public static QueryExp geq(ValueExp v1, ValueExp v2)  { 
 	 return new BinaryRelQueryExp(GE, v1, v2);
@@ -149,7 +165,12 @@ package javax.management;
       * @param v1 A value expression.
       * @param v2 Another value expression.
       *
-      * @return  A "less than or equal to" constraint on the arguments.
+      * @return A "less than or equal to" constraint on the arguments.
+      * The returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryRelQueryExp">
+      * javax.management.BinaryRelQueryExp</a>} with a {@code relOp} equal
+      * to {@link #LE}.
       */
      public static QueryExp leq(ValueExp v1, ValueExp v2)  { 
 	 return new BinaryRelQueryExp(LE, v1, v2);
@@ -162,7 +183,12 @@ package javax.management;
       * @param v1 A value expression.
       * @param v2 Another value expression.
       *
-      * @return  A "less than" constraint on the arguments.
+      * @return A "less than" constraint on the arguments.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryRelQueryExp">
+      * javax.management.BinaryRelQueryExp</a>} with a {@code relOp} equal
+      * to {@link #LT}.
       */
      public static QueryExp lt(ValueExp v1, ValueExp v2)  { 
 	 return new BinaryRelQueryExp(LT, v1, v2);
@@ -175,7 +201,12 @@ package javax.management;
       * @param v1 A value expression.
       * @param v2 Another value expression.
       *
-      * @return  A "equal to" constraint on the arguments.
+      * @return A "equal to" constraint on the arguments.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryRelQueryExp">
+      * javax.management.BinaryRelQueryExp</a>} with a {@code relOp} equal
+      * to {@link #EQ}.
       */
      public static QueryExp eq(ValueExp v1, ValueExp v2)  { 
 	 return new BinaryRelQueryExp(EQ, v1, v2);
@@ -189,7 +220,11 @@ package javax.management;
       * @param v2 Value expression that represents a boundary of the constraint.     
       * @param v3 Value expression that represents a boundary of the constraint.
       *
-      * @return  The constraint that v1 lies between v2 and v3.
+      * @return The constraint that v1 lies between v2 and v3.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BetweenQueryExp">
+      * javax.management.BetweenQueryExp</a>}.
       */
      public static QueryExp between(ValueExp v1, ValueExp v2, ValueExp v3) {
 	 return new BetweenQueryExp(v1, v2, v3); 
@@ -198,9 +233,9 @@ package javax.management;
      /**
       * Returns a query expression that represents a matching constraint on
       * a string argument. The matching syntax is consistent with file globbing:
-      * Supports "<code>?</code>", "<code>*</code>", "<code>[</code>",
+      * supports "<code>?</code>", "<code>*</code>", "<code>[</code>",
       * each of which may be escaped with "<code>\</code>";
-      * Character classes may use "<code>!</code>" for negation and
+      * character classes may use "<code>!</code>" for negation and
       * "<code>-</code>" for range.
       * (<code>*</code> for any character sequence,
       * <code>?</code> for a single arbitrary character,
@@ -213,8 +248,11 @@ package javax.management;
       * @param a An attribute expression
       * @param s A string value expression representing a matching constraint
       *
-      * @return  A query expression that represents the matching constraint on the
-      * string argument.
+      * @return A query expression that represents the matching
+      * constraint on the string argument.  The returned object will
+      * be serialized as an instance of the non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.MatchQueryExp">
+      * javax.management.MatchQueryExp</a>}.
       */
      public static QueryExp match(AttributeValueExp a, StringValueExp s)  { 
 	 return new MatchQueryExp(a, s);
@@ -249,7 +287,11 @@ package javax.management;
       * @param className The name of the class possessing the attribute.
       * @param name The name of the attribute.
       *
-      * @return  An attribute expression for the attribute named name.
+      * @return An attribute expression for the attribute named name.
+      * The returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.QualifiedAttributeValueExp">
+      * javax.management.QualifiedAttributeValueExp</a>}.
       */     
      public static AttributeValueExp attr(String className, String name)  { 
 	 return new QualifiedAttributeValueExp(className, name);
@@ -264,7 +306,11 @@ package javax.management;
       * MBeanServer#getObjectInstance
       * MBeanServer.getObjectInstance(objectName)}.</p>
       *
-      * @return  A class attribute expression.
+      * @return A class attribute expression.  The returned object
+      * will be serialized as an instance of the non-public class
+      * {@link <a
+      * href="../../serialized-form.html#javax.management.ClassAttributeValueExp">
+      * javax.management.ClassAttributeValueExp</a>}.
       */
      public static AttributeValueExp classattr()  { 
 	 return new ClassAttributeValueExp();
@@ -275,7 +321,10 @@ package javax.management;
       *
       * @param queryExp The constraint to negate.
       *
-      * @return  A negated constraint.
+      * @return A negated constraint.  The returned object will be
+      * serialized as an instance of the non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.NotQueryExp">
+      * javax.management.NotQueryExp</a>}.
       */
      public static QueryExp not(QueryExp queryExp)  { 
 	 return new NotQueryExp(queryExp);
@@ -287,7 +336,11 @@ package javax.management;
       * @param val A value to be constrained.
       * @param valueList An array of ValueExps.
       *
-      * @return  A QueryExp that represents the constraint.
+      * @return A QueryExp that represents the constraint.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.InQueryExp">
+      * javax.management.InQueryExp</a>}.
       */
      public static QueryExp in(ValueExp val, ValueExp valueList[])  { 
 	 return new InQueryExp(val, valueList);
@@ -310,7 +363,11 @@ package javax.management;
       *
       * @param val An instance of Number.
       *
-      * @return  A ValueExp object containing the argument.
+      * @return A ValueExp object containing the argument.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.NumericValueExp">
+      * javax.management.NumericValueExp</a>}.
       */
      public static ValueExp value(Number val)  { 
 	 return new NumericValueExp(val);
@@ -322,10 +379,14 @@ package javax.management;
       *
       * @param val An int value.
       *
-      * @return  A ValueExp object containing the argument.
+      * @return A ValueExp object containing the argument.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.NumericValueExp">
+      * javax.management.NumericValueExp</a>}.
       */
      public static ValueExp value(int val)  { 
-	 return new NumericValueExp(new Long(val));
+	 return new NumericValueExp((long) val);
      } 
 
      /**
@@ -334,10 +395,14 @@ package javax.management;
       *
       * @param val A long value.
       *
-      * @return  A ValueExp object containing the argument.
+      * @return A ValueExp object containing the argument.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.NumericValueExp">
+      * javax.management.NumericValueExp</a>}.
       */
      public static ValueExp value(long val)  { 
-	 return new NumericValueExp(new Long(val));
+	 return new NumericValueExp(val);
      } 
      
      /**
@@ -346,10 +411,14 @@ package javax.management;
       *
       * @param val A float value.
       *
-      * @return  A ValueExp object containing the argument.
+      * @return A ValueExp object containing the argument.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.NumericValueExp">
+      * javax.management.NumericValueExp</a>}.
       */
      public static ValueExp value(float val)  { 
-	 return new NumericValueExp(new Double(val));
+	 return new NumericValueExp((double) val);
      } 
      
      /**
@@ -358,10 +427,14 @@ package javax.management;
       *
       * @param val A double value.
       *
-      * @return  A ValueExp object containing the argument.
+      * @return  A ValueExp object containing the argument.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.NumericValueExp">
+      * javax.management.NumericValueExp</a>}.
       */
      public static ValueExp value(double val)  { 
-	 return new NumericValueExp(new Double(val));
+	 return new NumericValueExp(val);
      } 
 
      /**
@@ -370,7 +443,11 @@ package javax.management;
       *
       * @param val A boolean value.
       *
-      * @return  A ValueExp object containing the argument.
+      * @return A ValueExp object containing the argument.  The
+      * returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BooleanValueExp">
+      * javax.management.BooleanValueExp</a>}.
       */
      public static ValueExp value(boolean val)  { 
 	 return new BooleanValueExp(val);
@@ -383,8 +460,12 @@ package javax.management;
       * @param value1 The first '+' operand.
       * @param value2 The second '+' operand.
       *
-      * @return  A ValueExp representing the sum or concatenation of the two
-      * arguments.
+      * @return A ValueExp representing the sum or concatenation of
+      * the two arguments.  The returned object will be serialized as
+      * an instance of the non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryOpValueExp">
+      * javax.management.BinaryOpValueExp</a>} with an {@code op} equal to
+      * {@link #PLUS}.
       */
      public static ValueExp plus(ValueExp value1, ValueExp value2) {
 	 return new BinaryOpValueExp(PLUS, value1, value2); 
@@ -397,7 +478,12 @@ package javax.management;
       * @param value1 The first '*' operand.      
       * @param value2 The second '*' operand.
       *
-      * @return  A ValueExp representing the product.
+      * @return A ValueExp representing the product.  The returned
+      * object will be serialized as an instance of the non-public
+      * class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryOpValueExp">
+      * javax.management.BinaryOpValueExp</a>} with an {@code op} equal to
+      * {@link #TIMES}.
       */
      public static ValueExp times(ValueExp value1,ValueExp value2) {
 	 return new BinaryOpValueExp(TIMES, value1, value2); 
@@ -410,7 +496,12 @@ package javax.management;
       * @param value1 The first '-' operand.      
       * @param value2 The second '-' operand.
       *
-      * @return  A ValueExp representing the difference between two arguments.
+      * @return A ValueExp representing the difference between two
+      * arguments.  The returned object will be serialized as an
+      * instance of the non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryOpValueExp">
+      * javax.management.BinaryOpValueExp</a>} with an {@code op} equal to
+      * {@link #MINUS}.
       */
      public static ValueExp minus(ValueExp value1, ValueExp value2) {
 	 return new BinaryOpValueExp(MINUS, value1, value2);
@@ -423,7 +514,12 @@ package javax.management;
       * @param value1 The first '/' operand.
       * @param value2 The second '/' operand.
       *
-      * @return  A ValueExp representing the quotient of two arguments.
+      * @return A ValueExp representing the quotient of two arguments.
+      * The returned object will be serialized as an instance of the
+      * non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.BinaryOpValueExp">
+      * javax.management.BinaryOpValueExp</a>} with an {@code op} equal to
+      * {@link #DIV}.
       */     
      public static ValueExp div(ValueExp value1, ValueExp value2) {
 	 return new BinaryOpValueExp(DIV, value1, value2); 
@@ -431,40 +527,99 @@ package javax.management;
      
      /**
       * Returns a query expression that represents a matching constraint on
-      * a string argument. The value must start with the given string value.
-      *      
-      * @param a An attribute expression.
-      * @param s A string value expression representing the beginning of the string value.      
+      * a string argument. The value must start with the given literal string
+      * value.
       *
-      * @return  The constraint that a matches s.
+      * @param a An attribute expression.
+      * @param s A string value expression representing the beginning of the
+      * string value.
+      *
+      * @return The constraint that a matches s.  The returned object
+      * will be serialized as an instance of the non-public class
+      * {@link <a
+      * href="../../serialized-form.html#javax.management.MatchQueryExp">
+      * javax.management.MatchQueryExp</a>}.
       */
-     public static QueryExp initialSubString(AttributeValueExp a, StringValueExp s)  { 
-	 return new MatchQueryExp(a, new StringValueExp(s.getValue()+"*"));
-     } 
+     public static QueryExp initialSubString(AttributeValueExp a, StringValueExp s)  {
+	 return new MatchQueryExp(a,
+             new StringValueExp(escapeString(s.getValue()) + "*"));
+     }
 
      /**
       * Returns a query expression that represents a matching constraint on
-      * a string argument. The value must contain the given string value.
+      * a string argument. The value must contain the given literal string
+      * value.
       *
       * @param a An attribute expression.
       * @param s A string value expression representing the substring.
       *
-      * @return  The constraint that a matches s.
+      * @return The constraint that a matches s.  The returned object
+      * will be serialized as an instance of the non-public class
+      * {@link <a
+      * href="../../serialized-form.html#javax.management.MatchQueryExp">
+      * javax.management.MatchQueryExp</a>}.
       */
      public static QueryExp anySubString(AttributeValueExp a, StringValueExp s) {
-	 return new MatchQueryExp(a, new StringValueExp("*"+s.getValue()+"*")); 
-     } 
+	 return new MatchQueryExp(a,
+             new StringValueExp("*" + escapeString(s.getValue()) + "*"));
+     }
 
      /**
       * Returns a query expression that represents a matching constraint on
-      * a string argument. The value must contain the given string value.
+      * a string argument. The value must end with the given literal string
+      * value.
       *
       * @param a An attribute expression.
-      * @param s A string value expression representing the end of the string value.
+      * @param s A string value expression representing the end of the string
+      * value.
       *
-      *@return  The constraint that a matches s.
+      * @return The constraint that a matches s.  The returned object
+      * will be serialized as an instance of the non-public class
+      * {@link <a
+      * href="../../serialized-form.html#javax.management.MatchQueryExp">
+      * javax.management.MatchQueryExp</a>}.
       */
      public static QueryExp finalSubString(AttributeValueExp a, StringValueExp s) {
-	 return new MatchQueryExp(a, new StringValueExp("*"+ s.getValue()));
-     } 
+	 return new MatchQueryExp(a,
+             new StringValueExp("*" + escapeString(s.getValue())));
+     }
+
+     /**
+      * Returns a query expression that represents an inheritance constraint 
+      * on an MBean class.
+      * <p>Example: to find MBeans that are instances of 
+      * {@link NotificationBroadcaster}, use 
+      * {@code Query.isInstanceOf(Query.value(NotificationBroadcaster.class.getName()))}.
+      * </p>
+      * <p>Evaluating this expression for a given
+      * <code>objectName</code> includes performing {@link
+      * MBeanServer#isInstanceOf MBeanServer.isInstanceOf(objectName,
+      * ((StringValueExp)classNameValue.apply(objectName)).getValue()}.</p>
+      *
+      * @param classNameValue The {@link StringValueExp} returning the name
+      *        of the class of which selected MBeans should be instances.
+      * @return a query expression that represents an inheritance
+      * constraint on an MBean class.  The returned object will be
+      * serialized as an instance of the non-public class {@link <a
+      * href="../../serialized-form.html#javax.management.InstanceOfQueryExp">
+      * javax.management.InstanceOfQueryExp</a>}.
+      * @since 1.6
+      */
+     public static QueryExp isInstanceOf(StringValueExp classNameValue) {
+        return new InstanceOfQueryExp(classNameValue);
+     }
+
+     /**
+      * Utility method to escape strings used with
+      * Query.{initial|any|final}SubString() methods.
+      */
+     private static String escapeString(String s) {
+         if (s == null)
+             return null;
+         s = s.replace("\\", "\\\\");
+         s = s.replace("*", "\\*");
+         s = s.replace("?", "\\?");
+         s = s.replace("[", "\\[");
+         return s;
+     }
  }

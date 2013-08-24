@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextUI.java	1.106 05/06/03
+ * @(#)BasicTextUI.java	1.120 06/08/25
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -70,12 +70,6 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * the EditorKit ties all of the pieces necessary to maintain a type
  * of document, the factory is typically an important part of that
  * and should be produced by the EditorKit implementation.
- * <li>
- * A less common way to create more complex types is to have
- * the UI implementation create a.
- * separate object for the factory.  To do this, the 
- * {@link #createViewFactory} method should be reimplemented to 
- * return some factory.
  * </ol>
  * <p>
  * <strong>Warning:</strong>
@@ -88,8 +82,8 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author Timothy Prinzing
- * @author Shannon Hickey (drag recognition)
- * @version 1.106 06/03/05
+ * @author Shannon Hickey (drag and drop)
+ * @version 1.120 08/25/06
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -184,9 +178,91 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      * properties in JTextComponent itself are handled prior
      * to calling this method).
      *
+     * This implementation updates the background of the text
+     * component if the editable and/or enabled state changes.
+     *
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("editable") ||
+                evt.getPropertyName().equals("enabled")) {
+            
+            updateBackground((JTextComponent)evt.getSource());
+        }
+    }
+
+    /**
+     * Updates the background of the text component based on whether the
+     * text component is editable and/or enabled.
+     *
+     * @param c the JTextComponent that needs its background color updated
+     */
+    private void updateBackground(JTextComponent c) {
+        // This is a temporary workaround.
+        // This code does not correctly deal with Synth (Synth doesn't use
+        // properties like this), nor does it deal with the situation where
+        // the developer grabs the color from a JLabel and sets it as
+        // the background for a JTextArea in all look and feels. The problem
+        // scenario results if the Color obtained for the Label and TextArea
+        // is ==, which is the case for the windows look and feel.
+        // Until an appropriate solution is found, the code is being
+        // reverted to what it was before the original fix.
+        if (this instanceof sun.swing.plaf.synth.SynthUI ||
+                (c instanceof JTextArea)) {
+            return;
+        }
+        Color background = c.getBackground();
+        if (background instanceof UIResource) {
+            String prefix = getPropertyPrefix();
+
+            Color disabledBG =
+                DefaultLookup.getColor(c, this, prefix + ".disabledBackground", null);
+            Color inactiveBG =
+                DefaultLookup.getColor(c, this, prefix + ".inactiveBackground", null);
+            Color bg =
+                DefaultLookup.getColor(c, this, prefix + ".background", null);
+
+            /* In an ideal situation, the following check would not be necessary
+             * and we would replace the color any time the previous color was a
+             * UIResouce. However, it turns out that there is existing code that
+             * uses the following inadvisable pattern to turn a text area into
+             * what appears to be a multi-line label:
+             *
+             * JLabel label = new JLabel();
+             * JTextArea area = new JTextArea();
+             * area.setBackground(label.getBackground());
+             * area.setEditable(false);
+             *
+             * JLabel's default background is a UIResource. As such, just
+             * checking for UIResource would have us always changing the
+             * background away from what the developer wanted.
+             *
+             * Therefore, for JTextArea/JEditorPane, we'll additionally check
+             * that the color we're about to replace matches one that was
+             * installed by us from the UIDefaults.
+             */
+            if ((c instanceof JTextArea || c instanceof JEditorPane)
+                    && background != disabledBG
+                    && background != inactiveBG
+                    && background != bg) {
+
+                return;
+            }
+
+            Color newColor = null;
+            if (!c.isEnabled()) {
+                newColor = disabledBG;
+            }
+            if (newColor == null && !c.isEditable()) {
+                newColor = inactiveBG;
+            }
+            if (newColor == null) {
+                newColor = bg;
+            }
+            if (newColor != null && newColor != background) {
+                c.setBackground(newColor);
+            }
+        }
     }
 
     /**
@@ -256,11 +332,13 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         if (margin == null || margin instanceof UIResource) {
             editor.setMargin(UIManager.getInsets(prefix + ".margin"));
         }
+
+        updateCursor();
     }
 
     private void installDefaults2() {
-        editor.addMouseListener(dragListener);
-        editor.addMouseMotionListener(dragListener);
+	editor.addMouseListener(dragListener);
+	editor.addMouseMotionListener(dragListener);
 	
         String prefix = getPropertyPrefix();
 
@@ -282,17 +360,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	if (th == null || th instanceof UIResource) {
 	    editor.setTransferHandler(getTransferHandler());
 	}
-	DropTarget dropTarget = editor.getDropTarget();
-	if (dropTarget instanceof UIResource) {
-            if (defaultDropTargetListener == null) {
-                defaultDropTargetListener = new TextDropTargetListener();
-            }
-	    try {
-		dropTarget.addDropTargetListener(defaultDropTargetListener);
-	    } catch (TooManyListenersException tmle) {
-		// should not happen... swing drop target is multicast
-	    }
-	}
     }
 
     /**
@@ -305,8 +372,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     protected void uninstallDefaults() 
     {
-        editor.removeMouseListener(dragListener);
-        editor.removeMouseMotionListener(dragListener);
+	editor.removeMouseListener(dragListener);
+	editor.removeMouseMotionListener(dragListener);
 
         if (editor.getCaretColor() instanceof UIResource) {
             editor.setCaretColor(null);
@@ -343,6 +410,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	if (editor.getTransferHandler() instanceof UIResource) {
 	    editor.setTransferHandler(null);
 	}
+
+        if (editor.getCursor() instanceof UIResource) {
+            editor.setCursor(null);
+        }
     }
 
     /**
@@ -469,6 +540,17 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 					 backwardTraversalKeys);
 	}
 
+    }
+
+    /**
+     * As needed updates cursor for the target editor.
+     */
+    private void updateCursor() {
+        if ((! editor.isCursorSet())
+               || editor.getCursor() instanceof UIResource) {
+            Cursor cursor = (editor.isEditable()) ? textCursor : null;
+            editor.setCursor(cursor);
+        }
     }
 
     /**
@@ -647,6 +729,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	if (caret != null) {
 	    caret.paint(g);
 	}
+
+        if (dropCaret != null) {
+            dropCaret.paint(g);
+        }
     }
 
     // --- ComponentUI methods --------------------------------------------
@@ -712,6 +798,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 		editor.setLayout(updateHandler);
 	    }
 
+            updateBackground(editor);
         } else {
             throw new Error("TextUI needs JTextComponent");
         }
@@ -1009,21 +1096,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     }
 
     /**
-     * Provides a way to determine the next visually represented model 
-     * location that one might place a caret.  Some views may not be visible,
-     * they might not be in the same order found in the model, or they just
-     * might not allow access to some of the locations in the model.
-     *
-     * @param pos the position to convert >= 0
-     * @param a the allocated region to render into
-     * @param direction the direction from the current position that can
-     *  be thought of as the arrow keys typically found on a keyboard.
-     *  This may be SwingConstants.WEST, SwingConstants.EAST, 
-     *  SwingConstants.NORTH, or SwingConstants.SOUTH.  
-     * @return the location within the model that best represents the next
-     *  location visual position.
-     * @exception BadLocationException
-     * @exception IllegalArgumentException for an invalid direction
+     * {@inheritDoc}
      */
     public int getNextVisualPositionFrom(JTextComponent t, int pos,
 		    Position.Bias b, int direction, Position.Bias[] biasRet)
@@ -1197,7 +1270,17 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
     public static class BasicHighlighter extends DefaultHighlighter implements UIResource {}
 
+    static class BasicCursor extends Cursor implements UIResource {
+    	BasicCursor(int type) {
+    	    super(type);
+    	}
 
+       	BasicCursor(String name) {
+    	    super(name);
+    	}
+    }
+
+    private static BasicCursor textCursor = new BasicCursor(Cursor.TEXT_CURSOR);
     // ----- member variables ---------------------------------------
 
     private static final EditorKit defaultKit = new DefaultEditorKit();
@@ -1206,9 +1289,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     transient RootView rootView = new RootView();
     transient UpdateHandler updateHandler = new UpdateHandler();
     private static final TransferHandler defaultTransferHandler = new TextTransferHandler();
-    private static DropTargetListener defaultDropTargetListener = null;
     private final DragListener dragListener = getDragListener();
     private static final Position.Bias[] discardBias = new Position.Bias[1];
+    private DefaultCaret dropCaret;
 
     /**
      * Root view that acts as a gateway between the component
@@ -1701,22 +1784,38 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
                 modelChanged();
             } else if ("font" == propertyName) {
                 modelChanged();
-            } else if ("transferHandler" == propertyName) {
-		DropTarget dropTarget = editor.getDropTarget();
-		if (dropTarget instanceof UIResource) {
-                    if (defaultDropTargetListener == null) {
-                        defaultDropTargetListener = new TextDropTargetListener();
-                    }
-		    try {
-			dropTarget.addDropTargetListener(defaultDropTargetListener);
-		    } catch (TooManyListenersException tmle) {
-			// should not happen... swing drop target is multicast
-		    }
-		}
+            } else if ("dropLocation" == propertyName) {
+                dropIndexChanged();
 	    } else if ("editable" == propertyName) {
+                updateCursor();
                 modelChanged();
 	    }
             BasicTextUI.this.propertyChange(evt);
+        }
+
+        private void dropIndexChanged() {
+            if (editor.getDropMode() == DropMode.USE_SELECTION) {
+                return;
+            }
+
+            JTextComponent.DropLocation dropLocation = editor.getDropLocation();
+
+            if (dropLocation == null) {
+                if (dropCaret != null) {
+                    dropCaret.deinstall(editor);
+                    editor.repaint(dropCaret);
+                    dropCaret = null;
+                }
+            } else {
+                if (dropCaret == null) {
+                    dropCaret = new BasicCaret();
+                    dropCaret.install(editor);
+                    dropCaret.setVisible(true);
+                }
+
+                dropCaret.setDot(dropLocation.getIndex(),
+                                 dropLocation.getBias());
+            }
         }
 
         // --- DocumentListener methods -----------------------
@@ -2072,70 +2171,34 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         }
     }
 
-    /**
-     * A DropTargetListener to extend the default Swing handling of drop operations
-     * by moving the caret to the nearest location to the mouse pointer.
-     */
-    static class TextDropTargetListener extends BasicDropTargetListener {
-
-	/**
-	 * called to save the state of a component in case it needs to
-	 * be restored because a drop is not performed.
-	 */
-        protected void saveComponentState(JComponent comp) {
-	    JTextComponent c = (JTextComponent) comp;
-	    Caret caret = c.getCaret();
-	    dot = caret.getDot();
-	    mark = caret.getMark();
-	    visible = caret instanceof DefaultCaret ?
-                          ((DefaultCaret)caret).isActive() :
-                          caret.isVisible();
-	    caret.setVisible(true);
-	}
-
-	/**
-	 * called to restore the state of a component 
-	 * because a drop was not performed.
-	 */
-        protected void restoreComponentState(JComponent comp) {
-	    JTextComponent c = (JTextComponent) comp;
-	    Caret caret = c.getCaret();
-	    caret.setDot(mark);
-	    caret.moveDot(dot);
-	    caret.setVisible(visible);
-	}
-
-        /**
-         * called to restore the state of a component
-         * because a drop was performed.
-         */
-        protected void restoreComponentStateForDrop(JComponent comp) {
-            JTextComponent c = (JTextComponent) comp;
-            Caret caret = c.getCaret();
-            caret.setVisible(visible);
-        }
-
-	/**
-	 * called to set the insertion location to match the current
-	 * mouse pointer coordinates.
-	 */
-        protected void updateInsertionLocation(JComponent comp, Point p) {
-	    JTextComponent c = (JTextComponent) comp;
-	    c.setCaretPosition(c.viewToModel(p));
-	}
-
-	int dot;
-	int mark;
-	boolean visible;
-    }
-
     static class TextTransferHandler extends TransferHandler implements UIResource {
         
         private JTextComponent exportComp;
         private boolean shouldRemove;
         private int p0;
         private int p1;
-        
+
+        /**
+         * Whether or not this is a drop using
+         * <code>DropMode.INSERT</code>.
+         */
+        private boolean modeBetween = false;
+
+        /**
+         * Whether or not this is a drop.
+         */
+        private boolean isDrop = false;
+
+        /**
+         * The drop action.
+         */
+        private int dropAction = MOVE;
+
+        /**
+         * The drop bias.
+         */
+        private Position.Bias dropBias;
+
         /**
          * Try to find a flavor that can be used to import a Transferable.  
          * The set of usable flavors are tried in the following order:
@@ -2340,6 +2403,28 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             exportComp = null;
 	}
 
+        public boolean importData(TransferSupport support) {
+            isDrop = support.isDrop();
+
+            if (isDrop) {
+                modeBetween =
+                    ((JTextComponent)support.getComponent()).getDropMode() == DropMode.INSERT;
+
+                dropBias = ((JTextComponent.DropLocation)support.getDropLocation()).getBias();
+
+                dropAction = support.getDropAction();
+            }
+
+            try {
+                return super.importData(support);
+            } finally {
+                isDrop = false;
+                modeBetween = false;
+                dropBias = null;
+                dropAction = MOVE;
+            }
+        }
+ 
 	/**
 	 * This method causes a transfer to a component from a clipboard or a 
 	 * DND drop operation.  The Transferable represents the data to be
@@ -2354,11 +2439,15 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         public boolean importData(JComponent comp, Transferable t) {
             JTextComponent c = (JTextComponent)comp;
 
+            int pos = modeBetween
+                      ? ((JTextComponent.DropLocation)c.getDropLocation()).getIndex()
+                      : c.getCaretPosition();
+
 	    // if we are importing to the same component that we exported from
             // then don't actually do anything if the drop location is inside
             // the drag location and set shouldRemove to false so that exportDone
             // knows not to remove any data
-            if (c == exportComp && c.getCaretPosition() >= p0 && c.getCaretPosition() <= p1) {
+            if (dropAction == MOVE && c == exportComp && pos >= p0 && pos <= p1) {
                 shouldRemove = false;
                 return true;
             }
@@ -2380,7 +2469,32 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 			ic.endComposition();
 		    }
                     Reader r = importFlavor.getReaderForText(t);
+
+                    if (modeBetween) {
+                        Caret caret = c.getCaret();
+                        if (caret instanceof DefaultCaret) {
+                            ((DefaultCaret)caret).setDot(pos, dropBias);
+                        } else {
+                            c.setCaretPosition(pos);
+                        }
+                    }
+
                     handleReaderImport(r, c, useRead);
+
+                    if (isDrop) {
+                        c.requestFocus();
+                        Caret caret = c.getCaret();
+                        if (caret instanceof DefaultCaret) {
+                            int newPos = caret.getDot();
+                            Position.Bias newBias = ((DefaultCaret)caret).getDotBias();
+
+                            ((DefaultCaret)caret).setDot(pos, dropBias);
+                            ((DefaultCaret)caret).moveDot(newPos, newBias);
+                        } else {
+                            c.select(pos, c.getCaretPosition());
+                        }
+                    }
+
                     imported = true;
 		} catch (UnsupportedFlavorException ufe) {
 		} catch (BadLocationException ble) {

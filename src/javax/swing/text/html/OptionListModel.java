@@ -1,7 +1,7 @@
 /*
- * @(#)OptionListModel.java	1.11 03/12/19
+ * @(#)OptionListModel.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -24,7 +24,7 @@ import java.io.Serializable;
  * accurate reset, if the user requests a reset of the form.
  *
   @author Sunita Mani
-  @version 1.11 12/19/03
+  @version 1.12 11/17/05
  */
 
 class OptionListModel extends DefaultListModel implements ListSelectionModel, Serializable {

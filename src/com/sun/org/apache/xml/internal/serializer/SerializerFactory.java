@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializerFactory.java,v 1.6 2004/02/23 10:29:37 aruny Exp $
+ * $Id: SerializerFactory.java,v 1.2.4.1 2005/09/15 08:15:24 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -23,25 +23,59 @@ import java.util.Properties;
 
 import javax.xml.transform.OutputKeys;
 
-import com.sun.org.apache.xml.internal.res.XMLErrorResources;
-import com.sun.org.apache.xml.internal.res.XMLMessages;
+import com.sun.org.apache.xml.internal.serializer.utils.MsgKey;
+import com.sun.org.apache.xml.internal.serializer.utils.Utils;
 import org.xml.sax.ContentHandler;
 
 /**
- * Factory for creating serializers.
- */
-public abstract class SerializerFactory
+ * This class is a public API, it is a factory for creating serializers.
+   * 
+   * The properties object passed to the getSerializer() method should be created by
+   * the OutputPropertiesFactory. Although the properties object
+   * used to create a serializer does not need to be obtained 
+   * from OutputPropertiesFactory,
+   * using this factory ensures that the default key/value properties
+   * are set for the given output "method".
+   * 
+   * <p>
+   * The standard property keys supported are: "method", "version", "encoding",
+   * "omit-xml-declaration", "standalone", doctype-public",
+   * "doctype-system", "cdata-section-elements", "indent", "media-type". 
+   * These property keys and their values are described in the XSLT recommendation,
+   * see {@link <a href="http://www.w3.org/TR/1999/REC-xslt-19991116"> XSLT 1.0 recommendation</a>}
+   * 
+   * <p>
+   * The value of the "cdata-section-elements" property key is a whitespace
+   * separated list of elements. If the element is in a namespace then 
+   * value is passed in this format: {uri}localName 
+   *
+   * <p>
+   * The non-standard property keys supported are defined in {@link OutputPropertiesFactory}.
+   *
+   * @see OutputPropertiesFactory
+   * @see Method
+   * @see Serializer
+   */
+public final class SerializerFactory
 {
+  /**
+   * This constructor is private just to prevent the creation of such an object.
+   */
+
+  private SerializerFactory() {
+ 
+  }
   /**
    * Associates output methods to default output formats.
    */
   private static Hashtable m_formats = new Hashtable();
 
   /**
-   * Returns a serializer for the specified output method. 
+   * Returns a serializer for the specified output method. The output method
+   * is specified by the value of the property associated with the "method" key.
    * If no implementation exists that supports the specified output method
    * an exception of some type will be thrown.
-   * For a list of the default output methods see {@link Method}.
+   * For a list of the output "method" key values see {@link Method}.
    *
    * @param format The output format, minimally the "method" property must be set.
    * @return A suitable serializer.
@@ -59,9 +93,12 @@ public abstract class SerializerFactory
       {
         String method = format.getProperty(OutputKeys.METHOD);
 
-        if (method == null)
-          throw new IllegalArgumentException(
-            "The output format has a null method name");
+        if (method == null) {
+            String msg = Utils.messages.createMessage(
+                MsgKey.ER_FACTORY_PROPERTY_MISSING,
+                new Object[] { OutputKeys.METHOD});
+            throw new IllegalArgumentException(msg);
+        }
 
         String className =
             format.getProperty(OutputPropertiesFactory.S_KEY_CONTENT_HANDLER);
@@ -74,10 +111,13 @@ public abstract class SerializerFactory
                 OutputPropertiesFactory.getDefaultMethodProperties(method);
             className = 
             methodDefaults.getProperty(OutputPropertiesFactory.S_KEY_CONTENT_HANDLER);
-                if (null == className)
-                throw new IllegalArgumentException(
-                    "The output format must have a '"
-                    + OutputPropertiesFactory.S_KEY_CONTENT_HANDLER + "' property!");
+            if (null == className) {
+                String msg = Utils.messages.createMessage(
+                    MsgKey.ER_FACTORY_PROPERTY_MISSING,
+                    new Object[] { OutputPropertiesFactory.S_KEY_CONTENT_HANDLER});
+                throw new IllegalArgumentException(msg);
+            }
+
         }
 
 
@@ -125,8 +165,8 @@ public abstract class SerializerFactory
                   // user defined serializer does not implement
                   // ContentHandler, ... very bad
                    throw new Exception(
-                       XMLMessages.createXMLMessage(
-                           XMLErrorResources.ER_SERIALIZER_NOT_CONTENTHANDLER,
+                       Utils.messages.createMessage(
+                           MsgKey.ER_SERIALIZER_NOT_CONTENTHANDLER,
                                new Object[] { className}));
                }
 
@@ -134,7 +174,7 @@ public abstract class SerializerFactory
       }
       catch (Exception e)
       {
-        throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException(e);
+        throw new com.sun.org.apache.xml.internal.serializer.utils.WrappedRuntimeException(e);
       }
 
       // If we make it to here ser is not null.

@@ -1,7 +1,7 @@
 /*
- * @(#)RBTableBuilder.java	1.12 03/12/19
+ * @(#)RBTableBuilder.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,10 +23,9 @@ package java.text;
 import java.util.Vector;
 import sun.text.UCompactIntArray;
 import sun.text.IntHashtable;
-import sun.text.Normalizer;
-import sun.text.NormalizerImpl;
 import sun.text.ComposedCharIter;
-import sun.text.NormalizerUtilities;
+import sun.text.CollatorUtilities;
+import sun.text.normalizer.NormalizerImpl;
 
 /**
  * This class contains all the code to parse a RuleBasedCollator pattern
@@ -84,7 +83,7 @@ final class RBTableBuilder {
         //(2)just call the "special version" in NormalizerImpl directly
         //pattern = Normalizer.decompose(pattern, false, Normalizer.IGNORE_HANGUL, true);
         //
-        //Normalizer.Mode mode = NormalizerUtilities.toNormalizerMode(decmp);
+        //Normalizer.Mode mode = CollatorUtilities.toNormalizerMode(decmp);
         //pattern = Normalizer.normalize(pattern, mode, 0, true);
 
         pattern = NormalizerImpl.canonicalDecomposeWithSingleQuotation(pattern);

@@ -1,7 +1,7 @@
 /*
- * @(#)ChoiceFormat.java	1.34 03/12/19
+ * @(#)ChoiceFormat.java	1.38 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ package java.text;
 import java.io.InvalidObjectException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import sun.text.Utility;
+import java.util.Arrays;
 
 /**
  * A <code>ChoiceFormat</code> allows you to attach a format to a range of numbers.
@@ -69,8 +69,8 @@ import sun.text.Utility;
  * <blockquote>
  * <pre>
  * double[] limits = {1,2,3,4,5,6,7};
- * String[] monthNames = {"Sun","Mon","Tue","Wed","Thur","Fri","Sat"};
- * ChoiceFormat form = new ChoiceFormat(limits, monthNames);
+ * String[] dayOfWeekNames = {"Sun","Mon","Tue","Wed","Thur","Fri","Sat"};
+ * ChoiceFormat form = new ChoiceFormat(limits, dayOfWeekNames);
  * ParsePosition status = new ParsePosition(0);
  * for (double i = 0.0; i &lt;= 8.0; ++i) {
  *     status.setIndex(0);
@@ -181,7 +181,7 @@ public class ChoiceFormat extends NumberFormat {
             } else if (inQuote) {
                 segments[part].append(ch);
             } else if (ch == '<' || ch == '#' || ch == '\u2264') {
-                if (segments[0].equals("")) {
+                if (segments[0].length() == 0) {
                     throw new IllegalArgumentException();
                 }
                 try {
@@ -467,8 +467,8 @@ public class ChoiceFormat extends NumberFormat {
         if (getClass() != obj.getClass())
             return false;
         ChoiceFormat other = (ChoiceFormat) obj;
-        return (Utility.arrayEquals(choiceLimits,other.choiceLimits)
-            && Utility.arrayEquals(choiceFormats,other.choiceFormats));
+        return (Arrays.equals(choiceLimits, other.choiceLimits)
+             && Arrays.equals(choiceFormats, other.choiceFormats));
     }
 
     /**

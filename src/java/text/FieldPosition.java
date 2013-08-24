@@ -1,7 +1,7 @@
 /*
- * @(#)FieldPosition.java	1.21 03/12/19
+ * @(#)FieldPosition.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,7 +49,7 @@ package java.text;
  * formatted string use the <code>Format</code> method
  * <code>formatToCharacterIterator</code>.
  *
- * @version     1.21 12/19/03
+ * @version     1.22 11/17/05
  * @author      Mark Davis
  * @see         java.text.Format
  */

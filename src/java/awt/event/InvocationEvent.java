@@ -1,7 +1,7 @@
 /*
- * @(#)InvocationEvent.java	1.18 04/02/05
+ * @(#)InvocationEvent.java	1.21 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.AWTEvent;
  *
  * @author	Fred Ecks
  * @author	David Mendenhall
- * @version	1.18, 02/05/04
+ * @version	1.21, 04/07/06
  *
  * @see		java.awt.ActiveEvent
  * @see		java.awt.EventQueue#invokeLater
@@ -169,7 +169,7 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * @param id		the ID for the event
      * @param runnable		the <code>Runnable</code> whose
      *                          <code>run</code> method will be executed
-     * @param notifier		the <code>Object whose <code>notifyAll</code>
+     * @param notifier		the <code>Object</code> whose <code>notifyAll</code>
      *                          method will be called after
      *                          <code>Runnable.run</code> has returned
      * @param catchThrowables	specifies whether <code>dispatch</code>
@@ -235,6 +235,7 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * @return	A reference to the Throwable if one was thrown; null if no
      *		Throwable was thrown or if this InvocationEvent does not
      *		catch Throwables
+     * @since 1.5
      */
     public Throwable getThrowable() {
 	return (catchExceptions) ? throwable : null;

@@ -1,7 +1,7 @@
 /*
- * @(#)Calendar.java	1.81 04/07/26
+ * @(#)Calendar.java	1.88 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,9 +27,10 @@ import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.text.DateFormat;
-import sun.text.resources.LocaleData;
+import java.text.DateFormatSymbols;
 import sun.util.BuddhistCalendar;
 import sun.util.calendar.ZoneInfo;
+import sun.util.resources.LocaleData;
 
 /**
  * The <code>Calendar</code> class is an abstract class that provides methods
@@ -278,7 +279,7 @@ import sun.util.calendar.ZoneInfo;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.81, 07/26/04
+ * @version      1.88, 11/17/05
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -352,8 +353,10 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
-     * month. This is a calendar-specific value. The first month of the year is
-     * <code>JANUARY</code> which is 0; the last depends on the number of months in a year.
+     * month. This is a calendar-specific value. The first month of
+     * the year in the Gregorian and Julian calendars is
+     * <code>JANUARY</code> which is 0; the last depends on the number
+     * of months in a year.
      *
      * @see #JANUARY
      * @see #FEBRUARY
@@ -586,73 +589,73 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * first month of the year.
+     * first month of the year in the Gregorian and Julian calendars.
      */
     public final static int JANUARY = 0;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * second month of the year.
+     * second month of the year in the Gregorian and Julian calendars.
      */
     public final static int FEBRUARY = 1;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * third month of the year.
+     * third month of the year in the Gregorian and Julian calendars.
      */
     public final static int MARCH = 2;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * fourth month of the year.
+     * fourth month of the year in the Gregorian and Julian calendars.
      */
     public final static int APRIL = 3;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * fifth month of the year.
+     * fifth month of the year in the Gregorian and Julian calendars.
      */
     public final static int MAY = 4;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * sixth month of the year.
+     * sixth month of the year in the Gregorian and Julian calendars.
      */
     public final static int JUNE = 5;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * seventh month of the year.
+     * seventh month of the year in the Gregorian and Julian calendars.
      */
     public final static int JULY = 6;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * eighth month of the year.
+     * eighth month of the year in the Gregorian and Julian calendars.
      */
     public final static int AUGUST = 7;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * ninth month of the year.
+     * ninth month of the year in the Gregorian and Julian calendars.
      */
     public final static int SEPTEMBER = 8;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * tenth month of the year.
+     * tenth month of the year in the Gregorian and Julian calendars.
      */
     public final static int OCTOBER = 9;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * eleventh month of the year.
+     * eleventh month of the year in the Gregorian and Julian calendars.
      */
     public final static int NOVEMBER = 10;
 
     /**
      * Value of the {@link #MONTH} field indicating the
-     * twelfth month of the year.
+     * twelfth month of the year in the Gregorian and Julian calendars.
      */
     public final static int DECEMBER = 11;
 
@@ -674,6 +677,37 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * period of the day from noon to just before midnight.
      */
     public final static int PM = 1;
+
+    /**
+     * A style specifier for {@link #getDisplayNames(int, int, Locale)
+     * getDisplayNames} indicating names in all styles, such as
+     * "January" and "Jan".
+     *
+     * @see #SHORT
+     * @see #LONG
+     * @since 1.6
+     */
+    public static final int ALL_STYLES = 0;
+
+    /**
+     * A style specifier for {@link #getDisplayName(int, int, Locale)
+     * getDisplayName} and {@link #getDisplayNames(int, int, Locale)
+     * getDisplayNames} indicating a short name, such as "Jan".
+     *
+     * @see #LONG
+     * @since 1.6
+     */
+    public static final int SHORT = 1;
+
+    /**
+     * A style specifier for {@link #getDisplayName(int, int, Locale)
+     * getDisplayName} and {@link #getDisplayNames(int, int, Locale)
+     * getDisplayNames} indicating a long name, such as "January".
+     *
+     * @see #SHORT
+     * @since 1.6
+     */
+    public static final int LONG = 2;
 
     // Internal notes:
     // Calendar contains two kinds of time representations: current "time" in
@@ -962,7 +996,11 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 	if ("th".equals(aLocale.getLanguage())
 	    && ("TH".equals(aLocale.getCountry()))) {
 	    return new sun.util.BuddhistCalendar(zone, aLocale);
-	}
+	} else if ("JP".equals(aLocale.getVariant())
+		   && "JP".equals(aLocale.getCountry())
+		   && "ja".equals(aLocale.getLanguage())) {
+	    return new JapaneseImperialCalendar(zone, aLocale);
+	}	    
 
 	// else create the default calendar
         return new GregorianCalendar(zone, aLocale);	
@@ -1293,6 +1331,183 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     }
 
     /**
+     * Returns the string representation of the calendar
+     * <code>field</code> value in the given <code>style</code> and
+     * <code>locale</code>.  If no string representation is
+     * applicable, <code>null</code> is returned. This method calls
+     * {@link Calendar#get(int) get(field)} to get the calendar
+     * <code>field</code> value if the string representation is
+     * applicable to the given calendar <code>field</code>.
+     *
+     * <p>For example, if this <code>Calendar</code> is a
+     * <code>GregorianCalendar</code> and its date is 2005-01-01, then
+     * the string representation of the {@link #MONTH} field would be
+     * "January" in the long style in an English locale or "Jan" in
+     * the short style. However, no string representation would be
+     * available for the {@link #DAY_OF_MONTH} field, and this method
+     * would return <code>null</code>.
+     *
+     * <p>The default implementation supports the calendar fields for
+     * which a {@link DateFormatSymbols} has names in the given
+     * <code>locale</code>.
+     *
+     * @param field
+     *        the calendar field for which the string representation
+     *        is returned
+     * @param style
+     *        the style applied to the string representation; one of
+     *        {@link #SHORT} or {@link #LONG}.
+     * @param locale
+     *        the locale for the string representation
+     * @return the string representation of the given
+     *        <code>field</code> in the given <code>style</code>, or
+     *        <code>null</code> if no string representation is
+     *        applicable.
+     * @exception IllegalArgumentException
+     *        if <code>field</code> or <code>style</code> is invalid,
+     *        or if this <code>Calendar</code> is non-lenient and any
+     *        of the calendar fields have invalid values
+     * @exception NullPointerException
+     *        if <code>locale</code> is null
+     * @since 1.6
+     */
+    public String getDisplayName(int field, int style, Locale locale) {
+	if (!checkDisplayNameParams(field, style, ALL_STYLES, LONG, locale,
+				    ERA_MASK|MONTH_MASK|DAY_OF_WEEK_MASK|AM_PM_MASK)) {
+	    return null;
+	}
+
+	DateFormatSymbols symbols = DateFormatSymbols.getInstance(locale);
+	String[] strings = getFieldStrings(field, style, symbols);
+	if (strings != null) {
+	    int fieldValue = get(field);
+	    if (fieldValue < strings.length) {
+		return strings[fieldValue];
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * Returns a <code>Map</code> containing all names of the calendar
+     * <code>field</code> in the given <code>style</code> and
+     * <code>locale</code> and their corresponding field values. For
+     * example, if this <code>Calendar</code> is a {@link
+     * GregorianCalendar}, the returned map would contain "Jan" to
+     * {@link #JANUARY}, "Feb" to {@link #FEBRUARY}, and so on, in the
+     * {@linkplain #SHORT short} style in an English locale.
+     *
+     * <p>The values of other calendar fields may be taken into
+     * account to determine a set of display names. For example, if
+     * this <code>Calendar</code> is a lunisolar calendar system and
+     * the year value given by the {@link #YEAR} field has a leap
+     * month, this method would return month names containing the leap
+     * month name, and month names are mapped to their values specific
+     * for the year.
+     *
+     * <p>The default implementation supports display names contained in
+     * a {@link DateFormatSymbols}. For example, if <code>field</code>
+     * is {@link #MONTH} and <code>style</code> is {@link
+     * #ALL_STYLES}, this method returns a <code>Map</code> containing
+     * all strings returned by {@link DateFormatSymbols#getShortMonths()}
+     * and {@link DateFormatSymbols#getMonths()}.
+     *
+     * @param field
+     *        the calendar field for which the display names are returned
+     * @param style
+     *        the style applied to the display names; one of {@link
+     *        #SHORT}, {@link #LONG}, or {@link #ALL_STYLES}.
+     * @param locale
+     *        the locale for the display names
+     * @return a <code>Map</code> containing all display names in
+     *        <code>style</code> and <code>locale</code> and their
+     *        field values, or <code>null</code> if no display names
+     *        are defined for <code>field</code>
+     * @exception IllegalArgumentException
+     *        if <code>field</code> or <code>style</code> is invalid,
+     *        or if this <code>Calendar</code> is non-lenient and any
+     *        of the calendar fields have invalid values
+     * @exception NullPointerException
+     *        if <code>locale</code> is null
+     * @since 1.6
+     */
+    public Map<String, Integer> getDisplayNames(int field, int style, Locale locale) {
+	if (!checkDisplayNameParams(field, style, ALL_STYLES, LONG, locale,
+				    ERA_MASK|MONTH_MASK|DAY_OF_WEEK_MASK|AM_PM_MASK)) {
+	    return null;
+	}
+
+	// ALL_STYLES
+	if (style == ALL_STYLES) {
+	    Map<String,Integer> shortNames = getDisplayNamesImpl(field, SHORT, locale);
+	    if (field == ERA || field == AM_PM) {
+		return shortNames;
+	    }
+	    Map<String,Integer> longNames = getDisplayNamesImpl(field, LONG, locale);
+	    if (shortNames == null) {
+		return longNames;
+	    }
+	    if (longNames != null) {
+		shortNames.putAll(longNames);
+	    }
+	    return shortNames;
+	}
+
+	// SHORT or LONG
+	return getDisplayNamesImpl(field, style, locale);
+    }
+
+    private Map<String,Integer> getDisplayNamesImpl(int field, int style, Locale locale) {
+	DateFormatSymbols symbols = DateFormatSymbols.getInstance(locale);
+	String[] strings = getFieldStrings(field, style, symbols);
+	if (strings != null) {
+	    Map<String,Integer> names = new HashMap<String,Integer>();
+	    for (int i = 0; i < strings.length; i++) {
+		if (strings[i].length() == 0) {
+		    continue;
+		}
+		names.put(strings[i], i);
+	    }
+	    return names;
+	}
+	return null;
+    }
+
+    boolean checkDisplayNameParams(int field, int style, int minStyle, int maxStyle,
+				   Locale locale, int fieldMask) {
+	if (field < 0 || field >= fields.length ||
+	    style < minStyle || style > maxStyle) {
+	    throw new IllegalArgumentException();
+	}
+	if (locale == null) {
+	    throw new NullPointerException();
+	}
+	return isFieldSet(fieldMask, field);
+    }
+
+    private String[] getFieldStrings(int field, int style, DateFormatSymbols symbols) {
+	String[] strings = null;
+	switch (field) {
+	case ERA:
+	    strings = symbols.getEras();
+	    break;
+
+	case MONTH:
+	    strings = (style == LONG) ? symbols.getMonths() : symbols.getShortMonths();
+	    break;
+
+	case DAY_OF_WEEK:
+	    strings = (style == LONG) ? symbols.getWeekdays() : symbols.getShortWeekdays();
+	    break;
+
+	case AM_PM:
+	    strings = symbols.getAmPmStrings();
+	    break;
+	}
+	return strings;
+    }
+
+    /**
      * Fills in any unset fields in the calendar fields. First, the {@link
      * #computeTime()} method is called if the time value (millisecond offset
      * from the <a href="#Epoch">Epoch</a>) has not been calculated from
@@ -1306,13 +1521,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
         if (!areFieldsSet || !areAllFieldsSet) {
             computeFields(); // fills in unset fields
             areAllFieldsSet = areFieldsSet = true;
-        } else {
-	    // When a computeTime() call happens to calculate all the
-	    // fields, stamp[] are not modified to preserve what the
-	    // application has set. We need to normalize all stamp
-	    // elements to COMPUTED here. (5078053)
-	    setFieldsComputed(ALL_FIELDS);
-	}
+        }
     }
 
     /**
@@ -1399,29 +1608,25 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @see #selectFields()
      */
     final void setFieldsNormalized(int fieldMask) {
-	if (fieldMask == ALL_FIELDS) {
-	    // all calendar fields are in sync with the time value
-	    areFieldsSet = areAllFieldsSet = true;
-	    return;
-	}
-
-	for (int i = 0; i < fields.length; i++) {
-	    if ((fieldMask & 1) == 0) {
-		stamp[i] = fields[i] = 0; // UNSET == 0
-		isSet[i] = false;
+	if (fieldMask != ALL_FIELDS) {
+	    for (int i = 0; i < fields.length; i++) {
+		if ((fieldMask & 1) == 0) {
+		    stamp[i] = fields[i] = 0; // UNSET == 0
+		    isSet[i] = false;
+		}
+		fieldMask >>= 1;
 	    }
-	    fieldMask >>= 1;
 	}
 
-	// Some fields are in sync with the milliseconds, but not all
-	// fields have been calculated.
+	// Some or all of the fields are in sync with the
+	// milliseconds, but the stamp values are not normalized yet.
         areFieldsSet = true;
 	areAllFieldsSet = false;
     }
 
     /**
      * Returns whether the calendar fields are partially in sync with the time
-     * value.
+     * value or fully in sync but not stamp values are not normalized yet.
      */
     final boolean isPartiallyNormalized() {
 	return areFieldsSet && !areAllFieldsSet;
@@ -2239,12 +2444,10 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 	/* try to get the Locale data from the cache */
 	int[] data = cachedLocaleData.get(desiredLocale);
 	if (data == null) {  /* cache miss */
-	    ResourceBundle resource = LocaleData.getLocaleElements(desiredLocale);
-	    String[] dateTimePatterns =
-		    resource.getStringArray("DateTimeElements");
+	    ResourceBundle bundle = LocaleData.getCalendarData(desiredLocale);
 	    data = new int[2];
-	    data[0] = Integer.parseInt(dateTimePatterns[0]);
-	    data[1] = Integer.parseInt(dateTimePatterns[1]);
+	    data[0] = Integer.parseInt(bundle.getString("firstDayOfWeek"));
+	    data[1] = Integer.parseInt(bundle.getString("minimalDaysInFirstWeek"));
 	    cachedLocaleData.put(desiredLocale, data);
 	}
 	firstDayOfWeek = data[0];

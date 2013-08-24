@@ -1,7 +1,7 @@
 /*
- * @(#)AnnotationValue.java	1.6 04/07/19
+ * @(#)AnnotationValue.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import com.sun.mirror.util.SourcePosition;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.6 04/07/19
+ * @version 1.7 05/11/17
  * @since 1.5
  */
 

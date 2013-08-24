@@ -1,7 +1,7 @@
 /*
- * @(#)BMPImageReader.java	1.11 03/12/19 16:53:53
+ * @(#)BMPImageReader.java	1.14 05/12/01 07:38:35
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,6 +80,10 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
     private static final int VERSION_4_16_BIT = 13;
     private static final int VERSION_4_24_BIT = 14;
     private static final int VERSION_4_32_BIT = 15;
+
+    private static final int VERSION_3_XP_EMBEDDED = 16;
+    private static final int VERSION_4_XP_EMBEDDED = 17;
+    private static final int VERSION_5_XP_EMBEDDED = 18;
 
     // BMP variables
     private long bitmapFileSize;
@@ -272,11 +276,15 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
                 // Windows 3.x and Windows NT
                 switch((int)compression) {
 
+                case BI_JPEG:
+                case BI_PNG:
+                    metadata.bmpVersion = VERSION_3;
+                    imageType = VERSION_3_XP_EMBEDDED;
+                    break;
+
                 case BI_RGB:  // No compression
                 case BI_RLE8:  // 8-bit RLE compression
                 case BI_RLE4:  // 4-bit RLE compression
-                case BI_PNG:
-                case BI_JPEG:
 
                     // Read in the palette
                     int numberOfEntries = (int)((bitmapOffset-14-size) / 4);
@@ -409,34 +417,45 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
                 metadata.palette = palette;
                 metadata.paletteSize = numberOfEntries;
 
-                if (bitsPerPixel == 1) {
-                    imageType = VERSION_4_1_BIT;
-                } else if (bitsPerPixel == 4) {
-                    imageType = VERSION_4_4_BIT;
-                } else if (bitsPerPixel == 8) {
-                    imageType = VERSION_4_8_BIT;
-                } else if (bitsPerPixel == 16) {
-                    imageType = VERSION_4_16_BIT;
-                    if ((int)compression == BI_RGB) {
-                        redMask = 0x7C00;
-                        greenMask = 0x3E0;
-                        blueMask = 0x1F;
+                switch ((int)compression) {
+                case BI_JPEG:
+                case BI_PNG:
+                    if (size == 108) {
+                        imageType = VERSION_4_XP_EMBEDDED;
+                    } else if (size == 124) {
+                        imageType = VERSION_5_XP_EMBEDDED;
                     }
-                } else if (bitsPerPixel == 24) {
-                    imageType = VERSION_4_24_BIT;
-                } else if (bitsPerPixel == 32) {
-                    imageType = VERSION_4_32_BIT;
-                    if ((int)compression == BI_RGB) {
-                        redMask   = 0x00FF0000;
-                        greenMask = 0x0000FF00;
-                        blueMask  = 0x000000FF;
+                    break;
+                default:
+                    if (bitsPerPixel == 1) {
+                        imageType = VERSION_4_1_BIT;
+                    } else if (bitsPerPixel == 4) {
+                        imageType = VERSION_4_4_BIT;
+                    } else if (bitsPerPixel == 8) {
+                        imageType = VERSION_4_8_BIT;
+                    } else if (bitsPerPixel == 16) {
+                        imageType = VERSION_4_16_BIT;
+                        if ((int)compression == BI_RGB) {
+                            redMask = 0x7C00;
+                            greenMask = 0x3E0;
+                            blueMask = 0x1F;
+                        }
+                    } else if (bitsPerPixel == 24) {
+                        imageType = VERSION_4_24_BIT;
+                    } else if (bitsPerPixel == 32) {
+                        imageType = VERSION_4_32_BIT;
+                        if ((int)compression == BI_RGB) {
+                            redMask   = 0x00FF0000;
+                            greenMask = 0x0000FF00;
+                            blueMask  = 0x000000FF;
+                        }
                     }
+                    
+                    metadata.redMask = redMask;
+                    metadata.greenMask = greenMask;
+                    metadata.blueMask = blueMask;
+                    metadata.alphaMask = alphaMask;
                 }
-
-                metadata.redMask = redMask;
-                metadata.greenMask = greenMask;
-                metadata.blueMask = blueMask;
-                metadata.alphaMask = alphaMask;
             } else {
                 throw new
                     RuntimeException(I18N.getString("BMPImageReader3"));
@@ -476,9 +495,15 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
             }
         }
 
-        // When number of bitsPerPixel is <= 8, we use IndexColorModel.
-        if (bitsPerPixel == 1 || bitsPerPixel == 4 || bitsPerPixel == 8) {
-
+        if (bitsPerPixel == 0 ||
+            compression == BI_JPEG || compression == BI_PNG )
+        {
+            // the colorModel and sampleModel will be initialzed
+            // by the  reader of embedded image
+            colorModel = null;
+            sampleModel = null;
+        } else if (bitsPerPixel == 1 || bitsPerPixel == 4 || bitsPerPixel == 8) {
+            // When number of bitsPerPixel is <= 8, we use IndexColorModel.
             numBands = 1;
 
             if (bitsPerPixel == 8) {
@@ -690,15 +715,17 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
         WritableRaster raster = null;
 
         if (bi == null) {
-            sampleModel =
-                sampleModel.createCompatibleSampleModel(destinationRegion.x +
-                                                        destinationRegion.width,
-                                                        destinationRegion.y +
-                                                        destinationRegion.height);
-            if (seleBand)
-                sampleModel = sampleModel.createSubsetSampleModel(sourceBands);
-            raster = Raster.createWritableRaster(sampleModel, new Point());
-            bi = new BufferedImage(colorModel, raster, false, null);
+            if (sampleModel != null && colorModel != null) {
+                sampleModel =
+                    sampleModel.createCompatibleSampleModel(destinationRegion.x +
+                                                            destinationRegion.width,
+                                                            destinationRegion.y +
+                                                            destinationRegion.height);
+                if (seleBand)
+                    sampleModel = sampleModel.createSubsetSampleModel(sourceBands);
+                raster = Raster.createWritableRaster(sampleModel, new Point());
+                bi = new BufferedImage(colorModel, raster, false, null);
+            }
         } else {
             raster = bi.getWritableTile(0, 0);
             sampleModel = bi.getSampleModel();
@@ -711,12 +738,18 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
         short sdata[] = null; // buffer for short data
         int idata[] = null; // buffer for int data
 
-        if (sampleModel.getDataType() == DataBuffer.TYPE_BYTE)
-            bdata = (byte[])((DataBufferByte)raster.getDataBuffer()).getData();
-        else if (sampleModel.getDataType() == DataBuffer.TYPE_USHORT)
-            sdata = (short[])((DataBufferUShort)raster.getDataBuffer()).getData();
-        else if (sampleModel.getDataType() == DataBuffer.TYPE_INT)
-            idata = (int[])((DataBufferInt)raster.getDataBuffer()).getData();
+        // the sampleModel can be null in case of embedded image
+        if (sampleModel != null) {
+            if (sampleModel.getDataType() == DataBuffer.TYPE_BYTE)
+                bdata = (byte[])
+                    ((DataBufferByte)raster.getDataBuffer()).getData();
+            else if (sampleModel.getDataType() == DataBuffer.TYPE_USHORT)
+                sdata = (short[])
+                    ((DataBufferUShort)raster.getDataBuffer()).getData();
+            else if (sampleModel.getDataType() == DataBuffer.TYPE_INT)
+                idata = (int[])
+                    ((DataBufferInt)raster.getDataBuffer()).getData();
+        }
 
         // There should only be one tile.
         switch(imageType) {
@@ -756,14 +789,6 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
                 readRLE4(bdata);
                 break;
 
-            case BI_JPEG:
-                readEmbedded("JPEG", bi, param);
-                break;
-
-            case BI_PNG:
-                readEmbedded("PNG", bi, param);
-                break;
-		
             default:
                 throw new
                     RuntimeException(I18N.getString("BMPImageReader1"));
@@ -778,14 +803,6 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
 
             case BI_RLE8:
                 readRLE8(bdata);
-                break;
-
-            case BI_JPEG:
-                readEmbedded("JPEG", bi, param);
-                break;
-
-            case BI_PNG:
-                readEmbedded("PNG", bi, param);
                 break;
 
             default:
@@ -805,18 +822,13 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
             break;
 
         case VERSION_3_NT_32_BIT:
-            switch((int)compression) {
-            case BI_JPEG:
-                iis.seek(54);
-                readEmbedded("JPEG", bi, param);
-                break;
-		
-            case BI_PNG:
-                readEmbedded("PNG", bi, param);
-                break;
-            default:
-                read32Bit(idata);
-            }
+            read32Bit(idata);
+            break;
+
+        case VERSION_3_XP_EMBEDDED:
+        case VERSION_4_XP_EMBEDDED:
+        case VERSION_5_XP_EMBEDDED:
+            bi = readEmbedded((int)compression, bi, param);
             break;
 
         case VERSION_4_1_BIT:
@@ -834,14 +846,6 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
                 readRLE4(bdata);
                 break;
 
-            case BI_JPEG:
-                readEmbedded("JPEG", bi, param);
-                break;
-
-            case BI_PNG:
-                readEmbedded("PNG", bi, param);
-                break;
-
             default:
                 throw new
                     RuntimeException(I18N.getString("BMPImageReader1"));
@@ -856,14 +860,6 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
 
             case BI_RLE8:
                 readRLE8(bdata);
-                break;
-
-            case BI_JPEG:
-                readEmbedded("JPEG", bi, param);
-                break;
-
-            case BI_PNG:
-                readEmbedded("PNG", bi, param);
                 break;
 
             default:
@@ -1383,7 +1379,7 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
                 case 0:
                     // End-of-scanline marker
                     if (lineNo >= sourceRegion.y &&
-                        lineNo < sourceRegion.y + sourceRegion.width) {
+                        lineNo < sourceRegion.y + sourceRegion.height) {
                         if (noTransform) {
                             int pos = lineNo * width;
                             for(int i = 0; i < width; i++)
@@ -1507,7 +1503,7 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
                     // End-of-scanline marker
                     // End-of-scanline marker
                     if (lineNo >= sourceRegion.y &&
-                        lineNo < sourceRegion.y + sourceRegion.width) {
+                        lineNo < sourceRegion.y + sourceRegion.height) {
                         if (noTransform) {
                             int pos = lineNo * (width + 1 >> 1);
                             for(int i = 0, j = 0; i < width >> 1; i++)
@@ -1612,92 +1608,112 @@ public class BMPImageReader extends ImageReader implements BMPConstants {
      *          subsampling are used in decoding the jpeg image.
      */
 
-    private void readEmbedded(String format,
+    private BufferedImage readEmbedded(int type,
                               BufferedImage bi, ImageReadParam bmpParam)
       throws IOException {
-        Iterator iterator = ImageIO.getImageReadersByFormatName(format);
-        ImageReader reader = null;
-        if (iterator.hasNext())
-            reader = (ImageReader)iterator.next();
-        if (reader != null) {
-            // prepare input
-            byte[] buff = new byte[(int)imageSize];
-            iis.read(buff);
-            reader.setInput(ImageIO.createImageInputStream(new ByteArrayInputStream(buff)));
+        String format;
+        switch(type) {
+          case BI_JPEG:
+              format = "JPEG";
+              break;
+          case BI_PNG:
+              format = "PNG";
+              break;
+          default:
+              throw new
+                  IOException("Unexpected compression type: " + type);
+        }
+        ImageReader reader =
+            ImageIO.getImageReadersByFormatName(format).next();
+        if (reader == null) {
+            throw new RuntimeException(I18N.getString("BMPImageReader4") +
+                                       " " + format);
+        }
+        // prepare input
+        byte[] buff = new byte[(int)imageSize];
+        iis.read(buff);
+        reader.setInput(ImageIO.createImageInputStream(new ByteArrayInputStream(buff)));
+        if (bi == null) {
+            ImageTypeSpecifier embType = reader.getImageTypes(0).next();
+            bi = embType.createBufferedImage(destinationRegion.x +
+                                             destinationRegion.width,
+                                             destinationRegion.y +
+                                             destinationRegion.height);
+        }
 
-            reader.addIIOReadProgressListener(new EmbeddedProgressAdapter() {
-                    public void imageProgress(ImageReader source,
-                                              float percentageDone) 
-                    {            
-                        processImageProgress(percentageDone);
-                    }
-                });
+        reader.addIIOReadProgressListener(new EmbeddedProgressAdapter() {
+                public void imageProgress(ImageReader source,
+                                          float percentageDone) 
+                {            
+                    processImageProgress(percentageDone);
+                }
+            });
 
-            reader.addIIOReadUpdateListener(new IIOReadUpdateListener() {
-                    public void imageUpdate(ImageReader source, 
-                                            BufferedImage theImage, 
+        reader.addIIOReadUpdateListener(new IIOReadUpdateListener() {
+                public void imageUpdate(ImageReader source, 
+                                        BufferedImage theImage, 
+                                        int minX, int minY, 
+                                        int width, int height, 
+                                        int periodX, int periodY, 
+                                        int[] bands) 
+                {
+                    processImageUpdate(theImage, minX, minY, 
+                                       width, height, 
+                                       periodX, periodY, bands);
+                }
+                public void passComplete(ImageReader source, 
+                                         BufferedImage theImage) 
+                {
+                    processPassComplete(theImage);
+                }
+                public void passStarted(ImageReader source, 
+                                        BufferedImage theImage, 
+                                        int pass, 
+                                        int minPass, int maxPass, 
+                                        int minX, int minY, 
+                                        int periodX, int periodY, 
+                                        int[] bands) 
+                {
+                    processPassStarted(theImage, pass, minPass, maxPass, 
+                                       minX, minY, periodX, periodY, 
+                                       bands);
+                }
+                public void thumbnailPassComplete(ImageReader source, 
+                                                  BufferedImage thumb) {}
+                public void thumbnailPassStarted(ImageReader source, 
+                                                 BufferedImage thumb, 
+                                                 int pass, 
+                                                 int minPass, int maxPass,
+                                                 int minX, int minY,
+                                                 int periodX, int periodY,
+                                                 int[] bands) {}
+                public void thumbnailUpdate(ImageReader source, 
+                                            BufferedImage theThumbnail,
                                             int minX, int minY, 
-                                            int width, int height, 
-                                            int periodX, int periodY, 
-                                            int[] bands) 
-                    {
-                        processImageUpdate(theImage, minX, minY, 
-                                           width, height, 
-                                           periodX, periodY, bands);
-                    }
-                    public void passComplete(ImageReader source, 
-                                             BufferedImage theImage) 
-                    {
-                        processPassComplete(theImage);
-                    }
-                    public void passStarted(ImageReader source, 
-                                            BufferedImage theImage, 
-                                            int pass, 
-                                            int minPass, int maxPass, 
-                                            int minX, int minY, 
-                                            int periodX, int periodY, 
-                                            int[] bands) 
-                    {
-                        processPassStarted(theImage, pass, minPass, maxPass, 
-                                           minX, minY, periodX, periodY, 
-                                           bands);
-                    }
-                    public void thumbnailPassComplete(ImageReader source, 
-                                                      BufferedImage thumb) {}
-                    public void thumbnailPassStarted(ImageReader source, 
-                                                     BufferedImage thumb, 
-                                                     int pass, 
-                                                     int minPass, int maxPass,
-                                                     int minX, int minY,
-                                                     int periodX, int periodY,
-                                                     int[] bands) {}
-                    public void thumbnailUpdate(ImageReader source, 
-                                                BufferedImage theThumbnail,
-                                                int minX, int minY, 
-                                                int width, int height,
-                                                int periodX, int periodY,
-                                                int[] bands) {}
-                });
+                                            int width, int height,
+                                            int periodX, int periodY,
+                                            int[] bands) {}
+            });
 
-            reader.addIIOReadWarningListener(new IIOReadWarningListener() {
-                    public void warningOccurred(ImageReader source, String warning) {
-                        processWarningOccurred(warning);
-                    }
-                });
+        reader.addIIOReadWarningListener(new IIOReadWarningListener() {
+                public void warningOccurred(ImageReader source, String warning)
+                {
+                    processWarningOccurred(warning);
+                }
+            });
  
-            ImageReadParam param = reader.getDefaultReadParam();
-            param.setDestination(bi);
-            param.setDestinationBands(bmpParam.getDestinationBands());
-            param.setDestinationOffset(bmpParam.getDestinationOffset());
-            param.setSourceBands(bmpParam.getSourceBands());
-            param.setSourceRegion(bmpParam.getSourceRegion());
-            param.setSourceSubsampling(bmpParam.getSourceXSubsampling(),
-                                       bmpParam.getSourceYSubsampling(),
-                                       bmpParam.getSubsamplingXOffset(),
-                                       bmpParam.getSubsamplingYOffset());
-            reader.read(0, param);
-        } else
-            throw new RuntimeException(I18N.getString("BMPImageReader4") + " " + format);
+        ImageReadParam param = reader.getDefaultReadParam();
+        param.setDestination(bi);
+        param.setDestinationBands(bmpParam.getDestinationBands());
+        param.setDestinationOffset(bmpParam.getDestinationOffset());
+        param.setSourceBands(bmpParam.getSourceBands());
+        param.setSourceRegion(bmpParam.getSourceRegion());
+        param.setSourceSubsampling(bmpParam.getSourceXSubsampling(),
+                                   bmpParam.getSourceYSubsampling(),
+                                   bmpParam.getSubsamplingXOffset(),
+                                   bmpParam.getSubsamplingYOffset());
+        reader.read(0, param);
+        return bi;
     }
 
     private class EmbeddedProgressAdapter implements IIOReadProgressListener {

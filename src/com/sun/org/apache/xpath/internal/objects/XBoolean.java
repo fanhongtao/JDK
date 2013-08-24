@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XBoolean.java,v 1.16 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XBoolean.java,v 1.2.4.2 2005/09/14 20:34:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -25,22 +25,23 @@ package com.sun.org.apache.xpath.internal.objects;
  */
 public class XBoolean extends XObject
 {
+    static final long serialVersionUID = -2964933058866100881L;
 
   /**
    * A true boolean object so we don't have to keep creating them.
    * @xsl.usage internal
    */
-  public static XBoolean S_TRUE = new XBooleanStatic(true);
+  public static final XBoolean S_TRUE = new XBooleanStatic(true);
 
   /**
    * A true boolean object so we don't have to keep creating them.
    * @xsl.usage internal
    */
-  public static XBoolean S_FALSE = new XBooleanStatic(false);
+  public static final XBoolean S_FALSE = new XBooleanStatic(false);
 
   /** Value of the object.
    *  @serial         */
-  boolean m_val;
+  private final boolean m_val;
 
   /**
    * Construct a XBoolean object.

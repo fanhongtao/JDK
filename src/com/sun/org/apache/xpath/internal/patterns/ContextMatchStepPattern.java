@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ContextMatchStepPattern.java,v 1.6 2004/02/17 04:35:37 minchau Exp $
+ * $Id: ContextMatchStepPattern.java,v 1.2.4.2 2005/09/15 00:21:15 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.patterns;
 
@@ -30,11 +30,11 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class ContextMatchStepPattern extends StepPattern
 {
+    static final long serialVersionUID = -1888092779313211942L;
 
   /**
    * Construct a ContextMatchStepPattern.
    *
-   * @param whatToShow Bit set defined mainly by {@link org.w3c.dom.traversal.NodeFilter}.
    */
   public ContextMatchStepPattern(int axis, int paxis)
   {

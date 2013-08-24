@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Output.java,v 1.27 2004/12/10 18:46:42 santiagopg Exp $
+ * $Id: Output.java,v 1.2.4.1 2005/09/12 10:53:00 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -35,7 +35,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 import com.sun.org.apache.xml.internal.serializer.Encodings;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -167,7 +167,7 @@ final class Output extends TopLevelElement {
             if ((_method.equals("xml"))||
                 (_method.equals("html"))||
                 (_method.equals("text"))||
-                ((XMLChar.isValidQName(_method)&&(_method.indexOf(":") > 0)))) {
+                ((XML11Char.isXML11ValidQName(_method)&&(_method.indexOf(":") > 0)))) {
 	       outputProperties.setProperty(OutputKeys.METHOD, _method);
             } else {
                 reportError(this, parser, ErrorMsg.INVALID_METHOD_IN_OUTPUT, _method);
@@ -243,7 +243,7 @@ final class Output extends TopLevelElement {
 	    // Make sure to store names in expanded form
 	    while (tokens.hasMoreTokens()) {
             	String qname = tokens.nextToken();
-                if (!XMLChar.isValidQName(qname)) {
+                if (!XML11Char.isXML11ValidQName(qname)) {
                     ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, qname, this);
                     parser.reportError(Constants.ERROR, err);	
                 }	    	

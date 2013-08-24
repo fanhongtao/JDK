@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectOutputStream.java	1.147 06/07/26
+ * @(#)ObjectOutputStream.java	1.159 06/07/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,9 @@ import java.io.ObjectStreamClass.WeakClassKey;
 import java.lang.ref.ReferenceQueue;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import static java.io.ObjectStreamClass.processQueue;
@@ -70,6 +72,8 @@ import static java.io.ObjectStreamClass.processQueue;
  *     throws IOException, ClassNotFoundException;
  * private void writeObject(java.io.ObjectOutputStream stream)
  *     throws IOException
+ * private void readObjectNoData() 
+ *     throws ObjectStreamException;
  * </pre>
  * 
  * <p>The writeObject method is responsible for writing the state of the object
@@ -128,17 +132,18 @@ import static java.io.ObjectStreamClass.processQueue;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.147, 06/07/26
+ * @version     1.159, 06/07/25
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
  * @see java.io.Externalizable
- * @see <a href="../../../guide/serialization/spec/output.doc.html">Object Serialization Specification, Section 2, Object Output Classes</a>
+ * @see <a href="../../../platform/serialization/spec/output.html">Object Serialization Specification, Section 2, Object Output Classes</a>
  * @since       JDK1.1
  */
 public class ObjectOutputStream
     extends OutputStream implements ObjectOutput, ObjectStreamConstants
 {
+
     private static class Caches {
 	/** cache of subclass security audit results */
 	static final ConcurrentMap<WeakClassKey,Boolean> subclassAudits = 
@@ -176,6 +181,18 @@ public class ObjectOutputStream
     /** current PutField object */
     private PutFieldImpl curPut;
 
+    /** custom storage for debug trace info */
+    private final DebugTraceInfoStack debugInfoStack;
+
+    /**
+     * value of "sun.io.serialization.extendedDebugInfo" property,
+     * as true or false for extended information about exception's place
+     */
+    private static final boolean extendedDebugInfo =
+	((Boolean) java.security.AccessController.doPrivileged(
+            new sun.security.action.GetBooleanAction(
+		"sun.io.serialization.extendedDebugInfo"))).booleanValue();
+
     /**
      * Creates an ObjectOutputStream that writes to the specified OutputStream.
      * This constructor writes the serialization stream header to the
@@ -194,6 +211,7 @@ public class ObjectOutputStream
      * @throws	SecurityException if untrusted subclass illegally overrides
      * 		security-sensitive methods
      * @throws	NullPointerException if <code>out</code> is <code>null</code>
+     * @since	1.4
      * @see	ObjectOutputStream#ObjectOutputStream()
      * @see	ObjectOutputStream#putFields()
      * @see	ObjectInputStream#ObjectInputStream(InputStream)
@@ -206,6 +224,11 @@ public class ObjectOutputStream
 	enableOverride = false;
 	writeStreamHeader();
 	bout.setBlockDataMode(true);
+        if (extendedDebugInfo) {
+	    debugInfoStack = new DebugTraceInfoStack();
+	} else {
+	    debugInfoStack = null;
+        }   
     }
 
     /**
@@ -233,6 +256,7 @@ public class ObjectOutputStream
 	handles = null;
 	subs = null;
 	enableOverride = true;
+        debugInfoStack = null;
     }
 
     /**
@@ -362,6 +386,7 @@ public class ObjectOutputStream
      * @throws  InvalidClassException if a problem exists with the class of an
      *          object to be serialized
      * @throws  IOException if an I/O error occurs during serialization
+     * @since 1.4
      */
     public void writeUnshared(Object obj) throws IOException {
 	try {
@@ -829,6 +854,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>boolean</code>
 	 */
 	public abstract void put(String name, boolean val);
 
@@ -837,6 +866,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>byte</code>
 	 */
 	public abstract void put(String name, byte val);
 
@@ -845,6 +878,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>char</code>
 	 */
 	public abstract void put(String name, char val);
 
@@ -853,6 +890,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>short</code>
 	 */
 	public abstract void put(String name, short val);
 
@@ -861,6 +902,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>int</code>
 	 */
 	public abstract void put(String name, int val);
 
@@ -869,6 +914,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>long</code>
 	 */
 	public abstract void put(String name, long val);
 
@@ -877,6 +926,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>float</code>
 	 */
 	public abstract void put(String name, float val);
 
@@ -885,6 +938,10 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not
+         * <code>double</code>
 	 */
 	public abstract void put(String name, double val);
 
@@ -893,15 +950,25 @@ public class ObjectOutputStream
 	 *
 	 * @param  name the name of the serializable field
 	 * @param  val the value to assign to the field
+         *         (which may be <code>null</code>)
+         * @throws IllegalArgumentException if <code>name</code> does not
+         * match the name of a serializable field for the class whose fields
+         * are being written, or if the type of the named field is not a
+         * reference type
 	 */
 	public abstract void put(String name, Object val);
 
 	/**
-	 * Write the data and fields to the specified ObjectOutput stream.
+	 * Write the data and fields to the specified ObjectOutput stream, 
+         * which must be the same stream that produced this  
+         * <code>PutField</code> object.
 	 * 
 	 * @param  out the stream to write the data and fields to
 	 * @throws IOException if I/O errors occur while writing to the
 	 * 	   underlying stream
+	 * @throws IllegalArgumentException if the specified stream is not 
+	 *         the same stream that produced this <code>PutField</code> 
+	 *         object
 	 * @deprecated This method does not write the values contained by this
 	 * 	   <code>PutField</code> object in a proper format, and may
 	 * 	   result in corruption of the serialization stream.  The
@@ -944,6 +1011,13 @@ public class ObjectOutputStream
      */
     private void verifySubclass() {
 	Class cl = getClass();
+	if (cl == ObjectOutputStream.class) {
+	    return;	
+	}
+	SecurityManager sm = System.getSecurityManager();
+	if (sm == null) {
+	    return;
+	}
 	processQueue(Caches.subclassAuditsQueue, Caches.subclassAudits);
 	WeakClassKey key = new WeakClassKey(cl, Caches.subclassAuditsQueue);
 	Boolean result = Caches.subclassAudits.get(key);
@@ -954,10 +1028,7 @@ public class ObjectOutputStream
 	if (result.booleanValue()) {
 	    return;
 	}
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPermission(SUBCLASS_IMPLEMENTATION_PERMISSION);
-	}
+	sm.checkPermission(SUBCLASS_IMPLEMENTATION_PERMISSION);
     }
     
     /**
@@ -980,7 +1051,7 @@ public class ObjectOutputStream
 			} catch (NoSuchMethodException ex) {
 			}
 			try {
-			    cl.getDeclaredMethod("putFields", new Class[0]);
+			    cl.getDeclaredMethod("putFields", (Class[]) null);
 			    return Boolean.FALSE;
 			} catch (NoSuchMethodException ex) {
 			}
@@ -1067,7 +1138,7 @@ public class ObjectOutputStream
 		    return;
 		}
 	    }
-	    
+
 	    // remaining cases
 	    if (obj instanceof String) {
 		writeString((String) obj, unshared);
@@ -1078,7 +1149,12 @@ public class ObjectOutputStream
 	    } else if (obj instanceof Serializable) {
 		writeOrdinaryObject(obj, desc, unshared);
 	    } else {
-		throw new NotSerializableException(cl.getName());
+		if (extendedDebugInfo) {
+		    throw new NotSerializableException(
+			cl.getName() + "\n" + debugInfoStack.toString());
+		} else {
+		    throw new NotSerializableException(cl.getName());
+		}    
 	    }
 	} finally {
 	    depth--;
@@ -1247,9 +1323,30 @@ public class ObjectOutputStream
 	    Object[] objs = (Object[]) array;
 	    int len = objs.length;
 	    bout.writeInt(len);
-	    for (int i = 0; i < len; i++) {
-		writeObject0(objs[i], false);
-	    }
+	    if (extendedDebugInfo) {
+		debugInfoStack.push(
+		    "array (class \"" + array.getClass().getName() + 
+                    "\", size: " + len  + ")");
+	    }	
+	    try {
+		for (int i = 0; i < len; i++) {
+		    if (extendedDebugInfo) {
+			debugInfoStack.push(
+			    "element of array (index: " + i + ")");
+		    }	
+		    try {
+			writeObject0(objs[i], false);
+		    } finally {
+			if (extendedDebugInfo) {
+			    debugInfoStack.pop();
+			}     
+		    }	
+	        }
+	    } finally {
+      		if (extendedDebugInfo) {
+       		    debugInfoStack.pop();
+       		}  
+	    }    
 	}
     }
     
@@ -1278,17 +1375,27 @@ public class ObjectOutputStream
 				     boolean unshared) 
 	throws IOException 
     {
-	desc.checkSerialize();
+        if (extendedDebugInfo) {
+	    debugInfoStack.push(
+		(depth == 1 ? "root " : "") + "object (class \"" + 
+		obj.getClass().getName() + "\", " + obj.toString() + ")");
+        }
+        try {
+	    desc.checkSerialize();
 
-	bout.writeByte(TC_OBJECT);
-	writeClassDesc(desc, false);
-	handles.assign(unshared ? null : obj);
-
-	if (desc.isExternalizable() && !desc.isProxy()) {
-	    writeExternalData((Externalizable) obj);
-	} else {
-	    writeSerialData(obj, desc);
-	}
+	    bout.writeByte(TC_OBJECT);
+	    writeClassDesc(desc, false);
+	    handles.assign(unshared ? null : obj);
+	    if (desc.isExternalizable() && !desc.isProxy()) {
+		writeExternalData((Externalizable) obj);
+	    } else {
+		writeSerialData(obj, desc);
+	    }
+	} finally {
+    	    if (extendedDebugInfo) {
+		debugInfoStack.pop();
+	    }  
+        }
     }
     
     /**
@@ -1303,14 +1410,23 @@ public class ObjectOutputStream
 	curDesc = null;
 	curPut = null;
 	
-	if (protocol == PROTOCOL_VERSION_1) {
-	    obj.writeExternal(this);
-	} else {
-	    bout.setBlockDataMode(true);
-	    obj.writeExternal(this);
-	    bout.setBlockDataMode(false);
-	    bout.writeByte(TC_ENDBLOCKDATA);
-	}
+	if (extendedDebugInfo) {
+	    debugInfoStack.push("writeExternal data");
+	}	
+	try {
+	    if (protocol == PROTOCOL_VERSION_1) {
+		obj.writeExternal(this);
+	    } else {
+		bout.setBlockDataMode(true);
+		obj.writeExternal(this);
+		bout.setBlockDataMode(false);
+		bout.writeByte(TC_ENDBLOCKDATA);
+	    }
+	} finally {
+	    if (extendedDebugInfo) {
+		debugInfoStack.pop();
+	    }     
+	}	
 
 	curObj = oldObj;
 	curDesc = oldDesc;
@@ -1335,10 +1451,21 @@ public class ObjectOutputStream
 		curDesc = slotDesc;
 		curPut = null;
 
-		bout.setBlockDataMode(true);
-		slotDesc.invokeWriteObject(obj, this);
-		bout.setBlockDataMode(false);
-		bout.writeByte(TC_ENDBLOCKDATA);
+		if (extendedDebugInfo) {
+		    debugInfoStack.push(
+			"custom writeObject data (class \"" + 
+			slotDesc.getName() + "\")");
+		}	
+		try {
+		    bout.setBlockDataMode(true);
+		    slotDesc.invokeWriteObject(obj, this);
+		    bout.setBlockDataMode(false);
+		    bout.writeByte(TC_ENDBLOCKDATA);
+		} finally {
+		    if (extendedDebugInfo) {
+			debugInfoStack.pop();
+		    }	
+		} 
 
 		curObj = oldObj;
 		curDesc = oldDesc;
@@ -1372,7 +1499,20 @@ public class ObjectOutputStream
 	int numPrimFields = fields.length - objVals.length;
 	desc.getObjFieldValues(obj, objVals);
 	for (int i = 0; i < objVals.length; i++) {
-	    writeObject0(objVals[i], fields[numPrimFields + i].isUnshared());
+	    if (extendedDebugInfo) {
+		debugInfoStack.push(
+		    "field (class \"" + desc.getName() + "\", name: \"" + 
+		    fields[numPrimFields + i].getName() + "\", type: \"" + 
+		    fields[numPrimFields + i].getType() + "\")");
+	    }	
+	    try {
+		writeObject0(objVals[i], 
+			     fields[numPrimFields + i].isUnshared());
+	    } finally {
+		if (extendedDebugInfo) {
+		    debugInfoStack.pop();
+		}     
+	    }	
 	}
     }
 
@@ -1495,7 +1635,7 @@ public class ObjectOutputStream
 	     */
 	    if (ObjectOutputStream.this != out) {
 		throw new IllegalArgumentException("wrong stream");
-	    } 
+	    }
 	    out.write(primVals, 0, primVals.length);
 	    
 	    ObjectStreamField[] fields = desc.getFields(false);
@@ -1518,11 +1658,23 @@ public class ObjectOutputStream
 	    ObjectStreamField[] fields = desc.getFields(false);
 	    int numPrimFields = fields.length - objVals.length;
 	    for (int i = 0; i < objVals.length; i++) {
-		writeObject0(
-		    objVals[i], fields[numPrimFields + i].isUnshared());
+		if (extendedDebugInfo) {
+		    debugInfoStack.push(
+			"field (class \"" + desc.getName() + "\", name: \"" + 
+			fields[numPrimFields + i].getName() + "\", type: \"" + 
+			fields[numPrimFields + i].getType() + "\")");
+		}	
+		try {
+		    writeObject0(objVals[i], 
+				 fields[numPrimFields + i].isUnshared());
+		} finally {
+		    if (extendedDebugInfo) {
+			debugInfoStack.pop();
+		    }	
+		}     
 	    }
 	}
-	
+
 	/**
 	 * Returns offset of field with given name and type.  A specified type
 	 * of null matches all types, Object.class matches all non-primitive
@@ -1532,7 +1684,8 @@ public class ObjectOutputStream
 	private int getFieldOffset(String name, Class type) {
 	    ObjectStreamField field = desc.getField(name, type);
 	    if (field == null) {
-		throw new IllegalArgumentException("no such field");
+                throw new IllegalArgumentException("no such field " + name +
+						   " with type " + type);
 	    }
 	    return field.getOffset();
 	}
@@ -2232,4 +2385,51 @@ public class ObjectOutputStream
 	    reps = newReps;
 	}
     }
+
+    /**
+     * Stack to keep debug information about the state of the
+     * serialization process, for embedding in exception messages.
+     */   
+    private static class DebugTraceInfoStack {
+        private final List<String> stack;
+
+        DebugTraceInfoStack() {
+            stack = new ArrayList<String>();
+        }
+
+	/**
+	 * Removes all of the elements from enclosed list. 
+	 */
+        void clear() {
+            stack.clear();
+        }
+
+	/**
+	 * Removes the object at the top of enclosed list.
+	 */
+        void pop() {
+	    stack.remove(stack.size()-1);
+        }
+
+	/**
+	 * Pushes a String onto the top of enclosed list.
+	 */
+        void push(String entry) {
+            stack.add("\t- " + entry);          
+        }
+
+	/**
+	 * Returns a string representation of this object
+	 */
+        public String toString() {
+	    StringBuilder buffer = new StringBuilder();
+	    if (!stack.isEmpty()) {
+		for(int i = stack.size(); i > 0; i-- ) {
+		    buffer.append(stack.get(i-1) + ((i != 1) ? "\n" : ""));
+		}
+	    }
+            return buffer.toString();
+        }
+    }   
+
 }

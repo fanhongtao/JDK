@@ -1,13 +1,16 @@
 /*
- * @(#)Frame.java	1.147 04/05/18
+ * @(#)Frame.java	1.161 06/07/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
 import java.awt.peer.FramePeer;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
@@ -105,7 +108,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.147, 05/18/04
+ * @version 	1.161, 07/27/06
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -280,19 +283,6 @@ public class Frame extends Window implements MenuContainer {
     String 	title = "Untitled";
 
     /**
-     * <code>icon</code> is the graphical way we can
-     * represent the frame.
-     * <code>icon</code> can be null, but obviously if
-     * you try to set the icon image <code>icon</code>
-     * cannot be null.
-     *
-     * @serial
-     * @see #getIconImage
-     * @see #setIconImage(Image)
-     */
-    transient Image  	icon;
-
-    /**
      * The frames menubar.  If <code>menuBar</code> = null
      * the frame will not have a menubar.
      *
@@ -347,13 +337,6 @@ public class Frame extends Window implements MenuContainer {
      */
     Vector ownedWindows;
 
-    /*
-     * We insert a weak reference into the Vector of all Frames
-     * instead of 'this' so that garbage collection can still take
-     * place correctly.
-     */
-    transient private WeakReference weakThis;
-
     private static final String base = "frame";
     private static int nameCounter = 0;
 
@@ -374,8 +357,8 @@ public class Frame extends Window implements MenuContainer {
      * Constructs a new instance of <code>Frame</code> that is 
      * initially invisible.  The title of the <code>Frame</code>
      * is empty.
-     * @exception HeadlessException when GraphicsEnvironment.isHeadless()
-     * returns true
+     * @exception HeadlessException when
+     *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless()
      * @see Component#setSize
      * @see Component#setVisible(boolean)
@@ -385,17 +368,17 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Create a <code>Frame</code> with the specified 
-     * <code>GraphicsConfiguration</code> of
-     * a screen device.
+     * Constructs a new, initially invisible {@code Frame} with the
+     * specified {@code GraphicsConfiguration}.
+     *
      * @param gc the <code>GraphicsConfiguration</code> 
      * of the target screen device. If <code>gc</code> 
      * is <code>null</code>, the system default 
      * <code>GraphicsConfiguration</code> is assumed.
      * @exception IllegalArgumentException if 
      * <code>gc</code> is not from a screen device.
-     * This exception is always thrown
-     * when GraphicsEnvironment.isHeadless() returns true
+     * @exception HeadlessException when
+     *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless()
      * @since     1.3
      */
@@ -409,8 +392,8 @@ public class Frame extends Window implements MenuContainer {
      * @param title the title to be displayed in the frame's border.
      *              A <code>null</code> value
      *              is treated as an empty string, "".
-     * @exception HeadlessException when GraphicsEnvironment.isHeadless()
-     * returns true
+     * @exception HeadlessException when
+     *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless()
      * @see java.awt.Component#setSize
      * @see java.awt.Component#setVisible(boolean)
@@ -433,12 +416,13 @@ public class Frame extends Window implements MenuContainer {
      * <code>GraphicsConfiguration</code> is assumed.
      * @exception IllegalArgumentException if <code>gc</code> 
      * is not from a screen device.
-     * This exception is always thrown
-     * when GraphicsEnvironment.isHeadless() returns true
+     * @exception HeadlessException when
+     *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless()
      * @see java.awt.Component#setSize
      * @see java.awt.Component#setVisible(boolean)
      * @see java.awt.GraphicsConfiguration#getBounds
+     * @since 1.3
      */
     public Frame(String title, GraphicsConfiguration gc) {
         super(gc);
@@ -447,25 +431,9 @@ public class Frame extends Window implements MenuContainer {
 
     private void init(String title, GraphicsConfiguration gc) {
         this.title = title;
-        weakThis = new WeakReference(this);
-        addToFrameList();
         SunToolkit.checkAndSetPolicy(this, false);
     }
     
-    /**
-     * Disposes of the input methods and context, and removes 
-     * this Frame from the AppContext.  Subclasses that override 
-     * this method should call super.finalize().  
-     */
-    protected void finalize() throws Throwable {
-        // We have to remove the (hard) reference to weakThis in the
-        // AppContext's Frame list Vector, otherwise the WeakReference 
-        // instance that points to this Frame will never get garbage 
-        // collected.
-        removeFromFrameList();
-        super.finalize();
-    }
-
     /**
      * Construct a name for this component.  Called by getName() when the
      * name is null.
@@ -538,31 +506,35 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Gets the image to be displayed in the minimized icon
-     * for this frame.
+     * Returns the image to be displayed as the icon for this frame.
+     * <p>
+     * This method is obsolete and kept for backward compatibility
+     * only. Use {@link Window#getIconImages Window.getIconImages()} instead.
+     * <p>
+     * If a list of several images was specified as a Window's icon, 
+     * this method will return the first item of the list.
+     * 
      * @return    the icon image for this frame, or <code>null</code> 
      *                    if this frame doesn't have an icon image.
      * @see       #setIconImage(Image)
+     * @see       Window#getIconImages()
+     * @see       Window#setIconImages
      */
     public Image getIconImage() {
-	return icon;
+        java.util.List<Image> icons = this.icons;
+        if (icons != null) {
+            if (icons.size() > 0) {
+                return icons.get(0);
+            }
+        }
+        return null;
     }
 
     /**
-     * Sets the image to be displayed in the minimized icon for this frame. 
-     * Not all platforms support the concept of minimizing a window.
-     * @param     image the icon image to be displayed.
-     *            If this parameter is <code>null</code> then the
-     *            icon image is set to the default image, which may vary
-     *            with platform.            
-     * @see       #getIconImage
+     * {@inheritDoc}
      */
-    public synchronized void setIconImage(Image image) {
-	this.icon = image;
-    	FramePeer peer = (FramePeer)this.peer;
-	if (peer != null) {
-	    peer.setIconImage(image);
-	}
+    public void setIconImage(Image image) {
+        super.setIconImage(image);
     }
 
     /**
@@ -860,6 +832,9 @@ public class Frame extends Window implements MenuContainer {
      *           no action is taken
      */
     public void remove(MenuComponent m) {
+        if (m == null) {
+            return;
+        }
 	synchronized (getTreeLock()) {
 	    if (m == menuBar) {
 		menuBar = null;
@@ -973,66 +948,44 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Returns an array containing all Frames created by the application.
-     * If called from an applet, the array will only include the Frames
+     * Returns an array of all {@code Frame}s created by this application.
+     * If called from an applet, the array includes only the {@code Frame}s
      * accessible by that applet.
+     * <p>
+     * <b>Warning:</b> this method may return system created frames, such
+     * as a shared, hidden frame which is used by Swing. Applications
+     * should not assume the existence of these frames, nor should an
+     * application assume anything about these frames such as component
+     * positions, <code>LayoutManager</code>s or serialization.
+     * <p>
+     * <b>Note</b>: To obtain a list of all ownerless windows, including
+     * ownerless {@code Dialog}s (introduced in release 1.6), use {@link
+     * Window#getOwnerlessWindows Window.getOwnerlessWindows}.
+     *
+     * @see Window#getWindows
+     * @see Window#getOwnerlessWindows
+     *
      * @since 1.2
      */
     public static Frame[] getFrames() {
-        synchronized (Frame.class) {
-            Frame realCopy[];
-            Vector frameList =
-		(Vector)AppContext.getAppContext().get(Frame.class);
-            if (frameList != null) {
-	        // Recall that frameList is actually a Vector of WeakReferences
-	        // and calling get() on one of these references may return
-	        // null. Make two arrays-- one the size of the Vector 
-	        // (fullCopy with size fullSize), and one the size of all
-	        // non-null get()s (realCopy with size realSize).
-	        int fullSize = frameList.size();
-		int realSize = 0;
-		Frame fullCopy[] = new Frame[fullSize];
+        Window[] allWindows = Window.getWindows();
 
-		for (int i = 0; i < fullSize; i++) {
-		    fullCopy[realSize] = (Frame) 
-		        (((WeakReference) (frameList.elementAt(i))).get());
-
-		    if (fullCopy[realSize] != null) {
-		        realSize++;
-		    }
-		}
-
-		if (fullSize != realSize) {
-		    realCopy = new Frame[realSize];
-		    System.arraycopy(fullCopy, 0, realCopy, 0, realSize);
-		} else {
-		    realCopy = fullCopy;
-		}
-            } else {
-                realCopy = new Frame[0];
-            }
-            return realCopy;
-        }
-    }
-
-    void addToFrameList() {
-        synchronized (Frame.class) {
-            Vector frameList = (Vector)appContext.get(Frame.class);
-            if (frameList == null) {
-                frameList = new Vector();
-                appContext.put(Frame.class, frameList);
-            }
-            frameList.addElement(weakThis);
-        }
-    }
-
-    void removeFromFrameList() {
-        synchronized (Frame.class) {
-            Vector frameList = (Vector)appContext.get(Frame.class);
-            if (frameList != null) {
-                frameList.removeElement(weakThis);
+        int frameCount = 0;
+        for (Window w : allWindows) {
+            if (w instanceof Frame) {
+                frameCount++;
             }
         }
+
+        Frame[] frames = new Frame[frameCount];
+        int c = 0;
+        for (Window w : allWindows) {
+            if (w instanceof Frame) {
+                frames[c++] = (Frame)w;
+            }
+        }
+
+        return frames;
     }
 
     /* Serialization support.  If there's a MenuBar we restore
@@ -1049,45 +1002,50 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * Writes default serializable fields to stream.  Writes
-     * an optional serializable <code>Icon</code>, which is
+     * an optional serializable icon <code>Image</code>, which is
      * available as of 1.4.
      *
      * @param s the <code>ObjectOutputStream</code> to write
-     * @serialData an optional <code>Icon</code>
-     * @see javax.swing.Icon
+     * @serialData an optional icon <code>Image</code>
+     * @see java.awt.Image
+     * @see #getIconImage
+     * @see #setIconImage(Image)
      * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
       throws IOException 
     {
-      s.defaultWriteObject();
-      if (icon instanceof Serializable) {
-          s.writeObject(icon);
-      }
-      else
-      {
-          s.writeObject(null);
-      }
+        s.defaultWriteObject();
+        if (icons != null && icons.size() > 0) {
+            Image icon1 = icons.get(0);
+            if (icon1 instanceof Serializable) {
+                s.writeObject(icon1);
+                return;
+            }
+        }
+        s.writeObject(null);
     }
 
     /**
      * Reads the <code>ObjectInputStream</code>.  Tries
-     * to read an <code>Icon</code>, which is optional
-     * data available as of 1.4.  If an <code>Icon</code>
+     * to read an icon <code>Image</code>, which is optional
+     * data available as of 1.4.  If an icon <code>Image</code>
      * is not available, but anything other than an EOF
      * is detected, an <code>OptionalDataException</code>
-     * will be thrown..
+     * will be thrown.
      * Unrecognized keys or values will be ignored.
      *
      * @param s the <code>ObjectInputStream</code> to read
-     * @exception OptionalDataException if an <code>Icon</code>
+     * @exception java.io.OptionalDataException if an icon <code>Image</code>
      *   is not available, but anything other than an EOF
      *   is detected
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless()
-     * @see javax.swing.Icon
+     * @see java.awt.Image
+     * @see #getIconImage
+     * @see #setIconImage(Image)
      * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
@@ -1095,37 +1053,39 @@ public class Frame extends Window implements MenuContainer {
     {
       // HeadlessException is thrown by Window's readObject
       s.defaultReadObject();
-      
       try {
- 	  icon = (Image) s.readObject();
+          Image icon = (Image) s.readObject();
+          if (icons == null) {
+              icons = new ArrayList<Image>();
+              icons.add(icon);
+          }
       } catch (java.io.OptionalDataException e) {
-      // pre-1.4 instances will not have this optional data.
-      // e.eof will be true to indicate that there is no more
-      // data available for this object.
+          // pre-1.4 instances will not have this optional data.
+          // 1.6 and later instances serialize icons in the Window class
+          // e.eof will be true to indicate that there is no more
+          // data available for this object.
 
-     // If e.eof is not true, throw the exception as it
-     // might have been caused by unrelated reasons.
-         if (!e.eof) {
-             throw (e);
+          // If e.eof is not true, throw the exception as it
+          // might have been caused by unrelated reasons.
+          if (!e.eof) {
+              throw (e);
           }
       }
 
       if (menuBar != null)
-	menuBar.parent = this;
+        menuBar.parent = this;
 
       // Ensure 1.1 serialized Frames can read & hook-up
       // owned windows properly
       //
       if (ownedWindows != null) {
           for (int i = 0; i < ownedWindows.size(); i++) {
-	      connectOwnedWindow((Window) ownedWindows.elementAt(i));
-	  }
+              connectOwnedWindow((Window) ownedWindows.elementAt(i));
+          }
           ownedWindows = null;  
       }
-
-      weakThis = new WeakReference(this);
-      addToFrameList();
     }
+
     /**
      * Initialize JNI field and method IDs
      */
@@ -1144,6 +1104,7 @@ public class Frame extends Window implements MenuContainer {
      *
      * @return an AccessibleAWTFrame that serves as the 
      *         AccessibleContext of this Frame
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1156,6 +1117,7 @@ public class Frame extends Window implements MenuContainer {
      * This class implements accessibility support for the 
      * <code>Frame</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to frame user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTFrame extends AccessibleAWTWindow
     {

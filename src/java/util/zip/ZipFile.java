@@ -1,7 +1,7 @@
 /*
- * @(#)ZipFile.java	1.71 05/11/21
+ * @(#)ZipFile.java	1.78 06/07/31
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,12 +14,6 @@ import java.io.File;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import sun.nio.ByteBuffered;
-import java.lang.reflect.*;
 
 /**
  * This class is used to read entries from a zip file.
@@ -28,7 +22,7 @@ import java.lang.reflect.*;
  * or method in this class will cause a {@link NullPointerException} to be
  * thrown.
  *
- * @version   1.71, 11/21/05 
+ * @version   1.78, 07/31/06
  * @author	David Connelly
  */
 public
@@ -36,9 +30,6 @@ class ZipFile implements ZipConstants {
     private long jzfile;  // address of jzfile data
     private String name;  // zip file name
     private int total;	  // total number of entries
-    private MappedByteBuffer mappedBuffer; // if ZipFile.c uses file mapping.
-    private ZipCloser closer; // cleans up after mappedBuffer.
-    private boolean mbUsed;      // if caller used mappedBuffer
     private boolean closeRequested;
 
     private static final int STORED = ZipEntry.STORED;
@@ -48,16 +39,16 @@ class ZipFile implements ZipConstants {
      * Mode flag to open a zip file for reading.
      */
     public static final int OPEN_READ = 0x1;
-        
+
     /**
      * Mode flag to open a zip file and mark it for deletion.  The file will be
      * deleted some time between the moment that it is opened and the moment
      * that it is closed, but its contents will remain accessible via the
-     * <tt>ZipFile</tt> object until either the close method is invoked or the 
+     * <tt>ZipFile</tt> object until either the close method is invoked or the
      * virtual machine exits.
      */
     public static final int OPEN_DELETE = 0x4;
-    
+
     static {
 	/* Zip library is loaded from System.initializeSystemClass */
 	initIDs();
@@ -67,12 +58,12 @@ class ZipFile implements ZipConstants {
 
     /**
      * Opens a zip file for reading.
-     * 
+     *
      * <p>First, if there is a security
      * manager, its <code>checkRead</code> method
      * is called with the <code>name</code> argument
      * as its argument to ensure the read is allowed.
-     * 
+     *
      * @param name the name of the zip file
      * @throws ZipException if a ZIP format error has occurred
      * @throws IOException if an I/O error has occurred
@@ -85,91 +76,10 @@ class ZipFile implements ZipConstants {
     }
 
     /**
-     * Handles cleanup after mappedBuffer is no longer referenced.
-     *
-     * The DirectByteBuffer code creates a phantom reference to mappedBuffer
-     * that will call ZipCloser.run() when mappedBuffer is no longer 
-     * (strongly) referenced.
-     * If it was safe to do so, ZipFile.close() (and finalize()) will have 
-     * already cleaned up.
-     *
-     * Note: since ZipFile references MappedByteBuffer, we can be sure that 
-     * the ZipFile has already been finalized by the time ZipCloser.run() 
-     * is called.
-     */
-    private static class ZipCloser
-	implements Runnable
-    {
-	private long mappedFileID;
-	
-	private ZipCloser(long jzFile) {
-	    mappedFileID = jzFile;
-	}
-
-	public synchronized void setClosed() {
-	    mappedFileID = 0;
-	}
-	
-	public synchronized void run() {
-	    if (mappedFileID != 0) {
-		ZipFile.close(mappedFileID);
-		mappedFileID = 0;
-	    }
-	}
-    } /* ZipCloser */
-
-    private static Constructor directByteBufferConstructor = null;
-
-    private static void initDBBConstructor() {
-	AccessController.doPrivileged(new PrivilegedAction() {
-		public Object run() {
-		    try {
-			Class th = Class.forName("java.nio.DirectByteBuffer");
-			directByteBufferConstructor
-			    = th.getDeclaredConstructor(
-					new Class[] { int.class,
-                                                      long.class,
-						      Runnable.class });
-			directByteBufferConstructor.setAccessible(true);
-		    } catch (ClassNotFoundException x) {
-			throw new InternalError();
-		    } catch (NoSuchMethodException x) {
-			throw new InternalError();
-		    } catch (IllegalArgumentException x) {
-			throw new InternalError();
-		    } catch (ClassCastException x) {
-			throw new InternalError();
-		    }
-                    return null;
-		}});
-    }
-
-    private static MappedByteBuffer newMappedByteBuffer(int size, long addr,
-							Runnable unmapper)
-    {
-        MappedByteBuffer dbb;
-        if (directByteBufferConstructor == null)
-            initDBBConstructor();
-        try {
-            dbb = (MappedByteBuffer)directByteBufferConstructor.newInstance(
-              new Object[] { new Integer(size),
-                             new Long(addr),
-			     unmapper });
-        } catch (InstantiationException e) {
-            throw new InternalError();
-        } catch (IllegalAccessException e) {
-            throw new InternalError();
-        } catch (InvocationTargetException e) {
-            throw new InternalError();
-        }
-        return dbb;
-    }
-
-    /**
      * Opens a new <code>ZipFile</code> to read from the specified
      * <code>File</code> object in the specified mode.  The mode argument
      * must be either <tt>OPEN_READ</tt> or <tt>OPEN_READ | OPEN_DELETE</tt>.
-     * 
+     *
      * <p>First, if there is a security manager, its <code>checkRead</code>
      * method is called with the <code>name</code> argument as its argument to
      * ensure the read is allowed.
@@ -185,11 +95,12 @@ class ZipFile implements ZipConstants {
      *         the file when the <tt>OPEN_DELETE</tt> flag is set.
      * @throws IllegalArgumentException if the <tt>mode</tt> argument is invalid
      * @see SecurityManager#checkRead(java.lang.String)
+     * @since 1.3
      */
     public ZipFile(File file, int mode) throws IOException {
-        if (((mode & OPEN_READ) == 0) || 
+        if (((mode & OPEN_READ) == 0) ||
             ((mode & ~(OPEN_READ | OPEN_DELETE)) != 0)) {
-            throw new IllegalArgumentException("Illegal mode: 0x"+ 
+            throw new IllegalArgumentException("Illegal mode: 0x"+
                                                Integer.toHexString(mode));
         }
         String name = file.getPath();
@@ -200,28 +111,14 @@ class ZipFile implements ZipConstants {
 		sm.checkDelete(name);
 	    }
 	}
-	long jzfileCopy = open(name, mode, file.lastModified());
+	jzfile = open(name, mode, file.lastModified());
+
 	this.name = name;
-	this.total = getTotal(jzfileCopy);
-	this.mbUsed = false;
-	long mappedAddr = getMappedAddr(jzfileCopy);
-	long len = getMappedLen(jzfileCopy);
-
-	if (mappedAddr != 0 && len < Integer.MAX_VALUE) {
-	    // Zip's native code may be able to handle files up to 4GB, but
-	    // ByteBuffers can only handle 2GB. So fallback on Zip files >= 2GB.
-	    this.closer = new ZipCloser(jzfileCopy); 
-	    this.mappedBuffer = newMappedByteBuffer((int)len, mappedAddr, 
-						    this.closer);
-	}
-
-        jzfile = jzfileCopy;
+	this.total = getTotal(jzfile);
     }
 
     private static native long open(String name, int mode, long lastModified);
     private static native int getTotal(long jzfile);
-    private static native long getMappedAddr(long jzfile);
-    private static native long getMappedLen(long jzfile);
 
 
     /**
@@ -259,20 +156,17 @@ class ZipFile implements ZipConstants {
         return null;
     }
 
-    private static native long getEntry(long jzfile, String name, 
-                                        boolean addSlash); 
+    private static native long getEntry(long jzfile, String name,
+                                        boolean addSlash);
 
-    // freeEntry releases the C jzentry struct.  
+    // freeEntry releases the C jzentry struct.
     private static native void freeEntry(long jzfile, long jzentry);
 
     /**
      * Returns an input stream for reading the contents of the specified
      * zip file entry.
      *
-     * Returns an input stream for reading the contents of the specified
-     * zip file entry.
-     *
-     * <p> Closing this ZIP file will, in turn, close all input 
+     * <p> Closing this ZIP file will, in turn, close all input
      * streams that have been returned by invocations of this method.
      *
      * @param entry the zip file entry
@@ -302,11 +196,9 @@ class ZipFile implements ZipConstants {
             if (jzentry == 0) {
                 return null;
             }
-	    if (mappedBuffer != null) {
-		in = new MappedZipFileInputStream(jzentry, name);
-	    } else {
-		in = new ZipFileInputStream(jzentry);
-	    }
+
+	    in = new ZipFileInputStream(jzentry);
+
         }
         final ZipFileInputStream zfin = in;
 	switch (getMethod(jzentry)) {
@@ -314,12 +206,12 @@ class ZipFile implements ZipConstants {
 	    return zfin;
 	case DEFLATED:
 	    // MORE: Compute good size for inflater stream:
-            long size = getSize(jzentry) + 2; // Inflater likes a bit of slack
+	    long size = getSize(jzentry) + 2; // Inflater likes a bit of slack
             if (size > 65536) size = 8192;
             if (size <= 0) size = 4096;
-            return new InflaterInputStream(zfin, getInflater(), (int)size) {
+	    return new InflaterInputStream(zfin, getInflater(), (int)size) {
                 private boolean isClosed = false;
-                
+
 		public void close() throws IOException {
                     if (!isClosed) {
                          releaseInflater(inf);
@@ -426,12 +318,12 @@ class ZipFile implements ZipConstants {
                             } else {
                                 message = getZipMessage(ZipFile.this.jzfile);
                             }
-                            throw new InternalError("jzentry == 0" +
-                                                    ",\n jzfile = " + ZipFile.this.jzfile +
-                                                    ",\n total = " + ZipFile.this.total +
-                                                    ",\n name = " + ZipFile.this.name +
-                                                    ",\n i = " + i +
-                                                    ",\n message = " + message
+                            throw new ZipError("jzentry == 0" +
+                                               ",\n jzfile = " + ZipFile.this.jzfile +
+                                               ",\n total = " + ZipFile.this.total +
+                                               ",\n name = " + ZipFile.this.name +
+                                               ",\n i = " + i +
+                                               ",\n message = " + message
                                 );
                         }
                         ZipEntry ze = new ZipEntry(jzentry);
@@ -465,21 +357,14 @@ class ZipFile implements ZipConstants {
     public void close() throws IOException {
         synchronized (this) {
 	    closeRequested = true;
-	    
+
 	    if (jzfile != 0) {
 		// Close the zip file
 		long zf = this.jzfile;
 		jzfile = 0;
-		if (closer != null) {
-		    if (!mbUsed) { // no one is looking; we can close early
-			closer.setClosed(); // tell closer not to bother
-			close(zf);
-		    }
-		    // Some caller may have ref to MappedByteBuffer,
-		    // so let phantom processing (ZipCloser) close the ZipFile.
-		} else {
-		    close(zf);
-		}
+
+		close(zf);
+
 		// Release inflaters
 		synchronized (inflaters) {
 		    int size = inflaters.size();
@@ -498,12 +383,12 @@ class ZipFile implements ZipConstants {
      * called when there are no more references to it.
      *
      * <p>
-     * Since the time when GC would invoke this method is undetermined, 
-     * it is strongly recommended that applications invoke the <code>close</code> 
+     * Since the time when GC would invoke this method is undetermined,
+     * it is strongly recommended that applications invoke the <code>close</code>
      * method as soon they have finished accessing this <code>ZipFile</code>.
-     * This will prevent holding up system resources for an undetermined 
+     * This will prevent holding up system resources for an undetermined
      * length of time.
-     * 
+     *
      * @throws IOException if an I/O error has occurred
      * @see    java.util.zip.ZipFile#close()
      */
@@ -517,6 +402,10 @@ class ZipFile implements ZipConstants {
 	if (closeRequested) {
 	    throw new IllegalStateException("zip file closed");
 	}
+
+	if (jzfile == 0) {
+	    throw new IllegalStateException("The object is not initialized.");
+	}
     }
 
     private void ensureOpenOrZipException() throws IOException {
@@ -524,7 +413,7 @@ class ZipFile implements ZipConstants {
 	    throw new ZipException("ZipFile closed");
 	}
     }
-	
+
     /*
      * Inner class implementing the input stream used to read a
      * (possibly compressed) zip file entry.
@@ -608,120 +497,12 @@ class ZipFile implements ZipConstants {
 
     }
 
-    /*
-     * Inner class implementing the input stream used to read a
-     * mapped (possibly compressed) zip file entry. Overrides
-     * all methods of ZipFileInputStream.
-     */
-   private class MappedZipFileInputStream extends ZipFileInputStream
-       implements ByteBuffered {
-
-       private ByteBuffer directBuffer = null;
-       private String name;
-       
-	MappedZipFileInputStream(long jzentry, String name) {
-	    super(jzentry);
-	    this.name = name;
-	    int offset = (int)getEntryOffset(jzentry);
-	    MappedByteBuffer bb = ZipFile.this.mappedBuffer;
-	    synchronized (bb) {
-		bb.position(offset);
-		bb.limit((int)(offset + rem)); // won't use this code if file > 2GB
-
-		this.directBuffer = bb.slice();
-		
-		bb.position(0); // reset, but doesn't matter
-		bb.limit(bb.capacity()); // reset limit
-	    }
-	}
-
-       /* getByteBuffer returns a ByteBuffer if the jar file has been mapped in.
-	  If this method is called, the zip code won't close the ZipFile until 
-	  the last reference to file's mapped buffer is collected. */
-       public ByteBuffer getByteBuffer() throws IOException {
-	   synchronized (ZipFile.this) {
-	       ensureOpenOrZipException();
-	       // have to defer ZipFile.close() until all the buffers are garbage
-	       ZipFile.this.mbUsed = true;
-	       return directBuffer;
-	   }
-       }
-
-	public int read(byte b[], int off, int len) throws IOException {
-	    int rem = directBuffer.remaining();
-	    if (rem == 0) {
-		return -1;
-	    }
-	    if (len <= 0) {
-		return 0;
-	    }
-	    if (len > rem) {
-		len = rem;
-	    }
-            synchronized (ZipFile.this) {
-                ensureOpenOrZipException();
-
-		directBuffer.get(b, off, len);
-            }
-	   
-	    if (len == rem) {
-		close();
-	    }
-	    return len;
-	}
-
-	public int read() throws IOException {
-	    synchronized (ZipFile.this) {
-               ensureOpenOrZipException();
-
-		if (directBuffer.remaining() == 0) {
-		    return -1;
-		} else {
-		    return directBuffer.get() & 0xff;
-		}
-	    }
-	}
-
-	public long skip(long n) {
-	    int rem = directBuffer.remaining();
-	    int len = n > rem ? rem : (int)n;
-	    directBuffer.position(directBuffer.position() + len);
-	    if (len == rem) {
-		close();
-	    }
-	    return len;
-	}
-
-        public int available() {
-            return directBuffer.remaining();
-        }
-
-        public long size() {
-            return size;
-        }
-
-        public void close() {
-	    directBuffer.position(directBuffer.limit());
-            synchronized (ZipFile.this) {
-                if (jzentry != 0 && ZipFile.this.jzfile != 0) {
-                    freeEntry(ZipFile.this.jzfile, jzentry);
-                    jzentry = 0;
-                }
-            }
-        }
-
-    } /* MappedZipFileInputStream */
-
     private static native int read(long jzfile, long jzentry,
 				   long pos, byte[] b, int off, int len);
 
     private static native long getCSize(long jzentry);
 
     private static native long getSize(long jzentry);
-
-    /* If the zip file is mapped, return the offset from the beginning of the zip 
-       file to this entry. Return 0 otherwise. */
-    private static native long getEntryOffset(long jzentry);
 
     // Temporary add on for bug troubleshooting
     private static native String getZipMessage(long jzfile);

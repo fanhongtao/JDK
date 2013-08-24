@@ -54,13 +54,14 @@ package com.sun.org.apache.bcel.internal.classfile;
  * <http://www.apache.org/>.
  */
 import  com.sun.org.apache.bcel.internal.Constants;
+import com.sun.org.apache.bcel.internal.generic.Type;
 import java.io.*;
 
 /**
  * This class represents the field info structure, i.e., the representation 
  * for a variable in the class. See JVM specification for details.
  *
- * @version $Id: Field.java,v 1.1.1.1 2001/10/29 20:00:01 jvanzyl Exp $
+ * @version $Id: Field.java,v 1.1.2.1 2005/07/31 23:46:32 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class Field extends FieldOrMethod {
@@ -77,7 +78,7 @@ public final class Field extends FieldOrMethod {
    * @param file Input stream
    */
   Field(DataInputStream file, ConstantPool constant_pool)
-       throws IOException, ClassFormatError
+       throws IOException, ClassFormatException
   {
     super(file, constant_pool);
   }
@@ -153,5 +154,12 @@ public final class Field extends FieldOrMethod {
    */
   public final Field copy(ConstantPool constant_pool) {
     return (Field)copy_(constant_pool);
+  }
+
+  /**
+   * @return type of field
+   */
+  public Type getType() {
+    return Type.getReturnType(getSignature());
   }
 }

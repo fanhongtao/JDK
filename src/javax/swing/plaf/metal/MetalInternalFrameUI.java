@@ -1,7 +1,7 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.30 03/12/19
+ * @(#)MetalInternalFrameUI.java	1.35 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,10 @@ import javax.swing.plaf.*;
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.30 12/19/03
+ * @version 1.35 04/07/06
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
-
-  private MetalInternalFrameTitlePane titlePane;
 
   private static final PropertyChangeListener metalPropertyChangeListener =
         new MetalPropertyChangeHandler();
@@ -117,8 +115,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
     
   protected JComponent createNorthPane(JInternalFrame w) {
-    titlePane = new MetalInternalFrameTitlePane(w);
-    return titlePane;
+      return new MetalInternalFrameTitlePane(w);
   }
 
 
@@ -127,17 +124,17 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
       if ( frameType.equals( OPTION_DIALOG ) )
       {
           LookAndFeel.installBorder(frame, "InternalFrame.optionDialogBorder");
-	  titlePane.setPalette( false );
+          ((MetalInternalFrameTitlePane)titlePane).setPalette( false );
       }
       else if ( frameType.equals( PALETTE_FRAME ) )
       {
           LookAndFeel.installBorder(frame, "InternalFrame.paletteBorder");
-	  titlePane.setPalette( true );
+          ((MetalInternalFrameTitlePane)titlePane).setPalette( true );
       }
       else
       {
           LookAndFeel.installBorder(frame, "InternalFrame.border");
-	  titlePane.setPalette( false );
+          ((MetalInternalFrameTitlePane)titlePane).setPalette( false );
       }
   }
 
@@ -148,7 +145,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
     } else {
         LookAndFeel.installBorder(frame, "InternalFrame.border");
     }
-    titlePane.setPalette(isPalette);
+    ((MetalInternalFrameTitlePane)titlePane).setPalette(isPalette);
 
   }
 
@@ -188,5 +185,57 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
           }
       }
   } // end class MetalPropertyChangeHandler
+
+
+    private class BorderListener1 extends BorderListener implements SwingConstants
+    {
+
+        Rectangle getIconBounds() {
+            boolean leftToRight = MetalUtils.isLeftToRight(frame);
+            int xOffset = leftToRight ? 5 : titlePane.getWidth() - 5;
+            Rectangle rect = null;
+
+            Icon icon = frame.getFrameIcon();
+            if ( icon != null ) {
+                if ( !leftToRight ) {
+                    xOffset -= icon.getIconWidth();
+                }
+                int iconY = ((titlePane.getHeight() / 2) - (icon.getIconHeight() /2));
+                rect = new Rectangle(xOffset, iconY, 
+                    icon.getIconWidth(), icon.getIconHeight());
+            }
+            return rect;
+        }
+
+	public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2 && e.getSource() == getNorthPane() &&
+                frame.isClosable() && !frame.isIcon()) {
+                Rectangle rect = getIconBounds();
+                if ((rect != null) && rect.contains(e.getX(), e.getY())) {
+                    frame.doDefaultCloseAction();
+                }
+                else {
+                    super.mouseClicked(e);
+                }
+            }
+            else {
+                super.mouseClicked(e);
+            }
+	}
+    };    /// End BorderListener Class
+
+
+    /**
+     * Returns the <code>MouseInputAdapter</code> that will be installed 
+     * on the TitlePane.
+     *
+     * @param w the <code>JInternalFrame</code>
+     * @return the <code>MouseInputAdapter</code> that will be installed 
+     * on the TitlePane.
+     * @since 1.6
+     */
+    protected MouseInputAdapter createBorderListener(JInternalFrame w) {
+        return new BorderListener1();
+    }
 }
 

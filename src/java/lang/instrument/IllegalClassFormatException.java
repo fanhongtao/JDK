@@ -1,5 +1,5 @@
 /*
- * @(#)IllegalClassFormatException.java	1.2 03/08/16
+ * @(#)IllegalClassFormatException.java	1.3 06/04/07
  *
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
  */
@@ -18,7 +18,7 @@ package java.lang.instrument;
  * invalid or a previously applied transform corrupted the bytes.
  *
  * @see     java.lang.instrument.ClassFileTransformer#transform
- * @since   JDK1.5
+ * @since   1.5
  */
 public class IllegalClassFormatException extends Exception {
     /**

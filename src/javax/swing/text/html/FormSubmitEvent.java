@@ -1,7 +1,7 @@
 /*
- * @(#)FormSubmitEvent.java	1.3 03/12/19
+ * @(#)FormSubmitEvent.java	1.5 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -11,11 +11,11 @@ import java.net.URL;
 
 /**
  * FormSubmitEvent is used to notify interested
-   * parties that a form was submited.
+ * parties that a form was submited.
  *
- * @version 1.3 12/19/03
-   * @since 1.5
-   * @author    Denis Sharypov
+ * @version 1.5 04/07/06
+ * @since 1.5
+ * @author    Denis Sharypov
  */
 
 public class FormSubmitEvent extends HTMLFrameHyperlinkEvent {
@@ -26,6 +26,7 @@ public class FormSubmitEvent extends HTMLFrameHyperlinkEvent {
      * <LI><code>GET</code> corresponds to the GET form method</LI>
      * <LI><code>POST</code> corresponds to the POST from method</LI>
      * </UL>
+     * @since 1.5
      */
     public enum MethodType { GET, POST };
 

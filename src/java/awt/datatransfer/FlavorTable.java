@@ -1,7 +1,7 @@
 /*
- * @(#)FlavorTable.java	1.5 04/05/05
+ * @(#)FlavorTable.java	1.6 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.util.List;
  * symmetric, but typically are.
  *
  * @author David Mendenhall
- * @version 1.5, 05/05/04
+ * @version 1.6, 11/17/05
  *
  * @since 1.4
  */

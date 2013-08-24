@@ -57,7 +57,7 @@ package com.sun.org.apache.bcel.internal;
 /**
  * Exception constants.
  *
- * @version $Id: ExceptionConstants.java,v 1.1.1.1 2001/10/29 19:59:56 jvanzyl Exp $
+ * @version $Id: ExceptionConstants.java,v 1.1.2.1 2005/07/31 23:46:56 jeffsuttor Exp $
  * @author  <A HREF="http://www.inf.fu-berlin.de/~ehaase">E. Haase</A>
  */
 public interface ExceptionConstants {

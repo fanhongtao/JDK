@@ -58,15 +58,19 @@ import  com.sun.org.apache.bcel.internal.Constants;
 import  java.io.*;
 
 /**
- * This class represents the constant pool, i.e., a table of constants.
- * It may contain null references, due to the JVM specification that skips
- * an entry after an 8-byte constant (double, long) entry.
- *
- * @version $Id: ConstantPool.java,v 1.1.1.1 2001/10/29 19:59:59 jvanzyl Exp $
+ * This class represents the constant pool, i.e., a table of constants, of
+ * a parsed classfile. It may contain null references, due to the JVM
+ * specification that skips an entry after an 8-byte constant (double,
+ * long) entry.  Those interested in generating constant pools
+ * programatically should see <a href="../generic/ConstantPoolGen.html">
+ * ConstantPoolGen</a>.
+
+ * @version $Id: ConstantPool.java,v 1.1.2.1 2005/07/31 23:46:35 jeffsuttor Exp $
  * @see     Constant
+ * @see     com.sun.org.apache.bcel.internal.generic.ConstantPoolGen
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
-public class ConstantPool implements Cloneable, Node {
+public class ConstantPool implements Cloneable, Node, Serializable {
   private int        constant_pool_count;
   private Constant[] constant_pool;
 
@@ -82,10 +86,10 @@ public class ConstantPool implements Cloneable, Node {
    * Read constants from given file stream.
    *
    * @param file Input stream
-   * @throw IOException
-   * @throw ClassFormatError
+   * @throws IOException
+   * @throws ClassFormatException
    */
-  ConstantPool(DataInputStream file) throws IOException, ClassFormatError
+  ConstantPool(DataInputStream file) throws IOException, ClassFormatException
   {
     byte tag;
 
@@ -129,7 +133,7 @@ public class ConstantPool implements Cloneable, Node {
    * @return String representation
    */
   public String constantToString(Constant c)
-       throws ClassFormatError  
+       throws ClassFormatException  
   {
     String   str;
     int      i;
@@ -205,7 +209,7 @@ public class ConstantPool implements Cloneable, Node {
    * @return String representation
    */
   public String constantToString(int index, byte tag) 
-       throws ClassFormatError
+       throws ClassFormatException
   {
     Constant c = getConstant(index, tag);
     return constantToString(c);
@@ -215,7 +219,7 @@ public class ConstantPool implements Cloneable, Node {
    * Dump constant pool to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */
   public void dump(DataOutputStream file) throws IOException
   {
@@ -235,7 +239,7 @@ public class ConstantPool implements Cloneable, Node {
    */
   public Constant getConstant(int index) {
     if (index >= constant_pool.length || index < 0)
-      throw new ClassFormatError("Invalid constant pool reference: " +
+      throw new ClassFormatException("Invalid constant pool reference: " +
 				 index + ". Constant pool size is: " +
 				 constant_pool.length);
     return constant_pool[index];
@@ -249,22 +253,22 @@ public class ConstantPool implements Cloneable, Node {
    * @param  tag Tag of expected constant, i.e., its type
    * @return Constant value
    * @see    Constant
-   * @throw  ClassFormatError
+   * @throws  ClassFormatException
    */
   public Constant getConstant(int index, byte tag)
-       throws ClassFormatError
+       throws ClassFormatException
   {
     Constant c;
 
     c = getConstant(index);
 
     if(c == null)
-      throw new ClassFormatError("Constant pool at index " + index + " is null.");
+      throw new ClassFormatException("Constant pool at index " + index + " is null.");
 
     if(c.getTag() == tag)
       return c;
     else
-      throw new ClassFormatError("Expected class `" + Constants.CONSTANT_NAMES[tag] + 
+      throw new ClassFormatException("Expected class `" + Constants.CONSTANT_NAMES[tag] + 
 				 "' at index " + index + " and got " + c);
   }
 
@@ -284,14 +288,13 @@ public class ConstantPool implements Cloneable, Node {
    * @return Contents of string reference
    * @see    ConstantClass
    * @see    ConstantString
-   * @throw  ClassFormatError
+   * @throws  ClassFormatException
    */
   public String getConstantString(int index, byte tag) 
-       throws ClassFormatError
+       throws ClassFormatException
   {
     Constant c;
     int    i;
-    String   s;
 
     c = getConstant(index, tag);
 

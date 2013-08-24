@@ -1,7 +1,7 @@
 /*
- * @(#)PrivateMLet.java	1.12 03/12/19
+ * @(#)PrivateMLet.java	1.14 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,9 +45,7 @@ public class PrivateMLet extends MLet implements PrivateClassLoader {
       * be searched in the order specified for classes and resources
       * after first searching in the specified parent class loader.
       * The parent argument will be used as the parent class loader
-      * for delegation. The factory argument will be used as the
-      * stream handler factory to obtain protocol handlers when
-      * creating new URLs.
+      * for delegation.
       *
       * @param  urls  The URLs from which to load classes and resources.
       * @param  parent The parent class loader for delegation.

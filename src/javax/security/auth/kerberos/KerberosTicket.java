@@ -1,7 +1,7 @@
 /*
- * @(#)KerberosTicket.java	1.17 06/06/01
+ * @(#)KerberosTicket.java	1.21 06/07/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -56,7 +56,7 @@ import sun.security.util.*;
  * @see org.ietf.jgss.GSSManager
  * 
  * @author Mayank Upadhyay
- * @version 1.17, 06/01/06
+ * @version 1.21, 07/27/06
  * @since 1.4
  */
 public class KerberosTicket implements Destroyable, Refreshable,
@@ -64,7 +64,7 @@ public class KerberosTicket implements Destroyable, Refreshable,
 
     private static final long serialVersionUID = 7395334370157380539L;
 
-    // TBD: Make these flag indices public
+    // XXX Make these flag indices public
     private static final int FORWARDABLE_TICKET_FLAG = 1;
     private static final int FORWARDED_TICKET_FLAG   = 2;
     private static final int PROXIABLE_TICKET_FLAG   = 3;
@@ -607,7 +607,7 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	    }
 	}
 	return ("Ticket (hex) = " + "\n" +
-		 (new HexDumpEncoder()).encode(asn1Encoding) + "\n" +
+		 (new HexDumpEncoder()).encodeBuffer(asn1Encoding) + "\n" +
 		"Client Principal = " + client.toString() + "\n" +
 		"Server Principal = " + server.toString() + "\n" +
 		"Session Key = " + sessionKey.toString() + "\n" +
@@ -627,4 +627,105 @@ public class KerberosTicket implements Destroyable, Refreshable,
 		"\n"));
     }
 
+    /**
+     * Returns a hashcode for this KerberosTicket. 
+     *
+     * @return a hashCode() for the <code>KerberosTicket</code>
+     * @since 1.6
+     */
+    public int hashCode() {
+        int result = 17;
+        if (isDestroyed()) {
+            return result;
+        }
+        result = result * 37 + Arrays.hashCode(getEncoded());
+        result = result * 37 + endTime.hashCode();
+        result = result * 37 + client.hashCode();
+        result = result * 37 + server.hashCode();
+        result = result * 37 + sessionKey.hashCode();
+        
+        // authTime may be null
+        if (authTime != null) {
+            result = result * 37 + authTime.hashCode();
+        }
+
+        // startTime may be null
+        if (startTime != null) {
+            result = result * 37 + startTime.hashCode();
+        }
+
+        // renewTill may be null
+        if (renewTill != null) {
+            result = result * 37 + renewTill.hashCode();
+        }
+
+        // clientAddress may be null, the array's hashCode is 0
+        result = result * 37 + Arrays.hashCode(clientAddresses);
+        return result * 37 + Arrays.hashCode(flags);
+    }
+
+    /**
+     * Compares the specified Object with this KerberosTicket for equality.
+     * Returns true if the given object is also a 
+     * <code>KerberosTicket</code> and the two
+     * <code>KerberosTicket</code> instances are equivalent. 
+     *
+     * @param other the Object to compare to
+     * @return true if the specified object is equal to this KerberosTicket,
+     * false otherwise. NOTE: Returns false if either of the KerberosTicket
+     * objects has been destroyed.
+     * @since 1.6
+     */
+    public boolean equals(Object other) {
+
+	if (other == this)
+	    return true;
+
+	if (! (other instanceof KerberosTicket)) {
+	    return false;
+	}
+        
+        KerberosTicket otherTicket = ((KerberosTicket) other);
+        if (isDestroyed() || otherTicket.isDestroyed()) {
+            return false;
+        }
+
+        if (!Arrays.equals(getEncoded(), otherTicket.getEncoded()) ||
+                !endTime.equals(otherTicket.getEndTime()) ||
+                !server.equals(otherTicket.getServer()) ||
+                !client.equals(otherTicket.getClient()) ||
+                !sessionKey.equals(otherTicket.getSessionKey()) ||
+                !Arrays.equals(clientAddresses, otherTicket.getClientAddresses()) ||
+                !Arrays.equals(flags, otherTicket.getFlags())) {
+            return false;
+        }
+
+	// authTime may be null
+        if (authTime == null) {
+            if (otherTicket.getAuthTime() != null)
+                return false;
+        } else {
+            if (!authTime.equals(otherTicket.getAuthTime()))
+                return false;
+        }
+
+	// startTime may be null
+        if (startTime == null) {
+            if (otherTicket.getStartTime() != null)
+                return false;
+        } else {
+            if (!startTime.equals(otherTicket.getStartTime()))
+                return false;
+        }
+
+        if (renewTill == null) {
+            if (otherTicket.getRenewTill() != null)
+                return false;
+        } else {
+            if (!renewTill.equals(otherTicket.getRenewTill()))
+                return false;
+        }
+
+        return true;
+    } 
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)UnixFileSystem.java	1.17 04/01/20
+ * @(#)UnixFileSystem.java	1.21 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -231,10 +231,10 @@ class UnixFileSystem extends FileSystem {
 	return rv | (hidden ? BA_HIDDEN : 0);
     }
 
-    public native boolean checkAccess(File f, boolean write);
+    public native boolean checkAccess(File f, int access);
     public native long getLastModifiedTime(File f);
     public native long getLength(File f);
-
+    public native boolean setPermission(File f, int access, boolean enable, boolean owneronly);
 
     /* -- File operations -- */
 
@@ -251,7 +251,6 @@ class UnixFileSystem extends FileSystem {
         return delete0(f);
     }
     private native boolean delete0(File f);
-    public synchronized native boolean deleteOnExit(File f);
     public native String[] list(File f);
     public native boolean createDirectory(File f);
     public boolean rename(File f1, File f2) {
@@ -283,6 +282,8 @@ class UnixFileSystem extends FileSystem {
 	}
     }
 
+    /* -- Disk usage -- */
+    public native long getSpace(File f, int t);
 
     /* -- Basic infrastructure -- */
 

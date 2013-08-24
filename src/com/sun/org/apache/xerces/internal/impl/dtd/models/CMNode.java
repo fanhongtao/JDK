@@ -59,8 +59,10 @@ package com.sun.org.apache.xerces.internal.impl.dtd.models;
 
 /**
  * A content model node.
+ * 
+ * @xerces.internal
  *
- * @version $Id: CMNode.java,v 1.2 2002/01/29 01:15:10 lehors Exp $
+ * @version $Id: CMNode.java,v 1.2 2005/08/16 22:53:45 jeffsuttor Exp $
  */
 public abstract class CMNode
 {
@@ -120,6 +122,23 @@ public abstract class CMNode
         fMaxStates = maxStates;
     }
 
+    /**
+     * Allows the user to set arbitrary data on this content model
+     * node. This is used by the a{n,m} optimization that runs
+     * in constant space.
+     */
+    public void setUserData(Object userData) {
+        fUserData = userData;
+    }
+    
+    /**
+     * Allows the user to get arbitrary data set on this content 
+     * model node. This is used by the a{n,m} optimization that runs
+     * in constant space.
+     */
+    public Object getUserData() {
+        return fUserData;
+    }
 
     // -------------------------------------------------------------------
     //  Protected, abstract methods
@@ -164,6 +183,7 @@ public abstract class CMNode
     private CMStateSet  fFollowPos  = null;
     private CMStateSet  fLastPos    = null;
     private int         fMaxStates  = -1;
+    private Object      fUserData   = null;
 };
 
 

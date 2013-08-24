@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutManager.java	1.25 03/12/19
+ * @(#)LayoutManager.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -9,10 +9,17 @@ package java.awt;
 /** 
  * Defines the interface for classes that know how to lay out 
  * <code>Container</code>s.
+ * <p>
+ * Swing's painting architecture assumes the children of a
+ * <code>JComponent</code> do not overlap.  If a
+ * <code>JComponent</code>'s <code>LayoutManager</code> allows
+ * children to overlap, the <code>JComponent</code> must override
+ * <code>isOptimizedDrawingEnabled</code> to return false.
  *
  * @see Container
+ * @see javax.swing.JComponent#isOptimizedDrawingEnabled
  *
- * @version	1.25, 12/19/03
+ * @version	1.27, 11/17/05
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  */

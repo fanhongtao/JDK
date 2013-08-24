@@ -1,7 +1,7 @@
 /*
- * @(#)URLConnection.java	1.102 04/05/18
+ * @(#)URLConnection.java	1.106 06/06/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,6 +19,7 @@ import java.util.List;
 import java.security.Permission;
 import java.security.AccessController;
 import sun.security.util.SecurityConstants;
+import sun.net.www.MessageHeader;
 
 /**
  * The abstract class <code>URLConnection</code> is the superclass
@@ -116,7 +117,7 @@ import sun.security.util.SecurityConstants;
  * and mutator methods {@link #getFileNameMap() getFileNameMap} and 
  * {@link #setFileNameMap(java.net.FileNameMap) setFileNameMap} are added
  * to access it.  This change is also described on the <a href=
- * "http://java.sun.com/products/jdk/1.2/compatibility.html#incompatibilities1.2">
+ * "http://java.sun.com/products/jdk/1.2/compatibility.html">
  * Compatibility</a> page.
  *
  * Invoking the <tt>close()</tt> methods on the <tt>InputStream</tt> or <tt>OutputStream</tt> of an 
@@ -125,7 +126,7 @@ import sun.security.util.SecurityConstants;
  * for it.
  *
  * @author  James Gosling
- * @version 1.102, 05/18/04
+ * @version 1.106, 06/28/06
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -267,6 +268,11 @@ public abstract class URLConnection {
      */
     private int connectTimeout;
     private int readTimeout;
+
+    /**
+     * @since 1.6
+     */
+    private MessageHeader requests;
 
    /**
     * @since   JDK1.1
@@ -701,6 +707,7 @@ public abstract class URLConnection {
      * @see        java.net.ContentHandlerFactory#createContentHandler(java.lang.String)
      * @see        java.net.URLConnection#getContent(java.lang.Class[])
      * @see        java.net.URLConnection#setContentHandlerFactory(java.net.ContentHandlerFactory)
+     * @since 1.3
      */
     public Object getContent(Class[] classes) throws IOException {
         // Must call getInputStream before GetHeaderField gets called
@@ -1016,6 +1023,11 @@ public abstract class URLConnection {
 	    throw new IllegalStateException("Already connected");
 	if (key == null) 
 	    throw new NullPointerException ("key is null");
+
+        if (requests == null)
+            requests = new MessageHeader();
+
+	requests.set(key, value);
     }
 
     /**
@@ -1036,6 +1048,11 @@ public abstract class URLConnection {
 	    throw new IllegalStateException("Already connected");
 	if (key == null) 
 	    throw new NullPointerException ("key is null");
+
+	if (requests == null)
+	    requests = new MessageHeader();
+
+	requests.add(key, value);
     }
 
 
@@ -1052,7 +1069,11 @@ public abstract class URLConnection {
     public String getRequestProperty(String key) {
 	if (connected)
 	    throw new IllegalStateException("Already connected");
-	return null;
+
+	if (requests == null)
+	    return null;
+
+	return requests.findValue(key);
     }
 
     /**
@@ -1070,7 +1091,11 @@ public abstract class URLConnection {
     public Map<String,List<String>> getRequestProperties() {
         if (connected)
             throw new IllegalStateException("Already connected");
-	return Collections.EMPTY_MAP;
+
+	if (requests == null)
+	    return Collections.EMPTY_MAP;
+
+	return requests.getHeaders(null);
     }
 
     /**

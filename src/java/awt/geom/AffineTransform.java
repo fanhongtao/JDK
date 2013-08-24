@@ -1,7 +1,7 @@
 /*
- * @(#)AffineTransform.java	1.71 03/12/19
+ * @(#)AffineTransform.java	1.77 06/03/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,8 +18,8 @@ import java.awt.Shape;
  * <p>
  * Such a coordinate transformation can be represented by a 3 row by
  * 3 column matrix with an implied last row of [ 0 0 1 ].  This matrix 
- * transforms source coordinates <code>(x,&nbsp;y)</code> into
- * destination coordinates <code>(x',&nbsp;y')</code> by considering
+ * transforms source coordinates {@code (x,y)} into
+ * destination coordinates {@code (x',y')} by considering
  * them to be a column vector and multiplying the coordinate vector
  * by the matrix according to the following process:
  * <pre>
@@ -27,11 +27,75 @@ import java.awt.Shape;
  *	[ y'] = [  m10  m11  m12  ] [ y ] = [ m10x + m11y + m12 ]
  *	[ 1 ]   [   0    0    1   ] [ 1 ]   [         1         ]
  * </pre>
+ * <p>
+ * <a name="quadrantapproximation"><h4>Handling 90-Degree Rotations</h4></a>
+ * <p>
+ * In some variations of the <code>rotate</code> methods in the
+ * <code>AffineTransform</code> class, a double-precision argument
+ * specifies the angle of rotation in radians.
+ * These methods have special handling for rotations of approximately
+ * 90 degrees (including multiples such as 180, 270, and 360 degrees),
+ * so that the common case of quadrant rotation is handled more
+ * efficiently.
+ * This special handling can cause angles very close to multiples of
+ * 90 degrees to be treated as if they were exact multiples of
+ * 90 degrees.
+ * For small multiples of 90 degrees the range of angles treated
+ * as a quadrant rotation is approximately 0.00000121 degrees wide.
+ * This section explains why such special care is needed and how
+ * it is implemented.
+ * <p>
+ * Since 90 degrees is represented as <code>PI/2</code> in radians,
+ * and since PI is a transcendental (and therefore irrational) number,
+ * it is not possible to exactly represent a multiple of 90 degrees as
+ * an exact double precision value measured in radians.
+ * As a result it is theoretically impossible to describe quadrant
+ * rotations (90, 180, 270 or 360 degrees) using these values.
+ * Double precision floating point values can get very close to
+ * non-zero multiples of <code>PI/2</code> but never close enough
+ * for the sine or cosine to be exactly 0.0, 1.0 or -1.0.
+ * The implementations of <code>Math.sin()</code> and
+ * <code>Math.cos()</code> correspondingly never return 0.0
+ * for any case other than <code>Math.sin(0.0)</code>.
+ * These same implementations do, however, return exactly 1.0 and
+ * -1.0 for some range of numbers around each multiple of 90
+ * degrees since the correct answer is so close to 1.0 or -1.0 that
+ * the double precision significand cannot represent the difference
+ * as accurately as it can for numbers that are near 0.0.
+ * <p>
+ * The net result of these issues is that if the
+ * <code>Math.sin()</code> and <code>Math.cos()</code> methods
+ * are used to directly generate the values for the matrix modifications
+ * during these radian-based rotation operations then the resulting
+ * transform is never strictly classifiable as a quadrant rotation
+ * even for a simple case like <code>rotate(Math.PI/2.0)</code>,
+ * due to minor variations in the matrix caused by the non-0.0 values
+ * obtained for the sine and cosine.
+ * If these transforms are not classified as quadrant rotations then
+ * subsequent code which attempts to optimize further operations based
+ * upon the type of the transform will be relegated to its most general
+ * implementation.
+ * <p>
+ * Because quadrant rotations are fairly common,
+ * this class should handle these cases reasonably quickly, both in
+ * applying the rotations to the transform and in applying the resulting
+ * transform to the coordinates.
+ * To facilitate this optimal handling, the methods which take an angle
+ * of rotation measured in radians attempt to detect angles that are
+ * intended to be quadrant rotations and treat them as such.
+ * These methods therefore treat an angle <em>theta</em> as a quadrant
+ * rotation if either <code>Math.sin(<em>theta</em>)</code> or
+ * <code>Math.cos(<em>theta</em>)</code> returns exactly 1.0 or -1.0.
+ * As a rule of thumb, this property holds true for a range of
+ * approximately 0.0000000211 radians (or 0.00000121 degrees) around
+ * small multiples of <code>Math.PI/2.0</code>.
  *
- * @version 1.71, 12/19/03
+ * @version 1.77, 03/09/06
  * @author Jim Graham
+ * @since 1.2
  */
 public class AffineTransform implements Cloneable, java.io.Serializable {
+
     /*
      * This constant is only useful for the cached type field.
      * It indicates that the type has been decached and must be recalculated.
@@ -55,6 +119,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_IDENTITY = 0;
 
@@ -72,6 +137,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_TRANSLATION = 1;
 
@@ -91,6 +157,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_UNIFORM_SCALE = 2;
 
@@ -110,6 +177,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_GENERAL_SCALE = 4;
 
@@ -117,6 +185,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * This constant is a bit mask for any of the scale flag bits.
      * @see #TYPE_UNIFORM_SCALE
      * @see #TYPE_GENERAL_SCALE
+     * @since 1.2
      */
     public static final int TYPE_MASK_SCALE = (TYPE_UNIFORM_SCALE |
 					       TYPE_GENERAL_SCALE);
@@ -144,6 +213,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_FLIP = 64;
     /* NOTE: TYPE_FLIP was added after GENERAL_TRANSFORM was in public
@@ -168,6 +238,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_QUADRANT_ROTATION = 8;
 
@@ -188,6 +259,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_QUADRANT_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_GENERAL_ROTATION = 16;
 
@@ -195,6 +267,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * This constant is a bit mask for any of the rotation flag bits.
      * @see #TYPE_QUADRANT_ROTATION
      * @see #TYPE_GENERAL_ROTATION
+     * @since 1.2
      */
     public static final int TYPE_MASK_ROTATION = (TYPE_QUADRANT_ROTATION |
 						  TYPE_GENERAL_ROTATION);
@@ -214,6 +287,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_QUADRANT_ROTATION
      * @see #TYPE_GENERAL_ROTATION
      * @see #getType
+     * @since 1.2
      */
     public static final int TYPE_GENERAL_TRANSFORM = 32;
 
@@ -378,6 +452,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
     /**
      * Constructs a new <code>AffineTransform</code> representing the
      * Identity transformation.
+     * @since 1.2
      */
     public AffineTransform() {
 	m00 = m11 = 1.0;
@@ -390,6 +465,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * Constructs a new <code>AffineTransform</code> that is a copy of
      * the specified <code>AffineTransform</code> object.
      * @param Tx the <code>AffineTransform</code> object to copy 
+     * @since 1.2
      */
     public AffineTransform(AffineTransform Tx) {
 	this.m00 = Tx.m00;
@@ -406,8 +482,14 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * Constructs a new <code>AffineTransform</code> from 6 floating point
      * values representing the 6 specifiable entries of the 3x3
      * transformation matrix.
-     * @param m00,&nbsp;m01,&nbsp;m02,&nbsp;m10,&nbsp;m11,&nbsp;m12 the 
-     * 6 floating point values that compose the 3x3 transformation matrix
+     *
+     * @param m00 the X coordinate scaling element of the 3x3 matrix
+     * @param m10 the Y coordinate shearing element of the 3x3 matrix
+     * @param m01 the X coordinate shearing element of the 3x3 matrix
+     * @param m11 the Y coordinate scaling element of the 3x3 matrix
+     * @param m02 the X coordinate translation element of the 3x3 matrix
+     * @param m12 the Y coordinate translation element of the 3x3 matrix
+     * @since 1.2
      */
     public AffineTransform(float m00, float m10,
 			   float m01, float m11,
@@ -432,6 +514,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * array is assumed to be at least 4. If the length of the array is 
      * less than 6, only the first 4 values are taken. If the length of
      * the array is greater than 6, the first 6 values are taken.
+     * @since 1.2
      */
     public AffineTransform(float[] flatmatrix) {
 	m00 = flatmatrix[0];
@@ -449,8 +532,14 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * Constructs a new <code>AffineTransform</code> from 6 double
      * precision values representing the 6 specifiable entries of the 3x3
      * transformation matrix.
-     * @param m00,&nbsp;m01,&nbsp;m02,&nbsp;m10,&nbsp;m11,&nbsp;m12 the 
-     * 6 floating point values that compose the 3x3 transformation matrix
+     *
+     * @param m00 the X coordinate scaling element of the 3x3 matrix
+     * @param m10 the Y coordinate shearing element of the 3x3 matrix
+     * @param m01 the X coordinate shearing element of the 3x3 matrix
+     * @param m11 the Y coordinate scaling element of the 3x3 matrix
+     * @param m02 the X coordinate translation element of the 3x3 matrix
+     * @param m12 the Y coordinate translation element of the 3x3 matrix
+     * @since 1.2
      */
     public AffineTransform(double m00, double m10,
 			   double m01, double m11,
@@ -475,6 +564,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * array is assumed to be at least 4. If the length of the array is 
      * less than 6, only the first 4 values are taken. If the length of
      * the array is greater than 6, the first 6 values are taken.
+     * @since 1.2
      */
     public AffineTransform(double[] flatmatrix) {
 	m00 = flatmatrix[0];
@@ -502,6 +592,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * Y axis direction
      * @return an <code>AffineTransform</code> object that represents a
      * 	translation transformation, created with the specified vector.
+     * @since 1.2
      */
     public static AffineTransform getTranslateInstance(double tx, double ty) {
 	AffineTransform Tx = new AffineTransform();
@@ -517,11 +608,15 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      *		[   sin(theta)     cos(theta)    0   ]
      *		[       0              0         1   ]
      * </pre>
-     * Rotating with a positive angle theta rotates points on the positive
-     * x axis toward the positive y axis.
-     * @param theta the angle of rotation in radians
+     * Rotating by a positive angle theta rotates points on the positive
+     * X axis toward the positive Y axis.
+     * Note also the discussion of
+     * <a href="#quadrantapproximation">Handling 90-Degree Rotations</a>
+     * above.
+     * @param theta the angle of rotation measured in radians
      * @return an <code>AffineTransform</code> object that is a rotation
      *	transformation, created with the specified angle of rotation.
+     * @since 1.2
      */
     public static AffineTransform getRotateInstance(double theta) {
 	AffineTransform Tx = new AffineTransform();
@@ -539,10 +634,10 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * <p>
      * This operation is equivalent to the following sequence of calls:
      * <pre>
-     *	    AffineTransform Tx = new AffineTransform();
-     *	    Tx.setToTranslation(x, y);	// S3: final translation
-     *	    Tx.rotate(theta);		// S2: rotate around anchor
-     *	    Tx.translate(-x, -y);	// S1: translate anchor to origin
+     *     AffineTransform Tx = new AffineTransform();
+     *     Tx.translate(anchorx, anchory);    // S3: final translation
+     *     Tx.rotate(theta);		      // S2: rotate around anchor
+     *     Tx.translate(-anchorx, -anchory);  // S1: translate anchor to origin
      * </pre>
      * The matrix representing the returned transform is:
      * <pre>
@@ -550,19 +645,135 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      *		[   sin(theta)     cos(theta)    y-x*sin-y*cos  ]
      *		[       0              0               1        ]
      * </pre>
-     * Rotating with a positive angle theta rotates points on the positive
-     * x axis toward the positive y axis.
-     * @param theta the angle of rotation in radians
-     * @param x,&nbsp;y the coordinates of the anchor point of the
-     * rotation
+     * Rotating by a positive angle theta rotates points on the positive
+     * X axis toward the positive Y axis.
+     * Note also the discussion of
+     * <a href="#quadrantapproximation">Handling 90-Degree Rotations</a>
+     * above.
+     *
+     * @param theta the angle of rotation measured in radians
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
      * @return an <code>AffineTransform</code> object that rotates 
      *	coordinates around the specified point by the specified angle of
      *	rotation.
+     * @since 1.2
      */
     public static AffineTransform getRotateInstance(double theta,
-						    double x, double y) {
+						    double anchorx,
+						    double anchory)
+    {
 	AffineTransform Tx = new AffineTransform();
-	Tx.setToRotation(theta, x, y);
+	Tx.setToRotation(theta, anchorx, anchory);
+	return Tx;
+    }
+
+    /**
+     * Returns a transform that rotates coordinates according to
+     * a rotation vector.
+     * All coordinates rotate about the origin by the same amount.
+     * The amount of rotation is such that coordinates along the former
+     * positive X axis will subsequently align with the vector pointing
+     * from the origin to the specified vector coordinates.
+     * If both <code>vecx</code> and <code>vecy</code> are 0.0,
+     * an identity transform is returned.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     AffineTransform.getRotateInstance(Math.atan2(vecy, vecx));
+     * </pre>
+     *
+     * @param vecx the X coordinate of the rotation vector
+     * @param vecy the Y coordinate of the rotation vector
+     * @return an <code>AffineTransform</code> object that rotates
+     *  coordinates according to the specified rotation vector.
+     * @since 1.6
+     */
+    public static AffineTransform getRotateInstance(double vecx, double vecy) {
+	AffineTransform Tx = new AffineTransform();
+	Tx.setToRotation(vecx, vecy);
+	return Tx;
+    }
+
+    /**
+     * Returns a transform that rotates coordinates around an anchor
+     * point accordinate to a rotation vector.
+     * All coordinates rotate about the specified anchor coordinates
+     * by the same amount.
+     * The amount of rotation is such that coordinates along the former
+     * positive X axis will subsequently align with the vector pointing
+     * from the origin to the specified vector coordinates.
+     * If both <code>vecx</code> and <code>vecy</code> are 0.0,
+     * an identity transform is returned.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     AffineTransform.getRotateInstance(Math.atan2(vecy, vecx),
+     *                                       anchorx, anchory);
+     * </pre>
+     *
+     * @param vecx the X coordinate of the rotation vector
+     * @param vecy the Y coordinate of the rotation vector
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @return an <code>AffineTransform</code> object that rotates 
+     *	coordinates around the specified point according to the
+     *  specified rotation vector.
+     * @since 1.6
+     */
+    public static AffineTransform getRotateInstance(double vecx,
+						    double vecy,
+						    double anchorx,
+						    double anchory)
+    {
+	AffineTransform Tx = new AffineTransform();
+	Tx.setToRotation(vecx, vecy, anchorx, anchory);
+	return Tx;
+    }
+
+    /**
+     * Returns a transform that rotates coordinates by the specified
+     * number of quadrants.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     AffineTransform.getRotateInstance(numquadrants * Math.PI / 2.0);
+     * </pre>
+     * Rotating by a positive number of quadrants rotates points on
+     * the positive X axis toward the positive Y axis.
+     * @param numquadrants the number of 90 degree arcs to rotate by
+     * @return an <code>AffineTransform</code> object that rotates
+     *  coordinates by the specified number of quadrants.
+     * @since 1.6
+     */
+    public static AffineTransform getQuadrantRotateInstance(int numquadrants) {
+	AffineTransform Tx = new AffineTransform();
+	Tx.setToQuadrantRotation(numquadrants);
+	return Tx;
+    }
+
+    /**
+     * Returns a transform that rotates coordinates by the specified
+     * number of quadrants around the specified anchor point.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     AffineTransform.getRotateInstance(numquadrants * Math.PI / 2.0,
+     *                                       anchorx, anchory);
+     * </pre>
+     * Rotating by a positive number of quadrants rotates points on
+     * the positive X axis toward the positive Y axis.
+     *
+     * @param numquadrants the number of 90 degree arcs to rotate by
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @return an <code>AffineTransform</code> object that rotates 
+     *	coordinates by the specified number of quadrants around the
+     *  specified anchor point.
+     * @since 1.6
+     */
+    public static AffineTransform getQuadrantRotateInstance(int numquadrants,
+							    double anchorx,
+							    double anchory)
+    {
+	AffineTransform Tx = new AffineTransform();
+	Tx.setToQuadrantRotation(numquadrants, anchorx, anchory);
 	return Tx;
     }
 
@@ -580,6 +791,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * Y axis direction
      * @return an <code>AffineTransform</code> object that scales 
      *	coordinates by the specified factors.
+     * @since 1.2
      */
     public static AffineTransform getScaleInstance(double sx, double sy) {
 	AffineTransform Tx = new AffineTransform();
@@ -601,6 +813,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * direction of the positive Y axis as a factor of their X coordinate
      * @return an <code>AffineTransform</code> object that shears 
      *	coordinates by the specified multipliers.
+     * @since 1.2
      */
     public static AffineTransform getShearInstance(double shx, double shy) {
 	AffineTransform Tx = new AffineTransform();
@@ -630,6 +843,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_QUADRANT_ROTATION
      * @see #TYPE_GENERAL_ROTATION
      * @see #TYPE_GENERAL_TRANSFORM
+     * @since 1.2
      */
     public int getType() {
 	if (type == TYPE_UNKNOWN) {
@@ -803,6 +1017,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #createInverse
      * @see #inverseTransform
      * @see #TYPE_UNIFORM_SCALE
+     * @since 1.2
      */
     public double getDeterminant() {
 	switch (state) {
@@ -911,6 +1126,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #getShearY
      * @see #getTranslateX
      * @see #getTranslateY
+     * @since 1.2
      */
     public void getMatrix(double[] flatmatrix) {
 	flatmatrix[0] = m00;
@@ -929,6 +1145,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @return a double value that is the X coordinate of the scaling
      *  element of the affine transformation matrix.
      * @see #getMatrix
+     * @since 1.2
      */
     public double getScaleX() {
 	return m00;
@@ -940,6 +1157,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @return a double value that is the Y coordinate of the scaling
      *  element of the affine transformation matrix.
      * @see #getMatrix
+     * @since 1.2
      */
     public double getScaleY() {
 	return m11;
@@ -951,6 +1169,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @return a double value that is the X coordinate of the shearing
      *  element of the affine transformation matrix.
      * @see #getMatrix
+     * @since 1.2
      */
     public double getShearX() {
 	return m01;
@@ -962,6 +1181,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @return a double value that is the Y coordinate of the shearing
      *  element of the affine transformation matrix.
      * @see #getMatrix
+     * @since 1.2
      */
     public double getShearY() {
 	return m10;
@@ -973,6 +1193,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @return a double value that is the X coordinate of the translation
      *  element of the affine transformation matrix.
      * @see #getMatrix
+     * @since 1.2
      */
     public double getTranslateX() {
 	return m02;
@@ -984,6 +1205,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @return a double value that is the Y coordinate of the translation
      *  element of the affine transformation matrix. 
      * @see #getMatrix
+     * @since 1.2
      */
     public double getTranslateY() {
 	return m12;
@@ -1002,6 +1224,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * X axis direction
      * @param ty the distance by which coordinates are translated in the
      * Y axis direction
+     * @since 1.2
      */
     public void translate(double tx, double ty) {
 	switch (state) {
@@ -1081,6 +1304,72 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	}
     }
 
+    // Utility methods to optimize rotate methods.
+    // These tables translate the flags during predictable quadrant
+    // rotations where the shear and scale values are swapped and negated.
+    private static final int rot90conversion[] = {
+	/* IDENTITY => */        APPLY_SHEAR,
+	/* TRANSLATE (TR) => */  APPLY_SHEAR | APPLY_TRANSLATE,
+	/* SCALE (SC) => */      APPLY_SHEAR,
+	/* SC | TR => */         APPLY_SHEAR | APPLY_TRANSLATE,
+	/* SHEAR (SH) => */      APPLY_SCALE,
+	/* SH | TR => */         APPLY_SCALE | APPLY_TRANSLATE,
+	/* SH | SC => */         APPLY_SHEAR | APPLY_SCALE,
+	/* SH | SC | TR => */    APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE,
+    };
+    private final void rotate90() {
+	double M0 = m00;
+	m00 = m01;
+	m01 = -M0;
+	M0 = m10;
+	m10 = m11;
+	m11 = -M0;
+	int state = rot90conversion[this.state];
+	if ((state & (APPLY_SHEAR | APPLY_SCALE)) == APPLY_SCALE &&
+	    m00 == 1.0 && m11 == 1.0)
+	{
+	    state -= APPLY_SCALE;
+	}
+	this.state = state;
+	type = TYPE_UNKNOWN;
+    }
+    private final void rotate180() {
+	m00 = -m00;
+	m11 = -m11;
+	int state = this.state;
+	if ((state & (APPLY_SHEAR)) != 0) {
+	    // If there was a shear, then this rotation has no
+	    // effect on the state.
+	    m01 = -m01;
+	    m10 = -m10;
+	} else {
+	    // No shear means the SCALE state may toggle when
+	    // m00 and m11 are negated.
+	    if (m00 == 1.0 && m11 == 1.0) {
+		this.state = state & ~APPLY_SCALE;
+	    } else {
+		this.state = state | APPLY_SCALE;
+	    }
+	}
+	type = TYPE_UNKNOWN;
+    }
+    private final void rotate270() {
+	double M0 = m00;
+	m00 = -m01;
+	m01 = M0;
+	M0 = m10;
+	m10 = -m11;
+	m11 = M0;
+	int state = rot90conversion[this.state];
+	if ((state & (APPLY_SHEAR | APPLY_SCALE)) == APPLY_SCALE &&
+	    m00 == 1.0 && m11 == 1.0)
+	{
+	    state -= APPLY_SCALE;
+	}
+	this.state = state;
+	type = TYPE_UNKNOWN;
+    }
+
     /**
      * Concatenates this transform with a rotation transformation.
      * This is equivalent to calling concatenate(R), where R is an
@@ -1090,80 +1379,38 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      *		[   sin(theta)     cos(theta)    0   ]
      *		[       0              0         1   ]
      * </pre>
-     * Rotating with a positive angle theta rotates points on the positive
-     * x axis toward the positive y axis.
-     * @param theta the angle of rotation in radians
+     * Rotating by a positive angle theta rotates points on the positive
+     * X axis toward the positive Y axis.
+     * Note also the discussion of
+     * <a href="#quadrantapproximation">Handling 90-Degree Rotations</a>
+     * above.
+     * @param theta the angle of rotation measured in radians
+     * @since 1.2
      */
     public void rotate(double theta) {
 	double sin = Math.sin(theta);
-	double cos = Math.cos(theta);
-	if (Math.abs(sin) < 1E-15) {
-	    if (cos < 0.0) {
-		m00 = -m00;
-		m11 = -m11;
-		int state = this.state;
-		if ((state & (APPLY_SHEAR)) != 0) {
-		    // If there was a shear, then this rotation has no
-		    // effect on the state.
-		    m01 = -m01;
-		    m10 = -m10;
-		} else {
-		    // No shear means the SCALE state may toggle when
-		    // m00 and m11 are negated.
-		    if (m00 == 1.0 && m11 == 1.0) {
-			this.state = state & ~APPLY_SCALE;
-		    } else {
-			this.state = state | APPLY_SCALE;
-		    }
-		}
-		type = TYPE_UNKNOWN;
-	    }
-	    return;
-	}
-	if (Math.abs(cos) < 1E-15) {
-	    if (sin < 0.0) {
-		double M0 = m00;
-		m00 = -m01;
-		m01 = M0;
+	if (sin == 1.0) {
+	    rotate90();
+	} else if (sin == -1.0) {
+	    rotate270();
+	} else {
+	    double cos = Math.cos(theta);
+	    if (cos == -1.0) {
+		rotate180();
+	    } else if (cos != 1.0) {
+		double M0, M1;
+		M0 = m00;
+		M1 = m01;
+		m00 =  cos * M0 + sin * M1;
+		m01 = -sin * M0 + cos * M1;
 		M0 = m10;
-		m10 = -m11;
-		m11 = M0;
-	    } else {
-		double M0 = m00;
-		m00 = m01;
-		m01 = -M0;
-		M0 = m10;
-		m10 = m11;
-		m11 = -M0;
+		M1 = m11;
+		m10 =  cos * M0 + sin * M1;
+		m11 = -sin * M0 + cos * M1;
+		updateState();
 	    }
-	    int state = rot90conversion[this.state];
-	    if ((state & (APPLY_SHEAR | APPLY_SCALE)) == APPLY_SCALE &&
-		m00 == 1.0 && m11 == 1.0)
-	    {
-		state -= APPLY_SCALE;
-	    }
-	    this.state = state;
-	    type = TYPE_UNKNOWN;
-	    return;
 	}
-	double M0, M1;
-	M0 = m00;
-	M1 = m01;
-	m00 =  cos * M0 + sin * M1;
-	m01 = -sin * M0 + cos * M1;
-	M0 = m10;
-	M1 = m11;
-	m10 =  cos * M0 + sin * M1;
-	m11 = -sin * M0 + cos * M1;
-	updateState();
     }
-    private static int rot90conversion[] = {
-	APPLY_SHEAR, APPLY_SHEAR | APPLY_TRANSLATE,
-	APPLY_SHEAR, APPLY_SHEAR | APPLY_TRANSLATE,
-	APPLY_SCALE, APPLY_SCALE | APPLY_TRANSLATE,
-	APPLY_SHEAR | APPLY_SCALE,
-	APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE,
-    };
 
     /**
      * Concatenates this transform with a transform that rotates
@@ -1176,21 +1423,178 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * <p>
      * This operation is equivalent to the following sequence of calls:
      * <pre>
-     *		translate(x, y);	// S3: final translation
-     *		rotate(theta);		// S2: rotate around anchor
-     *		translate(-x, -y);	// S1: translate anchor to origin
+     *     translate(anchorx, anchory);      // S3: final translation
+     *     rotate(theta);                    // S2: rotate around anchor
+     *     translate(-anchorx, -anchory);    // S1: translate anchor to origin
      * </pre>
-     * Rotating with a positive angle theta rotates points on the positive
-     * x axis toward the positive y axis.
-     * @param theta the angle of rotation in radians
-     * @param x,&nbsp;y the coordinates of the anchor point of the
-     * rotation
+     * Rotating by a positive angle theta rotates points on the positive
+     * X axis toward the positive Y axis.
+     * Note also the discussion of
+     * <a href="#quadrantapproximation">Handling 90-Degree Rotations</a>
+     * above.
+     *
+     * @param theta the angle of rotation measured in radians
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @since 1.2
      */
-    public void rotate(double theta, double x, double y) {
+    public void rotate(double theta, double anchorx, double anchory) {
 	// REMIND: Simple for now - optimize later
-	translate(x, y);
+	translate(anchorx, anchory);
 	rotate(theta);
-	translate(-x, -y);
+	translate(-anchorx, -anchory);
+    }
+
+    /**
+     * Concatenates this transform with a transform that rotates
+     * coordinates according to a rotation vector.
+     * All coordinates rotate about the origin by the same amount.
+     * The amount of rotation is such that coordinates along the former
+     * positive X axis will subsequently align with the vector pointing
+     * from the origin to the specified vector coordinates.
+     * If both <code>vecx</code> and <code>vecy</code> are 0.0,
+     * no additional rotation is added to this transform.
+     * This operation is equivalent to calling:
+     * <pre>
+     *          rotate(Math.atan2(vecy, vecx));
+     * </pre>
+     *
+     * @param vecx the X coordinate of the rotation vector
+     * @param vecy the Y coordinate of the rotation vector
+     * @since 1.6
+     */
+    public void rotate(double vecx, double vecy) {
+	if (vecy == 0.0) {
+	    if (vecx < 0.0) {
+		rotate180();
+	    }
+	    // If vecx > 0.0 - no rotation
+	    // If vecx == 0.0 - undefined rotation - treat as no rotation
+	} else if (vecx == 0.0) {
+	    if (vecy > 0.0) {
+		rotate90();
+	    } else {  // vecy must be < 0.0
+		rotate270();
+	    }
+	} else {
+	    double len = Math.sqrt(vecx * vecx + vecy * vecy);
+	    double sin = vecy / len;
+	    double cos = vecx / len;
+	    double M0, M1;
+	    M0 = m00;
+	    M1 = m01;
+	    m00 =  cos * M0 + sin * M1;
+	    m01 = -sin * M0 + cos * M1;
+	    M0 = m10;
+	    M1 = m11;
+	    m10 =  cos * M0 + sin * M1;
+	    m11 = -sin * M0 + cos * M1;
+	    updateState();
+	}
+    }
+
+    /**
+     * Concatenates this transform with a transform that rotates
+     * coordinates around an anchor point according to a rotation
+     * vector.
+     * All coordinates rotate about the specified anchor coordinates
+     * by the same amount.
+     * The amount of rotation is such that coordinates along the former
+     * positive X axis will subsequently align with the vector pointing
+     * from the origin to the specified vector coordinates.
+     * If both <code>vecx</code> and <code>vecy</code> are 0.0,
+     * the transform is not modified in any way.
+     * This method is equivalent to calling:
+     * <pre>
+     *     rotate(Math.atan2(vecy, vecx), anchorx, anchory);
+     * </pre>
+     *
+     * @param vecx the X coordinate of the rotation vector
+     * @param vecy the Y coordinate of the rotation vector
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @since 1.6
+     */
+    public void rotate(double vecx, double vecy,
+		       double anchorx, double anchory)
+    {
+	// REMIND: Simple for now - optimize later
+	translate(anchorx, anchory);
+	rotate(vecx, vecy);
+	translate(-anchorx, -anchory);
+    }
+
+    /**
+     * Concatenates this transform with a transform that rotates
+     * coordinates by the specified number of quadrants.
+     * This is equivalent to calling:
+     * <pre>
+     *     rotate(numquadrants * Math.PI / 2.0);
+     * </pre>
+     * Rotating by a positive number of quadrants rotates points on
+     * the positive X axis toward the positive Y axis.
+     * @param numquadrants the number of 90 degree arcs to rotate by
+     * @since 1.6
+     */
+    public void quadrantRotate(int numquadrants) {
+	switch (numquadrants & 3) {
+	case 0:
+	    break;
+	case 1:
+	    rotate90();
+	    break;
+	case 2:
+	    rotate180();
+	    break;
+	case 3:
+	    rotate270();
+	    break;
+	}
+    }
+
+    /**
+     * Concatenates this transform with a transform that rotates
+     * coordinates by the specified number of quadrants around
+     * the specified anchor point.
+     * This method is equivalent to calling:
+     * <pre>
+     *     rotate(numquadrants * Math.PI / 2.0, anchorx, anchory);
+     * </pre>
+     * Rotating by a positive number of quadrants rotates points on
+     * the positive X axis toward the positive Y axis.
+     *
+     * @param numquadrants the number of 90 degree arcs to rotate by
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @since 1.6
+     */
+    public void quadrantRotate(int numquadrants,
+			       double anchorx, double anchory)
+    {
+	switch (numquadrants & 3) {
+	case 0:
+	    return;
+	case 1:
+	    m02 += anchorx * (m00 - m01) + anchory * (m01 + m00);
+	    m12 += anchorx * (m10 - m11) + anchory * (m11 + m10);
+	    rotate90();
+	    break;
+	case 2:
+	    m02 += anchorx * (m00 + m00) + anchory * (m01 + m01);
+	    m12 += anchorx * (m10 + m10) + anchory * (m11 + m11);
+	    rotate180();
+	    break;
+	case 3:
+	    m02 += anchorx * (m00 + m01) + anchory * (m01 - m00);
+	    m12 += anchorx * (m10 + m11) + anchory * (m11 - m10);
+	    rotate270();
+	    break;
+	}
+	if (m02 == 0.0 && m12 == 0.0) {
+	    state &= ~APPLY_TRANSLATE;
+	} else {
+	    state |= APPLY_TRANSLATE;
+	}
     }
 
     /**
@@ -1206,7 +1610,8 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * X axis direction
      * @param sy the factor by which coordinates are scaled along the
      * Y axis direction 
-    */
+     * @since 1.2
+     */
     public void scale(double sx, double sy) {
 	int state = this.state;
 	switch (state) {
@@ -1223,10 +1628,17 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m01 *= sy;
 	    m10 *= sx;
 	    if (m01 == 0 && m10 == 0) {
-		this.state = state - APPLY_SHEAR;
-		// REMIND: Is it possible for m00 and m11 to be both 1.0?
+		state &= APPLY_TRANSLATE;
+		if (m00 == 1.0 && m11 == 1.0) {
+		    this.type = (state == APPLY_IDENTITY
+				 ? TYPE_IDENTITY
+				 : TYPE_TRANSLATION);
+		} else {
+		    state |= APPLY_SCALE;
+		    this.type = TYPE_UNKNOWN;
+		}
+		this.state = state;
 	    }
-	    this.type = TYPE_UNKNOWN;
 	    return;
 	case (APPLY_SCALE | APPLY_TRANSLATE):
 	case (APPLY_SCALE):
@@ -1266,6 +1678,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * direction of the positive X axis as a factor of their Y coordinate
      * @param shy the multiplier by which coordinates are shifted in the
      * direction of the positive Y axis as a factor of their X coordinate
+     * @since 1.2
      */
     public void shear(double shx, double shy) {
 	int state = this.state;
@@ -1319,6 +1732,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 
     /**
      * Resets this transform to the Identity transform.
+     * @since 1.2
      */
     public void setToIdentity() {
 	m00 = m11 = 1.0;
@@ -1339,6 +1753,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * X axis direction
      * @param ty the distance by which coordinates are translated in the
      * Y axis direction
+     * @since 1.2
      */
     public void setToTranslation(double tx, double ty) {
 	m00 = 1.0;
@@ -1364,48 +1779,42 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      *		[   sin(theta)     cos(theta)    0   ]
      *		[       0              0         1   ]
      * </pre>
-     * Rotating with a positive angle theta rotates points on the positive
-     * x axis toward the positive y axis.
-     * @param theta the angle of rotation in radians
+     * Rotating by a positive angle theta rotates points on the positive
+     * X axis toward the positive Y axis.
+     * Note also the discussion of
+     * <a href="#quadrantapproximation">Handling 90-Degree Rotations</a>
+     * above.
+     * @param theta the angle of rotation measured in radians
+     * @since 1.2
      */
     public void setToRotation(double theta) {
-	m02 = 0.0;
-	m12 = 0.0;
 	double sin = Math.sin(theta);
-	double cos = Math.cos(theta);
-	if (Math.abs(sin) < 1E-15) {
-	    m01 = m10 = 0.0;
-	    if (cos < 0) {
-		m00 = m11 = -1.0;
-		state = APPLY_SCALE;
-		type = TYPE_QUADRANT_ROTATION;
-	    } else {
-		m00 = m11 = 1.0;
-		state = APPLY_IDENTITY;
-		type = TYPE_IDENTITY;
-	    }
-	    return;
-	}
-	if (Math.abs(cos) < 1E-15) {
-	    m00 = m11 = 0.0;
-	    if (sin < 0.0) {
-		m01 = 1.0;
-		m10 = -1.0;
-	    } else {
-		m01 = -1.0;
-		m10 = 1.0;
-	    }
+	double cos;
+	if (sin == 1.0 || sin == -1.0) {
+	    cos = 0.0;
 	    state = APPLY_SHEAR;
 	    type = TYPE_QUADRANT_ROTATION;
-	    return;
+	} else {
+	    cos = Math.cos(theta);
+	    if (cos == -1.0) {
+		sin = 0.0;
+		state = APPLY_SCALE;
+		type = TYPE_QUADRANT_ROTATION;
+	    } else if (cos == 1.0) {
+		sin = 0.0;
+		state = APPLY_IDENTITY;
+		type = TYPE_IDENTITY;
+	    } else {
+		state = APPLY_SHEAR | APPLY_SCALE;
+		type = TYPE_GENERAL_ROTATION;
+	    }
 	}
-	m00 = cos;
+	m00 =  cos;
+	m10 =  sin;
 	m01 = -sin;
-	m10 = sin;
-	m11 = cos;
-	state = APPLY_SHEAR | APPLY_SCALE;
-	type = TYPE_GENERAL_ROTATION;
-	return;
+	m11 =  cos;
+	m02 =  0.0;
+	m12 =  0.0;
     }
 
     /**
@@ -1418,9 +1827,9 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * <p>
      * This operation is equivalent to the following sequence of calls:
      * <pre>
-     *	    setToTranslation(x, y);	// S3: final translation
-     *	    rotate(theta);		// S2: rotate around anchor
-     *	    translate(-x, -y);		// S1: translate anchor to origin
+     *     setToTranslation(anchorx, anchory); // S3: final translation
+     *     rotate(theta);                      // S2: rotate around anchor
+     *     translate(-anchorx, -anchory);      // S1: translate anchor to origin
      * </pre>
      * The matrix representing this transform becomes:
      * <pre>
@@ -1428,23 +1837,249 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      *		[   sin(theta)     cos(theta)    y-x*sin-y*cos  ]
      *		[       0              0               1        ]
      * </pre>
-     * Rotating with a positive angle theta rotates points on the positive
-     * x axis toward the positive y axis.
-     * @param theta the angle of rotation in radians
-     * @param x,&nbsp;y the coordinates of the anchor point of the
-     * rotation
+     * Rotating by a positive angle theta rotates points on the positive
+     * X axis toward the positive Y axis.
+     * Note also the discussion of
+     * <a href="#quadrantapproximation">Handling 90-Degree Rotations</a>
+     * above.
+     *
+     * @param theta the angle of rotation measured in radians
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @since 1.2
      */
-    public void setToRotation(double theta, double x, double y) {
+    public void setToRotation(double theta, double anchorx, double anchory) {
 	setToRotation(theta);
 	double sin = m10;
 	double oneMinusCos = 1.0 - m00;
-	m02 = x * oneMinusCos + y * sin;
-	m12 = y * oneMinusCos - x * sin;
+	m02 = anchorx * oneMinusCos + anchory * sin;
+	m12 = anchory * oneMinusCos - anchorx * sin;
 	if (m02 != 0.0 || m12 != 0.0) {
 	    state |= APPLY_TRANSLATE;
 	    type |= TYPE_TRANSLATION;
 	}
-	return;
+    }
+
+    /**
+     * Sets this transform to a rotation transformation that rotates
+     * coordinates according to a rotation vector.
+     * All coordinates rotate about the origin by the same amount.
+     * The amount of rotation is such that coordinates along the former
+     * positive X axis will subsequently align with the vector pointing
+     * from the origin to the specified vector coordinates.
+     * If both <code>vecx</code> and <code>vecy</code> are 0.0,
+     * the transform is set to an identity transform.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     setToRotation(Math.atan2(vecy, vecx));
+     * </pre>
+     *
+     * @param vecx the X coordinate of the rotation vector
+     * @param vecy the Y coordinate of the rotation vector
+     * @since 1.6
+     */
+    public void setToRotation(double vecx, double vecy) {
+	double sin, cos;
+	if (vecy == 0) {
+	    sin = 0.0;
+	    if (vecx < 0.0) {
+		cos = -1.0;
+		state = APPLY_SCALE;
+		type = TYPE_QUADRANT_ROTATION;
+	    } else {
+		cos = 1.0;
+		state = APPLY_IDENTITY;
+		type = TYPE_IDENTITY;
+	    }
+	} else if (vecx == 0) {
+	    cos = 0.0;
+	    sin = (vecy > 0.0) ? 1.0 : -1.0;
+	    state = APPLY_SHEAR;
+	    type = TYPE_QUADRANT_ROTATION;
+	} else {
+	    double len = Math.sqrt(vecx * vecx + vecy * vecy);
+	    cos = vecx / len;
+	    sin = vecy / len;
+	    state = APPLY_SHEAR | APPLY_SCALE;
+	    type = TYPE_GENERAL_ROTATION;
+	}
+	m00 =  cos;
+	m10 =  sin;
+	m01 = -sin;
+	m11 =  cos;
+	m02 =  0.0;
+	m12 =  0.0;
+    }
+
+    /**
+     * Sets this transform to a rotation transformation that rotates
+     * coordinates around an anchor point according to a rotation
+     * vector.
+     * All coordinates rotate about the specified anchor coordinates
+     * by the same amount.
+     * The amount of rotation is such that coordinates along the former
+     * positive X axis will subsequently align with the vector pointing
+     * from the origin to the specified vector coordinates.
+     * If both <code>vecx</code> and <code>vecy</code> are 0.0,
+     * the transform is set to an identity transform.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     setToTranslation(Math.atan2(vecy, vecx), anchorx, anchory);
+     * </pre>
+     *
+     * @param vecx the X coordinate of the rotation vector
+     * @param vecy the Y coordinate of the rotation vector
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @since 1.6
+     */
+    public void setToRotation(double vecx, double vecy,
+			      double anchorx, double anchory)
+    {
+	setToRotation(vecx, vecy);
+	double sin = m10;
+	double oneMinusCos = 1.0 - m00;
+	m02 = anchorx * oneMinusCos + anchory * sin;
+	m12 = anchory * oneMinusCos - anchorx * sin;
+	if (m02 != 0.0 || m12 != 0.0) {
+	    state |= APPLY_TRANSLATE;
+	    type |= TYPE_TRANSLATION;
+	}
+    }
+
+    /**
+     * Sets this transform to a rotation transformation that rotates
+     * coordinates by the specified number of quadrants.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     setToRotation(numquadrants * Math.PI / 2.0);
+     * </pre>
+     * Rotating by a positive number of quadrants rotates points on
+     * the positive X axis toward the positive Y axis.
+     * @param numquadrants the number of 90 degree arcs to rotate by
+     * @since 1.6
+     */
+    public void setToQuadrantRotation(int numquadrants) {
+	switch (numquadrants & 3) {
+	case 0:
+	    m00 =  1.0;
+	    m10 =  0.0;
+	    m01 =  0.0;
+	    m11 =  1.0;
+	    m02 =  0.0;
+	    m12 =  0.0;
+	    state = APPLY_IDENTITY;
+	    type = TYPE_IDENTITY;
+	    break;
+	case 1:
+	    m00 =  0.0;
+	    m10 =  1.0;
+	    m01 = -1.0;
+	    m11 =  0.0;
+	    m02 =  0.0;
+	    m12 =  0.0;
+	    state = APPLY_SHEAR;
+	    type = TYPE_QUADRANT_ROTATION;
+	    break;
+	case 2:
+	    m00 = -1.0;
+	    m10 =  0.0;
+	    m01 =  0.0;
+	    m11 = -1.0;
+	    m02 =  0.0;
+	    m12 =  0.0;
+	    state = APPLY_SCALE;
+	    type = TYPE_QUADRANT_ROTATION;
+	    break;
+	case 3:
+	    m00 =  0.0;
+	    m10 = -1.0;
+	    m01 =  1.0;
+	    m11 =  0.0;
+	    m02 =  0.0;
+	    m12 =  0.0;
+	    state = APPLY_SHEAR;
+	    type = TYPE_QUADRANT_ROTATION;
+	    break;
+	}
+    }
+
+    /**
+     * Sets this transform to a translated rotation transformation
+     * that rotates coordinates by the specified number of quadrants
+     * around the specified anchor point.
+     * This operation is equivalent to calling:
+     * <pre>
+     *     setToRotation(numquadrants * Math.PI / 2.0, anchorx, anchory);
+     * </pre>
+     * Rotating by a positive number of quadrants rotates points on
+     * the positive X axis toward the positive Y axis.
+     *
+     * @param numquadrants the number of 90 degree arcs to rotate by
+     * @param anchorx the X coordinate of the rotation anchor point
+     * @param anchory the Y coordinate of the rotation anchor point
+     * @since 1.6
+     */
+    public void setToQuadrantRotation(int numquadrants,
+				      double anchorx, double anchory)
+    {
+	switch (numquadrants & 3) {
+	case 0:
+	    m00 =  1.0;
+	    m10 =  0.0;
+	    m01 =  0.0;
+	    m11 =  1.0;
+	    m02 =  0.0;
+	    m12 =  0.0;
+	    state = APPLY_IDENTITY;
+	    type = TYPE_IDENTITY;
+	    break;
+	case 1:
+	    m00 =  0.0;
+	    m10 =  1.0;
+	    m01 = -1.0;
+	    m11 =  0.0;
+	    m02 =  anchorx + anchory;
+	    m12 =  anchory - anchorx;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_SHEAR;
+		type = TYPE_QUADRANT_ROTATION;
+	    } else {
+		state = APPLY_SHEAR | APPLY_TRANSLATE;
+		type = TYPE_QUADRANT_ROTATION | TYPE_TRANSLATION;
+	    }
+	    break;
+	case 2:
+	    m00 = -1.0;
+	    m10 =  0.0;
+	    m01 =  0.0;
+	    m11 = -1.0;
+	    m02 =  anchorx + anchorx;
+	    m12 =  anchory + anchory;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_SCALE;
+		type = TYPE_QUADRANT_ROTATION;
+	    } else {
+		state = APPLY_SCALE | APPLY_TRANSLATE;
+		type = TYPE_QUADRANT_ROTATION | TYPE_TRANSLATION;
+	    }
+	    break;
+	case 3:
+	    m00 =  0.0;
+	    m10 = -1.0;
+	    m01 =  1.0;
+	    m11 =  0.0;
+	    m02 =  anchorx - anchory;
+	    m12 =  anchory + anchorx;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_SHEAR;
+		type = TYPE_QUADRANT_ROTATION;
+	    } else {
+		state = APPLY_SHEAR | APPLY_TRANSLATE;
+		type = TYPE_QUADRANT_ROTATION | TYPE_TRANSLATION;
+	    }
+	    break;
+	}
     }
 
     /**
@@ -1459,6 +2094,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * X axis direction
      * @param sy the factor by which coordinates are scaled along the
      * Y axis direction
+     * @since 1.2
      */
     public void setToScale(double sx, double sy) {
 	m00 = sx;
@@ -1488,6 +2124,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * direction of the positive X axis as a factor of their Y coordinate
      * @param shy the multiplier by which coordinates are shifted in the
      * direction of the positive Y axis as a factor of their X coordinate
+     * @since 1.2
      */
     public void setToShear(double shx, double shy) {
 	m00 = 1.0;
@@ -1510,6 +2147,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * <code>AffineTransform</code> object.
      * @param Tx the <code>AffineTransform</code> object from which to
      * copy the transform
+     * @since 1.2
      */
     public void setTransform(AffineTransform Tx) {
 	this.m00 = Tx.m00;
@@ -1525,8 +2163,14 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
     /**
      * Sets this transform to the matrix specified by the 6
      * double precision values.
-     * @param m00,&nbsp;m01,&nbsp;m02,&nbsp;m10,&nbsp;m11,&nbsp;m12 the
-     * 6 floating point values that compose the 3x3 transformation matrix
+     *
+     * @param m00 the X coordinate scaling element of the 3x3 matrix
+     * @param m10 the Y coordinate shearing element of the 3x3 matrix
+     * @param m01 the X coordinate shearing element of the 3x3 matrix
+     * @param m11 the Y coordinate scaling element of the 3x3 matrix
+     * @param m02 the X coordinate translation element of the 3x3 matrix
+     * @param m12 the Y coordinate translation element of the 3x3 matrix
+     * @since 1.2
      */
     public void setTransform(double m00, double m10,
 			     double m01, double m11,
@@ -1559,6 +2203,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param Tx the <code>AffineTransform</code> object to be
      * concatenated with this <code>AffineTransform</code> object.
      * @see #preConcatenate
+     * @since 1.2
      */
     public void concatenate(AffineTransform Tx) {
         double M0, M1;
@@ -1766,6 +2411,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param Tx the <code>AffineTransform</code> object to be
      * concatenated with this <code>AffineTransform</code> object.
      * @see #concatenate
+     * @since 1.2
      */
     public void preConcatenate(AffineTransform Tx) {
 	double M0, M1;
@@ -1980,6 +2626,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #getDeterminant
      * @exception NoninvertibleTransformException
      * if the matrix cannot be inverted.
+     * @since 1.2
      */
     public AffineTransform createInverse()
 	throws NoninvertibleTransformException
@@ -2057,6 +2704,136 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
     }
 
     /**
+     * Sets this transform to the inverse of itself.
+     * The inverse transform Tx' of this transform Tx 
+     * maps coordinates transformed by Tx back
+     * to their original coordinates.
+     * In other words, Tx'(Tx(p)) = p = Tx(Tx'(p)).
+     * <p>
+     * If this transform maps all coordinates onto a point or a line
+     * then it will not have an inverse, since coordinates that do
+     * not lie on the destination point or line will not have an inverse
+     * mapping.
+     * The <code>getDeterminant</code> method can be used to determine if this
+     * transform has no inverse, in which case an exception will be
+     * thrown if the <code>invert</code> method is called.
+     * @see #getDeterminant
+     * @exception NoninvertibleTransformException
+     * if the matrix cannot be inverted.
+     * @since 1.6
+     */
+    public void invert()
+	throws NoninvertibleTransformException
+    {
+	double M00, M01, M02;
+	double M10, M11, M12;
+	double det;
+	switch (state) {
+	default:
+	    stateError();
+	    /* NOTREACHED */
+	case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
+	    M00 = m00; M01 = m01; M02 = m02;
+	    M10 = m10; M11 = m11; M12 = m12;
+	    det = M00 * M11 - M01 * M10;
+	    if (Math.abs(det) <= Double.MIN_VALUE) {
+		throw new NoninvertibleTransformException("Determinant is "+
+							  det);
+	    }
+	    m00 =  M11 / det;
+	    m10 = -M10 / det;
+	    m01 = -M01 / det;
+	    m11 =  M00 / det;
+	    m02 = (M01 * M12 - M11 * M02) / det;
+	    m12 = (M10 * M02 - M00 * M12) / det;
+	    break;
+	case (APPLY_SHEAR | APPLY_SCALE):
+	    M00 = m00; M01 = m01;
+	    M10 = m10; M11 = m11;
+	    det = M00 * M11 - M01 * M10;
+	    if (Math.abs(det) <= Double.MIN_VALUE) {
+		throw new NoninvertibleTransformException("Determinant is "+
+							  det);
+	    }
+	    m00 =  M11 / det;
+	    m10 = -M10 / det;
+	    m01 = -M01 / det;
+	    m11 =  M00 / det;
+	    // m02 = 0.0;
+	    // m12 = 0.0;
+	    break;
+	case (APPLY_SHEAR | APPLY_TRANSLATE):
+	    M01 = m01; M02 = m02;
+	    M10 = m10; M12 = m12;
+	    if (M01 == 0.0 || M10 == 0.0) {
+		throw new NoninvertibleTransformException("Determinant is 0");
+	    }
+	    // m00 = 0.0;
+	    m10 = 1.0 / M01;
+	    m01 = 1.0 / M10;
+	    // m11 = 0.0;
+	    m02 = -M12 / M10;
+	    m12 = -M02 / M01;
+	    break;
+	case (APPLY_SHEAR):
+	    M01 = m01;
+	    M10 = m10;
+	    if (M01 == 0.0 || M10 == 0.0) {
+		throw new NoninvertibleTransformException("Determinant is 0");
+	    }
+	    // m00 = 0.0;
+	    m10 = 1.0 / M01;
+	    m01 = 1.0 / M10;
+	    // m11 = 0.0;
+	    // m02 = 0.0;
+	    // m12 = 0.0;
+	    break;
+	case (APPLY_SCALE | APPLY_TRANSLATE):
+	    M00 = m00; M02 = m02;
+	    M11 = m11; M12 = m12;
+	    if (M00 == 0.0 || M11 == 0.0) {
+		throw new NoninvertibleTransformException("Determinant is 0");
+	    }
+	    m00 = 1.0 / M00;
+	    // m10 = 0.0;
+	    // m01 = 0.0;
+	    m11 = 1.0 / M11;
+	    m02 = -M02 / M00;
+	    m12 = -M12 / M11;
+	    break;
+	case (APPLY_SCALE):
+	    M00 = m00;
+	    M11 = m11;
+	    if (M00 == 0.0 || M11 == 0.0) {
+		throw new NoninvertibleTransformException("Determinant is 0");
+	    }
+	    m00 = 1.0 / M00;
+	    // m10 = 0.0;
+	    // m01 = 0.0;
+	    m11 = 1.0 / M11;
+	    // m02 = 0.0;
+	    // m12 = 0.0;
+	    break;
+	case (APPLY_TRANSLATE):
+	    // m00 = 1.0;
+	    // m10 = 0.0;
+	    // m01 = 0.0;
+	    // m11 = 1.0;
+	    m02 = -m02;
+	    m12 = -m12;
+	    break;
+	case (APPLY_IDENTITY):
+	    // m00 = 1.0;
+	    // m10 = 0.0;
+	    // m01 = 0.0;
+	    // m11 = 1.0;
+	    // m02 = 0.0;
+	    // m12 = 0.0;
+	    break;
+	}
+    }
+
+    /**
      * Transforms the specified <code>ptSrc</code> and stores the result
      * in <code>ptDst</code>.
      * If <code>ptDst</code> is <code>null</code>, a new {@link Point2D}
@@ -2072,6 +2849,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * result of transforming <code>ptSrc</code>
      * @return the <code>ptDst</code> after transforming
      * <code>ptSrc</code> and stroring the result in <code>ptDst</code>.
+     * @since 1.2
      */
     public Point2D transform(Point2D ptSrc, Point2D ptDst) {
 	if (ptDst == null) {
@@ -2147,6 +2925,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param dstOff the offset to the location of the first
      * transformed point object that is stored in the destination array
      * @param numPts the number of point objects to be transformed
+     * @since 1.2
      */
     public void transform(Point2D[] ptSrc, int srcOff,
 			  Point2D[] ptDst, int dstOff,
@@ -2220,6 +2999,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param dstOff the offset to the location of the first
      * transformed point that is stored in the destination array
      * @param numPts the number of points to be transformed
+     * @since 1.2
      */
     public void transform(float[] srcPts, int srcOff,
 			  float[] dstPts, int dstOff,
@@ -2333,6 +3113,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param dstOff the offset to the location of the first
      * transformed point that is stored in the destination array
      * @param numPts the number of point objects to be transformed
+     * @since 1.2
      */
     public void transform(double[] srcPts, int srcOff,
 			  double[] dstPts, int dstOff,
@@ -2442,6 +3223,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param dstOff the offset to the location of the first
      * transformed point that is stored in the destination array
      * @param numPts the number of points to be transformed
+     * @since 1.2
      */
     public void transform(float[] srcPts, int srcOff,
 			  double[] dstPts, int dstOff,
@@ -2536,6 +3318,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param dstOff the offset to the location of the first
      * transformed point that is stored in the destination array
      * @param numPts the number of point objects to be transformed
+     * @since 1.2
      */
     public void transform(double[] srcPts, int srcOff,
 			  float[] dstPts, int dstOff,
@@ -2632,6 +3415,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * inverse transform.
      * @exception NoninvertibleTransformException  if the matrix cannot be
      *                                         inverted.
+     * @since 1.2
      */
     public Point2D inverseTransform(Point2D ptSrc, Point2D ptDst)
 	throws NoninvertibleTransformException
@@ -2716,6 +3500,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param numPts the number of point objects to be transformed
      * @exception NoninvertibleTransformException  if the matrix cannot be
      *                                         inverted.
+     * @since 1.2
      */
     public void inverseTransform(double[] srcPts, int srcOff,
                                  double[] dstPts, int dstOff,
@@ -2858,6 +3643,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param ptDst the resulting transformed distance vector
      * @return <code>ptDst</code>, which contains the result of the
      * transformation.
+     * @since 1.2
      */
     public Point2D deltaTransform(Point2D ptSrc, Point2D ptDst) {
 	if (ptDst == null) {
@@ -2924,6 +3710,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * transformed vector that is stored in the destination array
      * @param numPts the number of vector coordinate pairs to be
      * transformed
+     * @since 1.2
      */
     public void deltaTransform(double[] srcPts, int srcOff,
 			       double[] dstPts, int dstOff,
@@ -2995,23 +3782,14 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @param pSrc the specified <code>Shape</code> object to be
      * transformed by this transform.
      * @return a new <code>Shape</code> object that defines the geometry
-     * of the transformed <code>Shape</code>.
+     * of the transformed <code>Shape</code>, or null if {@code pSrc} is null.
+     * @since 1.2
      */
     public Shape createTransformedShape(Shape pSrc) {
         if (pSrc == null) {
             return null;
         }
-        
-        if (pSrc instanceof GeneralPath) {
-            return ((GeneralPath)pSrc).createTransformedShape(this);
-        } else {
-            PathIterator pi = pSrc.getPathIterator(this);
-            GeneralPath gp = new GeneralPath(pi.getWindingRule());
-	    gp.append(pi, false);
-            return gp;
-        }
-
-	/* NOTREACHED */
+        return new Path2D.Double(pSrc, this);
     }
 
     // Round values to sane precision for printing
@@ -3025,6 +3803,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * {@link Object}.
      * @return a <code>String</code> representing the value of this
      * <code>Object</code>.
+     * @since 1.2
      */
     public String toString() {
 	return ("AffineTransform[["
@@ -3041,6 +3820,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * an identity transform.
      * @return <code>true</code> if this <code>AffineTransform</code> is
      * an identity transform; <code>false</code> otherwise.
+     * @since 1.2
      */
     public boolean isIdentity() {
         return (state == APPLY_IDENTITY || (getType() == TYPE_IDENTITY));
@@ -3050,6 +3830,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * Returns a copy of this <code>AffineTransform</code> object.
      * @return an <code>Object</code> that is a copy of this
      * <code>AffineTransform</code> object.
+     * @since 1.2
      */
     public Object clone() {
 	try {
@@ -3063,6 +3844,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
     /**
      * Returns the hashcode for this transform.
      * @return      a hash code for this transform.
+     * @since 1.2
      */
     public int hashCode() {
 	long bits = Double.doubleToLongBits(m00);
@@ -3082,6 +3864,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * <code>AffineTransform</code>
      * @return <code>true</code> if <code>obj</code> equals this
      * <code>AffineTransform</code> object; <code>false</code> otherwise.
+     * @since 1.2
      */
     public boolean equals(Object obj) {
         if (!(obj instanceof AffineTransform)) {
@@ -3100,6 +3883,11 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * state variable's value needs to be recalculated on the fly by the
      * readObject method as it is in the 6-argument matrix constructor.
      */
+
+    /*
+     * JDK 1.2 serialVersionUID 
+     */
+    private static final long serialVersionUID = 1330973210523860834L;
 
     private void writeObject(java.io.ObjectOutputStream s)
 	throws java.lang.ClassNotFoundException, java.io.IOException

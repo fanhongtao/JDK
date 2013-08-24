@@ -1,7 +1,7 @@
 /*
- * @(#)SyncProviderException.java	1.7 04/05/29
+ * @(#)SyncProviderException.java	1.9 06/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import javax.sql.rowset.*;
  * application may catch a <code>SyncProviderException</code> object and call its
  * <code>getSyncResolver</code> method to get its <code>SyncResolver</code> object.
  * See the code fragment in the interface comment for 
- * <a href="SyncResolver.java"><code>SyncResolver</code></a> for an example.
+ * <a href="SyncResolver.html"><code>SyncResolver</code></a> for an example.
  * This <code>SyncResolver</code> object will mirror the <code>RowSet</code>
  * object that generated the exception, except that it will contain only the values
  * from the data source that are in conflict.  All other values in the <code>SyncResolver</code>

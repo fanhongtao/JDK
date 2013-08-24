@@ -1,12 +1,13 @@
 /*
- * @(#)ActivationDesc.java	1.27 03/12/19
+ * @(#)ActivationDesc.java	1.29 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.activation;
 
+import java.io.Serializable;
 import java.rmi.MarshalledObject;
 
 /**
@@ -27,12 +28,12 @@ import java.rmi.MarshalledObject;
  * object to use during reinitialization/activation.
  *
  * @author 	Ann Wollrath
- * @version	1.27, 12/19/03
+ * @version	1.29, 11/17/05
  * @since 	1.2
  * @see         java.rmi.activation.Activatable
  */
-public final class ActivationDesc implements java.io.Serializable
-{
+public final class ActivationDesc implements Serializable {
+
     /**
      * @serial the group's identifier 
      */
@@ -51,7 +52,7 @@ public final class ActivationDesc implements java.io.Serializable
     /** 
      * @serial the object's initialization data 
      */
-    private MarshalledObject data;
+    private MarshalledObject<?> data;
 
     /**
      * @serial indicates whether the object should be restarted
@@ -91,7 +92,7 @@ public final class ActivationDesc implements java.io.Serializable
      */
     public ActivationDesc(String className,
 			  String location, 
-			  MarshalledObject data)
+			  MarshalledObject<?> data)
 	throws ActivationException
     {
 	this(ActivationGroup.internalCurrentGroupID(),
@@ -128,7 +129,7 @@ public final class ActivationDesc implements java.io.Serializable
      */
     public ActivationDesc(String className,
 			  String location, 
-			  MarshalledObject data,
+			  MarshalledObject<?> data,
 			  boolean restart)
 	throws ActivationException
     {
@@ -160,10 +161,10 @@ public final class ActivationDesc implements java.io.Serializable
      * @exception IllegalArgumentException if <code>groupID</code> is null
      * @since 1.2
      */
-   public ActivationDesc(ActivationGroupID groupID,
-			 String className, 
-			 String location, 
-			 MarshalledObject data)
+    public ActivationDesc(ActivationGroupID groupID,
+			  String className, 
+			  String location, 
+			  MarshalledObject<?> data)
     {
 	this(groupID, className, location, data, false);
     }
@@ -192,11 +193,11 @@ public final class ActivationDesc implements java.io.Serializable
      * @exception IllegalArgumentException if <code>groupID</code> is null
      * @since 1.2
      */
-   public ActivationDesc(ActivationGroupID groupID,
-			 String className, 
-			 String location, 
-			 MarshalledObject data,
-			 boolean restart)
+    public ActivationDesc(ActivationGroupID groupID,
+			  String className, 
+			  String location, 
+			  MarshalledObject<?> data,
+			  boolean restart)
     {
 	if (groupID == null)
 	    throw new IllegalArgumentException("groupID can't be null");
@@ -246,7 +247,7 @@ public final class ActivationDesc implements java.io.Serializable
      * @return the object specific "initialization" data
      * @since 1.2
      */
-    public MarshalledObject getData() {
+    public MarshalledObject<?> getData() {
 	return data;
     }
 
@@ -301,8 +302,7 @@ public final class ActivationDesc implements java.io.Serializable
      * @return an integer
      * @see java.util.Hashtable
      */
-    public int hashCode()
-    {
+    public int hashCode() {
 	return ((location == null
 		    ? 0
 		    : location.hashCode() << 24) ^
@@ -320,4 +320,3 @@ public final class ActivationDesc implements java.io.Serializable
 		    : 0));
     }
 }
-

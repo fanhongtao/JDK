@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// $Id: JAXPPrefixResolver.java,v 1.2 2004/07/10 03:27:20 rameshm Exp $
+// $Id: JAXPPrefixResolver.java,v 1.1.2.1 2005/08/01 01:30:18 jeffsuttor Exp $
 
 package com.sun.org.apache.xpath.internal.jaxp;
 

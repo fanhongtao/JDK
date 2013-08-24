@@ -1,7 +1,7 @@
 /*
- * @(#)ListSelectionModel.java	1.21 03/12/19
+ * @(#)ListSelectionModel.java	1.23 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * a closed interval, i.e. the interval includes both index0 and
  * index1.
  * 
- * @version 1.21 12/19/03
+ * @version 1.23 07/11/06
  * @author Hans Muller
  * @author Philip Milne
  * @see DefaultListSelectionModel
@@ -54,10 +54,15 @@ public interface ListSelectionModel
 
 
     /** 
-     * Change the selection to be between index0 and index1 inclusive.
-     * If this represents a change to the current selection, then
-     * notify each ListSelectionListener. Note that index0 doesn't have
-     * to be less than or equal to index1.  
+     * Changes the selection to be between {@code index0} and {@code index1}
+     * inclusive. {@code index0} doesn't have to be less than or equal to
+     * {@code index1}.
+     * <p>
+     * In {@code SINGLE_SELECTION} selection mode, only the second index
+     * is used.
+     * <p>
+     * If this represents a change to the current selection, then each
+     * {@code ListSelectionListener} is notified of the change.
      * 
      * @param index0 one end of the interval.
      * @param index1 other end of the interval
@@ -67,25 +72,41 @@ public interface ListSelectionModel
 
 
     /** 
-     * Change the selection to be the set union of the current selection
-     * and the indices between index0 and index1 inclusive.  If this represents 
-     * a change to the current selection, then notify each 
-     * ListSelectionListener. Note that index0 doesn't have to be less
-     * than or equal to index1.  
+     * Changes the selection to be the set union of the current selection
+     * and the indices between {@code index0} and {@code index1} inclusive.
+     * {@code index0} doesn't have to be less than or equal to {@code index1}.
+     * <p>
+     * In {@code SINGLE_SELECTION} selection mode, this is equivalent
+     * to calling {@code setSelectionInterval}, and only the second index
+     * is used. In {@code SINGLE_INTERVAL_SELECTION} selection mode, this
+     * method behaves like {@code setSelectionInterval}, unless the given
+     * interval is immediately adjacent to or overlaps the existing selection,
+     * and can therefore be used to grow the selection.
+     * <p>
+     * If this represents a change to the current selection, then each
+     * {@code ListSelectionListener} is notified of the change.
      * 
      * @param index0 one end of the interval.
      * @param index1 other end of the interval
      * @see #addListSelectionListener
+     * @see #setSelectionInterval
      */
     void addSelectionInterval(int index0, int index1);
 
 
     /** 
-     * Change the selection to be the set difference of the current selection
-     * and the indices between index0 and index1 inclusive.  If this represents 
-     * a change to the current selection, then notify each 
-     * ListSelectionListener.  Note that index0 doesn't have to be less
-     * than or equal to index1.  
+     * Changes the selection to be the set difference of the current selection
+     * and the indices between {@code index0} and {@code index1} inclusive.
+     * {@code index0} doesn't have to be less than or equal to {@code index1}.
+     * <p>
+     * In {@code SINGLE_INTERVAL_SELECTION} selection mode, if the removal
+     * would produce two disjoint selections, the removal is extended through
+     * the greater end of the selection. For example, if the selection is
+     * {@code 0-10} and you supply indices {@code 5,6} (in any order) the
+     * resulting selection is {@code 0-4}.
+     * <p>
+     * If this represents a change to the current selection, then each
+     * {@code ListSelectionListener} is notified of the change.
      * 
      * @param index0 one end of the interval.
      * @param index1 other end of the interval
@@ -180,50 +201,70 @@ public interface ListSelectionModel
     void removeIndexInterval(int index0, int index1);
 
     /**
-     * This property is true if upcoming changes to the value
-     * of the model should be considered a single event. For example
-     * if the model is being updated in response to a user drag,
-     * the value of the valueIsAdjusting property will be set to true
-     * when the drag is initiated and be set to false when
-     * the drag is finished.  This property allows listeners to 
-     * to update only when a change has been finalized, rather
-     * than always handling all of the intermediate values.
+     * Sets the {@code valueIsAdjusting} property, which indicates whether
+     * or not upcoming selection changes should be considered part of a single
+     * change. The value of this property is used to initialize the
+     * {@code valueIsAdjusting} property of the {@code ListSelectionEvent}s that
+     * are generated.
+     * <p>
+     * For example, if the selection is being updated in response to a user
+     * drag, this property can be set to {@code true} when the drag is initiated
+     * and set to {@code false} when the drag is finished. During the drag,
+     * listeners receive events with a {@code valueIsAdjusting} property
+     * set to {@code true}. At the end of the drag, when the change is
+     * finalized, listeners receive an event with the value set to {@code false}.
+     * Listeners can use this pattern if they wish to update only when a change
+     * has been finalized.
+     * <p>
+     * Setting this property to {@code true} begins a series of changes that
+     * is to be considered part of a single change. When the property is changed
+     * back to {@code false}, an event is sent out characterizing the entire
+     * selection change (if there was one), with the event's
+     * {@code valueIsAdjusting} property set to {@code false}.
      * 
-     * @param valueIsAdjusting The new value of the property.
+     * @param valueIsAdjusting the new value of the property
      * @see #getValueIsAdjusting
+     * @see javax.swing.event.ListSelectionEvent#getValueIsAdjusting
      */
     void setValueIsAdjusting(boolean valueIsAdjusting);
 
     /**
-     * Returns true if the value is undergoing a series of changes.
-     * @return true if the value is currently adjusting
+     * Returns {@code true} if the selection is undergoing a series of changes.
+     *
+     * @return true if the selection is undergoing a series of changes
      * @see #setValueIsAdjusting
      */
     boolean getValueIsAdjusting();
 
     /**
-     * Set the selection mode. The following selectionMode values are allowed:
+     * Sets the selection mode. The following list describes the accepted
+     * selection modes:
      * <ul>
-     * <li> <code>SINGLE_SELECTION</code> 
-     *   Only one list index can be selected at a time.  In this
-     *   mode the setSelectionInterval and addSelectionInterval 
-     *   methods are equivalent, and only the second index
-     *   argument (the "lead index") is used.
-     * <li> <code>SINGLE_INTERVAL_SELECTION</code>
-     *   One contiguous index interval can be selected at a time.
-     *   In this mode setSelectionInterval and addSelectionInterval 
-     *   are equivalent.
-     * <li> <code>MULTIPLE_INTERVAL_SELECTION</code>
+     * <li>{@code ListSelectionModel.SINGLE_SELECTION} -
+     *   Only one list index can be selected at a time. In this mode,
+     *   {@code setSelectionInterval} and {@code addSelectionInterval} are
+     *   equivalent, both replacing the current selection with the index
+     *   represented by the second argument (the "lead").
+     * <li>{@code ListSelectionModel.SINGLE_INTERVAL_SELECTION} -
+     *   Only one contiguous interval can be selected at a time.
+     *   In this mode, {@code addSelectionInterval} behaves like
+     *   {@code setSelectionInterval} (replacing the current selection),
+     *   unless the given interval is immediately adjacent to or overlaps
+     *   the existing selection, and can therefore be used to grow it.
+     * <li>{@code ListSelectionModel.MULTIPLE_INTERVAL_SELECTION} -
      *   In this mode, there's no restriction on what can be selected.
      * </ul>
      * 
      * @see #getSelectionMode
+     * @throws IllegalArgumentException if the selection mode isn't
+     *         one of those allowed
      */
     void setSelectionMode(int selectionMode);
 
     /**
      * Returns the current selection mode.
-     * @return The value of the selectionMode property.
+     *
+     * @return the current selection mode
      * @see #setSelectionMode
      */
     int getSelectionMode();

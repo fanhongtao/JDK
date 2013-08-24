@@ -1,7 +1,7 @@
 /*
- * @(#)Identity.java	1.61 04/05/18
+ * @(#)Identity.java	1.62 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -32,7 +32,7 @@ import java.util.*;
  * @see Signer
  * @see Principal
  *
- * @version 1.61
+ * @version 1.62
  * @author Benjamin Renaud
  * @deprecated This class is no longer used. Its functionality has been
  * replaced by <code>java.security.KeyStore</code>, the

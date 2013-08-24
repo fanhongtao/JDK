@@ -1,7 +1,7 @@
 /*
- * @(#)Color.java	1.75 03/12/19
+ * @(#)Color.java	1.78 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,6 +49,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color white.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color WHITE = white;
 
@@ -59,6 +60,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color light gray.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color LIGHT_GRAY = lightGray;
 
@@ -69,6 +71,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color gray.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color GRAY = gray;
 
@@ -79,6 +82,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color dark gray.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color DARK_GRAY = darkGray;
 
@@ -89,6 +93,7 @@ public class Color implements Paint, java.io.Serializable {
     
     /**
      * The color black.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color BLACK = black;
     
@@ -99,6 +104,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color red.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color RED = red;
 
@@ -109,6 +115,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color pink.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color PINK = pink;
 
@@ -119,6 +126,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color orange.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color ORANGE = orange;
 
@@ -129,6 +137,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color yellow.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color YELLOW = yellow;
 
@@ -139,6 +148,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color green.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color GREEN = green;
 
@@ -149,6 +159,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color magenta.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color MAGENTA = magenta;
 
@@ -159,6 +170,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color cyan.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color CYAN = cyan;
 
@@ -169,6 +181,7 @@ public class Color implements Paint, java.io.Serializable {
 
     /**
      * The color blue.  In the default sRGB space.
+     * @since 1.4
      */
     public final static Color BLUE = blue;
 
@@ -480,7 +493,7 @@ public class Color implements Paint, java.io.Serializable {
      * @param cspace the <code>ColorSpace</code> to be used to
      *			interpret the components
      * @param components an arbitrary number of color components
-     *                      that is compatible with the 
+     *                      that is compatible with the <code>ColorSpace</code>
      * @param alpha alpha value
      * @throws IllegalArgumentException if any of the values in the 
      *         <code>components</code> array or <code>alpha</code> is 

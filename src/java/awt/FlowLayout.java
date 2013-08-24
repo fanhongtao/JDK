@@ -1,7 +1,7 @@
 /*
- * @(#)FlowLayout.java	1.52 03/12/19
+ * @(#)FlowLayout.java	1.58 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -59,9 +59,9 @@ import java.io.IOException;
  * <p>
  * A flow layout lets each component assume its natural (preferred) size.
  *
- * @version 	1.52, 12/19/03
- * @author 	Arthur van Hoff
- * @author 	Sami Shaio
+ * @version     1.58, 11/17/05
+ * @author      Arthur van Hoff
+ * @author      Sami Shaio
  * @since       JDK1.0
  * @see ComponentOrientation
  */
@@ -71,19 +71,19 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * This value indicates that each row of components
      * should be left-justified.
      */
-    public static final int LEFT 	= 0;
+    public static final int LEFT        = 0;
 
     /**
      * This value indicates that each row of components
      * should be centered.
      */
-    public static final int CENTER 	= 1;
+    public static final int CENTER      = 1;
 
     /**
      * This value indicates that each row of components
      * should be right-justified.
      */
-    public static final int RIGHT 	= 2;
+    public static final int RIGHT       = 2;
 
     /**
      * This value indicates that each row of components
@@ -93,9 +93,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @see     java.awt.Component#getComponentOrientation
      * @see     java.awt.ComponentOrientation
      * @since   1.2
-     * Package-private pending API change approval
      */
-    public static final int LEADING	= 3;
+    public static final int LEADING     = 3;
 
     /**
      * This value indicates that each row of components
@@ -105,7 +104,6 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @see     java.awt.Component#getComponentOrientation
      * @see     java.awt.ComponentOrientation
      * @since   1.2
-     * Package-private pending API change approval
      */
     public static final int TRAILING = 4;
 
@@ -172,6 +170,11 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      */
     int vgap;
 
+    /**
+     * If true, components will be aligned on their baseline.
+     */
+    private boolean alignOnBaseline;
+
     /*
      * JDK 1.1 serialVersionUID
      */
@@ -182,7 +185,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * default 5-unit horizontal and vertical gap.
      */
     public FlowLayout() {
-	this(CENTER, 5, 5);
+        this(CENTER, 5, 5);
     }
 
     /**
@@ -195,7 +198,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @param align the alignment value
      */
     public FlowLayout(int align) {
-	this(align, 5, 5);
+        this(align, 5, 5);
     }
 
     /**
@@ -215,8 +218,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      *                     borders of the <code>Container</code>
      */
     public FlowLayout(int align, int hgap, int vgap) {
-	this.hgap = hgap;
-	this.vgap = vgap;
+        this.hgap = hgap;
+        this.vgap = vgap;
         setAlignment(align);
     }
 
@@ -231,7 +234,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @since      JDK1.1
      */
     public int getAlignment() {
-	return newAlign;
+        return newAlign;
     }
 
     /**
@@ -249,22 +252,22 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @since      JDK1.1
      */
     public void setAlignment(int align) {
-	this.newAlign = align;
+        this.newAlign = align;
 
         // this.align is used only for serialization compatibility,
         // so set it to a value compatible with the 1.1 version
         // of the class
 
         switch (align) {
-	case LEADING:
+        case LEADING:
             this.align = LEFT;
-	    break;
-	case TRAILING:
+            break;
+        case TRAILING:
             this.align = RIGHT;
-	    break;
+            break;
         default:
             this.align = align;
-	    break;
+            break;
         }
     }
 
@@ -280,7 +283,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @since      JDK1.1
      */
     public int getHgap() {
-	return hgap;
+        return hgap;
     }
 
     /**
@@ -295,7 +298,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @since      JDK1.1
      */
     public void setHgap(int hgap) {
-	this.hgap = hgap;
+        this.hgap = hgap;
     }
 
     /**
@@ -310,7 +313,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @since      JDK1.1
      */
     public int getVgap() {
-	return vgap;
+        return vgap;
     }
 
     /**
@@ -324,7 +327,32 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @since      JDK1.1
      */
     public void setVgap(int vgap) {
-	this.vgap = vgap;
+        this.vgap = vgap;
+    }
+
+    /**
+     * Sets whether or not components should be vertically aligned along their
+     * baseline.  Components that do not have a baseline will be centered.
+     * The default is false.
+     *
+     * @param alignOnBaseline whether or not components should be
+     *                        vertically aligned on their baseline
+     * @since 1.6
+     */
+    public void setAlignOnBaseline(boolean alignOnBaseline) {
+        this.alignOnBaseline = alignOnBaseline;
+    }
+
+    /**
+     * Returns true if components are to be vertically aligned along
+     * their baseline.  The default is false.
+     *
+     * @return true if components are to be vertically aligned along
+     *              their baseline
+     * @since 1.6
+     */
+    public boolean getAlignOnBaseline() {
+        return alignOnBaseline;
     }
 
     /**
@@ -358,23 +386,36 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      */
     public Dimension preferredLayoutSize(Container target) {
       synchronized (target.getTreeLock()) {
-	Dimension dim = new Dimension(0, 0);
-	int nmembers = target.getComponentCount();
+        Dimension dim = new Dimension(0, 0);
+        int nmembers = target.getComponentCount();
         boolean firstVisibleComponent = true;
+        boolean useBaseline = getAlignOnBaseline();
+        int maxAscent = 0;
+        int maxDescent = 0;
 
-	for (int i = 0 ; i < nmembers ; i++) {
-	    Component m = target.getComponent(i);
-	    if (m.visible) {
-		Dimension d = m.getPreferredSize();
-		dim.height = Math.max(dim.height, d.height);
+        for (int i = 0 ; i < nmembers ; i++) {
+            Component m = target.getComponent(i);
+            if (m.isVisible()) {
+                Dimension d = m.getPreferredSize();
+                dim.height = Math.max(dim.height, d.height);
                 if (firstVisibleComponent) {
                     firstVisibleComponent = false;
                 } else {
                     dim.width += hgap;
                 }
 		dim.width += d.width;
+                if (useBaseline) {
+                    int baseline = m.getBaseline(d.width, d.height);
+                    if (baseline >= 0) {
+                        maxAscent = Math.max(maxAscent, baseline);
+                        maxDescent = Math.max(maxDescent, d.height - baseline);
+                    }
+                }
 	    }
 	}
+        if (useBaseline) {
+            dim.height = Math.max(maxAscent + maxDescent, dim.height);
+        }
 	Insets insets = target.getInsets();
 	dim.width += insets.left + insets.right + hgap*2;
 	dim.height += insets.top + insets.bottom + vgap*2;
@@ -394,24 +435,48 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      */
     public Dimension minimumLayoutSize(Container target) {
       synchronized (target.getTreeLock()) {
+        boolean useBaseline = getAlignOnBaseline();
 	Dimension dim = new Dimension(0, 0);
 	int nmembers = target.getComponentCount();
+        int maxAscent = 0;
+        int maxDescent = 0;
+        boolean firstVisibleComponent = true;
 
 	for (int i = 0 ; i < nmembers ; i++) {
 	    Component m = target.getComponent(i);
 	    if (m.visible) {
 		Dimension d = m.getMinimumSize();
 		dim.height = Math.max(dim.height, d.height);
-		if (i > 0) {
-		    dim.width += hgap;
+                if (firstVisibleComponent) {
+                    firstVisibleComponent = false;
+                } else {
+                    dim.width += hgap;
 		}
 		dim.width += d.width;
-	    }
-	}
+                if (useBaseline) {
+                    int baseline = m.getBaseline(d.width, d.height);
+                    if (baseline >= 0) {
+                        maxAscent = Math.max(maxAscent, baseline);
+                        maxDescent = Math.max(maxDescent,
+                                              dim.height - baseline);
+                    }
+                }
+}
+}
+
+        if (useBaseline) {
+            dim.height = Math.max(maxAscent + maxDescent, dim.height);
+        }
+
 	Insets insets = target.getInsets();
 	dim.width += insets.left + insets.right + hgap*2;
 	dim.height += insets.top + insets.bottom + vgap*2;
 	return dim;
+
+
+
+
+
       }
     }
 
@@ -424,38 +489,73 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @param height the height dimensions
      * @param rowStart the beginning of the row
      * @param rowEnd the the ending of the row
+     * @param useBaseline Whether or not to align on baseline.
+     * @param ascent Ascent for the components. This is only valid if
+     *               useBaseline is true.
+     * @param descent Ascent for the components. This is only valid if
+     *               useBaseline is true.
+     * @return actual row height
      */
-    private void moveComponents(Container target, int x, int y, int width, int height,
-                                int rowStart, int rowEnd, boolean ltr) {
-      synchronized (target.getTreeLock()) {
-	switch (newAlign) {
-	case LEFT:
-	    x += ltr ? 0 : width;
-	    break;
-	case CENTER:
-	    x += width / 2;
-	    break;
-	case RIGHT:
-	    x += ltr ? width : 0;
-	    break;
-	case LEADING:
-	    break;
-	case TRAILING:
-	    x += width;
-	    break;
-	}
+    private int moveComponents(Container target, int x, int y, int width, int height,
+                                int rowStart, int rowEnd, boolean ltr,
+                                boolean useBaseline, int[] ascent,
+                                int[] descent) {
+        switch (newAlign) {
+        case LEFT:
+            x += ltr ? 0 : width;
+            break;
+        case CENTER:
+            x += width / 2;
+            break;
+        case RIGHT:
+            x += ltr ? width : 0;
+            break;
+        case LEADING:
+            break;
+        case TRAILING:
+            x += width;
+            break;
+        }
+        int maxAscent = 0;
+        int nonbaselineHeight = 0;
+        int baselineOffset = 0;
+        if (useBaseline) {
+            int maxDescent = 0;
+            for (int i = rowStart ; i < rowEnd ; i++) {
+                Component m = target.getComponent(i);
+                if (m.visible) {
+                    if (ascent[i] >= 0) {
+                        maxAscent = Math.max(maxAscent, ascent[i]);
+                        maxDescent = Math.max(maxDescent, descent[i]);
+                    }
+                    else {
+                        nonbaselineHeight = Math.max(m.getHeight(),
+                                                     nonbaselineHeight);
+                    }
+                }
+            }
+            height = Math.max(maxAscent + maxDescent, nonbaselineHeight);
+            baselineOffset = (height - maxAscent - maxDescent) / 2;
+        }
 	for (int i = rowStart ; i < rowEnd ; i++) {
-	    Component m = target.getComponent(i);
-	    if (m.visible) {
-	        if (ltr) {
-        	    m.setLocation(x, y + (height - m.height) / 2);
-	        } else {
-	            m.setLocation(target.width - x - m.width, y + (height - m.height) / 2);
+            Component m = target.getComponent(i);
+            if (m.isVisible()) {
+                int cy;
+                if (useBaseline && ascent[i] >= 0) {
+                    cy = y + baselineOffset + maxAscent - ascent[i];
+                }
+                else {
+                    cy = y + (height - m.height) / 2;
+                }
+                if (ltr) {
+        	    m.setLocation(x, cy);
+                } else {
+	            m.setLocation(target.width - x - m.width, cy);
                 }
                 x += m.width + hgap;
 	    }
 	}
-      }
+        return height;
     }
 
     /**
@@ -471,36 +571,58 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      */
     public void layoutContainer(Container target) {
       synchronized (target.getTreeLock()) {
-	Insets insets = target.getInsets();
-	int maxwidth = target.width - (insets.left + insets.right + hgap*2);
-	int nmembers = target.getComponentCount();
-	int x = 0, y = insets.top + vgap;
-	int rowh = 0, start = 0;
+        Insets insets = target.getInsets();
+        int maxwidth = target.width - (insets.left + insets.right + hgap*2);
+        int nmembers = target.getComponentCount();
+        int x = 0, y = insets.top + vgap;
+        int rowh = 0, start = 0;
 
         boolean ltr = target.getComponentOrientation().isLeftToRight();
 
-	for (int i = 0 ; i < nmembers ; i++) {
-	    Component m = target.getComponent(i);
-	    if (m.visible) {
-		Dimension d = m.getPreferredSize();
-		m.setSize(d.width, d.height);
+        boolean useBaseline = getAlignOnBaseline();
+        int[] ascent = null;
+        int[] descent = null;
 
-		if ((x == 0) || ((x + d.width) <= maxwidth)) {
-		    if (x > 0) {
-			x += hgap;
-		    }
-		    x += d.width;
-		    rowh = Math.max(rowh, d.height);
-		} else {
-		    moveComponents(target, insets.left + hgap, y, maxwidth - x, rowh, start, i, ltr);
-		    x = d.width;
-		    y += vgap + rowh;
-		    rowh = d.height;
-		    start = i;
-		}
-	    }
-	}
-	moveComponents(target, insets.left + hgap, y, maxwidth - x, rowh, start, nmembers, ltr);
+        if (useBaseline) {
+            ascent = new int[nmembers];
+            descent = new int[nmembers];
+        }
+
+        for (int i = 0 ; i < nmembers ; i++) {
+            Component m = target.getComponent(i);
+            if (m.isVisible()) {
+                Dimension d = m.getPreferredSize();
+                m.setSize(d.width, d.height);
+
+                if (useBaseline) {
+                    int baseline = m.getBaseline(d.width, d.height);
+                    if (baseline >= 0) {
+                        ascent[i] = baseline;
+                        descent[i] = d.height - baseline;
+                    }
+                    else {
+                        ascent[i] = -1;
+                    }
+                }
+                if ((x == 0) || ((x + d.width) <= maxwidth)) {
+                    if (x > 0) {
+                        x += hgap;
+                    }
+                    x += d.width;
+                    rowh = Math.max(rowh, d.height);
+                } else {
+		    rowh = moveComponents(target, insets.left + hgap, y,
+                                   maxwidth - x, rowh, start, i, ltr,
+                                   useBaseline, ascent, descent);
+                    x = d.width;
+                    y += vgap + rowh;
+                    rowh = d.height;
+                    start = i;
+                }
+            }
+        }
+	moveComponents(target, insets.left + hgap, y, maxwidth - x, rowh,
+                       start, nmembers, ltr, useBaseline, ascent, descent);
       }
     }
 
@@ -544,15 +666,15 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * @return     a string representation of this layout
      */
     public String toString() {
-	String str = "";
-	switch (align) {
-	  case LEFT:        str = ",align=left"; break;
-	  case CENTER:      str = ",align=center"; break;
-	  case RIGHT:       str = ",align=right"; break;
-	  case LEADING:     str = ",align=leading"; break;
-	  case TRAILING:    str = ",align=trailing"; break;
-	}
-	return getClass().getName() + "[hgap=" + hgap + ",vgap=" + vgap + str + "]";
+        String str = "";
+        switch (align) {
+          case LEFT:        str = ",align=left"; break;
+          case CENTER:      str = ",align=center"; break;
+          case RIGHT:       str = ",align=right"; break;
+          case LEADING:     str = ",align=leading"; break;
+          case TRAILING:    str = ",align=trailing"; break;
+        }
+        return getClass().getName() + "[hgap=" + hgap + ",vgap=" + vgap + str + "]";
     }
 
 

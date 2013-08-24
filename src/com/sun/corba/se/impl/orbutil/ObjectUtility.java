@@ -1,7 +1,7 @@
 /*
  * @(#)ORBUtility.java	1.32 02/08/13
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -348,13 +348,13 @@ public final class ObjectUtility {
 	Class cls = obj.getClass() ;
 
 	try {
-	    Field[] fields;
-	    SecurityManager security = System.getSecurityManager();
-	    if (security != null && !Modifier.isPublic(cls.getModifiers())) {
-		fields = new Field[0];
-	    } else {
-	        fields = sun.reflect.misc.FieldUtil.getDeclaredFields(cls);
-	    }
+	    Field[] fields; 
+	    SecurityManager security = System.getSecurityManager(); 
+            if (security != null && !Modifier.isPublic(cls.getModifiers())) { 
+		fields = new Field[0]; 
+	    } else { 
+		fields = sun.reflect.misc.FieldUtil.getDeclaredFields(cls); 
+            } 
 
 	    for (int ctr=0; ctr<fields.length; ctr++ ) {
 		final Field fld = fields[ctr] ;
@@ -365,7 +365,7 @@ public final class ObjectUtility {
 		// be made configurable, but I don't think it is 
 		// useful to do so.
 		if (!Modifier.isStatic( modifiers )) {
-		    if (security != null) {
+	            if (security != null) {
 		        if (!Modifier.isPublic(modifiers))
 			    continue;
 		    }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Whitespace.java,v 1.10 2004/02/16 22:25:10 minchau Exp $
+ * $Id: Whitespace.java,v 1.5 2005/09/28 13:48:18 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -76,7 +76,7 @@ final class Whitespace extends TopLevelElement {
 	    _action = action;
 
 	    // Get the namespace and element name for this rule
-	    final int colon = element.indexOf(':');
+	    final int colon = element.lastIndexOf(':');
 	    if (colon >= 0) {
 		_namespace = element.substring(0,colon);
 		_element = element.substring(colon+1,element.length());
@@ -126,48 +126,46 @@ final class Whitespace extends TopLevelElement {
      * The element should have not contents (ignored if any).
      */
     public void parseContents(Parser parser) {
-	// Determine if this is an xsl:strip- or preserve-space element
-	_action = _qname.getLocalPart().endsWith("strip-space") 
-	    ? STRIP_SPACE : PRESERVE_SPACE;
+        // Determine if this is an xsl:strip- or preserve-space element
+        _action = _qname.getLocalPart().endsWith("strip-space") 
+            ? STRIP_SPACE : PRESERVE_SPACE;
 
-	// Determine the import precedence
-	_importPrecedence = parser.getCurrentImportPrecedence();
+        // Determine the import precedence
+        _importPrecedence = parser.getCurrentImportPrecedence();
 
-	// Get the list of elements to strip/preserve
-	_elementList = getAttribute("elements");
-	if (_elementList == null || _elementList.length() == 0) {
-	    reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "elements");
-	    return;
-	}
+        // Get the list of elements to strip/preserve
+        _elementList = getAttribute("elements");
+        if (_elementList == null || _elementList.length() == 0) {
+            reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "elements");
+            return;
+        }
 
-	final SymbolTable stable = parser.getSymbolTable();
-	StringTokenizer list = new StringTokenizer(_elementList);
-	StringBuffer elements = new StringBuffer(Constants.EMPTYSTRING);
+        final SymbolTable stable = parser.getSymbolTable();
+        StringTokenizer list = new StringTokenizer(_elementList);
+        StringBuffer elements = new StringBuffer(Constants.EMPTYSTRING);
 
-	while (list.hasMoreElements()) {
-	    String token = list.nextToken();
-	    String prefix;
-	    String namespace;
-	    int col;
+        while (list.hasMoreElements()) {
+            String token = list.nextToken();
+            String prefix;
+            String namespace;
+            int col = token.indexOf(':');
 
-	    if ((col = token.indexOf(':')) != -1) {
-		prefix  = token.substring(0,col);
-	    }
-	    else {
-		prefix = Constants.EMPTYSTRING;
-	    }
+            if (col != -1) {
+                namespace = lookupNamespace(token.substring(0,col));
+                if (namespace != null) {
+                    elements.append(namespace+":"+
+                                    token.substring(col+1,token.length()));
+                } else {
+                    elements.append(token);
+                }
+            } else {
+                elements.append(token);
+            }
 
-	    namespace = lookupNamespace(prefix);
-	    if (namespace != null)
-		elements.append(namespace+":"+
-				token.substring(col+1,token.length()));
-	    else
-		elements.append(token);
-
-	    if (list.hasMoreElements())
-		elements.append(" ");
-	}
-	_elementList = elements.toString();
+            if (list.hasMoreElements())
+                elements.append(" ");
+        }
+        _elementList = elements.toString();
     }
 
 

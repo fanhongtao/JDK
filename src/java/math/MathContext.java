@@ -1,7 +1,7 @@
 /*
- * @(#)MathContext.java	1.2 03/12/19
+ * @(#)MathContext.java	1.5 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,11 +25,11 @@ import java.io.*;
  * 
  * <p>The base-independent settings are:
  * <ol>
- * <li><tt>precision</tt>:
+ * <li>{@code precision}:
  * the number of digits to be used for an operation; results are
  * rounded to this precision
  * 
- * <li><tt>roundingMode</tt>:
+ * <li>{@code roundingMode}:
  * a {@link RoundingMode} object which specifies the algorithm to be
  * used for rounding.
  * </ol>
@@ -38,6 +38,7 @@ import java.io.*;
  * @see     RoundingMode
  * @author  Mike Cowlishaw
  * @author  Joseph D. Darcy
+ * @since 1.5
  */
 
 public final class MathContext implements Serializable {
@@ -55,7 +56,7 @@ public final class MathContext implements Serializable {
 
     /* ----- Public Properties ----- */
     /**
-     *  A <tt>MathContext</tt> object whose settings have the values
+     *  A {@code MathContext} object whose settings have the values
      *  required for unlimited precision arithmetic.
      *  The values of the settings are:
      *  <code>
@@ -66,7 +67,7 @@ public final class MathContext implements Serializable {
         new MathContext(0, RoundingMode.HALF_UP);
 
     /**
-     *  A <tt>MathContext</tt> object with a precision setting
+     *  A {@code MathContext} object with a precision setting
      *  matching the IEEE 754R Decimal32 format, 7 digits, and a
      *  rounding mode of {@link RoundingMode#HALF_EVEN HALF_EVEN}, the
      *  IEEE 754R default.
@@ -75,7 +76,7 @@ public final class MathContext implements Serializable {
         new MathContext(7, RoundingMode.HALF_EVEN);
 
     /**
-     *  A <tt>MathContext</tt> object with a precision setting
+     *  A {@code MathContext} object with a precision setting
      *  matching the IEEE 754R Decimal64 format, 16 digits, and a
      *  rounding mode of {@link RoundingMode#HALF_EVEN HALF_EVEN}, the
      *  IEEE 754R default.
@@ -84,7 +85,7 @@ public final class MathContext implements Serializable {
         new MathContext(16, RoundingMode.HALF_EVEN);
 
     /**
-     *  A <tt>MathContext</tt> object with a precision setting
+     *  A {@code MathContext} object with a precision setting
      *  matching the IEEE 754R Decimal128 format, 34 digits, and a
      *  rounding mode of {@link RoundingMode#HALF_EVEN HALF_EVEN}, the
      *  IEEE 754R default.
@@ -99,7 +100,7 @@ public final class MathContext implements Serializable {
      * required) will be used.  Note that leading zeros (in the
      * coefficient of a number) are never significant.
      * 
-     * <p><tt>precision</tt> will always be non-negative.
+     * <p>{@code precision} will always be non-negative.
      *
      * @serial
      */
@@ -116,10 +117,10 @@ public final class MathContext implements Serializable {
     /**
      *  Lookaside for the rounding points (the numbers which determine
      *  whether the coefficient of a number will require rounding).
-     *  These will be present if precision&gt;0 and
-     *  precision&lt;=MAX_LOOKASIDE.  In this case they will share the
-     *  <tt>BigInteger int[]</tt> array.  Note that the transients
-     *  cannot be <tt>final</tt> because they are reconstructed on
+     *  These will be present if {@code precision > 0} and
+     *  {@code precision <= MAX_LOOKASIDE}.  In this case they will share the
+     *  {@code BigInteger int[]} array.  Note that the transients
+     *  cannot be {@code final} because they are reconstructed on
      *  deserialization.
      */
     transient BigInteger roundingMax = null;
@@ -129,12 +130,12 @@ public final class MathContext implements Serializable {
     /* ----- Constructors ----- */
 
     /**
-     * Constructs a new <tt>MathContext</tt> with the specified
+     * Constructs a new {@code MathContext} with the specified
      * precision and the {@link RoundingMode#HALF_UP HALF_UP} rounding
      * mode.
      *
-     * @param setPrecision The non-negative <tt>int</tt> precision setting.
-     * @throws IllegalArgumentException <tt>setPrecision</tt> parameter less 
+     * @param setPrecision The non-negative {@code int} precision setting.
+     * @throws IllegalArgumentException if the {@code setPrecision} parameter is less 
      *         than zero.
      */
     public MathContext(int setPrecision) {
@@ -143,13 +144,14 @@ public final class MathContext implements Serializable {
     }
 
     /**
-     * Constructs a new <tt>MathContext</tt> with a specified
+     * Constructs a new {@code MathContext} with a specified
      * precision and rounding mode.
      *
-     * @param setPrecision The non-negative <tt>int</tt> precision setting.
+     * @param setPrecision The non-negative {@code int} precision setting.
      * @param setRoundingMode The rounding mode to use.
-     * @throws IllegalArgumentException <tt>setPrecision</tt> parameter less 
+     * @throws IllegalArgumentException if the {@code setPrecision} parameter is less 
      *         than zero.
+     * @throws NullPointerException if the rounding mode argument is {@code null}
      */
     public MathContext(int setPrecision, 
 		       RoundingMode setRoundingMode) {
@@ -169,18 +171,19 @@ public final class MathContext implements Serializable {
     }
 
     /**
-     * Constructs a new <tt>MathContext</tt> from a string.
+     * Constructs a new {@code MathContext} from a string.
      *
      * The string must be in the same format as that produced by the
      * {@link #toString} method.
      * 
-     * <p>An <tt>IllegalArgumentException</tt> is thrown if the precision
-     * section of the string is out of range (&lt; 0) or the string is
+     * <p>An {@code IllegalArgumentException} is thrown if the precision
+     * section of the string is out of range ({@code < 0}) or the string is
      * not in the format created by the {@link #toString} method.
      *
      * @param val The string to be parsed
-     * @throws IllegalArgumentException precision parameter out of range
-     * or incorrect format
+     * @throws IllegalArgumentException if the precision section is out of range
+     * or of incorrect format
+     * @throws NullPointerException if the argument is {@code null}
      */
     public MathContext(String val) {
         boolean bad = false;
@@ -213,10 +216,10 @@ public final class MathContext implements Serializable {
     }
 
     /**
-     * Returns the <tt>precision</tt> setting.
+     * Returns the {@code precision} setting.
      * This value is always non-negative.
      *
-     * @return an <tt>int</tt> which is the value of the <tt>precision</tt>
+     * @return an {@code int} which is the value of the {@code precision}
      *         setting
      */
     public int getPrecision() {
@@ -235,8 +238,8 @@ public final class MathContext implements Serializable {
      * {@link  RoundingMode#UNNECESSARY}, or
      * {@link  RoundingMode#UP}.
      *
-     * @return a <tt>RoundingMode</tt> object which is the value of the
-     *         <tt>roundingMode</tt> setting
+     * @return a {@code RoundingMode} object which is the value of the
+     *         {@code roundingMode} setting
      */
 
     public RoundingMode getRoundingMode() {
@@ -244,14 +247,14 @@ public final class MathContext implements Serializable {
     }
 
     /**
-     * Compares this <tt>MathContext</tt> with the specified
-     * <tt>Object</tt> for equality.
+     * Compares this {@code MathContext} with the specified
+     * {@code Object} for equality.
      *
-     * @param  x <tt>Object</tt> to which this <tt>MathContext</tt> is to 
+     * @param  x {@code Object} to which this {@code MathContext} is to 
      *         be compared.
-     * @return <tt>true</tt> if and only if the specified <tt>Object</tt> is
-     *         a <tt>MathContext</tt> object which has exactly the same 
-     *         settings as this object.
+     * @return {@code true} if and only if the specified {@code Object} is
+     *         a {@code MathContext} object which has exactly the same 
+     *         settings as this object
      */
     public boolean equals(Object x){
         MathContext mc;
@@ -263,30 +266,30 @@ public final class MathContext implements Serializable {
     }
 
     /**
-     * Returns the hash code for this <tt>MathContext</tt>.
+     * Returns the hash code for this {@code MathContext}.
      *
-     * @return hash code for this <tt>MathContext</tt>
+     * @return hash code for this {@code MathContext}
      */
     public int hashCode() {
         return this.precision + roundingMode.hashCode() * 59;
     }
 
     /** 
-     * Returns the string representation of this <tt>MathContext</tt>.
-     * The <tt>String</tt> returned represents the settings of the
-     * <tt>MathContext</tt> object as two space-delimited words
+     * Returns the string representation of this {@code MathContext}.
+     * The {@code String} returned represents the settings of the
+     * {@code MathContext} object as two space-delimited words
      * (separated by a single space character, <tt>'&#92;u0020'</tt>,
      * and with no leading or trailing white space), as follows:
      * <ol>
      * <li>
-     * The string <tt>&quot;precision=&quot;</tt>, immediately followed
+     * The string {@code "precision="}, immediately followed
      * by the value of the precision setting as a numeric string as if
      * generated by the {@link Integer#toString(int) Integer.toString}
      * method.
      *
      * <li>
-     * The string <tt>&quot;roundingMode=&quot;</tt>, immediately
-     * followed by the value of the <tt>roundingMode</tt> setting as a
+     * The string {@code "roundingMode="}, immediately
+     * followed by the value of the {@code roundingMode} setting as a
      * word.  This word will be the same as the name of the
      * corresponding public constant in the {@link RoundingMode}
      * enum.
@@ -298,10 +301,10 @@ public final class MathContext implements Serializable {
      * </pre>
      *
      * Additional words may be appended to the result of
-     * <tt>toString</tt> in the future if more properties are added to
+     * {@code toString} in the future if more properties are added to
      * this class.
      *
-     * @return a <tt>String</tt> representing the context settings.
+     * @return a {@code String} representing the context settings
      */
     public java.lang.String toString() {
         return "precision=" +		precision + " " +
@@ -311,7 +314,7 @@ public final class MathContext implements Serializable {
     // Private methods
 
     /**
-     * Reconstitute the <tt>MathContext</tt> instance from a stream (that is,
+     * Reconstitute the {@code MathContext} instance from a stream (that is,
      * deserialize it).
      *
      * @param s the stream being read.

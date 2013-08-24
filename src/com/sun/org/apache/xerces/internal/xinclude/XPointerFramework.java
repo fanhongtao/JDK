@@ -134,7 +134,7 @@ public class XPointerFramework{
                 }
             }
             
-            if(fSchemaNotAvailable == null);
+            if(fSchemaNotAvailable == null)
             fSchemaNotAvailable = new Stack();
             
             fSchemaNotAvailable.push(fSchemaPointerName[i]);

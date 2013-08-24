@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboPopup.java	1.78 04/03/05
+ * @(#)BasicComboPopup.java	1.84 06/08/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.78 03/05/04
+ * @version 1.84 08/03/06
  * @author Tom Santos
  * @author Mark Davidson
  */
@@ -470,8 +470,12 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                     // Fix for 4234053. Filter out the Control Key from the list. 
                     // ie., don't allow CTRL key deselection.
                     e = new MouseEvent((Component)e.getSource(), e.getID(), e.getWhen(), 
-                                   e.getModifiers() ^ InputEvent.CTRL_MASK,
-                                   e.getX(), e.getY(), e.getClickCount(), e.isPopupTrigger());
+                                       e.getModifiers() ^ InputEvent.CTRL_MASK,
+                                       e.getX(), e.getY(),
+                                       e.getXOnScreen(), e.getYOnScreen(),
+                                       e.getClickCount(),
+                                       e.isPopupTrigger(),
+                                       MouseEvent.NOBUTTON);
                 }
                 super.processMouseEvent(e);
             }
@@ -804,8 +808,14 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
 
         public void mouseReleased(MouseEvent e) {
             if (e.getSource() == list) {
-                // JList mouse listener
-                comboBox.setSelectedIndex( list.getSelectedIndex() );
+                if (list.getModel().getSize() > 0) {
+                    // JList mouse listener
+                    if (comboBox.getSelectedIndex() != list.getSelectedIndex()) {
+                        comboBox.setSelectedIndex( list.getSelectedIndex() );
+                    } else {
+                        comboBox.getEditor().setItem( list.getSelectedValue() );
+                    }
+                }
                 comboBox.setPopupVisible(false);
                 // workaround for cancelling an edited item (bug 4530953)
                 if (comboBox.isEditable() && comboBox.getEditor() != null) {
@@ -824,7 +834,11 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                 Rectangle r = new Rectangle();
 		list.computeVisibleRect( r );
 		if ( r.contains( location ) ) {
-		    comboBox.setSelectedIndex( list.getSelectedIndex() );
+                    if (comboBox.getSelectedIndex() != list.getSelectedIndex()) {
+                        comboBox.setSelectedIndex( list.getSelectedIndex() );
+                    } else {
+                        comboBox.getEditor().setItem( list.getSelectedValue() );
+                    }
                 }
 		comboBox.setPopupVisible(false);
             }
@@ -1124,8 +1138,11 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                                               e.getModifiers(),
                                               convertedPoint.x,
                                               convertedPoint.y,
+                                              e.getXOnScreen(),
+                                              e.getYOnScreen(),
                                               e.getClickCount(),
-                                              e.isPopupTrigger() );
+                                              e.isPopupTrigger(),
+                                              MouseEvent.NOBUTTON );
         return newEvent;
     }
 
@@ -1146,8 +1163,24 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             Component c = renderer.getListCellRendererComponent( list, value, i, false, false );
             height += c.getPreferredSize().height;
         }
-
-        return height == 0 ? 100 : height;
+        
+        if (height == 0) {
+            height = comboBox.getHeight();
+        }
+        
+        Border border = scroller.getViewportBorder();
+        if (border != null) {
+            Insets insets = border.getBorderInsets(null);
+            height += insets.top + insets.bottom;
+        }
+        
+        border = scroller.getBorder();
+        if (border != null) {
+            Insets insets = border.getBorderInsets(null);
+            height += insets.top + insets.bottom;
+        }
+        
+        return height;
     }
 
     /**

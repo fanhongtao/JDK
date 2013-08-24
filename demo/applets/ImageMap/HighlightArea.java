@@ -1,7 +1,7 @@
 /*
- * @(#)HighlightArea.java	1.13 04/07/26
+ * @(#)HighlightArea.java	1.14 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)HighlightArea.java	1.13 04/07/26
+ * @(#)HighlightArea.java	1.14 05/11/17
  */
 
 import java.awt.Graphics;
@@ -48,7 +48,7 @@ import java.net.MalformedURLException;
  * the base image when the mouse enters the area.
  *
  * @author 	Jim Graham
- * @version 	1.13, 07/26/04
+ * @version 	1.14, 11/17/05
  */
 class HighlightArea extends ImageMapArea {
     int hlmode;

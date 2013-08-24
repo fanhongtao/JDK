@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRole.java	1.45 04/04/15
+ * @(#)AccessibleRole.java	1.49 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.45 04/15/04
+ * @version     1.49 11/30/05
  * @author      Willie Walker
  * @author	Peter Korn
  * @author	Lynn Monsanto
@@ -71,6 +71,22 @@ public class AccessibleRole extends AccessibleBundle {
      */
     public static final AccessibleRole DESKTOP_ICON
             = new AccessibleRole("desktopicon");
+
+    /**
+     * An object containing a collection of <code>Accessibles</code> that 
+     * together represents <code>HTML</code> content.  The child 
+     * <code>Accessibles</code> would include objects implementing 
+     * <code>AccessibleText</code>, <code>AccessibleHypertext</code>, 
+     * <code>AccessibleIcon</code>, and other interfaces.
+     * @see #HYPERLINK
+     * @see AccessibleText
+     * @see AccessibleHypertext
+     * @see AccessibleHyperlink
+     * @see AccessibleIcon
+     * @since 1.6
+     */
+    public static final AccessibleRole HTML_CONTAINER
+            = new AccessibleRole("htmlcontainer");
 
     /** 
      * A frame-like object that is clipped by a desktop pane.  The
@@ -129,7 +145,7 @@ public class AccessibleRole extends AccessibleBundle {
             = new AccessibleRole("dialog");
 
     /**
-     * A specialized dialog that lets the user choose a color.
+     * A specialized pane that lets the user choose a color.
      */
     public static final AccessibleRole COLOR_CHOOSER
             = new AccessibleRole("colorchooser");

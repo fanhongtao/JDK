@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XslElement.java,v 1.23 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: XslElement.java,v 1.2.4.1 2005/09/12 11:39:55 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -33,7 +33,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -85,7 +85,7 @@ final class XslElement extends Instruction {
 	// Optimize compilation when name is known at compile time
         _isLiteralName = Util.isLiteral(name);
 	if (_isLiteralName) {
-            if (!XMLChar.isValidQName(name)) {
+            if (!XML11Char.isXML11ValidQName(name)) {
 		ErrorMsg msg = new ErrorMsg(ErrorMsg.ILLEGAL_ELEM_NAME_ERR,
 					    name, this);
 		parser.reportError(WARNING, msg);

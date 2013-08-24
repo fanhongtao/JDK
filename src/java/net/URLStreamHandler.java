@@ -1,7 +1,7 @@
 /*
- * @(#)URLStreamHandler.java	1.68 04/05/18
+ * @(#)URLStreamHandler.java	1.73 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.net.www.ParseUtil;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.68, 05/18/04
+ * @version 1.73, 04/07/06
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */
@@ -57,7 +57,7 @@ public abstract class URLStreamHandler {
     /**
      * Same as openConnection(URL), except that the connection will be
      * made through the specified proxy; Protocol handlers that do not
-     * support proxing will ignore the proxy parameter and make a
+     * support proxying will ignore the proxy parameter and make a
      * normal connection.
      *
      * Calling this method preempts the system's default ProxySelector
@@ -136,7 +136,12 @@ public abstract class URLStreamHandler {
 
 	int i = 0;
         // Parse the authority part if any
-	if ((start <= limit - 2) && (spec.charAt(start) == '/') &&
+        boolean isUNCName = (start <= limit - 4) &&
+                        (spec.charAt(start) == '/') &&
+                        (spec.charAt(start + 1) == '/') &&
+                        (spec.charAt(start + 2) == '/') &&
+                        (spec.charAt(start + 3) == '/');
+	if (!isUNCName && (start <= limit - 2) && (spec.charAt(start) == '/') && 
 	    (spec.charAt(start + 1) == '/')) {
 	    start += 2;
 	    i = spec.indexOf('/', start);
@@ -287,6 +292,7 @@ public abstract class URLStreamHandler {
      * Returns the default port for a URL parsed by this handler. This method
      * is meant to be overidden by handlers with default port numbers.
      * @return the default port for a <code>URL</code> parsed by this handler.
+     * @since 1.3
      */
     protected int getDefaultPort() {
         return -1;
@@ -302,13 +308,13 @@ public abstract class URLStreamHandler {
      * @return <tt>true</tt> if the two urls are 
      * considered equal, ie. they refer to the same 
      * fragment in the same file.
+     * @since 1.3
      */
     protected boolean equals(URL u1, URL u2) {
         String ref1 = u1.getRef();
         String ref2 = u2.getRef();
-        return sameFile(u1, u2) && 
-            (ref1 == ref2 ||
-            (ref1 != null && ref1.equals(ref2)));
+        return (ref1 == ref2 || (ref1 != null && ref1.equals(ref2))) &&
+               sameFile(u1, u2);
     }
 
     /**
@@ -317,6 +323,7 @@ public abstract class URLStreamHandler {
      * calculation.
      * @param u a URL object
      * @return an <tt>int</tt> suitable for hash table indexing
+     * @since 1.3
      */
     protected int hashCode(URL u) {
         int h = 0;
@@ -364,16 +371,13 @@ public abstract class URLStreamHandler {
      * @param u1 a URL object
      * @param u2 a URL object
      * @return true if u1 and u2 refer to the same file
+     * @since 1.3
      */
     protected boolean sameFile(URL u1, URL u2) {
         // Compare the protocols.
         if (!((u1.getProtocol() == u2.getProtocol()) ||
               (u1.getProtocol() != null &&
                u1.getProtocol().equalsIgnoreCase(u2.getProtocol()))))
-            return false;
-
-	// Compare the hosts.
-	if (!hostsEqual(u1, u2))
             return false;
 
 	// Compare the files.
@@ -388,6 +392,10 @@ public abstract class URLStreamHandler {
 	if (port1 != port2)
 	    return false;
 
+	// Compare the hosts.
+	if (!hostsEqual(u1, u2))
+            return false;
+
         return true;
     }
 
@@ -398,6 +406,7 @@ public abstract class URLStreamHandler {
      * @param u a URL object
      * @return an <code>InetAddress</code> representing the host
      * IP address.
+     * @since 1.3
      */
     protected synchronized InetAddress getHostAddress(URL u) {
 	if (u.hostAddress != null)
@@ -424,6 +433,7 @@ public abstract class URLStreamHandler {
      * @param u2 the URL of the second host to compare 
      * @return	<tt>true</tt> if and only if they 
      * are equal, <tt>false</tt> otherwise.
+     * @since 1.3
      */
     protected boolean hostsEqual(URL u1, URL u2) {
 	InetAddress a1 = getHostAddress(u1);
@@ -498,6 +508,7 @@ public abstract class URLStreamHandler {
      * @exception	SecurityException	if the protocol handler of the URL is 
      *					different from this one
      * @see     java.net.URL#set(java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)
+     * @since 1.3
      */
        protected void setURL(URL u, String protocol, String host, int port,
 		             String authority, String userInfo, String path,

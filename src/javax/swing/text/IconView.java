@@ -1,7 +1,7 @@
 /*
- * @(#)IconView.java	1.28 03/12/19
+ * @(#)IconView.java	1.29 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * factory.
  *
  * @author Timothy Prinzing
- * @version 1.28 12/19/03
+ * @version 1.29 11/17/05
  */
 public class IconView extends View  {
 

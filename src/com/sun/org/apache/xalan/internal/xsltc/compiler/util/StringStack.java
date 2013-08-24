@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StringStack.java,v 1.3 2004/02/16 22:26:44 minchau Exp $
+ * $Id: StringStack.java,v 1.2.4.1 2005/09/05 11:33:32 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -26,6 +26,7 @@ import java.util.Stack;
  * @author Santiago Pericas-Geertsen
  */
 public final class StringStack extends Stack {
+    static final long serialVersionUID = -1506910875640317898L;
     public String peekString() {
 	return (String) super.peek();
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)BufferCapabilities.java	1.8 03/12/19
+ * @(#)BufferCapabilities.java	1.10 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -127,6 +127,7 @@ public class BufferCapabilities implements Cloneable {
     /**
      * A type-safe enumeration of the possible back buffer contents after
      * page-flipping
+     * @since 1.4
      */
     public static final class FlipContents extends AttributeValue {
         

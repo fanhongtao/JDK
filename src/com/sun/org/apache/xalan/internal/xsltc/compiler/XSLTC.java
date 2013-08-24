@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTC.java,v 1.57 2004/02/16 22:25:33 minchau Exp $
+ * $Id: XSLTC.java,v 1.2.4.1 2005/09/05 09:51:38 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -123,10 +123,29 @@ public final class XSLTC {
     private boolean _templateInlining = false;
 
     /**
+     * State of the secure processing feature.
+     */
+    private boolean _isSecureProcessing = false;
+
+    /**
      * XSLTC compiler constructor
      */
     public XSLTC() {
 	_parser = new Parser(this);
+    }
+    
+    /**
+     * Set the state of the secure processing feature.
+     */
+    public void setSecureProcessing(boolean flag) {
+        _isSecureProcessing = flag;
+    }
+    
+    /**
+     * Return the state of the secure processing feature.
+     */
+    public boolean isSecureProcessing() {
+        return _isSecureProcessing;
     }
 
     /**
@@ -260,7 +279,7 @@ public final class XSLTC {
 
     /**
      * Compiles an XSL stylesheet passed in through an InputStream
-     * @param input An InputStream that will pass in the stylesheet contents
+     * @param stream An InputStream that will pass in the stylesheet contents
      * @param name The name of the translet class to generate
      * @return 'true' if the compilation was successful
      */

@@ -1,7 +1,7 @@
 /*
- * @(#)MetalMenuBarUI.java	1.5 03/12/19
+ * @(#)MetalMenuBarUI.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import javax.swing.plaf.basic.*;
  * Metal implementation of <code>MenuBarUI</code>. This class is responsible
  * for providing the metal look and feel for <code>JMenuBar</code>s.
  *
- * @version 1.5 12/19/03
+ * @version 1.7 11/17/05
  * @see javax.swing.plaf.MenuBarUI
  * @since 1.5
  */
@@ -75,6 +75,9 @@ public class MetalMenuBarUI extends BasicMenuBarUI  {
      */
     public void update(Graphics g, JComponent c) {
         boolean isOpaque = c.isOpaque();
+        if (g == null) {
+            throw new NullPointerException("Graphics must be non-null");
+        }
         if (isOpaque && (c.getBackground() instanceof UIResource) &&
                         UIManager.get("MenuBar.gradient") != null) {
             if (MetalToolBarUI.doesMenuBarBorderToolBar((JMenuBar)c)) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: If.java,v 1.13 2004/02/16 22:24:29 minchau Exp $
+ * $Id: If.java,v 1.2.4.1 2005/09/01 15:39:47 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

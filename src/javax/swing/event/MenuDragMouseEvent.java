@@ -1,7 +1,7 @@
 /*
- * @(#)MenuDragMouseEvent.java	1.13 03/12/19
+ * @(#)MenuDragMouseEvent.java	1.16 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -27,7 +27,7 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 12/19/03
+ * @version 1.16 04/07/06
  * @author Georges Saab
  */
 public class MenuDragMouseEvent extends MouseEvent {
@@ -36,6 +36,8 @@ public class MenuDragMouseEvent extends MouseEvent {
 
     /**
      * Constructs a MenuDragMouseEvent object.
+     * <p>Absolute coordinates xAbs and yAbs are set to source's location on screen plus
+     * relative coordinates x and y. xAbs and yAbs are set to zero if the source is not showing.
      *
      * @param source        the Component that originated the event
      *                      (typically <code>this</code>)
@@ -54,12 +56,53 @@ public class MenuDragMouseEvent extends MouseEvent {
      * @param p             an array of MenuElement objects specifying a path
      *                        to a menu item affected by the drag
      * @param m             a MenuSelectionManager object that handles selections
+     * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, int, int, boolean, int)
      */
     public MenuDragMouseEvent(Component source, int id, long when,
 			      int modifiers, int x, int y, int clickCount,
 			      boolean popupTrigger, MenuElement p[],
 			      MenuSelectionManager m) {
         super(source, id, when, modifiers, x, y, clickCount, popupTrigger);
+  	path = p;
+  	manager = m;
+    }
+
+    /**
+     * Constructs a MenuDragMouseEvent object.
+     * <p>Even if inconsistent values for relative and absolute coordinates are
+     * passed to the constructor, the MenuDragMouseEvent instance is still
+     * created.
+     * @param source        the Component that originated the event
+     *                      (typically <code>this</code>)
+     * @param id            an int specifying the type of event, as defined
+     *                      in {@link java.awt.event.MouseEvent}
+     * @param when          a long identifying the time the event occurred
+     * @param modifiers     an int specifying any modifier keys held down,
+     *                      as specified in {@link java.awt.event.InputEvent}
+     * @param x             an int specifying the horizontal position at which
+     *                      the event occurred, in pixels
+     * @param y             an int specifying the vertical position at which
+     *                      the event occurred, in pixels
+     * @param xAbs          an int specifying the horizontal absolute position at which
+     *                      the event occurred, in pixels
+     * @param yAbs          an int specifying the vertical absolute position at which
+     *                      the event occurred, in pixels
+     * @param clickCount    an int specifying the number of mouse-clicks
+     * @param popupTrigger  a boolean -- true if the event {should?/did?}
+     *                      trigger a popup
+     * @param p             an array of MenuElement objects specifying a path
+     *                        to a menu item affected by the drag
+     * @param m             a MenuSelectionManager object that handles selections
+     * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, int, int, boolean, int)
+     * @since 1.6
+     */
+    public MenuDragMouseEvent(Component source, int id, long when,
+			      int modifiers, int x, int y, int xAbs,
+                              int yAbs, int clickCount,
+			      boolean popupTrigger, MenuElement p[],
+			      MenuSelectionManager m) {
+        super(source, id, when, modifiers, x, y, xAbs, yAbs, clickCount,
+              popupTrigger, MouseEvent.NOBUTTON);
 	path = p;
 	manager = m;
     }

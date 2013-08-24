@@ -1,7 +1,7 @@
 /*
- * @(#)Boolean.java	1.51 04/05/11
+ * @(#)Boolean.java	1.53 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package java.lang;
  * <code>boolean</code>. 
  *
  * @author  Arthur van Hoff
- * @version 1.51, 05/11/04
+ * @version 1.53, 11/17/05
  * @since   JDK1.0
  */
 public final class Boolean implements java.io.Serializable,
@@ -73,12 +73,12 @@ public final class Boolean implements java.io.Serializable,
     /**
      * Allocates a <code>Boolean</code> object representing the value 
      * <code>true</code> if the string argument is not <code>null</code> 
-     * and is equal, ignoring case, to the string <code>"true"</code>. 
+     * and is equal, ignoring case, to the string {@code "true"}. 
      * Otherwise, allocate a <code>Boolean</code> object representing the 
      * value <code>false</code>. Examples:<p>
-     * <tt>new&nbsp;Boolean("True")</tt> produces a <tt>Boolean</tt> object 
+     * {@code new Boolean("True")} produces a <tt>Boolean</tt> object 
      * that represents <tt>true</tt>.<br>
-     * <tt>new&nbsp;Boolean("yes")</tt> produces a <tt>Boolean</tt> object 
+     * {@code new Boolean("yes")} produces a <tt>Boolean</tt> object 
      * that represents <tt>false</tt>.
      *
      * @param   s   the string to be converted to a <code>Boolean</code>.
@@ -91,7 +91,9 @@ public final class Boolean implements java.io.Serializable,
      * Parses the string argument as a boolean.  The <code>boolean</code> 
      * returned represents the value <code>true</code> if the string argument 
      * is not <code>null</code> and is equal, ignoring case, to the string 
-     * <code>"true"</code>.
+     * {@code "true"}. <p>
+     * Example: {@code Boolean.parseBoolean("True")} returns <tt>true</tt>.<br>
+     * Example: {@code Boolean.parseBoolean("yes")} returns <tt>false</tt>.
      *
      * @param      s   the <code>String</code> containing the boolean
      *                 representation to be parsed
@@ -132,11 +134,9 @@ public final class Boolean implements java.io.Serializable,
 
     /**
      * Returns a <code>Boolean</code> with a value represented by the
-     * specified String.  The <code>Boolean</code> returned represents the
-     * value <code>true</code> if the string argument is not <code>null</code>
-     * and is equal, ignoring case, to the string <code>"true"</code>. <p>
-     * Example: <tt>Boolean.valueOf("True")</tt> returns <tt>true</tt>.<br>
-     * Example: <tt>Boolean.valueOf("yes")</tt> returns <tt>false</tt>.
+     * specified string.  The <code>Boolean</code> returned represents a
+     * true value if the string argument is not <code>null</code>
+     * and is equal, ignoring case, to the string {@code "true"}.
      *
      * @param   s   a string.
      * @return  the <code>Boolean</code> value represented by the string.
@@ -148,8 +148,8 @@ public final class Boolean implements java.io.Serializable,
     /**
      * Returns a <tt>String</tt> object representing the specified
      * boolean.  If the specified boolean is <code>true</code>, then
-     * the string <tt>"true"</tt> will be returned, otherwise the
-     * string <tt>"false"</tt> will be returned.
+     * the string {@code "true"} will be returned, otherwise the
+     * string {@code "false"} will be returned.
      *
      * @param b	the boolean to be converted
      * @return the string representation of the specified <code>boolean</code>
@@ -162,8 +162,8 @@ public final class Boolean implements java.io.Serializable,
     /**
      * Returns a <tt>String</tt> object representing this Boolean's
      * value.  If this object represents the value <code>true</code>,
-     * a string equal to <code>"true"</code> is returned. Otherwise, a
-     * string equal to <code>"false"</code> is returned.
+     * a string equal to {@code "true"} is returned. Otherwise, a
+     * string equal to {@code "false"} is returned.
      *
      * @return  a string representation of this object. 
      */
@@ -184,7 +184,7 @@ public final class Boolean implements java.io.Serializable,
 
     /**
      * Returns <code>true</code> if and only if the argument is not 
-     * <code>null</code> and is a <code>Boolean </code>object that 
+     * <code>null</code> and is a <code>Boolean</code> object that 
      * represents the same <code>boolean</code> value as this object. 
      *
      * @param   obj   the object to compare with.
@@ -201,8 +201,8 @@ public final class Boolean implements java.io.Serializable,
     /**
      * Returns <code>true</code> if and only if the system property 
      * named by the argument exists and is equal to the string 
-     * <code>"true"</code>. (Beginning with version 1.0.2 of the 
-     * Java<font size="-2"><sup>TM</sup></font> platform, the test of 
+     * {@code "true"}. (Beginning with version 1.0.2 of the 
+     * Java<small><sup>TM</sup></small> platform, the test of 
      * this string is case insensitive.) A system property is accessible 
      * through <code>getProperty</code>, a method defined by the 
      * <code>System</code> class.

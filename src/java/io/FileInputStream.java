@@ -1,7 +1,7 @@
 /*
- * @(#)FileInputStream.java	1.63 03/12/19
+ * @(#)FileInputStream.java	1.68 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileReader</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.63, 12/19/03
+ * @version 1.68, 04/07/06
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream
@@ -179,15 +179,20 @@ class FileInputStream extends InputStream
 
     /**
      * Reads up to <code>len</code> bytes of data from this input stream
-     * into an array of bytes. This method blocks until some input is
-     * available.
+     * into an array of bytes. If <code>len</code> is not zero, the method
+     * blocks until some input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned.
      *
      * @param      b     the buffer into which the data is read.
-     * @param      off   the start offset of the data.
+     * @param      off   the start offset in the destination array <code>b</code>
      * @param      len   the maximum number of bytes read.
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end of
      *             the file has been reached.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      * @exception  IOException  if an I/O error occurs.
      */
     public int read(byte b[], int off, int len) throws IOException {
@@ -213,17 +218,26 @@ class FileInputStream extends InputStream
      *
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
-     * @exception  IOException  if n is negative, or if an I/O error occurs.
+     * @exception  IOException  if n is negative, if the stream does not
+     *                   support seek, or if an I/O error occurs.
      */
     public native long skip(long n) throws IOException;
 
     /**
-     * Returns the number of bytes that can be read from this file input
-     * stream without blocking.
+     * Returns an estimate of the number of remaining bytes that can be read (or
+     * skipped over) from this input stream without blocking by the next
+     * invocation of a method for this input stream. The next invocation might be
+     * the same thread or another thread.  A single read or skip of this
+     * many bytes will not block, but may read or skip fewer bytes.
      *
-     * @return     the number of bytes that can be read from this file input
-     *             stream without blocking.
-     * @exception  IOException  if an I/O error occurs.
+     * <p> In some cases, a non-blocking read (or skip) may appear to be
+     * blocked when it is merely slow, for example when reading large
+     * files over slow networks.
+     *
+     * @return     an estimate of the number of remaining bytes that can be read
+     *             (or skipped over) from this input stream without blocking.
+     * @exception  IOException  if this file input stream has been closed by calling
+     *             {@code close} or an I/O error occurs.
      */
     public native int available() throws IOException;
 

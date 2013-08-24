@@ -1,6 +1,6 @@
-/* @(#)ORBImpl.java	1.68 06/01/03
+/* @(#)ORBImpl.java	1.69 06/08/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

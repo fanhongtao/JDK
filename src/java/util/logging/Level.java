@@ -1,7 +1,7 @@
 /*
- * @(#)Level.java	1.19 04/02/25
+ * @(#)Level.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.ResourceBundle;
  * they maintain the Object uniqueness property across serialization
  * by defining a suitable readResolve method.
  *
- * @version 1.19, 02/25/04
+ * @version 1.20, 11/17/05
  * @since 1.4
  */
 

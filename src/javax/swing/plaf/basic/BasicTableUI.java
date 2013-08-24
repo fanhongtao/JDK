@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTableUI.java	1.148 06/04/18
+ * @(#)BasicTableUI.java	1.159 06/04/14
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,8 +21,7 @@ import javax.swing.plaf.*;
 import javax.swing.text.*;
 import javax.swing.table.*;
 import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
-import com.sun.java.swing.SwingUtilities2;
-import static com.sun.java.swing.SwingUtilities2.DRAG_FIX;
+import sun.swing.SwingUtilities2;
 
 
 import java.beans.PropertyChangeEvent;
@@ -34,12 +33,14 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.148 04/18/06
+ * @version 1.159 04/14/06
  * @author Philip Milne
- * @author Shannon Hickey (improved drag recognition)
+ * @author Shannon Hickey (drag and drop)
  */
 public class BasicTableUI extends TableUI
 {
+    private static final StringBuilder BASELINE_COMPONENT_KEY =
+        new StringBuilder("Table.baselineComponent");
 
 //
 // Instance Variables
@@ -60,7 +61,7 @@ public class BasicTableUI extends TableUI
      * Local cache of Table's client property "Table.isFileList"
      */
     private boolean isFileList = false;
-
+    
 //
 //  Helper class for keyboard actions
 //
@@ -146,6 +147,9 @@ public class BasicTableUI extends TableUI
         // move the anchor to the lead and ensure only that item is selected
         private static final String MOVE_SELECTION_TO = "moveSelectionTo";
 
+        // give focus to the JTableHeader, if one exists
+        private static final String FOCUS_HEADER = "focusHeader";
+        
         protected int dx;
         protected int dy;
 	protected boolean extend;
@@ -587,7 +591,7 @@ public class BasicTableUI extends TableUI
                     table.requestFocus();
                     return;
                 }
-                table.editCellAt(leadRow, leadColumn);
+                table.editCellAt(leadRow, leadColumn, e);
                 Component editorComp = table.getEditorComponent();
                 if (editorComp != null) {
                     editorComp.requestFocus();
@@ -610,6 +614,21 @@ public class BasicTableUI extends TableUI
                 table.changeSelection(leadRow, leadColumn, false, true);
             } else if (key == MOVE_SELECTION_TO) {
                 table.changeSelection(leadRow, leadColumn, false, false);
+            } else if (key == FOCUS_HEADER) {
+                JTableHeader th = table.getTableHeader();
+                if (th != null) {
+                    //Set the header's selected column to match the table.
+                    int col = table.getSelectedColumn();
+                    if (col >= 0) {
+                        TableHeaderUI thUI = th.getUI();
+                        if (thUI instanceof BasicTableHeaderUI) {
+                            ((BasicTableHeaderUI)thUI).selectColumn(col);
+                        }
+                    }
+                    
+                    //Then give the header the focus.
+                    th.requestFocusInWindow();
+                }
             }
         }
 
@@ -669,6 +688,9 @@ public class BasicTableUI extends TableUI
                 int leadRow = getAdjustedLead(table, true);
                 int leadCol = getAdjustedLead(table, false);
                 return !(table.isEditing() || table.isCellSelected(leadRow, leadCol));
+            } else if (key == FOCUS_HEADER && sender instanceof JTable) {
+                JTable table = (JTable)sender;
+                return table.getTableHeader() != null;
             }
 
             return true;
@@ -774,16 +796,17 @@ public class BasicTableUI extends TableUI
     }
 
     private class Handler implements FocusListener, MouseInputListener,
-            PropertyChangeListener {
+            PropertyChangeListener, ListSelectionListener, ActionListener,
+            BeforeDrag {
 
         // FocusListener
         private void repaintLeadCell( ) {
             int lr = getAdjustedLead(table, true);
             int lc = getAdjustedLead(table, false);
 
-            if (lr < 0 || lc < 0) {
-                return;
-            }
+	    if (lr < 0 || lc < 0) {
+		return;
+	    }
 
             Rectangle dirtyRect = table.getCellRect(lr, lc, false);
             table.repaint(dirtyRect);
@@ -875,12 +898,11 @@ public class BasicTableUI extends TableUI
 
         // Component receiving mouse events during editing.
         // May not be editorComponent.
-        protected Component dispatchComponent;
-	private boolean selectedOnPress;
+        private Component dispatchComponent;
 
         public void mouseClicked(MouseEvent e) {}
 
-        protected void setDispatchComponent(MouseEvent e) {
+        private void setDispatchComponent(MouseEvent e) {
             Component editorComponent = table.getEditorComponent();
             Point p = e.getPoint();
             Point p2 = SwingUtilities.convertPoint(table, p, editorComponent);
@@ -891,7 +913,7 @@ public class BasicTableUI extends TableUI
                                               e.getClickCount() - 1);
         }
 
-        protected boolean repostEvent(MouseEvent e) {
+        private boolean repostEvent(MouseEvent e) {
 	    // Check for isEditing() in case another event has
 	    // caused the editor to be removed. See bug #4306499.
             if (dispatchComponent == null || !table.isEditing()) {
@@ -903,251 +925,11 @@ public class BasicTableUI extends TableUI
             return true;
         }
 
-        protected void setValueIsAdjusting(boolean flag) {
+        private void setValueIsAdjusting(boolean flag) {
             table.getSelectionModel().setValueIsAdjusting(flag);
             table.getColumnModel().getSelectionModel().
                     setValueIsAdjusting(flag);
         }
-
-	private boolean shouldIgnore0(MouseEvent e) {
-            return e.isConsumed() || SwingUtilities2.shouldIgnore(e, table);
-	}
-
-        public void mousePressed(MouseEvent e) {
-	    if (e.isConsumed()) {
-		selectedOnPress = false;
-		return;
-	    }
-	    selectedOnPress = true;
-	    adjustFocusAndSelection(e);
-	}
-
-	void adjustFocusAndSelection(MouseEvent e) {
-	    if (shouldIgnore0(e)) {
-	        return;
-	    }
-
-            Point p = e.getPoint();
-            int row = table.rowAtPoint(p);
-            int column = table.columnAtPoint(p);
-            // Fix for 4835633
-            if (pointOutsidePrefSize(table, row, column, p)) { 
-                // If shift is down in multi-select, we should just return.
-                // For single select or non-shift-click, clear the selection
-                if (e.getID() ==  MouseEvent.MOUSE_PRESSED &&
-                    (!e.isShiftDown() ||
-                     table.getSelectionModel().getSelectionMode() ==
-                     ListSelectionModel.SINGLE_SELECTION)) {
-                    table.clearSelection();
-                    TableCellEditor tce = table.getCellEditor();
-                    if (tce != null) {
-                        tce.stopCellEditing();
-                    }
-                }
-                return;
-            }
-	    // The autoscroller can generate drag events outside the
-            // table's range.
-            if ((column == -1) || (row == -1)) {
-                return;
-            }
-
-            if (table.editCellAt(row, column, e)) {
-                setDispatchComponent(e);
-                repostEvent(e);
-            }
-	    else {
-                SwingUtilities2.adjustFocus(table);
-	    }
-
-            CellEditor editor = table.getCellEditor();
-            if (editor == null || editor.shouldSelectCell(e)) {
-		boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ?
-                        true : false;
-                setValueIsAdjusting(adjusting);
-                makeSelectionChange(row, column, e);
-	    }
-        }
-
-        protected void makeSelectionChange(int row, int column, MouseEvent e) {
-            boolean ctrl = e.isControlDown();
-
-            // Apply the selection state of the anchor to all cells between it and the
-            // current cell, and then select the current cell.
-            // For mustang, where API changes are allowed, this logic will moved to
-            // JTable.changeSelection()
-            if (ctrl && e.isShiftDown()) {
-                ListSelectionModel rm = table.getSelectionModel();
-                ListSelectionModel cm = table.getColumnModel().getSelectionModel();
-                int anchorRow = rm.getAnchorSelectionIndex();
-                int anchorCol = cm.getAnchorSelectionIndex();
-
-                boolean anchorSelected = true;
-                if (anchorRow == -1 || anchorRow >= table.getRowCount()) {
-                    anchorRow = 0;
-                    anchorSelected = false;
-                }
-
-                if (anchorCol == -1 || anchorCol >= table.getColumnCount()) {
-                    anchorCol = 0;
-                    anchorSelected = false;
-                }
-
-                if (anchorSelected && table.isCellSelected(anchorRow, anchorCol)) {
-                    rm.addSelectionInterval(anchorRow, row);
-                    cm.addSelectionInterval(anchorCol, column);
-                } else {
-                    rm.removeSelectionInterval(anchorRow, row);
-                    cm.removeSelectionInterval(anchorCol, column);
-
-                    // This is only to match the windows explorer behavior in JFileChooser
-                    if (isFileList) {
-                        rm.addSelectionInterval(row, row);
-                        rm.setAnchorSelectionIndex(anchorRow);
-                        cm.addSelectionInterval(column, column);
-                        cm.setAnchorSelectionIndex(anchorCol);
-                    }
-                }
-            } else {
-                table.changeSelection(row, column, ctrl, !ctrl && e.isShiftDown());
-            }
-        }
-
-        public void mouseReleased(MouseEvent e) {
-	    if (selectedOnPress) {
-		if (shouldIgnore0(e)) {
-		    return;
-		}
-
-		repostEvent(e);
-		dispatchComponent = null;
-		setValueIsAdjusting(false);
-	    } else {
-		adjustFocusAndSelection(e);
-	    }
-        }
-
-
-        public void mouseEntered(MouseEvent e) {}
-
-        public void mouseExited(MouseEvent e) {}
-
-        public void mouseMoved(MouseEvent e) {}
-
-        public void mouseDragged(MouseEvent e) {
-	    if (shouldIgnore0(e)) {
-	        return;
-	    }
-
-            mouseDraggedImpl(e);
-        }
-
-        protected void mouseDraggedImpl(MouseEvent e) {
-            repostEvent(e);
-
-            // Check isFileList:
-            // Until we support drag-selection, dragging should not change
-            // the selection (act like single-select).
-            if (isFileList || table.isEditing()) {
-                return;
-            }
-
-            Point p = e.getPoint();
-            int row = table.rowAtPoint(p);
-            int column = table.columnAtPoint(p);
-	    // The autoscroller can generate drag events outside the
-            // table's range.
-            if ((column == -1) || (row == -1)) {
-                return;
-            }
-
-            if (e.isControlDown()) {
-                ListSelectionModel cm = table.getColumnModel().getSelectionModel();
-                ListSelectionModel rm = table.getSelectionModel();
-                int colAnchor = cm.getAnchorSelectionIndex();
-                int rowAnchor = rm.getAnchorSelectionIndex();
-
-                boolean selected = true;
-
-                if (rowAnchor == -1 || rowAnchor >= table.getRowCount()) {
-                    rowAnchor = 0;
-                    selected = false;
-                }
-
-                if (colAnchor == -1 || colAnchor >= table.getColumnCount()) {
-                    colAnchor = 0;
-                    selected = false;
-                }
-
-                selected = selected && table.isCellSelected(rowAnchor, colAnchor);
-
-                changeSelectionModel(cm, colAnchor, selected, column);
-                changeSelectionModel(rm, rowAnchor, selected, row);
-
-                // From JTable.changeSelection():
-                // Scroll after changing the selection as blit scrolling is immediate,
-                // so that if we cause the repaint after the scroll we end up painting
-                // everything!
-                if (table.getAutoscrolls()) {
-                    Rectangle cellRect = table.getCellRect(row, column, false);
-                    if (cellRect != null) {
-                        table.scrollRectToVisible(cellRect);
-                    }
-                }
-            } else {
-                table.changeSelection(row, column, false, true);
-            }
-        }
-
-        private void changeSelectionModel(ListSelectionModel sm,
-                                          int anchorIndex,
-                                          boolean anchorSelected,
-                                          int index) {
-
-            if (anchorSelected) {
-                sm.addSelectionInterval(anchorIndex, index);
-            } else {
-                sm.removeSelectionInterval(anchorIndex, index);
-            }
-        }
-
-
-        // PropertyChangeListener
-	public void propertyChange(PropertyChangeEvent event) {
-	    String changeName = event.getPropertyName();
-
-	    if ("componentOrientation" == changeName) {
-		JTableHeader header = table.getTableHeader();
-		if (header != null) {
-		    header.setComponentOrientation(
-                            (ComponentOrientation)event.getNewValue());
-		}
-            } else if ("transferHandler" == changeName) {
-                DropTarget dropTarget = table.getDropTarget();
-                if (dropTarget instanceof UIResource) {
-                    if (defaultDropTargetListener == null) {
-                        defaultDropTargetListener =
-                            new TableDropTargetListener();
-                    }
-                    try {
-                        dropTarget.addDropTargetListener(
-                                defaultDropTargetListener);
-                    } catch (TooManyListenersException tmle) {
-                        // should not happen... swing drop target is multicast
-                    }
-                }
-            } else if ("Table.isFileList" == changeName) {
-                isFileList = Boolean.TRUE.equals(table.getClientProperty("Table.isFileList"));
-                table.revalidate();
-                table.repaint();
-            }
-	}
-    }
-
-
-    private class DragFixHandler extends Handler implements ListSelectionListener,
-                                                            ActionListener,
-                                                            BeforeDrag {
 
         // The row and column where the press occurred and the
         // press event itself
@@ -1204,7 +986,7 @@ public class BasicTableUI extends TableUI
             if (table.isEditing() && !table.getCellEditor().stopCellEditing()) {
                 Component editorComponent = table.getEditorComponent();
                 if (editorComponent != null && !editorComponent.hasFocus()) {
-                    BasicLookAndFeel.compositeRequestFocus(editorComponent);
+                    SwingUtilities2.compositeRequestFocus(editorComponent);
                 }
                 return;
             }
@@ -1212,7 +994,7 @@ public class BasicTableUI extends TableUI
             Point p = e.getPoint();
             pressedRow = table.rowAtPoint(p);
             pressedCol = table.columnAtPoint(p);
-            outsidePrefSize = pointOutsidePrefSize(table, pressedRow, pressedCol, p);
+            outsidePrefSize = pointOutsidePrefSize(pressedRow, pressedCol, p);
 
             if (isFileList) {
                 shouldStartTimer =
@@ -1272,7 +1054,7 @@ public class BasicTableUI extends TableUI
             }
 
             adjustSelection(e);
-        }
+	}
 
         private void adjustSelection(MouseEvent e) {
             // Fix for 4835633
@@ -1291,7 +1073,7 @@ public class BasicTableUI extends TableUI
                 }
                 return;
             }
-            // The autoscroller can generate drag events outside the
+	    // The autoscroller can generate drag events outside the
             // table's range.
             if ((pressedCol == -1) || (pressedRow == -1)) {
                 return;
@@ -1306,7 +1088,7 @@ public class BasicTableUI extends TableUI
 
             CellEditor editor = table.getCellEditor();
             if (dragEnabled || editor == null || editor.shouldSelectCell(e)) {
-                makeSelectionChange(pressedRow, pressedCol, e);
+                table.changeSelection(pressedRow, pressedCol, e.isControlDown(), e.isShiftDown());
             }
         }
 
@@ -1321,7 +1103,7 @@ public class BasicTableUI extends TableUI
             table.editCellAt(pressedRow, pressedCol, null);
             Component editorComponent = table.getEditorComponent();
             if (editorComponent != null && !editorComponent.hasFocus()) {
-                BasicLookAndFeel.compositeRequestFocus(editorComponent);
+                SwingUtilities2.compositeRequestFocus(editorComponent);
             }
             return;
         }
@@ -1394,6 +1176,12 @@ public class BasicTableUI extends TableUI
             }
         }
 
+        public void mouseEntered(MouseEvent e) {}
+
+        public void mouseExited(MouseEvent e) {}
+
+        public void mouseMoved(MouseEvent e) {}
+
         public void dragStarting(MouseEvent me) {
             dragStarted = true;
 
@@ -1418,26 +1206,85 @@ public class BasicTableUI extends TableUI
                 return;
             }
 
-            mouseDraggedImpl(e);
+            repostEvent(e);
+
+            // Check isFileList:
+            // Until we support drag-selection, dragging should not change
+            // the selection (act like single-select).
+            if (isFileList || table.isEditing()) {
+                return;
+            }
+
+            Point p = e.getPoint();
+            int row = table.rowAtPoint(p);
+            int column = table.columnAtPoint(p);
+            // The autoscroller can generate drag events outside the
+            // table's range.
+            if ((column == -1) || (row == -1)) {
+                return;
+            }
+
+            table.changeSelection(row, column, e.isControlDown(), true);
         }
 
-        public void propertyChange(PropertyChangeEvent event) {
-            super.propertyChange(event);
 
-            String changeName = event.getPropertyName();
+        // PropertyChangeListener
+	public void propertyChange(PropertyChangeEvent event) {
+	    String changeName = event.getPropertyName();
 
-            if ("Table.isFileList" == changeName) {
+	    if ("componentOrientation" == changeName) {
+		JTableHeader header = table.getTableHeader();
+		if (header != null) {
+		    header.setComponentOrientation(
+                            (ComponentOrientation)event.getNewValue());
+		}
+            } else if ("dropLocation" == changeName) {
+                JTable.DropLocation oldValue = (JTable.DropLocation)event.getOldValue();
+                repaintDropLocation(oldValue);
+                repaintDropLocation(table.getDropLocation());
+            } else if ("Table.isFileList" == changeName) {
+                isFileList = Boolean.TRUE.equals(table.getClientProperty("Table.isFileList"));
+                table.revalidate();
+                table.repaint();
                 if (isFileList) {
-                    table.getSelectionModel().addListSelectionListener(getDragFixHandler());
+                    table.getSelectionModel().addListSelectionListener(getHandler());
                 } else {
-                    table.getSelectionModel().removeListSelectionListener(getDragFixHandler());
+                    table.getSelectionModel().removeListSelectionListener(getHandler());
                     timer = null;
                 }
             } else if ("selectionModel" == changeName) {
                 if (isFileList) {
                     ListSelectionModel old = (ListSelectionModel)event.getOldValue();
-                    old.removeListSelectionListener(getDragFixHandler());
-                    table.getSelectionModel().addListSelectionListener(getDragFixHandler());
+                    old.removeListSelectionListener(getHandler());
+                    table.getSelectionModel().addListSelectionListener(getHandler());
+                }
+            }
+	}
+
+        private void repaintDropLocation(JTable.DropLocation loc) {
+            if (loc == null) {
+                return;
+            }
+
+            if (!loc.isInsertRow() && !loc.isInsertColumn()) {
+                Rectangle rect = table.getCellRect(loc.getRow(), loc.getColumn(), false);
+                if (rect != null) {
+                    table.repaint(rect);
+                }
+                return;
+            }
+
+            if (loc.isInsertRow()) {
+                Rectangle rect = extendRect(getHDropLineRect(loc), true);
+                if (rect != null) {
+                    table.repaint(rect);
+                }
+            }
+
+            if (loc.isInsertColumn()) {
+                Rectangle rect = extendRect(getVDropLineRect(loc), false);
+                if (rect != null) {
+                    table.repaint(rect);
                 }
             }
         }
@@ -1449,12 +1296,11 @@ public class BasicTableUI extends TableUI
      * item at the given row of the table.  (Column must be 0).
      * Returns false if the "Table.isFileList" client property is not set.
      */
-    private static boolean pointOutsidePrefSize(JTable table,
-                                                int row, int column, Point p) {
-        if (!Boolean.TRUE.equals(table.getClientProperty("Table.isFileList"))) {
+    private boolean pointOutsidePrefSize(int row, int column, Point p) {
+        if (!isFileList) {
             return false;
         }
-
+        
         return SwingUtilities2.pointOutsidePrefSize(table, row, column, p);
     }
 
@@ -1464,15 +1310,9 @@ public class BasicTableUI extends TableUI
 
     private Handler getHandler() {
         if (handler == null) {
-            handler = DRAG_FIX ? new DragFixHandler() : new Handler();
+            handler = new Handler();
         }
         return handler;
-    }
-
-    private DragFixHandler getDragFixHandler() {
-        // this only called by code that's enabled when DRAG_FIX is on
-        assert DRAG_FIX;
-        return (DragFixHandler)handler;
     }
 
     /**
@@ -1570,18 +1410,6 @@ public class BasicTableUI extends TableUI
 	if (th == null || th instanceof UIResource) {
 	    table.setTransferHandler(defaultTransferHandler);
 	}
-	DropTarget dropTarget = table.getDropTarget();
-	if (dropTarget instanceof UIResource) {
-            if (defaultDropTargetListener == null) {
-                defaultDropTargetListener = 
-                    new TableDropTargetListener();
-            }
-	    try {
-		dropTarget.addDropTargetListener(defaultDropTargetListener);
-	    } catch (TooManyListenersException tmle) {
-		// should not happen... swing drop target is multicast
-	    }
-	}
     }
 
     /**
@@ -1594,15 +1422,11 @@ public class BasicTableUI extends TableUI
 
         table.addFocusListener(focusListener);
         table.addKeyListener(keyListener);
-        if (!DRAG_FIX) {
-            table.addMouseListener(defaultDragRecognizer);
-            table.addMouseMotionListener(defaultDragRecognizer);
-        }
         table.addMouseListener(mouseInputListener);
         table.addMouseMotionListener(mouseInputListener);
         table.addPropertyChangeListener(getHandler());
-        if (DRAG_FIX && isFileList) {
-            table.getSelectionModel().addListSelectionListener(getDragFixHandler());
+        if (isFileList) {
+            table.getSelectionModel().addListSelectionListener(getHandler());
         }
     }
 
@@ -1726,6 +1550,7 @@ public class BasicTableUI extends TableUI
         map.put(new Actions(Actions.TOGGLE_AND_ANCHOR));
         map.put(new Actions(Actions.EXTEND_TO));
         map.put(new Actions(Actions.MOVE_SELECTION_TO));
+        map.put(new Actions(Actions.FOCUS_HEADER));
     }
 
 //  Uninstallation
@@ -1749,15 +1574,11 @@ public class BasicTableUI extends TableUI
     protected void uninstallListeners() {
         table.removeFocusListener(focusListener);
         table.removeKeyListener(keyListener);
-        if (!DRAG_FIX) {
-            table.removeMouseListener(defaultDragRecognizer);
-            table.removeMouseMotionListener(defaultDragRecognizer);
-        }
         table.removeMouseListener(mouseInputListener);
         table.removeMouseMotionListener(mouseInputListener);
         table.removePropertyChangeListener(getHandler());
-        if (DRAG_FIX && isFileList) {
-            table.getSelectionModel().removeListSelectionListener(getDragFixHandler());
+        if (isFileList) {
+            table.getSelectionModel().removeListSelectionListener(getHandler());
         }
 
         focusListener = null;
@@ -1770,6 +1591,45 @@ public class BasicTableUI extends TableUI
 	SwingUtilities.replaceUIInputMap(table, JComponent.
 				   WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, null);
         SwingUtilities.replaceUIActionMap(table, null);
+    }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        UIDefaults lafDefaults = UIManager.getLookAndFeelDefaults();
+        Component renderer = (Component)lafDefaults.get(
+                BASELINE_COMPONENT_KEY);
+        if (renderer == null) {
+            DefaultTableCellRenderer tcr = new DefaultTableCellRenderer();
+            renderer = tcr.getTableCellRendererComponent(
+                    table, "a", false, false, -1, -1);
+            lafDefaults.put(BASELINE_COMPONENT_KEY, renderer);
+        }
+        renderer.setFont(table.getFont());
+        int rowMargin = table.getRowMargin();
+        return renderer.getBaseline(Integer.MAX_VALUE, table.getRowHeight() -
+                                    rowMargin) + rowMargin / 2;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
     }
 
 //
@@ -1857,11 +1717,20 @@ public class BasicTableUI extends TableUI
                 // when the clip doesn't intersect our bounds at all
                 !bounds.intersects(clip)) {
 
+            paintDropLines(g);
 	    return;
 	}
 
+        boolean ltr = table.getComponentOrientation().isLeftToRight();
+
 	Point upperLeft = clip.getLocation();
-	Point lowerRight = new Point(clip.x + clip.width - 1, clip.y + clip.height - 1);
+        if (!ltr) {
+            upperLeft.x++;
+        }
+
+	Point lowerRight = new Point(clip.x + clip.width - (ltr ? 1 : 0),
+                                     clip.y + clip.height);
+
         int rMin = table.rowAtPoint(upperLeft);
         int rMax = table.rowAtPoint(lowerRight);
         // This should never happen (as long as our bounds intersect the clip,
@@ -1877,7 +1746,6 @@ public class BasicTableUI extends TableUI
 	    rMax = table.getRowCount()-1;
         }
 
-        boolean ltr = table.getComponentOrientation().isLeftToRight();
         int cMin = table.columnAtPoint(ltr ? upperLeft : lowerRight); 
         int cMax = table.columnAtPoint(ltr ? lowerRight : upperLeft);        
         // This should never happen.
@@ -1895,6 +1763,135 @@ public class BasicTableUI extends TableUI
 
         // Paint the cells.
 	paintCells(g, rMin, rMax, cMin, cMax);
+
+        paintDropLines(g);
+    }
+
+    private void paintDropLines(Graphics g) {
+        JTable.DropLocation loc = table.getDropLocation();
+        if (loc == null) {
+            return;
+        }
+
+        Color color = UIManager.getColor("Table.dropLineColor");
+        Color shortColor = UIManager.getColor("Table.dropLineShortColor");
+        if (color == null && shortColor == null) {
+            return;
+        }
+
+        Rectangle rect;
+
+        rect = getHDropLineRect(loc);
+        if (rect != null) {
+            int x = rect.x;
+            int w = rect.width;
+            if (color != null) {
+                extendRect(rect, true);
+                g.setColor(color);
+                g.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
+            if (!loc.isInsertColumn() && shortColor != null) {
+                g.setColor(shortColor);
+                g.fillRect(x, rect.y, w, rect.height);
+            }
+        }
+
+        rect = getVDropLineRect(loc);
+        if (rect != null) {
+            int y = rect.y;
+            int h = rect.height;
+            if (color != null) {
+                extendRect(rect, false);
+                g.setColor(color);
+                g.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
+            if (!loc.isInsertRow() && shortColor != null) {
+                g.setColor(shortColor);
+                g.fillRect(rect.x, y, rect.width, h);
+            }
+        }
+    }
+
+    private Rectangle getHDropLineRect(JTable.DropLocation loc) {
+        if (!loc.isInsertRow()) {
+            return null;
+        }
+
+        int row = loc.getRow();
+        int col = loc.getColumn();
+        if (col >= table.getColumnCount()) {
+            col--;
+        }
+
+        Rectangle rect = table.getCellRect(row, col, true);
+
+        if (row >= table.getRowCount()) {
+            row--;
+            Rectangle prevRect = table.getCellRect(row, col, true);
+            rect.y = prevRect.y + prevRect.height;
+        }
+
+        if (rect.y == 0) {
+            rect.y = -1;
+        } else {
+            rect.y -= 2;
+        }
+
+        rect.height = 3;
+
+        return rect;
+    }
+
+    private Rectangle getVDropLineRect(JTable.DropLocation loc) {
+        if (!loc.isInsertColumn()) {
+            return null;
+        }
+
+        boolean ltr = table.getComponentOrientation().isLeftToRight();
+        int col = loc.getColumn();
+        Rectangle rect = table.getCellRect(loc.getRow(), col, true);
+
+        if (col >= table.getColumnCount()) {
+            col--;
+            rect = table.getCellRect(loc.getRow(), col, true);
+            if (ltr) {
+                rect.x = rect.x + rect.width;
+            }
+        } else if (!ltr) {
+            rect.x = rect.x + rect.width;
+        }
+
+        if (rect.x == 0) {
+            rect.x = -1;
+        } else {
+            rect.x -= 2;
+        }
+        
+        rect.width = 3;
+
+        return rect;
+    }
+
+    private Rectangle extendRect(Rectangle rect, boolean horizontal) {
+        if (rect == null) {
+            return rect;
+        }
+
+        if (horizontal) {
+            rect.x = 0;
+            rect.width = table.getWidth();
+        } else {
+            rect.y = 0;
+
+            if (table.getRowCount() != 0) {
+                Rectangle lastRect = table.getCellRect(table.getRowCount() - 1, 0, true);
+                rect.height = lastRect.y + lastRect.height;
+            } else {
+                rect.height = table.getHeight();
+            }
+        }
+
+        return rect;
     }
 
     /*
@@ -1931,14 +1928,12 @@ public class BasicTableUI extends TableUI
 		    g.drawLine(x - 1, 0, x - 1, tableHeight - 1);
 		}
 	    } else {
-		x = damagedArea.x + damagedArea.width;
-		for (int column = cMin; column < cMax; column++) {
+		x = damagedArea.x;
+		for (int column = cMax; column >= cMin; column--) {
 		    int w = cm.getColumn(column).getWidth();
-		    x -= w;
+		    x += w;
 		    g.drawLine(x - 1, 0, x - 1, tableHeight - 1);
 		}
-		x -= cm.getColumn(cMax).getWidth();
-		g.drawLine(x, 0, x, tableHeight - 1);
 	    }
 	}
     }
@@ -2089,101 +2084,6 @@ public class BasicTableUI extends TableUI
                    : getAdjustedLead(table, row, table.getColumnModel().getSelectionModel());
     }
 
-
-    private static final TableDragGestureRecognizer defaultDragRecognizer =
-        DRAG_FIX ? null : new TableDragGestureRecognizer();
-
-    /**
-     * Drag gesture recognizer for JTable components
-     */
-    static class TableDragGestureRecognizer extends BasicDragGestureRecognizer {
-
-	/**
-	 * Determines if the following are true:
-	 * <ul>
-	 * <li>the press event is located over a selection
-	 * <li>the dragEnabled property is true
-	 * <li>A TranferHandler is installed
-	 * </ul>
-	 * <p>
-	 * This is implemented to perform the superclass behavior
-	 * followed by a check if the dragEnabled
-	 * property is set and if the location picked is selected.
-	 */
-        protected boolean isDragPossible(MouseEvent e) {
-	    if (super.isDragPossible(e)) {
-		JTable table = (JTable) this.getComponent(e);
-		if (table.getDragEnabled()) {
-		    Point p = e.getPoint();
-		    int row = table.rowAtPoint(p);
-		    int column = table.columnAtPoint(p);
-            // For 4835633.  Otherwise, you can drag a file by clicking below
-            // it.
-            if (pointOutsidePrefSize(table, row, column, p)) {
-                return false;
-            }
-		    if ((column != -1) && (row != -1) && table.isCellSelected(row, column)) {
-			return true;
-		    }
-		}
-	    }
-	    return false;
-	}
-    }
-
-    private static DropTargetListener defaultDropTargetListener = null;
-
-    /**
-     * A DropTargetListener to extend the default Swing handling of drop operations
-     * by moving the tree selection to the nearest location to the mouse pointer.
-     * Also adds autoscroll capability.
-     */
-    static class TableDropTargetListener extends BasicDropTargetListener {
-
-	/**
-	 * called to save the state of a component in case it needs to
-	 * be restored because a drop is not performed.
-	 */
-        protected void saveComponentState(JComponent comp) {
-	    JTable table = (JTable) comp;
-	    rows = table.getSelectedRows();
-	    cols = table.getSelectedColumns();
-	}
-
-	/**
-	 * called to restore the state of a component
-	 * because a drop was not performed.
-	 */
-        protected void restoreComponentState(JComponent comp) {
-	    JTable table = (JTable) comp;
-	    table.clearSelection();
-	    for (int i = 0; i < rows.length; i++) {
-		table.addRowSelectionInterval(rows[i], rows[i]);
-	    }
-	    for (int i = 0; i < cols.length; i++) {
-		table.addColumnSelectionInterval(cols[i], cols[i]);
-	    }
-	}
-
-	/**
-	 * called to set the insertion location to match the current
-	 * mouse pointer coordinates.
-	 */
-        protected void updateInsertionLocation(JComponent comp, Point p) {
-	    JTable table = (JTable) comp;
-            int row = table.rowAtPoint(p);
-            int col = table.columnAtPoint(p);
-	    if (row != -1) {
-		table.setRowSelectionInterval(row, row);
-	    }
-	    if (col != -1) {
-		table.setColumnSelectionInterval(col, col);
-	    }
-	}
-
-	private int[] rows;
-	private int[] cols;
-    }
 
     private static final TransferHandler defaultTransferHandler = new TableTransferHandler();
 

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.118 04/05/18
+ * @(#)BasicInternalFrameUI.java	1.129 06/07/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import sun.swing.UIAction;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.118 05/18/04
+ * @version 1.129 07/24/06
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -79,6 +79,10 @@ public class BasicInternalFrameUI extends InternalFrameUI
     }
 
     public BasicInternalFrameUI(JInternalFrame b)   {
+        LookAndFeel laf = UIManager.getLookAndFeel();
+        if (laf instanceof BasicLookAndFeel) {
+            ((BasicLookAndFeel)laf).installAWTEventListener();
+        }
     }
             
     public void installUI(JComponent c)   {
@@ -104,7 +108,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	uninstallComponents();
 	uninstallListeners();
 	uninstallDefaults();
-	frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));	
+        updateFrameCursor();
         handler = null;
         frame = null;
     }
@@ -117,7 +121,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
 	// Enable the content pane to inherit background color from its
 	// parent by setting its background color to null.
-	JComponent contentPane = (JComponent) frame.getContentPane();
+        Container contentPane = frame.getContentPane();
 	if (contentPane != null) {
           Color bg = contentPane.getBackground();
 	  if (bg instanceof UIResource)
@@ -176,7 +180,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	setWestPane(createWestPane(frame));
     }
 
-    /*
+    /**
      * @since 1.3
      */
     protected void installListeners() {
@@ -185,8 +189,10 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	frame.addPropertyChangeListener(propertyChangeListener);
         installMouseHandlers(frame);
 	glassPaneDispatcher = createGlassPaneDispatcher();
-	frame.getGlassPane().addMouseListener(glassPaneDispatcher);
-       	frame.getGlassPane().addMouseMotionListener(glassPaneDispatcher);
+        if (glassPaneDispatcher != null) {
+            frame.getGlassPane().addMouseListener(glassPaneDispatcher);
+            frame.getGlassPane().addMouseMotionListener(glassPaneDispatcher);
+        }
 	componentListener =  createComponentListener();
         if (frame.getParent() != null) {
 	  parentBounds = frame.getParent().getBounds();
@@ -197,10 +203,15 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	}
     }
 
+    // Provide a FocusListener to listen for a WINDOW_LOST_FOCUS event,
+    // so that a resize can be cancelled if the focus is lost while resizing
+    // when an Alt-Tab, modal dialog popup, iconify, dispose, or remove 
+    // of the internal frame occurs.
     private WindowFocusListener getWindowFocusListener(){
         return getHandler();
     }
 
+    // Cancel a resize in progress by calling finishMouseReleased().
     private void cancelResize() {
         if (resizing) {
             if (borderListener instanceof BorderListener) {
@@ -256,7 +267,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
         titlePane = null;
     }
 
-    /*
+    /**
      * @since 1.3
      */
     protected void uninstallListeners() {
@@ -265,9 +276,11 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	componentListenerAdded = false;
       }
       componentListener = null;
-      frame.getGlassPane().removeMouseListener(glassPaneDispatcher);
-      frame.getGlassPane().removeMouseMotionListener(glassPaneDispatcher);
-      glassPaneDispatcher = null;
+      if (glassPaneDispatcher != null) {
+          frame.getGlassPane().removeMouseListener(glassPaneDispatcher);
+          frame.getGlassPane().removeMouseMotionListener(glassPaneDispatcher);
+          glassPaneDispatcher = null;
+      }
       deinstallMouseHandlers(frame);      
       frame.removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -284,6 +297,17 @@ public class BasicInternalFrameUI extends InternalFrameUI
 					 WHEN_IN_FOCUSED_WINDOW, null);
 	SwingUtilities.replaceUIActionMap(frame, null);
 
+    }
+
+    void updateFrameCursor() {
+        if (resizing) {
+            return;
+        }
+        Cursor s = (Cursor)frame.getLastCursor();
+        if (s == null) {
+            s = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+        }
+        frame.setCursor(s); 
     }
 
     protected LayoutManager createLayoutManager(){
@@ -411,6 +435,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
         }
         replacePane(northPane, c);
         northPane = c;
+        if (c instanceof BasicInternalFrameTitlePane) {
+          titlePane = (BasicInternalFrameTitlePane)c;
+        } 
     }
 
     public JComponent getSouthPane() {
@@ -612,6 +639,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
             }
 	}
 
+        // Factor out finishMouseReleased() from mouseReleased(), so that
+        // it can be called by cancelResize() without passing it a null 
+        // MouseEvent. 
         void finishMouseReleased() {
            if (discardRelease) {
 	     discardRelease = false;
@@ -621,34 +651,23 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	        getDesktopManager().endDraggingFrame(frame);	
 		dragging = false;
 	    } else {
-              Window windowAncestor = 
-                  SwingUtilities.getWindowAncestor(frame);
-              if (windowAncestor != null) {
-                  windowAncestor.removeWindowFocusListener(
-                      getWindowFocusListener());
-              }
-	      Container c = frame.getTopLevelAncestor();
-	      if (c instanceof JFrame) {
-		((JFrame)frame.getTopLevelAncestor()).getGlassPane().setCursor(
-                  Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-            
-	        ((JFrame)frame.getTopLevelAncestor()).getGlassPane(
-                  ).setVisible(false);
-	      } else if (c instanceof JApplet) {
-		((JApplet)c).getGlassPane().setCursor(
-		  Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		((JApplet)c).getGlassPane().setVisible(false);
-	      } else if (c instanceof JWindow) {
-		((JWindow)c).getGlassPane().setCursor(
-                  Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		((JWindow)c).getGlassPane().setVisible(false);
-	      } else if (c instanceof JDialog) {
-		((JDialog)c).getGlassPane().setCursor(
-                  Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		((JDialog)c).getGlassPane().setVisible(false);
-	      }
-	      getDesktopManager().endResizingFrame(frame);
-              resizing = false;
+                // Remove the WindowFocusListener for handling a
+                // WINDOW_LOST_FOCUS event with a cancelResize().
+                Window windowAncestor =
+                    SwingUtilities.getWindowAncestor(frame);
+                if (windowAncestor != null) {
+                    windowAncestor.removeWindowFocusListener(
+                        getWindowFocusListener());
+                }
+                Container c = frame.getTopLevelAncestor();
+                if (c instanceof RootPaneContainer) {
+                    Component glassPane = ((RootPaneContainer)c).getGlassPane();
+                    glassPane.setCursor(Cursor.getPredefinedCursor(
+                        Cursor.DEFAULT_CURSOR));
+                    glassPane.setVisible(false);
+                } 
+                getDesktopManager().endResizingFrame(frame);
+                resizing = false;
 	    }
             _x = 0;
             _y = 0;
@@ -656,6 +675,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
             __y = 0;
             startingBounds = null;
             resizeDir = RESIZE_NONE;
+            // Set discardRelease to true, so that only a mousePressed()
+            // which sets it to false, will allow entry to the above code
+            // for finishing a resize.
             discardRelease = true;
         }
                 
@@ -674,10 +696,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	    resizeDir = RESIZE_NONE;
             discardRelease = false;
 
-            if(!frame.isSelected()) {
-                try { frame.setSelected(true); }
-		catch (PropertyVetoException e1) { }
-            }
+            try { frame.setSelected(true); }
+            catch (PropertyVetoException e1) { }
 
 	    Insets i = frame.getInsets();
 
@@ -769,22 +789,16 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		  s = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
 		  break;
 		} 
-		Container c = frame.getTopLevelAncestor();
-		if (c instanceof JFrame){
-		  ((JFrame)c).getGlassPane().setVisible(true);
-		  ((JFrame)c).getGlassPane().setCursor(s);
-		} else if (c instanceof JApplet){
-		  ((JApplet)c).getGlassPane().setVisible(true);
-		  ((JApplet)c).getGlassPane().setCursor(s);
-		} else if (c instanceof JWindow){
-		  ((JWindow)c).getGlassPane().setVisible(true);
-		  ((JWindow)c).getGlassPane().setCursor(s);
-		} else if (c instanceof JDialog){
-		  ((JDialog)c).getGlassPane().setVisible(true);
-		  ((JDialog)c).getGlassPane().setCursor(s);
-		}
+                Container c = frame.getTopLevelAncestor();
+                if (c instanceof RootPaneContainer) {
+                    Component glassPane = ((RootPaneContainer)c).getGlassPane();
+                    glassPane.setVisible(true);
+                    glassPane.setCursor(s);
+                } 
 		getDesktopManager().beginResizingFrame(frame, resizeDir);
                 resizing = true;
+                // Add the WindowFocusListener for handling a
+                // WINDOW_LOST_FOCUS event with a cancelResize().
                 Window windowAncestor = SwingUtilities.getWindowAncestor(frame);
                 if (windowAncestor != null) {
                     windowAncestor.addWindowFocusListener(
@@ -1010,7 +1024,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
 	    if(!frame.isResizable())
 		return;
-		
+
             if (e.getSource() == frame || e.getSource() == getNorthPane()) {
                 Insets i = frame.getInsets();
                 Point ep = new Point(e.getX(), e.getY());
@@ -1049,15 +1063,21 @@ public class BasicInternalFrameUI extends InternalFrameUI
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR));
                 }
 		else
-		  frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));		return;
+		    updateFrameCursor();
+                return;
             }
 
-	    frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));	
+	    updateFrameCursor();
 	}         
 
+        public void mouseEntered(MouseEvent e)    {
+            updateFrameCursor();
+        }
+
         public void mouseExited(MouseEvent e)    {
-	    frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));	
+            updateFrameCursor();
 	}
+
     };    /// End BorderListener Class
 
     protected class ComponentHandler implements ComponentListener {
@@ -1121,7 +1141,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
     }
 
     protected MouseInputListener createGlassPaneDispatcher() {
-        return getHandler();
+        return null;
     }
 
     
@@ -1170,6 +1190,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
         }
 
         public void windowLostFocus(WindowEvent e) {
+            // Cancel a resize which may be in progress, when a
+            // WINDOW_LOST_FOCUS event occurs, which may be
+            // caused by an Alt-Tab or a modal dialog popup.
             cancelResize();
         }
 
@@ -1347,206 +1370,19 @@ public class BasicInternalFrameUI extends InternalFrameUI
         private Component mouseEventTarget = null;
         private Component dragSource = null;
 
-        public void mousePressed(MouseEvent e) {
-            // what is going on here is the GlassPane is up on the inactive
-            // internalframe and want's to "catch" the first mousePressed on
-            // the frame in order to give it to the BorderLister (and not the
-            // underlying component) and let it activate the frame
-            if (borderListener != null){
-                borderListener.mousePressed(e);
-            } 
-            forwardMouseEvent(e);
-        }
+        public void mousePressed(MouseEvent e) { }
 
-        /** 
-         * Forward the mouseEntered event to the underlying child container.
-         * @see #mousePressed
-         */
-        public void mouseEntered(MouseEvent e) {
-            forwardMouseEvent(e);
-        }
+        public void mouseEntered(MouseEvent e) { }
 
-        /** 
-         * Forward the mouseMoved event to the underlying child container.
-         * @see #mousePressed
-         */
+        public void mouseMoved(MouseEvent e) { }
 
-        public void mouseMoved(MouseEvent e) {
-            forwardMouseEvent(e);
-        }
-
-        /** 
-         * Forward the mouseExited event to the underlying child container.
-         * @see #mousePressed
-         */
-        public void mouseExited(MouseEvent e) {
-            forwardMouseEvent(e);
-        }
-
-        /** 
-         * Ignore mouseClicked events.
-         * @see #mousePressed
-         */
+        public void mouseExited(MouseEvent e) { }
 
         public void mouseClicked(MouseEvent e) { }
-        /** 
-         * Forward the mouseReleased event to the underlying child container.
-         * @see #mousePressed
-         */
-        public void mouseReleased(MouseEvent e) {
-            forwardMouseEvent(e);
-        }
 
-        /** 
-         * Forward the mouseDragged event to the underlying child container.
-         * @see #mousePressed
-         */
-        public void mouseDragged(MouseEvent e) {
-            forwardMouseEvent(e);
-        }
+        public void mouseReleased(MouseEvent e) { }
 
-        /**
-         * Forward a mouse event to the current mouse target, setting it
-         * if necessary.
-         */
-        private void forwardMouseEvent(MouseEvent e) {
-            // We only want to do this for the selected internal frame.
-            Component target =
-                findComponentAt(frame.getRootPane().getLayeredPane(), 
-                    e.getX(), e.getY());
-
-            // Search hierarchy for target with mouse listeners.
-            while ((target != null)                                &&
-                   ((target.getMouseListeners().length == 0)       &&
-                    (target.getMouseMotionListeners().length == 0) &&
-                    (target.getMouseWheelListeners().length == 0))) {
-                target = target.getParent();
-            }
-            if (target == null) {
-                // No target found with mouse listeners.
-                return;
-            }
-
-            int id = e.getID();
-            switch(id) {
-                case MouseEvent.MOUSE_ENTERED:
-                    if (isDragging && !frame.isSelected()) {
-                        return;
-                    }
-                    if (target != mouseEventTarget) {
-                        mouseEventTarget = target;
-                    }
-                    retargetMouseEvent(id, e, mouseEventTarget);
-                    break;
-                case MouseEvent.MOUSE_PRESSED:
-                    if (target != mouseEventTarget) {
-                        mouseEventTarget = target;
-                    }
-                    retargetMouseEvent(id, e, mouseEventTarget);
-                    // Set the drag source in case we start dragging.
-                    dragSource = target;
-                    break;
-                case MouseEvent.MOUSE_EXITED:
-                    if (isDragging && !frame.isSelected()) {
-                        return;
-                    }
-                    retargetMouseEvent(id, e, mouseEventTarget);
-                    break;
-                case MouseEvent.MOUSE_CLICKED:
-                    retargetMouseEvent(id, e, mouseEventTarget);
-                    break;
-                case MouseEvent.MOUSE_MOVED:
-                    if (target != mouseEventTarget) {
-                        retargetMouseEvent(MouseEvent.MOUSE_EXITED, e,
-                                mouseEventTarget);
-                        mouseEventTarget = target;
-                        retargetMouseEvent(MouseEvent.MOUSE_ENTERED, e,
-                                mouseEventTarget);
-                    }
-                    retargetMouseEvent(id, e, mouseEventTarget);
-                    break;
-                case MouseEvent.MOUSE_DRAGGED:
-                    if (!isDragging) {
-                        isDragging = true;
-                    }
-                    retargetMouseEvent(id, e, dragSource);
-                    break;
-                case MouseEvent.MOUSE_RELEASED:
-                    if (isDragging) {
-                        retargetMouseEvent(id, e, dragSource);
-                        isDragging = false;
-                    } else {
-                        retargetMouseEvent(id, e, mouseEventTarget);
-                    }
-                    break;
-                case MouseEvent.MOUSE_WHEEL:
-                    retargetMouseEvent(id, e, mouseEventTarget);
-                    break;
-            }
-        }
-
-    /**
-     * Find the lightweight child component which corresponds to the
-     * specified location.  This is similar to the new 1.2 API in
-     * Container, but we need to run on 1.1.  The other changes are
-     * due to Container.findComponentAt's use of package-private data.
-     */
-      private Component findComponentAt(Container c, int x, int y) {
-        if (!c.contains(x, y)) {
-	  return c;
-        }
-        int ncomponents = c.getComponentCount();
-        Component component[] = c.getComponents();
-        for (int i = 0 ; i < ncomponents ; i++) {
-	  Component comp = component[i];
-	  Point loc = comp.getLocation();
-	  if ((comp != null) && (comp.contains(x - loc.x, y - loc.y)) &&
-	      (comp.getPeer() instanceof LightweightPeer) &&
-	      (comp.isVisible() == true)) {
-	    // found a component that intersects the point, see if there
-	    // is a deeper possibility.
-	    if (comp instanceof Container) {
-	      Container child = (Container) comp;
-	      Point childLoc = child.getLocation();
-	      Component deeper = findComponentAt(child,
-						 x - childLoc.x, y - childLoc.y);
-	      if (deeper != null) {
-		return deeper;
-	      }
-	    } else {
-	      return comp;
-	    }
-	  }
-        }
-        return c;
-      }
-
-        /**
-         * Dispatch an event clone, retargeted for the specified target.
-         */
-        private void retargetMouseEvent(int id, MouseEvent e,
-                Component target) {
-            if (target == null) {
-                return;
-            }
-            // fix for bug #4202966 -- hania
-            // When retargetting a mouse event, we need to translate
-            // the event's coordinates relative to the target.
-
-            Point p = SwingUtilities.convertPoint(frame.getLayeredPane(),
-                                                e.getX(), e.getY(),
-                                                target);
-            MouseEvent retargeted = new MouseEvent(target, 
-                id,
-                e.getWhen(),
-                e.getModifiers() | e.getModifiersEx(),
-                p.x,
-                p.y,
-                e.getClickCount(),
-                e.isPopupTrigger());
-            target.dispatchEvent(retargeted);
-        }
-
+        public void mouseDragged(MouseEvent e) { }
 
         // PropertyChangeListener
         public void propertyChange(PropertyChangeEvent evt) {
@@ -1557,6 +1393,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
             if (JInternalFrame.IS_CLOSED_PROPERTY == prop) {
                 if (newValue == Boolean.TRUE) {
+                    // Cancel a resize in progress if the internal frame
+                    // gets a setClosed(true) or dispose().
                     cancelResize();
                     if ((frame.getParent() != null) && componentListenerAdded) {
                         frame.getParent().removeComponentListener(
@@ -1577,17 +1415,16 @@ public class BasicInternalFrameUI extends InternalFrameUI
                     deiconifyFrame(f);
                 }
             } else if (JInternalFrame.IS_SELECTED_PROPERTY == prop) {
-                Component glassPane = f.getGlassPane();
                 if (newValue == Boolean.TRUE && oldValue == Boolean.FALSE) {
                     activateFrame(f);
-                    glassPane.setVisible(false);
                 } else if (newValue == Boolean.FALSE &&
                            oldValue == Boolean.TRUE) {
                     deactivateFrame(f);
-                    glassPane.setVisible(true);
                 }
             } else if (prop == "ancestor") {
                 if (newValue == null) {
+                    // Cancel a resize in progress, if the internal frame
+                    // gets a remove(), removeNotify() or setIcon(true).
                     cancelResize();
                 }
                 if (frame.getParent() != null) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMManager.java,v 1.18 2004/02/23 10:29:36 aruny Exp $
+ * $Id: DTMManager.java,v 1.2.4.1 2005/09/15 08:14:54 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -284,28 +284,63 @@ public abstract class DTMManager
   public abstract DTMIterator createDTMIterator(int node);
   
   /* Flag indicating whether an incremental transform is desired */
-  public static boolean m_incremental = false;  
+  public boolean m_incremental = false;
+  
+  /*
+   * Flag set by FEATURE_SOURCE_LOCATION.
+   * This feature specifies whether the transformation phase should
+   * keep track of line and column numbers for the input source
+   * document. 
+   */
+  public boolean m_source_location = false; 
   
   /**
-   * Set a flag indicating whether an incremental transform is desired 
-   * @param incremental boolean to use to set m_incremental.
+   * Get a flag indicating whether an incremental transform is desired 
+   * @return incremental boolean.
    *
    */
-  public synchronized static boolean getIncremental()
+  public boolean getIncremental()
   {
     return m_incremental;  
   }
   
   /**
-   * Set a flag indicating whether an incremental transform is desired 
+   * Set a flag indicating whether an incremental transform is desired
+   * This flag should have the same value as the FEATURE_INCREMENTAL feature
+   * which is set by the TransformerFactory.setAttribut() method before a
+   * DTMManager is created
    * @param incremental boolean to use to set m_incremental.
    *
    */
-  public synchronized static void setIncremental(boolean incremental)
+  public void setIncremental(boolean incremental)
   {
     m_incremental = incremental;  
   }
   
+  /**
+   * Get a flag indicating whether the transformation phase should
+   * keep track of line and column numbers for the input source
+   * document.
+   * @return source location boolean
+   *
+   */
+  public boolean getSource_location()
+  {
+    return m_source_location;  
+  }  
+  
+  /**
+   * Set a flag indicating whether the transformation phase should
+   * keep track of line and column numbers for the input source
+   * document.
+   * This flag should have the same value as the FEATURE_SOURCE_LOCATION feature
+   * which is set by the TransformerFactory.setAttribut() method before a
+   * DTMManager is created
+   * @param sourceLocation boolean to use to set m_source_location
+   */
+  public void setSource_location(boolean sourceLocation){
+    m_source_location = sourceLocation;
+  }
   
 
   // -------------------- private methods --------------------

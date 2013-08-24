@@ -1,17 +1,17 @@
 /*
- * @(#)ActivationMonitor.java	1.15 03/12/19
+ * @(#)ActivationMonitor.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.activation;
 
 import java.rmi.MarshalledObject;
-import java.rmi.activation.UnknownObjectException;
-import java.rmi.activation.UnknownGroupException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.rmi.activation.UnknownGroupException;
+import java.rmi.activation.UnknownObjectException;
 
 /**
  * An <code>ActivationMonitor</code> is specific to an
@@ -23,7 +23,7 @@ import java.rmi.RemoteException;
  * inactive, or the group as a whole becomes inactive.
  *
  * @author 	Ann Wollrath
- * @version	1.15, 12/19/03
+ * @version	1.17, 11/17/05
  * @see		Activator
  * @see		ActivationSystem
  * @see 	ActivationGroup
@@ -68,7 +68,8 @@ public interface ActivationMonitor extends Remote {
      * @exception RemoteException if remote call fails
      * @since 1.2
      */
-    public void activeObject(ActivationID id, MarshalledObject obj)
+    public void activeObject(ActivationID id,
+			     MarshalledObject<? extends Remote> obj)
 	throws UnknownObjectException, RemoteException;
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)BandedSampleModel.java	1.35 04/01/06
+ * @(#)BandedSampleModel.java	1.37 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -227,7 +227,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds, or if obj is non-null and is not large enough to hold
      * the pixel data.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param obj       If non-null, a primitive array in which to return
      *                  the pixel data.
      * @param data      The DataBuffer containing the image data.
@@ -344,7 +345,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * Returns all samples for the specified pixel in an int array.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param iArray    If non-null, returns the samples in this array
      * @param data      The DataBuffer containing the image data 
      * @return the samples for the specified pixel.
@@ -377,7 +379,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * an int array, one sample per data array element.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle
      * @param iArray    If non-null, returns the samples in this array
@@ -421,7 +424,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * located at (x,y).
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to return
      * @param data      The DataBuffer containing the image data
      * @return the sample in the specified band for the specified pixel.
@@ -444,7 +448,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * for the pixel located at (x,y) as a float.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y Thecoordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to return
      * @param data      The DataBuffer containing the image data
      * @return a float value that represents the sample in the specified
@@ -467,7 +472,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * for a pixel located at (x,y) as a double.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to return
      * @param data      The DataBuffer containing the image data
      * @return a double value that represents the sample in the specified
@@ -490,7 +496,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * of pixels in an int array, one sample per data array element.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle
      * @param b         The band to return
@@ -556,7 +563,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * a ClassCastException is thrown.  An
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds, or if obj is not large enough to hold the pixel data.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param obj       If non-null, returns the primitive array in this
      *                  object
      * @param data      The DataBuffer containing the image data
@@ -631,7 +639,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * Sets a pixel in the DataBuffer using an int array of samples for input.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param iArray    The input samples in an int array
      * @param data      The DataBuffer containing the image data
      * @see #getPixel(int, int, int[], DataBuffer)
@@ -653,7 +662,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * one sample per array element.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle
      * @param iArray    The input samples in an int array
@@ -688,7 +698,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * in the DataBuffer using an int for input.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to set
      * @param s         The input sample as an int
      * @param data      The DataBuffer containing the image data
@@ -710,7 +721,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * in the DataBuffer using a float for input.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to set
      * @param s         The input sample as a float
      * @param data      The DataBuffer containing the image data
@@ -733,7 +745,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * in the DataBuffer using a double for input.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to set  
      * @param s         The input sample as a double
      * @param data      The DataBuffer containing the image data
@@ -756,7 +769,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * of pixels from an int array containing one sample per data array element.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle
      * @param b         The band to set

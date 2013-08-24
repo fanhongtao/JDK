@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Function2Args.java,v 1.13 2004/02/17 04:34:01 minchau Exp $
+ * $Id: Function2Args.java,v 1.2.4.1 2005/09/14 20:18:46 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.XPathVisitor;
  */
 public class Function2Args extends FunctionOneArg
 {
+    static final long serialVersionUID = 5574294996842710641L;
 
   /** The second argument passed to the function (at index 1).
    *  @serial  */
@@ -147,7 +148,7 @@ public class Function2Args extends FunctionOneArg
 
    
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callArgVisitors(XPathVisitor visitor)
   {

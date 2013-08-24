@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsToolBarSeparatorUI.java	1.17 06/03/22
+ * @(#)WindowsToolBarSeparatorUI.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,12 +13,15 @@ import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.*;
 import javax.swing.*;
 
+import static com.sun.java.swing.plaf.windows.TMSchema.Part;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 
 /**
  * Draws Windows toolbar separators.
  * <p>
  *
- * @version 1.17 03/22/06
+ * @version 1.19 11/17/05
  * @author Mark Davidson
  */
 public class WindowsToolBarSeparatorUI extends BasicToolBarSeparatorUI {
@@ -37,8 +40,8 @@ public class WindowsToolBarSeparatorUI extends BasicToolBarSeparatorUI {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
 		boolean vertical = ((JSeparator)c).getOrientation() == SwingConstants.VERTICAL;
-		String category = vertical ? "toolbar.separator" : "toolbar.separatorvert";
-		XPStyle.Skin skin = xp.getSkin(c, category);
+		Part part = vertical ? Part.TP_SEPARATOR : Part.TP_SEPARATORVERT;
+		Skin skin = xp.getSkin(c, part);
 		size.width = skin.getWidth();
 		size.height = skin.getHeight();
 	    }
@@ -67,14 +70,14 @@ public class WindowsToolBarSeparatorUI extends BasicToolBarSeparatorUI {
 
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    String category = vertical ? "toolbar.separator" : "toolbar.separatorvert";
-	    XPStyle.Skin skin = xp.getSkin(c, category);
+	    Part part = vertical ? Part.TP_SEPARATOR : Part.TP_SEPARATORVERT;
+	    Skin skin = xp.getSkin(c, part);
 
 	    int dx = vertical ? (size.width - skin.getWidth()) / 2 : 0;
 	    int dy = vertical ? 0 : (size.height - skin.getHeight()) / 2;
 	    int dw = vertical ? skin.getWidth() : size.width;
 	    int dh = vertical ? size.height : skin.getHeight();
-	    skin.paintSkin(g, dx, dy, dw, dh, 0);
+	    skin.paintSkin(g, dx, dy, dw, dh, null);
 	} else {
 
 	Color temp = g.getColor();

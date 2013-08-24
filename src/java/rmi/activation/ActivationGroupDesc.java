@@ -1,22 +1,18 @@
 /*
- * @(#)ActivationGroupDesc.java	1.28 03/12/19
+ * @(#)ActivationGroupDesc.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.activation;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.rmi.MarshalledObject;
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Properties;
-
 
 /**
  * An activation group descriptor contains the information necessary to
@@ -37,13 +33,13 @@ import java.util.Properties;
  * <li> the group's initialization data (in a
  * <code>java.rmi.MarshalledObject</code>)</ul><p>
  *
- * @version	1.28, 12/19/03
+ * @version	1.31, 11/17/05
  * @author	Ann Wollrath
  * @since	1.2
  * @see		ActivationGroup
  * @see		ActivationGroupID
  */
-public final class ActivationGroupDesc implements java.io.Serializable {
+public final class ActivationGroupDesc implements Serializable {
 
     /**
      * @serial The group's fully package qualified class name.
@@ -58,7 +54,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
     /**
      * @serial The group's initialization data.
      */
-    private MarshalledObject data;
+    private MarshalledObject<?> data;
 
     /**
      * @serial The controlling options for executing the VM in
@@ -120,7 +116,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      */
     public ActivationGroupDesc(String className,
 			       String location,
-			       MarshalledObject data,
+			       MarshalledObject<?> data,
 			       Properties overrides,
                                CommandEnvironment cmd)
     {
@@ -156,7 +152,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      * @return the group's initialization data
      * @since 1.2
      */
-    public MarshalledObject getData() {
+    public MarshalledObject<?> getData() {
 	return data;
     }
 
@@ -186,9 +182,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      * specifying implementation-defined options for ActivationGroups.
      * @since 1.2
      */
-    public static class CommandEnvironment
-	implements java.io.Serializable
-    {
+    public static class CommandEnvironment implements Serializable {
 	private static final long serialVersionUID = 6165754737887770191L;
 
 	/**
@@ -223,7 +217,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 
 	    // Hold a safe copy of argv in this.options
 	    if (argv == null) {
-		this.options = null;
+		this.options = new String[0];
 	    } else {
 		this.options = new String[argv.length];
 		System.arraycopy(argv, 0, this.options, 0, argv.length);
@@ -252,9 +246,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	 * @since 1.2
 	 */
 	public String[] getCommandOptions() {
-	    return (this.options != null
-		    ? (String[]) this.options.clone()
-		    : new String[0]);
+	    return (String[]) options.clone();
 	}
 	
 	/**
@@ -289,6 +281,26 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 	    // hash command and ignore possibly expensive options
 	    return (command == null ? 0 : command.hashCode());
 	}
+
+	/**
+	 * <code>readObject</code> for custom serialization.
+	 *
+	 * <p>This method reads this object's serialized form for this
+	 * class as follows:
+	 * 
+	 * <p>This method first invokes <code>defaultReadObject</code> on
+	 * the specified object input stream, and if <code>options</code>
+	 * is <code>null</code>, then <code>options</code> is set to a
+	 * zero-length array of <code>String</code>.
+	 */
+	private void readObject(ObjectInputStream in)
+    	    throws IOException, ClassNotFoundException
+	{
+	    in.defaultReadObject();
+	    if (options == null) {
+		options = new String[0];
+	    }
+	}
     }
 
     /**
@@ -322,8 +334,7 @@ public final class ActivationGroupDesc implements java.io.Serializable {
      * @return an integer
      * @see java.util.Hashtable
      */
-    public int hashCode()
-    {
+    public int hashCode() {
 	// hash location, className, data, and env
 	// but omit props (may be expensive)
 	return ((location == null
@@ -339,6 +350,4 @@ public final class ActivationGroupDesc implements java.io.Serializable {
 		    ? 0
 		    : data.hashCode()));
     }
-    
 }
-

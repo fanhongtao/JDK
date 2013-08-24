@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPATHMessages.java,v 1.5 2004/02/17 04:36:46 minchau Exp $
+ * $Id: XPATHMessages.java,v 1.2.4.1 2005/09/01 14:57:34 pvedula Exp $
  */
 package com.sun.org.apache.xpath.internal.res;
 
@@ -39,7 +39,7 @@ public class XPATHMessages extends XMLMessages
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
    *
-   * @param errorCode The key for the message text.
+   * @param msgKey    The key for the message text.
    * @param args      The arguments to be used as replacement text
    *                  in the message created.
    *
@@ -84,8 +84,6 @@ public class XPATHMessages extends XMLMessages
   /**
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
-   *
-   * @param errorCode The key for the message text.
    *
    * @param fResourceBundle The resource bundle to use.
    * @param msgKey  The message key to use.

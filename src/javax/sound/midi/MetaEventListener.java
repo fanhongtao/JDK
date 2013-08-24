@@ -1,7 +1,7 @@
 /*
- * @(#)MetaEventListener.java	1.16 03/12/19
+ * @(#)MetaEventListener.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.EventListener;
  * <code>{@link Sequencer#addMetaEventListener(MetaEventListener) addMetaEventListener}</code>
  * method of <code>Sequencer</code>.
  *
- * @version 1.16, 03/12/19
+ * @version 1.17, 05/11/17
  * @author Kara Kytle
  */
 public interface MetaEventListener extends EventListener {

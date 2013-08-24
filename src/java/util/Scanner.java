@@ -1,7 +1,7 @@
 /*
- * @(#)Scanner.java	1.15 04/07/15
+ * @(#)Scanner.java	1.27 06/06/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,6 @@ import java.nio.channels.*;
 import java.nio.charset.*;
 import java.text.*;
 import java.util.Locale;
-import sun.io.Converters;
 import sun.misc.LRUCache;
 
 /**
@@ -68,12 +67,14 @@ import sun.misc.LRUCache;
  *     s.findInLine("(\\d+) fish (\\d+) fish (\\w+) fish (\\w+)");
  *     MatchResult result = s.match();
  *     for (int i=1; i<=result.groupCount(); i++)
- *         System.out.println(result.group(i);
+ *         System.out.println(result.group(i));
  *     s.close(); </pre></blockquote>
  *
- * <p>The default whitespace delimiter used by a scanner is as
- * recognized by {@link java.lang.Character}.{@link
- * java.lang.Character#isWhitespace(char) isWhitespace}. 
+ * <p>The <a name="default-delimiter">default whitespace delimiter</a> used 
+ * by a scanner is as recognized by {@link java.lang.Character}.{@link
+ * java.lang.Character#isWhitespace(char) isWhitespace}. The {@link #reset}
+ * method will reset the value of the scanner's delimiter to the default
+ * whitespace delimiter regardless of whether it was previously changed.
  * 
  * <p>A scanning operation may block waiting for input.
  *
@@ -119,16 +120,20 @@ import sun.misc.LRUCache;
  * <code>NullPointerException</code> to be thrown.
  *
  * <p>A scanner will default to interpreting numbers as decimal unless a
- * different radix has been set by using the {@link #useRadix} method.
+ * different radix has been set by using the {@link #useRadix} method. The
+ * {@link #reset} method will reset the value of the scanner's radix to
+ * <code>10</code> regardless of whether it was previously changed.
  *
  * <a name="localized-numbers">
  * <h4> Localized numbers </h4>
  *
  * <p> An instance of this class is capable of scanning numbers in the standard
  * formats as well as in the formats of the scanner's locale. A scanner's 
- * initial locale is the value returned by the {@link
+ * <a name="initial-locale">initial locale </a>is the value returned by the {@link
  * java.util.Locale#getDefault} method; it may be changed via the {@link
- * #useLocale} method.
+ * #useLocale} method. The {@link #reset} method will reset the value of the
+ * scanner's locale to the initial locale regardless of whether it was
+ * previously changed.
  *
  * <p>The localized formats are defined in terms of the following parameters, 
  * which for a particular locale are taken from that locale's {@link
@@ -171,8 +176,8 @@ import sun.misc.LRUCache;
  *     <td valign="top">The string that represents not-a-number for
  *                      floating-point values,
  *                      <i>i.e.,</i>&nbsp;<tt>dfs.</tt>{@link
- *                      java.text.DecimalFormatSymbols#getInfinity
- *                      getInfinity()}</td></tr>
+ *                      java.text.DecimalFormatSymbols#getNaN
+ *                      getNaN()}</td></tr>
  * <tr><td valign="top"><i>LocalInfinity&nbsp;&nbsp;</i></td>
  *     <td valign="top">The string that represents infinity for floating-point
  *                      values, <i>i.e.,</i>&nbsp;<tt>dfs.</tt>{@link
@@ -317,7 +322,7 @@ import sun.misc.LRUCache;
  *
  * <p> Whitespace is not significant in the above regular expressions.
  *
- * @version 1.15, 07/15/04 
+ * @version 1.27, 06/28/06 
  * @since   1.5
  */
 public final class Scanner implements Iterator<String> {
@@ -468,13 +473,23 @@ public final class Scanner implements Iterator<String> {
      * Fields and an accessor method to match line separators
      */
     private static volatile Pattern separatorPattern;
+    private static volatile Pattern linePattern;
     private static final String LINE_SEPARATOR_PATTERN = 
                                            "\r\n|[\n\r\u2028\u2029\u0085]";
+    private static final String LINE_PATTERN = ".*("+LINE_SEPARATOR_PATTERN+")|.+$";
+
     private static Pattern separatorPattern() {
         Pattern sp = separatorPattern;
         if (sp == null)
             separatorPattern = sp = Pattern.compile(LINE_SEPARATOR_PATTERN);
         return sp;
+    }
+
+    private static Pattern linePattern() {
+        Pattern lp = linePattern;
+        if (lp == null)
+            linePattern = lp = Pattern.compile(LINE_PATTERN);
+        return lp;
     }
 
     /**
@@ -567,7 +582,7 @@ public final class Scanner implements Iterator<String> {
      * Constructs a new <code>Scanner</code> that produces values scanned
      * from the specified input stream. Bytes from the stream are converted 
      * into characters using the underlying platform's
-     * {@linkplain java.nio.charset.Charset#defaultCharset default charset}.
+     * {@linkplain java.nio.charset.Charset#defaultCharset() default charset}.
      *
      * @param  source An input stream to be scanned
      */
@@ -610,7 +625,7 @@ public final class Scanner implements Iterator<String> {
      * Constructs a new <code>Scanner</code> that produces values scanned
      * from the specified file. Bytes from the file are converted into 
      * characters using the underlying platform's
-     * {@linkplain java.nio.charset.Charset#defaultCharset default charset}.
+     * {@linkplain java.nio.charset.Charset#defaultCharset() default charset}.
      *
      * @param  source A file to be scanned
      * @throws FileNotFoundException if source is not found
@@ -654,7 +669,7 @@ public final class Scanner implements Iterator<String> {
      * Constructs a new <code>Scanner</code> that produces values scanned
      * from the specified channel. Bytes from the source are converted into 
      * characters using the underlying platform's
-     * {@linkplain java.nio.charset.Charset#defaultCharset default charset}.
+     * {@linkplain java.nio.charset.Charset#defaultCharset() default charset}.
      *
      * @param  source A channel to scan
      */
@@ -715,10 +730,16 @@ public final class Scanner implements Iterator<String> {
         return b;
     }
 
-    private void cacheResult(Pattern p) {
-        hasNextPattern = p;
+    private void cacheResult() {
         hasNextResult = matcher.group();
         hasNextPosition = matcher.end();
+        hasNextPattern = matcher.pattern();
+    }
+
+    private void cacheResult(String result) {
+        hasNextResult = result;
+        hasNextPosition = matcher.end();
+        hasNextPattern = matcher.pattern();
     }
 
     // Clears both regular cache and type cache
@@ -1093,7 +1114,10 @@ public final class Scanner implements Iterator<String> {
      *
      * <p> An invocation of this method of the form 
      * <tt>useDelimiter(pattern)</tt> behaves in exactly the same way as the
-     * invocation <tt>hasDelimiter(Pattern.compile(pattern))</tt>.
+     * invocation <tt>useDelimiter(Pattern.compile(pattern))</tt>.
+     *
+     * <p> Invoking the {@link #reset} method will set the scanner's delimiter
+     * to the <a href= "#default-delimiter">default</a>.
      *
      * @param pattern A string specifying a delimiting pattern
      * @return this scanner
@@ -1123,6 +1147,9 @@ public final class Scanner implements Iterator<String> {
      * primitive matching regular expressions; see 
      * <a href= "#localized-numbers">localized numbers</a> above.
      *
+     * <p>Invoking the {@link #reset} method will set the scanner's locale to
+     * the <a href= "#initial-locale">initial locale</a>.
+     *
      * @param locale A string specifying the locale to use
      * @return this scanner
      */
@@ -1133,7 +1160,7 @@ public final class Scanner implements Iterator<String> {
         this.locale = locale;
         DecimalFormat df = 
             (DecimalFormat)NumberFormat.getNumberInstance(locale);
-        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(locale);
 
         // These must be literalized to avoid collision with regex
         // metacharacters such as dot or parenthesis
@@ -1188,6 +1215,9 @@ public final class Scanner implements Iterator<String> {
      * <p>If the radix is less than <code>Character.MIN_RADIX</code>
      * or greater than <code>Character.MAX_RADIX</code>, then an
      * <code>IllegalArgumentException</code> is thrown.
+     *
+     * <p>Invoking the {@link #reset} method will set the scanner's radix to
+     * <code>10</code>.
      *
      * @param radix The radix to use when scanning numbers
      * @return this scanner
@@ -1385,7 +1415,7 @@ public final class Scanner implements Iterator<String> {
         while (true) {
             if (getCompleteTokenInBuffer(pattern) != null) {
                 matchValid = true;
-                cacheResult(pattern);
+                cacheResult();
                 return revertState(true);
             }
             if (needInput)
@@ -1442,8 +1472,20 @@ public final class Scanner implements Iterator<String> {
      */
     public boolean hasNextLine() {
         saveState();
-        String result = findWithinHorizon(
-            ".*("+LINE_SEPARATOR_PATTERN+")|.+$", 0);
+
+        String result = findWithinHorizon(linePattern(), 0);
+        if (result != null) {
+            MatchResult mr = this.match();
+            String lineSep = mr.group(1);
+            if (lineSep != null) {
+                result = result.substring(0, result.length() -
+					  lineSep.length());
+                cacheResult(result);
+             
+            } else {
+                cacheResult();
+            }
+        }
         revertState();
         return (result != null);
     }
@@ -1465,8 +1507,11 @@ public final class Scanner implements Iterator<String> {
      * @throws IllegalStateException if this scanner is closed
      */ 
     public String nextLine() {
-        String result = findWithinHorizon(
-            ".*("+LINE_SEPARATOR_PATTERN+")|.+$", 0);
+        if (hasNextPattern == linePattern())
+            return getCachedResult();
+        clearCaches();
+
+        String result = findWithinHorizon(linePattern, 0);
         if (result == null)
             throw new NoSuchElementException("No line found");
         MatchResult mr = this.match();
@@ -1520,7 +1565,6 @@ public final class Scanner implements Iterator<String> {
         if (pattern == null)
             throw new NullPointerException();
         clearCaches();
-
         // Expand buffer to include the next newline or end of input
         int endPosition = 0;
         saveState();
@@ -1539,7 +1583,11 @@ public final class Scanner implements Iterator<String> {
         }
         revertState();
         int horizonForLine = endPosition - position;
-
+        // If there is nothing between the current pos and the next
+        // newline simply return null, invoking findWithinHorizon 
+        // with "horizon=0" will scan beyond the line bound.
+        if (horizonForLine == 0)
+            return null;
         // Search for the pattern
         return findWithinHorizon(pattern, horizonForLine);
     }
@@ -1794,7 +1842,8 @@ public final class Scanner implements Iterator<String> {
      */
     public byte nextByte(int radix) {
         // Check cached result
-        if ((typeCache != null) && (typeCache instanceof Byte)) {
+        if ((typeCache != null) && (typeCache instanceof Byte) 
+	    && this.radix == radix) {
             byte val = ((Byte)typeCache).byteValue();
             useTypeCache();
             return val;
@@ -1899,7 +1948,8 @@ public final class Scanner implements Iterator<String> {
      */
     public short nextShort(int radix) {
         // Check cached result
-        if ((typeCache != null) && (typeCache instanceof Short)) {
+        if ((typeCache != null) && (typeCache instanceof Short)
+	    && this.radix == radix) {
             short val = ((Short)typeCache).shortValue();
             useTypeCache();
             return val;
@@ -2028,7 +2078,8 @@ public final class Scanner implements Iterator<String> {
      */
     public int nextInt(int radix) {
         // Check cached result
-        if ((typeCache != null) && (typeCache instanceof Integer)) {
+        if ((typeCache != null) && (typeCache instanceof Integer)
+	    && this.radix == radix) {
             int val = ((Integer)typeCache).intValue();
             useTypeCache();
             return val;
@@ -2114,7 +2165,7 @@ public final class Scanner implements Iterator<String> {
      *
      * <p> If the next token matches the <a
      * href="#Integer-regex"><i>Integer</i></a> regular expression defined 
-     * above then the token is converted into an <tt>long</tt> value as if by
+     * above then the token is converted into a <tt>long</tt> value as if by
      * removing all locale specific prefixes, group separators, and locale
      * specific suffixes, then mapping non-ASCII digits into ASCII
      * digits via {@link Character#digit Character.digit}, prepending a
@@ -2133,7 +2184,8 @@ public final class Scanner implements Iterator<String> {
      */
     public long nextLong(int radix) {
         // Check cached result
-        if ((typeCache != null) && (typeCache instanceof Long)) {
+        if ((typeCache != null) && (typeCache instanceof Long)
+	    && this.radix == radix) {
             long val = ((Long)typeCache).longValue();
             useTypeCache();
             return val;
@@ -2425,7 +2477,8 @@ public final class Scanner implements Iterator<String> {
      */
     public BigInteger nextBigInteger(int radix) {
         // Check cached result
-        if ((typeCache != null) && (typeCache instanceof BigInteger)) {
+        if ((typeCache != null) && (typeCache instanceof BigInteger)
+	    && this.radix == radix) {
             BigInteger val = (BigInteger)typeCache;
             useTypeCache();
             return val;
@@ -2506,5 +2559,34 @@ public final class Scanner implements Iterator<String> {
             throw new InputMismatchException(nfe.getMessage());
         }
     }
+
+    /**
+     * Resets this scanner.
+     *
+     * <p> Resetting a scanner discards all of its explicit state
+     * information which may have been changed by invocations of {@link
+     * #useDelimiter}, {@link #useLocale}, or {@link #useRadix}.
+     *
+     * <p> An invocation of this method of the form
+     * <tt>scanner.reset()</tt> behaves in exactly the same way as the
+     * invocation
+     *
+     * <blockquote><pre>
+     *   scanner.useDelimiter("\\p{javaWhitespace}+")
+     *          .useLocale(Locale.getDefault())
+     *          .useRadix(10);
+     * </pre></blockquote>
+     *
+     * @return this scanner
+     *
+     * @since 1.6
+     */
+    public Scanner reset() {
+        delimPattern = WHITESPACE_PATTERN;
+        useLocale(Locale.getDefault());
+        useRadix(10);
+        clearCaches();
+        return this;
+    } 
 }
 

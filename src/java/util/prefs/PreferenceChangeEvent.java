@@ -1,7 +1,7 @@
 /*
- * @(#)PreferenceChangeEvent.java	1.6 03/12/19
+ * @(#)PreferenceChangeEvent.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.NotSerializableException;
  * serialization methods are implemented to throw NotSerializableException. 
  *
  * @author  Josh Bloch
- * @version 1.6, 12/19/03
+ * @version 1.7, 11/17/05
  * @see Preferences
  * @see PreferenceChangeListener
  * @see NodeChangeEvent

@@ -1,7 +1,7 @@
 /*
- * @(#)ConfigFile.java	1.18 03/12/19
+ * @(#)ConfigFile.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -11,8 +11,11 @@ import javax.security.auth.AuthPermission;
 import javax.security.auth.login.AppConfigurationEntry;
 import java.io.*;
 import java.util.*;
+import java.net.URI;
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.text.MessageFormat;
+import sun.security.util.Debug;
 import sun.security.util.ResourcesMgr;
 import sun.security.util.PropertyExpander;
 
@@ -32,8 +35,9 @@ import sun.security.util.PropertyExpander;
  *   <i>login.config.url.1</i>, <i>login.config.url.2</i>, ...,
  *   <i>login.config.url.X</i>.  These properties are set
  *   in the Java security properties file, which is located in the file named
- *   &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
- *   refers to the directory where the JDK was installed.
+ *   &lt;JAVA_HOME&gt;/lib/security/java.security.
+ *   &lt;JAVA_HOME&gt; refers to the value of the java.home system property,
+ *   and specifies the directory where the JRE is installed.
  *   Each property value specifies a <code>URL</code> pointing to a
  *   login configuration file to be loaded.  Read in and load
  *   each configuration.
@@ -64,7 +68,7 @@ import sun.security.util.PropertyExpander;
  * is exactly that syntax specified in the
  * <code>javax.security.auth.login.Configuration</code> class.
  * 
- * @version 1.6, 01/14/00
+ * @version 1.22, 11/17/05
  * @see javax.security.auth.login.LoginContext
  */
 public class ConfigFile extends javax.security.auth.login.Configuration {
@@ -74,31 +78,42 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
     private int linenum;
     private HashMap configuration;
     private boolean expandProp = true;
-    private boolean testing = false;
+    private URL url;
+
+    private static Debug debugConfig = Debug.getInstance("configfile");
+    private static Debug debugParser = Debug.getInstance("configparser");
 
     /**
      * Create a new <code>Configuration</code> object.
      */
     public ConfigFile() {
-	String expandProperties = (String)
-	    java.security.AccessController.doPrivileged
-	    (new java.security.PrivilegedAction() {
-	    public Object run() {
-		return System.getProperty("policy.expandProperties");
-	    }
-	});
-
-	if ("false".equals(expandProperties))
-	    expandProp = false;
-
 	try {
-	    init();
+	    init(url);
 	} catch (IOException ioe) {
 	    throw (SecurityException)
 		new SecurityException(ioe.getMessage()).initCause(ioe);
 	}
     }
 
+    /**
+     * Create a new <code>Configuration</code> object from the specified URI.
+     *
+     * @param uri Create a new Configuration object from this URI.
+     */
+    public ConfigFile(URI uri) {
+	// only load config from the specified URI
+	try {
+	    url = uri.toURL();
+	    init(url);
+	} catch (MalformedURLException mue) {
+	    throw (SecurityException)
+		new SecurityException(mue.getMessage()).initCause(mue);
+	} catch (IOException ioe) {
+	    throw (SecurityException)
+		new SecurityException(ioe.getMessage()).initCause(ioe);
+	}
+    }
+    
     /**
      * Read and initialize the entire login Configuration.
      *
@@ -108,14 +123,37 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
      * @exception SecurityException if the caller does not have permission
      *				to initialize the Configuration.
      */
-    private void init() throws IOException {
+    private void init(URL url) throws IOException {
 
 	boolean initialized = false;
 	FileReader fr = null;
 	String sep = File.separator;
 
+	if ("false".equals(System.getProperty("policy.expandProperties"))) {
+	    expandProp = false;
+	}
+
 	// new configuration
 	HashMap newConfig = new HashMap();
+
+	if (url != null) {
+
+	    /**
+	     * If the caller specified a URI via Configuration.getInstance,
+	     * we only read from that URI
+	     */
+	    if (debugConfig != null) {
+		debugConfig.println("reading " + url);
+	    }
+	    init(url, newConfig);
+	    configuration = newConfig;
+	    return;
+	}
+
+	/**
+	 * Caller did not specify URI via Configuration.getInstance.
+	 * Read from URLs listed in the java.security properties file.
+	 */
 
 	String allowSys = java.security.Security.getProperty
 						("policy.allowSystemProperty");
@@ -158,13 +196,17 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 		    }
 		}
 
-		if (testing)
-		    System.out.println("reading "+configURL);
+		if (debugConfig != null) {
+		    debugConfig.println("reading "+configURL);
+		}
 		init(configURL, newConfig);
 		initialized = true;
 		if (overrideAll) {
-		    if (testing)
-			System.out.println("overriding other policies!");
+		    if (debugConfig != null) {
+			debugConfig.println("overriding other policies!");
+		    }
+		    configuration = newConfig;
+		    return;
 		}
 	    }
 	}
@@ -176,8 +218,9 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 	    try {
 		config_url = PropertyExpander.expand
 			(config_url).replace(File.separatorChar, '/');
-		if (testing)
-			System.out.println("\tReading config: " + config_url);
+		if (debugConfig != null) {
+		    debugConfig.println("\tReading config: " + config_url);
+		}
 		init(new URL(config_url), newConfig);
 		initialized = true;
 	    } catch (PropertyExpander.ExpandException peee) {
@@ -194,9 +237,10 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 	if (initialized == false && n == 1 && config_url == null) {
 
 	    // get the config from the user's home directory
-	    if (testing)
-		System.out.println("\tReading Policy " +
+	    if (debugConfig != null) {
+		debugConfig.println("\tReading Policy " +
 				"from ~/.java.login.config");
+	    }
 	    config_url = System.getProperty("user.home");
 	    try {
 		init(new URL("file:" + config_url +
@@ -273,9 +317,10 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 	    (new java.security.PrivilegedAction() {
 	    public Object run() {
 		try {
-		    init();
+		    init(url);
 		} catch (java.io.IOException ioe) {
-		    throw new SecurityException(ioe.getLocalizedMessage());
+		    throw (SecurityException) new SecurityException
+				(ioe.getLocalizedMessage()).initCause(ioe);
 		}
 		return null;
 	    }
@@ -302,9 +347,6 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
  
 	lookahead = nextToken();
 	while (lookahead != StreamTokenizer.TT_EOF) {
- 
-	    if (testing)
-		System.out.print("\tReading next config entry: ");
 	    parseLoginEntry(newConfig);
 	}
     }
@@ -321,8 +363,9 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 	appName = st.sval;
 	lookahead = nextToken();
  
-	if (testing)
-	    System.out.println("appName = " + appName);
+	if (debugParser != null) {
+	    debugParser.println("\tReading next config entry: " + appName);
+	}
  
 	match("{");
  
@@ -373,17 +416,16 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 	    lookahead = nextToken();
  
 	    // create the new element
-	    if (testing) {
-		System.out.print("\t\t" + moduleClass + ", " + sflag);
+	    if (debugParser != null) {
+		debugParser.println("\t\t" + moduleClass + ", " + sflag);
 		java.util.Iterator i = options.keySet().iterator();
 		while (i.hasNext()) {
 		    key = (String)i.next();
-		    System.out.print(", " +
+		    debugParser.println("\t\t\t" +
 					key +
 					"=" +
 					(String)options.get(key));
 		}
-		System.out.println("");
 	    }
 	    AppConfigurationEntry entry = new AppConfigurationEntry
 							(moduleClass,
@@ -405,9 +447,6 @@ public class ConfigFile extends javax.security.auth.login.Configuration {
 	    throw new IOException(form.format(source));
 	}
 	newConfig.put(appName, configEntries);
-	if (testing)
-	    System.out.println("\t\t***Added entry for " +
-				appName + " to overall configuration***");
     }
 
     private String match(String expect) throws IOException {

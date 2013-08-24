@@ -1,7 +1,7 @@
 /*
- * @(#)JDialog.java	1.80 03/12/19
+ * @(#)JDialog.java	1.93 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -31,7 +31,7 @@ import java.applet.Applet;
  * as its only child.
  * The <code>contentPane</code> should be the parent of any children of the
  * <code>JDialog</code>. 
- * As a conveniance <code>add</code> and its variants, <code>remove</code> and
+ * As a convenience <code>add</code> and its variants, <code>remove</code> and
  * <code>setLayout</code> have been overridden to forward to the
  * <code>contentPane</code> as necessary. This means you can write:
  * <pre>
@@ -54,6 +54,11 @@ import java.applet.Applet;
  * on a different screen device than its owner.  See {@link java.awt.Frame} for
  * more information.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -72,12 +77,15 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.80 12/19/03
+ * @version 1.93 08/08/06
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
  */
-public class JDialog extends Dialog implements WindowConstants, Accessible, RootPaneContainer 
+public class JDialog extends Dialog implements WindowConstants,
+                                               Accessible,
+                                               RootPaneContainer,
+                               TransferHandler.HasGetTransferHandler
 {
     /**
      * Key into the AppContext, used to check if should provide decorations
@@ -105,110 +113,149 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      */
     protected boolean rootPaneCheckingEnabled = false;
 
+    /**
+     * The <code>TransferHandler</code> for this dialog.
+     */
+    private TransferHandler transferHandler;
 
     /**
-     * Creates a non-modal dialog without a title and without a specified
+     * Creates a modeless dialog without a title and without a specified
      * <code>Frame</code> owner.  A shared, hidden frame will be
      * set as the owner of the dialog.
      * <p>
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.     
+     * <p>
+     * NOTE: This constructor does not allow you to create an unowned
+     * <code>JDialog</code>. To create an unowned <code>JDialog</code>
+     * you must use either the <code>JDialog(Window)</code> or
+     * <code>JDialog(Dialog)</code> constructor with an argument of
+     * <code>null</code>.
      * 
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog() throws HeadlessException {
+    public JDialog() {
         this((Frame)null, false);
     }
 
     /**
-     * Creates a non-modal dialog without a title with the
+     * Creates a modeless dialog without a title with the
      * specified <code>Frame</code> as its owner.  If <code>owner</code>
      * is <code>null</code>, a shared, hidden frame will be set as the
      * owner of the dialog.
      * <p>
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.
+     * <p>
+     * NOTE: This constructor does not allow you to create an unowned
+     * <code>JDialog</code>. To create an unowned <code>JDialog</code>
+     * you must use either the <code>JDialog(Window)</code> or
+     * <code>JDialog(Dialog)</code> constructor with an argument of
+     * <code>null</code>.
      *
      * @param owner the <code>Frame</code> from which the dialog is displayed
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Frame owner) throws HeadlessException {
+    public JDialog(Frame owner) {
         this(owner, false);
     }
 
     /**
-     * Creates a modal or non-modal dialog without a title and
-     * with the specified owner <code>Frame</code>.  If <code>owner</code>
-     * is <code>null</code>, a shared, hidden frame will be set as the
-     * owner of the dialog.
+     * Creates a dialog with the specified owner <code>Frame</code>, modality
+     * and an empty title. If <code>owner</code> is <code>null</code>, 
+     * a shared, hidden frame will be set as the owner of the dialog.
      * <p>
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.     
+     * <p>
+     * NOTE: This constructor does not allow you to create an unowned
+     * <code>JDialog</code>. To create an unowned <code>JDialog</code>
+     * you must use either the <code>JDialog(Window)</code> or
+     * <code>JDialog(Dialog)</code> constructor with an argument of
+     * <code>null</code>.
      *
      * @param owner the <code>Frame</code> from which the dialog is displayed
-     * @param modal  true for a modal dialog, false for one that allows
-     *               others windows to be active at the same time
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @param modal specifies whether dialog blocks user input to other top-level 
+     *     windows when shown. If <code>true</code>, the modality type property is set to 
+     *     <code>DEFAULT_MODALITY_TYPE</code>, otherwise the dialog is modeless.     
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Frame owner, boolean modal) throws HeadlessException {
+    public JDialog(Frame owner, boolean modal) {
         this(owner, null, modal);
     }
 
     /**
-     * Creates a non-modal dialog with the specified title and
+     * Creates a modeless dialog with the specified title and
      * with the specified owner frame.  If <code>owner</code>
      * is <code>null</code>, a shared, hidden frame will be set as the
      * owner of the dialog.
      * <p>
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.     
+     * <p>
+     * NOTE: This constructor does not allow you to create an unowned
+     * <code>JDialog</code>. To create an unowned <code>JDialog</code>
+     * you must use either the <code>JDialog(Window)</code> or
+     * <code>JDialog(Dialog)</code> constructor with an argument of
+     * <code>null</code>.
      *
      * @param owner the <code>Frame</code> from which the dialog is displayed
      * @param title  the <code>String</code> to display in the dialog's
      *			title bar
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Frame owner, String title) throws HeadlessException {
+    public JDialog(Frame owner, String title) {
         this(owner, title, false);     
     }
 
     /**
-     * Creates a modal or non-modal dialog with the specified title 
-     * and the specified owner <code>Frame</code>.  If <code>owner</code>
-     * is <code>null</code>, a shared, hidden frame will be set as the
-     * owner of this dialog.  All constructors defer to this one.
+     * Creates a dialog with the specified title, owner <code>Frame</code>
+     * and modality. If <code>owner</code> is <code>null</code>, 
+     * a shared, hidden frame will be set as the owner of this dialog.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
      * <p>
      * NOTE: Any popup components (<code>JComboBox</code>,
      * <code>JPopupMenu</code>, <code>JMenuBar</code>)
      * created within a modal dialog will be forced to be lightweight.
      * <p>
-     * This constructor sets the component's locale property to the value
-     * returned by <code>JComponent.getDefaultLocale</code>.     
+     * NOTE: This constructor does not allow you to create an unowned
+     * <code>JDialog</code>. To create an unowned <code>JDialog</code>
+     * you must use either the <code>JDialog(Window)</code> or
+     * <code>JDialog(Dialog)</code> constructor with an argument of
+     * <code>null</code>.
      *
      * @param owner the <code>Frame</code> from which the dialog is displayed
      * @param title  the <code>String</code> to display in the dialog's
-     *			title bar
-     * @param modal  true for a modal dialog, false for one that allows
-     *               other windows to be active at the same time
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     *     title bar
+     * @param modal specifies whether dialog blocks user input to other top-level 
+     *     windows when shown. If <code>true</code>, the modality type property is set to 
+     *     <code>DEFAULT_MODALITY_TYPE</code> otherwise the dialog is modeless 
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
+     * 
+     * @see java.awt.Dialog.ModalityType 
+     * @see java.awt.Dialog.ModalityType#MODELESS 
+     * @see java.awt.Dialog#DEFAULT_MODALITY_TYPE 
+     * @see java.awt.Dialog#setModal 
+     * @see java.awt.Dialog#setModalityType 
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Frame owner, String title, boolean modal)
-        throws HeadlessException {
+    public JDialog(Frame owner, String title, boolean modal) {
         super(owner == null? SwingUtilities.getSharedOwnerFrame() : owner, 
               title, modal);
  	if (owner == null) {
@@ -220,28 +267,41 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Creates a modal or non-modal dialog with the specified title, 
-     * owner <code>Frame</code>, and <code>GraphicsConfiguration</code>.
-     * 
+     * Creates a dialog with the specified title, 
+     * owner <code>Frame</code>, modality and <code>GraphicsConfiguration</code>.
+     * If <code>owner</code> is <code>null</code>, 
+     * a shared, hidden frame will be set as the owner of this dialog.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
      * <p>
      * NOTE: Any popup components (<code>JComboBox</code>,
      * <code>JPopupMenu</code>, <code>JMenuBar</code>)
      * created within a modal dialog will be forced to be lightweight.
      * <p>
-     * This constructor sets the component's locale property to the value
-     * returned by <code>JComponent.getDefaultLocale</code>.     
+     * NOTE: This constructor does not allow you to create an unowned
+     * <code>JDialog</code>. To create an unowned <code>JDialog</code>
+     * you must use either the <code>JDialog(Window)</code> or
+     * <code>JDialog(Dialog)</code> constructor with an argument of
+     * <code>null</code>.
      *
      * @param owner the <code>Frame</code> from which the dialog is displayed
      * @param title  the <code>String</code> to display in the dialog's
-     *                  title bar
-     * @param modal  true for a modal dialog, false for one that allows
-     *               other windows to be active at the same time
+     *     title bar
+     * @param modal specifies whether dialog blocks user input to other top-level 
+     *     windows when shown. If <code>true</code>, the modality type property is set to 
+     *     <code>DEFAULT_MODALITY_TYPE</code>, otherwise the dialog is modeless. 
      * @param gc the <code>GraphicsConfiguration</code> 
-     * of the target screen device.  If <code>gc</code> is 
-     * <code>null</code>, the same
-     * <code>GraphicsConfiguration</code> as the owning Frame is used.    
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     *     of the target screen device.  If <code>gc</code> is 
+     *     <code>null</code>, the same
+     *     <code>GraphicsConfiguration</code> as the owning Frame is used.    
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.       
+     * @see java.awt.Dialog.ModalityType 
+     * @see java.awt.Dialog.ModalityType#MODELESS 
+     * @see java.awt.Dialog#DEFAULT_MODALITY_TYPE 
+     * @see java.awt.Dialog#setModal 
+     * @see java.awt.Dialog#setModalityType 
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      * @since 1.4
@@ -259,86 +319,100 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
 
     /**
-     * Creates a non-modal dialog without a title with the
+     * Creates a modeless dialog without a title with the
      * specified <code>Dialog</code> as its owner.
      * <p>
      * This constructor sets the component's locale property to the value 
      * returned by <code>JComponent.getDefaultLocale</code>.
      *
-     * @param owner the non-null <code>Dialog</code> from which the dialog is displayed
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @param owner the owner <code>Dialog</code> from which the dialog is displayed
+     *     or <code>null</code> if this dialog has no owner
+     * @exception HeadlessException <code>if GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Dialog owner) throws HeadlessException {
+    public JDialog(Dialog owner) {
         this(owner, false);
     }
 
     /**
-     * Creates a modal or non-modal dialog without a title and
-     * with the specified owner dialog.
+     * Creates a dialog with the specified owner <code>Dialog</code> and modality.
      * <p>
      * This constructor sets the component's locale property to the value 
      * returned by <code>JComponent.getDefaultLocale</code>.
      *
-     * @param owner the non-null <code>Dialog</code> from which the dialog is displayed
-     * @param modal  true for a modal dialog, false for one that allows
-     *               other windows to be active at the same time
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @param owner the owner <code>Dialog</code> from which the dialog is displayed
+     *     or <code>null</code> if this dialog has no owner
+     * @param modal specifies whether dialog blocks user input to other top-level 
+     *     windows when shown. If <code>true</code>, the modality type property is set to 
+     *     <code>DEFAULT_MODALITY_TYPE</code>, otherwise the dialog is modeless.  
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
+     * @see java.awt.Dialog.ModalityType 
+     * @see java.awt.Dialog.ModalityType#MODELESS 
+     * @see java.awt.Dialog#DEFAULT_MODALITY_TYPE 
+     * @see java.awt.Dialog#setModal 
+     * @see java.awt.Dialog#setModalityType 
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Dialog owner, boolean modal) throws HeadlessException {
+    public JDialog(Dialog owner, boolean modal) {
         this(owner, null, modal);
     }
 
     /**
-     * Creates a non-modal dialog with the specified title and
+     * Creates a modeless dialog with the specified title and
      * with the specified owner dialog.
      * <p>
      * This constructor sets the component's locale property to the value 
      * returned by <code>JComponent.getDefaultLocale</code>.
      *
-     * @param owner the non-null <code>Dialog</code> from which the dialog is displayed
+     * @param owner the owner <code>Dialog</code> from which the dialog is displayed
+     *     or <code>null</code> if this dialog has no owner
      * @param title  the <code>String</code> to display in the dialog's
      *			title bar
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Dialog owner, String title) throws HeadlessException {
+    public JDialog(Dialog owner, String title) {
         this(owner, title, false);     
     }
 
     /**
-     * Creates a modal or non-modal dialog with the specified title 
-     * and the specified owner frame. 
+     * Creates a dialog with the specified title, modality 
+     * and the specified owner <code>Dialog</code>. 
      * <p>
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.     
      *
-     * @param owner the non-null <code>Dialog</code> from which the dialog is displayed
+     * @param owner the owner <code>Dialog</code> from which the dialog is displayed
+     *     or <code>null</code> if this dialog has no owner
      * @param title  the <code>String</code> to display in the dialog's
-     *			title bar
-     * @param modal  true for a modal dialog, false for one that allows
-     *               other windows to be active at the same time
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
-     * returns true.
+     *	   title bar
+     * @param modal specifies whether dialog blocks user input to other top-level 
+     *     windows when shown. If <code>true</code>, the modality type property is set to 
+     *     <code>DEFAULT_MODALITY_TYPE</code>, otherwise the dialog is modeless 
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code>
+     *     returns <code>true</code>.
+     * @see java.awt.Dialog.ModalityType 
+     * @see java.awt.Dialog.ModalityType#MODELESS 
+     * @see java.awt.Dialog#DEFAULT_MODALITY_TYPE 
+     * @see java.awt.Dialog#setModal 
+     * @see java.awt.Dialog#setModalityType 
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
      */
-    public JDialog(Dialog owner, String title, boolean modal)
-        throws HeadlessException {
+    public JDialog(Dialog owner, String title, boolean modal) {
         super(owner, title, modal);
         dialogInit();
     }
 
     /**
-     * Creates a modal or non-modal dialog with the specified title, 
-     * owner <code>Dialog</code>, and <code>GraphicsConfiguration</code>.
+     * Creates a dialog with the specified title, owner <code>Dialog</code>, 
+     * modality and <code>GraphicsConfiguration</code>.
      * 
      * <p>
      * NOTE: Any popup components (<code>JComboBox</code>,
@@ -348,27 +422,173 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      * This constructor sets the component's locale property to the value
      * returned by <code>JComponent.getDefaultLocale</code>.     
      *
-     * @param owner the <code>Dialog</code> from which the dialog is displayed
+     * @param owner the owner <code>Dialog</code> from which the dialog is displayed
+     *     or <code>null</code> if this dialog has no owner
      * @param title  the <code>String</code> to display in the dialog's
-     *			title bar
-     * @param modal  true for a modal dialog, false for one that allows
-     *               other windows to be active at the same time
+     *     title bar
+     * @param modal specifies whether dialog blocks user input to other top-level 
+     *     windows when shown. If <code>true</code>, the modality type property is set to 
+     *     <code>DEFAULT_MODALITY_TYPE</code>, otherwise the dialog is modeless 
      * @param gc the <code>GraphicsConfiguration</code> 
-     * of the target screen device.  If <code>gc</code> is 
-     * <code>null</code>, the same
-     * <code>GraphicsConfiguration</code> as the owning Dialog is used.    
-     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     *     of the target screen device.  If <code>gc</code> is 
+     *     <code>null</code>, the same
+     *     <code>GraphicsConfiguration</code> as the owning Dialog is used.    
+     * @exception HeadlessException if <code>GraphicsEnvironment.isHeadless()</code> 
+     *     returns <code>true</code>.
+     * @see java.awt.Dialog.ModalityType 
+     * @see java.awt.Dialog.ModalityType#MODELESS 
+     * @see java.awt.Dialog#DEFAULT_MODALITY_TYPE 
+     * @see java.awt.Dialog#setModal 
+     * @see java.awt.Dialog#setModalityType 
      * @see java.awt.GraphicsEnvironment#isHeadless
      * @see JComponent#getDefaultLocale
-     * returns true.
      * @since 1.4
      */
     public JDialog(Dialog owner, String title, boolean modal,
-                   GraphicsConfiguration gc) throws HeadlessException {
-
+                   GraphicsConfiguration gc) {
         super(owner, title, modal, gc);
         dialogInit();
     }
+    
+    /**
+     * Creates a modeless dialog with the specified owner <code>Window</code> and
+     * an empty title.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.
+     *
+     * @param owner the <code>Window</code> from which the dialog is displayed or
+     *     <code>null</code> if this dialog has no owner
+     * @exception HeadlessException when
+     *    <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
+     * 
+     * @since 1.6
+     */
+    public JDialog(Window owner) {
+        this(owner, Dialog.ModalityType.MODELESS);
+    }
+    
+    /**
+     * Creates a dialog with the specified owner <code>Window</code>, modality
+     * and an empty title.
+     * <p>
+     * This constructor sets the component's locale property to the value 
+     * returned by <code>JComponent.getDefaultLocale</code>.
+     *
+     * @param owner the <code>Window</code> from which the dialog is displayed or
+     *     <code>null</code> if this dialog has no owner
+     * @param modalityType specifies whether dialog blocks input to other
+     *     windows when shown. <code>null</code> value and unsupported modality
+     *     types are equivalent to <code>MODELESS</code>
+     * @exception HeadlessException when
+     *    <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
+     *
+     * @see java.awt.Dialog.ModalityType
+     * @see java.awt.Dialog#setModal
+     * @see java.awt.Dialog#setModalityType
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
+     * 
+     * @since 1.6
+     */
+    public JDialog(Window owner, ModalityType modalityType) {
+        this(owner, null, modalityType);
+    }
+    
+    /**
+     * Creates a modeless dialog with the specified title and owner
+     * <code>Window</code>.
+     * <p>
+     * This constructor sets the component's locale property to the value 
+     * returned by <code>JComponent.getDefaultLocale</code>.
+     *
+     * @param owner the <code>Window</code> from which the dialog is displayed or
+     *     <code>null</code> if this dialog has no owner
+     * @param title the <code>String</code> to display in the dialog's
+     *     title bar or <code>null</code> if the dialog has no title
+     * @exception java.awt.HeadlessException when
+     *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
+     *
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
+     * 
+     * @since 1.6
+     */
+    public JDialog(Window owner, String title) {
+        this(owner, title, Dialog.ModalityType.MODELESS);     
+    }
+    
+    /**
+     * Creates a dialog with the specified title, owner <code>Window</code> and
+     * modality.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
+     *
+     * @param owner the <code>Window</code> from which the dialog is displayed or
+     *     <code>null</code> if this dialog has no owner
+     * @param title the <code>String</code> to display in the dialog's
+     *     title bar or <code>null</code> if the dialog has no title
+     * @param modalityType specifies whether dialog blocks input to other
+     *     windows when shown. <code>null</code> value and unsupported modality
+     *     types are equivalent to <code>MODELESS</code>
+     * @exception java.awt.HeadlessException when
+     *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
+     *
+     * @see java.awt.Dialog.ModalityType
+     * @see java.awt.Dialog#setModal
+     * @see java.awt.Dialog#setModalityType
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
+     * 
+     * @since 1.6
+     */
+    public JDialog(Window owner, String title, Dialog.ModalityType modalityType) {
+        super(owner, title, modalityType);
+        dialogInit();
+    }
+    
+    /**
+     * Creates a dialog with the specified title, owner <code>Window</code>,
+     * modality and <code>GraphicsConfiguration</code>.
+     * <p>
+     * NOTE: Any popup components (<code>JComboBox</code>,
+     * <code>JPopupMenu</code>, <code>JMenuBar</code>)
+     * created within a modal dialog will be forced to be lightweight.
+     * <p>
+     * This constructor sets the component's locale property to the value
+     * returned by <code>JComponent.getDefaultLocale</code>.     
+     *
+     * @param owner the <code>Window</code> from which the dialog is displayed or
+     *     <code>null</code> if this dialog has no owner
+     * @param title the <code>String</code> to display in the dialog's
+     *     title bar or <code>null</code> if the dialog has no title
+     * @param modalityType specifies whether dialog blocks input to other
+     *     windows when shown. <code>null</code> value and unsupported modality
+     *     types are equivalent to <code>MODELESS</code>
+     * @param gc the <code>GraphicsConfiguration</code> of the target screen device;
+     *     if <code>null</code>, the <code>GraphicsConfiguration</code> from the owning
+     *     window is used; if <code>owner</code> is also <code>null</code>, the
+     *     system default <code>GraphicsConfiguration</code> is assumed
+     * @exception java.awt.HeadlessException when
+     *    <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
+     *
+     * @see java.awt.Dialog.ModalityType
+     * @see java.awt.Dialog#setModal
+     * @see java.awt.Dialog#setModalityType
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see JComponent#getDefaultLocale
+     *
+     * @since 1.6
+     */
+    public JDialog(Window owner, String title, Dialog.ModalityType modalityType,
+                   GraphicsConfiguration gc) {
+        super(owner, title, modalityType, gc);
+        dialogInit();
+    }    
 
     /**
      * Called by the constructors to init the <code>JDialog</code> properly.
@@ -418,7 +638,6 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
                  setVisible(false);
                  break;
               case DISPOSE_ON_CLOSE:
-                 setVisible(false);
                  dispose();
                  break;
               case DO_NOTHING_ON_CLOSE:
@@ -429,37 +648,66 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
     }
  
 
-    /**
-     * Sets the operation which will happen by default when
+    /**                   
+     * Sets the operation that will happen by default when
      * the user initiates a "close" on this dialog.
-     * The possible choices are:
+     * You must specify one of the following choices:
+     * <p>
      * <ul>
-     * <li><code>DO_NOTHING_ON_CLOSE</code> - do not do anything - require the
+     * <li><code>DO_NOTHING_ON_CLOSE</code>
+     * (defined in <code>WindowConstants</code>):
+     * Don't do anything; require the
      * program to handle the operation in the <code>windowClosing</code>
      * method of a registered <code>WindowListener</code> object.
      *
-     * <li><code>HIDE_ON_CLOSE</code> - automatically hide the dialog after
-     * invoking any registered <code>WindowListener</code> objects
+     * <li><code>HIDE_ON_CLOSE</code>
+     * (defined in <code>WindowConstants</code>):
+     * Automatically hide the dialog after
+     * invoking any registered <code>WindowListener</code>
+     * objects.
      *
-     * <li><code>DISPOSE_ON_CLOSE</code> - automatically hide and dispose the 
-     * dialog after invoking any registered <code>WindowListener</code> objects
+     * <li><code>DISPOSE_ON_CLOSE</code>
+     * (defined in <code>WindowConstants</code>):
+     * Automatically hide and dispose the 
+     * dialog after invoking any registered <code>WindowListener</code>
+     * objects.
      * </ul>
      * <p>
-     * The value is set to <code>HIDE_ON_CLOSE</code> by default.
+     * The value is set to <code>HIDE_ON_CLOSE</code> by default. Changes
+     * to the value of this property cause the firing of a property
+     * change event, with property name "defaultCloseOperation".
      * <p>
      * <b>Note</b>: When the last displayable window within the
      * Java virtual machine (VM) is disposed of, the VM may
      * terminate.  See <a href="../../java/awt/doc-files/AWTThreadIssues.html">
      * AWT Threading Issues</a> for more information.
+     *
+     * @param operation the operation which should be performed when the
+     *        user closes the dialog
+     * @throws IllegalArgumentException if defaultCloseOperation value 
+     *         isn't one of the above valid values
      * @see #addWindowListener
      * @see #getDefaultCloseOperation
+     * @see WindowConstants
      *
      * @beaninfo
      *   preferred: true
+     *       bound: true
+     *        enum: DO_NOTHING_ON_CLOSE WindowConstants.DO_NOTHING_ON_CLOSE
+     *              HIDE_ON_CLOSE       WindowConstants.HIDE_ON_CLOSE
+     *              DISPOSE_ON_CLOSE    WindowConstants.DISPOSE_ON_CLOSE
      * description: The dialog's default close operation.
      */
     public void setDefaultCloseOperation(int operation) {
+        if (operation != DO_NOTHING_ON_CLOSE &&
+            operation != HIDE_ON_CLOSE &&
+            operation != DISPOSE_ON_CLOSE) {
+            throw new IllegalArgumentException("defaultCloseOperation must be one of: DO_NOTHING_ON_CLOSE, HIDE_ON_CLOSE, or DISPOSE_ON_CLOSE");
+        }
+
+        int oldValue = this.defaultCloseOperation;
         this.defaultCloseOperation = operation;
+        firePropertyChange("defaultCloseOperation", oldValue, operation);
     }
 
    /**
@@ -473,6 +721,58 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
         return defaultCloseOperation;
     }
 
+    /**
+     * Sets the {@code transferHandler} property, which is a mechanism to
+     * support transfer of data into this component. Use {@code null}
+     * if the component does not support data transfer operations.
+     * <p>
+     * If the system property {@code suppressSwingDropSupport} is {@code false}
+     * (the default) and the current drop target on this component is either
+     * {@code null} or not a user-set drop target, this method will change the
+     * drop target as follows: If {@code newHandler} is {@code null} it will
+     * clear the drop target. If not {@code null} it will install a new
+     * {@code DropTarget}.
+     * <p>
+     * Note: When used with {@code JDialog}, {@code TransferHandler} only
+     * provides data import capability, as the data export related methods
+     * are currently typed to {@code JComponent}.
+     * <p>
+     * Please see
+     * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
+     * How to Use Drag and Drop and Data Transfer</a>, a section in
+     * <em>The Java Tutorial</em>, for more information.
+     * 
+     * @param newHandler the new {@code TransferHandler}
+     *
+     * @see TransferHandler
+     * @see #getTransferHandler
+     * @see java.awt.Component#setDropTarget
+     * @since 1.6
+     *
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *  description: Mechanism for transfer of data into the component
+     */
+    public void setTransferHandler(TransferHandler newHandler) {
+        TransferHandler oldHandler = transferHandler;
+        transferHandler = newHandler;
+        SwingUtilities.installSwingDropTargetAsNecessary(this, transferHandler);
+        firePropertyChange("transferHandler", oldHandler, newHandler);
+    }
+
+    /**
+     * Gets the <code>transferHandler</code> property.
+     *
+     * @return the value of the <code>transferHandler</code> property
+     *
+     * @see TransferHandler
+     * @see #setTransferHandler
+     * @since 1.6
+     */
+    public TransferHandler getTransferHandler() {
+        return transferHandler;
+    }
 
     /** 
      * Calls <code>paint(g)</code>.  This method was overridden to 
@@ -548,7 +848,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
 
     /**
      * Adds the specified child <code>Component</code>.
-     * This method is overridden to conditionally forwad calls to the
+     * This method is overridden to conditionally forward calls to the
      * <code>contentPane</code>.
      * By default, children are added to the <code>contentPane</code> instead
      * of the frame, refer to {@link javax.swing.RootPaneContainer} for
@@ -754,6 +1054,39 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      */
     public void setGlassPane(Component glassPane) {
         getRootPane().setGlassPane(glassPane);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.6
+     */
+    public Graphics getGraphics() {
+        JComponent.getGraphicsInvoked(this);
+        return super.getGraphics();
+    }
+
+    /**
+     * Repaints the specified rectangle of this component within
+     * <code>time</code> milliseconds.  Refer to <code>RepaintManager</code>
+     * for details on how the repaint is handled.
+     * 
+     * @param     time   maximum time in milliseconds before update
+     * @param     x    the <i>x</i> coordinate
+     * @param     y    the <i>y</i> coordinate
+     * @param     width    the width
+     * @param     height   the height
+     * @see       RepaintManager
+     * @since     1.6
+     */
+    public void repaint(long time, int x, int y, int width, int height) {
+        if (RepaintManager.HANDLE_TOP_LEVEL_PAINT) {
+            RepaintManager.currentManager(this).addDirtyRegion(
+                              this, x, y, width, height);
+        }
+        else {
+            super.repaint(time, x, y, width, height);
+        }
     }
 
     /**

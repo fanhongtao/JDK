@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListModel.java	1.35 04/05/05
+ * @(#)DefaultListModel.java	1.36 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.35 05/05/04
+ * @version 1.36 11/17/05
  * @author Hans Muller
  */
 public class DefaultListModel extends AbstractListModel

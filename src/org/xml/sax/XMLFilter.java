@@ -2,7 +2,7 @@
 // http://www.saxproject.org
 // Written by David Megginson
 // NO WARRANTY!  This class is in the Public Domain.
-// $Id: XMLFilter.java,v 1.1.24.1 2004/05/01 08:34:40 jsuttor Exp $
+// $Id: XMLFilter.java,v 1.2 2004/11/03 22:55:32 jsuttor Exp $
 
 package org.xml.sax;
 

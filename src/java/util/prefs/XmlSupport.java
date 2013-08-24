@@ -1,7 +1,7 @@
 /*
- * @(#)XmlSupport.java	1.7 04/01/12
+ * @(#)XmlSupport.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import org.w3c.dom.*;
  * nodes and subtrees.
  *
  * @author  Josh Bloch and Mark Reinhold
- * @version 1.7, 01/12/04
+ * @version 1.10, 11/17/05
  * @see     Preferences
  * @since   1.4
  */
@@ -181,7 +181,7 @@ class XmlSupport {
         try {
             Document doc = loadPrefsDoc(is);
             String xmlVersion = 
-            ((Element)doc.getChildNodes().item(1)).getAttribute("EXTERNAL_XML_VERSION");
+            	doc.getDocumentElement().getAttribute("EXTERNAL_XML_VERSION");
             if (xmlVersion.compareTo(EXTERNAL_XML_VERSION) > 0)
                 throw new InvalidPreferencesFormatException(
                 "Exported preferences file format version " + xmlVersion +
@@ -189,7 +189,7 @@ class XmlSupport {
                 " versions " + EXTERNAL_XML_VERSION + " or older. You may need" +
                 " to install a newer version of JDK.");                            
             
-            Element xmlRoot = (Element) doc.getChildNodes().item(1).
+            Element xmlRoot = (Element) doc.getDocumentElement().
                                                getChildNodes().item(0);
             Preferences prefsRoot =
                 (xmlRoot.getAttribute("type").equals("user") ?
@@ -206,7 +206,7 @@ class XmlSupport {
     private static Document createPrefsDoc( String qname ) {
         try {
             DOMImplementation di = DocumentBuilderFactory.newInstance().
-                newDocumentBuilder().getDOMImplementation();
+		newDocumentBuilder().getDOMImplementation();
             DocumentType dt = di.createDocumentType(qname, null, PREFS_DTD_URI);
             return di.createDocument(null, qname, dt);
         } catch(ParserConfigurationException e) {
@@ -221,7 +221,6 @@ class XmlSupport {
     private static Document loadPrefsDoc(InputStream in)
         throws SAXException, IOException
     {
-        Resolver r = new Resolver();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setIgnoringElementContentWhitespace(true);
         dbf.setValidating(true);
@@ -244,9 +243,16 @@ class XmlSupport {
         throws IOException
     {
         try {
-            Transformer t = TransformerFactory.newInstance().newTransformer();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setAttribute("indent-number", new Integer(2));
+            Transformer t = tf.newTransformer();
             t.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doc.getDoctype().getSystemId());
-            t.transform(new DOMSource(doc), new StreamResult(out));
+            t.setOutputProperty(OutputKeys.INDENT, "yes");
+	    //Transformer resets the "indent" info if the "result" is a StreamResult with  
+	    //an OutputStream object embedded, creating a Writer object on top of that
+	    //OutputStream object however works.
+            t.transform(new DOMSource(doc), 
+			new StreamResult(new BufferedWriter(new OutputStreamWriter(out, "UTF-8"))));
         } catch(TransformerException e) {
             throw new AssertionError(e);
         }
@@ -345,7 +351,7 @@ class XmlSupport {
     {
         try {
             Document doc = loadPrefsDoc(is);
-            Element xmlMap = (Element) doc.getChildNodes().item(1);
+            Element xmlMap = doc.getDocumentElement();
             // check version
             String mapVersion = xmlMap.getAttribute("MAP_XML_VERSION");
             if (mapVersion.compareTo(MAP_XML_VERSION) > 0)

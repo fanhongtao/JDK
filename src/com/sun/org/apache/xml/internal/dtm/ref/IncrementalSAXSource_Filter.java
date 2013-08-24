@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IncrementalSAXSource_Filter.java,v 1.11 2004/02/16 23:06:11 minchau Exp $
+ * $Id: IncrementalSAXSource_Filter.java,v 1.2.4.1 2005/09/15 08:15:07 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.dtm.ref;
@@ -53,7 +53,7 @@ import org.xml.sax.ext.LexicalHandler;
  * of allocating each time is trivial compared to the cost of processing
  * any nontrival stream.</p>
  *
- * <p>For a brief usage example, see the unit-test _main() method.</p>
+ * <p>For a brief usage example, see the unit-test main() method.</p>
  *
  * <p>This is a simplification of the old CoroutineSAXParser, focusing
  * specifically on filtering. The resulting controller protocol is _far_
@@ -683,6 +683,7 @@ implements IncrementalSAXSource, ContentHandler, DTDHandler, LexicalHandler, Err
       startParse() thread. Only its type is important. */
   class StopException extends RuntimeException
   {
+          static final long serialVersionUID = -1129245796185754956L;
   }
 
   /** deliverMoreNodes() is a simple API which tells the coroutine

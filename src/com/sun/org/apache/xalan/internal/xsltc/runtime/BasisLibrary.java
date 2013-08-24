@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 /*
- * $Id: BasisLibrary.java,v 1.76 2004/02/27 01:59:31 zongaro Exp $
+ * $Id: BasisLibrary.java,v 1.6 2006/06/20 21:51:58 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.FieldPosition;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -31,7 +32,7 @@ import javax.xml.transform.dom.DOMSource;
 import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import com.sun.org.apache.xalan.internal.xsltc.Translet;
 import com.sun.org.apache.xalan.internal.xsltc.dom.AbsoluteIterator;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xalan.internal.xsltc.dom.DOMAdapter;
 import com.sun.org.apache.xalan.internal.xsltc.dom.MultiDOM;
 import com.sun.org.apache.xalan.internal.xsltc.dom.SingletonIterator;
@@ -46,13 +47,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import com.sun.org.apache.xml.internal.serializer.NamespaceMappings;
 import com.sun.org.apache.xml.internal.serializer.SerializationHandler;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * Standard XSLT functions. All standard functions expect the current node 
  * and the DOM as their last two arguments.
  */
-public final class BasisLibrary implements Operators {
+public final class BasisLibrary {
 
     private final static String EMPTYSTRING = "";
 
@@ -144,10 +145,7 @@ public final class BasisLibrary implements Operators {
 		return result;
 	}
 	else {
-	    if (obj != null)
-		return obj.toString();
-	    else
-		return stringF(node, dom);
+	    return obj != null ? obj.toString() : "";
 	}
     }
 
@@ -229,7 +227,7 @@ public final class BasisLibrary implements Operators {
 	}
 	else {
 	    final String className = obj.getClass().getName();
-	    runTimeError(INVALID_ARGUMENT_ERR, className, "number()");
+	    runTimeError(INVALID_ARGUMENT_ERR, className, "boolean()");
 	}
 	return false;
     }
@@ -400,6 +398,22 @@ public final class BasisLibrary implements Operators {
     }
 
     /**
+     * Utility function to throw a runtime error on the use of an extension 
+     * function when the secure processing feature is set to true.
+     */
+    public static void unallowed_extension_functionF(String name) {
+        runTimeError(UNALLOWED_EXTENSION_FUNCTION_ERR, name);
+    }
+
+    /**
+     * Utility function to throw a runtime error on the use of an extension 
+     * element when the secure processing feature is set to true.
+     */
+    public static void unallowed_extension_elementF(String name) {
+        runTimeError(UNALLOWED_EXTENSION_ELEMENT_ERR, name);
+    }
+
+    /**
      * Utility function to throw a runtime error for an unsupported element.
      * 
      * This is only used in forward-compatibility mode, when the control flow
@@ -496,22 +510,22 @@ public final class BasisLibrary implements Operators {
     private static boolean compareStrings(String lstring, String rstring,
 					  int op, DOM dom) {
 	switch (op) {
-	case EQ:
+    case Operators.EQ:
 	    return lstring.equals(rstring);
 
-	case NE:
+    case Operators.NE:
 	    return !lstring.equals(rstring);
 
-	case GT:
+    case Operators.GT:
 	    return numberF(lstring, dom) > numberF(rstring, dom);
 
-	case LT:
+    case Operators.LT:
 	    return numberF(lstring, dom) < numberF(rstring, dom);
 
-	case GE:
+    case Operators.GE:
 	    return numberF(lstring, dom) >= numberF(rstring, dom);
-
-	case LE:
+        
+    case Operators.LE:
 	    return numberF(lstring, dom) <= numberF(rstring, dom);
 
 	default:
@@ -536,9 +550,9 @@ public final class BasisLibrary implements Operators {
 	    while ((rnode = right.next()) != DTMAxisIterator.END) {
                 // String value must be the same if both nodes are the same
                 if (lnode == rnode) {
-                    if (op == EQ) {
+                    if (op == Operators.EQ) {
                         return true;
-                    } else if (op == NE) {
+                    } else if (op == Operators.NE) {
                         continue;
                     }
                 }
@@ -559,7 +573,7 @@ public final class BasisLibrary implements Operators {
 	String value;
 
 	switch(op) {
-	case EQ:
+    case Operators.EQ:
             rnode = iterator.next();
             if (rnode != DTMAxisIterator.END) {
 	        value = dom.getStringValueX(node);
@@ -571,7 +585,7 @@ public final class BasisLibrary implements Operators {
 	        } while ((rnode = iterator.next()) != DTMAxisIterator.END);
             }
 	    break;
-	case NE:
+    case Operators.NE:
             rnode = iterator.next();
             if (rnode != DTMAxisIterator.END) {
 	        value = dom.getStringValueX(node);
@@ -583,13 +597,13 @@ public final class BasisLibrary implements Operators {
 	        } while ((rnode = iterator.next()) != DTMAxisIterator.END);
             }
 	    break;
-	case LT:
+    case Operators.LT:
 	    // Assume we're comparing document order here
 	    while ((rnode = iterator.next()) != DTMAxisIterator.END) {
 		if (rnode > node) return true;
 	    }
 	    break;
-	case GT:
+    case Operators.GT:
 	    // Assume we're comparing document order here
 	    while ((rnode = iterator.next()) != DTMAxisIterator.END) {
 		if (rnode < node) return true;
@@ -608,42 +622,42 @@ public final class BasisLibrary implements Operators {
 	//left.reset();
 
 	switch (op) {
-	case EQ:
+    case Operators.EQ:
 	    while ((node = left.next()) != DTMAxisIterator.END) {
 		if (numberF(dom.getStringValueX(node), dom) == rnumber)
 		    return true;
 	    }
 	    break;
 
-	case NE:
+    case Operators.NE:
 	    while ((node = left.next()) != DTMAxisIterator.END) {
 		if (numberF(dom.getStringValueX(node), dom) != rnumber)
 		    return true;
 	    }
 	    break;
 
-	case GT:
+    case Operators.GT:
 	    while ((node = left.next()) != DTMAxisIterator.END) {
 		if (numberF(dom.getStringValueX(node), dom) > rnumber)
 		    return true;
 	    }
 	    break;
 
-	case LT:
+    case Operators.LT:
 	    while ((node = left.next()) != DTMAxisIterator.END) {
 		if (numberF(dom.getStringValueX(node), dom) < rnumber)
 		    return true;
 	    }
 	    break;
 
-	case GE:
+    case Operators.GE:
 	    while ((node = left.next()) != DTMAxisIterator.END) {
 		if (numberF(dom.getStringValueX(node), dom) >= rnumber)
 		    return true;
 	    }
 	    break;
 
-	case LE:
+    case Operators.LE:
 	    while ((node = left.next()) != DTMAxisIterator.END) {
 		if (numberF(dom.getStringValueX(node), dom) <= rnumber)
 		    return true;
@@ -679,7 +693,7 @@ public final class BasisLibrary implements Operators {
 	boolean result = false;
 	boolean hasSimpleArgs = hasSimpleType(left) && hasSimpleType(right);
 
-	if (op != EQ && op != NE) {
+    if (op != Operators.EQ && op != Operators.NE) {
 	    // If node-boolean comparison -> convert node to boolean
 	    if (left instanceof Node || right instanceof Node) {
 		if (left instanceof Boolean) {
@@ -694,19 +708,19 @@ public final class BasisLibrary implements Operators {
 
 	    if (hasSimpleArgs) {
 		switch (op) {
-		case GT:
+        case Operators.GT:
 		    return numberF(left, dom) > numberF(right, dom);
 		    
-		case LT:
+        case Operators.LT:
 		    return numberF(left, dom) < numberF(right, dom);
 		    
-		case GE:
+        case Operators.GE:
 		    return numberF(left, dom) >= numberF(right, dom);
 		    
-		case LE:
+        case Operators.LE:
 		    return numberF(left, dom) <= numberF(right, dom);
 		    
-		default:
+        default:
 		    runTimeError(RUN_TIME_INTERNAL_ERR, "compare()");
 		}
 	    }
@@ -739,8 +753,9 @@ public final class BasisLibrary implements Operators {
 
 	    if (hasSimpleType(left) ||
 		left instanceof DOM && right instanceof DTMAxisIterator) {
-		// swap operands
+		// swap operands and operator
 		final Object temp = right; right = left; left = temp;
+                op = Operators.swapOp(op);
 	    }
 
 	    if (left instanceof DOM) {
@@ -855,7 +870,7 @@ public final class BasisLibrary implements Operators {
     private static final int DOUBLE_FRACTION_DIGITS = 340;
     private static final double lowerBounds = 0.001;
     private static final double upperBounds = 10000000;
-    private static DecimalFormat defaultFormatter;
+    private static DecimalFormat defaultFormatter, xpathFormatter;
     private static String defaultPattern = "";
 
     static {
@@ -868,11 +883,22 @@ public final class BasisLibrary implements Operators {
         defaultFormatter.setMinimumFractionDigits(0);
         defaultFormatter.setMinimumIntegerDigits(1);
         defaultFormatter.setGroupingUsed(false);
+
+        // This formatter is used to convert numbers according to the XPath
+        // 1.0 syntax which ignores locales (http://www.w3.org/TR/xpath#NT-Number)
+        xpathFormatter = new DecimalFormat("", 
+            new DecimalFormatSymbols(Locale.US));
+	xpathFormatter.setMaximumFractionDigits(DOUBLE_FRACTION_DIGITS);
+        xpathFormatter.setMinimumFractionDigits(0);
+        xpathFormatter.setMinimumIntegerDigits(1);
+        xpathFormatter.setGroupingUsed(false);        
     }
 
     /**
      * Utility function: used in RealType to convert a real to a string.
-     * Removes the decimal if null.
+     * Removes the decimal if null. Uses a specialized formatter object
+     * for very large and very small numbers that ignores locales, thus
+     * using always using "." as a decimal separator.
      */
     public static String realToString(double d) {
 	final double m = Math.abs(d);
@@ -889,7 +915,11 @@ public final class BasisLibrary implements Operators {
 	else {
 	    if (Double.isNaN(d) || Double.isInfinite(d))
 		return(Double.toString(d));
-	    return formatNumber(d, defaultPattern, defaultFormatter);
+            
+            // Use the XPath formatter to ignore locales
+            StringBuffer result = new StringBuffer();
+            xpathFormatter.format(d, result, _fieldPosition);
+	    return result.toString();
 	}
     }
 
@@ -1173,14 +1203,16 @@ public final class BasisLibrary implements Operators {
                                     	Translet translet, DOM dom) 
     {
 	// w3c NodeList -> w3c DOM
-  	Document doc = null;
-  	try {
-           doc = ((AbstractTranslet) translet).newDocument("", "__top__");
-	} catch (javax.xml.parsers.ParserConfigurationException e) {
+	Document doc = null;
+	try {
+	    doc = ((AbstractTranslet) translet).newDocument("", "__top__");
+	} 
+        catch (javax.xml.parsers.ParserConfigurationException e) {
 	    runTimeError(RUN_TIME_INTERNAL_ERR, e.getMessage());
             return null;
 	}
-	
+        
+        // Copy all the nodes in the nodelist to be under the top element
         copyNodes(nodeList, doc, doc.getDocumentElement());
 
         // w3cDOM -> DTM -> DOMImpl
@@ -1288,20 +1320,20 @@ public final class BasisLibrary implements Operators {
         
             if (firstOccur != lastOccur) {
                final String oriPrefix = name.substring(firstOccur+1, lastOccur); 
-                if (!XMLChar.isValidNCName(oriPrefix)) {
+                if (!XML11Char.isXML11ValidNCName(oriPrefix)) {
                     // even though the orignal prefix is ignored, it should still get checked for valid NCName
                     runTimeError(INVALID_QNAME_ERR,oriPrefix+":"+localName);
                 }
             }
             
             // prefix must be a valid NCName
-            if (!XMLChar.isValidNCName(newPrefix)) {
+            if (!XML11Char.isXML11ValidNCName(newPrefix)) {
                 runTimeError(INVALID_QNAME_ERR,newPrefix+":"+localName); 
             }  
         }
                 
         // local name must be a valid NCName and must not be XMLNS
-        if ((!XMLChar.isValidNCName(localName))||(localName.equals(Constants.XMLNS_PREFIX))) {
+        if ((!XML11Char.isXML11ValidNCName(localName))||(localName.equals(Constants.XMLNS_PREFIX))) {
             runTimeError(INVALID_QNAME_ERR,localName); 
         }
     }
@@ -1311,7 +1343,7 @@ public final class BasisLibrary implements Operators {
      * This method should only be invoked if the attribute value is an AVT
      */    
     public static void checkNCName(String name) {
-        if (!XMLChar.isValidNCName(name)) {
+        if (!XML11Char.isXML11ValidNCName(name)) {
             runTimeError(INVALID_NCNAME_ERR,name); 
         }  
     }        
@@ -1321,7 +1353,7 @@ public final class BasisLibrary implements Operators {
      * This method should only be invoked if the attribute value is an AVT
      */    
     public static void checkQName(String name) {
-        if (!XMLChar.isValidQName(name)) {
+        if (!XML11Char.isXML11ValidQName(name)) {
             runTimeError(INVALID_QNAME_ERR,name); 
         }  
     }
@@ -1438,9 +1470,11 @@ public final class BasisLibrary implements Operators {
                                            "UNKNOWN_TRANSLET_VERSION_ERR";
     public static final String INVALID_QNAME_ERR = "INVALID_QNAME_ERR";                                           
     public static final String INVALID_NCNAME_ERR = "INVALID_NCNAME_ERR";
+    public static final String UNALLOWED_EXTENSION_FUNCTION_ERR = "UNALLOWED_EXTENSION_FUNCTION_ERR";
+    public static final String UNALLOWED_EXTENSION_ELEMENT_ERR = "UNALLOWED_EXTENSION_ELEMENT_ERR";
 
     // All error messages are localized and are stored in resource bundles.
-    protected static ResourceBundle m_bundle;
+    private static ResourceBundle m_bundle;
     
     public final static String ERROR_MESSAGES_KEY = "error-messages";
 

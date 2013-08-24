@@ -1,10 +1,10 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)BitSieve.java	1.10 03/12/19
+ * @(#)BitSieve.java	1.12 06/03/10
  */
 
 package java.math;
@@ -25,7 +25,7 @@ package java.math;
  * index of a bit in the sieve array.
  *
  * @see     BigInteger
- * @version 1.10, 12/19/03
+ * @version 1.12, 03/10/06
  * @author  Michael McCloskey
  * @since   1.3
  */
@@ -178,7 +178,7 @@ class BitSieve {
     /**
      * Test probable primes in the sieve and return successful candidates.
      */
-    BigInteger retrieve(BigInteger initValue, int certainty) {
+    BigInteger retrieve(BigInteger initValue, int certainty, java.util.Random random) {
         // Examine the sieve one long at a time to find possible primes
         int offset = 1;
         for (int i=0; i<bits.length; i++) {
@@ -187,7 +187,7 @@ class BitSieve {
                 if ((nextLong & 1) == 1) {
                     BigInteger candidate = initValue.add(
                                            BigInteger.valueOf(offset));
-                    if (candidate.primeToCertainty(certainty))
+                    if (candidate.primeToCertainty(certainty, random))
                         return candidate;
                 }
                 nextLong >>>= 1;

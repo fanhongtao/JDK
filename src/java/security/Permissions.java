@@ -1,7 +1,7 @@
 /*
- * @(#)Permissions.java	1.58 04/05/05
+ * @(#)Permissions.java	1.61 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -54,7 +54,7 @@ import java.io.IOException;
  * @see PermissionCollection
  * @see AllPermission
  * 
- * @version 1.58, 04/05/05
+ * @version 1.61, 05/11/17
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -76,7 +76,8 @@ implements Serializable
     private transient boolean hasUnresolved = false;
 
     // optimization. keep track of the AllPermission collection
-    private PermissionCollection allPermission;
+    // - package private for ProtectionDomain optimization
+    PermissionCollection allPermission;
 
     /**
      * Creates a new Permissions object containing no PermissionCollections.
@@ -127,7 +128,7 @@ implements Serializable
 
     /**
      * Checks to see if this object's PermissionCollection for permissions of
-     * the specified permission's type implies the permissions 
+     * the specified permission's class implies the permissions 
      * expressed in the <i>permission</i> object. Returns true if the
      * combination of permissions in the appropriate PermissionCollection
      * (e.g., a FilePermissionCollection for a FilePermission) together
@@ -446,7 +447,7 @@ final class PermissionsEnumerator implements Enumeration<Permission> {
  * @see Permission
  * @see Permissions
  *
- * @version 1.58, 05/05/04
+ * @version 1.61, 11/17/05
  *
  * @author Roland Schemers
  *

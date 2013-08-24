@@ -1,7 +1,7 @@
 /*
- * @(#)ElementTreePanel.java	1.16 04/07/26
+ * @(#)ElementTreePanel.java	1.17 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ElementTreePanel.java	1.16 04/07/26
+ * @(#)ElementTreePanel.java	1.17 05/11/17
  */
 
 import javax.swing.*;
@@ -54,7 +54,7 @@ import java.util.*;
  * in the text to update the selected item in the tree.
  *
  * @author Scott Violet
- * @version 1.16 07/26/04
+ * @version 1.17 11/17/05
  */
 public class ElementTreePanel extends JPanel implements CaretListener, DocumentListener, PropertyChangeListener, TreeSelectionListener {
     /** Tree showing the documents element structure. */

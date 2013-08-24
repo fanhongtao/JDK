@@ -1,7 +1,7 @@
 /*
- * @(#)SocketImpl.java	1.42 04/03/25
+ * @(#)SocketImpl.java	1.44 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.42, 03/25/04
+ * @version 1.44, 04/07/06
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {
@@ -172,6 +172,7 @@ public abstract class SocketImpl implements SocketOptions {
      * @see java.net.Socket#shutdownOutput()
      * @see java.net.Socket#close()
      * @see java.net.Socket#setSoLinger(boolean, int)
+     * @since 1.3
      */
     protected void shutdownInput() throws IOException {
       throw new IOException("Method not implemented!");
@@ -191,6 +192,7 @@ public abstract class SocketImpl implements SocketOptions {
      * @see java.net.Socket#shutdownInput()
      * @see java.net.Socket#close()
      * @see java.net.Socket#setSoLinger(boolean, int)
+     * @since 1.3
      */
     protected void shutdownOutput() throws IOException {
       throw new IOException("Method not implemented!");

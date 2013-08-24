@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamField.java	1.45 04/05/05
+ * @(#)ObjectStreamField.java	1.47 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.lang.reflect.Field;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.45, 04/05/05
+ * @version 1.47, 06/04/07
  * @see ObjectStreamClass
  * @since 1.2
  */
@@ -62,6 +62,7 @@ public class ObjectStreamField
      * @param   unshared if false, write/read field values in the same manner
      *          as writeObject/readObject; if true, write/read in the same
      *          manner as writeUnshared/readUnshared
+     * @since   1.4
      */
     public ObjectStreamField(String name, Class<?> type, boolean unshared) {
 	if (name == null) {
@@ -211,6 +212,8 @@ public class ObjectStreamField
     /**
      * Returns boolean value indicating whether or not the serializable field
      * represented by this ObjectStreamField instance is unshared.
+     *
+     * @since 1.4
      */
     public boolean isUnshared() {
 	return unshared;

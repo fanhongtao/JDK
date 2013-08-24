@@ -1,7 +1,7 @@
 /*
- * @(#)MissingResourceException.java	1.16 03/12/19
+ * @(#)MissingResourceException.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ package java.util;
  * Signals that a resource is missing.
  * @see java.lang.Exception
  * @see ResourceBundle
- * @version     1.16, 12/19/03
+ * @version     1.19, 11/17/05
  * @author      Mark Davis
  * @since       JDK1.1
  */
@@ -42,6 +42,30 @@ class MissingResourceException extends RuntimeException {
      */
     public MissingResourceException(String s, String className, String key) {
         super(s);
+        this.className = className;
+        this.key = key;
+    }
+
+    /**
+     * Constructs a <code>MissingResourceException</code> with
+     * <code>message</code>, <code>className</code>, <code>key</code>,
+     * and <code>cause</code>. This constructor is package private for
+     * use by <code>ResourceBundle.getBundle</code>.
+     *
+     * @param message
+     *        the detail message
+     * @param className
+     *        the name of the resource class
+     * @param key
+     *        the key for the missing resource.
+     * @param cause
+     *        the cause (which is saved for later retrieval by the
+     *        {@link Throwable.getCause()} method). (A null value is
+     *        permitted, and indicates that the cause is nonexistent
+     *        or unknown.)
+     */
+    MissingResourceException(String message, String className, String key, Throwable cause) {
+	super(message, cause);
         this.className = className;
         this.key = key;
     }
@@ -65,6 +89,9 @@ class MissingResourceException extends RuntimeException {
     }
 
     //============ privates ============
+
+    // serialization compatibility with JDK1.1
+    private static final long serialVersionUID = -4876345176062000401L;
 
     /**
      * The class name of the resource bundle requested by the user.

@@ -1,7 +1,7 @@
 /*
- * @(#)BoxView.java	1.63 06/07/28
+ * @(#)BoxView.java	1.68 06/07/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.63 07/28/06
+ * @version 1.68 07/28/06
  */
 public class BoxView extends CompositeView {
 
@@ -215,6 +215,7 @@ public class BoxView extends CompositeView {
      * @see #insertUpdate
      * @see #removeUpdate
      * @see #changedUpdate     
+     * @since 1.3
      */
     protected void forwardUpdate(DocumentEvent.ElementChange ec, 
 				 DocumentEvent e, Shape a, ViewFactory f) {
@@ -717,9 +718,10 @@ public class BoxView extends CompositeView {
 
     /**
      * Performs layout for the major axis of the box (i.e. the
-     * axis that it represents).  The results of the layout should
-     * be placed in the given arrays which represent the allocations
-     * to the children along the major axis.
+     * axis that it represents). The results of the layout (the 
+     * offset and span for each children) are placed in the given
+     * arrays which represent the allocations to the children
+     * along the major axis.
      *
      * @param targetSpan the total span given to the view, which
      *  would be used to layout the children
@@ -729,8 +731,6 @@ public class BoxView extends CompositeView {
      *  filled in by the implementation of this method
      * @param spans the span of each child view; this is a return
      *  value and is filled in by the implementation of this method
-     * @return the offset and span for each child view in the
-     *  offsets and spans parameters
      */
     protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	/*
@@ -791,9 +791,10 @@ public class BoxView extends CompositeView {
 
     /**
      * Performs layout for the minor axis of the box (i.e. the
-     * axis orthoginal to the axis that it represents).  The results 
-     * of the layout should be placed in the given arrays which represent 
-     * the allocations to the children along the minor axis.
+     * axis orthoginal to the axis that it represents). The results 
+     * of the layout (the offset and span for each children) are 
+     * placed in the given arrays which represent the allocations to 
+     * the children along the minor axis.
      *
      * @param targetSpan the total span given to the view, which
      *  would be used to layout the children
@@ -803,8 +804,6 @@ public class BoxView extends CompositeView {
      *  filled in by the implementation of this method
      * @param spans the span of each child view; this is a return
      *  value and is filled in by the implementation of this method
-     * @return the offset and span for each child view in the
-     *  offsets and spans parameters
      */
     protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	int n = getViewCount();
@@ -827,7 +826,7 @@ public class BoxView extends CompositeView {
 
     /**
      * Calculates the size requirements for the major axis
-     * </code>axis</code>.
+     * <code>axis</code>.
      *
      * @param axis the axis being studied
      * @param r the <code>SizeRequirements</code> object;
@@ -895,7 +894,7 @@ public class BoxView extends CompositeView {
      * Checks the request cache and update if needed.
      * @param axis the axis being studied
      * @exception IllegalArgumentException if <code>axis</code> is
-     *	neither <code>View.X_AXIS</code> nor </code>View.Y_AXIS</code>
+     *	neither <code>View.X_AXIS</code> nor <code>View.Y_AXIS</code>
      */
     void checkRequests(int axis) {
 	if ((axis != X_AXIS) && (axis != Y_AXIS)) {
@@ -937,15 +936,15 @@ public class BoxView extends CompositeView {
         for (int i = 0; i < n; i++) {
             View v = getView(i);
             float align = v.getAlignment(axis);
-            int viewSpan;
+            float viewSpan;
 
             if (v.getResizeWeight(axis) > 0) {
                 // if resizable then resize to the best fit
 
                 // the smallest span possible
-                int minSpan = (int)v.getMinimumSpan(axis);
+                float minSpan = v.getMinimumSpan(axis);
                 // the largest span possible
-                int maxSpan = (int)v.getMaximumSpan(axis);
+                float maxSpan = v.getMaximumSpan(axis);
 
                 if (align == 0.0f) {
                     // if the alignment is 0 then we need to fit into the descent
@@ -955,18 +954,18 @@ public class BoxView extends CompositeView {
                     viewSpan = Math.max(Math.min(maxSpan, totalAscent), minSpan);
                 } else {
                     // figure out the span that we must fit into
-                    int fitSpan = (int)Math.min(totalAscent / align,
-                                                totalDescent / (1.0f - align));
+                    float fitSpan = Math.min(totalAscent / align,
+                                             totalDescent / (1.0f - align));
                     // fit into the calculated span
                     viewSpan = Math.max(Math.min(maxSpan, fitSpan), minSpan);
                 }
             } else {
                 // otherwise use the preferred spans
-                viewSpan = (int)v.getPreferredSpan(axis);
+                viewSpan = v.getPreferredSpan(axis);
             }
 
             offsets[i] = totalAscent - (int)(viewSpan * align);
-            spans[i] = viewSpan;
+            spans[i] = (int)viewSpan;
         }     
     }
 
@@ -996,29 +995,29 @@ public class BoxView extends CompositeView {
         for (int i = 0; i < n; i++) {
             View v = getView(i);
             float align = v.getAlignment(axis);
-            int span;
+            float span;
             int ascent;
             int descent;
 
             // find the maximum of the preferred ascents and descents
-            span = (int)v.getPreferredSpan(axis);
+            span = v.getPreferredSpan(axis);
             ascent = (int)(align * span);
-            descent = span - ascent;
+            descent = (int)(span - ascent);
             totalAscent.preferred = Math.max(ascent, totalAscent.preferred);
             totalDescent.preferred = Math.max(descent, totalDescent.preferred);
             
             if (v.getResizeWeight(axis) > 0) {
                 // if the view is resizable then do the same for the minimum and
                 // maximum ascents and descents
-                span = (int)v.getMinimumSpan(axis);
+                span = v.getMinimumSpan(axis);
                 ascent = (int)(align * span);
-                descent = span - ascent;
+                descent = (int)(span - ascent);
                 totalAscent.minimum = Math.max(ascent, totalAscent.minimum);
                 totalDescent.minimum = Math.max(descent, totalDescent.minimum);
 
-                span = (int)v.getMaximumSpan(axis);
+                span = v.getMaximumSpan(axis);
                 ascent = (int)(align * span);
-                descent = span - ascent;
+                descent = (int)(span - ascent);
                 totalAscent.maximum = Math.max(ascent, totalAscent.maximum);
                 totalDescent.maximum = Math.max(descent, totalDescent.maximum);
             } else {
@@ -1056,11 +1055,11 @@ public class BoxView extends CompositeView {
             // we want to honor the preferred alignment so we calculate two possible minimum
             // span values using 1) the minimum ascent and the alignment, and 2) the minimum
             // descent and the alignment. We'll choose the larger of these two numbers.
-            r.minimum = Math.max((int)(totalAscent.minimum / r.alignment),
-                                 (int)(totalDescent.minimum / (1.0f - r.alignment)));
+            r.minimum = Math.round(Math.max(totalAscent.minimum / r.alignment,
+                                          totalDescent.minimum / (1.0f - r.alignment)));
             // a similar calculation is made for the maximum but we choose the smaller number.
-            r.maximum = Math.min((int)(totalAscent.maximum / r.alignment),
-                                 (int)(totalDescent.maximum / (1.0f - r.alignment)));
+            r.maximum = Math.round(Math.min(totalAscent.maximum / r.alignment,
+                                          totalDescent.maximum / (1.0f - r.alignment)));
         }
 
         return r;

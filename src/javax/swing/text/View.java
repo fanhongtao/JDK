@@ -1,7 +1,7 @@
 /*
- * @(#)View.java	1.70 04/05/18
+ * @(#)View.java	1.75 06/07/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -18,40 +18,10 @@ import javax.swing.event.*;
  * It is this class that is responsible for the look of the text component.  
  * The view is not intended to be some completely new thing that one must
  * learn, but rather is much like a lightweight component.
- * In fact, the original <code>View</code> implementation was a
- * lightweight component.   There were several reasons why
- * the <code>Component</code> implementation was abandoned in favor of
- * an alternative.
- * <ol>
- * <li>
- * <p>
- * There was barely time to get the lightweight component support in the 
- * 1.1 version of the JDK.  There simply wasn't time to lighten up the 
- * component further to where it would need to be to be used for text purposes.
- * The additions made to <code>JComponent</code> increased the memory
- * consumption, and as it currently stands its much too heavy for
- * representing text.
- * </p>
- * <li>
- * <p>
- * The layout semantics aren't quite right for text,
- * and changing the current layout 
- * semantics of component might break existing applications.
- * </p>
- * <li>
- * <p>
- * The component api uses integers, but in 1.2 one can use floating point
- * device independent coordinates.  An api that works in both 1.1 and 1.2
- * would be convenient for minimizing transition difficulties.  The
- * <code>View</code> class uses the <code>Shape</code> interface and
- * float arguments to enable View implementations for the Java 2 platform
- * v1.2 and later while still functioning in the older 1.1 JDK.
- * </p>
- * </ol>
  * <p>
 By default, a view is very light.  It contains a reference to the parent 
 view from which it can fetch many things without holding state, and it 
-contains a reference to a portion of the model (</code>Element</code>).
+contains a reference to a portion of the model (<code>Element</code>).
 A view does not 
 have to exactly represent an element in the model, that is simply a typical 
 and therefore convenient mapping.  A view can alternatively maintain a couple 
@@ -200,7 +170,7 @@ A view has the following responsibilities:
 </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.70 05/18/04
+ * @version 1.75 07/13/06
  */
 public abstract class View implements SwingConstants {
 
@@ -326,7 +296,6 @@ public abstract class View implements SwingConstants {
      *
      * @param g the rendering surface to use
      * @param allocation the allocated region to render into
-     * @see View#paint
      */
     public abstract void paint(Graphics g, Shape allocation);
 
@@ -1068,7 +1037,7 @@ public abstract class View implements SwingConstants {
 
             if (childAllocation != null) {
                 Rectangle rect = (childAllocation instanceof Rectangle) ?
-		         (Rectangle)childAllocation : allocation.getBounds();
+		         (Rectangle)childAllocation : childAllocation.getBounds();
 
                 if (rect.contains(x, y)) {
                     return counter;

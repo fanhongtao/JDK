@@ -1,7 +1,7 @@
 /*
- * @(#)Inet6Address.java	1.35 04/02/12
+ * @(#)Inet6Address.java	1.37 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -144,6 +144,7 @@ import java.util.Enumeration;
  * </ol><p>
  * Note also, that the numeric <i>scope_id</i> can be retrieved from Inet6Address instances returned from the
  * NetworkInterface class. This can be used to find out the current scope ids configured on the system.
+ * @since 1.4
  */
 
 public final

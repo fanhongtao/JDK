@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2000-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.parsers;
@@ -61,7 +20,9 @@ import java.io.IOException;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.util.EntityResolverWrapper;
+import com.sun.org.apache.xerces.internal.util.EntityResolver2Wrapper;
 import com.sun.org.apache.xerces.internal.util.ErrorHandlerWrapper;
+import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
@@ -79,9 +40,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
-import org.xml.sax.helpers.LocatorImpl;
-import com.sun.org.apache.xerces.internal.util.EntityResolver2Wrapper;
 import org.xml.sax.ext.EntityResolver2;
+import org.xml.sax.helpers.LocatorImpl;
 
 /**
  * This is the main Xerces DOM parser class. It uses the abstract DOM
@@ -91,25 +51,31 @@ import org.xml.sax.ext.EntityResolver2;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: DOMParser.java,v 1.69 2004/02/17 07:14:49 neeraj Exp $
+ * @version $Id: DOMParser.java,v 1.2.6.1 2005/09/06 13:06:37 sunithareddy Exp $
  */
 public class DOMParser
-extends AbstractDOMParser {
-    
+    extends AbstractDOMParser {
+
     //
     // Constants
     //
     
-    // properties
+    // features
     
+    /** Feature identifier: EntityResolver2. */
+    protected static final String USE_ENTITY_RESOLVER2 =
+        Constants.SAX_FEATURE_PREFIX + Constants.USE_ENTITY_RESOLVER2_FEATURE;
+
+    // properties
+
     /** Property identifier: symbol table. */
     protected static final String SYMBOL_TABLE =
-    Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
-    
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
+
     /** Property identifier: XML grammar pool. */
     protected static final String XMLGRAMMAR_POOL =
-    Constants.XERCES_PROPERTY_PREFIX+Constants.XMLGRAMMAR_POOL_PROPERTY;
-    
+        Constants.XERCES_PROPERTY_PREFIX+Constants.XMLGRAMMAR_POOL_PROPERTY;
+
     /** Recognized properties. */
     private static final String[] RECOGNIZED_PROPERTIES = {
         SYMBOL_TABLE,
@@ -117,41 +83,50 @@ extends AbstractDOMParser {
     };
     
     //
-    // Constructors
+    // Data
     //
     
+    // features
+    
+    /** Use EntityResolver2. */
+    protected boolean fUseEntityResolver2 = true;
+
+    //
+    // Constructors
+    //
+
     /**
      * Constructs a DOM parser using the specified parser configuration.
      */
     public DOMParser(XMLParserConfiguration config) {
         super(config);
     } // <init>(XMLParserConfiguration)
-    
+
     /**
      * Constructs a DOM parser using the dtd/xml schema parser configuration.
      */
     public DOMParser() {
         this(null, null);
     } // <init>()
-    
+
     /**
      * Constructs a DOM parser using the specified symbol table.
      */
     public DOMParser(SymbolTable symbolTable) {
         this(symbolTable, null);
     } // <init>(SymbolTable)
-    
-    
+
+
     /**
      * Constructs a DOM parser using the specified symbol table and
      * grammar pool.
      */
     public DOMParser(SymbolTable symbolTable, XMLGrammarPool grammarPool) {
         super((XMLParserConfiguration)ObjectFactory.createObject(
-        "com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration",
-        "com.sun.org.apache.xerces.internal.parsers.XIncludeParserConfiguration"
-        ));
-        
+            "com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration",
+            "com.sun.org.apache.xerces.internal.parsers.XIncludeAwareParserConfiguration"
+            ));
+
         // set properties
         fConfiguration.addRecognizedProperties(RECOGNIZED_PROPERTIES);
         if (symbolTable != null) {
@@ -160,13 +135,13 @@ extends AbstractDOMParser {
         if (grammarPool != null) {
             fConfiguration.setProperty(XMLGRAMMAR_POOL, grammarPool);
         }
-        
+
     } // <init>(SymbolTable,XMLGrammarPool)
-    
+
     //
     // XMLReader methods
     //
-    
+
     /**
      * Parses the input source specified by the given system identifier.
      * <p>
@@ -175,19 +150,19 @@ extends AbstractDOMParser {
      *     parse(new InputSource(systemId));
      * </pre>
      *
-     * @param source The input source.
+     * @param systemId The system identifier (URI).
      *
      * @exception org.xml.sax.SAXException Throws exception on SAX error.
      * @exception java.io.IOException Throws exception on i/o error.
      */
     public void parse(String systemId) throws SAXException, IOException {
-        
+
         // parse document
         XMLInputSource source = new XMLInputSource(null, systemId, null);
         try {
             parse(source);
         }
-        
+
         // wrap XNI exceptions as SAX exceptions
         catch (XMLParseException e) {
             Exception ex = e.getException();
@@ -224,9 +199,9 @@ extends AbstractDOMParser {
             }
             throw new SAXException(ex);
         }
-        
+
     } // parse(String)
-    
+
     /**
      * parse
      *
@@ -236,20 +211,20 @@ extends AbstractDOMParser {
      * @exception java.io.IOException
      */
     public void parse(InputSource inputSource)
-    throws SAXException, IOException {
-        
+        throws SAXException, IOException {
+
         // parse document
         try {
             XMLInputSource xmlInputSource =
-            new XMLInputSource(inputSource.getPublicId(),
-            inputSource.getSystemId(),
-            null);
+                new XMLInputSource(inputSource.getPublicId(),
+                                   inputSource.getSystemId(),
+                                   null);
             xmlInputSource.setByteStream(inputSource.getByteStream());
             xmlInputSource.setCharacterStream(inputSource.getCharacterStream());
             xmlInputSource.setEncoding(inputSource.getEncoding());
             parse(xmlInputSource);
         }
-        
+
         // wrap XNI exceptions as SAX exceptions
         catch (XMLParseException e) {
             Exception ex = e.getException();
@@ -285,9 +260,9 @@ extends AbstractDOMParser {
             }
             throw new SAXException(ex);
         }
-        
+
     } // parse(InputSource)
-    
+
     /**
      * Sets the resolver used to resolve external entities. The EntityResolver
      * interface supports resolution of public and system identifiers.
@@ -296,20 +271,36 @@ extends AbstractDOMParser {
      *                 uninstall the currently installed resolver.
      */
     public void setEntityResolver(EntityResolver resolver) {
-        
+
         try {
-            if(resolver instanceof EntityResolver2){
-                fConfiguration.setProperty(ENTITY_RESOLVER, new EntityResolver2Wrapper((EntityResolver2)resolver));
-            }else{
-                fConfiguration.setProperty(ENTITY_RESOLVER, new EntityResolverWrapper(resolver));
+            XMLEntityResolver xer = (XMLEntityResolver) fConfiguration.getProperty(ENTITY_RESOLVER);
+            if (fUseEntityResolver2 && resolver instanceof EntityResolver2) {
+                if (xer instanceof EntityResolver2Wrapper) {
+                    EntityResolver2Wrapper er2w = (EntityResolver2Wrapper) xer;
+                    er2w.setEntityResolver((EntityResolver2) resolver);
+                }
+                else {
+                    fConfiguration.setProperty(ENTITY_RESOLVER,
+                            new EntityResolver2Wrapper((EntityResolver2) resolver));
+                }
+            }
+            else {
+                if (xer instanceof EntityResolverWrapper) {
+                    EntityResolverWrapper erw = (EntityResolverWrapper) xer;
+                    erw.setEntityResolver(resolver);
+                }
+                else {
+                    fConfiguration.setProperty(ENTITY_RESOLVER,
+                            new EntityResolverWrapper(resolver));
+                }
             }
         }
         catch (XMLConfigurationException e) {
             // do nothing
         }
-        
+
     } // setEntityResolver(EntityResolver)
-    
+
     /**
      * Return the current entity resolver.
      *
@@ -318,25 +309,29 @@ extends AbstractDOMParser {
      * @see #setEntityResolver
      */
     public EntityResolver getEntityResolver() {
-        
+
         EntityResolver entityResolver = null;
         try {
             XMLEntityResolver xmlEntityResolver =
-            (XMLEntityResolver)fConfiguration.getProperty(ENTITY_RESOLVER);
-            if (xmlEntityResolver != null){
-                if(xmlEntityResolver instanceof EntityResolverWrapper) {
-                    entityResolver = ((EntityResolverWrapper)xmlEntityResolver).getEntityResolver();
-                }else if(xmlEntityResolver instanceof EntityResolver2Wrapper){
-                    entityResolver = ((EntityResolver2Wrapper)xmlEntityResolver).getEntityResolver();
+                (XMLEntityResolver)fConfiguration.getProperty(ENTITY_RESOLVER);
+            if (xmlEntityResolver != null) {
+                if (xmlEntityResolver instanceof EntityResolverWrapper) {
+                    entityResolver =
+                        ((EntityResolverWrapper) xmlEntityResolver).getEntityResolver();
+                }
+                else if (xmlEntityResolver instanceof EntityResolver2Wrapper) {
+                    entityResolver = 
+                        ((EntityResolver2Wrapper) xmlEntityResolver).getEntityResolver();
                 }
             }
-        }catch (XMLConfigurationException e) {
+        }
+        catch (XMLConfigurationException e) {
             // do nothing
         }
         return entityResolver;
-        
+
     } // getEntityResolver():EntityResolver
-    
+
     /**
      * Allow an application to register an error event handler.
      *
@@ -356,17 +351,24 @@ extends AbstractDOMParser {
      * @see #getErrorHandler
      */
     public void setErrorHandler(ErrorHandler errorHandler) {
-        
+
         try {
-            fConfiguration.setProperty(ERROR_HANDLER,
-            new ErrorHandlerWrapper(errorHandler));
+            XMLErrorHandler xeh = (XMLErrorHandler) fConfiguration.getProperty(ERROR_HANDLER);
+            if (xeh instanceof ErrorHandlerWrapper) {
+                ErrorHandlerWrapper ehw = (ErrorHandlerWrapper) xeh;
+                ehw.setErrorHandler(errorHandler);
+            }
+            else {
+                fConfiguration.setProperty(ERROR_HANDLER,
+                        new ErrorHandlerWrapper(errorHandler));
+            }
         }
         catch (XMLConfigurationException e) {
             // do nothing
         }
-        
+
     } // setErrorHandler(ErrorHandler)
-    
+
     /**
      * Return the current error handler.
      *
@@ -375,13 +377,13 @@ extends AbstractDOMParser {
      * @see #setErrorHandler
      */
     public ErrorHandler getErrorHandler() {
-        
+
         ErrorHandler errorHandler = null;
         try {
             XMLErrorHandler xmlErrorHandler =
-            (XMLErrorHandler)fConfiguration.getProperty(ERROR_HANDLER);
+                (XMLErrorHandler)fConfiguration.getProperty(ERROR_HANDLER);
             if (xmlErrorHandler != null &&
-            xmlErrorHandler instanceof ErrorHandlerWrapper) {
+                xmlErrorHandler instanceof ErrorHandlerWrapper) {
                 errorHandler = ((ErrorHandlerWrapper)xmlErrorHandler).getErrorHandler();
             }
         }
@@ -389,9 +391,9 @@ extends AbstractDOMParser {
             // do nothing
         }
         return errorHandler;
-        
+
     } // getErrorHandler():ErrorHandler
-    
+
     /**
      * Set the state of any feature in a SAX2 parser.  The parser
      * might not recognize the feature, and if it does recognize
@@ -407,23 +409,45 @@ extends AbstractDOMParser {
      *            state is not supported.
      */
     public void setFeature(String featureId, boolean state)
-    throws SAXNotRecognizedException, SAXNotSupportedException {
-        
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
         try {
+            
+            // http://xml.org/sax/features/use-entity-resolver2
+            //   controls whether the methods of an object implementing
+            //   org.xml.sax.ext.EntityResolver2 will be used by the parser.
+            //
+            if (featureId.equals(USE_ENTITY_RESOLVER2)) {
+                if (state != fUseEntityResolver2) {
+                    fUseEntityResolver2 = state;
+                    // Refresh EntityResolver wrapper.
+                    setEntityResolver(getEntityResolver());
+                }
+                return;
+            }
+            
+            //
+            // Default handling
+            //
+            
             fConfiguration.setFeature(featureId, state);
         }
         catch (XMLConfigurationException e) {
-            String message = e.getMessage();
+            String identifier = e.getIdentifier();
             if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
-                throw new SAXNotRecognizedException(message);
+                throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "feature-not-recognized", new Object [] {identifier}));
             }
             else {
-                throw new SAXNotSupportedException(message);
+                throw new SAXNotSupportedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "feature-not-supported", new Object [] {identifier}));
             }
         }
-        
+
     } // setFeature(String,boolean)
-    
+
     /**
      * Query the state of a feature.
      *
@@ -439,23 +463,40 @@ extends AbstractDOMParser {
      *            requested feature is known but not supported.
      */
     public boolean getFeature(String featureId)
-    throws SAXNotRecognizedException, SAXNotSupportedException {
-        
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
         try {
+
+            // http://xml.org/sax/features/use-entity-resolver2
+            //   controls whether the methods of an object implementing
+            //   org.xml.sax.ext.EntityResolver2 will be used by the parser.
+            //
+            if (featureId.equals(USE_ENTITY_RESOLVER2)) {
+                return fUseEntityResolver2;
+            }
+            
+            //
+            // Default handling
+            //
+            
             return fConfiguration.getFeature(featureId);
         }
         catch (XMLConfigurationException e) {
-            String message = e.getMessage();
+            String identifier = e.getIdentifier();
             if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
-                throw new SAXNotRecognizedException(message);
+                throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "feature-not-recognized", new Object [] {identifier}));
             }
             else {
-                throw new SAXNotSupportedException(message);
+                throw new SAXNotSupportedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "feature-not-supported", new Object [] {identifier}));
             }
         }
-        
+
     } // getFeature(String):boolean
-    
+
     /**
      * Set the value of any property in a SAX2 parser.  The parser
      * might not recognize the property, and if it does recognize
@@ -463,7 +504,7 @@ extends AbstractDOMParser {
      *
      * @param propertyId The unique identifier (URI) of the property
      *                   being set.
-     * @param Object The value to which the property is being set.
+     * @param value The value to which the property is being set.
      *
      * @exception SAXNotRecognizedException If the
      *            requested property is not known.
@@ -472,23 +513,27 @@ extends AbstractDOMParser {
      *            value is not supported.
      */
     public void setProperty(String propertyId, Object value)
-    throws SAXNotRecognizedException, SAXNotSupportedException {
-        
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
         try {
             fConfiguration.setProperty(propertyId, value);
         }
         catch (XMLConfigurationException e) {
-            String message = e.getMessage();
+            String identifier = e.getIdentifier();
             if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
-                throw new SAXNotRecognizedException(message);
+                throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "property-not-recognized", new Object [] {identifier}));
             }
             else {
-                throw new SAXNotSupportedException(message);
+                throw new SAXNotSupportedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "property-not-supported", new Object [] {identifier}));
             }
         }
-        
+
     } // setProperty(String,Object)
-    
+
     /**
      * Query the value of a property.
      *
@@ -504,36 +549,47 @@ extends AbstractDOMParser {
      *            requested property is known but not supported.
      */
     public Object getProperty(String propertyId)
-    throws SAXNotRecognizedException, SAXNotSupportedException {
-        
-        if (propertyId.equals(CURRENT_ELEMENT_NODE)) {
-            boolean deferred = false;
-            try {
-                deferred = getFeature(DEFER_NODE_EXPANSION);
-            }
-            catch (XMLConfigurationException e){
-                // ignore
-            }
-            if (deferred) {
-                throw new SAXNotSupportedException("Current element node cannot be queried when node expansion is deferred.");
-            }
-            return (fCurrentNode!=null &&
-            fCurrentNode.getNodeType() == Node.ELEMENT_NODE)? fCurrentNode:null;
-        }
-        
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
+       if (propertyId.equals(CURRENT_ELEMENT_NODE)) {
+           boolean deferred = false;
+           try {
+               deferred = getFeature(DEFER_NODE_EXPANSION);
+           }
+           catch (XMLConfigurationException e){
+               // ignore
+           }
+           if (deferred) {
+               throw new SAXNotSupportedException("Current element node cannot be queried when node expansion is deferred.");
+           }
+           return (fCurrentNode!=null &&
+                   fCurrentNode.getNodeType() == Node.ELEMENT_NODE)? fCurrentNode:null;
+       }
+
         try {
             return fConfiguration.getProperty(propertyId);
         }
         catch (XMLConfigurationException e) {
-            String message = e.getMessage();
+            String identifier = e.getIdentifier();
             if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
-                throw new SAXNotRecognizedException(message);
+                throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "property-not-recognized", new Object [] {identifier}));
             }
             else {
-                throw new SAXNotSupportedException(message);
+                throw new SAXNotSupportedException(
+                    SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                    "property-not-supported", new Object [] {identifier}));
             }
         }
-        
+
     } // getProperty(String):Object
     
+    /** 
+     * Returns this parser's XMLParserConfiguration.
+     */
+    public XMLParserConfiguration getXMLParserConfiguration() {
+        return fConfiguration;
+    } // getXMLParserConfiguration():XMLParserConfiguration
+
 } // class DOMParser

@@ -57,9 +57,9 @@ package com.sun.org.apache.bcel.internal.generic;
 /** 
  * DCONST - Push 0.0 or 1.0, other values cause an exception
  *
- * <PRE>Stack: ... -&gt; ..., <i></PRE>
+ * <PRE>Stack: ... -&gt; ..., </PRE>
  *
- * @version $Id: DCONST.java,v 1.1.1.1 2001/10/29 20:00:09 jvanzyl Exp $
+ * @version $Id: DCONST.java,v 1.1.2.1 2005/07/31 23:45:27 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class DCONST extends Instruction
@@ -92,7 +92,6 @@ public class DCONST extends Instruction
   public Type getType(ConstantPoolGen cp) {
     return Type.DOUBLE;
   }
-
 
   /**
    * Call corresponding visitor method(s). The order is:

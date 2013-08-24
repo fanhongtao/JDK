@@ -1,7 +1,7 @@
 /*
- * @(#)SynthButtonUI.java	1.20 04/04/16
+ * @(#)SynthButtonUI.java	1.28 06/01/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import sun.swing.plaf.synth.DefaultSynthStyle;
 /**
  * Synth's ButtonUI implementation.
  *
- * @version 1.20, 04/16/04
+ * @version 1.28, 01/13/06
  * @author Scott Violet
  */
 class SynthButtonUI extends BasicButtonUI implements
@@ -121,7 +121,8 @@ class SynthButtonUI extends BasicButtonUI implements
         if (SynthLookAndFeel.selectedUI == this) {
             return SynthLookAndFeel.selectedUIState | SynthConstants.ENABLED;
         }
-        ButtonModel model = ((AbstractButton)c).getModel();
+        AbstractButton button = (AbstractButton) c;
+        ButtonModel model = button.getModel();
 
         if (model.isPressed()) {
             if (model.isArmed()) {
@@ -131,19 +132,66 @@ class SynthButtonUI extends BasicButtonUI implements
                 state = MOUSE_OVER;
             }
         }
-        else if (model.isRollover()) {
-            state = MOUSE_OVER;
+        if (model.isRollover()) {
+            state |= MOUSE_OVER;
         }
         if (model.isSelected()) {
             state |= SELECTED;
         }
-        if (c.isFocusOwner()) {
+        if (c.isFocusOwner() && button.isFocusPainted()) {
             state |= FOCUSED;
         }
         if ((c instanceof JButton) && ((JButton)c).isDefaultButton()) {
             state |= DEFAULT;
         }
         return state;
+    }
+
+    public int getBaseline(JComponent c, int width, int height) {
+        if (c == null) {
+            throw new NullPointerException("Component must be non-null");
+        }
+        if (width < 0 || height < 0) {
+            throw new IllegalArgumentException(
+                    "Width and height must be >= 0");
+        }
+        AbstractButton b = (AbstractButton)c;
+        String text = b.getText();
+        if (text == null || "".equals(text)) {
+            return -1;
+        }
+        Insets i = b.getInsets();
+        Rectangle viewRect = new Rectangle();
+        Rectangle textRect = new Rectangle();
+        Rectangle iconRect = new Rectangle();
+        viewRect.x = i.left;
+        viewRect.y = i.top;
+        viewRect.width = width - (i.right + viewRect.x);
+        viewRect.height = height - (i.bottom + viewRect.y);
+
+        // layout the text and icon
+        SynthContext context = getContext(b);
+        FontMetrics fm = context.getComponent().getFontMetrics(
+            context.getStyle().getFont(context));
+        context.getStyle().getGraphicsUtils(context).layoutText(
+            context, fm, b.getText(), b.getIcon(), 
+            b.getHorizontalAlignment(), b.getVerticalAlignment(),
+            b.getHorizontalTextPosition(), b.getVerticalTextPosition(),
+            viewRect, iconRect, textRect, b.getIconTextGap());
+        View view = (View)b.getClientProperty(BasicHTML.propertyKey);
+        int baseline;
+        if (view != null) {
+            baseline = BasicHTML.getHTMLBaseline(view, textRect.width,
+                                                 textRect.height);
+            if (baseline >= 0) {
+                baseline += textRect.y;
+            }
+        }
+        else {
+            baseline = textRect.y + fm.getAscent();
+        }
+        context.dispose();
+        return baseline;
     }
 
     // ********************************
@@ -181,8 +229,11 @@ class SynthButtonUI extends BasicButtonUI implements
     }
 
     void paintBackground(SynthContext context, Graphics g, JComponent c) {
-        context.getPainter().paintButtonBackground(context, g, 0, 0,
-                                                c.getWidth(), c.getHeight());
+        if (((AbstractButton) c).isContentAreaFilled()) {
+            context.getPainter().paintButtonBackground(context, g, 0, 0,
+                                                       c.getWidth(),
+                                                       c.getHeight());
+        }
     }
 
     public void paintBorder(SynthContext context, Graphics g, int x,
@@ -209,25 +260,49 @@ class SynthButtonUI extends BasicButtonUI implements
      * Returns the Icon to use in painting the button.
      */
     protected Icon getIcon(AbstractButton b) {
-        Icon icon = getEnabledIcon(b);
-
+        Icon icon = b.getIcon();
         ButtonModel model = b.getModel();
-        Icon tmpIcon = null; 
 
         if (!model.isEnabled()) {
-            tmpIcon = getSynthDisabledIcon(b);
+            icon = getSynthDisabledIcon(b, icon);
         } else if (model.isPressed() && model.isArmed()) {
-            tmpIcon = getPressedIcon(b);
+            icon = getPressedIcon(b, getSelectedIcon(b, icon));
         } else if (b.isRolloverEnabled() && model.isRollover()) {
-            tmpIcon = getRolloverIcon(b);
+            icon = getRolloverIcon(b, getSelectedIcon(b, icon));
         } else if (model.isSelected()) {
-            tmpIcon = getSelectedIcon(b);
-        }
-        if (tmpIcon != null) {
-            icon = tmpIcon;
+            icon = getSelectedIcon(b, icon);
+        } else {
+            icon = getEnabledIcon(b, icon);
         }
         if(icon == null) {
             return getDefaultIcon(b);
+        }
+        return icon;
+    }
+
+    /**
+     * This method will return the icon that should be used for a button.  We
+     * only want to use the synth icon defined by the style if the specific
+     * icon has not been defined for the button state and the backup icon is a
+     * UIResource (we set it, not the developer).
+     *
+     * @param b button
+     * @param specificIcon icon returned from the button for the specific state
+     * @param defaultIcon fallback icon
+     * @param state the synth state of the button
+     */
+    private Icon getIcon(AbstractButton b, Icon specificIcon, Icon defaultIcon,
+            int state) {
+        Icon icon = specificIcon;
+        if (icon == null) {
+            if (defaultIcon instanceof UIResource) {
+                icon = getSynthIcon(b, state);
+                if (icon == null) {
+                    icon = defaultIcon;
+                }
+            } else {
+                icon = defaultIcon;
+            }
         }
         return icon;
     }
@@ -236,69 +311,47 @@ class SynthButtonUI extends BasicButtonUI implements
         return style.getIcon(getContext(b, synthConstant), getPropertyPrefix() + "icon");
     }
     
-    private Icon getEnabledIcon(AbstractButton b) {
-        Icon tmpIcon = b.getIcon();
-        if(tmpIcon == null) {
-            tmpIcon = getSynthIcon(b, SynthConstants.ENABLED); 
+    private Icon getEnabledIcon(AbstractButton b, Icon defaultIcon) {
+        if (defaultIcon == null) {
+            defaultIcon = getSynthIcon(b, SynthConstants.ENABLED); 
         }
-        return tmpIcon;
+        return defaultIcon;
     }
     
-    private Icon getSelectedIcon(AbstractButton b) {
-        Icon tmpIcon = b.getSelectedIcon();
-        if(tmpIcon == null) {
-            tmpIcon = getSynthIcon(b, SynthConstants.SELECTED);
-        }
-        return tmpIcon;
+    private Icon getSelectedIcon(AbstractButton b, Icon defaultIcon) {
+        return getIcon(b, b.getSelectedIcon(), defaultIcon,
+                SynthConstants.SELECTED);
     }
 
-    private Icon getRolloverIcon(AbstractButton b) {
+    private Icon getRolloverIcon(AbstractButton b, Icon defaultIcon) {
         ButtonModel model = b.getModel();
-        Icon tmpIcon;
+        Icon icon;
         if (model.isSelected()) {
-            tmpIcon = b.getRolloverSelectedIcon();
-            if (tmpIcon == null) {
-                tmpIcon = getSynthIcon(b, SynthConstants.SELECTED);
-                if (tmpIcon == null) {
-                  tmpIcon = getSelectedIcon(b); 
-                }
-            }
+            icon = getIcon(b, b.getRolloverSelectedIcon(), defaultIcon,
+                    SynthConstants.MOUSE_OVER | SynthConstants.SELECTED);
         } else {
-            tmpIcon = b.getRolloverIcon();
-            if (tmpIcon == null) {
-              tmpIcon = getSynthIcon(b, SynthConstants.MOUSE_OVER); 
-            }
+            icon = getIcon(b, b.getRolloverIcon(), defaultIcon,
+                    SynthConstants.MOUSE_OVER);
         }
-        return tmpIcon;
+        return icon;
     }
 
-    private Icon getPressedIcon(AbstractButton b) {
-        Icon tmpIcon;
-        tmpIcon = b.getPressedIcon();
-        if (tmpIcon == null) {
-            tmpIcon = getSynthIcon(b, SynthConstants.PRESSED);
-            if (tmpIcon == null) {
-              tmpIcon = getSelectedIcon(b);
-            }
-        }
-        return tmpIcon;
+    private Icon getPressedIcon(AbstractButton b, Icon defaultIcon) {
+        return getIcon(b, b.getPressedIcon(), defaultIcon,
+                SynthConstants.PRESSED);
     }
 
-    private Icon getSynthDisabledIcon(AbstractButton b) {
+    private Icon getSynthDisabledIcon(AbstractButton b, Icon defaultIcon) {
         ButtonModel model = b.getModel();
-        Icon tmpIcon;
+        Icon icon;
         if (model.isSelected()) {
-            tmpIcon = b.getDisabledSelectedIcon();
-            if(tmpIcon == null) {
-              tmpIcon = getSynthIcon(b, SynthConstants.DISABLED|SynthConstants.SELECTED);   
-            }
+            icon = getIcon(b, b.getDisabledSelectedIcon(), defaultIcon,
+                    SynthConstants.DISABLED | SynthConstants.SELECTED);
         } else {
-            tmpIcon = b.getDisabledIcon();
-            if(tmpIcon == null) {
-                tmpIcon = getSynthIcon(b, SynthConstants.DISABLED);
-            }
+            icon = getIcon(b, b.getDisabledIcon(), defaultIcon,
+                    SynthConstants.DISABLED);
         }
-        return tmpIcon;
+        return icon;
     }
 
     /**
@@ -377,7 +430,11 @@ class SynthButtonUI extends BasicButtonUI implements
     protected Icon getSizingIcon(AbstractButton b) {
         // NOTE: this is slightly different than BasicButtonUI, where it
         // would just use getIcon, but this should be ok.
-        return (b.isEnabled()) ? b.getIcon() : b.getDisabledIcon();
+        Icon icon = (b.isEnabled()) ? b.getIcon() : b.getDisabledIcon();
+        if (icon == null) {
+            icon = getDefaultIcon(b);
+        }
+        return icon;
     }
 
     public void propertyChange(PropertyChangeEvent e) {

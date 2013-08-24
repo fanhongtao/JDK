@@ -1,7 +1,7 @@
 /*
- * @(#)GuardedObject.java	1.15 03/12/19
+ * @(#)GuardedObject.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package java.security;
  * @see Guard
  * @see Permission
  *
- * @version 1.15 03/12/19
+ * @version 1.17 05/11/17
  * @author Roland Schemers
  * @author Li Gong
  */
@@ -74,7 +74,7 @@ public class GuardedObject implements java.io.Serializable {
      * Writes this object out to a stream (i.e., serializes it).
      * We check the guard if there is one.
      */
-    private synchronized void writeObject(java.io.ObjectOutputStream oos)
+    private void writeObject(java.io.ObjectOutputStream oos)
         throws java.io.IOException
     {
         if (guard != null)

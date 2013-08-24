@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDesktopIconUI.java	1.35 03/12/19
+ * @(#)BasicDesktopIconUI.java	1.36 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  * Basic L&F for a minimized window on a desktop.
  *
- * @version 1.35 12/19/03
+ * @version 1.36 11/17/05
  * @author David Kloba
  * @author Steve Wilson
  * @author Rich Schiavi

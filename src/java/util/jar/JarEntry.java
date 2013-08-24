@@ -1,7 +1,7 @@
 /*
- * @(#)JarEntry.java	1.21 03/12/19
+ * @(#)JarEntry.java	1.23 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -86,7 +86,7 @@ class JarEntry extends ZipEntry {
      * <code>null</code> if none.
      */
     public Certificate[] getCertificates() {
-	return certs;
+	return certs == null ? null : (Certificate[]) certs.clone();
     }
 
     /**
@@ -105,6 +105,6 @@ class JarEntry extends ZipEntry {
      * @since 1.5
      */
     public CodeSigner[] getCodeSigners() {
-	return signers;
+	return signers == null ? null : (CodeSigner[]) signers.clone();
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)StyleContext.java	1.79 05/11/10
+ * @(#)StyleContext.java	1.82 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -43,7 +43,7 @@ import sun.font.FontManager;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.79 11/10/05
+ * @version 1.82 04/07/06
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -275,8 +275,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param old the old attribute set
      * @param name the non-null attribute name
@@ -304,8 +304,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param old the old attribute set
      * @param attr the attributes to add
@@ -332,8 +332,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param old the old set of attributes
      * @param name the non-null attribute name
@@ -360,8 +360,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param old the old attribute set
      * @param names the attribute names
@@ -388,8 +388,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param old the old attribute set
      * @param attrs the attributes
@@ -428,8 +428,8 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param a the set to reclaim
      */
@@ -1237,6 +1237,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          *
          * @param name the style name, null for unnamed
          * @param parent the parent style, null if none
+	 * @since 1.4
          */
         public NamedStyle(String name, Style parent) {
             attributes = getEmptySet();
@@ -1252,6 +1253,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * Creates a new named style.
          *
          * @param parent the parent style, null if none
+	 * @since 1.4
          */
         public NamedStyle(Style parent) {
             this(null, parent);

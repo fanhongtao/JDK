@@ -1,7 +1,7 @@
 /*
- * @(#)ListUI.java	1.12 03/12/19
+ * @(#)ListUI.java	1.15 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,45 +13,55 @@ import java.awt.Rectangle;
 
 
 /**
- * The JList pluggable look and feel delegate.  This interface adds
- * methods that allow the JList component to map locations, e.g. mouse
- * coordinates, to list cells and from cell indices to the bounds of 
- * the cell.
+ * The {@code JList} pluggable look and feel delegate.
  *
- * @version 1.12 12/19/03
+ * @version 1.15 07/11/06
  * @author Hans Muller
  */
 
 public abstract class ListUI extends ComponentUI
 {
-    /** 
-     * Convert a point in <code>JList</code> coordinates to the closest index
-     * of the cell at that location. To determine if the cell actually
-     * contains the specified location use a combination of this method and
-     * <code>getCellBounds</code>.  Returns -1 if the model is empty.
-     * 
-     * @param location The JList relative coordinates of the cell
-     * @return The index of the cell at location, or -1.
+    /**
+     * Returns the cell index in the specified {@code JList} closest to the
+     * given location in the list's coordinate system. To determine if the
+     * cell actually contains the specified location, compare the point against
+     * the cell's bounds, as provided by {@code getCellBounds}.
+     * This method returns {@code -1} if the list's model is empty.
+     *
+     * @param list the list
+     * @param location the coordinates of the point
+     * @return the cell index closest to the given location, or {@code -1}
+     * @throws NullPointerException if {@code location} is null
      */
     public abstract int locationToIndex(JList list, Point location);
 
 
     /** 
-     * Returns the origin of the specified item in JList
-     * coordinates, null if index isn't valid.
-     * 
-     * @param index The index of the JList cell.
-     * @return The origin of the index'th cell.
+     * Returns the origin in the given {@code JList}, of the specified item,
+     * in the list's coordinate system.
+     * Returns {@code null} if the index isn't valid.
+     *
+     * @param list the list
+     * @param index the cell index
+     * @return the origin of the cell, or {@code null}
      */
     public abstract Point indexToLocation(JList list, int index);
 
 
     /** 
-     * Returns the bounds of the specified item in JList
-     * coordinates, null if index isn't valid.
-     * 
-     * @param index The index of the JList cell.
-     * @return The bounds of the index'th cell.
+     * Returns the bounding rectangle, in the given list's coordinate system,
+     * for the range of cells specified by the two indices.
+     * The indices can be supplied in any order.
+     * <p>
+     * If the smaller index is outside the list's range of cells, this method
+     * returns {@code null}. If the smaller index is valid, but the larger
+     * index is outside the list's range, the bounds of just the first index
+     * is returned. Otherwise, the bounds of the valid range is returned.
+     *
+     * @param list the list
+     * @param index1 the first index in the range
+     * @param index2 the second index in the range
+     * @return the bounding rectangle for the range of cells, or {@code null}
      */
     public abstract Rectangle getCellBounds(JList list, int index1, int index2);
 }

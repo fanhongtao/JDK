@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2004 The Apache Software Foundation.
+ * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 /*
- * $Id: FilteredAbsoluteLocationPath.java,v 1.6 2004/02/16 22:24:28 minchau Exp $
+ * $Id: FilteredAbsoluteLocationPath.java,v 1.2.4.1 2005/09/12 10:26:50 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
 
+import com.sun.org.apache.bcel.internal.generic.ALOAD;
+import com.sun.org.apache.bcel.internal.generic.ASTORE;
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
 import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
+import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 
 /**
  * @author G. Todd Miller 
@@ -82,12 +86,28 @@ final class FilteredAbsoluteLocationPath extends Expression {
 						"("
 						+ NODE_ITERATOR_SIG
 						+ ")V");
+
+            // Backwards branches are prohibited if an uninitialized object is
+            // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
+            // We don't know whether this code might contain backwards branches,
+            // so we mustn't create the new object until after we've created
+            // the suspect arguments to its constructor.  Instead we calculate
+            // the values of the arguments to the constructor first, store them
+            // in temporary variables, create the object and reload the
+            // arguments from the temporaries to avoid the problem.
+
+	    // Compile relative path iterator(s)
+            LocalVariableGen pathTemp =
+               methodGen.addLocalVariable("filtered_absolute_location_path_tmp",
+                                          Util.getJCRefType(NODE_ITERATOR_SIG),
+                                          il.getEnd(), null);
+	    _path.translate(classGen, methodGen);
+            il.append(new ASTORE(pathTemp.getIndex()));
+
 	    // Create new Dup Filter Iterator
 	    il.append(new NEW(cpg.addClass(DUP_FILTERED_ITERATOR)));
 	    il.append(DUP);
-
-	    // Compile relative path iterator(s)
-	    _path.translate(classGen, methodGen);
+            il.append(new ALOAD(pathTemp.getIndex()));
 
 	    // Initialize Dup Filter Iterator with iterator from the stack
 	    il.append(new INVOKESPECIAL(initDFI));

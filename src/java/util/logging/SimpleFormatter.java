@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleFormatter.java	1.14 03/12/19
+ * @(#)SimpleFormatter.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.util.Date;
  * Print a brief summary of the LogRecord in a human readable
  * format.  The summary will typically be 1 or 2 lines.
  *
- * @version 1.14, 12/19/03
+ * @version 1.15, 11/17/05
  * @since 1.4
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)ImageWriteParam.java	1.62 03/12/19
+ * @(#)ImageWriteParam.java	1.64 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -861,11 +861,15 @@ public class ImageWriteParam extends IIOParam {
      * argument must be one of the four modes, interpreted as follows:
      *
      * <ul>
-     *   <li><code>MODE_DISABLED</code> - Do not compress.  This may
-     *   not be permitted by some writers, such as JPEG, which do not
-     *   normally offer uncompressed output.  The corresponding
-     *   <code>set</code> and <code>get</code> methods will throw an
-     *   <code>IllegalStateException</code>.
+     *   <li><code>MODE_DISABLED</code> - If the mode is set to 
+     *   <code>MODE_DISABLED</code>, methods that query or modify the
+     *   compression type or parameters will throw an 
+     *   <code>IllegalStateException</code> (if compression is
+     *   normally supported by the plug-in). Some writers, such as JPEG,
+     *   do not normally offer uncompressed output. In this case, attempting 
+     *   to set the mode to <code>MODE_DISABLED</code> will throw an
+     *   <code>UnsupportedOperationException</code> and the mode will not be
+     *   changed.  
      *
      *   <li><code>MODE_EXPLICIT</code> - Compress using the
      *   compression type and quality settings specified in this

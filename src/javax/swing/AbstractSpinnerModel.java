@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSpinnerModel.java	1.7 04/05/05
+ * @(#)AbstractSpinnerModel.java	1.9 06/03/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,8 +15,8 @@ import javax.swing.event.*;
  * This class provides the ChangeListener part of the 
  * SpinnerModel interface that should be suitable for most concrete SpinnerModel
  * implementations.  Subclasses must provide an implementation of the 
- * minimum, maximum, and value properties and the getNextValue 
- * and getPreviousValue methods.
+ * <code>setValue</code>, <code>getValue</code>, <code>getNextValue</code> and
+ * <code>getPreviousValue</code> methods.
  * 
  * @see JSpinner
  * @see SpinnerModel
@@ -24,7 +24,7 @@ import javax.swing.event.*;
  * @see SpinnerNumberModel
  * @see SpinnerDateModel
  * 
- * @version 1.7 05/05/04
+ * @version 1.9 03/29/06
  * @author Hans Muller
  * @since 1.4
  */

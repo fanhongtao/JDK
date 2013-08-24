@@ -1,7 +1,7 @@
 /*
- * @(#)Operation.java	1.17 04/05/18
+ * @(#)Operation.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.rmi.server;
  * stubs (stubs generated with <code>rmic -v1.2</code>); hence, this class
  * is deprecated.
  *
- * @version 1.17, 05/18/04
+ * @version 1.18, 11/17/05
  * @since JDK1.1
  * @deprecated no replacement
  */

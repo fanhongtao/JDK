@@ -57,7 +57,7 @@ package com.sun.org.apache.bcel.internal.generic;
 /**
  * Super class for stack operations like DUP and POP.
  *
- * @version $Id: StackInstruction.java,v 1.1.1.1 2001/10/29 20:00:27 jvanzyl Exp $
+ * @version $Id: StackInstruction.java,v 1.1.2.1 2005/07/31 23:45:17 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class StackInstruction extends Instruction {

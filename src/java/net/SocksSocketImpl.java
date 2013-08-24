@@ -1,7 +1,7 @@
 /*
- * @(#)SocksSocketImpl.java	1.18 05/08/04
+ * @(#)SocksSocketImpl.java	1.21 06/06/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;

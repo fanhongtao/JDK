@@ -1,7 +1,7 @@
 /*
- * @(#)MetalProgressBarUI.java	1.26 03/12/19
+ * @(#)MetalProgressBarUI.java	1.28 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.26 12/19/03
+ * @version 1.28 04/07/06
  * @author Michael C. Albers
  */
 public class MetalProgressBarUI extends BasicProgressBarUI {
@@ -40,6 +40,7 @@ public class MetalProgressBarUI extends BasicProgressBarUI {
      * Draws a bit of special highlighting on the progress bar.
      * The core painting is deferred to the BasicProgressBar's
      * <code>paintDeterminate</code> method.
+     * @since 1.4
      */ 
     public void paintDeterminate(Graphics g, JComponent c) {
 	super.paintDeterminate(g,c);
@@ -119,6 +120,7 @@ public class MetalProgressBarUI extends BasicProgressBarUI {
      * and bouncing box.
      * The core painting is deferred to the BasicProgressBar's
      * <code>paintIndeterminate</code> method.
+     * @since 1.4
      */ 
     public void paintIndeterminate(Graphics g, JComponent c) {
         super.paintIndeterminate(g, c);

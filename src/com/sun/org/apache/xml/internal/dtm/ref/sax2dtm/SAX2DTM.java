@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2004 The Apache Software Foundation.
+ * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SAX2DTM.java,v 1.36 2004/02/17 04:07:37 minchau Exp $
+ * $Id: SAX2DTM.java,v 1.2.4.1 2005/09/15 08:15:11 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref.sax2dtm;
 
@@ -146,13 +146,14 @@ public class SAX2DTM extends DTMDefaultBaseIterators
   /**
    * fixed dom-style names.
    */
-  static final String[] m_fixednames = { null, null,  // nothing, Element
-                                         null, "#text",  // Attr, Text
-                                         "#cdata_section", null,  // CDATA, EntityReference
-                                         null, null,  // Entity, PI
-                                         "#comment", "#document",  // Comment, Document
-                                         null, "#document-fragment",  // Doctype, DocumentFragment
-                                         null };  // Notation
+  private static final String[] m_fixednames = { null, 
+                    null,  // nothing, Element
+                    null, "#text",  // Attr, Text
+                    "#cdata_section", null,  // CDATA, EntityReference
+                    null, null,  // Entity, PI
+                    "#comment", "#document",  // Comment, Document
+                    null, "#document-fragment",  // Doctype, DocumentFragment
+                    null };  // Notation
 
   /**
    * Vector of entities.  Each record is composed of four Strings:
@@ -189,12 +190,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * Made protected for access by SAX2RTFDTM.
    */
   protected boolean m_useSourceLocationProperty = false;
-
-  /**
-   * Describes whether information about document source location
-   * should be maintained or not. This static flag is set by TransformerFactoryImpl.
-   */
-  protected static boolean m_source_location = false;
 
    /** Made protected for access by SAX2RTFDTM.
    */
@@ -287,7 +282,7 @@ public class SAX2DTM extends DTMDefaultBaseIterators
     //m_dataOrQName = new SuballocatedIntVector(blocksize);
     
     // m_useSourceLocationProperty=com.sun.org.apache.xalan.internal.processor.TransformerFactoryImpl.m_source_location;
-    m_useSourceLocationProperty = m_source_location;
+    m_useSourceLocationProperty = mgr.getSource_location();
     m_sourceSystemId = (m_useSourceLocationProperty) ? new StringVector() : null;
  	m_sourceLine = (m_useSourceLocationProperty) ?  new IntVector() : null;
     m_sourceColumn = (m_useSourceLocationProperty) ?  new IntVector() : null; 
@@ -297,9 +292,9 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * Set whether information about document source location
    * should be maintained or not. 
    */
-  public static void setUseSourceLocation(boolean useSourceLocation)
+  public void setUseSourceLocation(boolean useSourceLocation)
   {
-    m_source_location = useSourceLocation;
+    m_useSourceLocationProperty = useSourceLocation;
   }
 
   /**
@@ -367,7 +362,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    *
    * @param incrementalSAXSource The parser that we want to recieve events from
    * on demand.
-   * @param appCoRID The CoRoutine ID for the application.
    */
   public void setIncrementalSAXSource(IncrementalSAXSource incrementalSAXSource)
   {
@@ -674,8 +668,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    *     5. [specified] A flag indicating whether this attribute was actually
    *        specified in the start-tag of its element, or was defaulted from the
    *        DTD.
-   *
-   * @param the attribute handle
    *
    * @param attributeHandle Must be a valid handle to an attribute node.
    * @return <code>true</code> if the attribute was specified;
@@ -985,10 +977,10 @@ public class SAX2DTM extends DTMDefaultBaseIterators
     // by not allowing the enabling conditions to change after we start
     // building the document.
     if (m_sourceSystemId.size() != m_size) {
-        System.err.println("CODING ERROR in Source Location: " + m_size
-                           + " != "
-                            + m_sourceSystemId.size());
-        System.exit(1);
+        String msg = "CODING ERROR in Source Location: " + m_size + " != "
+                    + m_sourceSystemId.size();
+        System.err.println(msg);
+        throw new RuntimeException(msg);
     }
   }
 
@@ -1213,8 +1205,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * normalized as described in 4.2.2 External Entities [XML]. If there is
    * no external subset or if it has no public identifier, this property
    * has no value.
-   *
-   * @param the document type declaration handle
    *
    * @return the public identifier String object, or null if there is none.
    */
@@ -1478,9 +1468,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * Get a prefix either from the qname or from the uri mapping, or just make
    * one up!
    *
-   * @param qname The qualified name, which may be null.
-   * @param uri The namespace URI, which may be null.
-   *
    * @return The prefix if there is one, or null.
    */
   public String getNamespaceURI(String prefix)
@@ -1534,18 +1521,21 @@ public class SAX2DTM extends DTMDefaultBaseIterators
         doStrip = m_chars.isWhitespace(m_textPendingStart, length);
       }
 
-      if (doStrip)
+      if (doStrip) {
         m_chars.setLength(m_textPendingStart);  // Discard accumulated text
-      else
-      {
-        int exName = m_expandedNameTable.getExpandedTypeID(DTM.TEXT_NODE);
-        int dataIndex = m_data.size();
+      } else {
+        // Guard against characters/ignorableWhitespace events that
+        // contained no characters.  They should not result in a node.
+        if (length > 0) {
+          int exName = m_expandedNameTable.getExpandedTypeID(DTM.TEXT_NODE);
+          int dataIndex = m_data.size();
 
-        m_previous = addNode(m_coalescedTextType, exName,
-                             m_parents.peek(), m_previous, dataIndex, false);
+          m_previous = addNode(m_coalescedTextType, exName,
+                               m_parents.peek(), m_previous, dataIndex, false);
 
-        m_data.addElement(m_textPendingStart);
-        m_data.addElement(length);
+          m_data.addElement(m_textPendingStart);
+          m_data.addElement(length);
+        }
       }
 
       // Reset for next text block
@@ -1843,8 +1833,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * each element (such as allocating a new tree node or writing
    * output to a file).</p>
    *
-   * @param name The element type name.
-   *
    * @param uri The Namespace URI, or the empty string if the
    *        element has no Namespace URI or if Namespace
    *        processing is not being performed.
@@ -2014,9 +2002,6 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * method in a subclass to take specific actions at the end of
    * each element (such as finalising a tree node or writing
    * output to a file).</p>
-   *
-   * @param name The element type name.
-   * @param attributes The specified or defaulted attributes.
    *
    * @param uri The Namespace URI, or the empty string if the
    *        element has no Namespace URI or if Namespace
@@ -2518,5 +2503,9 @@ public class SAX2DTM extends DTMDefaultBaseIterators
     	return new NodeLocator(null,m_systemId,-1,-1);
     }
     return null;
+  }
+  
+  public String getFixedNames(int type){
+    return m_fixednames[type];
   }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_class.c	1.30 05/09/30
+ * @(#)hprof_class.c	1.35 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -303,7 +303,7 @@ unload_walker(TableIndex index, void *key_ptr, int key_len,
     info = (ClassInfo *)info_ptr;
     if ( ! ( info->status & CLASS_IN_LOAD_LIST ) ) {
 	if ( ! (info->status & (CLASS_SPECIAL|CLASS_SYSTEM|CLASS_UNLOADED)) ) {
-            io_write_class_unload(info->serial_num);
+            io_write_class_unload(info->serial_num, info->object_index);
             info->status |= CLASS_UNLOADED;
             delete_classref((JNIEnv*)arg, info, NULL);
 	}

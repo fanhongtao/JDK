@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceContext.java	1.51 03/12/19
+ * @(#)DragSourceContext.java	1.53 06/04/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.util.TooManyListenersException;
  *
  * @see DragSourceListener
  * @see DragSourceMotionListener
- * @version 1.51, 12/19/03
+ * @version 1.53, 04/04/06
  * @since 1.2
  */
 
@@ -324,7 +324,7 @@ public class DragSourceContext
         }
         getDragSource().processDragEnter(dsde);
 
-	updateCurrentCursor(dsde.getDropAction(), dsde.getTargetActions(), ENTER);
+	updateCurrentCursor(getSourceActions(), dsde.getTargetActions(), ENTER);
     }
 
     /**
@@ -343,7 +343,7 @@ public class DragSourceContext
         }
         getDragSource().processDragOver(dsde);
 
-	updateCurrentCursor(dsde.getDropAction(), dsde.getTargetActions(), OVER);
+	updateCurrentCursor(getSourceActions(), dsde.getTargetActions(), OVER);
     }
 
     /**
@@ -381,7 +381,7 @@ public class DragSourceContext
         }
         getDragSource().processDropActionChanged(dsde);
 
-	updateCurrentCursor(dsde.getDropAction(), dsde.getTargetActions(), CHANGED);
+	updateCurrentCursor(getSourceActions(), dsde.getTargetActions(), CHANGED);
     }
 
     /**
@@ -425,16 +425,18 @@ public class DragSourceContext
    
     /**
      * If the default drag cursor behavior is active, this method
-     * sets the default drag cursor for the specified selected
-     * operation, supported actions and status, otherwise this
-     * method does nothing.
+     * sets the default drag cursor for the specified actions
+     * supported by the drag source, the drop target action,
+     * and status, otherwise this method does nothing.
      * 
-     * @param dropOp the user's currently selected operation
-     * @param targetAct the current target's supported actions
-     * @param status the constant
+     * @param sourceAct the actions supported by the drag source
+     * @param targetAct the drop target action
+     * @param status one of the fields <code>DEFAULT</code>,
+     *               <code>ENTER</code>, <code>OVER</code>, 
+     *               <code>CHANGED</code>
      */
 
-    protected synchronized void updateCurrentCursor(int dropOp, int targetAct, int status) {
+    protected synchronized void updateCurrentCursor(int sourceAct, int targetAct, int status) {
 
 	// if the cursor has been previously set then dont do any defaults
 	// processing.
@@ -453,12 +455,12 @@ public class DragSourceContext
 	    case ENTER:
 	    case OVER:
 	    case CHANGED:
-		int    ra = dropOp & targetAct;
+		int    ra = sourceAct & targetAct;
 
 		if (ra == DnDConstants.ACTION_NONE) { // no drop possible
-		    if ((dropOp & DnDConstants.ACTION_LINK) == DnDConstants.ACTION_LINK)
+		    if ((sourceAct & DnDConstants.ACTION_LINK) == DnDConstants.ACTION_LINK)
 		        c = DragSource.DefaultLinkNoDrop;
-		    else if ((dropOp & DnDConstants.ACTION_MOVE) == DnDConstants.ACTION_MOVE)
+		    else if ((sourceAct & DnDConstants.ACTION_MOVE) == DnDConstants.ACTION_MOVE)
 		        c = DragSource.DefaultMoveNoDrop;
 		    else
 		        c = DragSource.DefaultCopyNoDrop;

@@ -64,7 +64,7 @@ import java.util.Iterator;
  * existing java class (file).
  *
  * @see JavaClass
- * @version $Id: ClassGen.java,v 1.1.1.1 2001/10/29 20:00:07 jvanzyl Exp $
+ * @version $Id: ClassGen.java,v 1.1.2.1 2005/07/31 23:45:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ClassGen extends AccessFlags implements Cloneable {
@@ -89,24 +89,41 @@ public class ClassGen extends AccessFlags implements Cloneable {
    * @param file_name source file name
    * @param access_flags access qualifiers
    * @param interfaces implemented interfaces
+   * @param cp constant pool to use
    */
   public ClassGen(String class_name, String super_class_name, String file_name,
-		  int access_flags, String[] interfaces) {
+		  int access_flags, String[] interfaces, ConstantPoolGen cp) {
     this.class_name       = class_name;
     this.super_class_name = super_class_name;
     this.file_name        = file_name;
     this.access_flags     = access_flags;
-    cp = new ConstantPoolGen(); // Create empty constant pool
+    this.cp               = cp;
 
     // Put everything needed by default into the constant pool and the vectors
-    addAttribute(new SourceFile(cp.addUtf8("SourceFile"), 2,
-				cp.addUtf8(file_name), cp.getConstantPool()));
+    if(file_name != null)
+      addAttribute(new SourceFile(cp.addUtf8("SourceFile"), 2,
+				  cp.addUtf8(file_name), cp.getConstantPool()));
+
     class_name_index      = cp.addClass(class_name);
     superclass_name_index = cp.addClass(super_class_name);
 
     if(interfaces != null)
       for(int i=0; i < interfaces.length; i++)
 	addInterface(interfaces[i]);
+  }
+
+  /** Convenience constructor to set up some important values initially.
+   *
+   * @param class_name fully qualified class name
+   * @param super_class_name fully qualified superclass name
+   * @param file_name source file name
+   * @param access_flags access qualifiers
+   * @param interfaces implemented interfaces
+   */
+  public ClassGen(String class_name, String super_class_name, String file_name,
+		  int access_flags, String[] interfaces) {
+    this(class_name, super_class_name, file_name, access_flags, interfaces,
+	 new ConstantPoolGen());
   }
 
   /**

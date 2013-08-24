@@ -1,7 +1,7 @@
 /*
- * @(#)SignatureSpi.java	1.24 04/05/18
+ * @(#)SignatureSpi.java	1.26 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -27,7 +27,7 @@ import sun.security.jca.JCAUtil;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.24, 05/18/04
+ * @version 1.26, 04/07/06
  *
  * @see Signature
  */
@@ -252,6 +252,7 @@ public abstract class SignatureSpi {
      * initialized properly, the passed-in signature is improperly 
      * encoded or of the wrong type, if this signature algorithm is unable to
      * process the input data provided, etc.
+     * @since 1.4
      */
     protected boolean engineVerify(byte[] sigBytes, int offset, int length) 
 	throws SignatureException {
@@ -322,6 +323,7 @@ public abstract class SignatureSpi {
      *
      * @exception UnsupportedOperationException if this method is
      * not overridden by a provider
+     * @since 1.4
      */
     protected AlgorithmParameters engineGetParameters() {
 	throw new UnsupportedOperationException();

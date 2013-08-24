@@ -1,7 +1,7 @@
 /*
- * @(#)MutableAttributeSet.java	1.17 04/05/05
+ * @(#)MutableAttributeSet.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -15,7 +15,7 @@ import java.util.Enumeration;
  * form:<tt>
  * public XXXAttributeSet(ConstAttributeSet source);</tt>
  *
- * @version 1.17 05/05/04
+ * @version 1.18 11/17/05
  */
 public interface MutableAttributeSet extends AttributeSet {
 

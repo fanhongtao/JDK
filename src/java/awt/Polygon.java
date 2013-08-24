@@ -1,7 +1,7 @@
 /*
- * @(#)Polygon.java	1.52 04/05/18
+ * @(#)Polygon.java	1.57 06/02/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -11,17 +11,18 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import sun.awt.geom.Crossings;
+import java.util.Arrays;
 
 /**
  * The <code>Polygon</code> class encapsulates a description of a 
  * closed, two-dimensional region within a coordinate space. This 
  * region is bounded by an arbitrary number of line segments, each of 
  * which is one side of the polygon. Internally, a polygon
- * comprises of a list of (<i>x</i>,&nbsp;<i>y</i>) 
+ * comprises of a list of {@code (x,y)}
  * coordinate pairs, where each pair defines a <i>vertex</i> of the 
  * polygon, and two successive pairs are the endpoints of a 
  * line that is a side of the polygon. The first and final
- * pairs of (<i>x</i>,&nbsp;<i>y</i>) points are joined by a line segment 
+ * pairs of {@code (x,y)} points are joined by a line segment 
  * that closes the polygon.  This <code>Polygon</code> is defined with
  * an even-odd winding rule.  See
  * {@link java.awt.geom.PathIterator#WIND_EVEN_ODD WIND_EVEN_ODD}
@@ -35,7 +36,7 @@ import sun.awt.geom.Crossings;
  * @author 	Sami Shaio
  * @see Shape
  * @author      Herb Jellinek
- * @since       JDK1.0
+ * @since       1.0
  */
 public class Polygon implements Shape, java.io.Serializable {
 
@@ -48,12 +49,13 @@ public class Polygon implements Shape, java.io.Serializable {
      *
      * @serial
      * @see #addPoint(int, int)
+     * @since 1.0
      */
     public int npoints;
 
     /**
-     * The array of <i>x</i> coordinates.  The number of elements in 
-     * this array might be more than the number of <i>x</i> coordinates 
+     * The array of X coordinates.  The number of elements in 
+     * this array might be more than the number of X coordinates
      * in this <code>Polygon</code>.  The extra elements allow new points
      * to be added to this <code>Polygon</code> without re-creating this
      * array.  The value of {@link #npoints npoints} is equal to the
@@ -61,12 +63,13 @@ public class Polygon implements Shape, java.io.Serializable {
      *
      * @serial
      * @see #addPoint(int, int)
+     * @since 1.0
      */
     public int xpoints[];
 
     /**
-     * The array of <i>y</i> coordinates.  The number of elements in
-     * this array might be more than the number of <i>y</i> coordinates   
+     * The array of Y coordinates.  The number of elements in
+     * this array might be more than the number of Y coordinates
      * in this <code>Polygon</code>.  The extra elements allow new points    
      * to be added to this <code>Polygon</code> without re-creating this
      * array.  The value of <code>npoints</code> is equal to the
@@ -74,17 +77,18 @@ public class Polygon implements Shape, java.io.Serializable {
      *
      * @serial
      * @see #addPoint(int, int)
+     * @since 1.0
      */
     public int ypoints[];
     
     /**
-     * Bounds of the polygon.
-     * This value can be NULL.
-     * Please see the javadoc comments getBounds().
+     * The bounds of this {@code Polygon}.
+     * This value can be null.
      * 
      * @serial
      * @see #getBoundingBox()
      * @see #getBounds()
+     * @since 1.0
      */
     protected Rectangle bounds;
     
@@ -92,20 +96,26 @@ public class Polygon implements Shape, java.io.Serializable {
      * JDK 1.1 serialVersionUID 
      */
     private static final long serialVersionUID = -6460061437900069969L;
+    
+    /*
+     * Default length for xpoints and ypoints.
+     */
+    private static final int MIN_LENGTH = 4;
 
     /**
      * Creates an empty polygon.
+     * @since 1.0
      */
     public Polygon() {
-	xpoints = new int[4];
-	ypoints = new int[4];
+	xpoints = new int[MIN_LENGTH];
+	ypoints = new int[MIN_LENGTH];
     }
 
     /**
      * Constructs and initializes a <code>Polygon</code> from the specified 
      * parameters. 
-     * @param xpoints an array of <i>x</i> coordinates
-     * @param ypoints an array of <i>y</i> coordinates
+     * @param xpoints an array of X coordinates
+     * @param ypoints an array of Y coordinates
      * @param npoints the total number of points in the    
      *				<code>Polygon</code>
      * @exception  NegativeArraySizeException if the value of
@@ -115,18 +125,25 @@ public class Polygon implements Shape, java.io.Serializable {
      *             or the length of <code>ypoints</code>.
      * @exception  NullPointerException if <code>xpoints</code> or
      *             <code>ypoints</code> is <code>null</code>.
+     * @since 1.0
      */
     public Polygon(int xpoints[], int ypoints[], int npoints) {
     	// Fix 4489009: should throw IndexOutofBoundsException instead
     	// of OutofMemoryException if npoints is huge and > {x,y}points.length
     	if (npoints > xpoints.length || npoints > ypoints.length) {
-    		throw new IndexOutOfBoundsException("npoints > xpoints.length || npoints > ypoints.length");
+            throw new IndexOutOfBoundsException("npoints > xpoints.length || "+
+                                                "npoints > ypoints.length");
     	}
+	// Fix 6191114: should throw NegativeArraySizeException with 
+	// negative npoints 
+	if (npoints < 0) {
+	    throw new NegativeArraySizeException("npoints < 0");
+	}
+        // Fix 6343431: Applet compatibility problems if arrays are not
+        // exactly npoints in length
 	this.npoints = npoints;
-	this.xpoints = new int[npoints];
-	this.ypoints = new int[npoints];
-	System.arraycopy(xpoints, 0, this.xpoints, 0, npoints);
-	System.arraycopy(ypoints, 0, this.ypoints, 0, npoints);	
+	this.xpoints = Arrays.copyOf(xpoints, npoints);
+	this.ypoints = Arrays.copyOf(ypoints, npoints);
     }
 
     /**
@@ -171,9 +188,9 @@ public class Polygon implements Shape, java.io.Serializable {
      * Translates the vertices of the <code>Polygon</code> by 
      * <code>deltaX</code> along the x axis and by 
      * <code>deltaY</code> along the y axis.
-     * @param deltaX the amount to translate along the <i>x</i> axis
-     * @param deltaY the amount to translate along the <i>y</i> axis
-     * @since JDK1.1
+     * @param deltaX the amount to translate along the X axis
+     * @param deltaY the amount to translate along the Y axis
+     * @since 1.1
      */
     public void translate(int deltaX, int deltaY) {
 	for (int i = 0; i < npoints; i++) {
@@ -242,22 +259,25 @@ public class Polygon implements Shape, java.io.Serializable {
      * <code>Polygon</code> has already been performed, such as  
      * <code>getBounds</code> or <code>contains</code>, then this 
      * method updates the bounding box. 
-     * @param       x the specified x coordinate
-     * @param       y the specified y coordinate
+     * @param       x the specified X coordinate
+     * @param       y the specified Y coordinate
      * @see         java.awt.Polygon#getBounds
      * @see         java.awt.Polygon#contains
+     * @since 1.0
      */
     public void addPoint(int x, int y) {
-	if (npoints == xpoints.length) {
-	    int tmp[];
+	if (npoints >= xpoints.length || npoints >= ypoints.length) {
+	    int newLength = npoints * 2;
+	    // Make sure that newLength will be greater than MIN_LENGTH and 
+	    // aligned to the power of 2
+	    if (newLength < MIN_LENGTH) {
+		newLength = MIN_LENGTH;
+	    } else if ((newLength & (newLength - 1)) != 0) {
+		newLength = Integer.highestOneBit(newLength);
+	    }
 
-	    tmp = new int[npoints * 2];
-	    System.arraycopy(xpoints, 0, tmp, 0, npoints);
-	    xpoints = tmp;
-
-	    tmp = new int[npoints * 2];
-	    System.arraycopy(ypoints, 0, tmp, 0, npoints);
-	    ypoints = tmp;
+            xpoints = Arrays.copyOf(xpoints, newLength);
+            ypoints = Arrays.copyOf(ypoints, newLength);
 	}
 	xpoints[npoints] = x;
 	ypoints[npoints] = y;
@@ -274,7 +294,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * coordinate space, and can completely contain the <code>Polygon</code>.
      * @return a <code>Rectangle</code> that defines the bounds of this 
      * <code>Polygon</code>.
-     * @since       JDK1.1
+     * @since 1.1
      */
     public Rectangle getBounds() {
 	return getBoundingBox();
@@ -285,6 +305,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @return the bounds of this <code>Polygon</code>.
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getBounds()</code>.
+     * @since 1.0
      */
     @Deprecated
     public Rectangle getBoundingBox() {
@@ -304,6 +325,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @return <code>true</code> if the <code>Polygon</code> contains the
      * 			<code>Point</code>; <code>false</code> otherwise.
      * @see #contains(double, double)
+     * @since 1.0
      */
     public boolean contains(Point p) {
 	return contains(p.x, p.y);
@@ -313,13 +335,13 @@ public class Polygon implements Shape, java.io.Serializable {
      * Determines whether the specified coordinates are inside this 
      * <code>Polygon</code>.   
      * <p>
-     * @param x the specified x coordinate to be tested
-     * @param y the specified y coordinate to be tested
-     * @return  <code>true</code> if this <code>Polygon</code> contains
-     * 			the specified coordinates, (<i>x</i>,&nbsp;<i>y</i>);  
-     * 			<code>false</code> otherwise.
+     * @param x the specified X coordinate to be tested
+     * @param y the specified Y coordinate to be tested
+     * @return {@code true} if this {@code Polygon} contains
+     *         the specified coordinates {@code (x,y)};
+     *         {@code false} otherwise.
      * @see #contains(double, double)
-     * @since      JDK1.1
+     * @since 1.1
      */
     public boolean contains(int x, int y) {
 	return contains((double) x, (double) y);
@@ -328,14 +350,15 @@ public class Polygon implements Shape, java.io.Serializable {
     /**
      * Determines whether the specified coordinates are contained in this 
      * <code>Polygon</code>.
-     * @param x the specified x coordinate to be tested
-     * @param y the specified y coordinate to be tested
-     * @return  <code>true</code> if this <code>Polygon</code> contains
-     * 		the specified coordinates, (<i>x</i>,&nbsp;<i>y</i>);  
-     * 		<code>false</code> otherwise.
+     * @param x the specified X coordinate to be tested
+     * @param y the specified Y coordinate to be tested
+     * @return {@code true} if this {@code Polygon} contains
+     *         the specified coordinates {@code (x,y)};
+     *         {@code false} otherwise.
      * @see #contains(double, double)
      * @deprecated As of JDK version 1.1,
      * replaced by <code>contains(int, int)</code>.
+     * @since 1.0
      */
     @Deprecated
     public boolean inside(int x, int y) {
@@ -343,22 +366,16 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
-     * Returns the high precision bounding box of the {@link Shape}.
-     * @return a {@link Rectangle2D} that precisely
-     *		bounds the <code>Shape</code>.
+     * {@inheritDoc}
+     * @since 1.2
      */
     public Rectangle2D getBounds2D() {
 	return getBounds();
     }
 
     /**
-     * Determines if the specified coordinates are inside this 
-     * <code>Polygon</code>.  For the definition of
-     * <i>insideness</i>, see the class comments of {@link Shape}.
-     * @param x the specified x coordinate
-     * @param y the specified y coordinate
-     * @return <code>true</code> if the <code>Polygon</code> contains the
-     * specified coordinates; <code>false</code> otherwise.
+     * {@inheritDoc}
+     * @since 1.2
      */
     public boolean contains(double x, double y) {
         if (npoints <= 2 || !getBoundingBox().contains(x, y)) {
@@ -446,32 +463,15 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
-     * Tests if a specified {@link Point2D} is inside the boundary of this 
-     * <code>Polygon</code>.
-     * @param p a specified <code>Point2D</code>
-     * @return <code>true</code> if this <code>Polygon</code> contains the 
-     * 		specified <code>Point2D</code>; <code>false</code>
-     *          otherwise.
-     * @see #contains(double, double)
+     * {@inheritDoc}
+     * @since 1.2
      */
     public boolean contains(Point2D p) {
 	return contains(p.getX(), p.getY());
     }
 
     /**
-     * Tests if the interior of this <code>Polygon</code> intersects the 
-     * interior of a specified set of rectangular coordinates.
-     * @param x the x coordinate of the specified rectangular
-     *			shape's top-left corner
-     * @param y the y coordinate of the specified rectangular
-     *			shape's top-left corner
-     * @param w the width of the specified rectangular shape
-     * @param h the height of the specified rectangular shape
-     * @return <code>true</code> if the interior of this 
-     *			<code>Polygon</code> and the interior of the
-     *			specified set of rectangular 
-     * 			coordinates intersect each other;
-     *			<code>false</code> otherwise
+     * {@inheritDoc}
      * @since 1.2
      */
     public boolean intersects(double x, double y, double w, double h) {
@@ -484,30 +484,15 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
-     * Tests if the interior of this <code>Polygon</code> intersects the
-     * interior of a specified <code>Rectangle2D</code>.
-     * @param r a specified <code>Rectangle2D</code>
-     * @return <code>true</code> if this <code>Polygon</code> and the
-     * 			interior of the specified <code>Rectangle2D</code>
-     * 			intersect each other; <code>false</code>
-     * 			otherwise.
+     * {@inheritDoc}
+     * @since 1.2
      */
     public boolean intersects(Rectangle2D r) {
 	return intersects(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
 
     /**
-     * Tests if the interior of this <code>Polygon</code> entirely
-     * contains the specified set of rectangular coordinates.
-     * @param x the x coordinate of the top-left corner of the
-     * 			specified set of rectangular coordinates
-     * @param y the y coordinate of the top-left corner of the
-     * 			specified set of rectangular coordinates
-     * @param w the width of the set of rectangular coordinates
-     * @param h the height of the set of rectangular coordinates
-     * @return <code>true</code> if this <code>Polygon</code> entirely
-     * 			contains the specified set of rectangular
-     * 			coordinates; <code>false</code> otherwise
+     * {@inheritDoc}
      * @since 1.2
      */
     public boolean contains(double x, double y, double w, double h) {
@@ -520,13 +505,8 @@ public class Polygon implements Shape, java.io.Serializable {
     }
 
     /**
-     * Tests if the interior of this <code>Polygon</code> entirely
-     * contains the specified <code>Rectangle2D</code>.
-     * @param r the specified <code>Rectangle2D</code>
-     * @return <code>true</code> if this <code>Polygon</code> entirely
-     * 			contains the specified <code>Rectangle2D</code>;
-     *			<code>false</code> otherwise.
-     * @see #contains(double, double, double, double)
+     * {@inheritDoc}
+     * @since 1.2
      */
     public boolean contains(Rectangle2D r) {
 	return contains(r.getX(), r.getY(), r.getWidth(), r.getHeight());
@@ -543,6 +523,7 @@ public class Polygon implements Shape, java.io.Serializable {
      *		<code>null</code> if untransformed coordinates are desired
      * @return a {@link PathIterator} object that provides access to the
      *		geometry of this <code>Polygon</code>.      
+     * @since 1.2
      */
     public PathIterator getPathIterator(AffineTransform at) {
 	return new PolygonPathIterator(this, at);
@@ -567,6 +548,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * 		<code>flatness</code> parameter is ignored.
      * @return a <code>PathIterator</code> object that provides access to the
      * 		<code>Shape</code> object's geometry.
+     * @since 1.2
      */
     public PathIterator getPathIterator(AffineTransform at, double flatness) {
 	return getPathIterator(at);

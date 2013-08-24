@@ -1,7 +1,7 @@
 /*
- * @(#)SunJmxMBeanServer.java	1.28 03/12/19
+ * @(#)SunJmxMBeanServer.java	1.30 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,12 +31,6 @@ public interface SunJmxMBeanServer
      * @see #interceptorsEnabled
      */
     public MBeanInstantiator getMBeanInstantiator();
-
-
-    /**
-     * Return the MetaData associated to this MBeanServer.
-     */
-    public MetaData getMetaData();
 
     /**
      * Tell whether {@link MBeanServerInterceptor}s are enabled on this

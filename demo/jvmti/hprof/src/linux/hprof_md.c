@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_md.c	1.24 05/09/30
+ * @(#)hprof_md.c	1.28 05/12/07
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -70,6 +70,12 @@ md_getpid(void)
     }
     pid = getpid();
     return pid;
+}
+
+void 
+md_sleep(unsigned seconds)
+{
+    sleep(seconds);
 }
 
 void
@@ -220,42 +226,43 @@ md_read(int filedes, void *buf, int nbyte)
     return res;
 }
 
+/* Time of day in milli-seconds */
 static jlong
-md_millisecs(void)
+md_timeofday(void)
 {
-#ifdef LINUX
     struct timeval tv;
  
-    (void)gettimeofday(&tv, (void *)0);
+    if ( gettimeofday(&tv, (void *)0) != 0 ) {
+	return (jlong)0; /* EOVERFLOW ? */
+    }
     /*LINTED*/
-    return (jlong)((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+    return ((jlong)tv.tv_sec * (jlong)1000) + (jlong)(tv.tv_usec / 1000);
+}
+
+/* Hi-res timer in micro-seconds */
+jlong 
+md_get_microsecs(void)
+{
+#ifdef LINUX
+    return (jlong)(md_timeofday() * (jlong)1000); /* Milli to micro */
 #else
-    return (jlong)(gethrtime()/1000); /* Nano seconds to milli seconds */
+    return (jlong)(gethrtime()/(hrtime_t)1000); /* Nano seconds to micro seconds */
 #endif
 }
 
-jint 
-md_get_milliticks(void)
-{
-    return (int)md_millisecs();
-}
-
+/* Time of day in milli-seconds */
 jlong 
 md_get_timemillis(void)
 {
-    struct timeval tv;
- 
-    (void)gettimeofday(&tv, (void *)0);
-    /*LINTED*/
-    return (jlong)(((jlong)tv.tv_sec * (jlong)1000) + 
-		   ((jlong)tv.tv_usec / (jlong)1000));
+    return md_timeofday();
 }
 
+/* Current CPU hi-res CPU time used */
 jlong
 md_get_thread_cpu_timemillis(void)
 {
 #ifdef LINUX
-    return md_millisecs();
+    return md_timeofday();
 #else
     return (jlong)(gethrvtime()/1000); /* Nano seconds to milli seconds */
 #endif
@@ -365,15 +372,9 @@ void
 md_build_library_name(char *holder, int holderlen, char *pname, char *fname)
 {
     int   pnamelen;
-    char *suffix;
 
     /* Length of options directory location. */
     pnamelen = pname ? strlen(pname) : 0;
-#ifdef DEBUG   
-    suffix = "_g";
-#else
-    suffix = "";
-#endif 
 
     /* Quietly truncate on buffer overflow.  Should be an error. */
     if (pnamelen + (int)strlen(fname) + 10 > holderlen) {
@@ -383,9 +384,9 @@ md_build_library_name(char *holder, int holderlen, char *pname, char *fname)
 
     /* Construct path to library */
     if (pnamelen == 0) {
-        (void)snprintf(holder, holderlen, "lib%s%s.so", fname, suffix);
+        (void)snprintf(holder, holderlen, "lib%s.so", fname);
     } else {
-        (void)snprintf(holder, holderlen, "%s/lib%s%s.so", pname, fname, suffix);
+        (void)snprintf(holder, holderlen, "%s/lib%s.so", pname, fname);
     }
 }
 

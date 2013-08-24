@@ -1,7 +1,7 @@
 /*
- * @(#)JPopupMenu.java	1.191 04/05/18
+ * @(#)JPopupMenu.java	1.198 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,6 +40,11 @@ import java.applet.Applet;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>
  * in <em>The Java Tutorial.</em>
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -53,7 +58,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.191 @(#)JPopupMenu.java	1.191
+ * @version 1.198 @(#)JPopupMenu.java	1.198
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -280,12 +285,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * Appends a new menu item to the end of the menu which 
      * dispatches the specified <code>Action</code> object.
      *
-     * As of JDK 1.3, this is no longer the preferred method for adding
-     * <code>Actions</code> to
-     * a container. Instead it is recommended to configure a control with 
-     * an action using <code>setAction</code>, and then add that control
-     * directly to the <code>Container</code>.
-     *
      * @param a the <code>Action</code> to add to the menu
      * @return the new menu item
      * @see Action
@@ -356,10 +355,14 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 
         size = JPopupMenu.this.getPreferredSize();
 
-        if( (p.x + size.width) > screenBounds.x + scrWidth )
+        // Use long variables to prevent overflow
+        long pw = (long) p.x + (long) size.width;
+        long ph = (long) p.y + (long) size.height;
+
+        if( pw > screenBounds.x + scrWidth )
              p.x = screenBounds.x + scrWidth - size.width;
 
-        if( (p.y + size.height) > screenBounds.y + scrHeight)
+        if( ph > screenBounds.y + scrHeight)
              p.y = screenBounds.y + scrHeight - size.height;
 
         /* Change is made to the desired (X,Y) values, when the
@@ -377,11 +380,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     /**
      * Factory method which creates the <code>JMenuItem</code> for
      * <code>Actions</code> added to the <code>JPopupMenu</code>.
-     * As of JDK 1.3, this is no
-     * longer the preferred method, instead it is recommended to configure
-     * a control with an action using <code>setAction</code>,
-     * and then adding that
-     * control directly to the <code>Container</code>.
      *
      * @param a the <code>Action</code> for the menu item to be added
      * @return the new menu item
@@ -390,8 +388,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @since 1.3
      */
     protected JMenuItem createActionComponent(Action a) {
-        JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME),
-                                     (Icon)a.getValue(Action.SMALL_ICON)){
+        JMenuItem mi = new JMenuItem() {
 	    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
 		PropertyChangeListener pcl = createActionChangeListener(this);
 		if (pcl == null) {
@@ -402,48 +399,15 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 	};
         mi.setHorizontalTextPosition(JButton.TRAILING);
         mi.setVerticalTextPosition(JButton.CENTER);
-        mi.setEnabled(a.isEnabled());
 	return mi;
     }
 
     /**
      * Returns a properly configured <code>PropertyChangeListener</code>
      * which updates the control as changes to the <code>Action</code> occur.  
-     * As of JDK 1.3, this is no longer the preferred method for adding
-     * <code>Actions</code> to
-     * a container. Instead it is recommended to configure a control with 
-     * an action using <code>setAction</code>, and then add that control
-     * directly to the <code>Container</code>.
      */
     protected PropertyChangeListener createActionChangeListener(JMenuItem b) {
-        return new ActionChangedListener(b);
-    }
-
-    private class ActionChangedListener implements PropertyChangeListener, Serializable {
-        private JMenuItem menuItem;
-        
-        public ActionChangedListener(JMenuItem mi) {
-            super();
-            setTarget(mi);
-        }
-        public void propertyChange(PropertyChangeEvent e) {
-            String propertyName = e.getPropertyName();
-            if (e.getPropertyName().equals(Action.NAME)) {
-                String text = (String) e.getNewValue();
-                menuItem.setText(text);
-            } else if (propertyName.equals("enabled")) {
-                Boolean enabledState = (Boolean) e.getNewValue();
-                menuItem.setEnabled(enabledState.booleanValue());
-            } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
-                Icon icon = (Icon) e.getNewValue();
-                menuItem.setIcon(icon);
-                menuItem.invalidate();
-                menuItem.repaint();
-            } 
-        }
-	public void setTarget(JMenuItem b) {
-	    this.menuItem = b;
-	}
+        return b.createActionPropertyChangeListener0(b.getAction());
     }
 
     /**
@@ -881,7 +845,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @return true if this menu is a standalone popup menu, otherwise false
      */
     private boolean isPopupMenu() {
-        return  ((invoker != null) && !(invoker instanceof JMenu));
+        return  !(invoker instanceof JMenu);
     }
 
     /**
@@ -943,8 +907,19 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 	Point invokerOrigin;
 	if (invoker != null) {
 	    invokerOrigin = invoker.getLocationOnScreen();
-	    setLocation(invokerOrigin.x + x, 
-			invokerOrigin.y + y);
+
+            // To avoid integer overflow
+            long lx, ly;
+            lx = ((long) invokerOrigin.x) +
+                 ((long) x);
+            ly = ((long) invokerOrigin.y) +
+                 ((long) y);
+            if(lx > Integer.MAX_VALUE) lx = Integer.MAX_VALUE;
+            if(lx < Integer.MIN_VALUE) lx = Integer.MIN_VALUE;
+            if(ly > Integer.MAX_VALUE) ly = Integer.MAX_VALUE;
+            if(ly < Integer.MIN_VALUE) ly = Integer.MIN_VALUE;
+
+            setLocation((int) lx, (int) ly);
 	} else {
 	    setLocation(x, y);
 	}
@@ -974,7 +949,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * 
      * @param i  the index of the component, where 0 is the first 
      * @return the <code>Component</code> at that index 
-     * @deprecated replaced by <code>getComponent(int i)</code>
+     * @deprecated replaced by {@link java.awt.Container#getComponent(int)} 
      */
     @Deprecated
     public Component getComponentAtIndex(int i) {
@@ -1216,7 +1191,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
 
 	/**
 	 * This method gets called when a bound property is changed.
-	 * @param evt A <code>PropertyChangeEvent</code> object describing
+	 * @param e A <code>PropertyChangeEvent</code> object describing
 	 * the event source and the property that has changed. Must not be null.
 	 *
 	 * @throws NullPointerException if the parameter is null.

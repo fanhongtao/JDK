@@ -1,7 +1,7 @@
 /*
- * @(#)BasicCheckBoxMenuItemUI.java	1.53 03/12/19
+ * @(#)BasicCheckBoxMenuItemUI.java	1.54 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -18,7 +18,7 @@ import java.io.Serializable;
 /**
  * BasicCheckboxMenuItem implementation
  *
- * @version 1.53 12/19/03
+ * @version 1.54 11/17/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

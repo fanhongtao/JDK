@@ -1,7 +1,7 @@
 /*
- * @(#)Process.java	1.23 03/12/19
+ * @(#)Process.java	1.25 06/03/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.io.*;
  * process that owns the <code>Process</code> object.
  *
  * @author  unascribed
- * @version 1.23, 12/19/03
+ * @version 1.25, 03/30/06
  * @see     ProcessBuilder
  * @see     Runtime#exec(String[], String[], File)
  * @since   JDK1.0
@@ -106,9 +106,9 @@ public abstract class Process
      * @return     the exit value of the process. By convention, 
      *             <code>0</code> indicates normal termination.
      * @exception  InterruptedException  if the current thread is 
-     *             {@link Thread#interrupt() interrupted} by another thread 
-     *             while it is waiting, then the wait is ended and an 
-     *             {@link InterruptedException} is thrown.
+     *             {@linkplain Thread#interrupt() interrupted} by another
+     *             thread while it is waiting, then the wait is ended and
+     *             an {@link InterruptedException} is thrown.
      */
     abstract public int waitFor() throws InterruptedException;
 

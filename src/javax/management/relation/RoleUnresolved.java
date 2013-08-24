@@ -1,7 +1,7 @@
 /*
- * @(#)RoleUnresolved.java	1.26 03/12/19
+ * @(#)RoleUnresolved.java	1.30 05/12/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,6 +30,8 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * set the role) and an integer defining the problem (constants defined in
  * RoleStatus).
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-48350262537070138L</code>.
+ * 
  * @since 1.5
  */
 public class RoleUnresolved implements Serializable {
@@ -72,8 +74,8 @@ public class RoleUnresolved implements Serializable {
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -101,7 +103,7 @@ public class RoleUnresolved implements Serializable {
     /**
      * @serial Role value ({@link List} of {@link ObjectName} objects)
      */
-    private List roleValue = null;
+    private List<ObjectName> roleValue = null;
 
     /**
      * @serial Problem type
@@ -115,30 +117,29 @@ public class RoleUnresolved implements Serializable {
     /**
      * Constructor.
      *
-     * @param theRoleName  name of the role
-     * @param theRoleValue  value of the role (if problem when setting the
+     * @param name  name of the role
+     * @param value  value of the role (if problem when setting the
      * role)
-     * @param thePbType  type of problem (according to known problem types,
+     * @param pbType  type of problem (according to known problem types,
      * listed as static final members).
      *
      * @exception IllegalArgumentException  if null parameter or incorrect
      * problem type
      */
-    public RoleUnresolved(String theRoleName,
-			  List theRoleValue,
-			  int thePbType)
+    public RoleUnresolved(String name,
+			  List<ObjectName> value,
+			  int pbType)
 	throws IllegalArgumentException {
 
-	if (theRoleName == null) {
-	    // Revisit [cebro] Localize message
+	if (name == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	setRoleName(theRoleName);
-	setRoleValue(theRoleValue);
+	setRoleName(name);
+	setRoleValue(value);
 	// Can throw IllegalArgumentException
-	setProblemType(thePbType);
+	setProblemType(pbType);
 	return;
     }
 
@@ -166,7 +167,7 @@ public class RoleUnresolved implements Serializable {
      *
      * @see #setRoleValue
      */
-    public List getRoleValue() {
+    public List<ObjectName> getRoleValue() {
 	return roleValue;
     }
 
@@ -185,37 +186,36 @@ public class RoleUnresolved implements Serializable {
     /**
      * Sets role name.
      *
-     * @param theRoleName the new role name.
+     * @param name the new role name.
      *
      * @exception IllegalArgumentException  if null parameter
      *
      * @see #getRoleName
      */
-    public void setRoleName(String theRoleName)
+    public void setRoleName(String name)
 	throws IllegalArgumentException {
 
-	if (theRoleName == null) {
-	    // Revisit [cebro] Localize message
+	if (name == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	roleName = theRoleName;
+	roleName = name;
 	return;
     }
 
     /**
      * Sets role value.
      *
-     * @param theRoleValue  List of ObjectName objects for referenced
+     * @param value  List of ObjectName objects for referenced
      * MBeans not set in role.
      *
      * @see #getRoleValue
      */
-    public void setRoleValue(List theRoleValue) {
+    public void setRoleValue(List<ObjectName> value) {
 
-	if (theRoleValue != null) {
-	    roleValue = new ArrayList(theRoleValue);
+	if (value != null) {
+	    roleValue = new ArrayList<ObjectName>(value);
 	} else {
 	    roleValue = null;
 	}
@@ -225,22 +225,21 @@ public class RoleUnresolved implements Serializable {
     /**
      * Sets problem type.
      *
-     * @param thePbType  integer corresponding to a problem. Must be one of
+     * @param pbType  integer corresponding to a problem. Must be one of
      * those described as static final members of current class.
      *
      * @exception IllegalArgumentException  if incorrect problem type
      *
      * @see #getProblemType
      */
-    public void setProblemType(int thePbType)
+    public void setProblemType(int pbType)
 	throws IllegalArgumentException {
 
-	if (!(RoleStatus.isRoleStatus(thePbType))) {
-	    // Revisit [cebro] Localize message
+	if (!(RoleStatus.isRoleStatus(pbType))) {
 	    String excMsg = "Incorrect problem type.";
 	    throw new IllegalArgumentException(excMsg);
 	}
-	problemType = thePbType;
+	problemType = pbType;
 	return;
     }
 
@@ -295,7 +294,7 @@ public class RoleUnresolved implements Serializable {
         {
           throw new NullPointerException("myRoleName");
         }
-	roleValue = (List) fields.get("myRoleValue", null);
+	roleValue = (List<ObjectName>) fields.get("myRoleValue", null);
 	if (fields.defaulted("myRoleValue"))
         {
           throw new NullPointerException("myRoleValue");

@@ -1,68 +1,41 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2004 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001-2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
 import java.util.Vector;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.dv.SchemaDVFactory;
 import com.sun.org.apache.xerces.internal.impl.dv.ValidatedInfo;
 import com.sun.org.apache.xerces.internal.impl.dv.XSSimpleType;
 import com.sun.org.apache.xerces.internal.impl.xs.identity.IdentityConstraint;
+import com.sun.org.apache.xerces.internal.impl.xs.util.SimpleLocator;
+import com.sun.org.apache.xerces.internal.impl.xs.util.StringListImpl;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMap4Types;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMapImpl;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
+import com.sun.org.apache.xerces.internal.parsers.DOMParser;
+import com.sun.org.apache.xerces.internal.parsers.IntegratedParserConfiguration;
+import com.sun.org.apache.xerces.internal.parsers.SAXParser;
+import com.sun.org.apache.xerces.internal.util.SymbolHash;
+import com.sun.org.apache.xerces.internal.util.SymbolTable;
+import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
+import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription;
+import com.sun.org.apache.xerces.internal.xni.grammars.XSGrammar;
 import com.sun.org.apache.xerces.internal.xs.StringList;
 import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
 import com.sun.org.apache.xerces.internal.xs.XSAttributeDeclaration;
@@ -78,19 +51,6 @@ import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 import com.sun.org.apache.xerces.internal.xs.XSParticle;
 import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import com.sun.org.apache.xerces.internal.xs.XSWildcard;
-import com.sun.org.apache.xerces.internal.impl.xs.util.SimpleLocator;
-import com.sun.org.apache.xerces.internal.impl.xs.util.StringListImpl;
-import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMap4Types;
-import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMapImpl;
-import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
-import com.sun.org.apache.xerces.internal.impl.Constants;
-import com.sun.org.apache.xerces.internal.parsers.DOMParser;
-import com.sun.org.apache.xerces.internal.parsers.SAXParser;
-import com.sun.org.apache.xerces.internal.parsers.IntegratedParserConfiguration;
-import com.sun.org.apache.xerces.internal.util.SymbolHash;
-import com.sun.org.apache.xerces.internal.util.SymbolTable;
-import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription;
-import com.sun.org.apache.xerces.internal.xni.grammars.XSGrammar;
 
 /**
  * This class is to hold all schema component declaration that are declared
@@ -101,10 +61,12 @@ import com.sun.org.apache.xerces.internal.xni.grammars.XSGrammar;
  * useful to distinguish grammar objects from other kinds of object
  * when they exist in pools or caches.
  *
+ * @xerces.internal 
+ *
  * @author Sandy Gao, IBM
  * @author Elena Litani, IBM
  *
- * @version $Id: SchemaGrammar.java,v 1.35 2004/02/03 17:11:09 sandygao Exp $
+ * @version $Id: SchemaGrammar.java,v 1.2.6.1 2005/09/09 07:30:49 sunithareddy Exp $
  */
 
 public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
@@ -141,7 +103,7 @@ public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
     //
 
     // needed to make BuiltinSchemaGrammar work.
-    private SchemaGrammar() {}
+    protected SchemaGrammar() {}
 
     /**
      * Default constructor.
@@ -313,6 +275,257 @@ public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
         }
         synchronized SAXParser getSAXParser() {
             return null;
+        }
+    }
+    
+    /**
+     * <p>A partial schema for schemas for validating annotations.</p>
+     * 
+     * @xerces.internal 
+     * 
+     * @author Michael Glavassevich, IBM
+     */
+    public static final class Schema4Annotations extends SchemaGrammar {
+
+        /**
+         * Special constructor to create a schema 
+         * capable of validating annotations.
+         */
+        public Schema4Annotations() {
+            
+            // target namespace
+            fTargetNamespace = SchemaSymbols.URI_SCHEMAFORSCHEMA;
+            
+            // grammar description
+            fGrammarDescription = new XSDDescription();
+            fGrammarDescription.fContextType = XSDDescription.CONTEXT_PREPARSE;
+            fGrammarDescription.setNamespace(SchemaSymbols.URI_SCHEMAFORSCHEMA);
+            
+            // no global decls other than types and
+            // element declarations for <annotation>, <documentation> and <appinfo>.
+            fGlobalAttrDecls  = new SymbolHash(1);
+            fGlobalAttrGrpDecls = new SymbolHash(1);
+            fGlobalElemDecls = new SymbolHash(6);
+            fGlobalGroupDecls = new SymbolHash(1);
+            fGlobalNotationDecls = new SymbolHash(1);
+            fGlobalIDConstraintDecls = new SymbolHash(1);
+            
+            // get all built-in types
+            fGlobalTypeDecls = SG_SchemaNS.fGlobalTypeDecls;
+            
+            // create element declarations for <annotation>, <documentation> and <appinfo>
+            XSElementDecl annotationDecl = createAnnotationElementDecl(SchemaSymbols.ELT_ANNOTATION);
+            XSElementDecl documentationDecl = createAnnotationElementDecl(SchemaSymbols.ELT_DOCUMENTATION);
+            XSElementDecl appinfoDecl = createAnnotationElementDecl(SchemaSymbols.ELT_APPINFO);
+            
+            // add global element declarations
+            fGlobalElemDecls.put(annotationDecl.fName, annotationDecl);
+            fGlobalElemDecls.put(documentationDecl.fName, documentationDecl);
+            fGlobalElemDecls.put(appinfoDecl.fName, appinfoDecl);
+            
+            // create complex type declarations for <annotation>, <documentation> and <appinfo>
+            XSComplexTypeDecl annotationType = new XSComplexTypeDecl();
+            XSComplexTypeDecl documentationType = new XSComplexTypeDecl();
+            XSComplexTypeDecl appinfoType = new XSComplexTypeDecl();
+            
+            // set the types on their element declarations
+            annotationDecl.fType = annotationType;
+            documentationDecl.fType = documentationType;
+            appinfoDecl.fType = appinfoType;
+            
+            // create attribute groups for <annotation>, <documentation> and <appinfo>
+            XSAttributeGroupDecl annotationAttrs = new XSAttributeGroupDecl();
+            XSAttributeGroupDecl documentationAttrs = new XSAttributeGroupDecl();
+            XSAttributeGroupDecl appinfoAttrs = new XSAttributeGroupDecl();
+            
+            // fill in attribute groups
+            {
+                // create and fill attribute uses for <annotation>, <documentation> and <appinfo>
+                XSAttributeUseImpl annotationIDAttr = new XSAttributeUseImpl();
+                annotationIDAttr.fAttrDecl = new XSAttributeDecl();
+                annotationIDAttr.fAttrDecl.setValues(SchemaSymbols.ATT_ID, null, (XSSimpleType) fGlobalTypeDecls.get(SchemaSymbols.ATTVAL_ID),
+                        XSConstants.VC_NONE, XSConstants.SCOPE_LOCAL, null, annotationType, null);
+                annotationIDAttr.fUse = SchemaSymbols.USE_OPTIONAL;
+                annotationIDAttr.fConstraintType = XSConstants.VC_NONE;
+                
+                XSAttributeUseImpl documentationSourceAttr = new XSAttributeUseImpl();
+                documentationSourceAttr.fAttrDecl = new XSAttributeDecl();
+                documentationSourceAttr.fAttrDecl.setValues(SchemaSymbols.ATT_SOURCE, null, (XSSimpleType) fGlobalTypeDecls.get(SchemaSymbols.ATTVAL_ANYURI),
+                        XSConstants.VC_NONE, XSConstants.SCOPE_LOCAL, null, documentationType, null);
+                documentationSourceAttr.fUse = SchemaSymbols.USE_OPTIONAL;
+                documentationSourceAttr.fConstraintType = XSConstants.VC_NONE;
+                
+                XSAttributeUseImpl documentationLangAttr = new XSAttributeUseImpl();
+                documentationLangAttr.fAttrDecl = new XSAttributeDecl();
+                documentationLangAttr.fAttrDecl.setValues("lang".intern(), NamespaceContext.XML_URI, (XSSimpleType) fGlobalTypeDecls.get(SchemaSymbols.ATTVAL_LANGUAGE),
+                        XSConstants.VC_NONE, XSConstants.SCOPE_LOCAL, null, documentationType, null);
+                documentationLangAttr.fUse = SchemaSymbols.USE_OPTIONAL;
+                documentationLangAttr.fConstraintType = XSConstants.VC_NONE;
+                
+                XSAttributeUseImpl appinfoSourceAttr = new XSAttributeUseImpl();
+                appinfoSourceAttr.fAttrDecl = new XSAttributeDecl();
+                appinfoSourceAttr.fAttrDecl.setValues(SchemaSymbols.ATT_SOURCE, null, (XSSimpleType) fGlobalTypeDecls.get(SchemaSymbols.ATTVAL_ANYURI),
+                        XSConstants.VC_NONE, XSConstants.SCOPE_LOCAL, null, appinfoType, null);
+                appinfoSourceAttr.fUse = SchemaSymbols.USE_OPTIONAL;
+                appinfoSourceAttr.fConstraintType = XSConstants.VC_NONE;
+                
+                // create lax attribute wildcard for <annotation>, <documentation> and <appinfo>
+                XSWildcardDecl otherAttrs = new XSWildcardDecl();
+                otherAttrs.fNamespaceList = new String [] {fTargetNamespace, null};
+                otherAttrs.fType = XSWildcard.NSCONSTRAINT_NOT;
+                otherAttrs.fProcessContents = XSWildcard.PC_LAX;
+                
+                // add attribute uses and wildcards to attribute groups for <annotation>, <documentation> and <appinfo>
+                annotationAttrs.addAttributeUse(annotationIDAttr);
+                annotationAttrs.fAttributeWC = otherAttrs;
+                
+                documentationAttrs.addAttributeUse(documentationSourceAttr);
+                documentationAttrs.addAttributeUse(documentationLangAttr);
+                documentationAttrs.fAttributeWC = otherAttrs;
+                
+                appinfoAttrs.addAttributeUse(appinfoSourceAttr);
+                appinfoAttrs.fAttributeWC = otherAttrs;
+            }
+            
+            // create particles for <annotation>
+            XSParticleDecl annotationParticle = createUnboundedModelGroupParticle();
+            {
+                XSModelGroupImpl annotationChoice = new XSModelGroupImpl();
+                annotationChoice.fCompositor = XSModelGroupImpl.MODELGROUP_CHOICE;
+                annotationChoice.fParticleCount = 2;
+                annotationChoice.fParticles = new XSParticleDecl[2];
+                annotationChoice.fParticles[0] = createChoiceElementParticle(appinfoDecl);
+                annotationChoice.fParticles[1] = createChoiceElementParticle(documentationDecl);
+                annotationParticle.fValue = annotationChoice;
+            }
+            
+            // create wildcard particle for <documentation> and <appinfo>
+            XSParticleDecl anyWCSequenceParticle = createUnboundedAnyWildcardSequenceParticle();
+            
+            // fill complex types
+            annotationType.setValues("#AnonType_" + SchemaSymbols.ELT_ANNOTATION, fTargetNamespace, SchemaGrammar.fAnyType,
+                    XSConstants.DERIVATION_RESTRICTION, XSConstants.DERIVATION_NONE, (short) (XSConstants.DERIVATION_EXTENSION | XSConstants.DERIVATION_RESTRICTION),
+                    XSComplexTypeDecl.CONTENTTYPE_ELEMENT, false, annotationAttrs, null, annotationParticle, new XSObjectListImpl(null, 0));
+            annotationType.setName("#AnonType_" + SchemaSymbols.ELT_ANNOTATION);
+            annotationType.setIsAnonymous();
+            
+            documentationType.setValues("#AnonType_" + SchemaSymbols.ELT_DOCUMENTATION, fTargetNamespace, SchemaGrammar.fAnyType,
+                    XSConstants.DERIVATION_RESTRICTION, XSConstants.DERIVATION_NONE, (short) (XSConstants.DERIVATION_EXTENSION | XSConstants.DERIVATION_RESTRICTION),
+                    XSComplexTypeDecl.CONTENTTYPE_MIXED, false, documentationAttrs, null, anyWCSequenceParticle, new XSObjectListImpl(null, 0));
+            documentationType.setName("#AnonType_" + SchemaSymbols.ELT_DOCUMENTATION);
+            documentationType.setIsAnonymous();
+            
+            appinfoType.setValues("#AnonType_" + SchemaSymbols.ELT_APPINFO, fTargetNamespace, SchemaGrammar.fAnyType,
+                    XSConstants.DERIVATION_RESTRICTION, XSConstants.DERIVATION_NONE, (short) (XSConstants.DERIVATION_EXTENSION | XSConstants.DERIVATION_RESTRICTION),
+                    XSComplexTypeDecl.CONTENTTYPE_MIXED, false, appinfoAttrs, null, anyWCSequenceParticle, new XSObjectListImpl(null, 0));
+            appinfoType.setName("#AnonType_" + SchemaSymbols.ELT_APPINFO);
+            appinfoType.setIsAnonymous();
+            
+        } // <init>(int)
+        
+        // return the XMLGrammarDescription corresponding to this
+        // object
+        public XMLGrammarDescription getGrammarDescription() {
+            return fGrammarDescription.makeClone();
+        } // getGrammarDescription():  XMLGrammarDescription
+
+        // override these methods solely so that these
+        // objects cannot be modified once they're created.
+        public void setImportedGrammars(Vector importedGrammars) {
+            // ignore
+        }
+        public void addGlobalAttributeDecl(XSAttributeDecl decl) {
+            // ignore
+        }
+        public void addGlobalAttributeGroupDecl(XSAttributeGroupDecl decl) {
+            // ignore
+        }
+        public void addGlobalElementDecl(XSElementDecl decl) {
+            // ignore
+        }
+        public void addGlobalGroupDecl(XSGroupDecl decl) {
+            // ignore
+        }
+        public void addGlobalNotationDecl(XSNotationDecl decl) {
+            // ignore
+        }
+        public void addGlobalTypeDecl(XSTypeDefinition decl) {
+            // ignore
+        }
+        public void addComplexTypeDecl(XSComplexTypeDecl decl, SimpleLocator locator) {
+            // ignore
+        }
+        public void addRedefinedGroupDecl(XSGroupDecl derived, XSGroupDecl base, SimpleLocator locator) {
+            // ignore
+        }
+        public synchronized void addDocument(Object document, String location) {
+            // ignore
+        }
+
+        // annotation support
+        synchronized DOMParser getDOMParser() {
+            return null;
+        }
+        synchronized SAXParser getSAXParser() {
+            return null;
+        }
+        
+        //
+        // private helper methods
+        //
+        
+        private XSElementDecl createAnnotationElementDecl(String localName) {
+            XSElementDecl eDecl = new XSElementDecl();
+            eDecl.fName = localName;
+            eDecl.fTargetNamespace = fTargetNamespace;
+            eDecl.setIsGlobal();
+            eDecl.fBlock = (XSConstants.DERIVATION_EXTENSION | 
+                    XSConstants.DERIVATION_RESTRICTION | XSConstants.DERIVATION_SUBSTITUTION);
+            eDecl.setConstraintType(XSConstants.VC_NONE);
+            return eDecl;
+        }
+        
+        private XSParticleDecl createUnboundedModelGroupParticle() {
+            XSParticleDecl particle = new XSParticleDecl();
+            particle.fMinOccurs = 0;
+            particle.fMaxOccurs = SchemaSymbols.OCCURRENCE_UNBOUNDED;
+            particle.fType = XSParticleDecl.PARTICLE_MODELGROUP;
+            return particle;
+        }
+        
+        private XSParticleDecl createChoiceElementParticle(XSElementDecl ref) {
+            XSParticleDecl particle = new XSParticleDecl();
+            particle.fMinOccurs = 1;
+            particle.fMaxOccurs = 1;
+            particle.fType = XSParticleDecl.PARTICLE_ELEMENT;
+            particle.fValue = ref;
+            return particle;
+        }
+        
+        private XSParticleDecl createUnboundedAnyWildcardSequenceParticle() {
+            XSParticleDecl particle = createUnboundedModelGroupParticle();
+            XSModelGroupImpl sequence = new XSModelGroupImpl();
+            sequence.fCompositor = XSModelGroupImpl.MODELGROUP_SEQUENCE;
+            sequence.fParticleCount = 1;
+            sequence.fParticles = new XSParticleDecl[1];
+            sequence.fParticles[0] = createAnyLaxWildcardParticle();
+            particle.fValue = sequence;
+            return particle;
+        }
+        
+        private XSParticleDecl createAnyLaxWildcardParticle() {
+            XSParticleDecl particle = new XSParticleDecl();
+            particle.fMinOccurs = 1;
+            particle.fMaxOccurs = 1;
+            particle.fType = XSParticleDecl.PARTICLE_WILDCARD;
+            
+            XSWildcardDecl anyWC = new XSWildcardDecl();
+            anyWC.fNamespaceList = null;
+            anyWC.fType = XSWildcard.NSCONSTRAINT_ANY;
+            anyWC.fProcessContents = XSWildcard.PC_LAX;
+            
+            particle.fValue = anyWC;
+            return particle;
         }
     }
 
@@ -689,6 +902,8 @@ public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
 
     // the grammars to hold components of the schema namespace
     public final static BuiltinSchemaGrammar SG_SchemaNS = new BuiltinSchemaGrammar(GRAMMAR_XS);
+    
+    public final static Schema4Annotations SG_Schema4Annotations = new Schema4Annotations();
 
     public final static XSSimpleType fAnySimpleType = (XSSimpleType)SG_SchemaNS.getGlobalTypeDecl(SchemaSymbols.ATTVAL_ANYSIMPLETYPE);
 
@@ -736,6 +951,8 @@ public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
                                                   false,    // idc
                                                   true,     // notation
                                                   false,    // annotation
+                                                  false,    // facet
+                                                  false,    // multi value facet
                                                   true,     // complex type
                                                   true      // simple type
                                                  };
@@ -796,21 +1013,22 @@ public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
     }
 
     /**
-     * Returns a list of top-level components, i.e. element declarations,
-     * attribute declarations, etc.<p>
-     * Note that  <code>XSTypeDefinition#SIMPLE_TYPE</code> and
-     * <code>XSTypeDefinition#COMPLEX_TYPE</code> can also be used as the
-     * <code>objectType</code> to retrieve only complex types or simple types,
-     * instead of all types.
-     * @param objectType The type of the declaration, i.e.
-     *   ELEMENT_DECLARATION, ATTRIBUTE_DECLARATION, etc.
-     * @return A list of top-level definition of the specified type in
-     *   <code>objectType</code> or <code>null</code>.
+     * [schema components]: a list of top-level components, i.e. element 
+     * declarations, attribute declarations, etc. 
+     * @param objectType The type of the declaration, i.e. 
+     *   <code>ELEMENT_DECLARATION</code>. Note that 
+     *   <code>XSTypeDefinition.SIMPLE_TYPE</code> and 
+     *   <code>XSTypeDefinition.COMPLEX_TYPE</code> can also be used as the 
+     *   <code>objectType</code> to retrieve only complex types or simple 
+     *   types, instead of all types.
+     * @return  A list of top-level definition of the specified type in 
+     *   <code>objectType</code> or an empty <code>XSNamedMap</code> if no 
+     *   such definitions exist. 
      */
     public synchronized XSNamedMap getComponents(short objectType) {
         if (objectType <= 0 || objectType > MAX_COMP_IDX ||
             !GLOBAL_COMP[objectType]) {
-            return null;
+            return XSNamedMapImpl.EMPTY_MAP;
         }
         
         if (fComponents == null)

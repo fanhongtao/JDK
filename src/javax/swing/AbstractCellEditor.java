@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractCellEditor.java	1.11 03/12/19
+ * @(#)AbstractCellEditor.java	1.13 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import java.util.EventObject;
 import java.io.Serializable;
 
 /**
- * @version 1.11 12/19/03 
+ * @version 1.13 04/07/06 
  * 
  * A base class for <code>CellEditors</code>, providing default
  * implementations for the methods in the <code>CellEditor</code>
@@ -31,6 +31,7 @@ import java.io.Serializable;
  * Please see {@link java.beans.XMLEncoder}.
  * 
  * @author Philip Milne
+ * @since 1.3
  */
 
 public abstract class AbstractCellEditor implements CellEditor, Serializable {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WalkingIteratorSorted.java,v 1.11 2004/02/17 04:32:08 minchau Exp $
+ * $Id: WalkingIteratorSorted.java,v 1.2.4.1 2005/09/14 19:45:23 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public class WalkingIteratorSorted extends WalkingIterator
 {
+    static final long serialVersionUID = -4512512007542368213L;
 
 //  /** True if the nodes will be found in document order */
 //  protected boolean m_inNaturalOrder = false;

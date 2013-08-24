@@ -1,7 +1,7 @@
 /*
- * @(#)PushbackInputStream.java	1.36 04/02/19
+ * @(#)PushbackInputStream.java	1.43 06/06/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ package java.io;
  *
  * @author  David Connelly
  * @author  Jonathan Payne
- * @version 1.36, 02/19/04
+ * @version 1.43, 06/19/06
  * @since   JDK1.0
  */
 public
@@ -109,7 +109,9 @@ class PushbackInputStream extends FilterInputStream {
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if this input stream has been closed by
+     *		   invoking its {@link #close()} method,
+     *		   or an I/O error occurs. 
      * @see        java.io.InputStream#read()
      */
     public int read() throws IOException {
@@ -124,26 +126,32 @@ class PushbackInputStream extends FilterInputStream {
      * Reads up to <code>len</code> bytes of data from this input stream into
      * an array of bytes.  This method first reads any pushed-back bytes; after
      * that, if fewer than <code>len</code> bytes have been read then it
-     * reads from the underlying input stream.  This method blocks until at
-     * least 1 byte of input is available.
+     * reads from the underlying input stream. If <code>len</code> is not zero, the method
+     * blocks until at least 1 byte of input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned.
      *
      * @param      b     the buffer into which the data is read.
-     * @param      off   the start offset of the data.
+     * @param      off   the start offset in the destination array <code>b</code>
      * @param      len   the maximum number of bytes read.
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end of
      *             the stream has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
+     * @exception  IOException  if this input stream has been closed by
+     *		   invoking its {@link #close()} method,
+     *		   or an I/O error occurs. 
      * @see        java.io.InputStream#read(byte[], int, int)
      */
     public int read(byte[] b, int off, int len) throws IOException {
         ensureOpen();
-        if ((off < 0) || (off > b.length) || (len < 0) ||
-            ((off + len) > b.length) || ((off + len) < 0)) {
-            throw new IndexOutOfBoundsException();
-        }
-
-	if (len == 0) {
+	if (b == null) {
+	    throw new NullPointerException();
+	} else if (off < 0 || len < 0 || len > b.length - off) {
+	    throw new IndexOutOfBoundsException();
+	} else if (len == 0) {
 	    return 0;
 	}
 
@@ -175,7 +183,8 @@ class PushbackInputStream extends FilterInputStream {
      * @param      b   the <code>int</code> value whose low-order 
      * 			byte is to be pushed back.
      * @exception IOException If there is not enough room in the pushback
-     *			      buffer for the byte.
+     *		  buffer for the byte, or this input stream has been closed by
+     *		  invoking its {@link #close()} method.
      */
     public void unread(int b) throws IOException {
         ensureOpen();
@@ -195,7 +204,9 @@ class PushbackInputStream extends FilterInputStream {
      * @param off the start offset of the data.
      * @param len the number of bytes to push back.
      * @exception IOException If there is not enough room in the pushback
-     *			      buffer for the specified number of bytes.
+     *		  buffer for the specified number of bytes,
+     *		  or this input stream has been closed by
+     *		  invoking its {@link #close()} method.
      * @since     JDK1.1
      */
     public void unread(byte[] b, int off, int len) throws IOException {
@@ -215,7 +226,9 @@ class PushbackInputStream extends FilterInputStream {
      *
      * @param b the byte array to push back
      * @exception IOException If there is not enough room in the pushback
-     *			      buffer for the specified number of bytes.
+     *		  buffer for the specified number of bytes,
+     *		  or this input stream has been closed by
+     *		  invoking its {@link #close()} method.
      * @since     JDK1.1
      */
     public void unread(byte[] b) throws IOException {
@@ -223,14 +236,21 @@ class PushbackInputStream extends FilterInputStream {
     }
 
     /**
-     * Returns the number of bytes that can be read from this input stream
-     * without blocking.  This method calls the <code>available</code> method
-     * of the underlying input stream; it returns that value plus the number of
-     * bytes that have been pushed back.
+     * Returns an estimate of the number of bytes that can be read (or
+     * skipped over) from this input stream without blocking by the next
+     * invocation of a method for this input stream. The next invocation might be
+     * the same thread or another thread.  A single read or skip of this
+     * many bytes will not block, but may read or skip fewer bytes.
      *
-     * @return     the number of bytes that can be read from the input stream
-     *             without blocking.
-     * @exception  IOException  if an I/O error occurs.
+     * <p> The method returns the sum of the number of bytes that have been
+     * pushed back and the value returned by {@link
+     * java.io.FilterInputStream#available available}.
+     *
+     * @return     the number of bytes that can be read (or skipped over) from
+     *             the input stream without blocking.
+     * @exception  IOException  if this input stream has been closed by
+     * 		   invoking its {@link #close()} method,
+     *		   or an I/O error occurs.
      * @see        java.io.FilterInputStream#in
      * @see        java.io.InputStream#available()
      */
@@ -251,9 +271,12 @@ class PushbackInputStream extends FilterInputStream {
      * more bytes need to be skipped.  The actual number of bytes skipped
      * is returned.
      *
-     * @param      n   the number of bytes to be skipped.
-     * @return     the actual number of bytes skipped.
-     * @exception  IOException  if an I/O error occurs.
+     * @param	   n  {@inheritDoc} 
+     * @return     {@inheritDoc}
+     * @exception  IOException  if the stream does not support seek,
+     *		  or the stream has been closed by
+     *		  invoking its {@link #close()} method,
+     *		  or an I/O error occurs.  
      * @see        java.io.FilterInputStream#in
      * @see        java.io.InputStream#skip(long n)
      * @since      1.2
@@ -296,7 +319,7 @@ class PushbackInputStream extends FilterInputStream {
      *
      * <p> The <code>mark</code> method of <code>PushbackInputStream</code>
      * does nothing.
-     *
+     * 
      * @param   readlimit   the maximum limit of bytes that can be read before
      *                      the mark position becomes invalid.
      * @see     java.io.InputStream#reset()
@@ -323,6 +346,9 @@ class PushbackInputStream extends FilterInputStream {
     /**
      * Closes this input stream and releases any system resources 
      * associated with the stream. 
+     * Once the stream has been closed, further read(), unread(),
+     * available(), reset(), or skip() invocations will throw an IOException.
+     * Closing a previously closed stream has no effect.
      *
      * @exception  IOException  if an I/O error occurs.
      */
@@ -333,5 +359,4 @@ class PushbackInputStream extends FilterInputStream {
         in = null;
         buf = null;
     }
-
 }

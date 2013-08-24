@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: EqualityExpr.java,v 1.14 2004/02/16 22:24:29 minchau Exp $
+ * $Id: EqualityExpr.java,v 1.2.4.1 2005/09/12 10:16:52 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -52,7 +52,8 @@ import com.sun.org.apache.xalan.internal.xsltc.runtime.Operators;
  * @author Morten Jorgensen
  * @author Erwin Bolwidt <ejb@klomp.org>
  */
-final class EqualityExpr extends Expression implements Operators {
+final class EqualityExpr extends Expression {
+
     private final int _op;
     private Expression _left;
     private Expression _right;
@@ -70,7 +71,7 @@ final class EqualityExpr extends Expression implements Operators {
     }
     
     public String toString() {
-	return Operators.names[_op] + '(' + _left + ", " + _right + ')';
+        return Operators.getOpNames(_op) + '(' + _left + ", " + _right + ')';
     }
 
     public Expression getLeft() {
@@ -82,7 +83,7 @@ final class EqualityExpr extends Expression implements Operators {
     }
 
     public boolean getOp() {
-	return (_op != Operators.NE);
+        return (_op != Operators.NE);
     }
 
     /**
@@ -191,7 +192,7 @@ final class EqualityExpr extends Expression implements Operators {
 	if (tleft instanceof BooleanType) {
 	    _left.translate(classGen, methodGen);
 	    _right.translate(classGen, methodGen);
-	    _falseList.add(il.append(_op == Operators.EQ ? 
+        _falseList.add(il.append(_op == Operators.EQ ? 
 				     (BranchInstruction)new IF_ICMPNE(null) :
 				     (BranchInstruction)new IF_ICMPEQ(null)));
 	}
@@ -201,12 +202,12 @@ final class EqualityExpr extends Expression implements Operators {
 
 	    if (tleft instanceof RealType) {
 		il.append(DCMPG);
-		_falseList.add(il.append(_op == Operators.EQ ? 
+        _falseList.add(il.append(_op == Operators.EQ ? 
 					 (BranchInstruction)new IFNE(null) : 
 					 (BranchInstruction)new IFEQ(null)));
 	    }
 	    else {
-		_falseList.add(il.append(_op == Operators.EQ ? 
+            _falseList.add(il.append(_op == Operators.EQ ? 
 					 (BranchInstruction)new IF_ICMPNE(null) :
 					 (BranchInstruction)new IF_ICMPEQ(null)));
 	    }
@@ -238,7 +239,7 @@ final class EqualityExpr extends Expression implements Operators {
 	    _right.translate(classGen, methodGen);
 	    il.append(new INVOKEVIRTUAL(equals));
 
-	    if (_op == Operators.NE) {
+        if (_op == Operators.NE) {
 		il.append(ICONST_1);
 		il.append(IXOR);			// not x <-> x xor 1
 	    }
@@ -250,7 +251,7 @@ final class EqualityExpr extends Expression implements Operators {
 	if (tleft instanceof ResultTreeType) {
 	    if (tright instanceof BooleanType) {
 		_right.translate(classGen, methodGen);
-		if (_op == Operators.NE) {
+        if (_op == Operators.NE) {
 		    il.append(ICONST_1);
 		    il.append(IXOR); // not x <-> x xor 1
 		}
@@ -263,7 +264,7 @@ final class EqualityExpr extends Expression implements Operators {
 		_right.translate(classGen, methodGen);
 
 		il.append(DCMPG);
-		falsec = il.append(_op == Operators.EQ ? 
+        falsec = il.append(_op == Operators.EQ ? 
 				   (BranchInstruction) new IFNE(null) : 
 				   (BranchInstruction) new IFEQ(null));
 		il.append(ICONST_1);
@@ -288,7 +289,7 @@ final class EqualityExpr extends Expression implements Operators {
 						"(" +OBJECT_SIG+ ")Z");
 	    il.append(new INVOKEVIRTUAL(equals));
 
-	    if (_op == Operators.NE) {
+        if (_op == Operators.NE) {
 		il.append(ICONST_1);
 		il.append(IXOR);			// not x <-> x xor 1
 	    }
@@ -302,7 +303,7 @@ final class EqualityExpr extends Expression implements Operators {
 	    _right.translate(classGen, methodGen);
 
 	    il.append(IXOR); // x != y <-> x xor y
-	    if (_op == EQ) {
+        if (_op == Operators.EQ) {
 		il.append(ICONST_1);
 		il.append(IXOR); // not x <-> x xor 1
 	    }

@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2004 The Apache Software Foundation.
+ * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WriterToUTF8Buffered.java,v 1.5 2004/02/17 04:18:18 minchau Exp $
+ * $Id: WriterToUTF8Buffered.java,v 1.2.4.1 2005/09/15 08:15:31 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -29,15 +29,18 @@ import java.io.Writer;
  * as quickly as possible. It buffers the output in an internal
  * buffer which must be flushed to the OutputStream when done. This flushing
  * is done via the close() flush() or flushBuffer() method. 
+ * 
+ * This class is only used internally within Xalan.
+ * 
+ * @xsl.usage internal
  */
-public final class WriterToUTF8Buffered extends Writer
+final class WriterToUTF8Buffered extends Writer implements WriterChain
 {
     
   /** number of bytes that the byte buffer can hold.
    * This is a fixed constant is used rather than m_outputBytes.lenght for performance.
    */
   private static final int BYTES_MAX=16*1024;
-  
   /** number of characters that the character buffer can hold.
    * This is 1/3 of the number of bytes because UTF-8 encoding
    * can expand one unicode character by up to 3 bytes.
@@ -83,7 +86,7 @@ public final class WriterToUTF8Buffered extends Writer
       
       // Big enough to hold the input chars that will be transformed
       // into output bytes in m_ouputBytes.
-      m_inputChars = new char[CHARS_MAX + 1];
+      m_inputChars = new char[CHARS_MAX + 2];
       count = 0;
       
 //      the old body of this constructor, before the buffersize was changed to a constant      
@@ -143,12 +146,20 @@ public final class WriterToUTF8Buffered extends Writer
       m_outputBytes[count++] = (byte) (0xc0 + (c >> 6));
       m_outputBytes[count++] = (byte) (0x80 + (c & 0x3f));
     }
-    else
+    else if (c < 0x10000)
     {
       m_outputBytes[count++] = (byte) (0xe0 + (c >> 12));
       m_outputBytes[count++] = (byte) (0x80 + ((c >> 6) & 0x3f));
       m_outputBytes[count++] = (byte) (0x80 + (c & 0x3f));
     }
+	else
+	{
+	  m_outputBytes[count++] = (byte) (0xf0 + (c >> 18));
+	  m_outputBytes[count++] = (byte) (0x80 + ((c >> 12) & 0x3f));
+	  m_outputBytes[count++] = (byte) (0x80 + ((c >> 6) & 0x3f));
+	  m_outputBytes[count++] = (byte) (0x80 + (c & 0x3f));
+	}
+
   }
 
 
@@ -178,7 +189,7 @@ public final class WriterToUTF8Buffered extends Writer
       // The requested length is greater than the unused part of the buffer
       flushBuffer();
 
-      if (lengthx3 >= BYTES_MAX)
+      if (lengthx3 > BYTES_MAX)
       {
         /*
          * The requested length exceeds the size of the buffer.
@@ -187,12 +198,47 @@ public final class WriterToUTF8Buffered extends Writer
          * and make multiple recursive calls.
          * Be careful about integer overflows in multiplication.
          */
-        final int chunks = 1 + length/CHARS_MAX;
+        int split = length/CHARS_MAX; 
+        final int chunks;
+        if (split > 1)
+            chunks = split;
+        else
+            chunks = 2;
         int end_chunk = start;
         for (int chunk = 1; chunk <= chunks; chunk++)
         {
             int start_chunk = end_chunk;
             end_chunk = start + (int) ((((long) length) * chunk) / chunks);
+            
+            // Adjust the end of the chunk if it ends on a high char 
+            // of a Unicode surrogate pair and low char of the pair
+            // is not going to be in the same chunk
+            final char c = chars[end_chunk - 1]; 
+            int ic = chars[end_chunk - 1];
+            if (c >= 0xD800 && c <= 0xDBFF) {
+                // The last Java char that we were going
+                // to process is the first of a
+                // Java surrogate char pair that
+                // represent a Unicode character.
+
+                if (end_chunk < start + length) {
+                    // Avoid spanning by including the low
+                    // char in the current chunk of chars.
+                    end_chunk++;
+                } else {
+                    /* This is the last char of the last chunk,
+                     * and it is the high char of a high/low pair with
+                     * no low char provided.
+                     * TODO: error message needed.
+                     * The char array incorrectly ends in a high char
+                     * of a high/low surrogate pair, but there is
+                     * no corresponding low as the high is the last char 
+                     */
+                    end_chunk--;
+                }
+            }
+
+
             int len_chunk = (end_chunk - start_chunk);
             this.write(chars,start_chunk, len_chunk);
         }
@@ -228,6 +274,25 @@ public final class WriterToUTF8Buffered extends Writer
         buf_loc[count_loc++] = (byte) (0xc0 + (c >> 6));
         buf_loc[count_loc++] = (byte) (0x80 + (c & 0x3f));
       }
+      /**
+        * The following else if condition is added to support XML 1.1 Characters for 
+        * UTF-8:   [1111 0uuu] [10uu zzzz] [10yy yyyy] [10xx xxxx]*
+        * Unicode: [1101 10ww] [wwzz zzyy] (high surrogate)
+        *          [1101 11yy] [yyxx xxxx] (low surrogate)
+        *          * uuuuu = wwww + 1
+        */
+      else if (c >= 0xD800 && c <= 0xDBFF) 
+      {
+          char high, low;
+          high = c;
+          i++;
+          low = chars[i];
+
+          buf_loc[count_loc++] = (byte) (0xF0 | (((high + 0x40) >> 8) & 0xf0));
+          buf_loc[count_loc++] = (byte) (0x80 | (((high + 0x40) >> 2) & 0x3f));
+          buf_loc[count_loc++] = (byte) (0x80 | ((low >> 6) & 0x0f) + ((high << 4) & 0x30));
+          buf_loc[count_loc++] = (byte) (0x80 | (low & 0x3f));
+      }
       else
       {
         buf_loc[count_loc++] = (byte) (0xe0 + (c >> 12));
@@ -238,53 +303,6 @@ public final class WriterToUTF8Buffered extends Writer
     // Store the local integer back into the instance variable
     count = count_loc;
 
-  }
-  
-  /**
-   * Writes out the character array 
-   * @param chars a character array with only ASCII characters, so
-   * the UTF-8 encoding is optimized.
-   * @param start the first character in the input array
-   * @param length the number of characters in the input array
-   */
-  private void directWrite(final char chars[], final int start, final int length)
-          throws java.io.IOException
-  {
-
-
-
-    if (length >= BYTES_MAX - count)
-    {
-      // The requested length is greater than the unused part of the buffer
-      flushBuffer();
-
-      if (length >= BYTES_MAX)
-      {
-        /*
-         * The requested length exceeds the size of the buffer.
-         * Cut the buffer up into chunks, each of which will
-         * not cause an overflow to the output buffer m_outputBytes,
-         * and make multiple recursive calls.
-         */          
-        int chunks = 1 + length/CHARS_MAX;
-        for (int chunk =0 ; chunk < chunks; chunk++)
-        {
-            int start_chunk = start + ((length*chunk)/chunks);
-            int end_chunk   = start + ((length*(chunk+1))/chunks);
-            int len_chunk = (end_chunk - start_chunk);
-            this.directWrite(chars,start_chunk, len_chunk);
-        }
-        return;
-      }
-    }
-
-    final int n = length+start;
-    final byte[] buf_loc = m_outputBytes; // local reference for faster access
-    int count_loc = count;      // local integer for faster access
-    for(int i=start; i < n ; i++ )
-        buf_loc[count_loc++] = (byte) buf_loc[i];
-    // Store the local integer back into the instance variable
-    count = count_loc;
   }
 
   /**
@@ -308,20 +326,47 @@ public final class WriterToUTF8Buffered extends Writer
       // The requested length is greater than the unused part of the buffer
       flushBuffer();
 
-      if (lengthx3 >= BYTES_MAX)
+      if (lengthx3 > BYTES_MAX)
       {
         /*
          * The requested length exceeds the size of the buffer,
          * so break it up in chunks that don't exceed the buffer size.
          */
          final int start = 0;
-         int chunks = 1 + length/CHARS_MAX;
-         for (int chunk =0 ; chunk < chunks; chunk++)
+         int split = length/CHARS_MAX; 
+         final int chunks;
+         if (split > 1)
+             chunks = split;
+         else
+             chunks = 2;
+         int end_chunk = 0;
+         for (int chunk = 1; chunk <= chunks; chunk++)
          {
-             int start_chunk = start + ((length*chunk)/chunks);
-             int end_chunk   = start + ((length*(chunk+1))/chunks);
-             int len_chunk = (end_chunk - start_chunk);
+             int start_chunk = end_chunk;
+             end_chunk = start + (int) ((((long) length) * chunk) / chunks);
              s.getChars(start_chunk,end_chunk, m_inputChars,0);
+             int len_chunk = (end_chunk - start_chunk);
+
+             // Adjust the end of the chunk if it ends on a high char 
+             // of a Unicode surrogate pair and low char of the pair
+             // is not going to be in the same chunk
+             final char c = m_inputChars[len_chunk - 1];
+             if (c >= 0xD800 && c <= 0xDBFF) {
+                 // Exclude char in this chunk, 
+                 // to avoid spanning a Unicode character 
+                 // that is in two Java chars as a high/low surrogate
+                 end_chunk--;
+                 len_chunk--;
+                 if (chunk == chunks) {
+                     /* TODO: error message needed.
+                      * The String incorrectly ends in a high char
+                      * of a high/low surrogate pair, but there is
+                      * no corresponding low as the high is the last char
+                      * Recover by ignoring this last char.
+                      */
+                 }
+             }
+
              this.write(m_inputChars,0, len_chunk);
          }
          return;
@@ -357,6 +402,25 @@ public final class WriterToUTF8Buffered extends Writer
         buf_loc[count_loc++] = (byte) (0xc0 + (c >> 6));
         buf_loc[count_loc++] = (byte) (0x80 + (c & 0x3f));
       }
+    /**
+      * The following else if condition is added to support XML 1.1 Characters for 
+      * UTF-8:   [1111 0uuu] [10uu zzzz] [10yy yyyy] [10xx xxxx]*
+      * Unicode: [1101 10ww] [wwzz zzyy] (high surrogate)
+      *          [1101 11yy] [yyxx xxxx] (low surrogate)
+      *          * uuuuu = wwww + 1
+      */
+    else if (c >= 0xD800 && c <= 0xDBFF) 
+    {
+        char high, low;
+        high = c;
+        i++;
+        low = chars[i];
+
+        buf_loc[count_loc++] = (byte) (0xF0 | (((high + 0x40) >> 8) & 0xf0));
+        buf_loc[count_loc++] = (byte) (0x80 | (((high + 0x40) >> 2) & 0x3f));
+        buf_loc[count_loc++] = (byte) (0x80 | ((low >> 6) & 0x0f) + ((high << 4) & 0x30));
+        buf_loc[count_loc++] = (byte) (0x80 | (low & 0x3f));
+    }
       else
       {
         buf_loc[count_loc++] = (byte) (0xe0 + (c >> 12));
@@ -427,56 +491,11 @@ public final class WriterToUTF8Buffered extends Writer
   {
     return m_os;
   }
-  
-  /**
-   * 
-   * @param s A string with only ASCII characters
-   * @throws IOException
-   */
-  public void directWrite(final String s) throws IOException
+
+  public Writer getWriter()
   {
-
-    final int length = s.length();
-    
-    if (length >= BYTES_MAX - count)
-    {
-      // The requested length is greater than the unused part of the buffer
-      flushBuffer();
-
-      if (length >= BYTES_MAX)
-      {
-        /*
-         * The requested length exceeds the size of the buffer,
-         * so don't bother to buffer this one, just write it out
-         * directly. The buffer is already flushed so this is a 
-         * safe thing to do.
-         */
-         final int start = 0;
-         int chunks = 1 + length/CHARS_MAX;
-         for (int chunk =0 ; chunk < chunks; chunk++)
-         {
-             int start_chunk = start + ((length*chunk)/chunks);
-             int end_chunk   = start + ((length*(chunk+1))/chunks);
-             int len_chunk = (end_chunk - start_chunk);
-             s.getChars(start_chunk,end_chunk, m_inputChars,0);
-             this.directWrite(m_inputChars,0, len_chunk);
-         }
-        return;
-      }
-    }
-
-
-    s.getChars(0, length , m_inputChars, 0);
-    final char[] chars = m_inputChars;
-    final byte[] buf_loc = m_outputBytes; // local reference for faster access
-    int count_loc = count;      // local integer for faster access
-    int i = 0;
-    while( i < length) 
-        buf_loc[count_loc++] = (byte)chars[i++];
-
- 
-    // Store the local integer back into the instance variable
-    count = count_loc;
-
+    // Only one of getWriter() or getOutputStream() can return null
+    // This type of writer wraps an OutputStream, not a Writer.
+    return null;
   }
 }

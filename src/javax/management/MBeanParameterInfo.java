@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanParameterInfo.java	1.24 03/12/19
+ * @(#)MBeanParameterInfo.java	1.29 06/03/15
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package javax.management;
  *
  * @since 1.5
  */
-public class MBeanParameterInfo extends MBeanFeatureInfo implements java.io.Serializable, Cloneable  { 
+public class MBeanParameterInfo extends MBeanFeatureInfo implements Cloneable {
 
     /* Serial version */
     static final long serialVersionUID = 7432616882776782338L;
@@ -30,7 +30,7 @@ public class MBeanParameterInfo extends MBeanFeatureInfo implements java.io.Seri
      
    
     /**
-     * Constructs a <CODE>MBeanParameterInfo</CODE> object.
+     * Constructs an <CODE>MBeanParameterInfo</CODE> object.
      *
      * @param name The name of the data
      * @param type The type or class name of the data
@@ -38,10 +38,26 @@ public class MBeanParameterInfo extends MBeanFeatureInfo implements java.io.Seri
      */
     public MBeanParameterInfo(String name,
 			      String type,
-			      String description)
-	    throws IllegalArgumentException {
-	
-	super(name, description);
+			      String description) {
+        this(name, type, description, (Descriptor) null);
+    }
+
+    /**
+     * Constructs an <CODE>MBeanParameterInfo</CODE> object.
+     *
+     * @param name The name of the data
+     * @param type The type or class name of the data
+     * @param description A human readable description of the data. Optional.
+     * @param descriptor The descriptor for the operation.  This may be null
+     * which is equivalent to an empty descriptor.
+     *
+     * @since 1.6
+     */
+    public MBeanParameterInfo(String name,
+			      String type,
+			      String description,
+                              Descriptor descriptor) {	
+	super(name, description, descriptor);
 
 	this.type = type;
     }
@@ -59,7 +75,7 @@ public class MBeanParameterInfo extends MBeanFeatureInfo implements java.io.Seri
      */
      public Object clone () {
 	 try {
-	     return  super.clone() ;
+	     return super.clone() ;
 	 } catch (CloneNotSupportedException e) {
 	     // should not happen as this class is cloneable
 	     return null;
@@ -75,13 +91,24 @@ public class MBeanParameterInfo extends MBeanFeatureInfo implements java.io.Seri
 	return type;
     }
 
+    public String toString() {
+        return
+            getClass().getName() + "[" +
+            "description=" + getDescription() + ", " +
+            "name=" + getName() + ", " +
+            "type=" + getType() + ", " +
+            "descriptor=" + getDescriptor() +
+            "]";
+    }
+
     /**
      * Compare this MBeanParameterInfo to another.
      *
      * @param o the object to compare to.
      *
-     * @return true iff <code>o</code> is an MBeanParameterInfo such
-     * that its {@link #getName()}, {@link #getType()}, and {@link
+     * @return true if and only if <code>o</code> is an MBeanParameterInfo such
+     * that its {@link #getName()}, {@link #getType()},
+     * {@link #getDescriptor()}, and {@link
      * #getDescription()} values are equal (not necessarily identical)
      * to those of this MBeanParameterInfo.
      */
@@ -93,7 +120,8 @@ public class MBeanParameterInfo extends MBeanFeatureInfo implements java.io.Seri
 	MBeanParameterInfo p = (MBeanParameterInfo) o;
 	return (p.getName().equals(getName()) &&
 		p.getType().equals(getType()) &&
-		p.getDescription().equals(getDescription()));
+		p.getDescription().equals(getDescription()) &&
+                p.getDescriptor().equals(getDescriptor()));
     }
 
     public int hashCode() {

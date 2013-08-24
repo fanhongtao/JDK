@@ -1,7 +1,7 @@
 /*
- * @(#)AtomicReferenceArray.java	1.6 04/01/24
+ * @(#)AtomicReferenceArray.java	1.12 06/06/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,10 +18,10 @@ import java.util.*;
  * @author Doug Lea
  * @param <E> The base class of elements held in this array
  */
-public class AtomicReferenceArray<E> implements java.io.Serializable { 
+public class AtomicReferenceArray<E> implements java.io.Serializable {
     private static final long serialVersionUID = -6209656149925076980L;
 
-    private static final Unsafe unsafe =  Unsafe.getUnsafe();
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
     private static final int base = unsafe.arrayBaseOffset(Object[].class);
     private static final int scale = unsafe.arrayIndexScale(Object[].class);
     private final Object[] array;
@@ -33,25 +33,25 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Create a new AtomicReferenceArray of given length.
+     * Creates a new AtomicReferenceArray of given length.
      * @param length the length of the array
      */
     public AtomicReferenceArray(int length) {
         array = new Object[length];
         // must perform at least one volatile write to conform to JMM
-        if (length > 0) 
+        if (length > 0)
             unsafe.putObjectVolatile(array, rawIndex(0), null);
     }
 
     /**
-     * Create a new AtomicReferenceArray with the same length as, and
+     * Creates a new AtomicReferenceArray with the same length as, and
      * all elements copied from, the given array.
      *
      * @param array the array to copy elements from
      * @throws NullPointerException if array is null
      */
     public AtomicReferenceArray(E[] array) {
-        if (array == null) 
+        if (array == null)
             throw new NullPointerException();
         int length = array.length;
         this.array = new Object[length];
@@ -75,7 +75,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     }
 
     /**
-     * Get the current value at position <tt>i</tt>.
+     * Gets the current value at position {@code i}.
      *
      * @param i the index
      * @return the current value
@@ -83,9 +83,9 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     public final E get(int i) {
         return (E) unsafe.getObjectVolatile(array, rawIndex(i));
     }
- 
+
     /**
-     * Set the element at position <tt>i</tt> to the given value.
+     * Sets the element at position {@code i} to the given value.
      *
      * @param i the index
      * @param newValue the new value
@@ -93,10 +93,22 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     public final void set(int i, E newValue) {
         unsafe.putObjectVolatile(array, rawIndex(i), newValue);
     }
-  
+
     /**
-     * Set the element at position <tt>i</tt> to the given value and return the
-     * old value.
+     * Eventually sets the element at position {@code i} to the given value.
+     *
+     * @param i the index
+     * @param newValue the new value
+     * @since 1.6
+     */
+    public final void lazySet(int i, E newValue) {
+        unsafe.putOrderedObject(array, rawIndex(i), newValue);
+    }
+
+
+    /**
+     * Atomically sets the element at position {@code i} to the given
+     * value and returns the old value.
      *
      * @param i the index
      * @param newValue the new value
@@ -109,10 +121,10 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
                 return current;
         }
     }
-  
+
     /**
-     * Atomically set the value to the given updated value
-     * if the current value <tt>==</tt> the expected value.
+     * Atomically sets the element at position {@code i} to the given
+     * updated value if the current value {@code ==} the expected value.
      * @param i the index
      * @param expect the expected value
      * @param update the new value
@@ -120,14 +132,18 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(int i, E expect, E update) {
-        return unsafe.compareAndSwapObject(array, rawIndex(i), 
+        return unsafe.compareAndSwapObject(array, rawIndex(i),
                                          expect, update);
     }
 
     /**
-     * Atomically set the value to the given updated value
-     * if the current value <tt>==</tt> the expected value.
-     * May fail spuriously.
+     * Atomically sets the element at position {@code i} to the given
+     * updated value if the current value {@code ==} the expected value.
+     *
+     * <p>May <a href="package-summary.html#Spurious">fail spuriously</a>
+     * and does not provide ordering guarantees, so is only rarely an
+     * appropriate alternative to {@code compareAndSet}.
+     *
      * @param i the index
      * @param expect the expected value
      * @param update the new value

@@ -1,7 +1,7 @@
 /*
- * @(#)JTextField.java	1.90 03/12/19
+ * @(#)JTextField.java	1.95 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -118,6 +118,11 @@ import java.io.Serializable;
 
  * </code></pre>
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -132,7 +137,7 @@ import java.io.Serializable;
  * description: A component which allows for the editing of a single line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.90 12/19/03
+ * @version 1.95 08/08/06
  * @see #setActionCommand
  * @see JPasswordField
  * @see #addActionListener
@@ -510,14 +515,23 @@ public class JTextField extends JTextComponent implements SwingConstants {
      * If the <code>Action</code> is already a registered
      * <code>ActionListener</code>
      * for the <code>ActionEvent</code> source, it is not re-registered.
-     *
-     * A side-effect of setting the <code>Action</code> is that the
-     * <code>ActionEvent</code> source's properties 
-     * are immediately set from the values in the <code>Action</code>
-     * (performed by the method <code>configurePropertiesFromAction</code>)
-     * and subsequently updated as the <code>Action</code>'s
-     * properties change (via a <code>PropertyChangeListener</code>
-     * created by the method <code>createActionPropertyChangeListener</code>.
+     * <p>
+     * Setting the <code>Action</code> results in immediately changing
+     * all the properties described in <a href="Action.html#buttonActions">
+     * Swing Components Supporting <code>Action</code></a>.
+     * Subsequently, the textfield's properties are automatically updated
+     * as the <code>Action</code>'s properties change.
+     * <p>
+     * This method uses three other methods to set
+     * and help track the <code>Action</code>'s property values.
+     * It uses the <code>configurePropertiesFromAction</code> method
+     * to immediately change the textfield's properties.
+     * To track changes in the <code>Action</code>'s property values,
+     * this method registers the <code>PropertyChangeListener</code>
+     * returned by <code>createActionPropertyChangeListener</code>. The
+     * default {@code PropertyChangeListener} invokes the
+     * {@code actionPropertyChanged} method when a property in the
+     * {@code Action} changes. 
      *
      * @param a the <code>Action</code> for the <code>JTextField</code>,
      *		or <code>null</code>
@@ -526,6 +540,7 @@ public class JTextField extends JTextComponent implements SwingConstants {
      * @see #getAction
      * @see #configurePropertiesFromAction
      * @see #createActionPropertyChangeListener
+     * @see #actionPropertyChanged 
      * @beaninfo
      *        bound: true
      *    attribute: visualUpdate true
@@ -551,8 +566,6 @@ public class JTextField extends JTextComponent implements SwingConstants {
 		action.addPropertyChangeListener(actionPropertyChangeListener);
 	    }
 	    firePropertyChange("action", oldValue, action);
-	    revalidate();
-	    repaint();
 	}
     }
 
@@ -583,66 +596,90 @@ public class JTextField extends JTextComponent implements SwingConstants {
     }
 
     /**
-     * Factory method which sets the <code>ActionEvent</code>
-     * source's properties according to values from the
-     * <code>Action</code> instance.  The properties 
-     * which are set may differ for subclasses.
-     * By default, the properties which get set are 
-     * <code>Enabled</code> and <code>ToolTipText</code>.
+     * Sets the properties on this textfield to match those in the specified 
+     * <code>Action</code>.  Refer to <a href="Action.html#buttonActions">
+     * Swing Components Supporting <code>Action</code></a> for more
+     * details as to which properties this sets.
      *
      * @param a the <code>Action</code> from which to get the properties,
-     *		or <code>null</code>
+     *          or <code>null</code>
      * @since 1.3
      * @see Action
      * @see #setAction
      */
     protected void configurePropertiesFromAction(Action a) {
-	setEnabled((a!=null?a.isEnabled():true));
- 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
+        AbstractAction.setEnabledFromAction(this, a);
+        AbstractAction.setToolTipTextFromAction(this, a);
+        setActionCommandFromAction(a);
     }
 
     /**
-     * Factory method which creates the <code>PropertyChangeListener</code>
-     * used to update the <code>ActionEvent</code> source as
-     * properties change on its <code>Action</code> instance.
-     * Subclasses may override this in order to provide their own
-     * <code>PropertyChangeListener</code> if the set of
-     * properties which should be kept up to date differs from the
-     * default properties (Text, Enabled, ToolTipText).
-     *
+     * Updates the textfield's state in response to property changes in
+     * associated action. This method is invoked from the
+     * {@code PropertyChangeListener} returned from
+     * {@code createActionPropertyChangeListener}. Subclasses do not normally
+     * need to invoke this. Subclasses that support additional {@code Action}
+     * properties should override this and
+     * {@code configurePropertiesFromAction}.
      * <p>
-     * Note that <code>PropertyChangeListeners</code> should avoid holding
-     * strong references to the <code>ActionEvent</code> source,
-     * as this may hinder garbage collection of the
-     * <code>ActionEvent</code> source and all components
-     * in its containment hierarchy.  
+     * Refer to the table at <a href="Action.html#buttonActions">
+     * Swing Components Supporting <code>Action</code></a> for a list of
+     * the properties this method sets.
      *
-     * @param a the <code>Action</code> from which to get the properties,
-     *		or <code>null</code>
+     * @param action the <code>Action</code> associated with this textfield
+     * @param propertyName the name of the property that changed
+     * @since 1.6
+     * @see Action
+     * @see #configurePropertiesFromAction
+     */
+    protected void actionPropertyChanged(Action action, String propertyName) {
+        if (propertyName == Action.ACTION_COMMAND_KEY) {
+            setActionCommandFromAction(action);
+        } else if (propertyName == "enabled") {
+            AbstractAction.setEnabledFromAction(this, action);
+        } else if (propertyName == Action.SHORT_DESCRIPTION) {
+            AbstractAction.setToolTipTextFromAction(this, action);
+        }
+    }
+
+    private void setActionCommandFromAction(Action action) {
+        setActionCommand((action == null) ? null :
+                         (String)action.getValue(Action.ACTION_COMMAND_KEY));
+    }
+
+    /**
+     * Creates and returns a <code>PropertyChangeListener</code> that is
+     * responsible for listening for changes from the specified
+     * <code>Action</code> and updating the appropriate properties.
+     * <p>
+     * <b>Warning:</b> If you subclass this do not create an anonymous
+     * inner class.  If you do the lifetime of the textfield will be tied to
+     * that of the <code>Action</code>.
+     *
+     * @param a the textfield's action
      * @since 1.3
      * @see Action
      * @see #setAction
      */
     protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
-        return new AbstractActionPropertyChangeListener(this, a) {
-	    public void propertyChange(PropertyChangeEvent e) {	    
-		String propertyName = e.getPropertyName();
-		JTextField textField = (JTextField)getTarget();
-		if (textField == null) {   //WeakRef GC'ed in 1.2
-		    Action action = (Action)e.getSource();
-		    action.removePropertyChangeListener(this);
-		} else {
-		    if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
-			String text = (String) e.getNewValue();
-			textField.setToolTipText(text);
-		    } else if (propertyName.equals("enabled")) {
-			Boolean enabledState = (Boolean) e.getNewValue();
-			textField.setEnabled(enabledState.booleanValue());
-			textField.repaint();
-		    } 
-		}
-	    }
-	};
+        return new TextFieldActionPropertyChangeListener(this, a);
+    }
+
+    private static class TextFieldActionPropertyChangeListener extends
+                         ActionPropertyChangeListener<JTextField> {
+        TextFieldActionPropertyChangeListener(JTextField tf, Action a) {
+            super(tf, a);
+        }
+
+        protected void actionPropertyChanged(JTextField textField,
+                                             Action action,
+                                             PropertyChangeEvent e) {
+            if (AbstractAction.shouldReconfigure(e)) {
+                textField.configurePropertiesFromAction(action);
+            } else {
+                textField.actionPropertyChanged(action, e.getPropertyName());
+            }
+        }
     }
 
     /**

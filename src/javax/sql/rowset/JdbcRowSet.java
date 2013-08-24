@@ -1,7 +1,7 @@
 /*
- * @(#)JdbcRowSet.java	1.4 04/02/27
+ * @(#)JdbcRowSet.java	1.6 06/05/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -234,8 +234,6 @@ public interface JdbcRowSet extends RowSet, Joinable {
     * <p>
     * Sets the current auto-commit mode for this <code>Connection</code> object.
     *
-    * @return the current state of this internal <code>Connection</code> object's 
-    * auto-commit mode 
     * @throws SQLException if a database access error occurs
     * @see java.sql.Connection#setAutoCommit(boolean)
     */    

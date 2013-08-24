@@ -1,7 +1,7 @@
 /*
- * @(#)InitialContext.java	1.13 04/07/16
+ * @(#)InitialContext.java	1.15 06/01/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -103,7 +103,7 @@ import com.sun.naming.internal.ResourceManager;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.13 04/07/16
+ * @version 1.15 06/01/06
  *
  * @see Context
  * @see NamingManager#setInitialContextFactoryBuilder
@@ -222,6 +222,47 @@ public class InitialContext implements Context {
 	    // user has specified initial context factory; try to get it
 	    getDefaultInitCtx();
 	}
+    }
+
+    /**
+     * A static method to retrieve the named object.
+     * This is a shortcut method equivalent to invoking:
+     * <p>
+     * <code>
+     *        InitialContext ic = new InitialContext();
+     *        Object obj = ic.lookup();
+     * </code>
+     * <p> If <tt>name</tt> is empty, returns a new instance of this context
+     * (which represents the same naming context as this context, but its
+     * environment may be modified independently and it may be accessed
+     * concurrently).
+     *
+     * @param name
+     *          the name of the object to look up
+     * @return  the object bound to <tt>name</tt>
+     * @throws  NamingException if a naming exception is encountered
+     *
+     * @see #doLookup(String)
+     * @see #lookup(Name)
+     * @since 1.6
+     */
+    public static <T> T doLookup(Name name)
+        throws NamingException {
+        return (T) (new InitialContext()).lookup(name);
+    }
+
+   /**
+     * A static method to retrieve the named object. 
+     * See {@link #doLookup(Name)} for details.
+     * @param name
+     *          the name of the object to look up
+     * @return  the object bound to <tt>name</tt>
+     * @throws  NamingException if a naming exception is encountered
+      * @since 1.6
+     */
+    public static <T> T doLookup(String name)
+        throws NamingException {
+        return (T) (new InitialContext()).lookup(name);
     }
 
     private static String getURLScheme(String str) {

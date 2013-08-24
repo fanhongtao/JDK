@@ -1,7 +1,7 @@
 /*
- * @(#)Appendable.java	1.3 04/07/16
+ * @(#)Appendable.java	1.4 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.io.IOException;
  * with different styles of error handling there is no guarantee that
  * errors will be propagated to the invoker.
  *
- * @version 	1.3, 07/16/04
+ * @version 	1.4, 11/17/05
  * @since 1.5
  */
 public interface Appendable {

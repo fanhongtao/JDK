@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLStringDefault.java,v 1.3 2004/02/17 04:21:14 minchau Exp $
+ * $Id: XMLStringDefault.java,v 1.2.4.1 2005/09/15 08:16:02 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -713,7 +713,7 @@ public class XMLStringDefault implements XMLString
    * this <code>String</code> object. <p>
    * Examples:
    * <blockquote><pre>
-   * "Fahrvergngen".toUpperCase() returns "FAHRVERGNGEN"
+   * "Fahrvergn&uuml;gen".toUpperCase() returns "FAHRVERGN&Uuml;GEN"
    * "Visit Ljubinje!".toUpperCase() returns "VISIT LJUBINJE!"
    * </pre></blockquote>
    *

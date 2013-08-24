@@ -1,7 +1,7 @@
 /*
- * @(#)Ellipses.java	1.21 04/07/26
+ * @(#)Ellipses.java	1.24 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Ellipses.java	1.21 04/07/26
+ * @(#)Ellipses.java	1.24 06/08/29
  */
 
 package java2d.demos.Arcs_Curves;
@@ -44,15 +44,17 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java2d.AnimatingSurface;
 
+import static java.awt.Color.*;
+
 
 /**
  * Ellipse2D 25 animated expanding ellipses.
  */
 public class Ellipses extends AnimatingSurface {
 
-    private static Color colors[] = { Color.blue, Color.cyan, Color.green,
-                Color.magenta, Color.orange, Color.pink, Color.red, 
-                Color.yellow, Color.lightGray, Color.white };
+    private static Color colors[] = {
+            BLUE, CYAN, GREEN, MAGENTA, ORANGE, PINK, RED,
+            YELLOW, LIGHT_GRAY, WHITE };
     private Ellipse2D.Float[] ellipses;
     private double esize[];
     private float estroke[];
@@ -60,10 +62,10 @@ public class Ellipses extends AnimatingSurface {
 
 
     public Ellipses() {
-        setBackground(Color.black);
+        setBackground(BLACK);
         ellipses = new Ellipse2D.Float[25];
-        esize = new double[ellipses.length];
-        estroke = new float[ellipses.length];
+        esize    = new double[ellipses.length];
+        estroke  = new  float[ellipses.length];
         for (int i = 0; i < ellipses.length; i++) {
             ellipses[i] = new Ellipse2D.Float();
             getRandomXY(i, 20 * Math.random(), 200, 200);

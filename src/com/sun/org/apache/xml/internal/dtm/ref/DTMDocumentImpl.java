@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMDocumentImpl.java,v 1.13 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMDocumentImpl.java,v 1.2.4.1 2005/09/15 08:15:01 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -291,7 +291,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          /**
           * Set a reference pointer to the content-text repository
           *
-          * @param bufferRef FastStringBuffer reference to an instance of
+          * @param buffer FastStringBuffer reference to an instance of
           * buffer
           */
          void setContentBuffer(FastStringBuffer buffer) {
@@ -615,7 +615,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          *
          * The DTMManager will invoke this method when the dtm is created.
          *
-         * @param docHandle int the handle for the DTM document.
+         * @param documentNumber the handle for the DTM document.
          */
         final void initDocument(int documentNumber)
         {
@@ -787,7 +787,6 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
 // 	 * coordinated access to the DTMDStringPool based symbol tables.</p>
 // 		 *
 // 	 * @param ns the namespace of the element
-// 	 * @param localName The local part of the qualified name of the element
 // 	 * @param name The element name
 // 	 */
 // 	public void endElement(String ns, String name)
@@ -1257,7 +1256,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          * If not yet resolved, waits for more nodes to be added to the document and
          * tries again.
          *
-         * @param subtreeRootNodeHandle
+         * @param subtreeRootHandle
          * @param nodeHandle int Handle of the node.
          * @return handle of next descendant,
          * or DTM.NULL to indicate none exists.
@@ -1362,11 +1361,10 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
         }
 
         /**
-                * Given a node handle, find the owning document node.
-                *
-                * @param nodeHandle the id of the node.
-                * @return int Node handle of document, which should always be valid.
-                */
+         * Given a node handle, find the owning document node.
+         *
+         * @return int Node handle of document, which should always be valid.
+         */
         public int getDocument() {
                 return m_docHandle;
         }
@@ -1530,8 +1528,6 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          * be returned.  Any additional nodes that are created that have this
          * expanded name will use this ID.
          *
-         * @param nodeHandle The handle to the node in question.
-         *
          * @return the expanded-name id of the node.
          */
         public int getExpandedTypeID(String namespace, String localName, int type) {
@@ -1585,7 +1581,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
         /**
          * fixednames
         */
-        static final String[] fixednames=
+        private static final String[] fixednames=
         {
                 null,null,							// nothing, Element
                 null,"#text",						// Attr, Text
@@ -1757,7 +1753,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          * that feature is supported by this node.
          *
          * @param feature The name of the feature to test.
-         * @param versionThis is the version number of the feature to test.
+         * @param version This is the version number of the feature to test.
          *   If the version is not
          *   specified, supporting any version of the feature will cause the
          *   method to return <code>true</code>.
@@ -1826,7 +1822,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          * beginning of the document entity, and has no value if there is no XML
          * declaration.
          *
-         * @param the document handle
+         * @param documentHandle the document handle
          *
          * @return the document version String object
          */
@@ -1859,8 +1855,6 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          * normalized as described in 4.2.2 External Entities [XML]. If there is
          * no external subset or if it has no public identifier, this property
          * has no value.
-         *
-         * @param the document type declaration handle
          *
          * @return the public identifier String object, or null if there is none.
          */
@@ -1944,8 +1938,8 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          *
          * TODO: Make sure this does the right thing with attribute nodes!!!
          *
-         * @param node1 DOM Node to perform position comparison on.
-         * @param node2 DOM Node to perform position comparison on .
+         * @param nodeHandle1 DOM Node to perform position comparison on.
+         * @param nodeHandle2 DOM Node to perform position comparison on .
          *
          * @return false if node2 comes before node1, otherwise return true.
          * You can think of this as
@@ -1979,8 +1973,6 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          *        descriptions below) may be unknown. If it is true, those properties
          *        are never unknown.
          *
-         * @param the document handle
-         *
          * @param documentHandle A node handle that must identify a document.
          * @return <code>true</code> if all declarations were processed;
          *         <code>false</code> otherwise.
@@ -1992,9 +1984,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
          *        specified in the start-tag of its element, or was defaulted from the
          *        DTD.
          *
-         * @param the attribute handle
-         *
-         * NEEDSDOC @param attributeHandle
+         * @param attributeHandle the attribute handle
          * @return <code>true</code> if the attribute was specified;
          *         <code>false</code> if it was defaulted.
          */

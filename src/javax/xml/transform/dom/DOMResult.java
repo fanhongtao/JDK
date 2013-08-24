@@ -1,12 +1,29 @@
-// $Id: DOMResult.java,v 1.4.16.5 2004/07/13 22:27:49 jsuttor Exp $
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
  */
 
- /*
-  * @(#)DOMResult.java	1.15 04/07/13
-  */
+/*
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)DOMResult.java	1.23 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ */
 
 package javax.xml.transform.dom;
 
@@ -20,7 +37,7 @@ import org.w3c.dom.Node;
  * which may be retrieved with {@link #getNode()}.</p>
  * 
  * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.4.16.5 $, $Date: 2004/07/13 22:27:49 $
+ * @version $Revision: 1.2 $, $Date: 2005/06/10 03:50:39 $
  */
 public class DOMResult implements Result {
 
@@ -109,8 +126,9 @@ public class DOMResult implements Result {
      * @param node The DOM node that will contain the result tree.
      * @param nextSibling The child node where the result nodes should be inserted before.
      * 
-     * @throws IllegalArgumentException If <code>nextSibling</code> is not a sibling of <code>node</code>.
-     * @throws IllegalArgumentException If <code>node</code> is <code>null</code> and <code>nextSibling</code> is not <code>null</code>.
+     * @throws IllegalArgumentException If <code>nextSibling</code> is not a sibling of <code>node</code> or
+     *   <code>node</code> is <code>null</code> and <code>nextSibling</code>
+     *   is not <code>null</code>.
      * 
      * @since 1.5
      */
@@ -158,8 +176,10 @@ public class DOMResult implements Result {
      * @param nextSibling The child node where the result nodes should be inserted before.
      * @param systemId The system identifier which may be used in association with this node.
      * 
-     * @throws IllegalArgumentException If <code>nextSibling</code> is not a sibling of <code>node</code>.
-     * @throws IllegalArgumentException If <code>node</code> is <code>null</code> and <code>nextSibling</code> is not <code>null</code>.
+     * @throws IllegalArgumentException If <code>nextSibling</code> is not a
+     *   sibling of <code>node</code> or
+     *   <code>node</code> is <code>null</code> and <code>nextSibling</code>
+     *   is not <code>null</code>.
      * 
      * @since 1.5
      */
@@ -192,16 +212,18 @@ public class DOMResult implements Result {
      * a {@link org.w3c.dom.Element} node.
      * In other words, a node that accepts children.</p>
      * 
-     * <p>An <code>IllegalStateException</code> is thrown if <code>nextSibling</code> is not <code>null</code> and
+     * <p>An <code>IllegalStateException</code> is thrown if
+     * <code>nextSibling</code> is not <code>null</code> and
      * <code>node</code> is not a parent of <code>nextSibling</code>. 
      * An <code>IllegalStateException</code> is thrown if <code>node</code> is <code>null</code> and
      * <code>nextSibling</code> is not <code>null</code>.</p> 
      *
      * @param node The node to which the transformation will be appended.
      * 
-     * @throws IllegalStateException If <code>nextSibling</code> is not <code>null</code> and
-     *   <code>nextSibling</code> is not a child of <code>node</code>.
-     * @throws IllegalStateException If <code>node</code> is <code>null</code> and
+     * @throws IllegalStateException If <code>nextSibling</code> is not
+     *   <code>null</code> and
+     *   <code>nextSibling</code> is not a child of <code>node</code> or
+     *   <code>node</code> is <code>null</code> and
      *   <code>nextSibling</code> is not <code>null</code>.
      */
     public void setNode(Node node) {
@@ -254,8 +276,10 @@ public class DOMResult implements Result {
      * 
      * @param nextSibling The child node before which the result nodes will be inserted.
      * 
-     * @throws IllegalArgumentException If <code>nextSibling</code> is not a descendant of <code>node</code>.
-     * @throws IllegalStateException If <code>node</code> is <code>null</code> and <code>nextSibling</code> is not <code>null</code>.
+     * @throws IllegalArgumentException If <code>nextSibling</code> is not a
+     *   descendant of <code>node</code>.
+     * @throws IllegalStateException If <code>node</code> is <code>null</code>
+     *   and <code>nextSibling</code> is not <code>null</code>.
      * 
      * @since 1.5
      */

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XNodeSetForDOM.java,v 1.6 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XNodeSetForDOM.java,v 1.2.4.1 2005/09/14 20:34:46 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -32,6 +32,7 @@ import org.w3c.dom.traversal.NodeIterator;
  */
 public class XNodeSetForDOM extends XNodeSet
 {
+    static final long serialVersionUID = -8396190713754624640L;
   Object m_origObj;
 
   public XNodeSetForDOM(Node node, DTMManager dtmMgr)

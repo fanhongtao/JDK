@@ -85,12 +85,14 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *  <li>http://apache.org/xml/properties/internal/dtd-scanner</li>
  * </ul>
  *
+ * @xerces.internal
+ *
  * @author Glenn Marcy, IBM
  * @author Andy Clark, IBM
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  *
- * @version $Id: XML11DocumentScannerImpl.java,v 1.19 2004/04/25 05:05:50 mrglavas Exp $
+ * @version $Id: XML11DocumentScannerImpl.java,v 1.2 2005/08/16 22:51:38 jeffsuttor Exp $
  */
 public class XML11DocumentScannerImpl
     extends XMLDocumentScannerImpl {
@@ -99,9 +101,7 @@ public class XML11DocumentScannerImpl
     /** Array of 3 strings. */
     private String[] fStrings = new String[3];
 
-    /** String. */
-    private XMLString fString = new XMLString();
-
+    
     /** String buffer. */
     private XMLStringBuffer fStringBuffer = new XMLStringBuffer();
     private XMLStringBuffer fStringBuffer2 = new XMLStringBuffer();
@@ -125,28 +125,26 @@ public class XML11DocumentScannerImpl
      *
      * @return Returns the next character on the stream.
      */
-    protected int scanContent() throws IOException, XNIException {
-
-        XMLString content = fString;
-        int c = fEntityScanner.scanContent(content);
+    protected int scanContent(XMLStringBuffer content) throws IOException, XNIException {
+        
+        fTempString.length = 0;
+        int c = fEntityScanner.scanContent(fTempString);
+        content.append(fTempString);
+        
         if (c == '\r' || c == 0x85 || c == 0x2028) {
             // happens when there is the character reference &#13;
             // but scanContent doesn't do entity expansions...
             // is this *really* necessary???  - NG
             fEntityScanner.scanChar();
-            fStringBuffer.clear();
-            fStringBuffer.append(fString);
-            fStringBuffer.append((char)c);
-            content = fStringBuffer;
+            content.append((char)c);
             c = -1;
         }
-        if (fDocumentHandler != null && content.length > 0) {
+        /*if (fDocumentHandler != null && content.length > 0) {
             fDocumentHandler.characters(content, null);
-        }
+        } */
 
-        if (c == ']' && fString.length == 0) {
-            fStringBuffer.clear();
-            fStringBuffer.append((char)fEntityScanner.scanChar());
+        if (c == ']') {
+            content.append((char)fEntityScanner.scanChar());
             // remember where we are in case we get an endEntity before we
             // could flush the buffer out - this happens when we're parsing an
             // entity which ends with a ]
@@ -156,17 +154,17 @@ public class XML11DocumentScannerImpl
             // ']]]>' which we might otherwise miss.
             //
             if (fEntityScanner.skipChar(']')) {
-                fStringBuffer.append(']');
+                content.append(']'); 
                 while (fEntityScanner.skipChar(']')) {
-                    fStringBuffer.append(']');
+                    content.append(']'); 
                 }
                 if (fEntityScanner.skipChar('>')) {
                     reportFatalError("CDEndInContent", null);
                 }
             }
-            if (fDocumentHandler != null && fStringBuffer.length != 0) {
+            /*if (fDocumentHandler != null && fStringBuffer.length != 0) {
                 fDocumentHandler.characters(fStringBuffer, null);
-            }
+            }*/
             fInScanContent = false;
             c = -1;
         }
@@ -188,10 +186,12 @@ public class XML11DocumentScannerImpl
      *                      false if undeclared entities should be reported as WFC violation.
      * @param eleName The name of element to which this attribute belongs.
      *
+     * @return true if the non-normalized and normalized value are the same
+     * 
      * <strong>Note:</strong> This method uses fStringBuffer2, anything in it
      * at the time of calling is lost.
      **/
-    protected void scanAttributeValue(XMLString value, 
+    protected boolean scanAttributeValue(XMLString value, 
                                       XMLString nonNormalizedValue,
                                       String atName,
                                       boolean checkEntities,String eleName)
@@ -211,9 +211,20 @@ public class XML11DocumentScannerImpl
             System.out.println("** scanLiteral -> \""
                                + value.toString() + "\"");
         }
+        
+        int fromIndex = 0;
+        if (c == quote && (fromIndex = isUnchangedByNormalization(value)) == -1) {
+            /** Both the non-normalized and normalized attribute values are equal. **/
+            nonNormalizedValue.setValues(value);
+            int cquote = fEntityScanner.scanChar();
+            if (cquote != quote) {
+                reportFatalError("CloseQuoteExpected", new Object[]{eleName,atName});
+            }
+            return true;
+        }
         fStringBuffer2.clear();
         fStringBuffer2.append(value);
-        normalizeWhitespace(value);
+        normalizeWhitespace(value, fromIndex);
         if (DEBUG_ATTR_NORMALIZATION) {
             System.out.println("** normalizeWhitespace -> \""
                                + value.toString() + "\"");
@@ -398,6 +409,7 @@ public class XML11DocumentScannerImpl
         if (cquote != quote) {
             reportFatalError("CloseQuoteExpected", new Object[]{eleName,atName});
         }
+        return nonNormalizedValue.equals(value.ch, value.offset, value.length);
     } // scanAttributeValue()
 
     //
@@ -479,12 +491,44 @@ public class XML11DocumentScannerImpl
      */
     protected void normalizeWhitespace(XMLString value) {
         int end = value.offset + value.length;
-	    for (int i = value.offset; i < end; i++) {
+	    for (int i = value.offset; i < end; ++i) {
            int c = value.ch[i];
            if (XMLChar.isSpace(c)) {
                value.ch[i] = ' ';
            }
        }
+    }
+    
+    /**
+     * Normalize whitespace in an XMLString converting all whitespace
+     * characters to space characters.
+     */
+    protected void normalizeWhitespace(XMLString value, int fromIndex) {
+        int end = value.offset + value.length;
+        for (int i = value.offset + fromIndex; i < end; ++i) {
+            int c = value.ch[i];
+            if (XMLChar.isSpace(c)) {
+                value.ch[i] = ' ';
+            }
+        }
+    }
+    
+    /**
+     * Checks whether this string would be unchanged by normalization.
+     * 
+     * @return -1 if the value would be unchanged by normalization,
+     * otherwise the index of the first whitespace character which
+     * would be transformed.
+     */
+    protected int isUnchangedByNormalization(XMLString value) {
+        int end = value.offset + value.length;
+        for (int i = value.offset; i < end; ++i) {
+            int c = value.ch[i];
+            if (XMLChar.isSpace(c)) {
+                return i - value.offset;
+            }
+        }
+        return -1;
     }
 
     // returns true if the given character is not

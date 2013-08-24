@@ -1,7 +1,7 @@
 /*
- * @(#)versionCheck.c	1.4 04/07/27
+ * @(#)versionCheck.c	1.8 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -41,6 +41,8 @@
 #include "jni.h"
 #include "jvmti.h"
 
+#include "agent_util.h"
+
 /* Create major.minor.micro version string */
 static void
 version_check(jint cver, jint rver)
@@ -54,14 +56,13 @@ version_check(jint cver, jint rver)
     rmajor = (rver & JVMTI_VERSION_MASK_MAJOR) >> JVMTI_VERSION_SHIFT_MAJOR;
     rminor = (rver & JVMTI_VERSION_MASK_MINOR) >> JVMTI_VERSION_SHIFT_MINOR;
     rmicro = (rver & JVMTI_VERSION_MASK_MICRO) >> JVMTI_VERSION_SHIFT_MICRO;
-    fprintf(stdout, "Compile Time JVMTI Version: %d.%d.%d (0x%08x)\n", 
+    stdout_message("Compile Time JVMTI Version: %d.%d.%d (0x%08x)\n", 
 			cmajor, cminor, cmicro, cver);
-    fprintf(stdout, "Run Time JVMTI Version: %d.%d.%d (0x%08x)\n", 
+    stdout_message("Run Time JVMTI Version: %d.%d.%d (0x%08x)\n", 
 			rmajor, rminor, rmicro, rver);
-    if ( cmajor != rmajor || cminor != rminor ) {
-	fprintf(stderr, 
+    if ( (cmajor > rmajor) || (cmajor == rmajor && cminor > rminor) ) {
+	fatal_error( 
 	    "ERROR: Compile Time JVMTI and Run Time JVMTI are incompatible\n");
-	exit(1);
     }
 }
 
@@ -78,12 +79,8 @@ vm_init(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
      *  by the VM. 
      */
     err = (*jvmti)->GetVersionNumber(jvmti, &runtime_version);
-    if (err != JVMTI_ERROR_NONE) {
-	fprintf(stderr, "ERROR: GetVersionNumber failed, err=%d\n", err);
-	exit(1);
-    } else {
-        version_check(JVMTI_VERSION, runtime_version);
-    }
+    check_jvmti_error(jvmti, err, "get version number");
+    version_check(JVMTI_VERSION, runtime_version);
 }
 
 /* Agent_OnLoad() is called first, we prepare for a VM_INIT event here. */
@@ -98,17 +95,18 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     /* Get JVMTI environment */
     rc = (*vm)->GetEnv(vm, (void **)&jvmti, JVMTI_VERSION);
     if (rc != JNI_OK) {
-	fprintf(stderr, "ERROR: Unable to create jvmtiEnv, GetEnv failed, error=%d\n", rc);
+	fatal_error("ERROR: Unable to create jvmtiEnv, GetEnv failed, error=%d\n", rc);
 	return -1;
     }
 
     /* Set callbacks and enable event notifications */
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.VMInit                  = &vm_init;
-    (*jvmti)->SetEventCallbacks(jvmti, &callbacks, sizeof(callbacks));
-    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
+    err = (*jvmti)->SetEventCallbacks(jvmti, &callbacks, sizeof(callbacks));
+    check_jvmti_error(jvmti, err, "set event callbacks");
+    err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
 			JVMTI_EVENT_VM_INIT, NULL);
-
+    check_jvmti_error(jvmti, err, "set event notify");
     return 0;
 }
 

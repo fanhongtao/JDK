@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FastStringBuffer.java,v 1.25 2004/02/17 04:21:14 minchau Exp $
+ * $Id: FastStringBuffer.java,v 1.2.4.1 2005/09/15 08:15:44 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -60,13 +60,13 @@ public class FastStringBuffer
   	// the read process, due to how the resizing code re-jiggers storage. Arggh. 
   	// If we want to retain the variable-size-block feature, we need to reconsider 
   	// that issue. For now, I have forced us into fixed-size mode.
-	static boolean DEBUG_FORCE_FIXED_CHUNKSIZE=true;
+    static final boolean DEBUG_FORCE_FIXED_CHUNKSIZE=true;
 
 	/** Manifest constant: Suppress leading whitespace.
 	 * This should be used when normalize-to-SAX is called for the first chunk of a
 	 * multi-chunk output, or one following unsuppressed whitespace in a previous
 	 * chunk.
-	 * @see sendNormalizedSAXcharacters(char[],int,int,org.xml.sax.ContentHandler,int)
+	 * @see #sendNormalizedSAXcharacters(org.xml.sax.ContentHandler,int,int)
 	 */
 	public static final int SUPPRESS_LEADING_WS=0x01;
 	
@@ -79,7 +79,7 @@ public class FastStringBuffer
 	/** Manifest constant: Suppress both leading and trailing whitespace.
 	 * This should be used when normalize-to-SAX is called for a complete string.
 	 * (I'm not wild about the name of this one. Ideas welcome.)
-	 * @see sendNormalizedSAXcharacters(char[],int,int,org.xml.sax.ContentHandler,int)
+	 * @see #sendNormalizedSAXcharacters(org.xml.sax.ContentHandler,int,int)
 	 */
 	public static final int SUPPRESS_BOTH
 		= SUPPRESS_LEADING_WS | SUPPRESS_TRAILING_WS;
@@ -236,8 +236,6 @@ public class FastStringBuffer
    * <p>
    * ISSUE: Should this call assert initial size, or fixed size?
    * Now configured as initial, with a default for fixed.
-   *
-   * @param
    *
    * NEEDSDOC @param initChunkBits
    */

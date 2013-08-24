@@ -1,7 +1,7 @@
 /*
- * @(#)Sequence.java	1.27 04/05/05
+ * @(#)Sequence.java	1.28 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import com.sun.media.sound.MidiUtils;
  * @see Track#add(MidiEvent)
  * @see MidiFileFormat
  *
- * @version 1.27, 04/05/05
+ * @version 1.28, 05/11/17
  * @author Kara Kytle
  */
 public class Sequence {

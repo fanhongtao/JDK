@@ -1,7 +1,7 @@
 /*
- * @(#)BasicToolBarUI.java	1.97 06/08/25
+ * @(#)BasicToolBarUI.java	1.102 06/04/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,6 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
-import sun.swing.BorderProvider;
 
 
 /**
@@ -29,7 +28,7 @@ import sun.swing.BorderProvider;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.97 08/25/06
+ * @version 1.102 04/12/06
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -488,6 +487,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
      * Creates a window which contains the toolbar after it has been
      * dragged out from its container
      * @return a <code>RootPaneContainer</code> object, containing the toolbar.
+     * @since 1.4
      */
     protected RootPaneContainer createFloatingWindow(JToolBar toolbar) {
 	class ToolBarDialog extends JDialog {
@@ -671,7 +671,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
 	    // Only set the border if its the default border
 	    if (b.getBorder() instanceof UIResource) {
-		b.setBorder(getRolloverBorder(b));
+                b.setBorder(getRolloverBorder(b));
 	    }
 
 	    rolloverTable.put(b, b.isRolloverEnabled()?
@@ -680,15 +680,18 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	}
     }
 
-    private Border getRolloverBorder(AbstractButton b) {
-        Object borderProvider = UIManager.get("ToolBar.rolloverBorderProvider");
-        if(borderProvider == null) {
-            return rolloverBorder;
-        }
-        
-        return ((BorderProvider) borderProvider).getRolloverBorder(b);
+    /**
+     * Returns a rollover border for the button. 
+     *
+     * @param b the button to calculate the rollover border for
+     * @return the rollover border
+     * @see #setBorderToRollover
+     * @since 1.6
+     */
+    protected Border getRolloverBorder(AbstractButton b) {
+        return rolloverBorder;
     }
-    
+
     /**
      * Sets the border of the component to have a non-rollover border which
      * was created by <code>createNonRolloverBorder</code>. 
@@ -708,11 +711,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
 	    // Only set the border if its the default border
 	    if (b.getBorder() instanceof UIResource) {
-		if (b instanceof JToggleButton) {
-		    ((JToggleButton)b).setBorder(nonRolloverToggleBorder);
-		} else {
-		    b.setBorder(nonRolloverBorder);
-		}
+                b.setBorder(getNonRolloverBorder(b));
 	    }
 	    rolloverTable.put(b, b.isRolloverEnabled()?
 			      Boolean.TRUE: Boolean.FALSE);
@@ -720,7 +719,21 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	}
     }
 
-
+    /**
+     * Returns a non-rollover border for the button. 
+     *
+     * @param b the button to calculate the non-rollover border for
+     * @return the non-rollover border
+     * @see #setBorderToNonRollover
+     * @since 1.6
+     */
+    protected Border getNonRolloverBorder(AbstractButton b) {
+        if (b instanceof JToggleButton) {
+            return nonRolloverToggleBorder;
+        } else {
+            return nonRolloverBorder;
+        }
+    }
 
     /**
      * Sets the border of the component to have a normal border.
@@ -756,9 +769,17 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
     public void setFloating(boolean b, Point p) {
  	if (toolBar.isFloatable() == true) {
+ 	    boolean visible = false;
+ 	    Window ancestor = SwingUtilities.getWindowAncestor(toolBar);
+ 	    if (ancestor != null) {
+ 	        visible = ancestor.isVisible();
+ 	    }
 	    if (dragWindow != null)
 		dragWindow.setVisible(false);
 	    this.floating = b;
+	    if (floatingToolBar == null) {
+	        floatingToolBar = createFloatingWindow(toolBar);
+	    }
 	    if (b == true)
 	    {
 		if (dockingSource == null)
@@ -769,12 +790,20 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 		constraintBeforeFloating = calculateConstraint();
 		if ( propertyListener != null )
                     UIManager.addPropertyChangeListener( propertyListener );
-		if (floatingToolBar == null)
-		    floatingToolBar = createFloatingWindow(toolBar);
 		floatingToolBar.getContentPane().add(toolBar,BorderLayout.CENTER);
-		if (floatingToolBar instanceof Window) ((Window)floatingToolBar).pack();
-		if (floatingToolBar instanceof Window) ((Window)floatingToolBar).setLocation(floatingX, floatingY);
-		if (floatingToolBar instanceof Window) ((Window)floatingToolBar).show();
+		if (floatingToolBar instanceof Window) {
+		    ((Window)floatingToolBar).pack();
+		    ((Window)floatingToolBar).setLocation(floatingX, floatingY);
+		    if (visible) {
+		        ((Window)floatingToolBar).show();
+		    } else {
+		        ancestor.addWindowListener(new WindowAdapter() { 
+		            public void windowOpened(WindowEvent e) {
+		                ((Window)floatingToolBar).show();
+		            }
+		        });
+		    }
+		}
 	    } else {
 		if (floatingToolBar == null)
 		    floatingToolBar = createFloatingWindow(toolBar);
@@ -1334,6 +1363,18 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	DragWindow(Window w) {
 	    super(w);
 	}
+    
+    /**
+     * Returns the orientation of the toolbar window when the toolbar is
+     * floating. The orientation is either one of <code>JToolBar.HORIZONTAL</code>
+     * or <code>JToolBar.VERTICAL</code>.
+     * 
+     * @return the orientation of the toolbar window
+     * @since 1.6
+     */
+    public int getOrientation() {
+        return orientation;
+    }
 
 	public void setOrientation(int o) {
 	    if(isShowing()) {

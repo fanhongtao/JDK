@@ -1,7 +1,7 @@
 /*
- * @(#)SearchResult.java	1.9 03/12/19
+ * @(#)SearchResult.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import javax.naming.Binding;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.9 03/12/19
+  * @version 1.10 05/11/17
   *
   * @see DirContext#search
   * @since 1.3

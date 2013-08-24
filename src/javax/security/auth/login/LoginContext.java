@@ -1,7 +1,7 @@
 /*
- * @(#)LoginContext.java	1.98 04/06/28
+ * @(#)LoginContext.java	1.100 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -171,11 +171,11 @@ import sun.security.util.ResourcesMgr;
  * can be set programmatically via the
  * <code>java.security.Security</code> class,
  * or statically in the Java security properties file located in the
- * file named &lt;JAVA_HOME&gt;/lib/security/java.security,
- * where &lt;JAVA_HOME&gt; refers to the directory where the JDK
- * was installed.
+ * file named &lt;JAVA_HOME&gt;/lib/security/java.security.
+ * &lt;JAVA_HOME&gt; refers to the value of the java.home system property,
+ * and specifies the directory where the JRE is installed.
  * 
- * @version 1.98, 06/28/04
+ * @version 1.100, 11/17/05
  * @see java.security.Security
  * @see javax.security.auth.AuthPermission
  * @see javax.security.auth.Subject

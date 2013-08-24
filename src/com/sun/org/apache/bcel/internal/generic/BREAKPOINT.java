@@ -55,16 +55,15 @@ package com.sun.org.apache.bcel.internal.generic;
  */
 
 /**
- * BREAKPOINT
+ * BREAKPOINT, JVM dependent, ignored by default
  *
- * @version $Id: BREAKPOINT.java,v 1.1.1.1 2001/10/29 20:00:06 jvanzyl Exp $
- * @author Enver Haase
+ * @version $Id: BREAKPOINT.java,v 1.1.2.1 2005/07/31 23:44:55 jeffsuttor Exp $
+ * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class BREAKPOINT extends Instruction {
   public BREAKPOINT() {
     super(com.sun.org.apache.bcel.internal.Constants.BREAKPOINT, (short)1);
   }
-
 
   /**
    * Call corresponding visitor method(s). The order is:

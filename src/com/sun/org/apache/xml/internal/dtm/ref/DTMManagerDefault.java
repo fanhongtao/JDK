@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMManagerDefault.java,v 1.51 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMManagerDefault.java,v 1.2.4.1 2005/09/15 08:15:02 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -49,7 +49,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * The default implementation for the DTMManager.
@@ -111,6 +111,11 @@ public class DTMManagerDefault extends DTMManager
    * supply an XMLReader for a SAXSource or supplied a StreamSource.
    */
   protected XMLReaderManager m_readerManager = null;
+  
+  /**
+   * The default implementation of ContentHandler, DTDHandler and ErrorHandler.
+   */
+  protected DefaultHandler m_defaultHandler = new DefaultHandler();
 
   /**
    * Add a DTM to the DTM table. This convenience call adds it as the 
@@ -264,6 +269,7 @@ public class DTMManagerDefault extends DTMManager
 
       if (isSAXSource || isStreamSource) {
         XMLReader reader = null;
+        SAX2DTM dtm;
 
         try {
           InputSource xmlSource;
@@ -288,7 +294,6 @@ public class DTMManagerDefault extends DTMManager
             }
           }
 
-          SAX2DTM dtm;
           if (source==null && unique && !incremental && !doIndexing) {
             // Special case to support RTF construction into shared DTM.
             // It should actually still work for other uses,
@@ -448,6 +453,19 @@ public class DTMManagerDefault extends DTMManager
 
           return dtm;
         } finally {
+          // Reset the ContentHandler, DTDHandler, ErrorHandler to the DefaultHandler
+          // after creating the DTM.
+          if (reader != null && !(m_incremental && incremental)) {
+            reader.setContentHandler(m_defaultHandler);
+            reader.setDTDHandler(m_defaultHandler);
+            reader.setErrorHandler(m_defaultHandler);
+            
+            // Reset the LexicalHandler to null after creating the DTM.
+            try {
+              reader.setProperty("http://xml.org/sax/properties/lexical-handler", null);
+            }
+            catch (Exception e) {}
+          }
           releaseXMLReader(reader);
         }
       } else {

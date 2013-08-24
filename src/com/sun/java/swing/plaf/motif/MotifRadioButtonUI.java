@@ -1,7 +1,7 @@
 /*
- * @(#)MotifRadioButtonUI.java	1.22 03/12/19
+ * @(#)MotifRadioButtonUI.java	1.23 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 12/19/03
+ * @version 1.23 11/17/05
  * @author Rich Schiavi
  */
 public class MotifRadioButtonUI extends BasicRadioButtonUI {

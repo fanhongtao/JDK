@@ -1,7 +1,7 @@
 /*
- * @(#)PERSIST_STORE.java	1.30 03/12/19
+ * @(#)PERSIST_STORE.java	1.32 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package org.omg.CORBA;
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
  *
- * @see <A href="../../../../guide/idl/jidlExceptions.html">documentation on
+ * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
  * @version     1.16 09/09/97
  */

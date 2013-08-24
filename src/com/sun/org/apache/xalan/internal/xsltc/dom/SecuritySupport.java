@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SecuritySupport.java,v 1.1.1.1 2004/02/26 11:39:31 vk112360 Exp $
+ * $Id: SecuritySupport.java,v 1.2.4.1 2005/09/06 10:03:40 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;

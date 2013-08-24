@@ -1,7 +1,7 @@
 /*
- * @(#)TimerTask.java	1.10 04/02/19
+ * @(#)TimerTask.java	1.11 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util;
  * A task that can be scheduled for one-time or repeated execution by a Timer.
  *
  * @author  Josh Bloch
- * @version 1.10, 02/19/04
+ * @version 1.11, 11/17/05
  * @see	    Timer
  * @since   1.3
  */

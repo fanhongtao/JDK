@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SecuritySupport.java,v 1.1.1.1 2004/02/26 11:37:55 vk112360 Exp $
+ * $Id: SecuritySupport.java,v 1.1.2.1 2005/08/01 02:08:48 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.lib;

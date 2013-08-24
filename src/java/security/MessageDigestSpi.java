@@ -1,19 +1,11 @@
 /*
- * @(#)MessageDigestSpi.java	1.15 03/12/19
+ * @(#)MessageDigestSpi.java	1.17 06/03/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
-
-import java.util.*;
-import java.lang.*;
-import java.io.IOException;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
 
 import java.nio.ByteBuffer;
 
@@ -34,12 +26,15 @@ import sun.security.jca.JCAUtil;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.15, 12/19/03
+ * @version 1.17, 03/10/06
  *
  * @see MessageDigest
  */
 
 public abstract class MessageDigestSpi {
+
+    // for re-use in engineUpdate(ByteBuffer input)
+    private byte[] tempArray;
 
     /**
      * Returns the digest length in bytes.
@@ -103,11 +98,14 @@ public abstract class MessageDigestSpi {
 	    input.position(lim);
 	} else {
 	    int len = input.remaining();
-	    byte[] b = new byte[JCAUtil.getTempArraySize(len)];
+	    int n = JCAUtil.getTempArraySize(len);
+	    if ((tempArray == null) || (n > tempArray.length)) {
+		tempArray = new byte[n];
+	    }
 	    while (len > 0) {
-		int chunk = Math.min(len, b.length);
-		input.get(b, 0, chunk);
-		engineUpdate(b, 0, chunk);
+		int chunk = Math.min(len, tempArray.length);
+		input.get(tempArray, 0, chunk);
+		engineUpdate(tempArray, 0, chunk);
 		len -= chunk;
 	    }
 	}

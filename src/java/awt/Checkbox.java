@@ -1,7 +1,7 @@
 /*
- * @(#)Checkbox.java	1.84 04/05/05
+ * @(#)Checkbox.java	1.88 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -50,7 +50,7 @@ import javax.accessibility.*;
  * forces any other check box in the same group that is on
  * into the "off" state.
  *
- * @version	1.84 05/05/04
+ * @version	1.88 07/11/06
  * @author 	Sami Shaio
  * @see         java.awt.GridLayout
  * @see         java.awt.CheckboxGroup
@@ -71,7 +71,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * This field can be null.
      * @serial
      * @see #getLabel()
-     * @see #setLabel(label)
+     * @see #setLabel(String)
      */
     String label;
 
@@ -79,7 +79,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * The state of the <code>Checkbox</code>.
      * @serial
      * @see #getState()
-     * @see #setState(state)
+     * @see #setState(boolean)
      */
     boolean state;
 
@@ -88,8 +88,8 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 	 * This field can be null indicating that the checkbox
 	 * is not a group checkbox.  
 	 * @serial
-     * @see #getCheckBoxGroup()
-     * @see #setCheckBoxGroup(CheckBoxGroup)
+     * @see #getCheckboxGroup()
+     * @see #setCheckboxGroup(CheckboxGroup)
      */
     CheckboxGroup group;
 
@@ -398,6 +398,8 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * this check box.  Item events are sent to listeners in response
      * to user input, but not in response to calls to setState().
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         l    the item listener
      * @see           #removeItemListener
@@ -419,6 +421,8 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Removes the specified item listener so that the item listener
      * no longer receives item events from this check box.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         l    the item listener
      * @see           #addItemListener
@@ -669,6 +673,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      *
      * @return an AccessibleAWTCheckbox that serves as the 
      *         AccessibleContext of this Checkbox
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -681,6 +686,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * This class implements accessibility support for the 
      * <code>Checkbox</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to checkbox user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTCheckbox extends AccessibleAWTComponent
         implements ItemListener, AccessibleAction, AccessibleValue

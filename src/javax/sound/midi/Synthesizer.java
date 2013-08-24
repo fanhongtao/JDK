@@ -1,7 +1,7 @@
 /*
- * @(#)Synthesizer.java	1.27 03/12/19
+ * @(#)Synthesizer.java	1.29 06/04/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ import javax.sound.sampled.Control;
  * @see Transmitter
  * @see MidiDevice
  *
- * @version 1.27, 03/12/19
+ * @version 1.29, 06/04/05
  * @author Kara Kytle
  */
 public interface Synthesizer extends MidiDevice {
@@ -182,18 +182,29 @@ public interface Synthesizer extends MidiDevice {
 
 
     /**
-     * Remaps an instrument.  Instrument <code>to</code> takes the 
-     * place of instrument <code>from</code>.
+     * Remaps an instrument. Instrument <code>to</code> takes the
+     * place of instrument <code>from</code>.<br>
      * For example, if <code>from</code> was located at bank number 2,
-     * program number 11, remapping causes
-     * that bank and program location to be occupied instead by 
-     * <code>to</code>.  Instrument <code>from</code> is unloaded.
-     * 
-     * @param from instrument to be replaced
-     * @param to new instrument to be used in place of the old instrument
-     * @return <code>true</code> if the instrument could be remapped, 
-     * <code>false</code> otherwise
-     * @throws <code>IllegalArgumentException</code> if the soundbank is not supported
+     * program number 11, remapping causes that bank and program location
+     * to be occupied instead by <code>to</code>.<br>
+     * If the function succeeds,  instrument <code>from</code> is unloaded.
+     * <p>To cancel the remapping reload instrument <code>from</code> by
+     * invoking one of {@link #loadInstrument}, {@link #loadInstruments}
+     * or {@link #loadAllInstruments}.
+     *
+     * @param from the <code>Instrument</code> object to be replaced
+     * @param to the <code>Instrument</code> object to be used in place
+     * of the old instrument, it should be loaded into the synthesizer
+     * @return <code>true</code> if the instrument succeessfully remapped,
+     * <code>false</code> if feature is not implemented by synthesizer
+     * @throws <code>IllegalArgumentException</code> if instrument
+     * <code>from</code> or instrument <code>to</code> aren't supported by
+     * synthesizer or if instrument <code>to</code> is not loaded
+     * @throws <code>NullPointerException</code> if <code>from</code> or
+     * <code>to</code> parameters have null value
+     * @see #loadInstrument
+     * @see #loadInstruments
+     * @see #loadAllInstruments
      */
     public boolean remapInstrument(Instrument from, Instrument to);	
 

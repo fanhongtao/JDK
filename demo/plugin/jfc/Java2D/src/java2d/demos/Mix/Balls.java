@@ -1,7 +1,7 @@
 /*
- * @(#)Balls.java	1.27 04/07/26
+ * @(#)Balls.java	1.32 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Balls.java	1.24 03/10/26
+ * @(#)Balls.java	1.32 06/08/29
  */
 
 package java2d.demos.Mix;
@@ -47,6 +47,8 @@ import javax.swing.*;
 import java2d.AnimatingControlsSurface;
 import java2d.CustomControls;
 
+import static java.awt.Color.*;
+import static java.lang.Math.*;
 
 
 /**
@@ -55,8 +57,8 @@ import java2d.CustomControls;
 public class Balls extends AnimatingControlsSurface {
 
     private static Color colors[] = 
-            { Color.red, Color.orange, Color.yellow, Color.green.darker(),
-              Color.blue, new Color(75, 00, 82), new Color(238,130,238) };
+            { RED, ORANGE, YELLOW, GREEN.darker(), BLUE,
+                new Color(75, 00, 82), new Color(238,130,238) };
     private long now, deltaT, lasttime;
     private boolean active;
     protected Ball balls[] = new Ball[colors.length];
@@ -65,7 +67,7 @@ public class Balls extends AnimatingControlsSurface {
 
 
     public Balls() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         for (int i = 0; i < colors.length; i++) {
             balls[i] = new Ball(colors[i], 30);
         }
@@ -91,20 +93,20 @@ public class Balls extends AnimatingControlsSurface {
         now = System.currentTimeMillis();
         deltaT = now - lasttime;
         active = false;
-        for (int i = 0; i < balls.length; i++) {
-            if (balls[i] == null) {
+        for (Ball ball : balls) {
+            if (ball == null) {
                 return;
             }
-            balls[i].step(deltaT, w, h);
-            if (balls[i].Vy > .02 || -balls[i].Vy > .02 ||
-                    balls[i].y + balls[i].bsize < h) {
+            ball.step(deltaT, w, h);
+            if (ball.Vy > .02 || -ball.Vy > .02 ||
+                    ball.y + ball.bsize < h) {
                 active = true;
             }
         }
         if (!active) {
-            for (int i = 0; i < balls.length; i++) {
-                balls[i].Vx = (float)Math.random() / 4.0f - 0.125f;
-                balls[i].Vy = -(float)Math.random() / 4.0f - 0.2f;
+            for (Ball ball : balls) {
+                ball.Vx =  (float)random() / 4.0f - 0.125f;
+                ball.Vy = -(float)random() / 4.0f - 0.2f;
             }
             clearToggle = true;
         }
@@ -112,8 +114,7 @@ public class Balls extends AnimatingControlsSurface {
 
 
     public void render(int w, int h, Graphics2D g2) {
-        for (int i = 0; i < balls.length; i++) {
-            Ball b = balls[i];
+        for (Ball b : balls) {
             if (b == null || b.imgs[b.index] == null || !b.isSelected) {
                 continue;
             }
@@ -130,20 +131,24 @@ public class Balls extends AnimatingControlsSurface {
 
     static class Ball {
     
+        public static final int nImgs = 5;
+
         public int bsize;
         public float x, y;
         public float Vx = 0.1f;
         public float Vy = 0.05f;
-        public int nImgs = 5;
         public BufferedImage imgs[];
-        public int index = (int) (Math.random() * (nImgs-1));
+        // Pick a random starting image index, but not the last: we're going UP
+        // and that would throw us off the end. 
+        public int index = (int) (random() * (nImgs-1));
     
-        private final float inelasticity = .96f;
-        private final float Ax = 0.0f;
-        private final float Ay = 0.0002f;
-        private final float Ar = 0.9f;
-        private final int UP = 0;
-        private final int DOWN = 1;
+        private static final float inelasticity = .96f;
+        private static final float Ax = 0.0f;
+        private static final float Ay = 0.0002f;
+        private static final float Ar = 0.9f;
+        private static final int UP   = 0;
+        private static final int DOWN = 1;
+
         private int indexDirection = UP;
         private boolean collision_x, collision_y;
         private float jitter;
@@ -163,12 +168,12 @@ public class Balls extends AnimatingControlsSurface {
             byte[] data = new byte[R * 2 * R * 2];
             int maxr = 0;
             for (int Y = 2 * R; --Y >= 0;) {
-                int x0 = (int) (Math.sqrt(R * R - (Y - R) * (Y - R)) + 0.5);
+                int x0 = (int) (sqrt(R * R - (Y - R) * (Y - R)) + 0.5);
                 int p = Y * (R * 2) + R - x0;
                 for (int X = -x0; X < x0; X++) {
                     int x = X + 15;
                     int y = Y - R + 15;
-                    int r = (int) (Math.sqrt(x * x + y * y) + 0.5);
+                    int r = (int) (sqrt(x * x + y * y) + 0.5);
                     if (r > maxr) {
                         maxr = r;
                     }
@@ -179,20 +184,20 @@ public class Balls extends AnimatingControlsSurface {
             imgs = new BufferedImage[nImgs];
     
             int bg = 255;
-            byte red[] = new byte[256];
-            red[0] = (byte) bg;
-            byte green[] = new byte[256];
-            green[0] = (byte) bg;
-            byte blue[] = new byte[256];
-            blue[0] = (byte) bg;
+            byte   red[] = new byte[256];   red[0] = (byte) bg;
+            byte green[] = new byte[256]; green[0] = (byte) bg;
+            byte  blue[] = new byte[256];  blue[0] = (byte) bg;
     
             for (int r = 0; r < imgs.length; r++) {
                 float b = 0.5f + (float) ((r+1f)/imgs.length/2f);
                 for (int i = maxr; i >= 1; --i) {
                     float d = (float) i / maxr;
-                    red[i] = (byte) blend(blend(color.getRed(), 255, d), bg, b);
-                    green[i] = (byte) blend(blend(color.getGreen(), 255, d), bg, b);
-                    blue[i] = (byte) blend(blend(color.getBlue(), 255, d), bg, b);
+                      red[i] = (byte)
+                              blend(blend(color.getRed(),   255, d), bg, b);
+                    green[i] = (byte)
+                              blend(blend(color.getGreen(), 255, d), bg, b);
+                     blue[i] = (byte)
+                              blend(blend(color.getBlue(),  255, d), bg, b);
                 }
                 IndexColorModel icm = new IndexColorModel(8, maxr + 1,
                             red, green, blue, 0);
@@ -214,7 +219,7 @@ public class Balls extends AnimatingControlsSurface {
             collision_x = false;
             collision_y = false;
     
-            jitter = (float) Math.random() * .01f - .005f;
+            jitter = (float) random() * .01f - .005f;
     
             x += Vx * deltaT + (Ax / 2.0) * deltaT * deltaT;
             y += Vy * deltaT + (Ay / 2.0) * deltaT * deltaT;
@@ -307,8 +312,8 @@ public class Balls extends AnimatingControlsSurface {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() instanceof JComboBox) {
                 int size = Integer.parseInt((String) combo.getSelectedItem());
-                for (int i = 0; i < demo.balls.length; i++) {
-                    demo.balls[i].makeImages(size);
+                for (Ball ball : demo.balls) {
+                    ball.makeImages(size);
                 }
                 return;
             }
@@ -337,7 +342,7 @@ public class Balls extends AnimatingControlsSurface {
                 } catch (InterruptedException e) { return; }
                 if (demo.clearToggle) {
                     if (demo.clearSurface) {
-                        combo.setSelectedIndex((int) (Math.random()*5));
+                        combo.setSelectedIndex((int) (random()*5));
                     }
                     ((AbstractButton) toolbar.getComponentAtIndex(0)).doClick();
                     demo.clearToggle = false;

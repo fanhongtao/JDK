@@ -1,71 +1,30 @@
+/*
+ * Copyright 1999-2004 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.sun.org.apache.regexp.internal;
 
-/*
- * ====================================================================
- * 
- * The Apache Software License, Version 1.1
- *
- * Copyright (c) 1999 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:  
- *       "This product includes software developed by the 
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "The Jakarta Project", "Jakarta-Regexp", and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */ 
-
-import java.util.*;
-import java.io.*;
+import java.io.PrintWriter;
+import java.util.Hashtable;
 
 /**
  * A subclass of RECompiler which can dump a regular expression program
  * for debugging purposes.
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
- * @version $Id: REDebugCompiler.java,v 1.1 2000/04/27 01:22:33 jon Exp $
+ * @version $Id: REDebugCompiler.java,v 1.1.2.1 2005/08/01 00:02:59 jeffsuttor Exp $
  */
 public class REDebugCompiler extends RECompiler
 {
@@ -95,6 +54,8 @@ public class REDebugCompiler extends RECompiler
         hashOpcode.put(new Integer(RE.OP_CLOSE),            "OP_CLOSE");
         hashOpcode.put(new Integer(RE.OP_BACKREF),          "OP_BACKREF");
         hashOpcode.put(new Integer(RE.OP_POSIXCLASS),       "OP_POSIXCLASS");
+        hashOpcode.put(new Integer(RE.OP_OPEN_CLUSTER),      "OP_OPEN_CLUSTER");
+        hashOpcode.put(new Integer(RE.OP_CLOSE_CLUSTER),      "OP_CLOSE_CLUSTER");
     }
 
     /**
@@ -146,6 +107,38 @@ public class REDebugCompiler extends RECompiler
         // Return opcode as a string and opdata value
         return opcodeToString(opcode) + ", opdata = " + opdata;
     }
+
+    /**
+     * Inserts a node with a given opcode and opdata at insertAt.  The node relative next
+     * pointer is initialized to 0.
+     * @param opcode Opcode for new node
+     * @param opdata Opdata for new node (only the low 16 bits are currently used)
+     * @param insertAt Index at which to insert the new node in the program * /
+    void nodeInsert(char opcode, int opdata, int insertAt) {
+        System.out.println( "====> " + opcode + " " + opdata + " " + insertAt );
+        PrintWriter writer = new PrintWriter( System.out );
+        dumpProgram( writer );
+        super.nodeInsert( opcode, opdata, insertAt );
+        System.out.println( "====< " );
+        dumpProgram( writer );
+        writer.flush();
+    }/**/
+
+
+    /**
+    * Appends a node to the end of a node chain
+    * @param node Start of node chain to traverse
+    * @param pointTo Node to have the tail of the chain point to * /
+    void setNextOfEnd(int node, int pointTo) {
+        System.out.println( "====> " + node + " " + pointTo );
+        PrintWriter writer = new PrintWriter( System.out );
+        dumpProgram( writer );
+        super.setNextOfEnd( node, pointTo );
+        System.out.println( "====< " );
+        dumpProgram( writer );
+        writer.flush();
+    }/**/
+
 
     /**
      * Dumps the current program to a PrintWriter

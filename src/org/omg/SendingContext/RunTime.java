@@ -1,7 +1,7 @@
 /*
- * @(#)RunTime.java	1.15 03/12/19
+ * @(#)RunTime.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -21,7 +21,7 @@ package org.omg.SendingContext;
 * when a value type is marshalled on a GIOP Request message, the receiver
 * of the value type may need to ask the sender about the CodeBase for the
 * implementation of the value type.
-* @version 1.15 12/19/03
+* @version 1.16 11/17/05
 */
 public interface RunTime extends RunTimeOperations, org.omg.CORBA.Object, org.omg.CORBA.portable.IDLEntity 
 {

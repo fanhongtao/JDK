@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMDefaultBaseIterators.java,v 1.21 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMDefaultBaseIterators.java,v 1.2.4.1 2005/09/15 08:15:00 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -26,7 +26,7 @@ import com.sun.org.apache.xml.internal.utils.XMLStringFactory;
 
 import com.sun.org.apache.xml.internal.res.XMLErrorResources;
 import com.sun.org.apache.xml.internal.res.XMLMessages;
-
+import com.sun.org.apache.xalan.internal.xsltc.dom.NodeCounter;
 
 /**
  * This class implements the traversers for DTMDefaultBase.
@@ -38,7 +38,6 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
    * Construct a DTMDefaultBaseTraversers object from a DOM node.
    *
    * @param mgr The DTMManager who owns this DTM.
-   * @param domSource the DOM source that this DTM will wrap.
    * @param source The object that is used to specify the construction source.
    * @param dtmIdentity The DTM identity ID for this DTM.
    * @param whiteSpaceFilter The white space filter for this DTM, which may
@@ -61,7 +60,6 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
    * Construct a DTMDefaultBaseTraversers object from a DOM node.
    *
    * @param mgr The DTMManager who owns this DTM.
-   * @param domSource the DOM source that this DTM will wrap.
    * @param source The object that is used to specify the construction source.
    * @param dtmIdentity The DTM identity ID for this DTM.
    * @param whiteSpaceFilter The white space filter for this DTM, which may
@@ -157,7 +155,10 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
         iterator = new TypedRootIterator(type);
         break;
       default :
-        throw new DTMException(XMLMessages.createXMLMessage(XMLErrorResources.ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED, new Object[]{Axis.names[axis]})); //"Error: typed iterator for axis "
+        throw new DTMException(XMLMessages.createXMLMessage(
+            XMLErrorResources.ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED, 
+            new Object[]{Axis.getNames(axis)})); 
+            //"Error: typed iterator for axis "
                                //+ Axis.names[axis] + "not implemented");
       }
     }
@@ -221,7 +222,10 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       iterator = new RootIterator();
       break;
     default :
-      throw new DTMException(XMLMessages.createXMLMessage(XMLErrorResources.ER_ITERATOR_AXIS_NOT_IMPLEMENTED, new Object[]{Axis.names[axis]})); //"Error: iterator for axis '" + Axis.names[axis]
+      throw new DTMException(XMLMessages.createXMLMessage(
+        XMLErrorResources.ER_ITERATOR_AXIS_NOT_IMPLEMENTED, 
+        new Object[]{Axis.getNames(axis)})); 
+        //"Error: iterator for axis '" + Axis.names[axis]
                              //+ "' not implemented");
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id$
+ * $Id: OpMapVector.java,v 1.2.4.1 2005/09/10 03:57:14 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xpath.internal.compiler;
@@ -73,7 +73,7 @@ public class OpMapVector {
    * The index must be a value greater than or equal to 0 and less
    * than the current size of the vector.
    *
-   * @param node object to set
+   * @param value object to set
    * @param index Index of where to set the object
    */
   public final void setElementAt(int value, int index)

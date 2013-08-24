@@ -1,7 +1,7 @@
 /*
- * @(#)SynthToolTipUI.java	1.9 03/12/19
+ * @(#)SynthToolTipUI.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's ToolTipUI.
  *
- * @version 1.9, 12/19/03
+ * @version 1.10, 11/17/05
  * @author Joshua Outwater
  */
 class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,

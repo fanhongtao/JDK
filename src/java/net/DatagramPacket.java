@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramPacket.java	1.43 03/12/19
+ * @(#)DatagramPacket.java	1.46 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.net;
  *
  * @author  Pavani Diwanji
  * @author  Benjamin Renaud
- * @version 1.43, 12/19/03
+ * @version 1.46, 04/07/06
  * @since   JDK1.0
  */
 public final 
@@ -56,7 +56,7 @@ class DatagramPacket {
      * @param   offset   the offset for the buffer
      * @param   length   the number of bytes to read.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public DatagramPacket(byte buf[], int offset, int length) {
 	setData(buf, offset, length);
@@ -92,7 +92,7 @@ class DatagramPacket {
      * @param   port     the destination port number.
      * @see java.net.InetAddress
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public DatagramPacket(byte buf[], int offset, int length,
 			  InetAddress address, int port) {
@@ -202,7 +202,7 @@ class DatagramPacket {
      * @return  the offset of the data to be sent or the offset of the
      *          data received.
      *
-     * @since JDK1.2
+     * @since 1.2
      */
     public synchronized int getOffset() {
 	return offset;
@@ -237,7 +237,7 @@ class DatagramPacket {
      * @see #getOffset
      * @see #getLength
      *
-     * @since JDK1.2 
+     * @since 1.2
      */
     public synchronized void setData(byte[] buf, int offset, int length) {
 	/* this will check to see if buf is null */
@@ -291,6 +291,8 @@ class DatagramPacket {
 	if (address == null || !(address instanceof InetSocketAddress))
 	    throw new IllegalArgumentException("unsupported address type");
 	InetSocketAddress addr = (InetSocketAddress) address;
+	if (addr.isUnresolved())
+	    throw new IllegalArgumentException("unresolved address");
 	setAddress(addr.getAddress());
 	setPort(addr.getPort());
     }

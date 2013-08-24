@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WrongNumberArgsException.java,v 1.6 2004/02/17 04:34:01 minchau Exp $
+ * $Id: WrongNumberArgsException.java,v 1.2.4.1 2005/09/14 20:27:04 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -25,6 +25,7 @@ package com.sun.org.apache.xpath.internal.functions;
  */
 public class WrongNumberArgsException extends Exception
 {
+    static final long serialVersionUID = -4551577097576242432L;
 
   /**
    * Constructor WrongNumberArgsException

@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationID.java	1.28 03/12/19
+ * @(#)ActivationID.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,9 @@ package java.rmi.activation;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.rmi.MarshalledObject;
@@ -18,7 +21,6 @@ import java.rmi.UnmarshalException;
 import java.rmi.server.RemoteObject;
 import java.rmi.server.RemoteObjectInvocationHandler;
 import java.rmi.server.RemoteRef;
-import java.rmi.server.RemoteStub;
 import java.rmi.server.UID;
 
 /**
@@ -44,11 +46,11 @@ import java.rmi.server.UID;
  * this method both registers and exports the object. </ul>
  *
  * @author	Ann Wollrath
- * @version	1.28, 03/12/19
+ * @version	1.31, 05/11/17
  * @see		Activatable
  * @since	1.2
  */
-public class ActivationID implements java.io.Serializable {
+public class ActivationID implements Serializable {
     /**
      * the object's activator 
      */
@@ -93,9 +95,9 @@ public class ActivationID implements java.io.Serializable {
 	throws ActivationException, UnknownObjectException, RemoteException
     {
  	try {
- 	    MarshalledObject mobj =
-		(MarshalledObject) activator.activate(this, force);
- 	    return (Remote) mobj.get();
+ 	    MarshalledObject<? extends Remote> mobj =
+		activator.activate(this, force);
+ 	    return mobj.get();
  	} catch (RemoteException e) {
  	    throw e;
  	} catch (IOException e) {
@@ -183,7 +185,7 @@ public class ActivationID implements java.io.Serializable {
      * <code>writeObject</code> method <b>serialData</b>
      * specification.
      **/
-    private void writeObject(java.io.ObjectOutputStream out)
+    private void writeObject(ObjectOutputStream out)
 	throws IOException, ClassNotFoundException
     {
 	out.writeObject(uid);
@@ -242,19 +244,20 @@ public class ActivationID implements java.io.Serializable {
      * case the <code>RemoteRef</code> will be an instance of
      * that implementation-specific class.
      */
-    private void readObject(java.io.ObjectInputStream in) 
+    private void readObject(ObjectInputStream in) 
 	throws IOException, ClassNotFoundException
     {
 	uid = (UID)in.readObject();
 	
 	try {
-	    Class refClass = Class.forName(RemoteRef.packagePrefix + "." +
-					   in.readUTF());
-	    RemoteRef ref = (RemoteRef) refClass.newInstance();
+	    Class<? extends RemoteRef> refClass =
+		Class.forName(RemoteRef.packagePrefix + "." + in.readUTF())
+		.asSubclass(RemoteRef.class);
+	    RemoteRef ref = refClass.newInstance();
 	    ref.readExternal(in);
 	    activator = (Activator)
 		Proxy.newProxyInstance(null,
-				       new Class[]{ Activator.class },
+				       new Class<?>[] { Activator.class },
 				       new RemoteObjectInvocationHandler(ref));
 
 	} catch (InstantiationException e) {

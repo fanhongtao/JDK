@@ -1,29 +1,27 @@
 /*
- * @(#)SynthTableHeaderUI.java	1.14 03/12/19
+ * @(#)SynthTableHeaderUI.java	1.18 06/03/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.util.Enumeration;
-import java.util.Date;
-import java.awt.event.*;
 import java.awt.*;
 import java.beans.*;
+import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
-import javax.swing.plaf.basic.BasicTableHeaderUI;
-import sun.swing.plaf.synth.SynthUI;
+import javax.swing.plaf.basic.*;
+import javax.swing.table.*;
+
+import sun.swing.plaf.synth.*;
+import sun.swing.table.*;
 
 /**
  * SynthTableHeaderUI implementation
  *
- * @version 1.14, 12/19/03
+ * @version 1.18, 03/16/06
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -33,8 +31,8 @@ class SynthTableHeaderUI extends BasicTableHeaderUI implements
 //
 // Instance Variables
 //
-    
-    private TableCellRenderer prevRenderer = null;    
+
+    private TableCellRenderer prevRenderer = null;
 
     private SynthStyle style;
 
@@ -72,7 +70,7 @@ class SynthTableHeaderUI extends BasicTableHeaderUI implements
         if (header.getDefaultRenderer() instanceof HeaderRenderer) {
             header.setDefaultRenderer(prevRenderer);
         }
-               
+
         SynthContext context = getContext(header, ENABLED);
 
         style.uninstallDefaults(context);
@@ -136,11 +134,37 @@ class SynthTableHeaderUI extends BasicTableHeaderUI implements
         }
     }
 
+    @Override
+    protected void rolloverColumnUpdated(int oldColumn, int newColumn) {
+        header.repaint(header.getHeaderRect(oldColumn));
+        header.repaint(header.getHeaderRect(newColumn));
+    }
 
-    private static class HeaderRenderer extends DefaultTableCellRenderer
-                                 implements UIResource {
+    private class HeaderRenderer extends DefaultTableCellHeaderRenderer {
         HeaderRenderer() {
             setHorizontalAlignment(JLabel.LEADING);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected,
+                                                       boolean hasFocus,
+                                                       int row, int column) {
+
+            boolean hasRollover = (column == getRolloverColumn());
+            if (isSelected || hasRollover || hasFocus) {
+                SynthLookAndFeel.setSelectedUI((SynthLabelUI)SynthLookAndFeel.
+                             getUIOfType(getUI(), SynthLabelUI.class),
+                             isSelected, hasFocus, table.isEnabled(),
+                             hasRollover);
+            } else {
+                SynthLookAndFeel.resetSelectedUI();
+            }
+
+            super.getTableCellRendererComponent(table, value, isSelected,
+                                                hasFocus, row, column);
+
+            return this;
         }
 
         public void setBorder(Border border) {
@@ -155,13 +179,6 @@ class SynthTableHeaderUI extends BasicTableHeaderUI implements
                 return "TableHeader.renderer";
             }
             return name;
-        }
-
-        public Component getTableCellRendererComponent(
-                            JTable table, Object value, boolean isSelected,
-                            boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            return this;
         }
     }
 }

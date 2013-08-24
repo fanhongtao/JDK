@@ -1,10 +1,28 @@
-// $Id: SAXParserFactory.java,v 1.39 2004/04/20 00:22:02 kk122374 Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)SAXParserFactory.java	1.41 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: SAXParserFactory.java,v 1.5 2006/04/24 13:41:47 ndw Exp $
+ * @(#)SAXParserFactory.java	1.52 06/06/21
+ *
+ * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.parsers;
@@ -19,8 +37,11 @@ import org.xml.sax.SAXNotSupportedException;
  * Defines a factory API that enables applications to configure and
  * obtain a SAX based parser to parse XML documents.
  *
- * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.39 $, $Date: 2004/04/20 00:22:02 $
+ * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @author <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
+ *
+ * @version $Revision: 1.5 $, $Date: 2006/04/24 13:41:47 $
+ *
  */
 public abstract class SAXParserFactory {
     /** The default property name according to the JAXP spec */
@@ -88,7 +109,7 @@ public abstract class SAXParserFactory {
      * <h2>Tip for Trouble-shooting</h2>
      * <p>Setting the <code>jaxp.debug</code> system property will cause
      * this method to print a lot of debug messages
-     * to <tt>System.err</tt> about what it is doing and where it is looking at.</p>
+     * to <code>System.err</code> about what it is doing and where it is looking at.</p>
      * 
      * <p> If you have problems loading {@link DocumentBuilder}s, try:</p>
      * <pre>
@@ -98,8 +119,8 @@ public abstract class SAXParserFactory {
      * 
      * @return A new instance of a SAXParserFactory.
      *
-     * @exception FactoryConfigurationError if the implementation is
-     * not available or cannot be instantiated.
+     * @throws FactoryConfigurationError if the implementation is
+     *   not available or cannot be instantiated.
      */
 
     public static SAXParserFactory newInstance() {
@@ -114,6 +135,50 @@ public abstract class SAXParserFactory {
                                                 e.getMessage());
         }
     }
+
+    /**
+     * <p>Obtain a new instance of a <code>SAXParserFactory</code> from class name.
+     * This function is useful when there are multiple providers in the classpath.
+     * It gives more control to the application as it can specify which provider
+     * should be loaded.</p>     
+     *
+     * <p>Once an application has obtained a reference to a <code>SAXParserFactory</code> 
+     * it can use the factory to configure and obtain parser instances.</p>
+     * 
+     * 
+     * <h2>Tip for Trouble-shooting</h2>
+     * <p>Setting the <code>jaxp.debug</code> system property will cause
+     * this method to print a lot of debug messages
+     * to <code>System.err</code> about what it is doing and where it is looking at.</p>
+     * 
+     * <p> If you have problems, try:</p>
+     * <pre>
+     * java -Djaxp.debug=1 YourProgram ....
+     * </pre>
+     * 
+     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.parsers.SAXParserFactory</code>.
+     *
+     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>  
+     *                     current <code>Thread</code>'s context classLoader is used to load the factory class.
+     *
+     * @return New instance of a <code>SAXParserFactory</code>
+     *
+     * @throws FactoryConfigurationError if <code>factoryClassName</code> is <code>null</code>, or 
+     *                                   the factory class cannot be loaded, instantiated. 
+     *
+     * @see #newInstance()
+     *
+     * @since 1.6
+     */
+    public static SAXParserFactory newInstance(String factoryClassName, ClassLoader classLoader){
+        try {
+            //do not fallback if given classloader can't find the class, throw exception
+            return (SAXParserFactory) FactoryFinder.newInstance(factoryClassName, classLoader, false);
+        } catch (FactoryFinder.ConfigurationError e) {
+            throw new FactoryConfigurationError(e.getException(),
+                                                e.getMessage());
+        }        
+    }
     
     /**
      * <p>Creates a new instance of a SAXParser using the currently
@@ -121,9 +186,9 @@ public abstract class SAXParserFactory {
      *
      * @return A new instance of a SAXParser.
      *
-     * @exception ParserConfigurationException if a parser cannot
+     * @throws ParserConfigurationException if a parser cannot
      *   be created which satisfies the requested configuration.
-     * @exception SAXException for SAX errors.
+     * @throws SAXException for SAX errors.
      */
     
     public abstract SAXParser newSAXParser()
@@ -153,15 +218,14 @@ public abstract class SAXParserFactory {
      * <a href="http://www.w3.org/TR/REC-xml#proc-types">a validating
      * parser</a> as defined in the XML recommendation.
      * In other words, it essentially just controls the DTD validation.
-     * (except the legacy two properties defined in JAXP 1.2.
-     * See <a href="#validationCompatibility">here</a> for more details.)
+     * (except the legacy two properties defined in JAXP 1.2.)
      * </p>
      * 
      * <p>
      * To use modern schema languages such as W3C XML Schema or
      * RELAX NG instead of DTD, you can configure your parser to be
      * a non-validating parser by leaving the {@link #setValidating(boolean)}
-     * method <tt>false</tt>, then use the {@link #setSchema(Schema)}
+     * method <code>false</code>, then use the {@link #setSchema(Schema)}
      * method to associate a schema to a parser.
      * </p>
      *
@@ -223,11 +287,11 @@ public abstract class SAXParserFactory {
      * @param name The name of the feature to be set.
      * @param value The value of the feature to be set.
      * 
-     * @exception ParserConfigurationException if a parser cannot
+     * @throws ParserConfigurationException if a parser cannot
      *     be created which satisfies the requested configuration.
-     * @exception SAXNotRecognizedException When the underlying XMLReader does
+     * @throws SAXNotRecognizedException When the underlying XMLReader does
      *            not recognize the property name.
-     * @exception SAXNotSupportedException When the underlying XMLReader
+     * @throws SAXNotSupportedException When the underlying XMLReader
      *            recognizes the property name but doesn't support the
      *            property.
      * @throws NullPointerException If the <code>name</code> parameter is null.
@@ -247,9 +311,9 @@ public abstract class SAXParserFactory {
      * 
      * @return Value of the requested property.
      *
-     * @exception ParserConfigurationException if a parser cannot be created which satisfies the requested configuration.
-     * @exception SAXNotRecognizedException When the underlying XMLReader does not recognize the property name.
-     * @exception SAXNotSupportedException When the underlying XMLReader recognizes the property name but doesn't support the property.
+     * @throws ParserConfigurationException if a parser cannot be created which satisfies the requested configuration.
+     * @throws SAXNotRecognizedException When the underlying XMLReader does not recognize the property name.
+     * @throws SAXNotSupportedException When the underlying XMLReader recognizes the property name but doesn't support the property.
      *
      * @see org.xml.sax.XMLReader#getProperty
      */
@@ -274,10 +338,8 @@ public abstract class SAXParserFactory {
      * the {@link #setSchema(Schema schema)} method.
      * 
      * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method
      * 
      * @return
      *      the {@link Schema} object that was last set through
@@ -350,10 +412,8 @@ public abstract class SAXParserFactory {
      * 
      * @param schema <code>Schema</code> to use, <code>null</code> to remove a schema.
      * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method
      * 
      * @since 1.5
      */
@@ -379,10 +439,8 @@ public abstract class SAXParserFactory {
      * @param state Set XInclude processing to <code>true</code> or
      *   <code>false</code>
      * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method
      * 
      * @since 1.5
      */
@@ -401,10 +459,8 @@ public abstract class SAXParserFactory {
      * 
      * @return current state of XInclude processing
      * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method
      * 
      * @since 1.5
      */

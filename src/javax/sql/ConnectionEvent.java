@@ -1,7 +1,7 @@
 /*
- * @(#)ConnectionEvent.java	1.9 03/12/19
+ * @(#)ConnectionEvent.java	1.11 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,6 +32,7 @@ public class ConnectionEvent extends java.util.EventObject {
    * defaults to <code>null</code>.
    *
    * @param con the pooled connection that is the source of the event
+   * @throws IllegalArgumentException if <code>con</code> is null.
    */
   public ConnectionEvent(PooledConnection con) {
     super(con);         
@@ -44,6 +45,7 @@ public class ConnectionEvent extends java.util.EventObject {
    *
    * @param con the pooled connection that is the source of the event
    * @param ex the SQLException about to be thrown to the application
+   * @throws IllegalArgumentException if <code>con</code> is null.
    */
   public ConnectionEvent(PooledConnection con, SQLException ex) {
     super(con);  

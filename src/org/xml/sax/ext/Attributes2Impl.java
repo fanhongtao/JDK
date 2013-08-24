@@ -1,7 +1,7 @@
 // Attributes2Impl.java - extended AttributesImpl
 // http://www.saxproject.org
 // Public Domain: no warranty.
-// $Id: Attributes2Impl.java,v 1.1.2.1 2004/05/01 08:34:43 jsuttor Exp $
+// $Id: Attributes2Impl.java,v 1.3 2005/02/24 11:20:18 gg156739 Exp $
 
 package org.xml.sax.ext;
 
@@ -44,7 +44,10 @@ public class Attributes2Impl extends AttributesImpl implements Attributes2
     /**
      * Construct a new, empty Attributes2Impl object.
      */
-    public Attributes2Impl () { }
+    public Attributes2Impl () { 
+        specified = null;
+        declared = null;
+    }
 
 
     /**
@@ -225,11 +228,15 @@ public class Attributes2Impl extends AttributesImpl implements Attributes2
     public void addAttribute (String uri, String localName, String qName,
 			      String type, String value)
     {
-	super.addAttribute (uri, localName, qName, type, value);
+        super.addAttribute (uri, localName, qName, type, value);
+        
 
 	int length = getLength ();
-
-	if (length < specified.length) {
+        if(specified==null)
+        {
+            specified = new boolean[length];
+            declared = new boolean[length];
+        } else if (length > specified.length) {
 	    boolean	newFlags [];
 
 	    newFlags = new boolean [length];

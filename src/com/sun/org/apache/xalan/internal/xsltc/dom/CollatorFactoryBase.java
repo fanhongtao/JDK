@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CollatorFactoryBase.java,v 1.3 2004/02/16 22:54:59 minchau Exp $
+ * $Id: CollatorFactoryBase.java,v 1.2.4.1 2005/09/06 06:03:08 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;

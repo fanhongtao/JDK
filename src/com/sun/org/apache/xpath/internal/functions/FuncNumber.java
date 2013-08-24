@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncNumber.java,v 1.8 2004/02/17 04:34:00 minchau Exp $
+ * $Id: FuncNumber.java,v 1.2.4.1 2005/09/14 20:18:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncNumber extends FunctionDef1Arg
 {
+    static final long serialVersionUID = 7266745342264153076L;
 
   /**
    * Execute the function.  The function must return

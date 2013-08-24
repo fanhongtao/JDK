@@ -1,7 +1,7 @@
 /*
- * @(#)Object.java	1.68 04/04/08
+ * @(#)Object.java	1.73 06/03/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * including arrays, implement the methods of this class. 
  *
  * @author  unascribed
- * @version 1.68, 04/08/04
+ * @version 1.73, 03/30/06
  * @see     java.lang.Class
  * @since   JDK1.0
  */
@@ -25,17 +25,27 @@ public class Object {
     }
 
     /**
-     * Returns the runtime class of an object. That <tt>Class</tt> 
-     * object is the object that is locked by <tt>static synchronized</tt> 
-     * methods of the represented class.
+     * Returns the runtime class of this {@code Object}. The returned
+     * {@code Class} object is the object that is locked by {@code
+     * static synchronized} methods of the represented class.
      *
-     * @return The <code>java.lang.Class</code> object that represents
-     *         the runtime class of the object.  The result is of type
-     *         {@code Class<? extends X>} where X is the
-     *	       erasure of the static type of the expression on which
-     *	       <code>getClass</code> is called.
+     * <p><b>The actual result type is {@code Class<? extends |X|>}
+     * where {@code |X|} is the erasure of the static type of the
+     * expression on which {@code getClass} is called.</b> For
+     * example, no cast is required in this code fragment:</p>
+     *
+     * <p>
+     * {@code Number n = 0;                             }<br>
+     * {@code Class<? extends Number> c = n.getClass(); }
+     * </p>
+     *
+     * @return The {@code Class} object that represents the runtime
+     *         class of this object.
+     * @see    <a href="http://java.sun.com/docs/books/jls/">The Java
+     *         Language Specification, Third Edition (15.8.2 Class
+     *         Literals)</a>
      */
-    public final native Class<? extends Object> getClass();
+    public final native Class<?> getClass();
 
     /**
      * Returns a hash code value for the object. This method is 
@@ -268,7 +278,7 @@ public class Object {
     public final native void notifyAll();
 
     /**
-     * Causes current thread to wait until either another thread invokes the 
+     * Causes the current thread to wait until either another thread invokes the 
      * {@link java.lang.Object#notify()} method or the 
      * {@link java.lang.Object#notifyAll()} method for this object, or a 
      * specified amount of time has elapsed. 
@@ -286,7 +296,7 @@ public class Object {
      * the thread to be awakened. 
      * <li>Some other thread invokes the <tt>notifyAll</tt> method for this 
      * object. 
-     * <li>Some other thread {@link java.lang.Thread#interrupt() interrupts} 
+     * <li>Some other thread {@linkplain Thread#interrupt() interrupts} 
      * thread <var>T</var>. 
      * <li>The specified amount of real time has elapsed, more or less.  If 
      * <tt>timeout</tt> is zero, however, then real time is not taken into 
@@ -321,12 +331,13 @@ public class Object {
      * "Concurrent Programming in Java (Second Edition)" (Addison-Wesley,
      * 2000), or Item 50 in Joshua Bloch's "Effective Java Programming
      * Language Guide" (Addison-Wesley, 2001).
-     * <p>
-     * If the current thread is 
-     * {@link java.lang.Thread#interrupt() interrupted} by another thread 
-     * while it is waiting, then an <tt>InterruptedException</tt> is thrown. 
-     * This exception is not thrown until the lock status of this object has 
-     * been restored as described above.
+     *
+     * <p>If the current thread is {@linkplain java.lang.Thread#interrupt()
+     * interrupted} by any thread before or while it is waiting, then an
+     * <tt>InterruptedException</tt> is thrown.  This exception is not
+     * thrown until the lock status of this object has been restored as
+     * described above.
+     *
      * <p>
      * Note that the <tt>wait</tt> method, as it places the current thread 
      * into the wait set for this object, unlocks only this object; any 
@@ -343,7 +354,7 @@ public class Object {
      *		     negative.
      * @exception  IllegalMonitorStateException  if the current thread is not
      *               the owner of the object's monitor.
-     * @exception  InterruptedException if another thread interrupted the
+     * @exception  InterruptedException if any thread interrupted the
      *             current thread before or while the current thread
      *             was waiting for a notification.  The <i>interrupted
      *             status</i> of the current thread is cleared when
@@ -354,7 +365,7 @@ public class Object {
     public final native void wait(long timeout) throws InterruptedException;
 
     /**
-     * Causes current thread to wait until another thread invokes the 
+     * Causes the current thread to wait until another thread invokes the 
      * {@link java.lang.Object#notify()} method or the 
      * {@link java.lang.Object#notifyAll()} method for this object, or 
      * some other thread interrupts the current thread, or a certain 
@@ -409,7 +420,7 @@ public class Object {
      *			    not in the range 0-999999.
      * @exception  IllegalMonitorStateException  if the current thread is not
      *               the owner of this object's monitor.
-     * @exception  InterruptedException if another thread interrupted the
+     * @exception  InterruptedException if any thread interrupted the
      *             current thread before or while the current thread
      *             was waiting for a notification.  The <i>interrupted
      *             status</i> of the current thread is cleared when
@@ -433,7 +444,7 @@ public class Object {
     }
 
     /**
-     * Causes current thread to wait until another thread invokes the 
+     * Causes the current thread to wait until another thread invokes the 
      * {@link java.lang.Object#notify()} method or the 
      * {@link java.lang.Object#notifyAll()} method for this object. 
      * In other words, this method behaves exactly as if it simply 
@@ -462,7 +473,7 @@ public class Object {
      *
      * @exception  IllegalMonitorStateException  if the current thread is not
      *               the owner of the object's monitor.
-     * @exception  InterruptedException if another thread interrupted the
+     * @exception  InterruptedException if any thread interrupted the
      *             current thread before or while the current thread
      *             was waiting for a notification.  The <i>interrupted
      *             status</i> of the current thread is cleared when

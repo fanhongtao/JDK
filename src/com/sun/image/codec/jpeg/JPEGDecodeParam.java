@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGDecodeParam.java	1.8 03/12/19
+ * @(#)JPEGDecodeParam.java	1.10 06/06/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,15 +26,16 @@ package com.sun.image.codec.jpeg;
  * decoding.  In the case of decoding abbreviated data streams the
  * application may need to set some/all of the values it's self.  <p>
 
- * When working with BufferedImages (@see
- * JPEGImageDecoder.decodeBufferedImage), the codec will attempt to
+ * When working with BufferedImages ({@link
+ * com.sun.image.codec.jpeg.JPEGImageDecoder#decodeAsBufferedImage}),
+ * the codec will attempt to
  * generate an appropriate ColorModel for the JPEG COLOR_ID. This is
  * not always possible (example mappings are listed below) .  In cases
  * where unsupported conversions are required, or unknown encoded
  * COLOR_ID's are in use, the user must request the data as a Raster
  * and perform the transformations themselves.  When decoding into a
- * raster (@see JPEGImageDecoder.decodeRaster) no ColorSpace
- * adjustments are made.
+ * raster ({@link com.sun.image.codec.jpeg.JPEGImageDecoder#decodeAsRaster})
+ * no ColorSpace adjustments are made.
  
  * Note: The color ids described herein are simply enumerated values
  * that influence data processing by the JPEG codec.  JPEG compression

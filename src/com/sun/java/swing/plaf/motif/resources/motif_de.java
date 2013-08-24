@@ -14,7 +14,6 @@ public final class motif_de extends ListResourceBundle {
             { "FileChooser.foldersLabelText", "Ordner" },
             { "FileChooser.helpButtonText", "Hilfe" },
             { "FileChooser.helpButtonToolTipText", "Hilfe f\u00FCr Dateiauswahl" },
-            { "FileChooser.openButtonMnemonic", "79" },
             { "FileChooser.openButtonText", "OK" },
             { "FileChooser.openButtonToolTipText", "Ausgew\u00E4hlte Datei \u00F6ffnen" },
             { "FileChooser.openDialogTitleText", "\u00D6ffnen" },

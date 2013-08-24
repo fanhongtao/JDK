@@ -1,10 +1,28 @@
-// $Id: XPath.java,v 1.12.14.2.2.3 2004/07/01 17:49:22 ndw Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)XPath.java	1.10 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)XPath.java	1.19 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.xpath;
@@ -16,7 +34,8 @@ import javax.xml.namespace.NamespaceContext;
 /**
  * <p><code>XPath</code> provides access to the XPath evaluation environment and expressions.</p>
  *
- * <table id="XPath-evaluation" border="1" cellpadding="2">
+ * <a name="XPath-evaluation"/>
+ * <table border="1" cellpadding="2">
  *   <thead>
  *     <tr>
  *       <th colspan="2">Evaluation of XPath Expressions.</th>
@@ -67,10 +86,18 @@ import javax.xml.namespace.NamespaceContext;
  *      </td>
  *    </tr>
  * </table>
+ *
+ * <p>An XPath object is not thread-safe and not reentrant.
+ * In other words, it is the application's responsibility to make
+ * sure that one {@link XPath} object is not used from
+ * more than one thread at any given time, and while the <code>evaluate</code>
+ * method is invoked, applications may not recursively call
+ * the <code>evaluate</code> method.
+ * <p>
  * 
  * @author  <a href="Norman.Walsh@Sun.com">Norman Walsh</a>
  * @author  <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.12.14.2.2.3 $, $Date: 2004/07/01 17:49:22 $
+ * @version $Revision: 1.5 $, $Date: 2005/10/13 17:00:49 $
  * @see <a href="http://www.w3.org/TR/xpath">XML Path Language (XPath) Version 1.0</a>
  * @since 1.5
  */
@@ -153,12 +180,17 @@ public interface XPath {
 
     /** 
        * <p>Compile an XPath expression for later evaluation.</p>
-       * 
+       *
        * <p>If <code>expression</code> contains any {@link XPathFunction}s,
        * they must be available via the {@link XPathFunctionResolver}.
-       * An {@link XPathExpressionException} will be thrown if the <code>XPathFunction</code>
+       * An {@link XPathExpressionException} will be thrown if the
+       * <code>XPathFunction</code>
        * cannot be resovled with the <code>XPathFunctionResolver</code>.</p>
-       *  
+       *
+       * <p>If <code>expression</code> contains any variables, the
+       * {@link XPathVariableResolver} in effect
+       * <strong>at compile time</strong> will be used to resolve them.</p>
+       *
        * <p>If <code>expression</code> is <code>null</code>, a <code>NullPointerException</code> is thrown.</p> 
        *
        * @param expression The XPath expression.
@@ -192,7 +224,7 @@ public interface XPath {
      * <code>NullPointerException</code> is thrown.</p>
      *
      * @param expression The XPath expression.
-     * @param item The starting context (node or node list, for example).
+     * @param item The starting context (a node, for example).
      * @param returnType The desired return type.
      * 
      * @return Result of evaluating an XPath expression as an <code>Object</code> of <code>returnType</code>.
@@ -219,7 +251,7 @@ public interface XPath {
      * If <code>expression</code> is <code>null</code>, then a <code>NullPointerException</code> is thrown.</p>
      * 
      * @param expression The XPath expression.
-     * @param item The starting context (node or node list, for example).
+     * @param item The starting context (a node, for example).
      * 
      * @return The <code>String</code> that is the result of evaluating the expression and
      *   converting the result to a <code>String</code>.

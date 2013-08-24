@@ -63,7 +63,7 @@ import  java.io.*;
  * to the source file of this class.
  * It is instantiated from the <em>Attribute.readAttribute()</em> method.
  *
- * @version $Id: InnerClasses.java,v 1.1.1.1 2001/10/29 20:00:01 jvanzyl Exp $
+ * @version $Id: InnerClasses.java,v 1.1.2.1 2005/07/31 23:46:38 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -102,7 +102,7 @@ public final class InnerClasses extends Attribute {
    * @param length Content length in bytes
    * @param file Input stream
    * @param constant_pool Array of constants
-   * @throw IOException
+   * @throws IOException
    */
   InnerClasses(int name_index, int length, DataInputStream file,
 	       ConstantPool constant_pool) throws IOException
@@ -129,7 +129,7 @@ public final class InnerClasses extends Attribute {
    * Dump source file attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

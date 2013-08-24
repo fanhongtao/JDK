@@ -1,7 +1,7 @@
 /*
- * @(#)MappedByteBuffer.java	1.23 03/12/19
+ * @(#)MappedByteBuffer.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.23, 03/12/19
+ * @version 1.24, 05/11/17
  * @since 1.4
  */
 

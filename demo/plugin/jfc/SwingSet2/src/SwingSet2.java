@@ -1,7 +1,7 @@
 /*
- * @(#)SwingSet2.java	1.50 04/07/26
+ * @(#)SwingSet2.java	1.54 06/05/31
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)SwingSet2.java	1.50 04/07/26
+ * @(#)SwingSet2.java	1.54 06/05/31
  */
 
 import javax.swing.*;
@@ -63,7 +63,7 @@ import java.net.*;
 /**
  * A demo that shows all of the Swing components.
  *
- * @version 1.50 07/26/04
+ * @version 1.54 05/31/06
  * @author Jeff Dinkins
  */
 public class SwingSet2 extends JPanel {
@@ -157,7 +157,6 @@ public class SwingSet2 extends JPanel {
 
     // Used only if swingset is an application 
     private JFrame frame = null;
-    private JWindow splashScreen = null;
 
     // Used only if swingset is an applet 
     private SwingSet2Applet applet = null;
@@ -171,7 +170,6 @@ public class SwingSet2 extends JPanel {
 
     private JEditorPane demoSrcPane = null;
 
-    private JLabel splashLabel = null;
 
     // contentPane cache, saved from the applet or application frame
     Container contentPane = null;
@@ -194,42 +192,26 @@ public class SwingSet2 extends JPanel {
      */
     public SwingSet2(SwingSet2Applet applet, GraphicsConfiguration gc) {
 
-	// Note that the applet may null if this is started as an application
+	// Note that applet may be null if this is started as an application
 	this.applet = applet;
 
-    // Create Frame here for app-mode so the splash screen can get the
-    // GraphicsConfiguration from it in createSplashScreen()
-    if (!isApplet()) {
-        frame = createFrame(gc);
-    }
+        if (!isApplet()) {
+            frame = createFrame(gc);
+        }
 
-	// setLayout(new BorderLayout());
+	// set the layout
 	setLayout(new BorderLayout());
 
 	// set the preferred size of the demo
 	setPreferredSize(new Dimension(PREFERRED_WIDTH,PREFERRED_HEIGHT));
 
-	// Create and throw the splash screen up. Since this will
-	// physically throw bits on the screen, we need to do this
-	// on the GUI thread using invokeLater.
-	createSplashScreen();
-
-	// do the following on the gui thread
-	SwingUtilities.invokeLater(new Runnable() {
-	    public void run() {
-		showSplashScreen();
-	    }
-	});
-	    
 	initializeDemo();
 	preloadFirstDemo();
 
-	// Show the demo and take down the splash screen. Note that
-	// we again must do this on the GUI thread using invokeLater.
+	// Show the demo. Must do this on the GUI thread using invokeLater.
 	SwingUtilities.invokeLater(new Runnable() {
 	    public void run() {
 		showSwingSet2();
-		hideSplash();
 	    }
 	});
 
@@ -654,6 +636,7 @@ public class SwingSet2 extends JPanel {
  	InputMap map = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
  	map.put(KeyStroke.getKeyStroke(KeyEvent.VK_F10, InputEvent.SHIFT_MASK),
  		"postMenuAction");
+        map.put(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0), "postMenuAction");
  	getActionMap().put("postMenuAction", new ActivatePopupMenuAction(this, popup));
  	
  	return popup;
@@ -766,44 +749,6 @@ public class SwingSet2 extends JPanel {
             numSSs++;
             swingSets.add(this);
 	} 
-    }
-
-    /**
-     * Show the spash screen while the rest of the demo loads
-     */
-    public void createSplashScreen() {
-	splashLabel = new JLabel(createImageIcon("Splash.jpg", "Splash.accessible_description"));
-	
-	if(!isApplet()) {
-	    splashScreen = new JWindow(getFrame());
-	    splashScreen.getContentPane().add(splashLabel);
-	    splashScreen.pack();
-	    Rectangle screenRect = getFrame().getGraphicsConfiguration().getBounds();
-	    splashScreen.setLocation(
-         screenRect.x + screenRect.width/2 - splashScreen.getSize().width/2,
-		 screenRect.y + screenRect.height/2 - splashScreen.getSize().height/2);
-	} 
-    }
-
-    public void showSplashScreen() {
-	if(!isApplet()) {
-	    splashScreen.show();
-	} else {
-	    add(splashLabel, BorderLayout.CENTER);
-	    validate();
-	    repaint();
-	}
-    }
-
-    /**
-     * pop down the spash screen
-     */
-    public void hideSplash() {
-	if(!isApplet()) {
-	    splashScreen.setVisible(false);
-	    splashScreen = null;
-	    splashLabel = null;
-	}
     }
 
     // *******************************************************
@@ -1353,6 +1298,7 @@ public class SwingSet2 extends JPanel {
 
 		// JButton button = new JButton(getString("AboutBox.ok_button_text"));
 		JPanel buttonpanel = new JPanel();
+                buttonpanel.setBorder(new javax.swing.border.EmptyBorder(0, 0, 3, 0));
 		buttonpanel.setOpaque(false);
 		JButton button = (JButton) buttonpanel.add(
 		    new JButton(getString("AboutBox.ok_button_text"))
@@ -1362,8 +1308,11 @@ public class SwingSet2 extends JPanel {
 		button.addActionListener(new OkAction(aboutBox));
 	    }
 	    aboutBox.pack();
-	    Point p = swingset.getLocationOnScreen();
-	    aboutBox.setLocation(p.x + 10, p.y +10);
+            if (isApplet()) {
+                aboutBox.setLocationRelativeTo(getApplet());
+            } else {
+                aboutBox.setLocationRelativeTo(getFrame());
+            }
 	    aboutBox.show();
 	}
     }

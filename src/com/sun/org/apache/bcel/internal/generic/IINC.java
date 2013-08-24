@@ -59,7 +59,7 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
 /**
  * IINC - Increment local variable by constant
  *
- * @version $Id: IINC.java,v 1.1.1.1 2001/10/29 20:00:15 jvanzyl Exp $
+ * @version $Id: IINC.java,v 1.1.2.1 2005/07/31 23:45:40 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class IINC extends LocalVariableInstruction {
@@ -72,6 +72,10 @@ public class IINC extends LocalVariableInstruction {
    */
   IINC() {}
 
+  /**
+   * @param n index of local variable
+   * @param c increment factor
+   */
   public IINC(int n, int c) {
     super(); // Default behaviour of LocalVariableInstruction causes error
 

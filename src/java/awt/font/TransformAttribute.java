@@ -1,7 +1,7 @@
 /*
- * @(#)TransformAttribute.java	1.17 03/12/19
+ * @(#)TransformAttribute.java	1.23 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,6 +24,7 @@ package java.awt.font;
 
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
+import java.io.ObjectStreamException;
 
 /**
  * The <code>TransformAttribute</code> class provides an immutable
@@ -39,18 +40,18 @@ public final class TransformAttribute implements Serializable {
     private AffineTransform transform;
 
     /**
-   * Wraps the specified transform.  The transform is cloned and a
-   * reference to the clone is kept.  The original transform is unchanged.
-   * @param transform the specified {@link AffineTransform} to be wrapped
+     * Wraps the specified transform.  The transform is cloned and a
+     * reference to the clone is kept.  The original transform is unchanged.
+     * If null is passed as the argument, this constructor behaves as though 
+     * it were the identity transform.  (Note that it is preferable to use
+     * {@link #IDENTITY} in this case.)
+     * @param transform the specified {@link AffineTransform} to be wrapped,
+     * or null.
      */
     public TransformAttribute(AffineTransform transform) {
-	if (transform == null) {
-	    throw new IllegalArgumentException("transform may not be null");
-	}
-
-	if (!transform.isIdentity()) {
-	    this.transform = new AffineTransform(transform);
-	}
+        if (transform != null && !transform.isIdentity()) {
+            this.transform = new AffineTransform(transform);
+        }
     }
 
     /**
@@ -59,8 +60,8 @@ public final class TransformAttribute implements Serializable {
      * transform of this <code>TransformAttribute</code>.
      */
     public AffineTransform getTransform() {
-	AffineTransform at = transform;
-	return (at == null) ? new AffineTransform() : new AffineTransform(at);
+        AffineTransform at = transform;
+        return (at == null) ? new AffineTransform() : new AffineTransform(at);
     }
 
     /**
@@ -71,21 +72,66 @@ public final class TransformAttribute implements Serializable {
      * @since 1.4
      */
     public boolean isIdentity() {
-	return (transform == null);
+        return transform == null;
     }
+
+    /**
+     * A <code>TransformAttribute</code> representing the identity transform.
+     * @since 1.6
+     */
+    public static final TransformAttribute IDENTITY = new TransformAttribute(null);
 
     private void writeObject(java.io.ObjectOutputStream s)
       throws java.lang.ClassNotFoundException,
-	     java.io.IOException
+             java.io.IOException
     {
         // sigh -- 1.3 expects transform is never null, so we need to always write one out
-	if (this.transform == null) {
-	    this.transform = new AffineTransform();
-	}
-	s.defaultWriteObject();
+        if (this.transform == null) {
+            this.transform = new AffineTransform();
+        }
+        s.defaultWriteObject();
+    }
+
+    /*
+     * @since 1.6
+     */
+    private Object readResolve() throws ObjectStreamException {
+        if (transform == null || transform.isIdentity()) {
+            return IDENTITY;
+        }
+        return this;
     }
     
     // Added for serial backwards compatability (4348425)
     static final long serialVersionUID = 3356247357827709530L;
 
+    /**
+     * @since 1.6
+     */
+    public int hashCode() {
+        return transform == null ? 0 : transform.hashCode();
+    }
+
+    /**
+     * Returns <code>true</code> if rhs is a <code>TransformAttribute</code>
+     * whose transform is equal to this <code>TransformAttribute</code>'s
+     * transform.
+     * @param rhs the object to compare to
+     * @return <code>true</code> if the argument is a <code>TransformAttribute</code>
+     * whose transform is equal to this <code>TransformAttribute</code>'s
+     * transform.
+     * @since 1.6
+     */
+    public boolean equals(Object rhs) {
+        try {
+            TransformAttribute that = (TransformAttribute)rhs;
+            if (transform == null) {
+                return that.transform == null;
+            }
+            return transform.equals(that.transform);
+        }
+        catch (ClassCastException e) {
+        }
+        return false;
+    }
 }

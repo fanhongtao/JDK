@@ -1,7 +1,7 @@
 /*
- * @(#)SelectorProvider.java	1.26 04/06/15
+ * @(#)SelectorProvider.java	1.28 06/06/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import sun.security.action.GetPropertyAction;
  * zero-argument constructor and implements the abstract methods specified
  * below.  A given invocation of the Java virtual machine maintains a single
  * system-wide default provider instance, which is returned by the {@link
- * #provider provider} method.  The first invocation of that method will locate
+ * #provider() provider} method.  The first invocation of that method will locate
  * the default provider as specified below.
  *
  * <p> The system-wide default provider is used by the static <tt>open</tt>
@@ -47,7 +47,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.26, 04/06/15
+ * @version 1.28, 06/06/28
  * @since 1.4
  */
 

@@ -1,46 +1,45 @@
 /*
- * @(#)ObjectName.java	1.69 05/03/03
- * 
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * @(#)ObjectName.java	1.82 06/06/23
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management;
 
-
-// java import
-import java.io.InvalidObjectException;
+import com.sun.jmx.mbeanserver.GetPropertyAction;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
-import java.io.Serializable;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
-
-import com.sun.jmx.mbeanserver.GetPropertyAction;
+import java.util.Map;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.QueryExp;
 
 /**
  * <p>Represents the object name of an MBean, or a pattern that can
  * match the names of several MBeans.  Instances of this class are
  * immutable.</p>
  *
- * <p>An instance of this class can 
- * be used to represent: 
+ * <p>An instance of this class can be used to represent:</p>
  * <ul>
- * <li> An object name 
- * <li> An object name pattern, within the context of a query
- * </ul></p>
+ * <li>An object name</li>
+ * <li>An object name pattern, within the context of a query</li>
+ * </ul>
  *
  * <p>An object name consists of two parts, the domain and the key
  * properties.</p>
  *
  * <p>The <em>domain</em> is a string of characters not including
- * the character colon (<code>:</code>).</p>
+ * the character colon (<code>:</code>).  It is recommended that the domain
+ * should not contain the string "{@code //}", which is reserved for future use.
  *
  * <p>If the domain includes at least one occurrence of the wildcard
  * characters asterisk (<code>*</code>) or question mark
@@ -65,7 +64,13 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  *
  * <p>An <em>unquoted value</em> is a possibly empty string of
  * characters which may not contain any of the characters comma,
- * equals, colon, quote, asterisk, or question mark.</p>
+ * equals, colon, or quote.</p>
+ *
+ * <p>If the <em>unquoted value</em> contains at least one occurrence
+ * of the wildcard characters asterisk or question mark, then the object
+ * name is a <em>property value pattern</em>. The asterisk matches any
+ * sequence of zero or more characters, while the question mark matches
+ * any single character.</p>
  *
  * <p>A <em>quoted value</em> consists of a quote (<code>"</code>),
  * followed by a possibly empty string of characters, followed by
@@ -75,37 +80,78 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  *
  * <ul>
  * <li>Another backslash.  The second backslash has no special
- * meaning and the two characters represent a single backslash.
+ * meaning and the two characters represent a single backslash.</li>
  *
  * <li>The character 'n'.  The two characters represent a newline
- * ('\n' in Java).
+ * ('\n' in Java).</li>
  *
  * <li>A quote.  The two characters represent a quote, and that quote
  * is not considered to terminate the quoted value. An ending closing
- * quote must be present for the quoted value to be valid.
+ * quote must be present for the quoted value to be valid.</li>
  *
- * <li>A question mark (?) or star (*).  The two characters represent
- * a question mark or star respectively.
+ * <li>A question mark (?) or asterisk (*).  The two characters represent
+ * a question mark or asterisk respectively.</li>
  * </ul>
  *
- * <p>A quote, question mark, or star may not appear inside a quoted
- * value except immediately after an odd number of consecutive
- * backslashes.</p>
+ * <p>A quote may not appear inside a quoted value except immediately
+ * after an odd number of consecutive backslashes.</p>
  *
  * <p>The quotes surrounding a quoted value, and any backslashes
  * within that value, are considered to be part of the value.</p>
  *
- * <p>An ObjectName may be a <em>property pattern</em>.  In this case
- * it may have zero or more keys and associated values.  It matches a
- * nonpattern ObjectName whose domain matches and that contains the
+ * <p>If the <em>quoted value</em> contains at least one occurrence of
+ * the characters asterisk or question mark and they are not preceded
+ * by a backslash, then they are considered as wildcard characters and
+ * the object name is a <em>property value pattern</em>. The asterisk
+ * matches any sequence of zero or more characters, while the question
+ * mark matches any single character.</p>
+ *
+ * <p>An ObjectName may be a <em>property list pattern</em>. In this
+ * case it may have zero or more keys and associated values. It matches
+ * a nonpattern ObjectName whose domain matches and that contains the
  * same keys and associated values, as well as possibly other keys and
  * values.</p>
+ *
+ * <p>An ObjectName is a <em>property value pattern</em> when at least
+ * one of its <em>quoted</em> or <em>unquoted</em> key property values
+ * contains the wildcard characters asterisk or question mark as described
+ * above. In this case it has one or more keys and associated values, with
+ * at least one of the values containing wildcard characters. It matches a
+ * nonpattern ObjectName whose domain matches and that contains the same
+ * keys whose values match; if the property value pattern is also a
+ * property list pattern then the nonpattern ObjectName can contain
+ * other keys and values.</p>
+ *
+ * <p>An ObjectName is a <em>property pattern</em> if it is either a
+ * <em>property list pattern</em> or a <em>property value pattern</em>
+ * or both.</p>
  *
  * <p>An ObjectName is a pattern if its domain contains a wildcard or
  * if the ObjectName is a property pattern.</p>
  *
  * <p>If an ObjectName is not a pattern, it must contain at least one
  * key with its associated value.</p>
+ *
+ * <p>Examples of ObjectName patterns are:</p>
+ *
+ * <ul>
+ * <li>{@code *:type=Foo,name=Bar} to match names in any domain whose
+ *     exact set of keys is {@code type=Foo,name=Bar}.</li>
+ * <li>{@code d:type=Foo,name=Bar,*} to match names in the domain
+ *     {@code d} that have the keys {@code type=Foo,name=Bar} plus
+ *     zero or more other keys.</li>
+ * <li>{@code *:type=Foo,name=Bar,*} to match names in any domain
+ *     that has the keys {@code type=Foo,name=Bar} plus zero or
+ *     more other keys.</li>
+ * <li>{@code d:type=F?o,name=Bar} will match e.g.
+ *     {@code d:type=Foo,name=Bar} and {@code d:type=Fro,name=Bar}.</li>
+ * <li>{@code d:type=F*o,name=Bar} will match e.g.
+ *     {@code d:type=Fo,name=Bar} and {@code d:type=Frodo,name=Bar}.</li>
+ * <li>{@code d:type=Foo,name="B*"} will match e.g.
+ *     {@code d:type=Foo,name="Bling"}. Wildcards are recognized even
+ *     inside quotes, and like other special characters can be escaped
+ *     with {@code \}.</li>
+ * </ul>
  *
  * <p>An ObjectName can be written as a String with the following
  * elements in order:</p>
@@ -123,7 +169,7 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  *
  * <p>At most one element of a key property list may be an asterisk.
  * If the key property list contains an asterisk element, the
- * ObjectName is a property pattern.</p>
+ * ObjectName is a property list pattern.</p>
  *
  * <p>Spaces have no special significance in a String representing an
  * ObjectName.  For example, the String:
@@ -153,15 +199,18 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * domains such as <code>com.sun.MyDomain</code>.  This is essentially
  * the same convention as for Java-language package names.</p>
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>1081892073854801359L</code>.
+ * 
  * @since 1.5
  */
-public class ObjectName implements QueryExp, Serializable { 
+@SuppressWarnings("serial") // don't complain serialVersionUID not constant
+public class ObjectName implements Comparable<ObjectName>, QueryExp {
 
     /**
      * A structure recording property structure and
      * proposing minimal services
      */
-    private final static class Property {
+    private static class Property {
 
         int _key_index;
         int _key_length;
@@ -199,6 +248,19 @@ public class ObjectName implements QueryExp, Serializable {
             return name.substring(in_begin, out_end);
         }
     }
+
+    /**
+     * Marker class for value pattern property.
+     */
+    private static class PatternProperty extends Property {
+        /**
+         * Constructor.
+         */
+        PatternProperty(int key_index, int key_length, int value_length) {
+            super(key_index, key_length, value_length);
+        }
+    }
+
     // Inner classes <========================================
 
 
@@ -213,14 +275,14 @@ public class ObjectName implements QueryExp, Serializable {
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = -5467795090068647408L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = 1081892073854801359L;
     //
     // Serializable fields in old serial form
-    private static final ObjectStreamField[] oldSerialPersistentFields = 
+    private static final ObjectStreamField[] oldSerialPersistentFields =
     {
 	new ObjectStreamField("domain", String.class),
 	new ObjectStreamField("propertyList", Hashtable.class),
@@ -236,11 +298,11 @@ public class ObjectName implements QueryExp, Serializable {
     // Actual serial version and serial form
     private static final long serialVersionUID;
     private static final ObjectStreamField[] serialPersistentFields;
-    private static boolean compat = false;  
+    private static boolean compat = false;
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: exception means no compat with 1.0, too bad
@@ -264,12 +326,7 @@ public class ObjectName implements QueryExp, Serializable {
      */
     static final private Property[] _Empty_property_array = new Property[0];
 
-    /**
-     * a shared empty hashtable for empty property lists
-     */
-    static final private Hashtable _EmptyPropertyList = new Hashtable(1);
 
-    
     // Class private fields <==============================
 
     // Instance private fields ----------------------------------->
@@ -279,7 +336,7 @@ public class ObjectName implements QueryExp, Serializable {
      */
     private transient String _canonicalName;
 
-    
+
     /**
      * An array of properties in the same seq order as time creation
      */
@@ -301,7 +358,7 @@ public class ObjectName implements QueryExp, Serializable {
      * The propertyList of built object name. Initialized lazily.
      * Table that contains all the pairs (key,value) for this ObjectName.
      */
-    private transient Hashtable _propertyList;
+    private transient Map<String,String> _propertyList;
 
     /**
      * boolean that declares if this ObjectName domain part is a pattern
@@ -309,19 +366,25 @@ public class ObjectName implements QueryExp, Serializable {
     private transient boolean _domain_pattern = false;
 
     /**
-     * boolean that declares if this ObjectName contains a pattern on the 
+     * boolean that declares if this ObjectName contains a pattern on the
      * key property list
      */
-    private transient boolean _property_pattern = false;
+    private transient boolean _property_list_pattern = false;
+
+    /**
+     * boolean that declares if this ObjectName contains a pattern on the
+     * value of at least one key property
+     */
+    private transient boolean _property_value_pattern = false;
 
     // Instance private fields <=======================================
 
     // Private fields <========================================
 
 
-    //  Private methods ----------------------------------------> 
+    //  Private methods ---------------------------------------->
 
-    // Category : Instance construction -------------------------> 
+    // Category : Instance construction ------------------------->
 
     /**
      * Initializes this {@link ObjectName} from the given string
@@ -350,7 +413,8 @@ public class ObjectName implements QueryExp, Serializable {
             _domain_length = 1;
             _propertyList = null;
             _domain_pattern = true;
-            _property_pattern = true;
+            _property_list_pattern = true;
+            _property_value_pattern = false;
             return;
         }
 
@@ -371,11 +435,18 @@ public class ObjectName implements QueryExp, Serializable {
                     _domain_length = index++;
                     break domain_parsing;
                 case '=' :
+                    // ":" omission check.
+                    //
+                    // Although "=" is a valid character in the domain part
+                    // it is true that it is rarely used in the real world.
+                    // So check straight away if the ":" has been omitted
+                    // from the ObjectName. This allows us to provide a more
+                    // accurate exception message.
                     int i = ++index;
                     while ((i < len) && (name_chars[i++] != ':'))
-                    if (i == len)
-			throw new MalformedObjectNameException(
-					   "Domain part must be specified");
+                        if (i == len)
+                            throw new MalformedObjectNameException(
+                                "Domain part must be specified");
 		    break;
                 case '\n' :
                     throw new MalformedObjectNameException(
@@ -383,8 +454,11 @@ public class ObjectName implements QueryExp, Serializable {
                 case '*' :
                 case '?' :
                     _domain_pattern = true;
+		    index++;
+		    break;
                 default :
                     index++;
+		    break;
             }
         }
 
@@ -400,7 +474,7 @@ public class ObjectName implements QueryExp, Serializable {
 
         // parses property list
         Property prop;
-        HashMap keys_map = new HashMap();
+        Map<String,Property> keys_map = new HashMap<String,Property>();
         String[] keys;
         String key_name;
         boolean quoted_value;
@@ -410,19 +484,20 @@ public class ObjectName implements QueryExp, Serializable {
 
         keys = new String[10];
         _kp_array = new Property[10];
-        _property_pattern = false;
+        _property_list_pattern = false;
+        _property_value_pattern = false;
 
         while (index < len) {
             c = name_chars[index];
 
             // case of pattern properties
             if (c == '*') {
-                if (_property_pattern)
+                if (_property_list_pattern)
 		    throw new MalformedObjectNameException(
 			      "Cannot have several '*' characters in pattern " +
-			      "properties");
+			      "property list");
                 else {
-                    _property_pattern = true;
+                    _property_list_pattern = true;
                     if ((++index < len ) && (name_chars[index] != ','))
 			throw new MalformedObjectNameException(
 			          "Invalid character found after '*': end of " +
@@ -432,11 +507,10 @@ public class ObjectName implements QueryExp, Serializable {
                             // empty properties case
                             _kp_array = _Empty_property_array;
                             _ca_array = _Empty_property_array;
-                            _propertyList = _EmptyPropertyList;
+                            _propertyList = Collections.emptyMap();
                         }
                         break;
-                    }
-                    else {
+                    } else {
                         // correct pattern spec in props, continue
                         index++;
                         continue;
@@ -447,6 +521,8 @@ public class ObjectName implements QueryExp, Serializable {
             // standard property case, key part
             in_index = index;
             key_index = in_index;
+            if (name_chars[in_index] == '=')
+                throw new MalformedObjectNameException("Invalid key (empty)");
             while ((in_index < len) && ((c1 = name_chars[in_index++]) != '='))
                 switch (c1) {
                     // '=' considered to introduce value part
@@ -459,18 +535,16 @@ public class ObjectName implements QueryExp, Serializable {
                         throw new MalformedObjectNameException(
 				  "Invalid character '" + ichar +
 				  "' in key part of property");
-                    default: ;
                 }
-            if (in_index == len)
+            if (name_chars[in_index - 1] != '=')
 		throw new MalformedObjectNameException(
 					     "Unterminated key property part");
-            if (in_index == index)
-		throw new MalformedObjectNameException("Invalid key (empty)");
             value_index = in_index; // in_index pointing after '=' char
             key_length = value_index - key_index - 1; // found end of key
 
             // standard property case, value part
-            if (name_chars[in_index] == '\"') {
+            boolean value_pattern = false;
+            if (in_index < len && name_chars[in_index] == '\"') {
                 quoted_value = true;
                 // the case of quoted value part
             quoted_value_parsing:
@@ -500,10 +574,7 @@ public class ObjectName implements QueryExp, Serializable {
                         switch (c1) {
                             case '?' :
                             case '*' :
-                                throw new MalformedObjectNameException(
-				      "Invalid unescaped reserved character '" +
-				      c1 + "' in quoted value");
-                            default:
+                                value_pattern = true;
                                 break;
                         }
                     }
@@ -512,8 +583,7 @@ public class ObjectName implements QueryExp, Serializable {
 		    throw new MalformedObjectNameException(
 						 "Unterminated quoted value");
                 else value_length = ++in_index - value_index;
-            }
-            else {
+            } else {
                 // the case of standard value part
                 quoted_value = false;
                 while ((in_index < len) && ((c1 = name_chars[in_index]) != ','))
@@ -521,6 +591,9 @@ public class ObjectName implements QueryExp, Serializable {
                     // ',' considered to be the value separator
                     case '*' :
                     case '?' :
+                        value_pattern = true;
+                        in_index++;
+                        break;
                     case '=' :
                     case ':' :
                     case '"' :
@@ -529,7 +602,9 @@ public class ObjectName implements QueryExp, Serializable {
                         throw new MalformedObjectNameException(
 						 "Invalid character '" + c1 +
 						 "' in value part of property");
-                    default : in_index++;
+                    default :
+                        in_index++;
+                        break;
                 }
                 value_length = in_index - value_index;
             }
@@ -542,11 +617,15 @@ public class ObjectName implements QueryExp, Serializable {
 					     name_chars[in_index] + "'");
                 else throw new MalformedObjectNameException(
 						  "Invalid ending comma");
-            }
-            else in_index++;
+            } else in_index++;
 
             // we got the key and value part, prepare a property for this
-            prop = new Property(key_index, key_length, value_length);
+            if (!value_pattern) {
+                prop = new Property(key_index, key_length, value_length);
+            } else {
+                _property_value_pattern = true;
+                prop = new PatternProperty(key_index, key_length, value_length);
+            }
             key_name = name.substring(key_index, key_index + key_length);
 
             if (property_index == keys.length) {
@@ -570,7 +649,7 @@ public class ObjectName implements QueryExp, Serializable {
      * Construct an ObjectName from a domain and a Hashtable.
      *
      * @param domain Domain of the ObjectName.
-     * @param props  Hashtable containing couples <i>key</i> -> <i>value</i>.
+     * @param props  Map containing couples <i>key</i> -> <i>value</i>.
      *
      * @exception MalformedObjectNameException The <code>domain</code>
      * contains an illegal character, or one of the keys or values in
@@ -578,7 +657,7 @@ public class ObjectName implements QueryExp, Serializable {
      * values in <code>table</code> does not follow the rules for quoting.
      * @exception NullPointerException One of the parameters is null.
      */
-    private void construct(String domain, Hashtable props)
+    private void construct(String domain, Map<String,String> props)
 	throws MalformedObjectNameException, NullPointerException {
 
 	// The domain cannot be null
@@ -599,7 +678,7 @@ public class ObjectName implements QueryExp, Serializable {
             throw new MalformedObjectNameException("Invalid domain: " + domain);
 
         // init canonicalname
-	final StringBuffer sb = new StringBuffer();
+	final StringBuilder sb = new StringBuilder();
         sb.append(domain).append(':');
         _domain_length = domain.length();
 
@@ -607,39 +686,43 @@ public class ObjectName implements QueryExp, Serializable {
         int nb_props = props.size();
         _kp_array = new Property[nb_props];
 
-        String[] keys = new String[nb_props];
-	final Enumeration e = props.keys();
-        final HashMap keys_map = new HashMap();
+	String[] keys = new String[nb_props];
+        final Map<String,Property> keys_map = new HashMap<String,Property>();
         Property prop;
         int key_index;
-	for (int i = 0; e.hasMoreElements(); i++ ) {
-            if (i > 0) sb.append(",");
-	    String key = "";
+	int i = 0;
+	for (Map.Entry<String,String> entry : props.entrySet()) {
+            if (sb.length() > 0)
+		sb.append(",");
+	    String key = entry.getKey();
+	    String value;
 	    try {
-		key = (String)e.nextElement();
-	    } catch (Exception x) {
-		throw new MalformedObjectNameException("Invalid key `" +
-						       key + "'");
-	    }
-	    String value = "";
-	    try {
-		value = (String)props.get(key);
-	    } catch (Exception x) {
-		throw new MalformedObjectNameException("Invalid value `" +
-						       value + "'");
+		value = entry.getValue();
+	    } catch (ClassCastException e) {
+		throw new MalformedObjectNameException(e.getMessage());
 	    }
 	    key_index = sb.length();
             checkKey(key);
             sb.append(key);
-            keys[i] = key;
+	    keys[i] = key;
             sb.append("=");
-	    checkValue(value);
+            boolean value_pattern = checkValue(value);
             sb.append(value);
-            prop = new Property(key_index, key.length(), value.length());
+            if (!value_pattern) {
+                prop = new Property(key_index,
+                                    key.length(),
+                                    value.length());
+            } else {
+                _property_value_pattern = true;
+                prop = new PatternProperty(key_index,
+                                           key.length(),
+                                           value.length());
+            }
 	    addProperty(prop, i, keys_map, key);
+	    i++;
 	}
 
-        // initialise canonical name and data structure
+        // initialize canonical name and data structure
         int len = sb.length();
         char[] initial_chars = new char[len];
         sb.getChars(0, len, initial_chars, 0);
@@ -658,14 +741,14 @@ public class ObjectName implements QueryExp, Serializable {
      * for the passed key name
      */
     private void addProperty(Property prop, int index,
-			     HashMap keys_map, String key_name)
+			     Map<String,Property> keys_map, String key_name)
 	throws MalformedObjectNameException {
 
         if (keys_map.containsKey(key_name)) throw new
-                MalformedObjectNameException("key `" + 
+                MalformedObjectNameException("key `" +
 					 key_name +"' already defined");
-            
-        // if no more space for property arrays, have to increase it 
+
+        // if no more space for property arrays, have to increase it
         if (index == _kp_array.length) {
             Property[] tmp_prop_array = new Property[index + 10];
             System.arraycopy(_kp_array, 0, tmp_prop_array, 0, index);
@@ -674,7 +757,7 @@ public class ObjectName implements QueryExp, Serializable {
         _kp_array[index] = prop;
         keys_map.put(key_name, prop);
     }
-        
+
     /**
      * Sets the canonical name of receiver from input 'specified_chars'
      * array, by filling 'canonical_chars' array with found 'nb-props'
@@ -682,7 +765,7 @@ public class ObjectName implements QueryExp, Serializable {
      */
     private void setCanonicalName(char[] specified_chars,
                                   char[] canonical_chars,
-                                  String[] keys, HashMap keys_map,
+                                  String[] keys, Map<String,Property> keys_map,
                                   int prop_index, int nb_props) {
 
         // Sort the list of found properties
@@ -700,12 +783,12 @@ public class ObjectName implements QueryExp, Serializable {
             // now assigns _ca_array to the sorted list of keys
             // (there cannot be two identical keys in an objectname.
             for (int i = 0; i < nb_props; i++)
-                _ca_array[i] = (Property) keys_map.get(keys[i]);
+                _ca_array[i] = keys_map.get(keys[i]);
 
             // now we build the canonical name and set begin indexes of
             // properties to reflect canonical form
             int last_index = nb_props - 1;
-            int prop_len; 
+            int prop_len;
             Property prop;
             for (int i = 0; i <= last_index; i++) {
                 prop = _ca_array[i];
@@ -721,9 +804,9 @@ public class ObjectName implements QueryExp, Serializable {
                 }
             }
         }
-        
+
         // terminate canonicalname with '*' in case of pattern
-        if (_property_pattern) {
+        if (_property_list_pattern) {
             if (_kp_array != _Empty_property_array)
 		canonical_chars[prop_index++] = ',';
             canonical_chars[prop_index++] = '*';
@@ -743,7 +826,7 @@ public class ObjectName implements QueryExp, Serializable {
      * @param startKey index at which to begin parsing.
      * @return The index following the last character of the key.
      **/
-    private final static int parseKey(final char[] s, final int startKey) 
+    private static int parseKey(final char[] s, final int startKey)
 	throws MalformedObjectNameException {
 	int next   = startKey;
 	int endKey = startKey;
@@ -757,7 +840,7 @@ public class ObjectName implements QueryExp, Serializable {
 	    case ':':
 	    case '\n':
 		final String ichar = ((k=='\n')?"\\n":""+k);
-		throw new 
+		throw new
 		    MalformedObjectNameException("Invalid character in key: `"
 						 + ichar + "'");
 	    case '=':
@@ -781,12 +864,17 @@ public class ObjectName implements QueryExp, Serializable {
      *
      * @param s The char array of the original string.
      * @param startValue index at which to begin parsing.
-     * @return The index following the last character of the value.
+     * @return The first element of the int array indicates the index
+     *         following the last character of the value. The second
+     *         element of the int array indicates that the value is
+     *         a pattern when its value equals 1.
      **/
-    private final static int parseValue(final char[] s, final int startValue) 
+    private static int[] parseValue(final char[] s, final int startValue)
 	throws MalformedObjectNameException {
 
-	int next   = startValue;
+        boolean value_pattern = false;
+
+        int next   = startValue;
 	int endValue = startValue;
 
 	final int len = s.length;
@@ -794,12 +882,12 @@ public class ObjectName implements QueryExp, Serializable {
 
 	if (q == '"') {
 	    // quoted value
-	    if (++next == len) throw new 
+	    if (++next == len) throw new
 		MalformedObjectNameException("Invalid quote");
 	    while (next < len) {
 		char last = s[next];
                 if (last == '\\') {
-                    if (++next == len) throw new 
+                    if (++next == len) throw new
                         MalformedObjectNameException(
 			   "Invalid unterminated quoted character sequence");
                     last = s[next];
@@ -819,9 +907,9 @@ public class ObjectName implements QueryExp, Serializable {
 						 "Missing termination quote");
 			    break;
                         default:
-                            throw new 
+                            throw new
                                 MalformedObjectNameException(
-				"Invalid quoted character sequence '\\" + 
+				"Invalid quoted character sequence '\\" +
 				last + "'");
                     }
                 } else if (last == '\n') {
@@ -834,10 +922,7 @@ public class ObjectName implements QueryExp, Serializable {
                     switch (last) {
                         case '?' :
                         case '*' :
-                            throw new MalformedObjectNameException(
-				      "Invalid unescaped reserved character '" +
-				      last + "' in quoted value");
-                        default:
+                            value_pattern = true;
                             break;
                     }
                 }
@@ -847,83 +932,87 @@ public class ObjectName implements QueryExp, Serializable {
 		// We have already handled the case were the last
 		// character is an escaped quote earlier.
 		//
-		if ((next >= len) && (last != '\"')) throw new 
+		if ((next >= len) && (last != '\"')) throw new
 		    MalformedObjectNameException("Missing termination quote");
 	    }
 	    endValue = next;
 	    if (next < len) {
-		if (s[next++] != ',') throw new 
+		if (s[next++] != ',') throw new
 		    MalformedObjectNameException("Invalid quote");
 	    }
-	}
-        else {
+	} else {
 	    // Non quoted value.
-	    while (next < len) {
-		final char v=s[next++];
-		switch(v) {
+            while (next < len) {
+                final char v=s[next++];
+                switch(v) {
                     case '*':
                     case '?':
+                        value_pattern = true;
+                        if (next < len) continue;
+                        else endValue=next;
+                        break;
                     case '=':
                     case ':':
                     case '\n' :
-			final String ichar = ((v=='\n')?"\\n":""+v);
-                        throw new 
-			MalformedObjectNameException("Invalid character `" + 
-						     ichar + "' in value");
-		    case ',':
-		        endValue = next-1;
-		    break;
-		default:
-		    if (next < len) continue;
-		    else endValue=next;
-		}
-		break;
-	    }
+                        final String ichar = ((v=='\n')?"\\n":""+v);
+                        throw new
+                            MalformedObjectNameException("Invalid character `" +
+                                                         ichar + "' in value");
+                    case ',':
+                        endValue = next-1;
+                        break;
+                    default:
+                        if (next < len) continue;
+                        else endValue=next;
+                }
+                break;
+            }
 	}
-	return endValue;
+	return new int[] { endValue, value_pattern ? 1 : 0 };
     }
 
     /**
-     * Check if the value given in parameter in the first constructor is a 
-     * valid value
+     * Check if the supplied value is a valid value.
+     *
+     * @return true if the value is a pattern, otherwise false.
      */
-    private  String checkValue(String val) 
+    private static boolean checkValue(String val)
 	throws MalformedObjectNameException {
 
 	if (val == null) throw new
-	    MalformedObjectNameException("Invalid value (null)");
+	    NullPointerException("Invalid value (null)");
 
-	final int len  = val.length();
-	if (len == 0) throw new
-	    MalformedObjectNameException("Invalid value (empty)");
+        final int len = val.length();
+        if (len == 0)
+            return false;
 
 	final char[] s = val.toCharArray();
-	final int endValue = parseValue(s,0);
-	if (endValue < len) throw new 
-	    MalformedObjectNameException("Invalid character in value: `" + 
+	final int[] result = parseValue(s,0);
+        final int endValue = result[0];
+        final boolean value_pattern = result[1] == 1;
+        if (endValue < len) throw new
+	    MalformedObjectNameException("Invalid character in value: `" +
 					 s[endValue] + "'");
-	return val;
+	return value_pattern;
     }
-   
+
     /**
-     * Check if the key given in parameter in the first constructor is a 
-     * valid key.
+     * Check if the supplied key is a valid key.
      */
-    private String checkKey(String key) 
-	throws MalformedObjectNameException {
+    private static void checkKey(String key)
+	throws MalformedObjectNameException, NullPointerException {
 
 	if (key == null) throw new
-	    MalformedObjectNameException("Invalid key (null)");
-	
+	    NullPointerException("Invalid key (null)");
+
 	final int len = key.length();
 	if (len == 0) throw new
 	    MalformedObjectNameException("Invalid key (empty)");
 	final char[] k=key.toCharArray();
 	final int endKey = parseKey(k,0);
-	if (endKey < len) throw new 
-	    MalformedObjectNameException("Invalid character in value: `" + 
+	if (endKey < len) throw new
+	    MalformedObjectNameException("Invalid character in value: `" +
 					 k[endKey] + "'");
-	return key;
     }
 
     /*
@@ -931,17 +1020,17 @@ public class ObjectName implements QueryExp, Serializable {
      * Supports "?", "*" each of which may be escaped with "\";
      * Not yet supported: internationalization; "\" inside brackets.<P>
      * Wildcard matching routine by Karl Heuer.  Public Domain.<P>
-     */  
+     */
     private static boolean wildmatch(char[] s, char[] p, int si, int pi) {
         char c;
         final int slen = s.length;
         final int plen = p.length;
 
-        while (pi < plen) {            // While still string
+        while (pi < plen) { // While still string
             c = p[pi++];
             if (c == '?') {
                 if (++si > slen) return false;
-            } else if (c == '*') {        // Wildcard
+            } else if (c == '*') { // Wildcard
                 if (pi >= plen) return true;
                 do {
                     if (wildmatch(s,p,si,pi)) return true;
@@ -959,7 +1048,7 @@ public class ObjectName implements QueryExp, Serializable {
     // Category : Internal accessors ------------------------------>
 
     /**
-     * Check if domain is a valid domain
+     * Check if domain is a valid domain.  Set _domain_pattern if appropriate.
      */
     private boolean isDomain(String domain) {
 	if (domain == null) return true;
@@ -975,15 +1064,14 @@ public class ObjectName implements QueryExp, Serializable {
                 case '*' :
                 case '?' :
                     _domain_pattern = true;
-                default:
-                    continue;
+		    break;
 	    }
 	}
 	return true;
     }
 
     // Category : Internal accessors <==============================
-    
+
     // Category : Serialization ----------------------------------->
 
     /**
@@ -997,7 +1085,7 @@ public class ObjectName implements QueryExp, Serializable {
      *                            <li>&lt;domain&gt; represents the domain part
      *                                of the {@link ObjectName}</li>
      *                            <li>&lt;properties&gt; represents the list of
-     *                                properties, as returned by 
+     *                                properties, as returned by
      *                                {@link #getKeyPropertyListString}
      *                            <li>&lt;wild&gt; is empty if not
      *                                <code>isPropertyPattern</code>, or
@@ -1021,7 +1109,7 @@ public class ObjectName implements QueryExp, Serializable {
      *                   where: <ul>
      *                            <li>&lt;domain&gt; represents the domain part
      *                                of the {@link ObjectName}</li>
-     *                            <li>&lt;propertyList&gt; is the 
+     *                            <li>&lt;propertyList&gt; is the
      *                                {@link Hashtable} that contains all the
      *                                pairs (key,value) for this
      *                                {@link ObjectName}</li>
@@ -1084,7 +1172,7 @@ public class ObjectName implements QueryExp, Serializable {
      *                            <li>&lt;domain&gt; represents the domain part
      *                                of the {@link ObjectName}</li>
      *                            <li>&lt;properties&gt; represents the list of
-     *                                properties, as returned by 
+     *                                properties, as returned by
      *                                {@link #getKeyPropertyListString}
      *                            <li>&lt;wild&gt; is empty if not
      *                                <code>isPropertyPattern</code>, or
@@ -1108,7 +1196,7 @@ public class ObjectName implements QueryExp, Serializable {
      *                   where: <ul>
      *                            <li>&lt;domain&gt; represents the domain part
      *                                of the {@link ObjectName}</li>
-     *                            <li>&lt;propertyList&gt; is the 
+     *                            <li>&lt;propertyList&gt; is the
      *                                {@link Hashtable} that contains all the
      *                                pairs (key,value) for this
      *                                {@link ObjectName}</li>
@@ -1133,17 +1221,18 @@ public class ObjectName implements QueryExp, Serializable {
      */
     private void writeObject(ObjectOutputStream out)
 	    throws IOException {
+
       if (compat)
       {
         // Serializes this instance in the old serial form
-        //
+        // Read CR 6441274 before making any changes to this code
         ObjectOutputStream.PutField fields = out.putFields();
 	fields.put("domain", _canonicalName.substring(0, _domain_length));
 	fields.put("propertyList", getKeyPropertyList());
 	fields.put("propertyListString", getKeyPropertyListString());
 	fields.put("canonicalName", _canonicalName);
-	fields.put("pattern", (_domain_pattern || _property_pattern));
-	fields.put("propertyPattern", _property_pattern);
+	fields.put("pattern", (_domain_pattern || _property_list_pattern));
+	fields.put("propertyPattern", _property_list_pattern);
 	out.writeFields();
       }
       else
@@ -1156,11 +1245,11 @@ public class ObjectName implements QueryExp, Serializable {
     }
 
     //  Category : Serialization <===================================
-    
+
     // Private methods <========================================
 
-    // Public methods ----------------------------------------> 
-    
+    // Public methods ---------------------------------------->
+
     // Category : ObjectName Construction ------------------------------>
 
     /**
@@ -1175,7 +1264,7 @@ public class ObjectName implements QueryExp, Serializable {
      *
      * @return an ObjectName corresponding to the given String.
      *
-     * @exception MalformedObjectNameException The string passed as a 
+     * @exception MalformedObjectNameException The string passed as a
      * parameter does not have the right format.
      * @exception NullPointerException The <code>name</code> parameter
      * is null.
@@ -1195,8 +1284,8 @@ public class ObjectName implements QueryExp, Serializable {
      * this method twice with the same parameters may return the same
      * object or two equal but not identical objects.</p>
      *
-     * @param domain  The domain part of the object name.     
-     * @param key  The attribute in the key property of the object name.     
+     * @param domain  The domain part of the object name.
+     * @param key  The attribute in the key property of the object name.
      * @param value The value in the key property of the object name.
      *
      * @return an ObjectName corresponding to the given domain,
@@ -1211,7 +1300,7 @@ public class ObjectName implements QueryExp, Serializable {
      * @since.unbundled JMX 1.2
      */
     public static ObjectName getInstance(String domain, String key,
-					 String value) 
+					 String value)
 	    throws MalformedObjectNameException, NullPointerException {
         return new ObjectName(domain, key, value);
     }
@@ -1242,7 +1331,8 @@ public class ObjectName implements QueryExp, Serializable {
      *
      * @since.unbundled JMX 1.2
      */
-    public static ObjectName getInstance(String domain, Hashtable table) 
+    public static ObjectName getInstance(String domain,
+					 Hashtable<String,String> table)
 	throws MalformedObjectNameException, NullPointerException {
         return new ObjectName(domain, table);
     }
@@ -1267,7 +1357,7 @@ public class ObjectName implements QueryExp, Serializable {
      * that is known not to have surprising behavior.</p>
      *
      * @param name an instance of the ObjectName class or of a subclass
-     * 
+     *
      * @return an instance of ObjectName or a subclass that is known to
      * have the same semantics.  If <code>name</code> respects the
      * semantics of ObjectName, then the returned object is equal
@@ -1294,7 +1384,7 @@ public class ObjectName implements QueryExp, Serializable {
      *
      * @param name  A string representation of the object name.
      *
-     * @exception MalformedObjectNameException The string passed as a 
+     * @exception MalformedObjectNameException The string passed as a
      * parameter does not have the right format.
      * @exception NullPointerException The <code>name</code> parameter
      * is null.
@@ -1307,8 +1397,8 @@ public class ObjectName implements QueryExp, Serializable {
     /**
      * Construct an object name with exactly one key property.
      *
-     * @param domain  The domain part of the object name.     
-     * @param key  The attribute in the key property of the object name.     
+     * @param domain  The domain part of the object name.
+     * @param key  The attribute in the key property of the object name.
      * @param value The value in the key property of the object name.
      *
      * @exception MalformedObjectNameException The
@@ -1322,8 +1412,7 @@ public class ObjectName implements QueryExp, Serializable {
 	// If key or value are null a NullPointerException
 	// will be thrown by the put method in Hashtable.
 	//
-	Hashtable table = new Hashtable(1);
-	table.put(key, value);
+	Map<String,String> table = Collections.singletonMap(key, value);
 	construct(domain, table);
     }
 
@@ -1343,9 +1432,13 @@ public class ObjectName implements QueryExp, Serializable {
      * quoting.
      * @exception NullPointerException One of the parameters is null.
      */
-    public ObjectName(String domain, Hashtable table)
-	throws MalformedObjectNameException, NullPointerException {
+    public ObjectName(String domain, Hashtable<String,String> table)
+	    throws MalformedObjectNameException, NullPointerException {
         construct(domain, table);
+	/* The exception for when a key or value in the table is not a
+	   String is now ClassCastException rather than
+	   MalformedObjectNameException.  This was not previously
+	   specified.  */
     }
 
     // Category : ObjectName Construction <==============================
@@ -1354,16 +1447,19 @@ public class ObjectName implements QueryExp, Serializable {
     // Category : Getter methods ------------------------------>
 
     /**
-     * Checks whether the object name is a pattern.  An object name is
-     * a pattern if its domain contains a wildcard or if the object
-     * name is a property pattern.
+     * Checks whether the object name is a pattern.
+     * <p>
+     * An object name is a pattern if its domain contains a
+     * wildcard or if the object name is a property pattern.
      *
      * @return  True if the name is a pattern, otherwise false.
      */
-    public boolean isPattern() {    
-        return (_domain_pattern || _property_pattern);
+    public boolean isPattern() {
+        return (_domain_pattern ||
+                _property_list_pattern ||
+                _property_value_pattern);
     }
- 
+
     /**
      * Checks whether the object name is a pattern on the domain part.
      *
@@ -1377,11 +1473,72 @@ public class ObjectName implements QueryExp, Serializable {
 
     /**
      * Checks whether the object name is a pattern on the key properties.
+     * <p>
+     * An object name is a pattern on the key properties if it is a
+     * pattern on the key property list (e.g. "d:k=v,*") or on the
+     * property values (e.g. "d:k=*") or on both (e.g. "d:k=*,*").
      *
-     * @return  True if the name is a pattern, otherwise false.
+     * @return  True if the name is a property pattern, otherwise false.
      */
-    public boolean isPropertyPattern() {    
-        return _property_pattern;
+    public boolean isPropertyPattern() {
+        return _property_list_pattern || _property_value_pattern;
+    }
+
+    /**
+     * Checks whether the object name is a pattern on the key property list.
+     * <p>
+     * For example, "d:k=v,*" and "d:k=*,*" are key property list patterns
+     * whereas "d:k=*" is not.
+     *
+     * @return  True if the name is a property list pattern, otherwise false.
+     *
+     * @since 1.6
+     */
+    public boolean isPropertyListPattern() {
+        return _property_list_pattern;
+    }
+
+    /**
+     * Checks whether the object name is a pattern on the value part
+     * of at least one of the key properties.
+     * <p>
+     * For example, "d:k=*" and "d:k=*,*" are property value patterns
+     * whereas "d:k=v,*" is not.
+     *
+     * @return  True if the name is a property value pattern, otherwise false.
+     *
+     * @since 1.6
+     */
+    public boolean isPropertyValuePattern() {
+        return _property_value_pattern;
+    }
+
+    /**
+     * Checks whether the value associated with a key in a key
+     * property is a pattern.
+     *
+     * @param property The property whose value is to be checked.
+     *
+     * @return True if the value associated with the given key property
+     * is a pattern, otherwise false.
+     *
+     * @exception NullPointerException If <code>property</code> is null.
+     * @exception IllegalArgumentException If <code>property</code> is not
+     * a valid key property for this ObjectName.
+     *
+     * @since 1.6
+     */
+    public boolean isPropertyValuePattern(String property)
+        throws NullPointerException, IllegalArgumentException {
+        if (property == null)
+            throw new NullPointerException("key property can't be null");
+        for (int i = 0; i < _ca_array.length; i++) {
+            Property prop = _ca_array[i];
+            String key = prop.getKeyString(_canonicalName);
+            if (key.equals(property))
+                return (prop instanceof PatternProperty);
+        }
+        throw new IllegalArgumentException("key property not found");
     }
 
     /**
@@ -1400,59 +1557,59 @@ public class ObjectName implements QueryExp, Serializable {
      * <p>The <em>pattern indication</em> is:
      * <ul>
      * <li>empty for an ObjectName
-     * that is not a property pattern;
+     * that is not a property list pattern;
      * <li>an asterisk for an ObjectName
-     * that is a property pattern with no keys; or
+     * that is a property list pattern with no keys; or
      * <li>a comma and an
      * asterisk (<code>,*</code>) for an ObjectName that is a property
-     * pattern with at least one key.
+     * list pattern with at least one key.
      * </ul></p>
      *
      * @return The canonical form of the name.
      */
-    public String getCanonicalName()  {    
+    public String getCanonicalName()  {
         return _canonicalName;
-    } 
+    }
 
     /**
      * Returns the domain part.
      *
-     * @return the domain.
-     */    
-    public String getDomain()  {       
+     * @return The domain.
+     */
+    public String getDomain()  {
         return _canonicalName.substring(0, _domain_length);
-    } 
-   
-    /**
-    * Obtains the value associated with a key in a key property.
-    *
-    * @param property The property whose value is to be obtained.
-    *
-    * @return The value of the property, or null if there is no such
-    * property in this ObjectName.
-    *
-    * @exception NullPointerException If <code>property</code> is null.
-    */
-    public String getKeyProperty(String property) throws NullPointerException {
-        return (String) _getKeyPropertyList().get(property);
     }
 
     /**
-     * <p>Returns the key properties as a Hashtable.  The returned
-     * value is a Hashtable in which each key is a key in the
+     * Obtains the value associated with a key in a key property.
+     *
+     * @param property The property whose value is to be obtained.
+     *
+     * @return The value of the property, or null if there is no such
+     * property in this ObjectName.
+     *
+     * @exception NullPointerException If <code>property</code> is null.
+     */
+    public String getKeyProperty(String property) throws NullPointerException {
+        return _getKeyPropertyList().get(property);
+    }
+
+    /**
+     * <p>Returns the key properties as a Map.  The returned
+     * value is a Map in which each key is a key in the
      * ObjectName's key property list and each value is the associated
      * value.</p>
      *
-     * <p>The returned value must not be modidied.</p>
+     * <p>The returned value must not be modified.</p>
      *
      * @return The table of key properties.
      */
-    private final Hashtable _getKeyPropertyList()  {
+    private Map<String,String> _getKeyPropertyList()  {
         synchronized (this) {
             if (_propertyList == null) {
                 // build (lazy eval) the property list from the canonical
 		// properties array
-                _propertyList = new Hashtable();
+                _propertyList = new HashMap<String,String>();
                 int len = _ca_array.length;
                 Property prop;
                 for (int i = len - 1; i >= 0; i--) {
@@ -1463,7 +1620,7 @@ public class ObjectName implements QueryExp, Serializable {
             }
         }
         return _propertyList;
-    }     
+    }
 
     /**
      * <p>Returns the key properties as a Hashtable.  The returned
@@ -1476,9 +1633,10 @@ public class ObjectName implements QueryExp, Serializable {
      *
      * @return The table of key properties.
      */
-    public Hashtable getKeyPropertyList()  {
-        return (Hashtable)_getKeyPropertyList().clone();
-    }     
+    // CR 6441274 depends on the modification property defined above
+    public Hashtable<String,String> getKeyPropertyList()  {
+        return new Hashtable<String,String>(_getKeyPropertyList());
+    }
 
     /**
      * <p>Returns a string representation of the list of key
@@ -1490,14 +1648,14 @@ public class ObjectName implements QueryExp, Serializable {
      * @return The key property list string.  This string is
      * independent of whether the ObjectName is a pattern.
      */
-    public String getKeyPropertyListString()  { 
+    public String getKeyPropertyListString()  {
         // BEWARE : we rebuild the propertyliststring at each call !!
         if (_kp_array.length == 0) return "";
 
-        // the size of the string is the canonical one minus domain 
+        // the size of the string is the canonical one minus domain
 	// part and pattern part
         final int total_size = _canonicalName.length() - _domain_length - 1
-	    - (_property_pattern?2:0);
+	    - (_property_list_pattern?2:0);
 
         final char[] dest_chars = new char[total_size];
         final char[] value = _canonicalName.toCharArray();
@@ -1515,9 +1673,9 @@ public class ObjectName implements QueryExp, Serializable {
      * @return The key property list string.  This string is
      * independent of whether the ObjectName is a pattern.
      */
-    private String getSerializedNameString()  { 
+    private String getSerializedNameString()  {
 
-        // the size of the string is the canonical one 
+        // the size of the string is the canonical one
         final int total_size = _canonicalName.length();
         final char[] dest_chars = new char[total_size];
 	final char[] value = _canonicalName.toCharArray();
@@ -1531,7 +1689,7 @@ public class ObjectName implements QueryExp, Serializable {
 	final int end = writeKeyPropertyListString(value,dest_chars,offset);
 
 	// Add ",*" if necessary
-        if (_property_pattern) {
+        if (_property_list_pattern) {
 	    if (end == offset)  {
 		// Property list string is empty.
 		dest_chars[end] = '*';
@@ -1555,8 +1713,8 @@ public class ObjectName implements QueryExp, Serializable {
      *
      * @return offset + #of chars written
      */
-    private int writeKeyPropertyListString(char[] canonicalChars, 
-					   char[] data, int offset)  { 
+    private int writeKeyPropertyListString(char[] canonicalChars,
+					   char[] data, int offset)  {
         if (_kp_array.length == 0) return offset;
 
         final char[] dest_chars = data;
@@ -1568,7 +1726,7 @@ public class ObjectName implements QueryExp, Serializable {
         for (int i = 0; i < len; i++) {
             final Property prop = _kp_array[i];
             final int prop_len = prop._key_length + prop._value_length + 1;
-            System.arraycopy(value, prop._key_index, dest_chars, index, 
+            System.arraycopy(value, prop._key_index, dest_chars, index,
 			     prop_len);
             index += prop_len;
             if (i < last ) dest_chars[index++] = ',';
@@ -1593,11 +1751,11 @@ public class ObjectName implements QueryExp, Serializable {
         if (_ca_array.length == 0) return "";
 
         int len = _canonicalName.length();
-        if (_property_pattern) len -= 2;
+        if (_property_list_pattern) len -= 2;
         return _canonicalName.substring(_domain_length +1, len);
     }
     // Category : Getter methods <===================================
-    
+
     // Category : Utilities ---------------------------------------->
 
     /**
@@ -1618,7 +1776,7 @@ public class ObjectName implements QueryExp, Serializable {
      * forms are equal.  The canonical form is the string described
      * for {@link #getCanonicalName()}.
      *
-     * @param object  The object name that the current object name is to be 
+     * @param object  The object name that the current object name is to be
      *        compared with.
      *
      * @return True if <code>object</code> is an ObjectName whose
@@ -1646,7 +1804,7 @@ public class ObjectName implements QueryExp, Serializable {
     /**
      * Returns a hash code for this object name.
      *
-     */   
+     */
     public int hashCode() {
         return _canonicalName.hashCode();
     }
@@ -1664,13 +1822,14 @@ public class ObjectName implements QueryExp, Serializable {
      * unchanged within the returned value except:</p>
      *
      * <ul>
-     * <li>A quote ('"')is replaced by a backslash (\) followed by a quote.
-     * <li>A star ('*') is replaced by a backslash (\) followed by a star.
+     * <li>A quote ('"') is replaced by a backslash (\) followed by a quote.</li>
+     * <li>An asterisk ('*') is replaced by a backslash (\) followed by an
+     * asterisk.</li>
      * <li>A question mark ('?') is replaced by a backslash (\) followed by
-     * a question mark.
-     * <li>A backslash ('\') is replaced by two backslashes.
+     * a question mark.</li>
+     * <li>A backslash ('\') is replaced by two backslashes.</li>
      * <li>A newline character (the character '\n' in Java) is replaced
-     * by a backslash followed by the character '\n'.
+     * by a backslash followed by the character '\n'.</li>
      * </ul>
      *
      * @param s the String to be quoted.
@@ -1683,14 +1842,15 @@ public class ObjectName implements QueryExp, Serializable {
      */
     public static String quote(String s)
 	    throws NullPointerException {
-	final StringBuffer buf = new StringBuffer("\"");
+	final StringBuilder buf = new StringBuilder("\"");
 	final int len = s.length();
 	for (int i = 0; i < len; i++) {
 	    char c = s.charAt(i);
 	    switch (c) {
 	    case '\n':
 		c = 'n';
-		// fall in...
+		buf.append('\\');
+		break;
 	    case '\\':
 	    case '\"':
 	    case '*':
@@ -1728,7 +1888,7 @@ public class ObjectName implements QueryExp, Serializable {
      */
     public static String unquote(String q)
 	    throws IllegalArgumentException, NullPointerException {
-	final StringBuffer buf = new StringBuffer();
+	final StringBuilder buf = new StringBuilder();
 	final int len = q.length();
 	if (len < 2 || q.charAt(0) != '"' || q.charAt(len - 1) != '"')
 	    throw new IllegalArgumentException("Argument not quoted");
@@ -1747,21 +1907,19 @@ public class ObjectName implements QueryExp, Serializable {
 		case '*':
 		case '?':
 		    break;
-                default: 
+                default:
                   throw new IllegalArgumentException(
 				   "Bad character '" + c + "' after backslash");
 		}
-	    }
-            else {
+	    } else {
                 switch (c) {
                     case '*' :
                     case '?' :
-                    case '\"':    
+                    case '\"':
                     case '\n':
                          throw new IllegalArgumentException(
 					  "Invalid unescaped character '" + c +
 					  "' in the string to unquote");
-                    default : ;
                 }
             }
 	    buf.append(c);
@@ -1769,10 +1927,23 @@ public class ObjectName implements QueryExp, Serializable {
 	return buf.toString();
     }
 
+    /**
+     * Defines the wildcard "*:*" ObjectName.
+     *
+     * @since 1.6
+     */
+    public static final ObjectName WILDCARD;
+    static {
+        try {
+            WILDCARD = new ObjectName("*:*");
+        } catch (MalformedObjectNameException e) {
+            throw new Error("Can't initialize wildcard name", e);
+        }
+    }
+
     // Category : Utilities <===================================
 
     // Category : QueryExp Interface ---------------------------------------->
-
 
     /**
      * <p>Test whether this ObjectName, which may be a pattern,
@@ -1795,12 +1966,16 @@ public class ObjectName implements QueryExp, Serializable {
     public boolean apply(ObjectName name) throws NullPointerException {
 
         if (name == null) throw new NullPointerException();
-        
-	if (name._domain_pattern || name._property_pattern)
+
+	if (name._domain_pattern ||
+            name._property_list_pattern ||
+            name._property_value_pattern)
 	    return false;
 
 	// No pattern
-	if (!_domain_pattern && !_property_pattern)
+	if (!_domain_pattern &&
+            !_property_list_pattern &&
+            !_property_value_pattern)
 	    return _canonicalName.equals(name._canonicalName);
 
 	return matchDomains(name) && matchKeys(name);
@@ -1812,35 +1987,56 @@ public class ObjectName implements QueryExp, Serializable {
 	    final char[] dom_pattern = getDomain().toCharArray();
 	    final char[] dom_string  = name.getDomain().toCharArray();
 	    return wildmatch(dom_string,dom_pattern,0,0);
-	} 
+	}
 	return getDomain().equals(name.getDomain());
     }
 
     private final boolean matchKeys(ObjectName name) {
-	if (_property_pattern) {
-	    // Every property inside pattern should exist in name
-	    final Hashtable  nameProps = name._getKeyPropertyList();
-	    final Property[] props=_ca_array;
-	    final String     cn=_canonicalName;
-	    for (int i= props.length -1; i >= 0 ; i--) {
-		
-		// find value in given object name for key at current 
+        // If key property value pattern but not key property list
+        // pattern, then the number of key properties must be equal
+        //
+	if (_property_value_pattern &&
+            !_property_list_pattern &&
+            (name._ca_array.length != _ca_array.length))
+                return false;
+
+        // If key property value pattern or key property list pattern,
+        // then every property inside pattern should exist in name
+        //
+        if (_property_value_pattern || _property_list_pattern) {
+	    final Map<String,String> nameProps = name._getKeyPropertyList();
+	    final Property[] props = _ca_array;
+	    final String cn = _canonicalName;
+	    for (int i = props.length - 1; i >= 0 ; i--) {
+		// Find value in given object name for key at current
 		// index in receiver
-		
+                //
 		final Property p = props[i];
 		final String   k = p.getKeyString(cn);
 		final String   v = (String)nameProps.get(k);
-
-		// did we find a value for this key ?
-		if (v == null) return false; 
-                    
-		// if this property is ok (same key, same value), 
-		// go to next
-		if (v.equals(p.getValueString(cn))) continue; 
+		// Did we find a value for this key ?
+                //
+		if (v == null) return false;
+		// If this property is ok (same key, same value), go to next
+                //
+                if (_property_value_pattern && (p instanceof PatternProperty)) {
+                    // wildmatch key property values
+                    final char[] val_pattern =
+                            p.getValueString(cn).toCharArray();
+                    final char[] val_string  = v.toCharArray();
+                    if (wildmatch(val_string,val_pattern,0,0))
+                        continue;
+                    else
+                        return false;
+                }
+		if (v.equals(p.getValueString(cn))) continue;
 		return false;
 	    }
 	    return true;
-	} 
+	}
+
+        // If no pattern, then canonical names must be equal
+        //
 	final String p1 = name.getCanonicalKeyPropertyListString();
 	final String p2 = getCanonicalKeyPropertyListString();
 	return (p1.equals(p2));
@@ -1853,6 +2049,83 @@ public class ObjectName implements QueryExp, Serializable {
     public void setMBeanServer(MBeanServer mbs) { }
 
     // Category : QueryExp Interface <=========================
+
+    // Category : Comparable Interface ---------------------------------------->
+
+    /**
+     * <p>Compares two ObjectName instances. The ordering relation between
+     * ObjectNames is not completely specified but is intended to be such
+     * that a sorted list of ObjectNames will appear in an order that is
+     * convenient for a person to read.</p>
+     *
+     * <p>In particular, if the two ObjectName instances have different
+     * domains then their order is the lexicographical order of the domains.
+     * The ordering of the key property list remains unspecified.</p>
+     *
+     * <p>For example, the ObjectName instances below:</p>
+     * <ul>
+     * <li>Shapes:type=Square,name=3</li>
+     * <li>Colors:type=Red,name=2</li>
+     * <li>Shapes:type=Triangle,side=isosceles,name=2</li>
+     * <li>Colors:type=Red,name=1</li>
+     * <li>Shapes:type=Square,name=1</li>
+     * <li>Colors:type=Blue,name=1</li>
+     * <li>Shapes:type=Square,name=2</li>
+     * <li>JMImplementation:type=MBeanServerDelegate</li>
+     * <li>Shapes:type=Triangle,side=scalene,name=1</li>
+     * </ul>
+     * <p>could be ordered as follows:</p>
+     * <ul>
+     * <li>Colors:type=Blue,name=1</li>
+     * <li>Colors:type=Red,name=1</li>
+     * <li>Colors:type=Red,name=2</li>
+     * <li>JMImplementation:type=MBeanServerDelegate</li>
+     * <li>Shapes:type=Square,name=1</li>
+     * <li>Shapes:type=Square,name=2</li>
+     * <li>Shapes:type=Square,name=3</li>
+     * <li>Shapes:type=Triangle,side=scalene,name=1</li>
+     * <li>Shapes:type=Triangle,side=isosceles,name=2</li>
+     * </ul>
+     *
+     * @param name the ObjectName to be compared.
+     *
+     * @return a negative integer, zero, or a positive integer as this
+     *         ObjectName is less than, equal to, or greater than the
+     *         specified ObjectName.
+     *
+     * @since 1.6
+     */
+    public int compareTo(ObjectName name) {
+        // (1) Compare domains
+        //
+        int domainValue = this.getDomain().compareTo(name.getDomain());
+        if (domainValue != 0)
+            return domainValue;
+
+        // (2) Compare "type=" keys
+        //
+        // Within a given domain, all names with missing or empty "type="
+        // come before all names with non-empty type.
+        //
+        // When both types are missing or empty, canonical-name ordering
+        // applies which is a total order.
+        //
+        String thisTypeKey = this.getKeyProperty("type");
+        String anotherTypeKey = name.getKeyProperty("type");
+        if (thisTypeKey == null)
+            thisTypeKey = "";
+        if (anotherTypeKey == null)
+            anotherTypeKey = "";
+        int typeKeyValue = thisTypeKey.compareTo(anotherTypeKey);
+        if (typeKeyValue != 0)
+            return typeKeyValue;
+
+        // (3) Compare canonical names
+        //
+        return this.getCanonicalName().compareTo(name.getCanonicalName());
+    }
+
+    // Category : Comparable Interface <=========================
 
     // Public methods <========================================
 

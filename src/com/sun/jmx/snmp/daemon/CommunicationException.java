@@ -1,10 +1,10 @@
 /*
  * @(#)file      CommunicationException.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.19
- * @(#)lastedit      03/12/19
+ * @(#)version   1.20
+ * @(#)lastedit      05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -22,7 +22,7 @@ import java.io.PrintWriter;
  *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     1.19     12/19/03
+ * @version     1.20     11/17/05
  * @author      Sun Microsystems, Inc
  */
 

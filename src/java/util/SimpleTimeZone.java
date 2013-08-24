@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleTimeZone.java	1.49 04/01/12
+ * @(#)SimpleTimeZone.java	1.51 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -126,7 +126,7 @@ import sun.util.calendar.Gregorian;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.49 01/12/04
+ * @version  1.51 11/17/05
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 
@@ -966,7 +966,7 @@ public class SimpleTimeZone extends TimeZone {
      * first Sunday of <code>startMonth</code>.  Likewise, +2 would indicate the
      * second Sunday, and -1 the last Sunday.  A value of 0 is illegal.
      * </dd>
-     * </ul>
+     * </dl>
      * <p>If <code>useDaylight</code> is false, this value is ignored.
      * @serial
      */
@@ -1027,7 +1027,7 @@ public class SimpleTimeZone extends TimeZone {
      * first Sunday of <code>endMonth</code>.  Likewise, +2 would indicate the
      * second Sunday, and -1 the last Sunday.  A value of 0 is illegal.
      * </dd>
-     * </ul>
+     * </dl>
      * <p>If <code>useDaylight</code> is false, this value is ignored.
      * @serial
      */

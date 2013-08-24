@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractListModel.java	1.34 04/05/05
+ * @(#)AbstractListModel.java	1.35 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.34 05/05/04
+ * @version 1.35 11/17/05
  * @author Hans Muller
  */
 public abstract class AbstractListModel implements ListModel, Serializable

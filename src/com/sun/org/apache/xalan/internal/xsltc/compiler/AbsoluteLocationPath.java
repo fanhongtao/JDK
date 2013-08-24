@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2004 The Apache Software Foundation.
+ * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 /*
- * $Id: AbsoluteLocationPath.java,v 1.8 2004/02/16 22:24:29 minchau Exp $
+ * $Id: AbsoluteLocationPath.java,v 1.2.4.1 2005/09/12 09:44:03 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
 
+import com.sun.org.apache.bcel.internal.generic.ALOAD;
+import com.sun.org.apache.bcel.internal.generic.ASTORE;
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
 import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
+import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 
 /**
  * @author Jacek Ambroziak
@@ -83,12 +87,28 @@ final class AbsoluteLocationPath extends Expression {
 						"("
 						+ NODE_ITERATOR_SIG
 						+ ")V");
+
+	    // Compile relative path iterator(s)
+            //
+            // Backwards branches are prohibited if an uninitialized object is
+            // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
+            // We don't know whether this code might contain backwards branches,
+            // so we mustn't create the new object until after we've created
+            // this argument to its constructor.  Instead we calculate the
+            // value of the argument to the constructor first, store it in
+            // a temporary variable, create the object and reload the argument
+            // from the temporary to avoid the problem.
+	    _path.translate(classGen, methodGen);
+            LocalVariableGen relPathIterator
+                    = methodGen.addLocalVariable("abs_location_path_tmp",
+                                       Util.getJCRefType(NODE_ITERATOR_SIG),
+                                       il.getEnd(), null);
+            il.append(new ASTORE(relPathIterator.getIndex()));
+
 	    // Create new AbsoluteIterator
 	    il.append(new NEW(cpg.addClass(ABSOLUTE_ITERATOR)));
 	    il.append(DUP);
-
-	    // Compile relative path iterator(s)
-	    _path.translate(classGen, methodGen);
+            il.append(new ALOAD(relPathIterator.getIndex()));
 
 	    // Initialize AbsoluteIterator with iterator from the stack
 	    il.append(new INVOKESPECIAL(initAI));

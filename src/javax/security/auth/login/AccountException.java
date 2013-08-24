@@ -1,7 +1,7 @@
 /*
- * @(#)AccountException.java	1.3 04/02/03
+ * @(#)AccountException.java	1.4 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,7 @@ package javax.security.auth.login;
 /**
  * A generic account exception.
  *
- * @version 1.3, 02/03/04
+ * @version 1.4, 11/17/05
  * @since 1.5
  */
 public class AccountException extends LoginException {

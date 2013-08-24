@@ -1,7 +1,7 @@
 /*
- * @(#)TimerMBean.java	4.25 04/02/10
+ * @(#)TimerMBean.java	4.28 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import javax.management.InstanceNotFoundException;
 /**
  * Exposes the management interface of the timer MBean.
  *
- * @version     4.25     02/10/04
+ * @version     4.28     11/17/05
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -79,7 +79,8 @@ public interface TimerMBean {
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The period or the number of occurrences is negative
+     * @exception java.lang.IllegalArgumentException The date is {@code null} or
+     * the period or the number of occurrences is negative.
      *
      * @see #addNotification(String, String, Object, Date, long, long)
      */
@@ -119,7 +120,8 @@ public interface TimerMBean {
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The period or the number of occurrences is negative
+     * @exception java.lang.IllegalArgumentException The date is {@code null} or
+     * the period or the number of occurrences is negative.
      *
      * @see #addNotification(String, String, Object, Date, long, long, boolean)
      */
@@ -155,8 +157,8 @@ public interface TimerMBean {
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The period is negative or
-     * the date notification is before the current date.
+     * @exception java.lang.IllegalArgumentException The date is {@code null} or
+     * the period is negative.
      */
 // NPCTE fix for bugId 4464388, esc 0,  MR , to be added after modification of jmx spec 
 //  public synchronized Integer addNotification(String type, String message, Serializable userData, 
@@ -185,7 +187,7 @@ public interface TimerMBean {
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The date notification is before the current date.
+     * @exception java.lang.IllegalArgumentException The date is {@code null}.
      */
 // NPCTE fix for bugId 4464388, esc 0,  MR, to be added after modification of jmx spec
 //  public synchronized Integer addNotification(String type, String message, Serializable userData, Date date) 
@@ -237,7 +239,7 @@ public interface TimerMBean {
      * @return A vector of <CODE>Integer</CODE> objects containing all the timer notification identifiers.
      * <BR>The vector is empty if there is no timer notification registered for this timer MBean.
      */
-    public Vector getAllNotificationIDs();
+    public Vector<Integer> getAllNotificationIDs();
     
     /**
      * Gets all the identifiers of timer notifications corresponding to the specified type.
@@ -249,7 +251,7 @@ public interface TimerMBean {
      * <BR>The vector is empty if there is no timer notifications registered for this timer MBean 
      * with the specified <CODE>type</CODE>.
      */
-    public Vector getNotificationIDs(String type);
+    public Vector<Integer> getNotificationIDs(String type);
     
     /**
      * Gets the timer notification type corresponding to the specified identifier.

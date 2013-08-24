@@ -58,8 +58,8 @@ package com.sun.org.apache.bcel.internal.generic;
  * LXOR - Bitwise XOR long
  * <PRE>Stack: ..., value1, value2 -&gt; ..., result</PRE>
  *
- * @version $Id: LXOR.java,v 1.1.1.1 2001/10/29 20:00:23 jvanzyl Exp $
- * @authXOR  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
+ * @version $Id: LXOR.java,v 1.1.2.1 2005/07/31 23:45:55 jeffsuttor Exp $
+ * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LXOR extends ArithmeticInstruction {
   public LXOR() {

@@ -1,7 +1,7 @@
 /*
- * @(#)TruncatedFileException.java	1.8 03/12/19
+ * @(#)TruncatedFileException.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.awt.image.BufferedImage;
  *
  * @author  Thomas DeWeese
  * @see     JPEGImageDecoder
- * @since   JDK1.2
+ * @since   1.2
  */
 public
 class TruncatedFileException extends RuntimeException {
@@ -44,11 +44,11 @@ class TruncatedFileException extends RuntimeException {
 
 
     /**
-     * Constructs a <code>TruncatedFileException/code> with the
+     * Constructs a <code>TruncatedFileException</code> with the
      * partially decoded BufferedImage.
      *
      * @param   bi the partially decoded BufferedImage (may be null).
-     * @since   JDK1.2
+     * @since   1.2
      */
     public TruncatedFileException(BufferedImage bi) {
 		super("Premature end of input file");
@@ -61,7 +61,7 @@ class TruncatedFileException extends RuntimeException {
      * partially decoded Raster
      *
      * @param   ras the partially decoded Raster (may be null).
-     * @since   JDK1.2
+     * @since   1.2
      */
     public TruncatedFileException(Raster ras) {
 		super("Premature end of input file");
@@ -71,14 +71,14 @@ class TruncatedFileException extends RuntimeException {
 	/** Allows access to the raster that was in the progress of being
 	 * decoded may be null, it is likely to be only partially filled
 	 * with image data.
-     * @since   JDK1.2
+     * @since   1.2
 	 */
 	public Raster getRaster() { return ras; }
 
 	/** Allows access to the BufferedImage that was in the progress of
 	 * being decoded, this may be null, it is likely to be only
 	 * partially filled with image data.
-     * @since   JDK1.2
+     * @since   1.2
 	 */
 	public BufferedImage getBufferedImage() { return bi; }
 }

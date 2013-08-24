@@ -1,7 +1,7 @@
 /*
- * @(#)TableCellRenderer.java	1.18 03/12/19
+ * @(#)TableCellRenderer.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,15 +14,40 @@ import javax.swing.*;
  * This interface defines the method required by any object that
  * would like to be a renderer for cells in a <code>JTable</code>.
  *
- * @version 1.18 12/19/03
+ * @version 1.22 11/17/05
  * @author Alan Chung
  */
 
 public interface TableCellRenderer {
 
     /**
-     *  Returns the component used for drawing the cell.  This method is
-     *  used to configure the renderer appropriately before drawing.
+     * Returns the component used for drawing the cell.  This method is
+     * used to configure the renderer appropriately before drawing.
+     * <p>
+     * The <code>TableCellRenderer</code> is also responsible for rendering the
+     * the cell representing the table's current DnD drop location if
+     * it has one. If this renderer cares about rendering
+     * the DnD drop location, it should query the table directly to
+     * see if the given row and column represent the drop location:
+     * <pre>
+     *     JTable.DropLocation dropLocation = table.getDropLocation();
+     *     if (dropLocation != null
+     *             && !dropLocation.isInsertRow()
+     *             && !dropLocation.isInsertColumn()
+     *             && dropLocation.getRow() == row
+     *             && dropLocation.getColumn() == column) {
+     *
+     *         // this cell represents the current drop location
+     *         // so render it specially, perhaps with a different color
+     *     }
+     * </pre>
+     * <p>
+     * During a printing operation, this method will be called with
+     * <code>isSelected</code> and <code>hasFocus</code> values of
+     * <code>false</code> to prevent selection and focus from appearing
+     * in the printed output. To do other customization based on whether
+     * or not the table is being printed, check the return value from
+     * {@link javax.swing.JComponent#isPaintingForPrint()}.
      *
      * @param	table		the <code>JTable</code> that is asking the 
      *				renderer to draw; can be <code>null</code>
@@ -44,6 +69,7 @@ public interface TableCellRenderer {
      *				drawing the header, the value of
      *				<code>row</code> is -1
      * @param	column	        the column index of the cell being drawn
+     * @see javax.swing.JComponent#isPaintingForPrint()
      */
     Component getTableCellRendererComponent(JTable table, Object value,
 					    boolean isSelected, boolean hasFocus, 

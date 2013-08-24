@@ -1,7 +1,7 @@
 /*
- * @(#)CodeSource.java	1.38 03/12/19
+ * @(#)CodeSource.java	1.41 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -23,7 +23,7 @@ import java.security.cert.*;
  * encapsulate not only the location (URL) but also the certificate chains 
  * that were used to verify signed code originating from that location.
  *
- * @version 	1.38, 12/19/03
+ * @version 	1.41, 11/17/05
  * @author Li Gong
  * @author Roland Schemers
  */
@@ -299,17 +299,17 @@ public class CodeSource implements java.io.Serializable {
      */
     private boolean matchCerts(CodeSource that, boolean strict)
     {
-	// match any key
-	if (certs == null && signers == null) 
-	    return true;
-
-	// match no key
-	if (that.certs == null && that.signers == null)
-	    return false;
-
 	boolean match;
+
+	// match any key
+	if (certs == null && signers == null) {
+	    if (strict) {
+		return (that.certs == null && that.signers == null);
+	    } else {
+		return true;
+	    }
 	// both have signers
-	if (signers != null && that.signers != null) {
+	} else if (signers != null && that.signers != null) {
 	    if (strict && signers.length != that.signers.length) {
 		return false;
 	    }
@@ -326,7 +326,7 @@ public class CodeSource implements java.io.Serializable {
 	    return true;
 
 	// both have certs
-	} else {
+	} else if (certs != null && that.certs != null) {
 	    if (strict && certs.length != that.certs.length) {
 		return false;
 	    }
@@ -342,6 +342,8 @@ public class CodeSource implements java.io.Serializable {
 	    }
 	    return true;
 	}
+
+	return false;
     }
 
 
@@ -471,7 +473,7 @@ public class CodeSource implements java.io.Serializable {
      * array of bytes. Finally, if any code signers are present then the array 
      * of code signers is serialized and written out too.
      */
-    private synchronized void writeObject(java.io.ObjectOutputStream oos)
+    private void writeObject(java.io.ObjectOutputStream oos)
         throws IOException
     {
 	oos.defaultWriteObject(); // location
@@ -505,7 +507,7 @@ public class CodeSource implements java.io.Serializable {
     /**
      * Restores this object from a stream (i.e., deserializes it).
      */
-    private synchronized void readObject(java.io.ObjectInputStream ois)
+    private void readObject(java.io.ObjectInputStream ois)
 	throws IOException, ClassNotFoundException
     {
 	CertificateFactory cf;

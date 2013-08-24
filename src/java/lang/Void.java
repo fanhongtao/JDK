@@ -1,7 +1,7 @@
 /*
- * @(#)Void.java	1.13 03/12/19
+ * @(#)Void.java	1.15 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,14 +13,15 @@ package java.lang;
  * void.
  *
  * @author  unascribed
- * @version 1.13, 12/19/03
+ * @version 1.15, 12/01/05
  * @since   JDK1.1
  */
 public final
 class Void {
 
     /**
-     * The Class object representing the primitive Java type void.
+     * The Class object representing the pseudo-type corresponding to
+     * the keyword void.
      */
     public static final Class<Void> TYPE = Class.getPrimitiveClass("void");
 

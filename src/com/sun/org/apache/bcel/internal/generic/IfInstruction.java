@@ -57,7 +57,7 @@ package com.sun.org.apache.bcel.internal.generic;
 /**
  * Super class for the IFxxx family of instructions.
  *
- * @version $Id: IfInstruction.java,v 1.1.1.1 2001/10/29 20:00:18 jvanzyl Exp $
+ * @version $Id: IfInstruction.java,v 1.1.2.1 2005/07/31 23:46:04 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class IfInstruction extends BranchInstruction implements StackConsumer {

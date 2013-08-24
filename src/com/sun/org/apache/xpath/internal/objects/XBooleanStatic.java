@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XBooleanStatic.java,v 1.10 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XBooleanStatic.java,v 1.2.4.2 2005/09/14 20:34:46 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -25,10 +25,11 @@ package com.sun.org.apache.xpath.internal.objects;
  */
 public class XBooleanStatic extends XBoolean
 {
+    static final long serialVersionUID = -8064147275772687409L;
 
   /** The value of the object.
    *  @serial          */
-  boolean m_val;
+  private final boolean m_val;
 
   /**
    * Construct a XBooleanStatic object.

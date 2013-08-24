@@ -1,7 +1,7 @@
 /*
- * @(#)SolarisNumericGroupPrincipal.java	1.17 04/05/18
+ * @(#)SolarisNumericGroupPrincipal.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.security.Principal;
  * 	       {@link UnixNumericGroupPrincipal}.
  *             This class is entirely deprecated.
  * 
- * @version 1.17, 05/18/04
+ * @version 1.18, 11/17/05
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */

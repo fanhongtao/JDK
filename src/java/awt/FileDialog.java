@@ -1,7 +1,7 @@
 /*
- * @(#)FileDialog.java	1.53 03/12/19
+ * @(#)FileDialog.java	1.55 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -22,7 +22,7 @@ import java.io.ObjectInputStream;
  *
  * @see Window#show
  *
- * @version 	1.53, 12/19/03
+ * @version 	1.55, 04/07/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -42,8 +42,8 @@ public class FileDialog extends Dialog {
     public static final int SAVE = 1;
 
     /*
-     * There are two <code>FileDialog</code> modes: <code>LOAD<code> and
-     * <code>SAVE<code>.
+     * There are two <code>FileDialog</code> modes: <code>LOAD</code> and
+     * <code>SAVE</code>.
      * This integer will represent one or the other.
      * If the mode is not specified it will default to <code>LOAD</code>.
      *

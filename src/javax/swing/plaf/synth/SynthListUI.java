@@ -1,7 +1,7 @@
 /*
- * @(#)SynthListUI.java	1.11 03/12/19
+ * @(#)SynthListUI.java	1.13 06/03/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's ListUI.
  *
- * @version 1.11, 12/19/03
+ * @version 1.13, 03/16/06
  * @author Scott Violet
  */
 class SynthListUI extends BasicListUI implements PropertyChangeListener,
@@ -162,7 +162,7 @@ class SynthListUI extends BasicListUI implements PropertyChangeListener,
             if (!useListColors && (isSelected || cellHasFocus)) {
                 SynthLookAndFeel.setSelectedUI((SynthLabelUI)SynthLookAndFeel.
                              getUIOfType(getUI(), SynthLabelUI.class),
-                                   isSelected, cellHasFocus, list.isEnabled());
+                                   isSelected, cellHasFocus, list.isEnabled(), false);
             }
             else {
                 SynthLookAndFeel.resetSelectedUI();

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_tag.c	1.12 05/09/30
+ * @(#)hprof_tag.c	1.13 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -96,6 +96,7 @@ tag_class(JNIEnv *env, jclass klass, ClassIndex cnum,
   
     /* If the ClassIndex has an ObjectIndex, then we have tagged it. */
     object_index = class_get_object_index(cnum);
+    
     if ( object_index == 0 ) {
         jint        size;
         jlong        tag;

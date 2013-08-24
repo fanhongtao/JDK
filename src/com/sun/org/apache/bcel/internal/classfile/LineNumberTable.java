@@ -62,7 +62,7 @@ import  java.io.*;
  * purposes. This attribute is used by the <em>Code</em> attribute. It
  * contains pairs of PCs and line numbers.
  *
- * @version $Id: LineNumberTable.java,v 1.1.1.1 2001/10/29 20:00:02 jvanzyl Exp $
+ * @version $Id: LineNumberTable.java,v 1.1.2.1 2005/07/31 23:46:20 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Code
  * @see LineNumber
@@ -99,7 +99,7 @@ public final class LineNumberTable extends Attribute {
    * @param name_index Index of name
    * @param length Content length in bytes
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    * @param constant_pool Array of constants
    */
   LineNumberTable(int name_index, int length, DataInputStream file,
@@ -126,7 +126,7 @@ public final class LineNumberTable extends Attribute {
    * Dump line number table attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {
@@ -212,6 +212,12 @@ public final class LineNumberTable extends Attribute {
         min_index = i;
       }
     } while(l <= r);
+
+    /* It's possible that we did not find any valid entry for the bytecode
+     * offset we were looking for.
+     */
+    if (min_index < 0)
+      return -1;
 
     return line_number_table[min_index].getLineNumber();
   }

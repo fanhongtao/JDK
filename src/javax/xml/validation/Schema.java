@@ -1,10 +1,28 @@
-// $Id: Schema.java,v 1.4 2003/12/06 00:21:36 jsuttor Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)Schema.java	1.5 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)Schema.java	1.14 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.validation;
@@ -43,7 +61,7 @@ package javax.xml.validation;
  * still get <code>!schemaA.equals(schemaB)</code>.
  * 
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.4 $, $Date: 2003/12/06 00:21:36 $
+ * @version $Revision: 1.3 $, $Date: 2005/10/12 17:14:21 $
  * @see <a href="http://www.w3.org/TR/xmlschema-1/">XML Schema Part 1: Structures</a>
  * @see <a href="http://www.w3.org/TR/xml11/">Extensible Markup Language (XML) 1.1</a>
  * @see <a href="http://www.w3.org/TR/REC-xml">Extensible Markup Language (XML) 1.0 (Second Edition)</a>
@@ -63,9 +81,12 @@ public abstract class Schema {
     /**
      * Creates a new {@link Validator} for this {@link Schema}.
      * 
-     * <p>
-     * A validator enforces/checks the set of constraints this object
-     * represents.
+     * <p>A validator enforces/checks the set of constraints this object
+     * represents.</p>
+     *
+     * <p>Implementors should assure that the properties set on the
+     * {@link SchemaFactory} that created this {@link Schema} are also
+     * set on the {@link Validator} constructed.</p>
      * 
      * @return
      *      Always return a non-null valid object.
@@ -74,6 +95,10 @@ public abstract class Schema {
     
     /**
      * Creates a new {@link ValidatorHandler} for this {@link Schema}.
+     * 
+     * <p>Implementors should assure that the properties set on the
+     * {@link SchemaFactory} that created this {@link Schema} are also
+     * set on the {@link ValidatorHandler} constructed.</p>
      * 
      * @return
      *      Always return a non-null valid object.

@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateFactorySpi.java	1.19 04/05/05
+ * @(#)CertificateFactorySpi.java	1.21 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.security.NoSuchProviderException;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.19, 05/05/04
+ * @version 1.21, 04/21/06
  *
  * @see CertificateFactory
  * @see Certificate
@@ -166,7 +166,7 @@ public abstract class CertificateFactorySpi {
      * Returns an iteration of the <code>CertPath</code> encodings supported 
      * by this certificate factory, with the default encoding first. See 
      * Appendix A in the 
-     * <a href="../../../../guide/security/certpath/CertPathProgGuide.html#AppA">
+     * <a href="../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
      * Java Certification Path API Programmer's Guide</a>
      * for information about standard encoding names.
      * <p>

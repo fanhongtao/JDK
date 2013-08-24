@@ -1,15 +1,13 @@
 /*
- * @(#)DefaultPersistenceDelegate.java	1.18 05/08/26
+ * @(#)DefaultPersistenceDelegate.java	1.20 06/05/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
 
 import java.util.*;
 import java.lang.reflect.*;
-import java.beans.*;
-import java.io.*;
 import sun.reflect.misc.*;
 
 
@@ -37,7 +35,7 @@ import sun.reflect.misc.*;
  *
  * @since 1.4
  *
- * @version 1.18 08/26/05
+ * @version 1.20 05/23/06
  * @author Philip Milne
  */
 
@@ -81,8 +79,7 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
 
     private static boolean definesEquals(Class type) {
         try {
-            type.getDeclaredMethod("equals", new Class[]{Object.class});
-            return true;
+            return type == type.getMethod("equals", Object.class).getDeclaringClass();
         }
         catch(NoSuchMethodException e) {
             return false;
@@ -140,26 +137,10 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
         // System.out.println("writeObject: " + oldInstance);
         Object[] constructorArgs = new Object[nArgs];
         for(int i = 0; i < nArgs; i++) {
-            /*
-            1.2 introduces "public double getX()" et al. which return values
-            which cannot be used in the constructors (they are the wrong type).
-            In constructors, use public fields in preference to getters
-            when they are defined.
-            */
             String name = constructor[i];
-
-            Field f = null;
             try {
-                // System.out.println("Trying field " + name + " in " + type);
-                f = type.getDeclaredField(name);
-                f.setAccessible(true);
-            }
-            catch (NoSuchFieldException e) {}
-            try {
-                constructorArgs[i] = (f != null && !Modifier.isStatic(f.getModifiers())) ?
-                    f.get(oldInstance) :
-                    MethodUtil.invoke(ReflectionUtils.getPublicMethod(type, "get" + NameGenerator.capitalize(name), 
-				   new Class[0]), oldInstance, new Object[0]);
+                constructorArgs[i] = MethodUtil.invoke(ReflectionUtils.getPublicMethod(type, "get" + NameGenerator.capitalize(name),
+                                                    new Class[0]), oldInstance, new Object[0]);
             }
             catch (Exception e) {
                 out.getExceptionListener().exceptionThrown(e);

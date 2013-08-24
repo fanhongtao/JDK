@@ -1,7 +1,7 @@
 /*
- * @(#)DialogCallbackHandler.java	1.9 03/12/19
+ * @(#)DialogCallbackHandler.java	1.11 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,6 +42,7 @@ public class DialogCallbackHandler implements CallbackHandler {
     /* The parent window, or null if using the default parent */
     private Component parentComponent;
     private static final int JPasswordFieldLen = 8 ;
+    private static final int JTextFieldLen = 8 ;
 
     /* -- Methods -- */
 
@@ -113,7 +114,7 @@ public class DialogCallbackHandler implements CallbackHandler {
 
 		JLabel prompt = new JLabel(nc.getPrompt());
 
-		final JTextField name = new JTextField();
+		final JTextField name = new JTextField(JTextFieldLen);
 		String defaultName = nc.getDefaultName();
 		if (defaultName != null) {
 		    name.setText(defaultName);

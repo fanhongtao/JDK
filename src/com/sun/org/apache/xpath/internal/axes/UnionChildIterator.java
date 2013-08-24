@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnionChildIterator.java,v 1.5 2004/02/17 04:32:08 minchau Exp $
+ * $Id: UnionChildIterator.java,v 1.2.4.1 2005/09/14 19:45:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -30,6 +30,7 @@ import com.sun.org.apache.xpath.internal.patterns.NodeTest;
  */
 public class UnionChildIterator extends ChildTestIterator
 {
+    static final long serialVersionUID = 3500298482193003495L;
   /**
    * Even though these may hold full LocPathIterators, this array does 
    * not have to be cloned, since only the node test and predicate 

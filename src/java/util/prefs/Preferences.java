@@ -1,7 +1,7 @@
 /*
- * @(#)Preferences.java	1.25 04/06/21
+ * @(#)Preferences.java	1.30 06/06/26
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -165,7 +165,7 @@ import java.lang.Double;
  * </pre>
  *
  * Every <tt>Preferences</tt> implementation must have an associated {@link
- * PreferencesFactory} implementation.  Every J2SE implementation must provide
+ * PreferencesFactory} implementation.  Every Java(TM) SE implementation must provide
  * some means of specifying which <tt>PreferencesFactory</tt> implementation
  * is used to generate the root preferences nodes.  This allows the
  * administrator to replace the default preferences implementation with an
@@ -202,7 +202,7 @@ import java.lang.Double;
  * </ol>
  *
  * @author  Josh Bloch
- * @version 1.25, 06/21/04
+ * @version 1.30, 06/26/06
  * @since   1.4
  */
 public abstract class Preferences {
@@ -310,8 +310,8 @@ public abstract class Preferences {
      * The convention is as follows: the absolute path name of the node is the
      * fully qualified package name, preceded by a slash (<tt>'/'</tt>), and
      * with each period (<tt>'.'</tt>) replaced by a slash.  For example the
-     * absolute path name of the node associated with the class
-     * <tt>com.acme.widget</tt> is <tt>/com/acme/widget</tt>.
+     * absolute path name of the node associated with the class 
+     * <tt>com.acme.widget.Foo</tt> is <tt>/com/acme/widget</tt>.
      *
      * <p>This convention does not apply to the unnamed package, whose
      * associated preference node is <tt>&lt;unnamed&gt;</tt>.  This node
@@ -355,7 +355,7 @@ public abstract class Preferences {
      * fully qualified package name, preceded by a slash (<tt>'/'</tt>), and
      * with each period (<tt>'.'</tt>) replaced by a slash.  For example the
      * absolute path name of the node associated with the class
-     * <tt>com.acme.widget</tt> is <tt>/com/acme/widget</tt>.
+     * <tt>com.acme.widget.Foo</tt> is <tt>/com/acme/widget</tt>.
      *
      * <p>This convention does not apply to the unnamed package, whose
      * associated preference node is <tt>&lt;unnamed&gt;</tt>.  This node
@@ -937,7 +937,7 @@ public abstract class Preferences {
      *         it contains multiple consecutive slash characters, or ends
      *         with a slash character and is more than one character long).
      * @throws NullPointerException if path name is <tt>null</tt>.
-s     * @throws IllegalStateException if this node (or an ancestor) has been
+     * @throws IllegalStateException if this node (or an ancestor) has been
      *         removed with the {@link #removeNode()} method and
      *         <tt>pathName</tt> is not the empty string (<tt>""</tt>).
      */
@@ -1222,7 +1222,7 @@ s     * @throws IllegalStateException if this node (or an ancestor) has been
      * notably {@link #node(String)} and {@link #put(String, String)}.
      *
      * @param is the input stream from which to read the XML document.
-     * @throws IOException if reading from the specified output stream
+     * @throws IOException if reading from the specified input stream
      *         results in an <tt>IOException</tt>.
      * @throws InvalidPreferencesFormatException Data on input stream does not
      *         constitute a valid XML document with the mandated document type.

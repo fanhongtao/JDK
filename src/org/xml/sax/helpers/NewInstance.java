@@ -3,7 +3,7 @@
 // Written by Edwin Goei, edwingo@apache.org
 // and by David Brownell, dbrownell@users.sourceforge.net
 // NO WARRANTY!  This class is in the Public Domain.
-// $Id: NewInstance.java,v 1.1.24.1 2004/05/01 08:34:46 jsuttor Exp $
+// $Id: NewInstance.java,v 1.2 2005/06/10 03:50:50 jeffsuttor Exp $
 
 package org.xml.sax.helpers;
 
@@ -60,14 +60,14 @@ class NewInstance {
         Method m = null;
 
         try {
-            m = Thread.class.getMethod("getContextClassLoader", null);
+            m = Thread.class.getMethod("getContextClassLoader", (Class[]) null);
         } catch (NoSuchMethodException e) {
             // Assume that we are running JDK 1.1, use the current ClassLoader
             return NewInstance.class.getClassLoader();
         }
 
         try {
-            return (ClassLoader) m.invoke(Thread.currentThread(), null);
+            return (ClassLoader) m.invoke(Thread.currentThread(), (Object[]) null);
         } catch (IllegalAccessException e) {
             // assert(false)
             throw new UnknownError(e.getMessage());

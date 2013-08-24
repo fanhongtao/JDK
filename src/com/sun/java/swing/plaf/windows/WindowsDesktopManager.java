@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsDesktopManager.java	1.18 03/12/19
+ * @(#)WindowsDesktopManager.java	1.21 06/05/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.beans.PropertyVetoException;
 import java.util.Vector;
+import java.lang.ref.WeakReference;
 
 /**
  * This class implements a DesktopManager which more closely follows 
@@ -30,7 +31,7 @@ import java.util.Vector;
  * and another window is selected, that new window will be maximized.
  *
  * @see javax.swing.DefaultDesktopManager
- * @version 1.18 12/19/03
+ * @version 1.21 05/10/06
  * @author Thomas Ball
  */
 public class WindowsDesktopManager extends DefaultDesktopManager 
@@ -39,13 +40,13 @@ public class WindowsDesktopManager extends DefaultDesktopManager
     /* The frame which is currently selected/activated.
      * We store this value to enforce MDI's single-selection model.
      */
-    JInternalFrame currentFrame;
-    JInternalFrame initialFrame;	  
+    private WeakReference<JInternalFrame> currentFrameRef;
 
     public void activateFrame(JInternalFrame f) {
+        JInternalFrame currentFrame = currentFrameRef != null ? 
+            currentFrameRef.get() : null;
         try {
             super.activateFrame(f);
-
             if (currentFrame != null && f != currentFrame) {
                 // If the current frame is maximized, transfer that 
                 // attribute to the frame being activated.
@@ -57,14 +58,14 @@ public class WindowsDesktopManager extends DefaultDesktopManager
                     //icon.
                     if (!currentFrame.isIcon()) {
                         currentFrame.setMaximum(false);
-                    }
-                    if (f.isMaximizable()) {
-                        if (!f.isMaximum()) {
-                            f.setMaximum(true);
-                        } else if (f.isMaximum() && f.isIcon()) {
-                            f.setIcon(false);
-                        } else {
-                            f.setMaximum(false);
+                        if (f.isMaximizable()) {
+                            if (!f.isMaximum()) {
+                                f.setMaximum(true);
+                            } else if (f.isMaximum() && f.isIcon()) {
+                                f.setIcon(false);
+                            } else {
+                                f.setMaximum(false);
+                            }
                         }
                     }
                 }
@@ -76,8 +77,10 @@ public class WindowsDesktopManager extends DefaultDesktopManager
             if (!f.isSelected()) {
                 f.setSelected(true);
             }
-            currentFrame = f;
         } catch (PropertyVetoException e) {}
+        if (f != currentFrame) {
+            currentFrameRef = new WeakReference(f);
+        }
     }
 
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultSynthStyleFactory.java	1.7 04/09/15
+ * @(#)DefaultSynthStyleFactory.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -20,7 +20,7 @@ import sun.swing.BakedArrayList;
  * and the <code>Region</code> associated with the <code>JComponent</code>.
  * Lookup is done using regular expressions.
  *
- * @version 1.7, 09/15/04
+ * @version 1.9, 11/17/05
  * @author Scott Violet
  */
 class DefaultSynthStyleFactory extends SynthStyleFactory {
@@ -112,7 +112,7 @@ class DefaultSynthStyleFactory extends SynthStyleFactory {
         if (_defaultStyle == null) {
             _defaultStyle = new DefaultSynthStyle();
             ((DefaultSynthStyle)_defaultStyle).setFont(
-                new FontUIResource("Dialog", Font.PLAIN,12));
+                new FontUIResource(Font.DIALOG, Font.PLAIN,12));
         }
         return _defaultStyle;
     }

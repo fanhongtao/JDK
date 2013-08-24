@@ -1,7 +1,7 @@
 /*
- * @(#)JButton.java	1.97 03/12/19
+ * @(#)JButton.java	1.100 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -23,9 +23,24 @@ import java.io.IOException;
 
 /**
  * An implementation of a "push" button.
+  * <p>
+ * Buttons can be configured, and to some degree controlled, by 
+ * <code><a href="Action.html">Action</a></code>s.  Using an
+ * <code>Action</code> with a button has many benefits beyond directly
+ * configuring a button.  Refer to <a href="Action.html#buttonActions">
+ * Swing Components Supporting <code>Action</code></a> for more
+ * details, and you can find more information in <a
+ * href="http://java.sun.com/docs/books/tutorial/uiswing/misc/action.html">How
+ * to Use Actions</a>, a section in <em>The Java Tutorial</em>.
+ * <p>
  * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>
  * in <em>The Java Tutorial</em>
  * for information and examples of using buttons.
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -40,7 +55,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: An implementation of a \"push\" button.
  *
- * @version 1.97 12/19/03
+ * @version 1.100 08/08/06
  * @author Jeff Dinkins
  */
 public class JButton extends AbstractButton implements Accessible {
@@ -200,24 +215,6 @@ public class JButton extends AbstractButton implements Accessible {
             root.setDefaultButton(null);
         }
         super.removeNotify();
-    }
-
-    /**
-     * Factory method which sets the <code>AbstractButton</code>'s properties
-     * according to values from the <code>Action</code> instance. 
-     * The properties which get set may differ for <code>AbstractButton</code>
-     * subclasses.  By default, the properties which get set are
-     * <code>Text, Icon, Enabled, ToolTipText, ActionCommand</code>, and
-     * <code>Mnemonic</code>.
-     *
-     * @param a the <code>Action</code> from which to get the
-     *    properties, or <code>null</code>
-     * @since 1.3
-     * @see Action
-     * @see #setAction
-     */
-    protected void configurePropertiesFromAction(Action a) {
-        super.configurePropertiesFromAction(a);
     }
 
     /** 

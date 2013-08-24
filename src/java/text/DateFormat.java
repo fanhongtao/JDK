@@ -1,7 +1,7 @@
 /*
- * @(#)DateFormat.java	1.51 04/04/12
+ * @(#)DateFormat.java	1.57 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,16 +21,18 @@
 package java.text;
 
 import java.io.InvalidObjectException;
+import java.text.spi.DateFormatProvider;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import java.util.TimeZone;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Date;
-import sun.text.resources.LocaleData;
+import java.util.spi.LocaleServiceProvider;
+import sun.util.LocaleServiceProviderPool;
 
 /**
  * DateFormat is an abstract class for date/time formatting subclasses which
@@ -118,7 +120,7 @@ import sun.text.resources.LocaleData;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.51 04/12/04
+ * @version      1.57 11/17/05
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {
@@ -248,7 +250,7 @@ public abstract class DateFormat extends Format {
      * are a time value expressed in milliseconds and a Date object.
      * @param obj must be a Number or a Date.
      * @param toAppendTo the string buffer for the returning time string.
-     * @return the formatted time string.
+     * @return the string buffer passed in as toAppendTo, with formatted text appended.
      * @param fieldPosition keeps track of the position of the field
      * within the returned string.
      * On input: an alignment field,
@@ -299,7 +301,7 @@ public abstract class DateFormat extends Format {
      * the begin index and end index of fieldPosition will be set to
      * 5 and 8, respectively, for the first occurrence of the timezone
      * pattern character 'z'.
-     * @return the formatted date/time string.
+     * @return the string buffer passed in as toAppendTo, with formatted text appended.
      */
     public abstract StringBuffer format(Date date, StringBuffer toAppendTo,
                                         FieldPosition fieldPosition);
@@ -531,15 +533,20 @@ public abstract class DateFormat extends Format {
      * Returns an array of all locales for which the
      * <code>get*Instance</code> methods of this class can return
      * localized instances.
-     * The array returned must contain at least a <code>Locale</code>
-     * instance equal to {@link java.util.Locale#US Locale.US}.
+     * The returned array represents the union of locales supported by the Java 
+     * runtime and by installed 
+     * {@link java.text.spi.DateFormatProvider DateFormatProvider} implementations.  
+     * It must contain at least a <code>Locale</code> instance equal to 
+     * {@link java.util.Locale#US Locale.US}.
      *
      * @return An array of locales for which localized
      *         <code>DateFormat</code> instances are available.
      */
     public static Locale[] getAvailableLocales()
     {
-        return LocaleData.getAvailableLocales("DateTimePatterns");
+        LocaleServiceProviderPool pool = 
+            LocaleServiceProviderPool.getPool(DateFormatProvider.class);
+	return pool.getAvailableLocales();
     }
 
     /**
@@ -681,8 +688,23 @@ public abstract class DateFormat extends Format {
             dateStyle = -1;
         }
         try {
-            return new SimpleDateFormat(timeStyle, dateStyle, loc);
+            // Check whether a provider can provide an implementation that's closer 
+            // to the requested locale than what the Java runtime itself can provide.
+            LocaleServiceProviderPool pool =
+                LocaleServiceProviderPool.getPool(DateFormatProvider.class);
+            if (pool.hasProviders()) {
+                DateFormat providersInstance = pool.getLocalizedObject(
+                                                    DateFormatGetter.INSTANCE,
+                                                    loc, 
+                                                    timeStyle,
+                                                    dateStyle,
+                                                    flags);
+                if (providersInstance != null) {
+                    return providersInstance;
+                }
+            }
 
+            return new SimpleDateFormat(timeStyle, dateStyle, loc);
         } catch (MissingResourceException e) {
             return new SimpleDateFormat("M/d/yy h:mm a");
         }
@@ -742,13 +764,14 @@ public abstract class DateFormat extends Format {
         }
 
         /**
-         * Creates a Field with the specified name.
-         * calendarField is used to identify the <code>Calendar</code>
-         * field this attribute represents. Use -1 if this field does
-         * not have a corresponding <code>Calendar</code> value.
+         * Creates a <code>Field</code>.
          *
-         * @param name Name of the attribute
-         * @param calendarField Calendar constant
+         * @param name the name of the <code>Field</code>
+         * @param calendarField the <code>Calendar</code> constant this
+         *        <code>Field</code> corresponds to; any value, even one
+         *        outside the range of legal <code>Calendar</code> values may
+         *        be used, but <code>-1</code> should be used for values
+         *        that don't correspond to legal <code>Calendar</code> values
          */
         protected Field(String name, int calendarField) {
             super(name);
@@ -905,5 +928,38 @@ public abstract class DateFormat extends Format {
          * Constant identifying the time zone field.
          */
         public final static Field TIME_ZONE = new Field("time zone", -1);
+    }
+
+    /**
+     * Obtains a DateFormat instance from a DateFormatProvider 
+     * implementation.
+     */
+    private static class DateFormatGetter 
+        implements LocaleServiceProviderPool.LocalizedObjectGetter<DateFormatProvider, DateFormat> {
+        private static final DateFormatGetter INSTANCE = new DateFormatGetter();
+
+        public DateFormat getObject(DateFormatProvider dateFormatProvider, 
+                                Locale locale, 
+                                String key,
+                                Object... params) {
+            assert params.length == 3;
+
+            int timeStyle = (Integer)params[0];
+            int dateStyle = (Integer)params[1];
+            int flags = (Integer)params[2];
+
+	    switch (flags) {
+	    case 1:
+		return dateFormatProvider.getTimeInstance(timeStyle, locale);
+	    case 2:
+		return dateFormatProvider.getDateInstance(dateStyle, locale);
+	    case 3:
+		return dateFormatProvider.getDateTimeInstance(dateStyle, timeStyle, locale);
+	    default:
+		assert false : "should not happen";
+	    }
+
+            return null;
+        }
     }
 }

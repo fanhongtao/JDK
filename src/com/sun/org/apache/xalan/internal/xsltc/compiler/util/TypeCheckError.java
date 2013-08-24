@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TypeCheckError.java,v 1.7 2004/02/16 22:26:44 minchau Exp $
+ * $Id: TypeCheckError.java,v 1.2.4.1 2005/09/05 11:42:57 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -26,6 +26,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.SyntaxTreeNode;
  * @author Santiago Pericas-Geertsen
  */
 public class TypeCheckError extends Exception {
+    static final long serialVersionUID = 3246224233917854640L;
     ErrorMsg _error = null;
     SyntaxTreeNode _node = null;
 	

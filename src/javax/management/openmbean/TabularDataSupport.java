@@ -1,7 +1,7 @@
 /*
- * @(#)TabularDataSupport.java	3.30 03/12/19
+ * @(#)TabularDataSupport.java	3.36 06/03/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,14 +32,30 @@ import java.util.List;
  * The <tt>TabularDataSupport</tt> class is the <i>open data</i> class which implements the <tt>TabularData</tt> 
  * and the <tt>Map</tt> interfaces, and which is internally based on a hash map data structure.
  *
- * @version     3.30  03/12/19
+ * @version     3.36  06/03/29
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
  * @since.unbundled JMX 1.1
  */
+/* It would make much more sense to implement
+   Map<List<?>,CompositeData> here, but unfortunately we cannot for
+   compatibility reasons.  If we did that, then we would have to
+   define e.g.
+   CompositeData remove(Object)
+   instead of
+   Object remove(Object).
+
+   That would mean that if any existing code subclassed
+   TabularDataSupport and overrode
+   Object remove(Object),
+   it would (a) no longer compile and (b) not actually override
+   CompositeData remove(Object)
+   in binaries compiled before the change.
+*/
 public class TabularDataSupport 
-    implements TabularData, Map, Cloneable, Serializable { 
+    implements TabularData, Map<Object,Object>,
+               Cloneable, Serializable { 
     
     
     /* Serial version */
@@ -49,7 +65,7 @@ public class TabularDataSupport
     /**
      * @serial This tabular data instance's contents: a {@link HashMap}
      */
-    private Map 	dataMap;
+    private Map<Object,CompositeData> dataMap;
     
     /**
      * @serial This tabular data instance's tabular type
@@ -57,7 +73,7 @@ public class TabularDataSupport
     private TabularType tabularType;
 
     /**
-     * @serial The array of item names that define the index used for rows (convenience field)
+     * The array of item names that define the index used for rows (convenience field)
      */
     private transient String[] indexNamesArray;
     
@@ -108,12 +124,13 @@ public class TabularDataSupport
 	// Initialize this.tabularType (and indexNamesArray for convenience)
 	//
 	this.tabularType = tabularType;
-	List tmpNames = tabularType.getIndexNames();
-	this.indexNamesArray = (String[]) tmpNames.toArray(new String[tmpNames.size()]);
+	List<String> tmpNames = tabularType.getIndexNames();
+	this.indexNamesArray = tmpNames.toArray(new String[tmpNames.size()]);
 	
 	// Construct the empty contents HashMap
 	//
-	this.dataMap = new HashMap(initialCapacity, loadFactor);
+	this.dataMap =
+	    new HashMap<Object,CompositeData>(initialCapacity, loadFactor);
     }
 
 
@@ -200,7 +217,7 @@ public class TabularDataSupport
      */ 
     public boolean containsKey(Object[] key) { 
 
-	return  ( key == null ?  false :  dataMap.containsKey(Arrays.asList(key)) );
+	return  ( key == null ? false : dataMap.containsKey(Arrays.asList(key)));
     }
 
     /**
@@ -287,30 +304,35 @@ public class TabularDataSupport
      * @return the value which is put
      *
      * @throws NullPointerException  if the <var>value</var> is <tt>null</tt> 
-     * @throws ClassCastException    if the <var>value</var> is not of the type <tt>CompositeData</tt>
-     * @throws InvalidOpenTypeException   if the <var>value</var> does not conform to this <tt>TabularData</tt> instance's 
-     *				          <tt>TabularType</tt> definition 
-     * @throws KeyAlreadyExistsException   if the key for the <var>value</var> parameter, calculated according to 
-     *					   this <tt>TabularData</tt> instance's <tt>TabularType</tt> definition 
-     *					   already maps to an existing value  
+     * @throws ClassCastException if the <var>value</var> is not of
+     * the type <tt>CompositeData</tt>
+     * @throws InvalidOpenTypeException if the <var>value</var> does
+     * not conform to this <tt>TabularData</tt> instance's
+     * <tt>TabularType</tt> definition
+     * @throws KeyAlreadyExistsException if the key for the
+     * <var>value</var> parameter, calculated according to this
+     * <tt>TabularData</tt> instance's <tt>TabularType</tt> definition
+     * already maps to an existing value
      */
     public Object put(Object key, Object value) {
-
-	put((CompositeData) value);
-	return value;
+	internalPut((CompositeData) value);
+	return value; // should be return internalPut(...); (5090566)
     }
 
     public void put(CompositeData value) {
+	internalPut(value);
+    }
 
+    private CompositeData internalPut(CompositeData value) {
 	// Check value is not null, value's type is the same as this instance's row type, 
 	// and calculate the value's index according to this instance's tabularType and
 	// check it is not already used for a mapping in the parent HashMap
 	//
-	List index = checkValueAndIndex(value);
+	List<?> index = checkValueAndIndex(value);
 
 	// store the (key, value) mapping in the dataMap HashMap
 	//
-	dataMap.put(index, value);
+	return dataMap.put(index, value);
     }
 
     /**
@@ -355,9 +377,8 @@ public class TabularDataSupport
 
 	// Removes the (key, value) mapping in the parent HashMap
 	//
-	return (CompositeData) dataMap.remove(Arrays.asList(key));
+	return dataMap.remove(Arrays.asList(key));
     }
-
 
 
 
@@ -365,25 +386,35 @@ public class TabularDataSupport
 
 
     /**
-     * Add all the values contained in the specified map <var>t</var> to this <tt>TabularData</tt> instance. 
-     * This method converts the collection of values contained in this map into an array of <tt>CompositeData</tt> values,
-     * if possible, and then call the method <tt>putAll(CompositeData[])</tt>. Note that the keys used in the specified
-     * map <var>t</var> are ignored. This method allows, for example to add the content of another <tt>TabularData</tt> 
-     * instance with the same row type (but possibly different index names) into this instance.
+     * Add all the values contained in the specified map <var>t</var>
+     * to this <tt>TabularData</tt> instance.  This method converts
+     * the collection of values contained in this map into an array of
+     * <tt>CompositeData</tt> values, if possible, and then call the
+     * method <tt>putAll(CompositeData[])</tt>. Note that the keys
+     * used in the specified map <var>t</var> are ignored. This method
+     * allows, for example to add the content of another
+     * <tt>TabularData</tt> instance with the same row type (but
+     * possibly different index names) into this instance.
      *
-     * @param  t  the map whose values are to be added as new rows to this <tt>TabularData</tt> instance;
-     *		  if <var>t</var> is <tt>null</tt> or empty, this method returns without doing anything.
+     * @param t the map whose values are to be added as new rows to
+     * this <tt>TabularData</tt> instance; if <var>t</var> is
+     * <tt>null</tt> or empty, this method returns without doing
+     * anything.
      * 
-     * @throws NullPointerException  if a value in <var>t</var> is <tt>null</tt>.
-     * @throws ClassCastException    if a value in <var>t</var> is not an instance of <tt>CompositeData</tt>.
-     * @throws InvalidOpenTypeException   if a value in <var>t</var> does not conform to 
-     *					  this <tt>TabularData</tt> instance's row type definition.
-     * @throws KeyAlreadyExistsException  if the index for a value in <var>t</var>, calculated according to 
-     *					  this <tt>TabularData</tt> instance's <tt>TabularType</tt> definition 
-     *					  already maps to an existing value in this instance,
-     *					  or two values in <var>t</var> have the same index.
+     * @throws NullPointerException if a value in <var>t</var> is
+     * <tt>null</tt>.
+     * @throws ClassCastException if a value in <var>t</var> is not an
+     * instance of <tt>CompositeData</tt>.
+     * @throws InvalidOpenTypeException if a value in <var>t</var>
+     * does not conform to this <tt>TabularData</tt> instance's row
+     * type definition.
+     * @throws KeyAlreadyExistsException if the index for a value in
+     * <var>t</var>, calculated according to this
+     * <tt>TabularData</tt> instance's <tt>TabularType</tt> definition
+     * already maps to an existing value in this instance, or two
+     * values in <var>t</var> have the same index.
      */
-    public void putAll(Map t) {
+    public void putAll(Map<?,?> t) {
 
 	// if t is null or empty, just return
 	//
@@ -395,7 +426,8 @@ public class TabularDataSupport
 	//
 	CompositeData[] values;
 	try {
-	    values = (CompositeData[]) t.values().toArray(new CompositeData[t.size()]);
+	    values = (CompositeData[])
+                t.values().toArray(new CompositeData[t.size()]);
 	} catch (java.lang.ArrayStoreException e) {
 	    throw new ClassCastException("Map argument t contains values which are not instances of <tt>CompositeData</tt>");
 	}
@@ -406,23 +438,33 @@ public class TabularDataSupport
     }
 
     /**
-     * Add all the elements in <var>values</var> to this <tt>TabularData</tt> instance. 
-     * If any  element in <var>values</var> does not satisfy the constraints defined in {@link #put(CompositeData) <tt>put</tt>},
-     * or if any two elements in <var>values</var> have the same index calculated according to this <tt>TabularData</tt> 
-     * instance's <tt>TabularType</tt> definition, then an exception describing the failure is thrown 
-     * and no element of <var>values</var> is added,  thus leaving this <tt>TabularData</tt> instance unchanged.
+     * Add all the elements in <var>values</var> to this
+     * <tt>TabularData</tt> instance.  If any element in
+     * <var>values</var> does not satisfy the constraints defined in
+     * {@link #put(CompositeData) <tt>put</tt>}, or if any two
+     * elements in <var>values</var> have the same index calculated
+     * according to this <tt>TabularData</tt> instance's
+     * <tt>TabularType</tt> definition, then an exception describing
+     * the failure is thrown and no element of <var>values</var> is
+     * added, thus leaving this <tt>TabularData</tt> instance
+     * unchanged.
      *
-     * @param  values  the array of composite data values to be added as new rows to this <tt>TabularData</tt> instance;
-     *		       if <var>values</var> is <tt>null</tt> or empty, this method returns without doing anything.
+     * @param values the array of composite data values to be added as
+     * new rows to this <tt>TabularData</tt> instance; if
+     * <var>values</var> is <tt>null</tt> or empty, this method
+     * returns without doing anything.
      * 
-     * @throws NullPointerException       if an element of <var>values</var> is <tt>null</tt> 
-     * @throws InvalidOpenTypeException   if an element of <var>values</var> does not conform to 
-     *					  this <tt>TabularData</tt> instance's row type definition 
-     *					  (ie its <tt>TabularType</tt> definition)
-     * @throws KeyAlreadyExistsException  if the index for an element of <var>values</var>, calculated according to 
-     *					  this <tt>TabularData</tt> instance's <tt>TabularType</tt> definition 
-     *					  already maps to an existing value in this instance,
-     *					  or two elements of <var>values</var> have the same index
+     * @throws NullPointerException if an element of <var>values</var>
+     * is <tt>null</tt>
+     * @throws InvalidOpenTypeException if an element of
+     * <var>values</var> does not conform to this
+     * <tt>TabularData</tt> instance's row type definition (ie its
+     * <tt>TabularType</tt> definition)
+     * @throws KeyAlreadyExistsException if the index for an element
+     * of <var>values</var>, calculated according to this
+     * <tt>TabularData</tt> instance's <tt>TabularType</tt> definition
+     * already maps to an existing value in this instance, or two
+     * elements of <var>values</var> have the same index
      */
     public void putAll(CompositeData[] values) {
 
@@ -433,11 +475,12 @@ public class TabularDataSupport
 	}
 
 	// create the list of indexes corresponding to each value
-	ArrayList indexes = new ArrayList(values.length + 1);
+	List<List<?>> indexes =
+	    new ArrayList<List<?>>(values.length + 1);
 
 	// Check all elements in values and build index list 
 	//
-	List index;
+	List<?> index;
 	for (int i=0; i<values.length; i++) {
 	    // check value and calculate index
 	    index = checkValueAndIndex(values[i]);
@@ -495,63 +538,88 @@ public class TabularDataSupport
     /* ***  Collection views from java.util.Map  *** */
     
     /**
-     * Returns a set view of the keys contained in the underlying map of this <code>TabularDataSupport</code> instance,
-     * and used to index the rows. Each key contained in this set is an unmodifiable List.  
-     * The set is backed by the underlying map of this <code>TabularDataSupport</code> instance, 
-     * so changes to the <code>TabularDataSupport</code> instance are reflected in the set, and vice-versa.
+     * Returns a set view of the keys contained in the underlying map of this
+     * {@code TabularDataSupport} instance used to index the rows.
+     * Each key contained in this {@code Set} is an unmodifiable {@code List<?>}
+     * so the returned set view is a {@code Set<List<?>>} but is declared as a
+     * {@code Set<Object>} for compatibility reasons.
+     * The set is backed by the underlying map of this
+     * {@code TabularDataSupport} instance, so changes to the
+     * {@code TabularDataSupport} instance are reflected in the
+     * set, and vice-versa.
      *
-     * The set supports element removal, which removes the
-     * corresponding row from this <code>TabularDataSupport</code> instance, via the <tt>Iterator.remove</tt>,
-     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and
-     * <tt>clear</tt> operations.  
-     * It does not support the <tt>add</tt> or <tt>addAll</tt> operations
+     * The set supports element removal, which removes the corresponding
+     * row from this {@code TabularDataSupport} instance, via the
+     * {@link Iterator#remove}, {@link Set#remove}, {@link Set#removeAll},
+     * {@link Set#retainAll}, and {@link Set#clear} operations. It does
+     *  not support the {@link Set#add} or {@link Set#addAll} operations.
      *
-     * @return a set view of the keys used to index the rows of this <code>TabularDataSupport</code> instance.
+     * @return a set view ({@code Set<List<?>>}) of the keys used to index
+     * the rows of this {@code TabularDataSupport} instance.
      */
-    public Set keySet() {
+    public Set<Object> keySet() {
     
-        return  dataMap.keySet() ;
+        return dataMap.keySet() ;
     }
     
     /**
-     * Returns a collection view of the rows contained in this <code>TabularDataSupport</code> instance.  
-     * The collection is backed by the underlying map, so changes to the <code>TabularDataSupport</code> instance 
-     * are reflected in the collection, and vice-versa.
+     * Returns a collection view of the rows contained in this
+     * {@code TabularDataSupport} instance. The returned {@code Collection}
+     * is a {@code Collection<CompositeData>} but is declared as a
+     * {@code Collection<Object>} for compatibility reasons.
+     * The returned collection can be used to iterate over the values.
+     * The collection is backed by the underlying map, so changes to the
+     * {@code TabularDataSupport} instance are reflected in the collection,
+     * and vice-versa.
      *
-     * The collection supports element removal, 
-     * which removes the corresponding index to row mapping from this <code>TabularDataSupport</code> instance, 
-     * via the <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations.
-     * It does not support the <tt>add</tt> or <tt>addAll</tt> operations.
+     * The collection supports element removal, which removes the corresponding
+     * index to row mapping from this {@code TabularDataSupport} instance, via
+     * the {@link Iterator#remove}, {@link Collection#remove},
+     * {@link Collection#removeAll}, {@link Collection#retainAll},
+     * and {@link Collection#clear} operations. It does not support
+     * the {@link Collection#add} or {@link Collection#addAll} operations.
      *
-     * @return a collection view of the values contained in this <code>TabularDataSupport</code> instance.
+     * @return a collection view ({@code Collection<CompositeData>}) of
+     * the values contained in this {@code TabularDataSupport} instance.
      */
-    public Collection values() {
+    public Collection<Object> values() {
     
-        return  dataMap.values() ;
+        return (Collection) dataMap.values() ;
     }
     
         
-    /** 
-     * Returns a collection view of the index to row mappings contained in this <code>TabularDataSupport</code> instance.  
-     * Each element in the returned collection is a <tt>Map.Entry</tt>.  
-     * The collection is backed by the underlying map of this <code>TabularDataSupport</code> instance,  in
-     * so changes to the <code>TabularDataSupport</code> instance are reflected the collection, and vice-versa.  
-     * The collection supports element removal, which removes the corresponding mapping from the map, via the
-     * <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations.
-     * It does not support the <tt>add</tt> or <tt>addAll</tt> operations.
+    /**
+     * Returns a collection view of the index to row mappings
+     * contained in this {@code TabularDataSupport} instance.
+     * Each element in the returned collection is
+     * a {@code Map.Entry<List<?>,CompositeData>} but
+     * is declared as a {@code Map.Entry<Object,Object>}
+     * for compatibility reasons. Each of the map entry
+     * keys is an unmodifiable {@code List<?>}.
+     * The collection is backed by the underlying map of this
+     * {@code TabularDataSupport} instance, so changes to the
+     * {@code TabularDataSupport} instance are reflected in
+     * the collection, and vice-versa.
+     * The collection supports element removal, which removes
+     * the corresponding mapping from the map, via the
+     * {@link Iterator#remove}, {@link Collection#remove},
+     * {@link Collection#removeAll}, {@link Collection#retainAll},
+     * and {@link Collection#clear} operations. It does not support
+     * the {@link Collection#add} or {@link Collection#addAll}
+     * operations.
      * <p>
-     * <b>IMPORTANT NOTICE</b>: Do not use the <tt>SetValue</tt> method of <tt>Map.Entry</tt> elements contained in the returned
-     * collection view. Doing so would corrupt the index to row mappings contained in this <code>TabularDataSupport</code> instance.
-     * <p>
+     * <b>IMPORTANT NOTICE</b>: Do not use the {@code setValue} method of the
+     * {@code Map.Entry} elements contained in the returned collection view.
+     * Doing so would corrupt the index to row mappings contained in this
+     * {@code TabularDataSupport} instance.
      *
-     * @return a collection view of the mappings contained in this map.
+     * @return a collection view ({@code Set<Map.Entry<List<?>,CompositeData>>})
+     * of the mappings contained in this map.
      * @see java.util.Map.Entry
      */
-    public Set entrySet() {
+    public Set<Map.Entry<Object,Object>> entrySet() {
     
-        return  dataMap.entrySet();
+        return (Set) dataMap.entrySet();
     }
 
 
@@ -563,10 +631,14 @@ public class TabularDataSupport
      * the clone is obtained by calling <tt>super.clone()</tt>, and then cloning the underlying map.
      * Only a shallow clone of the underlying map is made, i.e. no cloning of the indexes and row values is made as they are immutable.
      */
+    /* We cannot use covariance here and return TabularDataSupport
+       because this would fail with existing code that subclassed
+       TabularDataSupport and overrode Object clone().  It would not
+       override the new clone().  */
     public Object clone() {
 	try {
 	    TabularDataSupport c = (TabularDataSupport) super.clone();
-	    c.dataMap = (HashMap) ((HashMap) c.dataMap).clone();
+	    c.dataMap = new HashMap<Object,CompositeData>(c.dataMap);
 	    return c;
 	}
 	catch (CloneNotSupportedException e) {
@@ -706,7 +778,7 @@ public class TabularDataSupport
      * The returned List is unmodifiable so that once a row has been put into the dataMap, its index cannot be modified,
      * for example by a user that would attempt to modify an index contained in the Set returned by keySet(). 
      */
-    private List internalCalculateIndex(CompositeData value) {
+    private List<?> internalCalculateIndex(CompositeData value) {
 
 	return Collections.unmodifiableList(Arrays.asList(value.getAll(this.indexNamesArray)));
     }
@@ -737,7 +809,7 @@ public class TabularDataSupport
 
 	// each element in key[] should be a value for its corresponding open type specified in rowType
 	//
-	OpenType keyElementType;
+	OpenType<?> keyElementType;
 	for (int i=0; i<key.length; i++) {
 	    keyElementType = tabularType.getRowType().getType(this.indexNamesArray[i]);
 	    if ( (key[i] != null) && (! keyElementType.isValue(key[i])) ) {
@@ -765,9 +837,9 @@ public class TabularDataSupport
 	
 	// if value's type is not the same as this instance's row type, throw InvalidOpenTypeException
 	//
-	if ( ! value.getCompositeType().equals(tabularType.getRowType()) ) {
+	if (!tabularType.getRowType().isValue(value)) {
 	    throw new InvalidOpenTypeException("Argument value's composite type ["+ value.getCompositeType() +
-					       "] is not equal to "+
+					       "] is not assignable to "+
 					       "this TabularData instance's row type ["+ tabularType.getRowType() +"].");
 	}
     }
@@ -784,7 +856,7 @@ public class TabularDataSupport
      * @throws  InvalidOpenTypeException
      * @throws  KeyAlreadyExistsException
      */
-    private List checkValueAndIndex(CompositeData value) {
+    private List<?> checkValueAndIndex(CompositeData value) {
 
 	// Check value is valid
 	//
@@ -793,7 +865,7 @@ public class TabularDataSupport
 	// Calculate value's index according to this instance's tabularType
 	// and check it is not already used for a mapping in the parent HashMap
 	//
-	List index = internalCalculateIndex(value);
+	List<?> index = internalCalculateIndex(value);
 	
 	if (dataMap.containsKey(index)) {
 	    throw new KeyAlreadyExistsException("Argument value's index, calculated according to this TabularData "+
@@ -811,7 +883,7 @@ public class TabularDataSupport
     private void readObject(ObjectInputStream in)
 	    throws IOException, ClassNotFoundException {
       in.defaultReadObject();
-      List tmpNames = tabularType.getIndexNames();
-      indexNamesArray = (String[]) tmpNames.toArray(new String[tmpNames.size()]);
+      List<String> tmpNames = tabularType.getIndexNames();
+      indexNamesArray = tmpNames.toArray(new String[tmpNames.size()]);
     }
 }

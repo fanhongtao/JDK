@@ -1,12 +1,13 @@
 /*
- * @(#)ByteArrayOutputStream.java	1.49 04/05/18
+ * @(#)ByteArrayOutputStream.java	1.53 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
 
+import java.util.Arrays;
 
 /**
  * This class implements an output stream in which the data is 
@@ -20,7 +21,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.49, 05/18/04
+ * @version 1.53, 06/07/06
  * @since   JDK1.0
  */
 
@@ -67,9 +68,7 @@ public class ByteArrayOutputStream extends OutputStream {
     public synchronized void write(int b) {
 	int newcount = count + 1;
 	if (newcount > buf.length) {
-	    byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
-	    System.arraycopy(buf, 0, newbuf, 0, count);
-	    buf = newbuf;
+            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
 	}
 	buf[count] = (byte)b;
 	count = newcount;
@@ -92,9 +91,7 @@ public class ByteArrayOutputStream extends OutputStream {
 	}
         int newcount = count + len;
         if (newcount > buf.length) {
-            byte newbuf[] = new byte[Math.max(buf.length << 1, newcount)];
-            System.arraycopy(buf, 0, newbuf, 0, count);
-            buf = newbuf;
+            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
         }
         System.arraycopy(b, off, buf, count, len);
         count = newcount;
@@ -133,9 +130,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#size()
      */
     public synchronized byte toByteArray()[] {
-	byte newbuf[] = new byte[count];
-	System.arraycopy(buf, 0, newbuf, 0, count);
-	return newbuf;
+        return Arrays.copyOf(buf, count);
     }
 
     /**
@@ -145,33 +140,51 @@ public class ByteArrayOutputStream extends OutputStream {
      *          of valid bytes in this output stream.
      * @see     java.io.ByteArrayOutputStream#count
      */
-    public int size() {
+    public synchronized int size() {
 	return count;
     }
 
     /**
-     * Converts the buffer's contents into a string, translating bytes into
-     * characters according to the platform's default character encoding.
+     * Converts the buffer's contents into a string decoding bytes using the
+     * platform's default character set. The length of the new <tt>String</tt>
+     * is a function of the character set, and hence may not be equal to the 
+     * size of the buffer.
      *
-     * @return String translated from the buffer's contents.
-     * @since   JDK1.1
+     * <p> This method always replaces malformed-input and unmappable-character
+     * sequences with the default replacement string for the platform's
+     * default character set. The {@linkplain java.nio.charset.CharsetDecoder}
+     * class should be used when more control over the decoding process is
+     * required.
+     *
+     * @return String decoded from the buffer's contents.
+     * @since  JDK1.1
      */
-    public String toString() {
+    public synchronized String toString() {
 	return new String(buf, 0, count);
     }
-
+    
     /**
-     * Converts the buffer's contents into a string, translating bytes into
-     * characters according to the specified character encoding.
+     * Converts the buffer's contents into a string by decoding the bytes using
+     * the specified {@link java.nio.charset.Charset charsetName}. The length of
+     * the new <tt>String</tt> is a function of the charset, and hence may not be
+     * equal to the length of the byte array.
      *
-     * @param   enc  a character-encoding name.
-     * @return String translated from the buffer's contents.
-     * @throws UnsupportedEncodingException
-     *         If the named encoding is not supported.
+     * <p> This method always replaces malformed-input and unmappable-character
+     * sequences with this charset's default replacement string. The {@link
+     * java.nio.charset.CharsetDecoder} class should be used when more control
+     * over the decoding process is required.
+     *
+     * @param  charsetName  the name of a supported
+     *		    {@linkplain java.nio.charset.Charset </code>charset<code>}
+     * @return String decoded from the buffer's contents.
+     * @exception  UnsupportedEncodingException
+     *             If the named charset is not supported
      * @since   JDK1.1
      */
-    public String toString(String enc) throws UnsupportedEncodingException {
-	return new String(buf, 0, count, enc);
+    public synchronized String toString(String charsetName)
+	throws UnsupportedEncodingException
+    {
+	return new String(buf, 0, count, charsetName);
     }
 
     /**
@@ -197,7 +210,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @see        java.io.ByteArrayOutputStream#toString()
      */
     @Deprecated
-    public String toString(int hibyte) {
+    public synchronized String toString(int hibyte) {
 	return new String(buf, hibyte, 0, count);
     }
 

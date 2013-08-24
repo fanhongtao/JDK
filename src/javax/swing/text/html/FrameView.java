@@ -1,7 +1,7 @@
 /*
- * @(#)FrameView.java	1.28 03/12/19
+ * @(#)FrameView.java	1.31 06/07/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -14,13 +14,15 @@ import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.event.*;
 
+import sun.swing.text.html.FrameEditorPaneTag;
+
 /**
  * Implements a FrameView, intended to support the HTML
  * &lt;FRAME&gt; tag.  Supports the frameborder, scrolling,
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.28, 12/19/03
+ * @version   1.31, 07/25/06
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {
@@ -232,7 +234,7 @@ class FrameView extends ComponentView implements HyperlinkListener {
      * Finds the outermost FrameSetView.  It then
      * returns that FrameSetView's container.
      */
-    private JEditorPane getOutermostJEditorPane() {
+    JEditorPane getOutermostJEditorPane() {
 
 	View parent = getParent();
 	FrameSetView frameSetView = null;
@@ -288,8 +290,9 @@ class FrameView extends ComponentView implements HyperlinkListener {
 
 	if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 	    String target = e.getTarget();
+            String postTarget = target;
 
-	    if (e.getTarget().equals("_parent") && !inNestedFrameSet()){ 
+            if (target.equals("_parent") && !inNestedFrameSet()){ 
 		target = "_top";
 	    }
 
@@ -298,6 +301,7 @@ class FrameView extends ComponentView implements HyperlinkListener {
                 if (kit != null && kit.isAutoFormSubmission()) {
 		    if (target.equals("_top")) {
 			try {
+                            movePostData(c, postTarget);
 			    c.setPage(e.getURL());
 			} catch (IOException ex) {
 			    // Need a way to handle exceptions
@@ -351,13 +355,16 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	String srcAtt = (String)attributes.getAttribute(HTML.Attribute.SRC);
 	URL base = ((HTMLDocument)elem.getDocument()).getBase();
 	try {
-	    src = new URL(base, srcAtt);
 	    if (!createdComponent) {
 		return;
 	    }
-	    if (oldPage.equals(src) && (src.getRef() == null)) {
+            
+            Object postData = movePostData(htmlPane, null);
+            src = new URL(base, srcAtt);
+            if (oldPage.equals(src) && (src.getRef() == null) && (postData == null)) {
 		return;
 	    }
+            
 	    htmlPane.setPage(src);
 	    Document newDoc = htmlPane.getDocument();
 	    if (newDoc instanceof HTMLDocument) {
@@ -372,6 +379,34 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	}
     }
 
+    /**
+     * Move POST data from temporary storage into the target document property.
+     *
+     * @return the POST data or null if no data found
+     */
+    private Object movePostData(JEditorPane targetPane, String frameName) {
+        Object postData = null;
+        JEditorPane p = getOutermostJEditorPane();
+        if (p != null) {
+            if (frameName == null) {
+                frameName = (String) getElement().getAttributes().getAttribute(
+                        HTML.Attribute.NAME);
+            }
+            if (frameName != null) {
+                String propName = FormView.PostDataProperty + "." + frameName;
+                Document d = p.getDocument();
+                postData = d.getProperty(propName);
+                if (postData != null) {
+                    targetPane.getDocument().putProperty(
+                            FormView.PostDataProperty, postData);
+                    d.putProperty(propName, null);
+                }
+            }
+        }
+        
+        return postData;
+    }
+    
     /**
      * Determines the minimum span for this view along an
      * axis.
@@ -405,7 +440,7 @@ class FrameView extends ComponentView implements HyperlinkListener {
     /** Editor pane rendering frame of HTML document
      *  It uses the same editor kits classes as outermost JEditorPane
      */
-    private class FrameEditorPane extends JEditorPane {
+    class FrameEditorPane extends JEditorPane implements FrameEditorPaneTag {
         public EditorKit getEditorKitForContentType(String type) {
             EditorKit editorKit = super.getEditorKitForContentType(type); 
             JEditorPane outerMostJEditorPane = null;
@@ -417,6 +452,10 @@ class FrameView extends ComponentView implements HyperlinkListener {
                 }
             } 
             return editorKit;
+        }
+        
+        FrameView getFrameView() {
+            return FrameView.this;
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)BorderLayout.java	1.56 04/05/18
+ * @(#)BorderLayout.java	1.60 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,7 +98,7 @@ import java.util.Hashtable;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.56, 05/18/04
+ * @version 	1.60, 04/07/06
  * @author 	Arthur van Hoff
  * @see         java.awt.Container#add(String, Component)
  * @see         java.awt.ComponentOrientation
@@ -490,7 +490,7 @@ public class BorderLayout implements LayoutManager2,
      *                       <code>WEST</code>, <code>EAST</code>,
      *                       <code>PAGE_START</code>, <code>PAGE_END</code>,
      *                       <code>LINE_START</code>, <code>LINE_END</code>
-     * @return  the component at the given location, or </code>null</code> if
+     * @return  the component at the given location, or <code>null</code> if
      *          the location is empty
      * @exception   IllegalArgumentException  if the constraint object is
      *              not one of the nine specified constants
@@ -523,14 +523,22 @@ public class BorderLayout implements LayoutManager2,
 
 
     /**
-     * Gets the component that corresponds to the given constraint location
-     * based on the target Container's component orientation
+     * Returns the component that corresponds to the given constraint location
+     * based on the target <code>Container</code>'s component orientation.
+     * Components added with the relative constraints <code>PAGE_START</code>,
+     * <code>PAGE_END</code>, <code>LINE_START</code>, and <code>LINE_END</code>
+     * take precedence over components added with the explicit constraints
+     * <code>NORTH</code>, <code>SOUTH</code>, <code>WEST</code>, and <code>EAST</code>.
+     * The <code>Container</code>'s component orientation is used to determine the location of components
+     * added with <code>LINE_START</code> and <code>LINE_END</code>.
      *
      * @param   constraints     the desired absolute position, one of <code>CENTER</code>,
-     *                          one of <code>NORTH</code>, <code>SOUTH</code>,
+     *                          <code>NORTH</code>, <code>SOUTH</code>,
      *                          <code>EAST</code>, <code>WEST</code>
-     * @param   target     the <code>Container</code> using this <code>BorderLayout</code>
-     * @return  the component at the given location, or </code>null</code> if
+     * @param   target     the {@code Container} used to obtain
+     *                     the constraint location based on the target 
+     *                     {@code Container}'s component orientation.
+     * @return  the component at the given location, or <code>null</code> if
      *          the location is empty
      * @exception   IllegalArgumentException  if the constraint object is
      *              not one of the five specified constants
@@ -577,6 +585,10 @@ public class BorderLayout implements LayoutManager2,
      * @since 1.5
      */
     public Object getConstraints(Component comp) {
+        //fix for 6242148 : API method java.awt.BorderLayout.getConstraints(null) should return null
+        if (comp == null){
+            return null;
+        }
 	if (comp == center) {
 	    return CENTER;
 	} else if (comp == north) {

@@ -1,7 +1,7 @@
 /*
- * @(#)ImageConsumer.java	1.23 04/07/16
+ * @(#)ImageConsumer.java	1.25 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.util.Hashtable;
  *
  * @see ImageProducer
  *
- * @version	1.23 07/16/04
+ * @version	1.25 02/14/06
  * @author 	Jim Graham
  */
 public interface ImageConsumer {
@@ -126,7 +126,9 @@ public interface ImageConsumer {
      * and alpha components.  Pixel (m,n) is stored in the pixels array
      * at index (n * scansize + m + off).  The pixels delivered using
      * this method are all stored as bytes.
-     * @param x,&nbsp;y the coordinates of the upper-left corner of the 
+     * @param x the X coordinate of the upper-left corner of the 
+     *        area of pixels to be set
+     * @param y the Y coordinate of the upper-left corner of the 
      *        area of pixels to be set
      * @param w the width of the area of pixels
      * @param h the height of the area of pixels
@@ -150,7 +152,9 @@ public interface ImageConsumer {
      * at index (n * scansize + m + off).  The pixels delivered using
      * this method are all stored as ints.
      * this method are all stored as ints.
-     * @param x,&nbsp;y the coordinates of the upper-left corner of the 
+     * @param x the X coordinate of the upper-left corner of the 
+     *        area of pixels to be set
+     * @param y the Y coordinate of the upper-left corner of the 
      *        area of pixels to be set
      * @param w the width of the area of pixels
      * @param h the height of the area of pixels

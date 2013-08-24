@@ -48,6 +48,10 @@ public interface CSSValue {
 
     /**
      *  A string representation of the current value. 
+     */
+    public String getCssText();
+    /**
+     *  A string representation of the current value. 
      * @exception DOMException
      *    SYNTAX_ERR: Raised if the specified CSS string value has a syntax 
      *   error (according to the attached property) or is unparsable. 
@@ -56,7 +60,6 @@ public interface CSSValue {
      *   by the CSS property.
      *   <br> NO_MODIFICATION_ALLOWED_ERR: Raised if this value is readonly. 
      */
-    public String getCssText();
     public void setCssText(String cssText)
                        throws DOMException;
 

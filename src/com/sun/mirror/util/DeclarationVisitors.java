@@ -1,7 +1,7 @@
 /*
- * @(#)DeclarationVisitors.java	1.4 04/07/13
+ * @(#)DeclarationVisitors.java	1.5 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package com.sun.mirror.util;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.4 04/07/13
+ * @version 1.5 05/11/17
  * @since 1.5
  */
 public class DeclarationVisitors {

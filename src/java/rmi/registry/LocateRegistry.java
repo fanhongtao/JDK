@@ -1,7 +1,7 @@
 /*
- * @(#)LocateRegistry.java	1.33 03/12/19
+ * @(#)LocateRegistry.java	1.34 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import sun.rmi.transport.tcp.TCPEndpoint;
  * the remote host.  Therefore, a subsequent method invocation to a remote
  * registry returned as a result of this method may fail.
  *
- * @version 1.33, 12/19/03
+ * @version 1.34, 11/17/05
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1

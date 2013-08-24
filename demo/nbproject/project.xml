@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.ant.freeform</type>
+    <configuration>
+        <general-data xmlns="http://www.netbeans.org/ns/freeform-project/1">
+            <name>JDK Demos</name>
+            <view>
+                <items/>
+            </view>
+            <subprojects>
+                <project>nbproject/jfc/SwingSet2</project>
+                <project>nbproject/jfc/Java2D</project>
+                <project>nbproject/jfc/Font2DTest</project>
+                <project>nbproject/jfc/FileChooserDemo</project>
+                <project>nbproject/jfc/Metalworks</project>
+                <project>nbproject/jfc/Notepad</project>
+                <project>nbproject/jfc/SampleTree</project>
+                <project>nbproject/jfc/Stylepad</project>
+                <project>nbproject/jfc/SwingApplet</project>
+                <project>nbproject/jfc/TableExample</project>
+                <project>nbproject/scripting/jconsole-plugin</project>
+                <project>nbproject/management/FullThreadDump</project>
+                <project>nbproject/management/JTop</project>
+                <project>nbproject/management/MemoryMonitor</project>
+                <project>nbproject/management/VerboseGC</project>
+            </subprojects>
+        </general-data>
+    </configuration>
+</project>

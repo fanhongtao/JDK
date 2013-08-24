@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedImageOp.java	1.26 03/12/19
+ * @(#)BufferedImageOp.java	1.28 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -112,7 +112,7 @@ public interface BufferedImageOp {
      * Returns the rendering hints for this operation.
      * 
      * @return The <CODE>RenderingHints</CODE> object for this
-     * <CODE>BufferedImageOp</CODE.  Returns
+     * <CODE>BufferedImageOp</CODE>.  Returns
      * null if no hints have been set.  
      */
     public RenderingHints getRenderingHints();

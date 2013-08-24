@@ -1,7 +1,7 @@
 /*
- * @(#)Double.java	1.94 04/05/11
+ * @(#)Double.java	1.100 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import sun.misc.DoubleConsts;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Joseph D. Darcy
- * @version 1.94, 05/11/04
+ * @version 1.100, 04/07/06
  * @since JDK1.0
  */
 public final class Double extends Number implements Comparable<Double> {
@@ -59,8 +59,18 @@ public final class Double extends Number implements Comparable<Double> {
      * <code>0x1.fffffffffffffP+1023</code> and also equal to
      * <code>Double.longBitsToDouble(0x7fefffffffffffffL)</code>.
      */
-    public static final double MAX_VALUE = 1.7976931348623157e+308; // 0x1.fffffffffffffP+1023
+    public static final double MAX_VALUE = 0x1.fffffffffffffP+1023; // 1.7976931348623157e+308
 
+    /**
+     * A constant holding the smallest positive normal value of type
+     * {@code double}, 2<sup>-1022</sup>.  It is equal to the
+     * hexadecimal floating-point literal {@code 0x1.0p-1022} and also
+     * equal to {@code Double.longBitsToDouble(0x0010000000000000L)}.
+     *
+     * @since 1.6
+     */
+    public static final double MIN_NORMAL = 0x1.0p-1022; // 2.2250738585072014E-308
+ 
     /**
      * A constant holding the smallest positive nonzero value of type
      * <code>double</code>, 2<sup>-1074</sup>. It is equal to the
@@ -68,7 +78,25 @@ public final class Double extends Number implements Comparable<Double> {
      * <code>0x0.0000000000001P-1022</code> and also equal to
      * <code>Double.longBitsToDouble(0x1L)</code>.
      */
-    public static final double MIN_VALUE = 4.9e-324; // 0x0.0000000000001P-1022
+    public static final double MIN_VALUE = 0x0.0000000000001P-1022; // 4.9e-324
+
+    /**
+     * Maximum exponent a finite {@code double} variable may have.
+     * It is equal to the value returned by
+     * {@code Math.getExponent(Double.MAX_VALUE)}.
+     *
+     * @since 1.6
+     */
+    public static final int MAX_EXPONENT = 1023;
+ 
+    /**
+     * Minimum exponent a normalized {@code double} variable may
+     * have.  It is equal to the value returned by
+     * {@code Math.getExponent(Double.MIN_NORMAL)}.
+     *
+     * @since 1.6
+     */
+    public static final int MIN_EXPONENT = -1022;
 
     /**
      * The number of bits used to represent a <tt>double</tt> value.
@@ -259,7 +287,7 @@ public final class Double extends Number implements Comparable<Double> {
 		    0x1000000000000000L;
 
 		// Subnormal values have a 0 implicit bit; normal
-		// values have a a 1 implicit bit.
+		// values have a 1 implicit bit.
 		answer.append(subnormal ? "0." : "1.");
 
 		// Isolate the low-order 13 digits of the hex
@@ -384,7 +412,7 @@ public final class Double extends Number implements Comparable<Double> {
      * <code>0.1</code>. (The numerical value 0.1 cannot be exactly
      * represented in a binary floating-point number.)
      *
-     * <p>To avoid calling this method on a invalid string and having
+     * <p>To avoid calling this method on an invalid string and having
      * a <code>NumberFormatException</code> be thrown, the regular
      * expression below can be used to screen the input string:
      *
@@ -742,7 +770,16 @@ public final class Double extends Number implements Comparable<Double> {
      * @param   value   a <code>double</code> precision floating-point number.
      * @return the bits that represent the floating-point number.  
      */
-    public static native long doubleToLongBits(double value);
+    public static long doubleToLongBits(double value) {
+	long result = doubleToRawLongBits(value);
+	// Check for NaN based on values of bit fields, maximum
+	// exponent and nonzero significand.
+	if ( ((result & DoubleConsts.EXP_BIT_MASK) == 
+	      DoubleConsts.EXP_BIT_MASK) &&
+	     (result & DoubleConsts.SIGNIF_BIT_MASK) != 0L)
+	    result = 0x7ff8000000000000L;
+	return result;
+    }
 
     /**
      * Returns a representation of the specified floating-point value
@@ -778,6 +815,7 @@ public final class Double extends Number implements Comparable<Double> {
      *
      * @param   value   a <code>double</code> precision floating-point number.
      * @return the bits that represent the floating-point number.
+     * @since 1.3
      */
     public static native long doubleToRawLongBits(double value);
 

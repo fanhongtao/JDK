@@ -1,7 +1,7 @@
 /*
- * @(#)SourceDataLine.java	1.20 03/12/19
+ * @(#)SourceDataLine.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ package javax.sound.sampled;
  * when the audio output resumes. 
  *
  * @author Kara Kytle
- * @version 1.20 03/12/19
+ * @version 1.21 05/11/17
  * @see Mixer
  * @see DataLine
  * @see TargetDataLine

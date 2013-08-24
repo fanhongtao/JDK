@@ -1,7 +1,7 @@
 /*
- * @(#)Certificate.java	1.24 03/12/19
+ * @(#)Certificate.java	1.27 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import sun.security.x509.X509CertImpl;
  * @see CertificateFactory
  *
  * @author Hemma Prafullchandra
- * @version 1.24, 12/19/03
+ * @version 1.27, 04/21/06
  */
 
 public abstract class Certificate implements java.io.Serializable {
@@ -53,7 +53,7 @@ public abstract class Certificate implements java.io.Serializable {
      *
      * @param type the standard name of the certificate type.
      * See Appendix A in the <a href=
-     * "../../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a>
      * for information about standard certificate types.
      */
@@ -185,6 +185,7 @@ public abstract class Certificate implements java.io.Serializable {
 
     /**
      * Alternate Certificate class for serialization.
+     * @since 1.3
      */
     protected static class CertificateRep implements java.io.Serializable {
 
@@ -240,6 +241,7 @@ public abstract class Certificate implements java.io.Serializable {
      *
      * @throws java.io.ObjectStreamException if a new object representing 
      * this Certificate could not be created
+     * @since 1.3
      */
     protected Object writeReplace() throws java.io.ObjectStreamException {
 	try {

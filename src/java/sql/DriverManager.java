@@ -1,11 +1,21 @@
 /*
- * @(#)DriverManager.java	1.42 04/05/18 
+ * @(#)DriverManager.java	1.54 06/10/18 
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.sql;
+
+// Comment below before mustang integration 
+import sun.misc.Service;
+
+
+//Uncomment below before mustang integration
+//import java.util.Service;
+
+import java.util.Iterator;
+
 
 /**
  * <P>The basic service for managing a set of JDBC drivers.<br>
@@ -22,18 +32,26 @@ package java.sql;
  * <pre>
  * <CODE>jdbc.drivers=foo.bah.Driver:wombat.sql.Driver:bad.taste.ourDriver</CODE>
  * </pre>
- *
- * A program can also explicitly load JDBC drivers at any time. For
- * example, the my.sql.Driver is loaded with the following statement:
+ *<P> The <code>DriverManager</code> methods <code>getConnection</code> and
+ * <code>getDrivers</code> have been enhanced to support the Java Standard Edition
+ * <a href="../../../technotes/guides/jar/jar.html#Service%20Provider">Service Provider</a> mechanism. JDBC 4.0 Drivers must
+ * include the file <code>META-INF/services/java.sql.Driver</code>. This file contains the name of the JDBC drivers
+ * implementation of <code>java.sql.Driver</code>.  For example, to load the <code>my.sql.Driver</code> class,
+ * the <code>META-INF/services/java.sql.Driver</code> file would contain the entry:
  * <pre>
- * <CODE>Class.forName("my.sql.Driver");</CODE>
+ * <code>my.sql.Driver</code>
  * </pre>
+ * 
+ * <P>Applications no longer need to explictly load JDBC drivers using <code>Class.forName()</code>. Existing programs
+ * which currently load JDBC drivers using <code>Class.forName()</code> will continue to work without
+ * modification.
  *
  * <P>When the method <code>getConnection</code> is called,
  * the <code>DriverManager</code> will attempt to
  * locate a suitable driver from amongst those loaded at
  * initialization and those loaded explicitly using the same classloader
  * as the current applet or application.
+ * 
  * <P>
  * Starting with the Java 2 SDK, Standard Edition, version 1.3, a
  * logging stream can be set only if the proper
@@ -67,9 +85,7 @@ public class DriverManager {
      * @since 1.2
      */
     public static java.io.PrintWriter getLogWriter() {
-	synchronized (logSync) {
 	    return logWriter;
-	}
     }
 
     /**
@@ -85,7 +101,7 @@ public class DriverManager {
      * <code>getLogStream</code> will likely not see debugging information written 
      * by that driver.
      *<P>
-     * In the Java 2 SDK, Standard Edition, version 1.3 release, this method checks
+     * Starting with the Java 2 SDK, Standard Edition, version 1.3 release, this method checks
      * to see that there is an <code>SQLPermission</code> object before setting
      * the logging stream.  If a <code>SecurityManager</code> exists and its
      * <code>checkPermission</code> method denies setting the log writer, this
@@ -108,10 +124,8 @@ public class DriverManager {
 	if (sec != null) {
 	    sec.checkPermission(SET_LOG_PERMISSION);
 	}
-	synchronized (logSync) {
 	    logStream = null;
 	    logWriter = out;
-	}
     }
 
 
@@ -130,7 +144,7 @@ public class DriverManager {
      * @return a Connection to the URL 
      * @exception SQLException if a database access error occurs
      */
-    public static synchronized Connection getConnection(String url, 
+    public static Connection getConnection(String url, 
 	java.util.Properties info) throws SQLException {
   
         // Gets the classloader of the code that called this method, may 
@@ -153,7 +167,7 @@ public class DriverManager {
      * @return a connection to the URL 
      * @exception SQLException if a database access error occurs
      */
-    public static synchronized Connection getConnection(String url, 
+    public static Connection getConnection(String url, 
 	String user, String password) throws SQLException {
         java.util.Properties info = new java.util.Properties();
 
@@ -181,7 +195,7 @@ public class DriverManager {
      * @return a connection to the URL 
      * @exception SQLException if a database access error occurs
      */
-    public static synchronized Connection getConnection(String url) 
+    public static Connection getConnection(String url) 
 	throws SQLException {
 
         java.util.Properties info = new java.util.Properties();
@@ -204,12 +218,19 @@ public class DriverManager {
      * that can connect to the given URL 
      * @exception SQLException if a database access error occurs
      */
-    public static synchronized Driver getDriver(String url) 
+    public static Driver getDriver(String url) 
 	throws SQLException {
+	java.util.Vector drivers = null;
+
         println("DriverManager.getDriver(\"" + url + "\")");
 
         if (!initialized) {
             initialize();
+        }
+
+	synchronized (DriverManager.class){ 
+            // use the read copy of the drivers vector
+	    drivers = readDrivers;  
         }
 
         // Gets the classloader of the code that called this method, may 
@@ -261,51 +282,61 @@ public class DriverManager {
 	}
       
 	DriverInfo di = new DriverInfo();
+
 	di.driver = driver;
 	di.driverClass = driver.getClass();
 	di.driverClassName = di.driverClass.getName();
-	drivers.addElement(di);
+
+	// Not Required -- drivers.addElement(di);
+
+	writeDrivers.addElement(di); 
 	println("registerDriver: " + di);
+	
+	/* update the read copy of drivers vector */
+	readDrivers = (java.util.Vector) writeDrivers.clone();
+
     }
 
     /**
-     * Drops a driver from the <code>DriverManager</code>'s list.  Applets can only
-     * deregister drivers from their own classloaders.
+     * Drops a driver from the <code>DriverManager</code>'s list. 
+     *  Applets can only deregister drivers from their own classloaders.
      *
      * @param driver the JDBC Driver to drop 
      * @exception SQLException if a database access error occurs
      */
     public static synchronized void deregisterDriver(Driver driver) 
 	throws SQLException {
-	// Gets the classloader of the code that called this method, may 
-	// be null.
+	// Gets the classloader of the code that called this method,
+	// may be null.
 	ClassLoader callerCL = DriverManager.getCallerClassLoader();
 	println("DriverManager.deregisterDriver: " + driver);
       
 	// Walk through the loaded drivers.
 	int i;
 	DriverInfo di = null;
-	for (i = 0; i < drivers.size(); i++) {
-	    di = (DriverInfo)drivers.elementAt(i);
+	for (i = 0; i < writeDrivers.size(); i++) {
+	    di = (DriverInfo)writeDrivers.elementAt(i);
 	    if (di.driver == driver) {
 		break;
 	    }
 	}
 	// If we can't find the driver just return.
-	if (i >= drivers.size()) {
+	if (i >= writeDrivers.size()) {
 	    println("    couldn't find driver to unload");
 	    return;
 	}
       
 	// If the caller does not have permission to load the driver then 
 	// throw a security exception.
-	if ( getCallerClass(callerCL, di.driverClassName ) != di.driverClass ) {
+	if (getCallerClass(callerCL, di.driverClassName ) != di.driverClass ) {
 	    throw new SecurityException();
 	}
       
 	// Remove the driver.  Other entries in drivers get shuffled down.
-	drivers.removeElementAt(i);
-      
+	writeDrivers.removeElementAt(i);
+
+	/* update the read copy of drivers vector */
+	readDrivers = (java.util.Vector) writeDrivers.clone();        
     }
 
     /**
@@ -317,12 +348,18 @@ public class DriverManager {
      *
      * @return the list of JDBC Drivers loaded by the caller's class loader
      */
-    public static synchronized java.util.Enumeration<Driver> getDrivers() {
-        java.util.Vector result = new java.util.Vector();
+    public static java.util.Enumeration<Driver> getDrivers() {
+        java.util.Vector<Driver> result = new java.util.Vector<Driver>();
+	java.util.Vector drivers = null; 
 
         if (!initialized) {
             initialize();
         }
+
+ 	synchronized (DriverManager.class){ 
+            // use the readcopy of drivers   
+	    drivers  = readDrivers;    
+       }
 
         // Gets the classloader of the code that called this method, may 
 	// be null.
@@ -348,7 +385,7 @@ public class DriverManager {
      * Sets the maximum time in seconds that a driver will wait
      * while attempting to connect to a database.  
      *
-     * @param seconds the login time limit in seconds
+     * @param seconds the login time limit in seconds; zero means there is no limit
      * @see #getLoginTimeout
      */
     public static void setLoginTimeout(int seconds) { 
@@ -385,8 +422,7 @@ public class DriverManager {
      * @see SecurityManager#checkPermission
      * @see #getLogStream
      */
-    @Deprecated
-    public static synchronized void setLogStream(java.io.PrintStream out) {
+    public static void setLogStream(java.io.PrintStream out) {
         
         SecurityManager sec = System.getSecurityManager();
         if (sec != null) {
@@ -408,7 +444,6 @@ public class DriverManager {
      * @deprecated
      * @see #setLogStream
      */
-    @Deprecated
     public static java.io.PrintStream getLogStream() {
         return logStream;
     }
@@ -450,13 +485,27 @@ public class DriverManager {
 
     private static void loadInitialDrivers() {
         String drivers;
+	
         try {
 	    drivers = (String) java.security.AccessController.doPrivileged(
 		new sun.security.action.GetPropertyAction("jdbc.drivers"));
         } catch (Exception ex) {
             drivers = null;
         }
-        println("DriverManager.initialize: jdbc.drivers = " + drivers);
+        
+        // If the driver is packaged as a Service Provider,
+        // load it.
+        
+        // Get all the drivers through the classloader 
+        // exposed as a java.sql.Driver.class service.
+	
+	 DriverService ds = new DriverService();
+
+	 // Have all the privileges to get all the 
+	 // implementation of java.sql.Driver
+	 java.security.AccessController.doPrivileged(ds);		
+	        
+         println("DriverManager.initialize: jdbc.drivers = " + drivers);
         if (drivers == null) {
             return;
         }
@@ -485,19 +534,22 @@ public class DriverManager {
 
 
     //  Worker method called by the public getConnection() methods.
-    private static synchronized Connection getConnection(
+    private static Connection getConnection(
 	String url, java.util.Properties info, ClassLoader callerCL) throws SQLException {
-	
+	java.util.Vector drivers = null;
         /*
 	 * When callerCl is null, we should check the application's
 	 * (which is invoking this class indirectly)
 	 * classloader, so that the JDBC driver class outside rt.jar
 	 * can be loaded from here.
 	 */
-	if(callerCL == null) {
-	    callerCL = Thread.currentThread().getContextClassLoader();
-	}    
-	  
+	synchronized(DriverManager.class) {	 
+	  // synchronize loading of the correct classloader.
+	  if(callerCL == null) {
+	      callerCL = Thread.currentThread().getContextClassLoader();
+	   }    
+	} 
+	 
 	if(url == null) {
 	    throw new SQLException("The url cannot be null", "08001");
 	}
@@ -507,6 +559,11 @@ public class DriverManager {
 	if (!initialized) {
 	    initialize();
 	}
+
+	synchronized (DriverManager.class){ 
+            // use the readcopy of drivers
+	    drivers = readDrivers;  
+        }
 
 	// Walk through the loaded drivers attempting to make a connection.
 	// Remember the first exception that gets raised so we can reraise it.
@@ -541,8 +598,8 @@ public class DriverManager {
 	    throw reason;
 	}
     
-	println("getConnection: no suitable driver");
-	throw new SQLException("No suitable driver", "08001");
+	println("getConnection: no suitable driver found for "+ url);
+	throw new SQLException("No suitable driver found for "+ url, "08001");
     }
 
 
@@ -556,10 +613,15 @@ public class DriverManager {
         println("JDBC DriverManager initialized");
     }
 
-    // Prevent the DriverManager class from being instantiated.
+    /* Prevent the DriverManager class from being instantiated. */
     private DriverManager(){}
+    
+    /* write copy of the drivers vector */
+    private static java.util.Vector writeDrivers = new java.util.Vector();
 
-    private static java.util.Vector drivers = new java.util.Vector();
+    /* write copy of the drivers vector */
+    private static java.util.Vector readDrivers = new java.util.Vector();
+
     private static int loginTimeout = 0;
     private static java.io.PrintWriter logWriter = null;
     private static java.io.PrintStream logStream = null;
@@ -567,11 +629,47 @@ public class DriverManager {
 
     private static Object logSync = new Object();
 
-    // Returns the caller's class loader, or null if none
+    /* Returns the caller's class loader, or null if none */
     private static native ClassLoader getCallerClassLoader();
 
 }
 
+// DriverService is a package-private support class.    
+class DriverService implements java.security.PrivilegedAction {
+        Iterator ps = null;
+	public DriverService() {};
+        public Object run() {
+
+	// uncomment the followin line before mustang integration 	
+        // Service s = Service.lookup(java.sql.Driver.class);
+	// ps = s.iterator();
+
+	ps = Service.providers(java.sql.Driver.class);
+
+	/* Load these drivers, so that they can be instantiated. 
+	 * It may be the case that the driver class may not be there
+         * i.e. there may be a packaged driver with the service class
+         * as implementation of java.sql.Driver but the actual class
+         * may be missing. In that case a sun.misc.ServiceConfigurationError
+         * will be thrown at runtime by the VM trying to locate 
+	 * and load the service.
+         * 
+	 * Adding a try catch block to catch those runtime errors
+         * if driver not available in classpath but it's 
+	 * packaged as service and that service is there in classpath.
+	 */
+		
+	try {
+           while (ps.hasNext()) {
+               ps.next();
+           } // end while
+	} catch(Throwable t) {
+	    // Do nothing
+	}
+        return null;
+    } //end run
+
+} //end DriverService
 
 // DriverInfo is a package-private support class.
 class DriverInfo {

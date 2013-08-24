@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDirectoryModel.java	1.31 04/05/05
+ * @(#)BasicDirectoryModel.java	1.35 06/07/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,6 +32,10 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
     private Vector directories = null;
     private int fetchID = 0;
 
+    private PropertyChangeSupport changeSupport;
+
+    private boolean busy = false;
+
     public BasicDirectoryModel(JFileChooser filechooser) {
 	this.filechooser = filechooser;
 	validateFileCache();
@@ -45,13 +49,29 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	   prop == JFileChooser.FILE_HIDING_CHANGED_PROPERTY ||
 	   prop == JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY) {
 	    validateFileCache();
+        } else if ("UI".equals(prop)) {
+            Object old = e.getOldValue();
+            if (old instanceof BasicFileChooserUI) {
+                BasicFileChooserUI ui = (BasicFileChooserUI) old;
+                BasicDirectoryModel model = ui.getModel();
+                if (model != null) {
+                    model.invalidateFileCache();
+                }
+            }
+        } else if ("JFileChooserDialogIsClosingProperty".equals(prop)) {
+            invalidateFileCache();
 	}
     }
 
     /**
-     * Obsolete - not used.
+     * This method is used to interrupt file loading thread.
      */
     public void invalidateFileCache() {
+        if (loadThread != null) {
+            loadThread.interrupt();
+            loadThread.cancelRunnables();
+            loadThread = null;
+        }
     }
 
     public Vector<File> getDirectories() {
@@ -96,7 +116,9 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    loadThread.interrupt();
             loadThread.cancelRunnables();
 	}
-	fetchID++;
+
+	setBusy(true, ++fetchID);
+
 	loadThread = new LoadFilesThread(currentDirectory, fetchID);
 	loadThread.start();
     }
@@ -190,6 +212,11 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	}
 
 	public void run() {
+	    run0();
+	    setBusy(false, fid);
+	}
+
+	public void run0() {
 	    FileSystemView fileSystem = filechooser.getFileSystemView();
 
 	    File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());
@@ -300,6 +327,109 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
             cancelRunnables(runnables);
 	}
    }
+
+
+    /**
+     * Adds a PropertyChangeListener to the listener list. The listener is
+     * registered for all bound properties of this class.
+     * <p>
+     * If <code>listener</code> is <code>null</code>,
+     * no exception is thrown and no action is performed.
+     *
+     * @param    listener  the property change listener to be added
+     *
+     * @see #removePropertyChangeListener
+     * @see #getPropertyChangeListeners
+     *
+     * @since 1.6
+     */
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+	if (changeSupport == null) {
+	    changeSupport = new PropertyChangeSupport(this);
+	}
+	changeSupport.addPropertyChangeListener(listener);
+    }
+
+    /**
+     * Removes a PropertyChangeListener from the listener list.
+     * <p>
+     * If listener is null, no exception is thrown and no action is performed.
+     *
+     * @param listener the PropertyChangeListener to be removed
+     *
+     * @see #addPropertyChangeListener
+     * @see #getPropertyChangeListeners
+     *
+     * @since 1.6
+     */
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+	if (changeSupport != null) {
+	    changeSupport.removePropertyChangeListener(listener);
+	}
+    }
+
+    /**
+     * Returns an array of all the property change listeners
+     * registered on this component.
+     *
+     * @return all of this component's <code>PropertyChangeListener</code>s
+     *         or an empty array if no property change
+     *         listeners are currently registered
+     *
+     * @see      #addPropertyChangeListener
+     * @see      #removePropertyChangeListener
+     * @see      java.beans.PropertyChangeSupport#getPropertyChangeListeners
+     *
+     * @since 1.6
+     */
+    public PropertyChangeListener[] getPropertyChangeListeners() {
+        if (changeSupport == null) {
+            return new PropertyChangeListener[0];
+        }
+        return changeSupport.getPropertyChangeListeners();
+    }
+
+    /**
+     * Support for reporting bound property changes for boolean properties. 
+     * This method can be called when a bound property has changed and it will
+     * send the appropriate PropertyChangeEvent to any registered
+     * PropertyChangeListeners.
+     *
+     * @param propertyName the property whose value has changed
+     * @param oldValue the property's previous value
+     * @param newValue the property's new value
+     *
+     * @since 1.6
+     */
+    protected void firePropertyChange(String propertyName, 
+				      Object oldValue, Object newValue) {
+	if (changeSupport != null) {
+	    changeSupport.firePropertyChange(propertyName,
+					     oldValue, newValue);
+	}
+    }
+
+
+    /**
+     * Set the busy state for the model. The model is considered
+     * busy when it is running a separate (interruptable)
+     * thread in order to load the contents of a directory.
+     */
+    private synchronized void setBusy(final boolean busy, int fid) {
+	if (fid == fetchID) {
+	    boolean oldValue = this.busy;
+	    this.busy = busy;
+
+	    if (changeSupport != null && busy != oldValue) {
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+			firePropertyChange("busy", !busy, busy);
+		    }
+		});
+	    }
+	}
+    }
+
 
     class DoChangeContents implements Runnable {
 	private List addFiles;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLErrorResources_cs.java,v 1.2 2004/02/17 04:14:26 minchau Exp $
+ * $Id: XMLErrorResources_cs.java,v 1.1.6.2 2005/09/15 07:45:38 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.res;
 
@@ -175,8 +175,14 @@ public class XMLErrorResources_cs extends ListResourceBundle
 
   // Error messages...
 
-  /** The lookup table for error messages.   */
-  public static final Object[][] contents = {
+  /**
+   * Get the lookup table for error messages
+   *
+   * @return The association list.
+   */
+  public Object[][] getContents()
+  {
+    return new Object[][] {
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
@@ -430,15 +436,6 @@ public class XMLErrorResources_cs extends ListResourceBundle
 
 
   };
-
-  /**
-   * Get the association list.
-   *
-   * @return The association list.
-   */
-  public Object[][] getContents()
-  {
-    return contents;
   }
 
   /**

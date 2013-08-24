@@ -1,7 +1,7 @@
 /*
- * @(#)Port.java	1.26 04/05/05
+ * @(#)Port.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package javax.sound.sampled;
  * object.
  *
  * @author Kara Kytle
- * @version 1.26, 04/05/05
+ * @version 1.27, 05/11/17
  * @since 1.3
  */
 public interface Port extends Line {
@@ -40,7 +40,7 @@ public interface Port extends Line {
      * lines matching the parameters specified in the <code>Port.Info</code> object.
      *
      * @author Kara Kytle
-     * @version 1.26, 04/05/05
+     * @version 1.27, 05/11/17
      * @since 1.3
      */
     public static class Info extends Line.Info {

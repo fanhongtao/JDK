@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Operators.java,v 1.3 2004/02/16 22:55:54 minchau Exp $
+ * $Id: Operators.java,v 1.2.4.1 2005/09/12 12:02:15 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
@@ -23,15 +23,34 @@ package com.sun.org.apache.xalan.internal.xsltc.runtime;
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
  */
-public interface Operators {
+public final class Operators {
     public static final int EQ = 0;
     public static final int NE = 1;
     public static final int GT = 2;
     public static final int LT = 3;
     public static final int GE = 4;
     public static final int LE = 5;
-	
-    public static final String[] names = {
-	"=", "!=", ">", "<", ">=", "<="
+
+    private static final String[] names = {
+    "=", "!=", ">", "<", ">=", "<="
     };
+    
+    public static final String getOpNames(int operator) {
+          return names[operator];
+    }
+    
+//  Swap operator array
+    private static final int[] swapOpArray = {
+        EQ,     // EQ
+        NE,     // NE
+        LT,     // GT
+        GT,     // LT 
+        LE,     // GE 
+        GE      // LE
+    };
+
+    public static final int swapOp(int operator) {
+          return swapOpArray[operator];
+    }    
+      
 }

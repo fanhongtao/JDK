@@ -1,7 +1,7 @@
 /*
- * @(#)TextAttribute.java	1.46 03/12/19
+ * @(#)TextAttribute.java	1.52 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,56 +33,208 @@ import java.util.HashMap;
  * <p>
  * <code>TextAttribute</code> instances are used as attribute keys to
  * identify attributes in 
+ * {@link java.awt.Font Font},
+ * {@link java.awt.font.TextLayout TextLayout},
  * {@link java.text.AttributedCharacterIterator AttributedCharacterIterator}, 
- * {@link java.awt.Font Font}, and other classes handling text 
- * attributes. Other constants defined in this class are used 
- * as attribute values.
+ * and other classes handling text attributes. Other constants defined
+ * in this class can be used as attribute values.
  * <p>
- * For each text attribute, the documentation describes:
+ * For each text attribute, the documentation provides:
  * <UL>
- *   <LI>the type of their values,
+ *   <LI>the type of its value,
+ *   <LI>the relevant predefined constants, if any
+ *   <LI>the default effect if the attribute is absent
  *   <LI>the valid values if there are limitations
- *   <LI>relevant constants
- *   <LI>the default effect if the attribute is absent (or has a
- *	<code>null</code> value).
  *   <LI>a description of the effect.
- *   <LI>the fallback behavior if the exact attribute requested is not 
- *	available.
  * </UL>
  * <p>
- * <H4>Types of Values</H4>
+ * <H4>Values</H4>
  * <UL>
  *   <LI>The values of attributes must always be immutable.
- *   <LI>Where a list of limitations is given, any value outside of that
- *   set is reserved for future use, and ignored at present.
- *   <LI>If the value is <code>null</code> or not of the proper type
- *	then it has the default effect. The effect of a particular value
- *	can be interpolated, especially in the case of multiple master
- *	fonts. This interpolation is done based on the nearest defined
- * 	constants above and below the request:<BR>
- *      <BLOCKQUOTE><TT>
- *	interpolation = (request - below)/(above - below);
- *	</TT></BLOCKQUOTE>
- * </UL>
- * <p>
- * <H4>Interpolation</H4>
- * <UL>
- *   <LI>Fonts should interpolate values in certain circumstances. For example,
- *   when the WEIGHT value is 2.13. If the nearest surrounding values
- *   in the font are WEIGHT_BOLD = 2.0 and WEIGHT_HEAVY = 2.25 then font would
- *   then interpret the WEIGHT request as being 52% of the way between what
- *   it considers BOLD and what it considers HEAVY. If the nearest surrounding
- *   values are WEIGHT_SEMIBOLD = 1.25 and WEIGHT_ULTRABOLD = 2.75 then the
- *   WEIGHT request is interpreted as being 58.67% of the way between SEMIBOLD
- *   and ULTRABOLD.
- *   <LI>Where a font does not have enough capability to handle a given 
- *   request, such as superscript, then it should simulate it to the best of 
- *   its ability.  To determine if simulation is being performed, the client
- *   should query the font to see what actual attributes were used.
+ *   <LI>Where value limitations are given, any value outside of that
+ *   set is reserved for future use; the value will be treated as
+ *   the default.
+ *   <LI>The value <code>null</code> is treated the same as the
+ *   default value and results in the default behavior.
+ *   <li>If the value is not of the proper type, the attribute
+ *   will be ignored.
+ *   <li>The identity of the value does not matter, only the actual
+ *   value.  For example, <code>TextAttribute.WEIGHT_BOLD</code> and 
+ *   <code>new Float(2.0)</code>
+ *   indicate the same <code>WEIGHT</code>.
+ *   <li>Attribute values of type <code>Number</code> (used for
+ *   <code>WEIGHT</code>, <code>WIDTH</code>, <code>POSTURE</code>,
+ *   <code>SIZE</code>, <code>JUSTIFICATION</code>, and
+ *   <code>TRACKING</code>) can vary along their natural range and are
+ *   not restricted to the predefined constants.
+ *   <code>Number.floatValue()</code> is used to get the actual value
+ *   from the <code>Number</code>.
+ *   <li>The values for <code>WEIGHT</code>, <code>WIDTH</code>, and
+ *   <code>POSTURE</code> are interpolated by the system, which
+ *   can select the 'nearest available' font or use other techniques to
+ *   approximate the user's request.
+ *
  * </UL>
  * 
- * @see java.text.AttributedCharacterIterator
+ * <h4>Summary of attributes</h4>
+ * <p>
+ * <font size="-1">
+ * <table align="center" border="0" cellspacing="0" cellpadding="2" width="%95"
+ *     summary="Key, value type, principal constants, and default value
+ *     behavior of all TextAttributes">
+ * <tr bgcolor="#ccccff">
+ * <th valign="TOP" align="CENTER">Key</th>
+ * <th valign="TOP" align="CENTER">Value Type</th>
+ * <th valign="TOP" align="CENTER">Principal Constants</th>
+ * <th valign="TOP" align="CENTER">Default Value</th>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #FAMILY}</td>
+ * <td valign="TOP">String</td>
+ * <td valign="TOP">See Font {@link java.awt.Font#DIALOG DIALOG},
+{@link java.awt.Font#DIALOG_INPUT DIALOG_INPUT},<br> {@link java.awt.Font#SERIF SERIF},
+{@link java.awt.Font#SANS_SERIF SANS_SERIF}, and {@link java.awt.Font#MONOSPACED MONOSPACED}.
+</td>
+ * <td valign="TOP">"Default" (use platform default)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #WEIGHT}</td>
+ * <td valign="TOP">Number</td>
+ * <td valign="TOP">WEIGHT_REGULAR, WEIGHT_BOLD</td>
+ * <td valign="TOP">WEIGHT_REGULAR</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #WIDTH}</td>
+ * <td valign="TOP">Number</td>
+ * <td valign="TOP">WIDTH_CONDENSED, WIDTH_REGULAR,<br>WIDTH_EXTENDED</td>
+ * <td valign="TOP">WIDTH_REGULAR</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #POSTURE}</td>
+ * <td valign="TOP">Number</td>
+ * <td valign="TOP">POSTURE_REGULAR, POSTURE_OBLIQUE</td>
+ * <td valign="TOP">POSTURE_REGULAR</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #SIZE}</td>
+ * <td valign="TOP">Number</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">12.0</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #TRANSFORM}</td>
+ * <td valign="TOP">{@link TransformAttribute}</td>
+ * <td valign="TOP">See TransformAttribute {@link TransformAttribute#IDENTITY IDENTITY}</td>
+ * <td valign="TOP">TransformAttribute.IDENTITY</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #SUPERSCRIPT}</td>
+ * <td valign="TOP">Integer</td>
+ * <td valign="TOP">SUPERSCRIPT_SUPER, SUPERSCRIPT_SUB</td>
+ * <td valign="TOP">0 (use the standard glyphs and metrics)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #FONT}</td>
+ * <td valign="TOP">{@link java.awt.Font}</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">null (do not override font resolution)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #CHAR_REPLACEMENT}</td>
+ * <td valign="TOP">{@link GraphicAttribute}</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">null (draw text using font glyphs)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #FOREGROUND}</td>
+ * <td valign="TOP">{@link java.awt.Paint}</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">null (use current graphics paint)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #BACKGROUND}</td>
+ * <td valign="TOP">{@link java.awt.Paint}</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">null (do not render background)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #UNDERLINE}</td>
+ * <td valign="TOP">Integer</td>
+ * <td valign="TOP">UNDERLINE_ON</td>
+ * <td valign="TOP">-1 (do not render underline)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #STRIKETHROUGH}</td>
+ * <td valign="TOP">Boolean</td>
+ * <td valign="TOP">STRIKETHROUGH_ON</td>
+ * <td valign="TOP">false (do not render strikethrough)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #RUN_DIRECTION}</td>
+ * <td valign="TOP">Boolean</td>
+ * <td valign="TOP">RUN_DIRECTION_LTR<br>RUN_DIRECTION_RTL</td>
+ * <td valign="TOP">null (use {@link java.text.Bidi} standard default)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #BIDI_EMBEDDING}</td>
+ * <td valign="TOP">Integer</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">0 (use base line direction)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #JUSTIFICATION}</td>
+ * <td valign="TOP">Number</td>
+ * <td valign="TOP">JUSTIFICATION_FULL</td>
+ * <td valign="TOP">JUSTIFICATION_FULL</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #INPUT_METHOD_HIGHLIGHT}</td>
+ * <td valign="TOP">{@link java.awt.im.InputMethodHighlight},<br>{@link java.text.Annotation}</td>
+ * <td valign="TOP">(see class)</td>
+ * <td valign="TOP">null (do not apply input highlighting)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #INPUT_METHOD_UNDERLINE}</td>
+ * <td valign="TOP">Integer</td>
+ * <td valign="TOP">UNDERLINE_LOW_ONE_PIXEL,<br>UNDERLINE_LOW_TWO_PIXEL</td>
+ * <td valign="TOP">-1 (do not render underline)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #SWAP_COLORS}</td>
+ * <td valign="TOP">Boolean</td>
+ * <td valign="TOP">SWAP_COLORS_ON</td>
+ * <td valign="TOP">false (do not swap colors)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #NUMERIC_SHAPING}</td>
+ * <td valign="TOP">{@link java.awt.font.NumericShaper}</td>
+ * <td valign="TOP">none</td>
+ * <td valign="TOP">null (do not shape digits)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #KERNING}</td>
+ * <td valign="TOP">Integer</td>
+ * <td valign="TOP">KERNING_ON</td>
+ * <td valign="TOP">0 (do not request kerning)</td>
+ * </tr>
+ * <tr bgcolor="#eeeeff">
+ * <td valign="TOP">{@link #LIGATURES}</td>
+ * <td valign="TOP">Integer</td>
+ * <td valign="TOP">LIGATURES_ON</td>
+ * <td valign="TOP">0 (do not form optional ligatures)</td>
+ * </tr>
+ * <tr>
+ * <td valign="TOP">{@link #TRACKING}</td>
+ * <td valign="TOP">Number</td>
+ * <td valign="TOP">TRACKING_LOOSE, TRACKING_TIGHT</td>
+ * <td valign="TOP">0 (do not add tracking)</td>
+ * </tr>
+ * </table>
+ * </font>
+ *
  * @see java.awt.Font 
+ * @see java.awt.font.TextLayout
+ * @see java.text.AttributedCharacterIterator 
  */
 public final class TextAttribute extends Attribute {
 
@@ -106,7 +258,8 @@ public final class TextAttribute extends Attribute {
      */
     protected Object readResolve() throws InvalidObjectException {
         if (this.getClass() != TextAttribute.class) {
-            throw new InvalidObjectException("subclass didn't correctly implement readResolve");
+            throw new InvalidObjectException(
+		"subclass didn't correctly implement readResolve");
         }
         
         TextAttribute instance = (TextAttribute) instanceMap.get(getName());
@@ -118,7 +271,8 @@ public final class TextAttribute extends Attribute {
     }
     
     // Serialization compatibility with Java 2 platform v1.2.
-    // 1.2 will throw an InvalidObjectException if ever asked to deserialize INPUT_METHOD_UNDERLINE.
+    // 1.2 will throw an InvalidObjectException if ever asked to 
+    // deserialize INPUT_METHOD_UNDERLINE.
     // This shouldn't happen in real life.
     static final long serialVersionUID = 7744112784117861702L;
 
@@ -127,677 +281,592 @@ public final class TextAttribute extends Attribute {
     //
 
     /**
-     * Attribute key for the unlocalized font family name.
-     *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1" 
-     *     SUMMARY="Key, Value, Constants, Default, and Description 
-     *     for TextAttribute FAMILY">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">FAMILY</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">String</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">&quot;Serif&quot;, &quot;SansSerif&quot;</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">Host default;</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">The name of the font family. If the family name is not 
-     * found, the default font is used. The name should not be the full
-     * font name or specify other attributes (such as the name
-     * &quot;Helvetica Bold&quot;). Such names might result in the default
-     * font if the name does not match a known
-     * family name.</TD></TR>
-     * </TABLE>
+     * Attribute key for the font name.  Values are instances of
+     * <b><code>String</code></b>.  The default value is
+     * <code>"Default"</code>, which causes the platform default font
+     * family to be used.
+     * 
+     * <p> The <code>Font</code> class defines constants for the logical
+     * font names 
+     * {@link java.awt.Font#DIALOG DIALOG}, 
+     * {@link java.awt.Font#DIALOG_INPUT DIALOG_INPUT}, 
+     * {@link java.awt.Font#SANS_SERIF SANS_SERIF}, 
+     * {@link java.awt.Font#SERIF SERIF}, and 
+     * {@link java.awt.Font#MONOSPACED MONOSPACED}.
+     * 
+     * <p>This defines the value passed as <code>name</code> to the 
+     * <code>Font</code> constructor.  Both logical and physical
+     * font names are allowed. If a font with the requested name
+     * is not found, the default font is used.
+     * 
+     * <p><em>Note:</em> This attribute is unfortunately misnamed, as
+     * it specifies the face name and not just the family.  Thus
+     * values such as "Lucida Sans Bold" will select that face if it
+     * exists.  Note, though, that if the requested face does not
+     * exist, the default will be used with <em>regular</em> weight.
+     * The "Bold" in the name is part of the face name, not a separate
+     * request that the font's weight be bold.</p> 
      */
-    public static final TextAttribute FAMILY = new TextAttribute("family");
+    public static final TextAttribute FAMILY = 
+	new TextAttribute("family");
 
     /**
-     * Attribute key for the weight of a font.
+     * Attribute key for the weight of a font.  Values are instances
+     * of <b><code>Number</code></b>.  The default value is
+     * <code>WEIGHT_REGULAR</code>.
+     * 
+     * <p>Several constant values are provided, see {@link
+     * #WEIGHT_EXTRA_LIGHT}, {@link #WEIGHT_LIGHT}, {@link
+     * #WEIGHT_DEMILIGHT}, {@link #WEIGHT_REGULAR}, {@link
+     * #WEIGHT_SEMIBOLD}, {@link #WEIGHT_MEDIUM}, {@link
+     * #WEIGHT_DEMIBOLD}, {@link #WEIGHT_BOLD}, {@link #WEIGHT_HEAVY},
+     * {@link #WEIGHT_EXTRABOLD}, and {@link #WEIGHT_ULTRABOLD}.  The
+     * value <code>WEIGHT_BOLD</code> corresponds to the
+     * style value <code>Font.BOLD</code> as passed to the
+     * <code>Font</code> constructor.
+     * 
+     * <p>The value is roughly the ratio of the stem width to that of
+     * the regular weight.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Constants, Description, Default, 
-     *     and Fallback for TextAttribute WEIGHT">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">WEIGHT</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Float</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">
-     * WEIGHT_EXTRA_LIGHT = 0.5,<BR>
-     * WEIGHT_LIGHT = 0.75,<BR>
-     * WEIGHT_DEMILIGHT = 0.875,<BR>
-     * WEIGHT_REGULAR = 1.0,<BR>
-     * WEIGHT_SEMIBOLD = 1.25,<BR>
-     * WEIGHT_MEDIUM = 1.5,<BR>
-     * WEIGHT_DEMIBOLD = 1.75,<BR>
-     * WEIGHT_BOLD = 2.0,<BR>
-     * WEIGHT_HEAVY = 2.25,<BR>
-     * WEIGHT_EXTRABOLD = 2.5,<BR>
-     * WEIGHT_ULTRABOLD = 2.75</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">WEIGHT_REGULAR</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">The value is roughly the ratio of the stem width to 
-     * that of the regular weight. If the font has a different value for
-     * specific constants, then the value is interpolated as described in
-     * the class description.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Fallback</TH>
-     * <TD VALIGN="TOP">Currently none. However, in the future, shape 
-     * manipulations might be<BR> available to simulate weight variations
-     * for fonts that don't have them.</TD></TR>
-     * </TABLE>
-     * <BR>
+     * <p>The system can interpolate the provided value.
      */
-    public static final TextAttribute WEIGHT = new TextAttribute("weight");
+    public static final TextAttribute WEIGHT = 
+	new TextAttribute("weight");
 
     /**
      * The lightest predefined weight.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_EXTRA_LIGHT = new Float(0.5f);
+    public static final Float WEIGHT_EXTRA_LIGHT = 
+	Float.valueOf(0.5f);
 
     /**
      * The standard light weight.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_LIGHT = new Float(0.75f);
+    public static final Float WEIGHT_LIGHT = 
+	Float.valueOf(0.75f);
 
     /**
-     * An intermediate weight between LIGHT and STANDARD.
-     * @see #WEIGHT
+     * An intermediate weight between <code>WEIGHT_LIGHT</code> and
+     * <code>WEIGHT_STANDARD</code>.
+     * @see #WEIGHT 
      */
-    public static final Float WEIGHT_DEMILIGHT = new Float(0.875f);
+    public static final Float WEIGHT_DEMILIGHT = 
+	Float.valueOf(0.875f);
 
     /**
-     * The standard weight. This weight is used if WEIGHT is unspecified.
+     * The standard weight. This is the default value for <code>WEIGHT</code>.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_REGULAR = new Float(1.0f);
+    public static final Float WEIGHT_REGULAR = 
+	Float.valueOf(1.0f);
 
     /**
-     * A moderately heavier weight than REGULAR.
+     * A moderately heavier weight than <code>WEIGHT_REGULAR</code>.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_SEMIBOLD = new Float(1.25f);
+    public static final Float WEIGHT_SEMIBOLD = 
+	Float.valueOf(1.25f);
 
     /**
-     * An intermediate weight between the REGULAR and BOLD weights.
-     * @see #WEIGHT
+     * An intermediate weight between <code>WEIGHT_REGULAR</code> and
+     * <code>WEIGHT_BOLD</code>.
+     * @see #WEIGHT 
      */
-    public static final Float WEIGHT_MEDIUM = new Float(1.5f);
+    public static final Float WEIGHT_MEDIUM = 
+	Float.valueOf(1.5f);
 
     /**
-     * A moderately lighter weight than BOLD.
+     * A moderately lighter weight than <code>WEIGHT_BOLD</code>.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_DEMIBOLD = new Float(1.75f);
+    public static final Float WEIGHT_DEMIBOLD = 
+	Float.valueOf(1.75f);
 
     /**
      * The standard bold weight.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_BOLD = new Float(2.0f);
+    public static final Float WEIGHT_BOLD = 
+	Float.valueOf(2.0f);
 
     /**
-     * A moderately heavier weight than BOLD.
+     * A moderately heavier weight than <code>WEIGHT_BOLD</code>.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_HEAVY = new Float(2.25f);
+    public static final Float WEIGHT_HEAVY = 
+	Float.valueOf(2.25f);
 
     /**
      * An extra heavy weight.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_EXTRABOLD = new Float(2.5f);
+    public static final Float WEIGHT_EXTRABOLD = 
+	Float.valueOf(2.5f);
 
     /**
      * The heaviest predefined weight.
      * @see #WEIGHT
      */
-    public static final Float WEIGHT_ULTRABOLD = new Float(2.75f);
+    public static final Float WEIGHT_ULTRABOLD = 
+	Float.valueOf(2.75f);
 
     /**
-     * Attribute key for the width of a font.
+     * Attribute key for the width of a font.  Values are instances of
+     * <b><code>Number</code></b>.  The default value is
+     * <code>WIDTH_REGULAR</code>.
+     * 
+     * <p>Several constant values are provided, see {@link
+     * #WIDTH_CONDENSED}, {@link #WIDTH_SEMI_CONDENSED}, {@link
+     * #WIDTH_REGULAR}, {@link #WIDTH_SEMI_EXTENDED}, {@link
+     * #WIDTH_EXTENDED}.
+     * 
+     * <p>The value is roughly the ratio of the advance width to that
+     * of the regular width.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Constants, Description, Default, 
-     *     and Fallback for TextAttribute WIDTH">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">WIDTH</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Float</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">WIDTH_CONDENSED = 0.75,<BR>
-     * WIDTH_SEMI_CONDENSED = 0.875,<BR>
-     * WIDTH_REGULAR = 1.0,<BR>
-     * WIDTH_SEMI_EXTENDED = 1.25,<BR>
-     * WIDTH_EXTENDED = 1.5</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">WIDTH_REGULAR</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">The value is roughly the ratio of the advance width 
-     * to that of the regular width. If the font has a different value for
-     * specific constants, then the value is interpolated as described in
-     * the class description.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Fallback</TH>
-     * <TD VALIGN="TOP">If a Narrow font is available and matches, use that. 
-     * Otherwise scale with a transform based on the value.</TD></TR>
-     * </TABLE>
+     * <p>The system can interpolate the provided value.
      */
-    public static final TextAttribute WIDTH = new TextAttribute("width");
+    public static final TextAttribute WIDTH = 
+	new TextAttribute("width");
 
     /**
      * The most condensed predefined width.
      * @see #WIDTH
      */
-    public static final Float WIDTH_CONDENSED = new Float(0.75f);
+    public static final Float WIDTH_CONDENSED = 
+	Float.valueOf(0.75f);
 
     /**
      * A moderately condensed width.
      * @see #WIDTH
      */
-    public static final Float WIDTH_SEMI_CONDENSED = new Float(0.875f);
+    public static final Float WIDTH_SEMI_CONDENSED = 
+	Float.valueOf(0.875f);
 
     /**
-     * The standard width. This width is used if WIDTH is unspecified.
-     * @see #WIDTH
+     * The standard width. This is the default value for
+     * <code>WIDTH</code>.
+     * @see #WIDTH 
      */
-    public static final Float WIDTH_REGULAR = new Float(1.0f);
+    public static final Float WIDTH_REGULAR =
+	Float.valueOf(1.0f);
 
     /**
      * A moderately extended width.
      * @see #WIDTH
      */
-    public static final Float WIDTH_SEMI_EXTENDED = new Float(1.25f);
+    public static final Float WIDTH_SEMI_EXTENDED = 
+	Float.valueOf(1.25f);
 
     /**
      * The most extended predefined width.
      * @see #WIDTH
      */
-    public static final Float WIDTH_EXTENDED = new Float(1.5f);
+    public static final Float WIDTH_EXTENDED = 
+	Float.valueOf(1.5f);
 
     /**
-     * Attribute key for the posture of a font.
+     * Attribute key for the posture of a font.  Values are instances
+     * of <b><code>Number</code></b>. The default value is
+     * <code>POSTURE_REGULAR</code>.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Constants, Default, Description, 
-     *     and Fallback for TextAttribute POSTURE">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">POSTURE</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Float</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">POSTURE_REGULAR = 0, <BR>
-     * POSTURE_OBLIQUE = 0.20</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">POSTURE_REGULAR</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">The value is interpreted generally as a skew slope, 
-     * positive leans to the right. If the font has a different value for
-     * specific constants, then the value is interpolated as described in
-     * the class description. With fonts that have italic faces, not only
-     * the skew of the character changes, but also the letter shapes
-     * might change.<BR>
-     * <B>Notes: </B><BR>
-     * To set the value by angle, use:<BR>
-     * <TT>value = new Float(Math.tan(Math.PI*degrees/180.0)</TT><BR>
-     * To determine the angle from the value, use:<BR>
-     * <TT>angle = Math.atan(value.floatValue())*180/Math.PI</TT></TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Fallback</TH>
-     * <TD VALIGN="TOP">If an Oblique font is available and matches, use that. 
-     * Otherwise skew with a transform using the posture value interpreted as 
-     * run/rise.</TD></TR>
-     * </TABLE>
+     * <p>Two constant values are provided, {@link #POSTURE_REGULAR}
+     * and {@link #POSTURE_OBLIQUE}. The value
+     * <code>POSTURE_OBLIQUE</code> corresponds to the style value
+     * <code>Font.ITALIC</code> as passed to the <code>Font</code>
+     * constructor.
      *
-     * @see java.awt.Font#getItalicAngle()
+     * <p>The value is roughly the slope of the stems of the font,
+     * expressed as the run over the rise.  Positive values lean right.
+     *
+     * <p>The system can interpolate the provided value.
+     *
+     * <p>This will affect the font's italic angle as returned by
+     * <code>Font.getItalicAngle</code>.
+     *
+     * @see java.awt.Font#getItalicAngle() 
      */
-    public static final TextAttribute POSTURE = new TextAttribute("posture");
+    public static final TextAttribute POSTURE = 
+	new TextAttribute("posture");
 
     /**
-     * The standard posture, upright.
-     * @see #POSTURE
+     * The standard posture, upright.  This is the default value for
+     * <code>POSTURE</code>.
+     * @see #POSTURE 
      */
-    public static final Float POSTURE_REGULAR = new Float(0.0f);
+    public static final Float POSTURE_REGULAR = 
+	Float.valueOf(0.0f);
 
     /**
      * The standard italic posture.
      * @see #POSTURE
      */
-    public static final Float POSTURE_OBLIQUE = new Float(0.20f);
+    public static final Float POSTURE_OBLIQUE = 
+	Float.valueOf(0.20f);
 
     /**
-     * Attribute key for the font size.
-     *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Default, Description, and Fallback 
-     *     for TextAttribute SIZE">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">SIZE</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Float</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">from System Properties</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">Represents point size. Note that the appearance and 
-     * metrics of a 12pt font with a 2X transform might be different than
-     * that of a 24 point font with no transform.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Fallback</TH>
-     * <TD VALIGN="TOP">Scale to provided size.</TD></TR>
-     * </TABLE>
+     * Attribute key for the font size.  Values are instances of
+     * <b><code>Number</code></b>.  The default value is 12pt.
+     * 
+     * <p>This corresponds to the <code>size</code> parameter to the 
+     * <code>Font</code> constructor.  
+     * 
+     * <p>Very large or small sizes will impact rendering performance,
+     * and the rendering system might not render text at these sizes.
+     * Negative sizes are illegal and result in the default size.
+     * 
+     * <p>Note that the appearance and metrics of a 12pt font with a
+     * 2x transform might be different than that of a 24 point font
+     * with no transform.  
      */
-    public static final TextAttribute SIZE = new TextAttribute("size");
+    public static final TextAttribute SIZE = 
+	new TextAttribute("size");
 
     /**
-     * Attribute key for the transform of a font.
+     * Attribute key for the transform of a font.  Values are
+     * instances of <b><code>TransformAttribute</code></b>.  The
+     * default value is <code>TransformAttribute.IDENTITY</code>.
+     * 
+     * <p>The <code>TransformAttribute</code> class defines the
+     * constant {@link TransformAttribute#IDENTITY IDENTITY}.
+     * 
+     * <p>This corresponds to the transform passed to
+     * <code>Font.deriveFont(AffineTransform)</code>.  Since that
+     * transform is mutable and <code>TextAttribute</code> values must
+     * not be, the <code>TransformAttribute</code> wrapper class is
+     * used.
+     * 
+     * <p>The primary intent is to support scaling and skewing, though
+     * other effects are possible.</p>
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Default, and Description for 
-     *     TextAttribute TRANSFORM">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">TRANSFORM</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">TransformAttribute</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">Identity transform</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP"><P>Used to transform glyphs rendered by this font. The 
-     * primary intent is to support scaling, skewing, and translation. In
-     * general, large rotations do not produce very useful results. The
-     * transform modifies both the glyph and the advance. The translations
-     * in the transform are interpreted as a ratio of the point size. That
-     * is, with a point size of 12, a translation of 0.5 results in a
-     * movement of 6 points.
-     * <p>
-     * The advance point of the transformed glyph is the transform of the 
-     * advance point projected onto the baseline. If the advance ends up
-     * to the left (top) of the glyph origin, the two points are swapped.
-     * <p>
-     * <P><EM>Example one</EM>: The point 
-     * size is 20, the original advance is 10.0, and the transform is a 60 
-     * degree counterclockwise rotation plus an offset up and to the right 
-     * of 0.1, -0.1. The translation results in an offset of &lt;2.0, -2.0&gt;.
-     * The original advance point is &lt;10.0, 0.0&gt;; after the rotation it 
-     * is &lt;6.0, -8.0&gt;; when adding the offset this becomes 
-     * &lt;8.0,-10.0&gt;, when projecting on the (horizontal) baseline this
-     * becomes the new advance point: &lt;8.0, 0.0&gt;. The advance width is
-     * the distance from the origin to the advance point: 8.0. The rotated
-     * glyph is rendered two points up and to the right of its origin and
-     * rotated.  This does not affect the baseline for subsequent
-     * glyphs.</P></TD></TR>
-     * </TABLE>
+     * <p>Some transforms will cause the baseline to be rotated and/or
+     * shifted.  The text and the baseline are transformed together so
+     * that the text follows the new baseline.  For example, with text
+     * on a horizontal baseline, the new baseline follows the
+     * direction of the unit x vector passed through the
+     * transform. Text metrics are measured against this new baseline.
+     * So, for example, with other things being equal, text rendered
+     * with a rotated TRANSFORM and an unrotated TRANSFORM will measure as
+     * having the same ascent, descent, and advance.</p>
+     *
+     * <p>In styled text, the baselines for each such run are aligned
+     * one after the other to potentially create a non-linear baseline
+     * for the entire run of text. For more information, see {@link
+     * TextLayout#getLayoutPath}.</p>
+     *
+     * @see TransformAttribute
+     * @see java.awt.geom.AffineTransform 
      */
-    public static final TextAttribute TRANSFORM = new TextAttribute("transform");
+     public static final TextAttribute TRANSFORM = 
+	new TextAttribute("transform");
 
     /**
-     * Attribute key for super and subscripting.
-     *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Constants, Default, Description, 
-     *     and Fallback for TextAttribute SUPERSCRIPT">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">SUPERSCRIPT</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Integer</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">SUPERSCRIPT_NONE = 0,<BR>
-     * SUPERSCRIPT_SUPER = 1,<BR>
-     * SUPERSCRIPT_SUB = -1</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">SUPERSCRIPT_NONE</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">Requests that the font display the characters with 
-     * glyphs at a particular superscript level: 0 = none, 1 =
-     * superscript, 2 = superscript of superscript,...-1
-     * = subscript, -2 = subscript of subscript,... Requests that the font 
-     * display text using default superscript (or subscript) glyphs and/or
-     * scaling.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Fallback</TH>
-     * <TD VALIGN="TOP">Use transform with translation of +/-1/2 and scale 
-     * of 2/3, progressively for each level. That is, for the transform at
-     * level N (with N != 0):<BR>
-     * <TT>offset = sign(N)*1/2*(2/3)^(abs(N)-1)<BR>
-     * scale = (2/3)^abs(N)</TT></TD></TR>
-     * </TABLE>
+     * Attribute key for superscripting and subscripting.  Values are
+     * instances of <b><code>Integer</code></b>.  The default value is
+     * 0, which means that no superscript or subscript is used.
+     * 
+     * <p>Two constant values are provided, see {@link
+     * #SUPERSCRIPT_SUPER} and {@link #SUPERSCRIPT_SUB}.  These have
+     * the values 1 and -1 respectively.  Values of
+     * greater magnitude define greater levels of superscript or
+     * subscripting, for example, 2 corresponds to super-superscript,
+     * 3 to super-super-superscript, and similarly for negative values
+     * and subscript, up to a level of 7 (or -7).  Values beyond this
+     * range are reserved; behavior is platform-dependent.
+     * 
+     * <p><code>SUPERSCRIPT</code> can
+     * impact the ascent and descent of a font.  The ascent
+     * and descent can never become negative, however.
      */
-    public static final TextAttribute SUPERSCRIPT = new TextAttribute("superscript");
+    public static final TextAttribute SUPERSCRIPT = 
+	new TextAttribute("superscript");
 
     /**
      * Standard superscript.
      * @see #SUPERSCRIPT
      */
-    public static final Integer SUPERSCRIPT_SUPER = new Integer(1);
+    public static final Integer SUPERSCRIPT_SUPER = 
+	Integer.valueOf(1);
 
     /**
      * Standard subscript.
      * @see #SUPERSCRIPT
      */
-    public static final Integer SUPERSCRIPT_SUB = new Integer(-1);
+    public static final Integer SUPERSCRIPT_SUB = 
+	Integer.valueOf(-1);
 
     /**
-     * Attribute key for the font to use to render text.
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Default, and Description for TextAttribute FONT">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">FONT</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Font</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">None, perform default resolution</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">A way for users to override the resolution of font 
-     * attributes into a <code>Font</code>, or force use of a particular
-     * <code>Font</code> instance.
-     * This also allows users to specify subclasses of <code>Font</code> in 
-     * cases where a <code>Font</code> can be subclassed.</TD></TR>
-     * </TABLE>
+     * Attribute key used to provide the font to use to render text.
+     * Values are instances of {@link java.awt.Font}.  The default
+     * value is null, indicating that normal resolution of a
+     * <code>Font</code> from attributes should be performed.
+     * 
+     * <p><code>TextLayout</code> and
+     * <code>AttributedCharacterIterator</code> work in terms of
+     * <code>Maps</code> of <code>TextAttributes</code>.  Normally,
+     * all the attributes are examined and used to select and
+     * configure a <code>Font</code> instance.  If a <code>FONT</code>
+     * attribute is present, though, its associated <code>Font</code>
+     * will be used.  This provides a way for users to override the
+     * resolution of font attributes into a <code>Font</code>, or
+     * force use of a particular <code>Font</code> instance.  This
+     * also allows users to specify subclasses of <code>Font</code> in
+     * cases where a <code>Font</code> can be subclassed.
+     *
+     * <p><code>FONT</code> is used for special situations where
+     * clients already have a <code>Font</code> instance but still
+     * need to use <code>Map</code>-based APIs.  Typically, there will
+     * be no other attributes in the <code>Map</code> except the
+     * <code>FONT</code> attribute.  With <code>Map</code>-based APIs
+     * the common case is to specify all attributes individually, so
+     * <code>FONT</code> is not needed or desireable.
+     *
+     * <p>However, if both <code>FONT</code> and other attributes are
+     * present in the <code>Map</code>, the rendering system will
+     * merge the attributes defined in the <code>Font</code> with the
+     * additional attributes.  This merging process classifies
+     * <code>TextAttributes</code> into two groups.  One group, the
+     * 'primary' group, is considered fundamental to the selection and
+     * metric behavior of a font.  These attributes are
+     * <code>FAMILY</code>, <code>WEIGHT</code>, <code>WIDTH</code>,
+     * <code>POSTURE</code>, <code>SIZE</code>,
+     * <code>TRANSFORM</code>, <code>SUPERSCRIPT</code>, and
+     * <code>TRACKING</code>. The other group, the 'secondary' group,
+     * consists of all other defined attributes, with the exception of
+     * <code>FONT</code> itself.
+     * 
+     * <p>To generate the new <code>Map</code>, first the
+     * <code>Font</code> is obtained from the <code>FONT</code>
+     * attribute, and <em>all</em> of its attributes extracted into a
+     * new <code>Map</code>.  Then only the <em>secondary</em>
+     * attributes from the original <code>Map</code> are added to
+     * those in the new <code>Map</code>.  Thus the values of primary
+     * attributes come solely from the <code>Font</code>, and the
+     * values of secondary attributes originate with the
+     * <code>Font</code> but can be overridden by other values in the
+     * <code>Map</code>.
+     * 
+     * <p><em>Note:</em><code>Font's</code> <code>Map</code>-based
+     * constructor and <code>deriveFont</code> methods do not process
+     * the <code>FONT</code> attribute, as these are used to create
+     * new <code>Font</code> objects.  Instead, {@link
+     * java.awt.Font#getFont(Map) Font.getFont(Map)} should be used to
+     * handle the <code>FONT</code> attribute.
+     *
+     * @see java.awt.Font 
      */
-    public static final TextAttribute FONT = new TextAttribute("font");
+    public static final TextAttribute FONT = 
+	new TextAttribute("font");
 
     /**
-     * Attribute key for a user_defined glyph to display in the text in lieu 
-     * of a character.
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, and Description for TextAttribute CHAR_REPLACEMENT">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">CHAR_REPLACEMENT</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">GraphicAttribute</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">Allows the user to specify an empty position plus 
-     * metric information. This method is used to reserve space for a graphic
-     * or other embedded component. Required for
-     * correct BIDI position of 'inline' components within a line. An optional
-     * convenience method allows drawing for simple cases. Follows the 
-     * Microsoft model: the character that this is applied to should be 
-     * <code>&#92;uFFFC</code>.</TD></TR>
-     * </TABLE>
+     * Attribute key for a user-defined glyph to display in lieu 
+     * of the font's standard glyph for a character.  Values are
+     * intances of GraphicAttribute.  The default value is null,
+     * indicating that the standard glyphs provided by the font
+     * should be used.
+     * 
+     * <p>This attribute is used to reserve space for a graphic or
+     * other component embedded in a line of text.  It is required for
+     * correct positioning of 'inline' components within a line when
+     * bidirectional reordering (see {@link java.text.Bidi}) is
+     * performed.  Each character (Unicode code point) will be
+     * rendered using the provided GraphicAttribute. Typically, the
+     * characters to which this attribute is applied should be
+     * <code>&#92;uFFFC</code>.
+     * 
+     * <p>The GraphicAttribute determines the logical and visual
+     * bounds of the text; the actual Font values are ignored.
+     *
+     * @see GraphicAttribute 
      */
-    public static final TextAttribute CHAR_REPLACEMENT = new TextAttribute("char_replacement");
+    public static final TextAttribute CHAR_REPLACEMENT = 
+	new TextAttribute("char_replacement");
 
     //
     // Adornments added to text.
     //
 
     /**
-     * Attribute key for the foreground paint
-     *  adornment.
+     * Attribute key for the paint used to render the text.  Values are
+     * instances of <b><code>Paint</code></b>.  The default value is
+     * null, indicating that the <code>Paint</code> set on the
+     * <code>Graphics2D</code> at the time of rendering is used.
+     * 
+     * <p>Glyphs will be rendered using this
+     * <code>Paint</code> regardless of the <code>Paint</code> value
+     * set on the <code>Graphics</code> (but see {@link #SWAP_COLORS}).
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Default, and Description of TextAttribute FOREGROUND">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">FOREGROUND</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Paint</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">Color.black</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">Specify the foreground Paint (or Color) of the text.</TD></TR>
-     * </TABLE>
+     * @see java.awt.Paint
+     * @see #SWAP_COLORS 
      */
-    public static final TextAttribute FOREGROUND = new TextAttribute("foreground");
+    public static final TextAttribute FOREGROUND = 
+	new TextAttribute("foreground");
 
     /**
-     * Attribute key for the background Paint adornment.
+     * Attribute key for the paint used to render the background of
+     * the text.  Values are instances of <b><code>Paint</code></b>.
+     * The default value is null, indicating that the background
+     * should not be rendered.
+     * 
+     * <p>The logical bounds of the text will be filled using this
+     * <code>Paint</code>, and then the text will be rendered on top
+     * of it (but see {@link #SWAP_COLORS}).
+     * 
+     * <p>The visual bounds of the text is extended to include the
+     * logical bounds, if necessary.  The outline is not affected.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Default, and Description of TextAttribute BACKGROUND">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">BACKGROUND</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Paint</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">null</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">Specify the background Paint (or Color) of the text.</TD></TR>
-     * </TABLE>
+     * @see java.awt.Paint
+     * @see #SWAP_COLORS 
      */
-    public static final TextAttribute BACKGROUND = new TextAttribute("background");
+    public static final TextAttribute BACKGROUND = 
+	new TextAttribute("background");
 
     /**
-     * Attribute key for underline adornments.
-     *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1" 
-     *     SUMMARY="Key, Value, Constants, Default, Description, 
-     *     and Fallback for TextAttribute UNDERLINE">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">UNDERLINE</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Integer</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">UNDERLINE_ON = 0</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">none</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">An embellishment added to the glyphs rendered by a 
-     * font.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Fallback</TH>
-     * <TD VALIGN="TOP"></TD></TR>
-     * </TABLE>
+     * Attribute key for underline.  Values are instances of
+     * <b><code>Integer</code></b>.  The default value is -1, which
+     * means no underline.
+     * 
+     * <p>The constant value {@link #UNDERLINE_ON} is provided.
+     * 
+     * <p>The underline affects both the visual bounds and the outline
+     * of the text.  
      */
-    public static final TextAttribute UNDERLINE = new TextAttribute("underline");
+    public static final TextAttribute UNDERLINE = 
+	new TextAttribute("underline");
 
     /**
-     * Standard underline at the roman baseline for roman text, and below
-     * the decenders for other text.
+     * Standard underline.
      *
      * @see #UNDERLINE
      */
-    public static final Integer UNDERLINE_ON = new Integer((byte)0);
+    public static final Integer UNDERLINE_ON = 
+	Integer.valueOf(0);
 
     /**
-     * Attribute key for the strikethrough adornment.
-     *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Constants, Default, and Description
-     *     for TextAttribute STRIKETHROUGH">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">STRIKETHROUGH</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Boolean</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">true = on, false = off</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">off</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">An embellishment added to the glyphs rendered by a 
-     * font.</TD></TR>
-     * </TABLE>
+     * Attribute key for strikethrough.  Values are instances of
+     * <b><code>Boolean</code></b>.  The default value is
+     * <code>false</code>, which means no strikethrough.
+     * 
+     * <p>The constant value {@link #STRIKETHROUGH_ON} is provided.
+     * 
+     * <p>The strikethrough affects both the visual bounds and the
+     * outline of the text.
      */
-    public static final TextAttribute STRIKETHROUGH = new TextAttribute("strikethrough");
+    public static final TextAttribute STRIKETHROUGH = 
+	new TextAttribute("strikethrough");
 
     /**
      * A single strikethrough.
      *
      * @see #STRIKETHROUGH
      */
-    public static final Boolean STRIKETHROUGH_ON = new Boolean(true);
+    public static final Boolean STRIKETHROUGH_ON = 
+	Boolean.TRUE;
 
     //
     // Attributes use to control layout of text on a line.
     //
 
     /**
-     * Attribute key for the run direction of the line.
+     * Attribute key for the run direction of the line.  Values are
+     * instances of <b><code>Boolean</code></b>.  The default value is
+     * null, which indicates that the standard Bidi algorithm for
+     * determining run direction should be used with the value {@link
+     * java.text.Bidi#DIRECTION_DEFAULT_LEFT_TO_RIGHT}.
+     * 
+     * <p>The constants {@link #RUN_DIRECTION_RTL} and {@link
+     * #RUN_DIRECTION_LTR} are provided.
+     * 
+     * <p>This determines the value passed to the {@link
+     * java.text.Bidi} constructor to select the primary direction of
+     * the text in the paragraph.
+     * 
+     * <p><em>Note:</em> This attribute should have the same value for
+     * all the text in a paragraph, otherwise the behavior is
+     * undetermined.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Constants, Default, and Description 
-     *     of TextAttribute RUN_DIRECTION">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">RUN_DIRECTION</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Boolean</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">RUN_DIRECTION_LTR = true, RUN_DIRECTION_RTL = false
-     * </TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">Use the default Unicode base direction from the BIDI 
-     * algorithm.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP"><P>Specifies which base run direction to use when 
-     * positioning mixed directional runs within a paragraph. If this value is
-     * RUN_DIRECTION_DEFAULT, <code>TextLayout</code> uses the default Unicode
-     * base direction from the BIDI algorithm.</P>
-     * <P><I>This attribute should have the same value over the whole 
-     * paragraph.</I></TD></TR>
-     * </TABLE>
+     * @see java.text.Bidi 
      */
-    public static final TextAttribute RUN_DIRECTION = new TextAttribute("run_direction");
+    public static final TextAttribute RUN_DIRECTION = 
+	new TextAttribute("run_direction");
 
     /**
      * Left-to-right run direction.
      * @see #RUN_DIRECTION
      */
-    public static final Boolean RUN_DIRECTION_LTR = new Boolean(false);
+    public static final Boolean RUN_DIRECTION_LTR = 
+	Boolean.FALSE;
 
     /**
      * Right-to-left run direction.
      * @see #RUN_DIRECTION
      */
-    public static final Boolean RUN_DIRECTION_RTL = new Boolean(true);
+    public static final Boolean RUN_DIRECTION_RTL = 
+	Boolean.TRUE;
 
     /**
-     * Attribute key for the embedding level for nested bidirectional runs.
+     * Attribute key for the embedding level of the text.  Values are
+     * instances of <b><code>Integer</code></b>.  The default value is
+     * <code>null</code>, indicating that the the Bidirectional
+     * algorithm should run without explicit embeddings.
+     * 
+     * <p>Positive values 1 through 61 are <em>embedding</em> levels,
+     * negative values -1 through -61 are <em>override</em> levels.
+     * The value 0 means that the base line direction is used.  These
+     * levels are passed in the embedding levels array to the {@link
+     * java.text.Bidi} constructor.
+     * 
+     * <p><em>Note:</em> When this attribute is present anywhere in
+     * a paragraph, then any Unicode bidi control characters (RLO,
+     * LRO, RLE, LRE, and PDF) in the paragraph are
+     * disregarded, and runs of text where this attribute is not
+     * present are treated as though it were present and had the value
+     * 0.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Limits, Default, and Description 
-     *     of TextAttribute BIDI_EMBEDDING">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">BIDI_EMBEDDING</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Integer</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Limits</TH>
-     * <TD VALIGN="TOP">Positive values 1 through 61 are <I>embedding</I>
-     * levels, negative values<BR> through -61 are <I>override</I> levels
-     * </TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">Use standard BIDI to compute levels from formatting
-     * characters in the text.</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP">Specifies the bidi embedding level of the character.
-     * When this attribute is present anywhere in a paragraph, then the 
-     * Unicode characters RLO, LRO, RLE, LRE, PDF are disregarded in the BIDI 
-     * analysis of that paragraph. 
-     * See the Unicode Standard v. 2.0, section 3-11.
-     * </TD></TR>
-     * </TABLE>
+     * @see java.text.Bidi 
      */
-    public static final TextAttribute BIDI_EMBEDDING = new TextAttribute("bidi_embedding");
+    public static final TextAttribute BIDI_EMBEDDING = 
+	new TextAttribute("bidi_embedding");
 
     /**
-     * Attribute key for the justification of a paragraph.
+     * Attribute key for the justification of a paragraph.  Values are
+     * instances of <b><code>Number</code></b>.  The default value is
+     * 1, indicating that justification should use the full width
+     * provided.  Values are pinned to the range [0..1].
+     * 
+     * <p>The constants {@link #JUSTIFICATION_FULL} and {@link
+     * #JUSTIFICATION_NONE} are provided.
+     * 
+     * <p>Specifies the fraction of the extra space to use when
+     * justification is requested on a <code>TextLayout</code>. For
+     * example, if the line is 50 points wide and it is requested to
+     * justify to 70 points, a value of 0.75 will pad to use
+     * three-quarters of the remaining space, or 15 points, so that
+     * the resulting line will be 65 points in length.
+     * 
+     * <p><em>Note:</em> This should have the same value for all the
+     * text in a paragraph, otherwise the behavior is undetermined.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Limits, Default, and Description
-     *     of TextAttribute JUSTIFICATION">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">JUSTIFICATION</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Float</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Limits</TH>
-     * <TD VALIGN="TOP">0.0 through1.0</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">1.0</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Description</TH>
-     * <TD VALIGN="TOP"><P>Specifies which fraction of the extra space to use 
-     * when justification is requested. For example, if the line is 50 points
-     * wide and the margins are 70 points apart, a value of 0.5 means that the
-     * line is padded to reach a width of 60 points.</P>
-     * <P><I>This attribute should have the same value over the whole
-     * paragraph.</I></TD></TR>
-     * </TABLE>
+     * @see TextLayout#getJustifiedLayout 
      */
-    public static final TextAttribute JUSTIFICATION = new TextAttribute("justification");
+    public static final TextAttribute JUSTIFICATION =
+	new TextAttribute("justification");
 
     /**
-     * Justify the line to the full requested width.
-     * @see #JUSTIFICATION
+     * Justify the line to the full requested width.  This is the
+     * default value for <code>JUSTIFICATION</code>.
+     * @see #JUSTIFICATION 
      */
-    public static final Float JUSTIFICATION_FULL = new Float(1.0f);
+    public static final Float JUSTIFICATION_FULL = 
+	Float.valueOf(1.0f);
 
     /**
      * Do not allow the line to be justified.
      * @see #JUSTIFICATION
      */
-    public static final Float JUSTIFICATION_NONE = new Float(0.0f);
+    public static final Float JUSTIFICATION_NONE = 
+	Float.valueOf(0.0f);
 
     //
     // For use by input method.
@@ -805,100 +874,226 @@ public final class TextAttribute extends Attribute {
 
     /**
      * Attribute key for input method highlight styles.
-     * <p>Values are instances of 
-     * {@link java.awt.im.InputMethodHighlight InputMethodHighlight}.
-     * These instances should be wrapped in 
-     * {@link java.text.Annotation Annotation} instances
-     * if segments need to be highlighted separately.
-     * <p>
-     * Input method highlights are used while text is being composed
-     * using an input method. Text editing components should retain them
-     * even if they generally only deal with unstyled text, and make them
-     * available to the drawing routines.
+     * 
+     * <p>Values are instances of {@link
+     * java.awt.im.InputMethodHighlight} or {@link
+     * java.text.Annotation}.  The default value is <code>null</code>,
+     * which means that input method styles should not be applied
+     * before rendering.
+     * 
+     * <p>If adjacent runs of text with the same
+     * <code>InputMethodHighlight</code> need to be rendered
+     * separately, the <code>InputMethodHighlights</code> should be
+     * wrapped in <code>Annotation</code> instances.
+     * 
+     * <p>Input method highlights are used while text is being
+     * composed by an input method. Text editing components should
+     * retain them even if they generally only deal with unstyled
+     * text, and make them available to the drawing routines.
+     * 
+     * @see java.awt.Font
      * @see java.awt.im.InputMethodHighlight
+     * @see java.text.Annotation 
      */
-    public static final TextAttribute INPUT_METHOD_HIGHLIGHT = new TextAttribute("input method highlight");
+    public static final TextAttribute INPUT_METHOD_HIGHLIGHT = 
+	new TextAttribute("input method highlight");
 
     /**
-     * Attribute key for input method underline adornments.
+     * Attribute key for input method underlines.  Values
+     * are instances of <b><code>Integer</code></b>.  The default
+     * value is <code>-1</code>, which means no underline.
+     * 
+     * <p>Several constant values are provided, see {@link
+     * #UNDERLINE_LOW_ONE_PIXEL}, {@link #UNDERLINE_LOW_TWO_PIXEL},
+     * {@link #UNDERLINE_LOW_DOTTED}, {@link #UNDERLINE_LOW_GRAY}, and
+     * {@link #UNDERLINE_LOW_DASHED}.
+     * 
+     * <p>This may be used in conjunction with {@link #UNDERLINE} if
+     * desired.  The primary purpose is for use by input methods.
+     * Other use of these underlines for simple ornamentation might
+     * confuse users.
      *
-     * <P><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"
-     *     SUMMARY="Key, Value, Limits, Default and Description
-     *     of TextAttribute INPUT_METHOD_UNDERLINE">
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Key</TH>
-     * <TD VALIGN="TOP">INPUT_METHOD_UNDERLINE</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Value</TH>
-     * <TD VALIGN="TOP">Integer</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">UNDERLINE_LOW_ONE_PIXEL, UNDERLINE_LOW_TWO_PIXEL,
-     *     UNDERLINE_LOW_DOTTED, UNDERLINE_LOW_GRAY, UNDERLINE_LOW_DASHED</TD></TR>
-     * <TR>
-     * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Default</TH>
-     * <TD VALIGN="TOP">no underline</TD></TR>
-     * </TABLE>
-     * @since 1.3
+     * <p>The input method underline affects both the visual bounds and
+     * the outline of the text.
+     *
+     * @since 1.3 
      */
-    public static final TextAttribute INPUT_METHOD_UNDERLINE
-                 = new TextAttribute("input method underline");
+    public static final TextAttribute INPUT_METHOD_UNDERLINE =
+	new TextAttribute("input method underline");
 
     /**
      * Single pixel solid low underline.
      * @see #INPUT_METHOD_UNDERLINE
      * @since 1.3
      */
-    public static final Integer UNDERLINE_LOW_ONE_PIXEL = new Integer(1);
+    public static final Integer UNDERLINE_LOW_ONE_PIXEL = 
+	Integer.valueOf(1);
 
     /**
      * Double pixel solid low underline.
      * @see #INPUT_METHOD_UNDERLINE
      * @since 1.3
      */
-    public static final Integer UNDERLINE_LOW_TWO_PIXEL = new Integer(2);
+    public static final Integer UNDERLINE_LOW_TWO_PIXEL = 
+	Integer.valueOf(2);
 
     /**
      * Single pixel dotted low underline.
      * @see #INPUT_METHOD_UNDERLINE
      * @since 1.3
      */
-    public static final Integer UNDERLINE_LOW_DOTTED = new Integer(3);
+    public static final Integer UNDERLINE_LOW_DOTTED = 
+	Integer.valueOf(3);
 
     /**
      * Double pixel gray low underline.
      * @see #INPUT_METHOD_UNDERLINE
      * @since 1.3
      */
-    public static final Integer UNDERLINE_LOW_GRAY = new Integer(4);
+    public static final Integer UNDERLINE_LOW_GRAY = 
+	Integer.valueOf(4);
 
     /**
      * Single pixel dashed low underline.
      * @see #INPUT_METHOD_UNDERLINE
      * @since 1.3
      */
-    public static final Integer UNDERLINE_LOW_DASHED = new Integer(5);
+    public static final Integer UNDERLINE_LOW_DASHED = 
+	Integer.valueOf(5);
 
     /**
-     * Attribute key for swapping foreground and background Paints (or Colors).
+     * Attribute key for swapping foreground and background
+     * <code>Paints</code>.  Values are instances of
+     * <b><code>Boolean</code></b>.  The default value is
+     * <code>false</code>, which means do not swap colors.
+     * 
+     * <p>The constant value {@link #SWAP_COLORS_ON} is defined.
+     * 
+     * <p>If the {@link #FOREGROUND} attribute is set, its
+     * <code>Paint</code> will be used as the background, otherwise
+     * the <code>Paint</code> currently on the <code>Graphics</code>
+     * will be used.  If the {@link #BACKGROUND} attribute is set, its
+     * <code>Paint</code> will be used as the foreground, otherwise
+     * the system will find a contrasting color to the
+     * (resolved) background so that the text will be visible.
      *
-     * <p>Values are instances of <code>Boolean</code>.
-     * The default is not to swap the foreground and background.
-     * If the foreground and background attributes are both defined,
-     * this causes them to be swapped when rendering text.  If either is
-     * defaulted, the exact effect is undefined--generally it will produce
-     * an 'inverted' appearance.
+     * @see #FOREGROUND
+     * @see #BACKGROUND 
      */
-    public static final TextAttribute SWAP_COLORS = new TextAttribute("swap_colors");
+    public static final TextAttribute SWAP_COLORS = 
+	new TextAttribute("swap_colors");
 
-    /** Swap foreground and background. */
-    public static final Boolean SWAP_COLORS_ON = new Boolean(true);
+    /** 
+     * Swap foreground and background. 
+     * @see #SWAP_COLORS
+     * @since 1.3
+     */
+    public static final Boolean SWAP_COLORS_ON = 
+	Boolean.TRUE;
 
     /**
-     * Attribute key for converting ASCII decimal digits to other decimal ranges.
+     * Attribute key for converting ASCII decimal digits to other
+     * decimal ranges.  Values are instances of {@link NumericShaper}.
+     * The default is <code>null</code>, which means do not perform
+     * numeric shaping.
+     * 
+     * <p>When a numeric shaper is defined, the text is first
+     * processed by the shaper before any other analysis of the text
+     * is performed.
+     * 
+     * <p><em>Note:</em> This should have the same value for all the
+     * text in the paragraph, otherwise the behavior is undetermined.
      *
-     * <p>Values are instances of <code>NumericShaping</code>.
-     * The default is not to perform numeric shaping.
+     * @see NumericShaper
+     * @since 1.4 
      */
-    public static final TextAttribute NUMERIC_SHAPING = new TextAttribute("numeric_shaping");
+    public static final TextAttribute NUMERIC_SHAPING = 
+	new TextAttribute("numeric_shaping");
+
+    /**
+     * Attribute key to request kerning. Values are instances of
+     * <b><code>Integer</code></b>.  The default value is
+     * <code>0</code>, which does not request kerning.
+     * 
+     * <p>The constant value {@link #KERNING_ON} is provided.
+     * 
+     * <p>The default advances of single characters are not
+     * appropriate for some character sequences, for example "To" or
+     * "AWAY".  Without kerning the adjacent characters appear to be
+     * separated by too much space.  Kerning causes selected sequences
+     * of characters to be spaced differently for a more pleasing
+     * visual appearance.
+     * 
+     * @since 1.6 
+     */
+    public static final TextAttribute KERNING = 
+	new TextAttribute("kerning");
+
+    /**
+     * Request standard kerning.
+     * @see #KERNING
+     * @since 1.6
+     */
+    public static final Integer KERNING_ON = 
+	Integer.valueOf(1);
+
+
+    /**
+     * Attribute key for enabling optional ligatures. Values are
+     * instances of <b><code>Integer</code></b>.  The default value is
+     * <code>0</code>, which means do not use optional ligatures.
+     * 
+     * <p>The constant value {@link #LIGATURES_ON} is defined.
+     * 
+     * <p>Ligatures required by the writing system are always enabled.
+     *
+     * @since 1.6 
+     */
+    public static final TextAttribute LIGATURES = 
+	new TextAttribute("ligatures");
+
+    /**
+     * Request standard optional ligatures.
+     * @see #LIGATURES
+     * @since 1.6
+     */
+    public static final Integer LIGATURES_ON = 
+	Integer.valueOf(1);
+    
+    /**
+     * Attribute key to control tracking.  Values are instances of
+     * <b><code>Number</code></b>.  The default value is
+     * <code>0</code>, which means no additional tracking.
+     * 
+     * <p>The constant values {@link #TRACKING_TIGHT} and {@link
+     * #TRACKING_LOOSE} are provided.
+     * 
+     * <p>The tracking value is multiplied by the font point size and
+     * passed through the font transform to determine an additional
+     * amount to add to the advance of each glyph cluster.  Positive
+     * tracking values will inhibit formation of optional ligatures.
+     * Tracking values are typically between <code>-0.1</code> and
+     * <code>0.3</code>; values outside this range are generally not
+     * desireable.
+     *
+     * @since 1.6 
+     */
+    public static final TextAttribute TRACKING = 
+	new TextAttribute("tracking");
+
+    /**
+     * Perform tight tracking.
+     * @see #TRACKING
+     * @since 1.6
+     */
+    public static final Float TRACKING_TIGHT = 
+	Float.valueOf(-.04f);
+
+    /**
+     * Perform loose tracking.
+     * @see #TRACKING
+     * @since 1.6
+     */
+    public static final Float TRACKING_LOOSE = 
+	Float.valueOf(.04f);
 }

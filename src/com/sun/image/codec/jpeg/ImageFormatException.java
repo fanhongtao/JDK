@@ -1,7 +1,7 @@
 /*
- * @(#)ImageFormatException.java	1.8 03/12/19
+ * @(#)ImageFormatException.java	1.10 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ package com.sun.image.codec.jpeg;
  * @author  Tom Sausner
  * @see     JPEGImageEncoder
  * @see     JPEGImageDecoder
- * @since   JDK1.2
+ * @since   1.2
  */
 public
 class ImageFormatException extends RuntimeException {

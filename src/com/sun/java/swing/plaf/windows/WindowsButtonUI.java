@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsButtonUI.java	1.36 06/03/22
+ * @(#)WindowsButtonUI.java	1.45 06/09/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,11 @@ import javax.swing.*;
 
 import java.awt.*;
 
+import static com.sun.java.swing.plaf.windows.TMSchema.*;
+import static com.sun.java.swing.plaf.windows.TMSchema.Part.*;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
+
 /**
  * Windows button.
  * <p>
@@ -24,7 +29,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.36 03/22/06
+ * @version 1.45 09/11/06
  * @author Jeff Dinkins
  *
  */
@@ -93,14 +98,6 @@ public class WindowsButtonUI extends BasicButtonUI
     } 
 	
     protected void paintFocus(Graphics g, AbstractButton b, Rectangle viewRect, Rectangle textRect, Rectangle iconRect){
-	if (b.getParent() instanceof JToolBar) {
-	    // Windows doesn't draw the focus rect for buttons in a toolbar.
-	    return;
-	}
-	    
-	if (XPStyle.getXP() != null) {
-	    return;
-	}
 
 	// focus painted same color as text on Basic??
 	int width = b.getWidth();
@@ -146,9 +143,78 @@ public class WindowsButtonUI extends BasicButtonUI
 	super.paint(g, c);
     }
 
-    static String getXPButtonType(AbstractButton b) {
+    static Part getXPButtonType(AbstractButton b) {
+        if(b instanceof JCheckBox) {
+            return Part.BP_CHECKBOX;
+        }
+        if(b instanceof JRadioButton) {
+            return Part.BP_RADIOBUTTON;
+        }
         boolean toolbar = (b.getParent() instanceof JToolBar);
-        return toolbar ? "toolbar.button" : "button.pushbutton";
+        return toolbar ? Part.TP_BUTTON : Part.BP_PUSHBUTTON;
+    }
+
+    static State getXPButtonState(AbstractButton b) {
+        Part part = getXPButtonType(b);
+        ButtonModel model = b.getModel();
+        State state = State.NORMAL;
+        switch (part) {
+        case BP_RADIOBUTTON:
+            /* falls through */            
+        case BP_CHECKBOX:
+            if (! model.isEnabled()) {
+                state = (model.isSelected()) ? State.CHECKEDDISABLED 
+                    : State.UNCHECKEDDISABLED;
+            } else if (model.isPressed() && model.isArmed()) {
+                state = (model.isSelected()) ? State.CHECKEDPRESSED 
+                    : State.UNCHECKEDPRESSED;
+            } else if (model.isRollover()) {
+                state = (model.isSelected()) ? State.CHECKEDHOT 
+                    : State.UNCHECKEDHOT;
+            } else {
+                state = (model.isSelected()) ? State.CHECKEDNORMAL
+                    : State.UNCHECKEDNORMAL;
+            }
+            break;
+        case BP_PUSHBUTTON:
+            /* falls through */            
+        case TP_BUTTON:
+            boolean toolbar = (b.getParent() instanceof JToolBar);
+            if (toolbar) {
+                if (model.isArmed() && model.isPressed()) {
+                    state = State.PRESSED;
+                } else if (!model.isEnabled()) {
+                    state = State.DISABLED;
+                } else if (model.isSelected() && model.isRollover()) {
+                    state = State.HOTCHECKED;
+                } else if (model.isSelected()) {
+                    state = State.CHECKED;
+                } else if (model.isRollover()) {
+                    state = State.HOT;
+                } else if (b.hasFocus()) {
+                    state = State.HOT;
+                }
+            } else {
+                if ((model.isArmed() && model.isPressed()) 
+                      || model.isSelected()) {
+                    state = State.PRESSED;
+                } else if (!model.isEnabled()) {
+                    state = State.DISABLED;
+                } else if (model.isRollover() || model.isPressed()) {
+                    state = State.HOT;
+                } else if (b instanceof JButton 
+                           && ((JButton)b).isDefaultButton()) {
+                    state = State.DEFAULTED;
+                } else if (b.hasFocus()) {
+                    state = State.HOT;
+                }
+            }
+            break;
+        default : 
+            state = State.NORMAL;
+        }
+
+        return state;
     }
 
     static void paintXPButtonBackground(Graphics g, JComponent c) {
@@ -156,41 +222,13 @@ public class WindowsButtonUI extends BasicButtonUI
 
 	XPStyle xp = XPStyle.getXP();
 
-	boolean toolbar = (b.getParent() instanceof JToolBar);
-        String category = getXPButtonType(b);
+        Part part = getXPButtonType(b);
 
 	if (b.isContentAreaFilled() && xp != null) {
 
-	    ButtonModel model = b.getModel();
-	    XPStyle.Skin skin = xp.getSkin(b, category);
+	    Skin skin = xp.getSkin(b, part);
 
-	    // normal, rollover/activated/focus, pressed, disabled, default
-	    int index = 0;
-	    if (toolbar) {
-		if (model.isArmed() && model.isPressed()) {
-		    index = 2;
-                } else if (!model.isEnabled()) {
-                    index = 3;
-		} else if (model.isSelected() && model.isRollover()) {
-		    index = 5;
-		} else if (model.isSelected()) {
-		    index = 4;
-		} else if (model.isRollover()) {
-		    index = 1;
-		}
-	    } else {
-		if (model.isArmed() && model.isPressed() || model.isSelected()) {
-		    index = 2;
-		} else if (!model.isEnabled()) {
-		    index = 3;
-		} else if (model.isRollover() || model.isPressed()) {
-		    index = 1;
-		} else if (b instanceof JButton && ((JButton)b).isDefaultButton()) {
-		    index = 4;
-		} else if (c.hasFocus()) {
-		    index = 1;
-		}
-	    }
+            State state = getXPButtonState(b);
 	    Dimension d = c.getSize();
 	    int dx = 0;
 	    int dy = 0;
@@ -215,7 +253,7 @@ public class WindowsButtonUI extends BasicButtonUI
 		dw -= (insets.left + insets.right);
 		dh -= (insets.top + insets.bottom);
 	    }
-	    skin.paintSkin(g, dx, dy, dw, dh, index);
+	    skin.paintSkin(g, dx, dy, dw, dh, state);
 	}
     }
 

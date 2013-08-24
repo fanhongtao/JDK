@@ -62,20 +62,25 @@ import java.io.*;
  * Responsible for loading (class) files from the CLASSPATH. Inspired by
  * sun.tools.ClassPath.
  *
- * @version $Id: ClassPath.java,v 1.1 2003/12/12 09:01:32 rameshm Exp $
+ * @version $Id: ClassPath.java,v 1.2 2005/08/16 19:34:42 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
-public class ClassPath {
+public class ClassPath implements Serializable {
+  public static final ClassPath SYSTEM_CLASS_PATH = new ClassPath();
+
   private PathEntry[] paths;
+  private String      class_path;
 
   /**
    * Search for classes in given path.
    */
   public ClassPath(String class_path) {
+    this.class_path = class_path;
+
     ArrayList vec = new ArrayList();
 
     for(StringTokenizer tok=new StringTokenizer(class_path,
-						java.io.File.pathSeparator);
+						System.getProperty("path.separator"));
 	tok.hasMoreTokens();)
     {
       String path = tok.nextToken();
@@ -102,9 +107,29 @@ public class ClassPath {
 
   /**
    * Search for classes in CLASSPATH.
+   * @deprecated Use SYSTEM_CLASS_PATH constant
    */
   public ClassPath() {
-    this(getClassPath());
+    // this(getClassPath());
+    this("");
+  }
+
+  /** @return used class path string
+   */
+  public String toString() {
+    return class_path;
+  }
+  
+  public int hashCode() {
+    return class_path.hashCode();
+  }
+
+  public boolean equals(Object o) {
+    if(o instanceof ClassPath) {
+      return class_path.equals(((ClassPath)o).class_path);
+    }
+
+    return false;
   }
 
   private static final void getPathComponents(String path, ArrayList list) {
@@ -121,11 +146,24 @@ public class ClassPath {
     }
   }
 
-  private static final String getClassPath() {
-    String class_path = System.getProperty("java.class.path");
-    String boot_path  = System.getProperty("sun.boot.class.path");
-    String ext_path   = System.getProperty("java.ext.dirs");
-
+  /** Checks for class path components in the following properties:
+   * "java.class.path", "sun.boot.class.path", "java.ext.dirs"
+   *
+   * @return class path as used by default by BCEL
+   */
+  public static final String getClassPath() {
+      
+    String class_path, boot_path, ext_path;
+    
+    try {
+      class_path = System.getProperty("java.class.path");
+      boot_path  = System.getProperty("sun.boot.class.path");
+      ext_path   = System.getProperty("java.ext.dirs");
+    }
+    catch (SecurityException e) {
+        return "";
+    }
+    
     ArrayList list = new ArrayList();
 
     getPathComponents(class_path, list);
@@ -157,7 +195,7 @@ public class ClassPath {
 	buf.append(File.pathSeparatorChar);
     }
 
-    return buf.toString();
+    return buf.toString().intern();
   }
 
   /**
@@ -169,11 +207,22 @@ public class ClassPath {
   }
     
   /**
+   * Return stream for class or resource on CLASSPATH.
+   *
    * @param name fully qualified file name, e.g. java/lang/String
    * @param suffix file name ends with suff, e.g. .java
    * @return input stream for file on class path
    */
   public InputStream getInputStream(String name, String suffix) throws IOException {
+    InputStream is = null;
+
+    try {
+      is = getClass().getClassLoader().getResourceAsStream(name + suffix);
+    } catch(Exception e) { }
+
+    if(is != null)
+      return is;
+    
     return getClassFile(name, suffix).getInputStream();
   }
 
@@ -252,13 +301,13 @@ public class ClassPath {
     return getClassFile(name, suffix).getPath();
   }
 
-  private static abstract class PathEntry {
+  private static abstract class PathEntry implements Serializable {
     abstract ClassFile getClassFile(String name, String suffix) throws IOException;
   }
 
   /** Contains information about file/ZIP entry of the Java class.
    */
-  public abstract static class ClassFile {
+  public interface ClassFile {
     /** @return input stream for class file.
      */
     public abstract InputStream getInputStream() throws IOException;
@@ -266,6 +315,11 @@ public class ClassPath {
     /** @return canonical path to class file.
      */
     public abstract String getPath();
+
+    /** @return base path of found class, i.e. class is contained relative
+     * to that path, which may either denote a directory, or zip file
+     */
+    public abstract String getBase();
 
     /** @return modification time of class file.
      */
@@ -295,6 +349,8 @@ public class ClassPath {
 	}
 	public long        getTime()        { return file.lastModified(); }
 	public long        getSize()        { return file.length(); }
+        public String getBase() {  return dir;  }
+
       } : null;
     }
 
@@ -314,6 +370,9 @@ public class ClassPath {
 	public String      getPath()        { return entry.toString(); }
 	public long        getTime()        { return entry.getTime(); }
 	public long        getSize()       { return entry.getSize(); }
+        public String getBase() {
+	  return zip.getName();
+	}
       } : null;
     }
   }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XRTreeFrag.java,v 1.30 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XRTreeFrag.java,v 1.2.4.1 2005/09/14 20:44:48 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -35,55 +35,40 @@ import org.w3c.dom.NodeList;
  */
 public class XRTreeFrag extends XObject implements Cloneable
 {
-  DTM m_dtm;
-  int m_dtmRoot;
-  XPathContext m_xctxt;
-  boolean m_allowRelease = false;
+    static final long serialVersionUID = -3201553822254911567L;
+  private DTMXRTreeFrag m_DTMXRTreeFrag;
+  private int m_dtmRoot = DTM.NULL;
+  protected boolean m_allowRelease = false;
 
-//  /**
-//   * Create an XRTreeFrag Object.
-//   *
-//   * @param frag Document fragment this will wrap
-//   */
-//  public XRTreeFrag(DTMIterator frag)
-//  {
-//    super(frag);
-//    
-//    // Obviously, this constructor should be avoided when possible.
-//    m_dtmRoot = frag.cloneWithReset().nextNode();
-//  }
-  
+
   /**
    * Create an XRTreeFrag Object.
    *
-   * @param frag Document fragment this will wrap
    */
   public XRTreeFrag(int root, XPathContext xctxt, ExpressionNode parent)
   {
     super(null);
-    
-    // Obviously, this constructor should be avoided when possible.
     exprSetParent(parent);
-    m_dtmRoot = root;
-    m_xctxt = xctxt;
-    m_dtm = xctxt.getDTM(root);
+    initDTM(root, xctxt);    
   }
   
   /**
    * Create an XRTreeFrag Object.
    *
-   * @param frag Document fragment this will wrap
    */
   public XRTreeFrag(int root, XPathContext xctxt)
   {
-    super(null);
-    
-    // Obviously, this constructor should be avoided when possible.
-    m_dtmRoot = root;
-    m_xctxt = xctxt;
-    m_dtm = xctxt.getDTM(root);
+    super(null); 
+   initDTM(root, xctxt); 
   }
-
+  
+  private final void initDTM(int root, XPathContext xctxt){
+    m_dtmRoot = root;
+    final DTM dtm = xctxt.getDTM(root);
+    if(dtm != null){
+      m_DTMXRTreeFrag = xctxt.getDTMXRTreeFrag(xctxt.getDTMIdentity(dtm));
+    }
+  }
   
   /**
    * Return a java object that's closest to the representation
@@ -93,8 +78,8 @@ public class XRTreeFrag extends XObject implements Cloneable
    */
   public Object object()
   {
-    if (m_xctxt != null)
-      return new com.sun.org.apache.xml.internal.dtm.ref.DTMNodeIterator((DTMIterator)(new com.sun.org.apache.xpath.internal.NodeSetDTM(m_dtmRoot, m_xctxt.getDTMManager())));
+    if (m_DTMXRTreeFrag.getXPathContext() != null)
+      return new com.sun.org.apache.xml.internal.dtm.ref.DTMNodeIterator((DTMIterator)(new com.sun.org.apache.xpath.internal.NodeSetDTM(m_dtmRoot, m_DTMXRTreeFrag.getXPathContext().getDTMManager())));
     else
       return super.object();
   }
@@ -102,32 +87,12 @@ public class XRTreeFrag extends XObject implements Cloneable
   /**
    * Create an XRTreeFrag Object.
    *
-   * @param frag Document fragment this will wrap
    */
   public XRTreeFrag(Expression expr)
   {
     super(expr);
   }
-  
-  /**
-   * Release any resources this object may have by calling destruct().
-   * %ISSUE% This release will occur asynchronously. Resources it manipulates
-   * MUST be thread-safe!
-   *
-   * @throws Throwable
-   */
-  protected void finalize() throws Throwable
-  {
-    try
-    {
-      destruct();
-    }
-    finally
-    {
-      super.finalize();  // Always use this.
-    }
-  }
-  
+    
   /**
    * Specify if it's OK for detach to release the iterator for reuse.
    * 
@@ -148,63 +113,13 @@ public class XRTreeFrag extends XObject implements Cloneable
    * 
    * In general, detach should only be called once on the object.
    */
-  public void detach()
-  {
-    if(m_allowRelease)
-    {
-    	// %REVIEW% Do we actually _need_ detach, now that DTM RTF
-    	// storage is managed as a stack?
-      // See #destruct() for a comment about this next check.
-      int ident = m_xctxt.getDTMIdentity(m_dtm);
-      DTM foundDTM = m_xctxt.getDTM(ident);      
-      if(foundDTM == m_dtm)
-      {
-        m_xctxt.release(m_dtm, true);
-        m_dtm = null;
-        m_xctxt = null;
-      }
+  public void detach(){
+    if(m_allowRelease){
+    	m_DTMXRTreeFrag.destruct();
       m_obj = null;
     }
   }
   
-  /**
-   * Forces the object to release it's resources.  This is more harsh than 
-   * detach().  You can call destruct as many times as you want.
-   */
-  public void destruct()
-  {
-    if(null != m_dtm)
-    {
-      // For this next check, see http://nagoya.apache.org/bugzilla/show_bug.cgi?id=7622.
-      // What happens if you don't do this this check:
-      // 1) Transform#1 creates an XRTreeFrag.  This has a reference to a DTM, that in turn 
-      //    is registered with a DTMManager.  The DTM will need to be deleted from the 
-      //    DTMManager when the XRTreeFrag is deleted.  The XRTreeFrag  also contains a 
-      //    reference to the XPathContext.
-      // 2) Transform#1 completes.  The XPathContext is reset... namely the a bunch 
-      //    of structures are reset or rebuilt, including DTMManagerDefault#m_dtms.  
-      //    BUT, the XRTreeFrags are still hanging around, waiting to unregister themselves.
-      // 3) Transform#2 starts humming along.  It builds a XRTreeFrag and installs that 
-      //    RTF DTM into DTMManagerDefault#m_dtms[2].
-      // 4) The finalizer thread wakes and decides to delete some of those old XRTreeFrags 
-      //    from Transform#1.
-      // 5) The XRTreeFrag#finalize() method references through the XPathContext, and 
-      //    deletes what it thinks is it's DTM from  DTMManagerDefault#m_dtms[2] (via 
-      //    getDTMIdentity(dtm)).
-      // 6) Transform#2 tries to reference DTMManagerDefault#m_dtms[2], finds it is 
-      //    null, and chaos results.
-      int ident = m_xctxt.getDTMIdentity(m_dtm);
-      DTM foundDTM = m_xctxt.getDTM(ident);      
-      if(foundDTM == m_dtm)
-      {
-        m_xctxt.release(m_dtm, true);
-        m_dtm = null;
-        m_xctxt = null;
-      }
-    }
-    m_obj = null;
- }
-
   /**
    * Tell what kind of class this is.
    *
@@ -261,7 +176,7 @@ public class XRTreeFrag extends XObject implements Cloneable
   public XMLString xstr()
   {
     if(null == m_xmlStr)
-      m_xmlStr = m_dtm.getStringValue(m_dtmRoot);
+      m_xmlStr = m_DTMXRTreeFrag.getDTM().getStringValue(m_dtmRoot);
     
     return m_xmlStr;
   }
@@ -285,7 +200,7 @@ public class XRTreeFrag extends XObject implements Cloneable
    */
   public String str()
   {
-    String str = m_dtm.getStringValue(m_dtmRoot).toString();
+    String str = m_DTMXRTreeFrag.getDTM().getStringValue(m_dtmRoot).toString();
 
     return (null == str) ? "" : str;
   }
@@ -309,7 +224,7 @@ public class XRTreeFrag extends XObject implements Cloneable
    */
   public DTMIterator asNodeIterator()
   {
-    return new RTFIterator(m_dtmRoot, m_xctxt.getDTMManager());
+    return new RTFIterator(m_dtmRoot, m_DTMXRTreeFrag.getXPathContext().getDTMManager());
   }
 
   /**

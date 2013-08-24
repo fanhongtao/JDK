@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMTreeWalker.java,v 1.6 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMTreeWalker.java,v 1.2.4.1 2005/09/15 08:15:05 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -76,8 +76,6 @@ public class DTMTreeWalker
   
   /**
    * Constructor.
-   * @param   contentHandler The implemention of the
-   * contentHandler operation (toXMLString, digest, ...)
    */
   public DTMTreeWalker()
   {

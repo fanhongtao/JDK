@@ -1,7 +1,7 @@
 /*
- * @(#)TextAreaDocument.java	1.8 03/12/19
+ * @(#)TextAreaDocument.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -16,7 +16,7 @@ import javax.swing.text.*;
  * state when a reset is requested.
  *
  * @author Sunita Mani
- * @version 1.8 12/19/03
+ * @version 1.9 11/17/05
  */
   
 class TextAreaDocument extends PlainDocument {

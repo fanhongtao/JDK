@@ -1,7 +1,7 @@
 /*
- * @(#)LabelView.java	1.68 04/06/28
+ * @(#)LabelView.java	1.70 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -16,7 +16,7 @@ import javax.swing.event.*;
  * used for rendering.
  *
  * @author Timothy Prinzing
- * @version 1.68 06/28/04
+ * @version 1.70 04/07/06
  */
 public class LabelView extends GlyphView implements TabableView {
 
@@ -161,6 +161,7 @@ public class LabelView extends GlyphView implements TabableView {
      * which defaults to <code>null</code>.
      *
      * @return the cached background color
+     * @since 1.3
      */
     public Color getBackground() {
 	sync();
@@ -173,6 +174,7 @@ public class LabelView extends GlyphView implements TabableView {
      * which defaults to <code>null</code>.
      *
      * @return the cached foreground color
+     * @since 1.3
      */
     public Color getForeground() {
 	sync();
@@ -203,6 +205,7 @@ public class LabelView extends GlyphView implements TabableView {
      *
      * @return the value of the cached
      *     <code>underline</code> property
+     * @since 1.3
      */
     public boolean isUnderline() {
 	sync();
@@ -223,6 +226,7 @@ public class LabelView extends GlyphView implements TabableView {
      *
      * @return the value of the cached
      *     <code>strikeThrough</code> property
+     * @since 1.3
      */
     public boolean isStrikeThrough() {
 	sync();
@@ -241,6 +245,7 @@ public class LabelView extends GlyphView implements TabableView {
      *
      * @return the value of the cached
      *     <code>subscript</code> property
+     * @since 1.3
      */
     public boolean isSubscript() {
 	sync();
@@ -258,6 +263,7 @@ public class LabelView extends GlyphView implements TabableView {
      *
      * @return the value of the cached
      *     <code>superscript</code> property
+     * @since 1.3
      */
     public boolean isSuperscript() {
 	sync();

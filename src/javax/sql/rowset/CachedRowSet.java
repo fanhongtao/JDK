@@ -1,7 +1,7 @@
 /*
- * @(#)CachedRowSet.java	1.7 04/05/29
+ * @(#)CachedRowSet.java	1.12 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -553,13 +553,9 @@ import javax.sql.rowset.spi.*;
  *     crs.setPageSize(100);
  *     crs.execute(conHandle);
  *
- *     while(crs.next() {
- *     . . . // operate on first chunk of 100 rows in crs, row by row
- *     }
- *
  *     while(crs.nextPage()) {
  *         while(crs.next()) {
- *             . . . // operate on the subsequent chunks (of 100 rows each) in crs, 
+ *             . . . // operate on chunks (of 100 rows each) in crs, 
  *                   // row by row
  *         }
  *     }
@@ -916,7 +912,7 @@ public interface CachedRowSet extends RowSet, Joinable {
     * (<code>acceptChanges</code>) or population. This method may also be called 
     * while performing updates to the insert row.
     * <P>
-    * <code>undoUpdate</code may be called at any time during the lifetime of a
+    * <code>undoUpdate</code> may be called at any time during the lifetime of a
     * rowset; however, after a synchronization has occurred, this method has no
     * effect until further modification to the rowset data has occurred.
     * 
@@ -1512,7 +1508,7 @@ public interface CachedRowSet extends RowSet, Joinable {
      * @see #commit
      * @see #rollback     
      */
-    public boolean COMMIT_ON_ACCEPT_CHANGES = true;
+    public static final boolean COMMIT_ON_ACCEPT_CHANGES = true;
     
     /**
      * Notifies registered listeners that a RowSet object in the given RowSetEvent
@@ -1545,7 +1541,8 @@ public interface CachedRowSet extends RowSet, Joinable {
      *  method is more a matter of convenience when compared to using the version 
      * of <code>execute</code> that takes a <code>ResultSet</code> object.
      *
-     * @param startRow the 
+     * @param startRow the position in the <code>ResultSet</code> from where to start
+     *                populating the records in this <code>CachedRowSet</code>  
      * @param rs the <code>ResultSet</code> object containing the data
      * 		to be read into this <code>CachedRowSet</code> object
      * @throws SQLException if a null <code>ResultSet</code> object is supplied
@@ -1603,5 +1600,6 @@ public interface CachedRowSet extends RowSet, Joinable {
      *     this method is called prematurely before populate or execute.
      */
     public boolean previousPage() throws SQLException;    
+    
 }
 

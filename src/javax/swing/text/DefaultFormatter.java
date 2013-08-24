@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFormatter.java	1.13 04/05/05
+ * @(#)DefaultFormatter.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -36,7 +36,7 @@ import javax.swing.text.*;
  *
  * @see javax.swing.JFormattedTextField.AbstractFormatter
  *
- * @version 1.13 05/05/04
+ * @version 1.14 11/17/05
  * @since 1.4
  */
 public class DefaultFormatter extends JFormattedTextField.AbstractFormatter

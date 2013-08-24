@@ -1,7 +1,7 @@
 /*
- * @(#)DebugGraphics.java	1.25 03/12/19
+ * @(#)DebugGraphics.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.25 12/19/03
+ * @version 1.27 11/17/05
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {
@@ -36,6 +36,7 @@ public class DebugGraphics extends Graphics {
     int                         graphicsID = graphicsCount++;
     int                         xOffset, yOffset;
     private static int          graphicsCount = 0;
+    private static ImageIcon    imageLoadingIcon = new ImageIcon();
 
     /** Log graphics operations. */
     public static final int     LOG_OPTION   = 1 << 0;
@@ -1007,14 +1008,13 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
+	    Image imageToDraw;
             for (i = 0; i < count; i++) {
-                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+		imageToDraw = (i % 2) == 0 ? newImage : img;
+		loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw, x, y,
                                    imageObserver);
                 Toolkit.getDefaultToolkit().sync();
-                while (!imageObserver.allBitsPresent() &&
-                                       !imageObserver.imageHasProblem()) {
-                    sleep(10);
-                }
                 sleep(info.flashTime);
             }
         }
@@ -1052,14 +1052,13 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
+	    Image imageToDraw;
             for (i = 0; i < count; i++) {
-                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+		imageToDraw = (i % 2) == 0 ? newImage : img;
+		loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw, x, y,
                                    width, height, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
-                while (!imageObserver.allBitsPresent() &&
-                                       !imageObserver.imageHasProblem()) {
-                    sleep(10);
-                }
                 sleep(info.flashTime);
             }
         }
@@ -1099,14 +1098,13 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
+	    Image imageToDraw;
             for (i = 0; i < count; i++) {
-                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+		imageToDraw = (i % 2) == 0 ? newImage : img;
+		loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw, x, y,
                                    bgcolor, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
-                while (!imageObserver.allBitsPresent() &&
-                                       !imageObserver.imageHasProblem()) {
-                    sleep(10);
-                }
                 sleep(info.flashTime);
             }
         }
@@ -1147,14 +1145,13 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
+	    Image imageToDraw;
             for (i = 0; i < count; i++) {
-                graphics.drawImage((i % 2) == 0 ? newImage : img, x, y,
+		imageToDraw = (i % 2) == 0 ? newImage : img;
+		loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw, x, y,
                                    width, height, bgcolor, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
-                while (!imageObserver.allBitsPresent() &&
-                                       !imageObserver.imageHasProblem()) {
-                    sleep(10);
-                }
                 sleep(info.flashTime);
             }
         }
@@ -1196,15 +1193,14 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
+	    Image imageToDraw;
             for (i = 0; i < count; i++) {
-                graphics.drawImage((i % 2) == 0 ? newImage : img, 
+		imageToDraw = (i % 2) == 0 ? newImage : img;
+		loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw, 
 				   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, 
                                    imageObserver);
                 Toolkit.getDefaultToolkit().sync();
-                while (!imageObserver.allBitsPresent() &&
-                                       !imageObserver.imageHasProblem()) {
-                    sleep(10);
-                }
                 sleep(info.flashTime);
             }
         }
@@ -1249,21 +1245,25 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
+	    Image imageToDraw;
             for (i = 0; i < count; i++) {
-                graphics.drawImage((i % 2) == 0 ? newImage : img, 
+		imageToDraw = (i % 2) == 0 ? newImage : img;
+		loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw, 
 				   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, 
                                    bgcolor, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
-                while (!imageObserver.allBitsPresent() &&
-                                       !imageObserver.imageHasProblem()) {
-                    sleep(10);
-                }
                 sleep(info.flashTime);
             }
         }
         return graphics.drawImage(img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2,
                                   bgcolor, observer);
     }
+
+    static void loadImage(Image img) {
+	imageLoadingIcon.loadImage(img);
+    }
+
 
     /**
      * Overrides <code>Graphics.copyArea</code>.

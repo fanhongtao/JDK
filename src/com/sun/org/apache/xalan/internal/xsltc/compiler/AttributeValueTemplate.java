@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AttributeValueTemplate.java,v 1.10 2004/02/16 22:24:29 minchau Exp $
+ * $Id: AttributeValueTemplate.java,v 1.2.4.1 2005/09/01 10:26:57 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -23,7 +23,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
-
 
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
 import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
@@ -199,7 +198,7 @@ final class AttributeValueTemplate extends AttributeValue {
             else {
 		addElement(new LiteralExpr(t)); 
             }
-        }               
+        }        
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
@@ -257,5 +256,4 @@ final class AttributeValueTemplate extends AttributeValue {
 	    il.append(new INVOKEVIRTUAL(toString));
 	}
     }
-
 }

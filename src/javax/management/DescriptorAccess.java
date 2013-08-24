@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorAccess.java
  * @(#)author    IBM Corp.
- * @(#)version   1.17
- * @(#)lastedit      03/12/19
+ * @(#)version   1.19
+ * @(#)lastedit      05/11/17
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -37,19 +37,8 @@ package javax.management;
  *
  * @since 1.5
  */
-public interface DescriptorAccess
+public interface DescriptorAccess extends DescriptorRead
 {
-    /** 
-    * Returns a copy of Descriptor.
-    *
-    * @return Descriptor associated with the component implementing this interface.
-    * Null should never be returned. At a minimum a default descriptor with the 
-    * descriptor name and descriptorType should be returned.
-    *
-    * @see #setDescriptor
-    */
-    public Descriptor getDescriptor();
-    
     /**
     * Sets Descriptor (full replace).
     *

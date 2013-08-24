@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001-2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.traversers;
@@ -87,13 +46,15 @@ import org.w3c.dom.Element;
  *   Content: (annotation?)
  * </anyAttribute>
  *
+ * @xerces.internal 
+ *
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: XSDWildcardTraverser.java,v 1.11 2003/06/23 16:35:22 neilg Exp $
+ * @version $Id: XSDWildcardTraverser.java,v 1.2.6.1 2005/09/09 07:26:03 sunithareddy Exp $
  */
 class XSDWildcardTraverser extends XSDAbstractTraverser {
-
+    
     /**
      * constructor
      *
@@ -102,11 +63,11 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
      * @param  gAttrCheck
      */
     XSDWildcardTraverser (XSDHandler handler,
-                          XSAttributeChecker gAttrCheck) {
+            XSAttributeChecker gAttrCheck) {
         super(handler, gAttrCheck);
     }
-
-
+    
+    
     /**
      * Traverse <any>
      *
@@ -116,13 +77,13 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
      * @return the wildcard node index
      */
     XSParticleDecl traverseAny(Element elmNode,
-                               XSDocumentInfo schemaDoc,
-                               SchemaGrammar grammar) {
-
+            XSDocumentInfo schemaDoc,
+            SchemaGrammar grammar) {
+        
         // General Attribute Checking for elmNode
         Object[] attrValues = fAttrChecker.checkAttributes(elmNode, false, schemaDoc);
         XSWildcardDecl wildcard = traverseWildcardDecl(elmNode, attrValues, schemaDoc, grammar);
-
+        
         // for <any>, need to create a new particle to reflect the min/max values
         XSParticleDecl particle = null;
         if (wildcard != null) {
@@ -140,13 +101,13 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
                 particle.fMaxOccurs = max;
             }
         }
-
+        
         fAttrChecker.returnAttrArray(attrValues, schemaDoc);
-
+        
         return particle;
     }
-
-
+    
+    
     /**
      * Traverse <anyAttribute>
      *
@@ -156,18 +117,18 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
      * @return the wildcard node index
      */
     XSWildcardDecl traverseAnyAttribute(Element elmNode,
-                                        XSDocumentInfo schemaDoc,
-                                        SchemaGrammar grammar) {
-
+            XSDocumentInfo schemaDoc,
+            SchemaGrammar grammar) {
+        
         // General Attribute Checking for elmNode
         Object[] attrValues = fAttrChecker.checkAttributes(elmNode, false, schemaDoc);
         XSWildcardDecl wildcard = traverseWildcardDecl(elmNode, attrValues, schemaDoc, grammar);
         fAttrChecker.returnAttrArray(attrValues, schemaDoc);
-
+        
         return wildcard;
     }
-
-
+    
+    
     /**
      *
      * @param  elmNode
@@ -176,11 +137,11 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
      * @param  grammar
      * @return the wildcard node index
      */
-     XSWildcardDecl traverseWildcardDecl(Element elmNode,
-                                         Object[] attrValues,
-                                         XSDocumentInfo schemaDoc,
-                                         SchemaGrammar grammar) {
-
+    XSWildcardDecl traverseWildcardDecl(Element elmNode,
+            Object[] attrValues,
+            XSDocumentInfo schemaDoc,
+            SchemaGrammar grammar) {
+        
         //get all attributes
         XSWildcardDecl wildcard = new XSWildcardDecl();
         // namespace type
@@ -191,7 +152,7 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
         // process contents
         XInt processContentsAttr = (XInt) attrValues[XSAttributeChecker.ATTIDX_PROCESSCONTENTS];
         wildcard.fProcessContents = processContentsAttr.shortValue();
-
+        
         //check content
         Element child = DOMUtil.getFirstChildElement(elmNode);
         XSAnnotationImpl annotation = null;
@@ -201,15 +162,27 @@ class XSDWildcardTraverser extends XSDAbstractTraverser {
                 annotation = traverseAnnotationDecl(child, attrValues, false, schemaDoc);
                 child = DOMUtil.getNextSiblingElement(child);
             }
-
+            else {
+                String text = DOMUtil.getSyntheticAnnotation(elmNode);
+                if (text != null) {
+                    annotation = traverseSyntheticAnnotation(elmNode, text, attrValues, false, schemaDoc);
+                }
+            }
+            
             if (child != null) {
                 reportSchemaError("s4s-elt-must-match.1", new Object[]{"wildcard", "(annotation?)", DOMUtil.getLocalName(child)}, elmNode);
             }
         }
+        else {
+            String text = DOMUtil.getSyntheticAnnotation(elmNode);
+            if (text != null) {
+                annotation = traverseSyntheticAnnotation(elmNode, text, attrValues, false, schemaDoc);
+            }
+        }
         wildcard.fAnnotation = annotation;
-
+        
         return wildcard;
-
+        
     } // traverseWildcardDecl
-
+    
 } // XSDWildcardTraverser

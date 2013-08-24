@@ -1,7 +1,7 @@
 /*
- * @(#)TabbedPaneDemo.java	1.10 04/07/26
+ * @(#)TabbedPaneDemo.java	1.11 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)TabbedPaneDemo.java	1.10 04/07/26
+ * @(#)TabbedPaneDemo.java	1.11 05/11/17
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * JTabbedPane Demo
  *
- * @version 1.10 07/26/04
+ * @version 1.11 11/17/05
  * @author Jeff Dinkins
  */
 public class TabbedPaneDemo extends DemoModule implements ActionListener {

@@ -1,7 +1,7 @@
 /*
- * @(#)README.txt	1.16 04/06/23
+ * @(#)README.txt	1.20 06/01/28
  *
- * Copyright (c) 2004 Sun Microsystems, Inc. All  Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All  Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,8 +40,11 @@ README
 
 Design and Implementation:
 
-    * The sun.tools.hprof.Tracker Class (Tracker.java & hprof_tracker.c)
-        The internal class sun.tools.hprof.Tracker was added in J2SE 1.5.
+    * The Tracker Class (Tracker.java & hprof_tracker.c)
+        It was added to the sun.tools.hprof.Tracker in JDK 5.0 FCS, then
+	moved to a package that didn't cause classload errors due to
+	the security manager not liking the sun.* package name.
+	5091195 detected that this class needs to be in com.sun.demo.jvmti.hprof.
         The BCI code will call these static methods, which will in turn
         (if engaged) call matching native methods in the hprof library,
 	with the additional current Thread argument (Thread.currentThread()).
@@ -55,27 +58,27 @@ Design and Implementation:
         bytecodes get injections:
 	    - On entry to the java.lang.Object <init> method, 
 	      a invokestatic call to
-		sun.tools.hprof.Tracker.ObjectInit(this);
+		Tracker.ObjectInit(this);
 	      is injected. 
 	    - On any newarray type opcode, immediately following it, 
 	      the array object is duplicated on the stack and an
 	      invokestatic call to
-		sun.tools.hprof.Tracker.NewArray(obj);
+		Tracker.NewArray(obj);
 	      is injected. 
 	    - On entry to all methods, a invokestatic call to 
-		sun.tools.hprof.Tracker.CallSite(cnum,mnum);
+		Tracker.CallSite(cnum,mnum);
 	      is injected. The hprof agent can map the two integers
 	      (cnum,mnum) to a method in a class. This is the BCI based
 	      "method entry" event.
 	    - On return from any method (any return opcode),
 	      a invokestatic call to
-		sun.tools.hprof.Tracker.ReturnSite(cnum,mnum);
+		Tracker.ReturnSite(cnum,mnum);
 	      is injected.  
         All classes found via ClassFileLoadHook are injected with the
         exception of some system class methods "<init>" and "finalize" 
         whose length is 1 and system class methods with name "<clinit>",
 	and also java.lang.Thread.currentThread() which is used in the
-	class sun.tools.hprof.Tracker (preventing nasty recursion issue).
+	class Tracker (preventing nasty recursion issue).
         System classes are currently defined as any class seen by the
 	ClassFileLoadHook prior to VM_INIT. This does mean that
 	objects created in the system classes inside <clinit> might not
@@ -107,9 +110,9 @@ Design and Implementation:
 	The heap=dump seems to use memory like crazy, but that's 
 	partially the way it has always been. 
 
-    * Sources in the J2SE workspace
+    * Sources in the JDK workspace
         The sources and Makefiles live in:
-                src/share/classes/sun/tools/hprof/*
+                src/share/classes/com/sun/demo/jvmti/hprof/*
                 src/share/demo/jvmti/hprof/*
                 src/share/demo/jvmti/java_crw_demo/*
                 src/solaris/demo/jvmti/hprof/*

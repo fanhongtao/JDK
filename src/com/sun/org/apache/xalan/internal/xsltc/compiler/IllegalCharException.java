@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IllegalCharException.java,v 1.3 2004/02/16 22:24:29 minchau Exp $
+ * $Id: IllegalCharException.java,v 1.2.4.1 2005/09/13 12:39:15 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -24,6 +24,7 @@ package com.sun.org.apache.xalan.internal.xsltc.compiler;
  * @author Santiago Pericas-Geertsen
  */
 class IllegalCharException extends Exception {
+    static final long serialVersionUID = -667236676706226266L;
     public IllegalCharException(String s) {
 	super(s);
     }

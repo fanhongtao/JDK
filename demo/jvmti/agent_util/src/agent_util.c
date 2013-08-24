@@ -1,7 +1,7 @@
 /*
- * @(#)agent_util.c	1.11 04/07/27
+ * @(#)agent_util.c	1.15 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -182,6 +182,124 @@ interested(char *cname, char *mname, char *include_list, char *exclude_list)
         return 0;
     }
     return 1;
+}
+
+/* ------------------------------------------------------------------- */
+/* Generic JVMTI utility functions */
+
+/* Every JVMTI interface returns an error code, which should be checked
+ *   to avoid any cascading errors down the line.
+ *   The interface GetErrorName() returns the actual enumeration constant
+ *   name, making the error messages much easier to understand.
+ */
+void
+check_jvmti_error(jvmtiEnv *jvmti, jvmtiError errnum, const char *str)
+{
+    if ( errnum != JVMTI_ERROR_NONE ) {
+	char       *errnum_str;
+	
+	errnum_str = NULL;
+	(void)(*jvmti)->GetErrorName(jvmti, errnum, &errnum_str);
+	
+	fatal_error("ERROR: JVMTI: %d(%s): %s\n", errnum, 
+		(errnum_str==NULL?"Unknown":errnum_str),
+		(str==NULL?"":str));
+    }
+}
+
+/* All memory allocated by JVMTI must be freed by the JVMTI Deallocate
+ *   interface.
+ */
+void
+deallocate(jvmtiEnv *jvmti, void *ptr)
+{
+    jvmtiError error;
+    
+    error = (*jvmti)->Deallocate(jvmti, ptr);
+    check_jvmti_error(jvmti, error, "Cannot deallocate memory");
+}
+
+/* Allocation of JVMTI managed memory */
+void *
+allocate(jvmtiEnv *jvmti, jint len)
+{
+    jvmtiError error;
+    void      *ptr;
+    
+    error = (*jvmti)->Allocate(jvmti, len, (unsigned char **)&ptr);
+    check_jvmti_error(jvmti, error, "Cannot allocate memory");
+    return ptr;
+}
+
+/* Add demo jar file to boot class path (the BCI Tracker class must be 
+ *     in the boot classpath)
+ *
+ *   WARNING: This code assumes that the jar file can be found at one of:
+ *              ${JAVA_HOME}/demo/jvmti/${DEMO_NAME}/${DEMO_NAME}.jar
+ *              ${JAVA_HOME}/../demo/jvmti/${DEMO_NAME}/${DEMO_NAME}.jar
+ *            where JAVA_HOME may refer to the jre directory.
+ *            Both these values are added to the boot classpath.
+ *            These locations are only true for these demos, installed
+ *            in the JDK area. Platform specific code could be used to
+ *            find the location of the DLL or .so library, and construct a
+ *            path name to the jar file, relative to the library location.
+ */
+void
+add_demo_jar_to_bootclasspath(jvmtiEnv *jvmti, char *demo_name)
+{
+    jvmtiError error;
+    char      *file_sep;
+    int        max_len;
+    char      *java_home;
+    char       jar_path[FILENAME_MAX+1];
+   
+    java_home = NULL;
+    error = (*jvmti)->GetSystemProperty(jvmti, "java.home", &java_home);
+    check_jvmti_error(jvmti, error, "Cannot get java.home property value");
+    if ( java_home == NULL || java_home[0] == 0 ) {
+	fatal_error("ERROR: Java home not found\n");
+    }
+   
+#ifdef WIN32
+    file_sep = "\\";
+#else
+    file_sep = "/";
+#endif
+    
+    max_len = (int)(strlen(java_home) + strlen(demo_name)*2 + 
+			 strlen(file_sep)*5 + 
+			 16 /* ".." "demo" "jvmti" ".jar" NULL */ );
+    if ( max_len > (int)sizeof(jar_path) ) {
+	fatal_error("ERROR: Path to jar file too long\n");
+    }
+    (void)strcpy(jar_path, java_home);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "demo");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "jvmti");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, ".jar");
+    error = (*jvmti)->AddToBootstrapClassLoaderSearch(jvmti, (const char*)jar_path);
+    check_jvmti_error(jvmti, error, "Cannot add to boot classpath");
+    
+    (void)strcpy(jar_path, java_home);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "..");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "demo");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, "jvmti");
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, file_sep);
+    (void)strcat(jar_path, demo_name);
+    (void)strcat(jar_path, ".jar");
+    
+    error = (*jvmti)->AddToBootstrapClassLoaderSearch(jvmti, (const char*)jar_path);
+    check_jvmti_error(jvmti, error, "Cannot add to boot classpath");
 }
 
 /* ------------------------------------------------------------------- */

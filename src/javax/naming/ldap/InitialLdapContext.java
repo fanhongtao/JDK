@@ -1,7 +1,7 @@
 /*
- * @(#)InitialLdapContext.java	1.12 04/07/16
+ * @(#)InitialLdapContext.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import java.util.Hashtable;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.12 04/07/16
+  * @version 1.13 05/11/17
   *
   * @see LdapContext
   * @see javax.naming.InitialContext

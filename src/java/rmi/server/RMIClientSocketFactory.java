@@ -1,7 +1,7 @@
 /*
- * @(#)RMIClientSocketFactory.java	1.11 03/12/19
+ * @(#)RMIClientSocketFactory.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.net.*;
  * implement {@link Object#hashCode} consistently with its
  * <code>Object.equals</code> implementation).
  *
- * @version 1.11, 12/19/03
+ * @version 1.12, 11/17/05
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2

@@ -1,7 +1,7 @@
 /*
- * @(#)Curves.java	1.25 04/07/26
+ * @(#)Curves.java	1.28 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Curves.java	1.25 04/07/26
+ * @(#)Curves.java	1.28 06/08/29
  */
 
 package java2d.demos.Arcs_Curves;
@@ -51,23 +51,26 @@ import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import java2d.Surface;
 
+import static java.awt.Color.*;
+import static java.awt.geom.PathIterator.*;
+
 
 /**
  * CubicCurve2D & QuadCurve2D curves includes FlattenPathIterator example.
  */
 public class Curves extends Surface {
 
-    private static Color colors[] = { Color.blue, Color.green, Color.red };
+    private static Color colors[] = { BLUE, GREEN, RED };
 
     public Curves() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
     public void render(int w, int h, Graphics2D g2) {
 
         int y = 0;
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         FontRenderContext frc = g2.getFontRenderContext();
         TextLayout tl = new TextLayout("QuadCurve2D", g2.getFont(), frc);
         float xx = (float) (w*.5-tl.getBounds().getWidth()/2);
@@ -80,7 +83,7 @@ public class Curves extends Surface {
 
         float yy = 20;
 
-        for (int i = 0; i < 2; i++) {
+        for     (int i = 0; i < 2; i++) {
             for (int j = 0; j < 3; j++) {
                 Shape shape = null;
 
@@ -95,17 +98,17 @@ public class Curves extends Surface {
                     g2.draw(shape);
 
                 if (j == 1 ) {
-                    g2.setColor(Color.lightGray);
+                    g2.setColor(LIGHT_GRAY);
                     PathIterator f = shape.getPathIterator(null);
                     while ( !f.isDone() ) {
                         float[] pts = new float[6];
                         switch ( f.currentSegment(pts) ) {
-                            case PathIterator.SEG_MOVETO:
-                            case PathIterator.SEG_LINETO:
+                            case SEG_MOVETO:
+                            case SEG_LINETO:
                                 g2.fill(new Rectangle2D.Float(pts[0], pts[1], 5, 5));
                                 break;
-                            case PathIterator.SEG_CUBICTO :
-                            case PathIterator.SEG_QUADTO :
+                            case SEG_CUBICTO:
+                            case SEG_QUADTO:
                                 g2.fill(new Rectangle2D.Float(pts[0], pts[1], 5, 5));
                                 if (pts[2] != 0) {
                                     g2.fill(new Rectangle2D.Float(pts[2], pts[3], 5, 5));
@@ -122,8 +125,8 @@ public class Curves extends Surface {
                     while ( !f.isDone() ) {
                         float[] pts = new float[6];
                         switch ( f.currentSegment(pts) ) {
-                            case PathIterator.SEG_MOVETO:
-                            case PathIterator.SEG_LINETO:
+                            case SEG_MOVETO:
+                            case SEG_LINETO:
                                 g2.fill(new Ellipse2D.Float(pts[0], pts[1],3,3));
                         }
                         f.next();

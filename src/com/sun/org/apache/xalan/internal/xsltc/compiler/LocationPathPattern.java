@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: LocationPathPattern.java,v 1.6 2004/02/16 22:24:29 minchau Exp $
+ * $Id: LocationPathPattern.java,v 1.2.4.1 2005/09/12 10:42:42 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -23,7 +23,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 
 /**
  * @author Jacek Ambroziak

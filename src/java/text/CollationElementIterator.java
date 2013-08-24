@@ -1,7 +1,7 @@
 /*
- * @(#)CollationElementIterator.java	1.48 03/12/19
+ * @(#)CollationElementIterator.java	1.50 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,8 +22,8 @@ package java.text;
 
 import java.lang.Character;
 import java.util.Vector;
-import sun.text.Normalizer;
-import sun.text.NormalizerUtilities;
+import sun.text.CollatorUtilities;
+import sun.text.normalizer.NormalizerBase;
 
 /**
  * The <code>CollationElementIterator</code> class is used as an iterator
@@ -100,9 +100,9 @@ public final class CollationElementIterator
         this.owner = owner;
         ordering = owner.getTables();
         if ( sourceText.length() != 0 ) {
-            Normalizer.Mode mode =
-                NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
-            text = new Normalizer(sourceText, mode);
+            NormalizerBase.Mode mode =
+                CollatorUtilities.toNormalizerMode(owner.getDecomposition());
+            text = new NormalizerBase(sourceText, mode);
         }
     }
 
@@ -117,10 +117,11 @@ public final class CollationElementIterator
     CollationElementIterator(CharacterIterator sourceText, RuleBasedCollator owner) {
         this.owner = owner;
         ordering = owner.getTables();
-        Normalizer.Mode mode =
-            NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
-        text = new Normalizer(sourceText, mode);
+        NormalizerBase.Mode mode =
+            CollatorUtilities.toNormalizerMode(owner.getDecomposition());
+        text = new NormalizerBase(sourceText, mode);
     }
+
     /**
      * Resets the cursor to the beginning of the string.  The next call
      * to next() will return the first collation element in the string.
@@ -129,8 +130,8 @@ public final class CollationElementIterator
     {
         if (text != null) {
             text.reset();
-            Normalizer.Mode mode =
-                NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
+            NormalizerBase.Mode mode =
+                CollatorUtilities.toNormalizerMode(owner.getDecomposition());
             text.setMode(mode);
         }
         buffer = null;
@@ -157,17 +158,17 @@ public final class CollationElementIterator
         if (text == null) {
             return NULLORDER;
         }
-        Normalizer.Mode textMode = text.getMode();
+        NormalizerBase.Mode textMode = text.getMode();
         // convert the owner's mode to something the Normalizer understands
-        Normalizer.Mode ownerMode =
-        NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
+        NormalizerBase.Mode ownerMode =
+            CollatorUtilities.toNormalizerMode(owner.getDecomposition());
         if (textMode != ownerMode) {
             text.setMode(ownerMode);
         }
 
         // if buffer contains any decomposed char values
         // return their strength orders before continuing in
-        // the the Normalizer's CharacterIterator.
+        // the Normalizer's CharacterIterator.
         if (buffer != null) {
             if (expIndex < buffer.length) {
                 return strengthOrder(buffer[expIndex++]);
@@ -188,7 +189,7 @@ public final class CollationElementIterator
         int ch  = text.next();
 
         // are we at the end of Normalizer's text?
-        if (ch == Normalizer.DONE) {
+        if (ch == NormalizerBase.DONE) {
             return NULLORDER;
         }
 
@@ -253,10 +254,10 @@ public final class CollationElementIterator
         if (text == null) {
             return NULLORDER;
         }
-        Normalizer.Mode textMode = text.getMode();
+        NormalizerBase.Mode textMode = text.getMode();
         // convert the owner's mode to something the Normalizer understands
-        Normalizer.Mode ownerMode =
-        NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
+        NormalizerBase.Mode ownerMode =
+            CollatorUtilities.toNormalizerMode(owner.getDecomposition());
         if (textMode != ownerMode) {
             text.setMode(ownerMode);
         }
@@ -278,7 +279,7 @@ public final class CollationElementIterator
             return order;
         }
         int ch = text.previous();
-        if (ch == Normalizer.DONE) {
+        if (ch == NormalizerBase.DONE) {
             return NULLORDER;
         }
 
@@ -470,10 +471,10 @@ public final class CollationElementIterator
         buffer = null;
         swapOrder = 0;
         expIndex = 0;
-        Normalizer.Mode mode =
-            NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
+        NormalizerBase.Mode mode =
+            CollatorUtilities.toNormalizerMode(owner.getDecomposition());
         if (text == null) {
-            text = new Normalizer(source, mode);
+            text = new NormalizerBase(source, mode);
         } else {
             text.setMode(mode);
             text.setText(source);
@@ -491,10 +492,10 @@ public final class CollationElementIterator
         buffer = null;
         swapOrder = 0;
         expIndex = 0;
-        Normalizer.Mode mode =
-            NormalizerUtilities.toNormalizerMode(owner.getDecomposition());
+        NormalizerBase.Mode mode =
+            CollatorUtilities.toNormalizerMode(owner.getDecomposition());
         if (text == null) {
-            text = new Normalizer(source, mode);
+            text = new NormalizerBase(source, mode);
         } else {
             text.setMode(mode);
             text.setText(source);
@@ -631,7 +632,7 @@ public final class CollationElementIterator
 
         // (the Normalizer is cloned here so that the seeking we do in the next loop
         // won't affect our real position in the text)
-        Normalizer tempText = (Normalizer)text.clone();
+        NormalizerBase tempText = (NormalizerBase)text.clone();
 
         // extract the next maxLength characters in the string (we have to do this using the
         // Normalizer to ensure that our offsets correspond to those the rest of the
@@ -639,7 +640,7 @@ public final class CollationElementIterator
         tempText.previous();
         key.setLength(0);
         int c = tempText.next();  
-        while (maxLength > 0 && c != Normalizer.DONE) {
+        while (maxLength > 0 && c != NormalizerBase.DONE) {
             if (Character.isSupplementaryCodePoint(c)) {
                 key.append(Character.toChars(c));
                 maxLength -= 2;
@@ -702,12 +703,12 @@ public final class CollationElementIterator
         pair = (EntryPair)list.lastElement();
         int maxLength = pair.entryName.length();
 
-        Normalizer tempText = (Normalizer)text.clone();
+        NormalizerBase tempText = (NormalizerBase)text.clone();
 
         tempText.next();
         key.setLength(0);
         int c = tempText.previous();
-        while (maxLength > 0 && c != Normalizer.DONE) {
+        while (maxLength > 0 && c != NormalizerBase.DONE) {
             if (Character.isSupplementaryCodePoint(c)) {
                 key.append(Character.toChars(c));
                 maxLength -= 2;
@@ -741,7 +742,7 @@ public final class CollationElementIterator
 
     final static int UNMAPPEDCHARVALUE = 0x7FFF0000;
 
-    private Normalizer text = null;
+    private NormalizerBase text = null;
     private int[] buffer = null;
     private int expIndex = 0;
     private StringBuffer key = new StringBuffer(5);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOM2SAX.java,v 1.21 2004/02/16 22:57:21 minchau Exp $
+ * $Id: DOM2SAX.java,v 1.2.4.1 2005/09/06 11:52:46 pvedula Exp $
  */
 
 

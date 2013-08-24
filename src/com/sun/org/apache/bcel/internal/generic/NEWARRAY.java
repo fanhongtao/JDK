@@ -61,7 +61,7 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
  * <PRE>Stack: ..., count -&gt; ..., arrayref</PRE>
  * type must be one of T_INT, T_SHORT, ...
  * 
- * @version $Id: NEWARRAY.java,v 1.1.1.1 2001/10/29 20:00:25 jvanzyl Exp $
+ * @version $Id: NEWARRAY.java,v 1.1.2.1 2005/07/31 23:45:02 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class NEWARRAY extends Instruction
@@ -122,7 +122,6 @@ public class NEWARRAY extends Instruction
   public Class[] getExceptions() {
     return new Class[] { com.sun.org.apache.bcel.internal.ExceptionConstants.NEGATIVE_ARRAY_SIZE_EXCEPTION };
   }
-
 
   /**
    * Call corresponding visitor method(s). The order is:

@@ -1,7 +1,7 @@
 #
-# @(#)README.txt	1.2 04/06/28
+# @(#)README.txt	1.4 06/03/03
 #
-# Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+# Copyright 2006 Sun Microsystems, Inc. All rights reserved.
 # SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
 #
 
@@ -21,5 +21,5 @@ These instructions assume that this installation's version of the java
 command is in your path.  If it isn't, then you should either
 specify the complete path to the java command or update your
 PATH environment variable as described in the installation
-instructions for the Java 2 SDK.
+instructions for the Java(TM) SDK.
 

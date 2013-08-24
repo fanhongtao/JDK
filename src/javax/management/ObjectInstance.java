@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInstance.java	4.21 04/03/18
+ * @(#)ObjectInstance.java	4.23 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -125,4 +125,12 @@ public class ObjectInstance implements Serializable   {
 	return className;
     } 
 
+    /**
+     * Returns a string representing this ObjectInstance object. The format of this string
+     * is not specified, but users can expect that two ObjectInstances return the same
+     * string if and only if they are equal.
+     */
+    public String toString() {
+	return getClassName() + "[" + getObjectName() + "]";
+    }
  }

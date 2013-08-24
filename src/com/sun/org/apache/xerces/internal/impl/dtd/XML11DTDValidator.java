@@ -63,9 +63,10 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
 /**
  * This allows the validator to correctlyhandle XML 1.1
  * documents.
+ * 
+ * @xerces.internal
  *
  * @author Neil Graham
- * @version $Id: XML11DTDValidator.java,v 1.5 2004/02/04 18:40:55 mrglavas Exp $
  */
 public class XML11DTDValidator extends XMLDTDValidator {
 

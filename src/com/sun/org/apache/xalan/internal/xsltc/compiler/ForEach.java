@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ForEach.java,v 1.19 2004/02/16 22:24:29 minchau Exp $
+ * $Id: ForEach.java,v 1.2.4.1 2005/09/01 15:23:46 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

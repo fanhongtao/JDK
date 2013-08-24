@@ -1,7 +1,7 @@
 /*
- * @(#)ConnectIOException.java	1.12 03/12/19
+ * @(#)ConnectIOException.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.rmi;
  * <code>IOException</code> occurs while making a connection
  * to the remote host for a remote method call.
  * 
- * @version 1.12, 12/19/03
+ * @version 1.13, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

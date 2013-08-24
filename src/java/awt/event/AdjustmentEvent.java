@@ -1,7 +1,7 @@
 /*
- * @(#)AdjustmentEvent.java	1.27 03/12/19
+ * @(#)AdjustmentEvent.java	1.29 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.awt.Event;
  * @see AdjustmentListener
  *
  * @author Amy Fowler
- * @version 1.27 12/19/03
+ * @version 1.29 04/07/06
  * @since 1.1
  */
 public class AdjustmentEvent extends AWTEvent {
@@ -148,6 +148,7 @@ public class AdjustmentEvent extends AWTEvent {
      *               of a series of multiple adjusting events,
      *               otherwise <code>false</code>
      * @throws IllegalArgumentException if <code>source</code> is null
+     * @since 1.4
      */
     public AdjustmentEvent(Adjustable source, int id, int type, int value, boolean isAdjusting) {
         super(source, id);
@@ -197,6 +198,7 @@ public class AdjustmentEvent extends AWTEvent {
      *
      * @return <code>true</code> if this is one of multiple
      *         adjustment events, otherwise returns <code>false</code>
+     * @since 1.4
      */
     public boolean getValueIsAdjusting() {
 	return isAdjusting;

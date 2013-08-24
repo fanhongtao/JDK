@@ -1,7 +1,7 @@
 /*
- * @(#)RegularEnumSet.java	1.6 04/05/28
+ * @(#)RegularEnumSet.java	1.8 06/01/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -134,7 +134,7 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
      *
      * @param e element to be added to this set
      * @return <tt>true</tt> if the set changed as a result of the call
-     * 
+     *
      * @throws NullPointerException if <tt>e</tt> is null
      */
     public boolean add(E e) {
@@ -244,10 +244,11 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
         if (!(c instanceof RegularEnumSet))
             return super.retainAll(c);
 
-        RegularEnumSet es = (RegularEnumSet)c;
+        RegularEnumSet<?> es = (RegularEnumSet<?>)c;
         if (es.elementType != elementType) {
+	    boolean changed = (elements != 0);
             elements = 0;
-            return true;
+            return changed;
         }
 
         long oldElements = elements;

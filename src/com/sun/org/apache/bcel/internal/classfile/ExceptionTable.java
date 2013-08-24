@@ -65,7 +65,7 @@ import  java.io.*;
  * attribute using the name <em>Exceptions</em> (which is inconsistent
  * with the other classes).
  *
- * @version $Id: ExceptionTable.java,v 1.1.1.1 2001/10/29 20:00:00 jvanzyl Exp $
+ * @version $Id: ExceptionTable.java,v 1.1.2.1 2005/07/31 23:46:29 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Code
  */
@@ -102,7 +102,7 @@ public final class ExceptionTable extends Attribute {
    * @param length Content length in bytes
    * @param file Input stream
    * @param constant_pool Array of constants
-   * @throw IOException
+   * @throws IOException
    */
   ExceptionTable(int name_index, int length, DataInputStream file,
 		 ConstantPool constant_pool) throws IOException
@@ -131,7 +131,7 @@ public final class ExceptionTable extends Attribute {
    * Dump exceptions attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

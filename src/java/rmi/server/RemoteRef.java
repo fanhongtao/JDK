@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteRef.java	1.23 04/05/18
+ * @(#)RemoteRef.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.rmi.*;
  * <code>RemoteStub</code> uses a remote reference to carry out a
  * remote method invocation to a remote object.
  *
- * @version 1.23, 05/18/04
+ * @version 1.24, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.server.RemoteStub

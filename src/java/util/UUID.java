@@ -1,7 +1,7 @@
 /*
- * @(#)UUID.java	1.14 04/07/12
+ * @(#)UUID.java	1.18 06/06/02
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,11 +47,12 @@ import java.io.UnsupportedEncodingException;
  * have a version value of 1, 2, 3 and 4, respectively.
  * 
  * <p>For more information including algorithms used to create <tt>UUID</tt>s,
- * see the Internet-Draft <a href="http://www.ietf.org/internet-drafts/draft-mealling-uuid-urn-03.txt">UUIDs and GUIDs</a>
- * or the standards body definition at
- * <a href="http://www.iso.ch/cate/d2229.html">ISO/IEC 11578:1996</a>.
+ * see <a href="http://www.ietf.org/rfc/rfc4122.txt">
+ * <i>RFC&nbsp;4122: A Universally Unique IDentifier (UUID) URN
+ * Namespace</i></a>, section 4.2 &quot;Algorithms for Creating a Time-Based
+ * UUID&quot;.
  *
- * @version 1.14, 07/12/04
+ * @version 1.18, 06/02/06
  * @since   1.5
  */
 public final class UUID 
@@ -163,7 +164,6 @@ implements java.io.Serializable, Comparable<UUID> {
         randomBytes[6]  |= 0x40;  /* set to version 4     */
         randomBytes[8]  &= 0x3f;  /* clear variant        */
         randomBytes[8]  |= 0x80;  /* set to IETF variant  */
-        UUID result = new UUID(randomBytes);
         return new UUID(randomBytes);
     }
 
@@ -375,22 +375,23 @@ implements java.io.Serializable, Comparable<UUID> {
      * <code>UUID</code>.
      * 
      * <p>The UUID string representation is as described by this BNF : 
-     * <pre>
-     *  UUID                   = <time_low> "-" <time_mid> "-"
-     *                           <time_high_and_version> "-"
-     *                           <variant_and_sequence> "-"
-     *                           <node>
-     *  time_low               = 4*<hexOctet>
-     *  time_mid               = 2*<hexOctet>
-     *  time_high_and_version  = 2*<hexOctet>
-     *  variant_and_sequence   = 2*<hexOctet>
-     *  node                   = 6*<hexOctet>
-     *  hexOctet               = <hexDigit><hexDigit>
-     *  hexDigit               =
-     *        "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-     *        | "a" | "b" | "c" | "d" | "e" | "f"
-     *        | "A" | "B" | "C" | "D" | "E" | "F"
-     * </pre>
+     * <blockquote><pre>
+     * {@code
+     * UUID                   = <time_low> "-" <time_mid> "-"
+     *                          <time_high_and_version> "-"
+     *                          <variant_and_sequence> "-"
+     *                          <node>
+     * time_low               = 4*<hexOctet>
+     * time_mid               = 2*<hexOctet>
+     * time_high_and_version  = 2*<hexOctet>
+     * variant_and_sequence   = 2*<hexOctet>
+     * node                   = 6*<hexOctet>
+     * hexOctet               = <hexDigit><hexDigit>
+     * hexDigit               =
+     *       "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+     *       | "a" | "b" | "c" | "d" | "e" | "f"
+     *       | "A" | "B" | "C" | "D" | "E" | "F"
+     * }</pre></blockquote>
      *
      * @return  a string representation of this <tt>UUID</tt>.
      */

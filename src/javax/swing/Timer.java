@@ -1,7 +1,7 @@
 /*
- * @(#)Timer.java	1.45 04/05/05
+ * @(#)Timer.java	1.49 06/04/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,12 +20,10 @@ import javax.swing.event.EventListenerList;
 
 
 /**
- * Fires one or more action events after a specified delay.  
- * For example, an animation object can use a <code>Timer</code>
- * as the trigger for drawing its frames.
- *
+ * Fires one or more {@code ActionEvent}s at specified
+ * intervals. An example use is an animation object that uses a
+ * <code>Timer</code> as the trigger for drawing its frames.
  *<p>
- *
  * Setting up a timer
  * involves creating a <code>Timer</code> object,
  * registering one or more action listeners on it,
@@ -48,21 +46,22 @@ import javax.swing.event.EventListenerList;
  *  new Timer(delay, taskPerformer).start();</pre>
  *
  * <p>
- * Each <code>Timer</code>
- * has one or more action listeners
- * and a <em>delay</em>
- * (the time between action events).  
- * When
- * <em>delay</em> milliseconds have passed, the <code>Timer</code>
- * fires an action event to its listeners.  
- * By default, this cycle repeats until
- * the <code>stop</code> method is called.
- * If you want the timer to fire only once,
+ * {@code Timers} are constructed by specifying both a delay parameter
+ * and an {@code ActionListener}. The delay parameter is used
+ * to set both the initial delay and the delay between event
+ * firing, in milliseconds. Once the timer has been started,
+ * it waits for the initial delay before firing its
+ * first <code>ActionEvent</code> to registered listeners.
+ * After this first event, it continues to fire events
+ * every time the between-event delay has elapsed, until it
+ * is stopped.
+ * <p>
+ * After construction, the initial delay and the between-event
+ * delay can be changed independently, and additional
+ * <code>ActionListeners</code> may be added.
+ * <p>
+ * If you want the timer to fire only the first time and then stop,
  * invoke <code>setRepeats(false)</code> on the timer.
- * To make the delay before the first action event
- * different from the delay between events,
- * use the <code>setInitialDelay</code> method.
- *
  * <p>
  * Although all <code>Timer</code>s perform their waiting
  * using a single, shared thread 
@@ -121,7 +120,7 @@ import javax.swing.event.EventListenerList;
  * @see java.util.Timer <code>java.util.Timer</code>
  *
  *
- * @version 1.45 05/05/04
+ * @version 1.49 04/12/06
  * @author Dave Moore
  */
 public class Timer implements Serializable
@@ -158,15 +157,16 @@ public class Timer implements Serializable
     Timer   nextTimer;
     boolean running;
 
+    private String actionCommand;
 
     /**
-     * Creates a <code>Timer</code> that will notify its listeners every
-     * <code>delay</code> milliseconds. If <code>delay</code> is less than
-     * or equal to zero the timer will fire as soon as it
+     * Creates a {@code Timer} and initializes both the initial delay and
+     * between-event delay to {@code delay} milliseconds. If {@code delay}
+     * is less than or equal to zero, the timer fires as soon as it
      * is started. If <code>listener</code> is not <code>null</code>,
      * it's registered as an action listener on the timer.
      *
-     * @param delay the number of milliseconds between action events
+     * @param delay milliseconds for the initial and between-event delay
      * @param listener  an initial listener; can be <code>null</code>
      *
      * @see #addActionListener
@@ -189,7 +189,7 @@ public class Timer implements Serializable
     /**
      * DoPostEvent is a runnable class that fires actionEvents to 
      * the listeners on the EventDispatchThread, via invokeLater.
-     * @see #post
+     * @see Timer#post
      */
     class DoPostEvent implements Runnable, Serializable
     {
@@ -198,7 +198,7 @@ public class Timer implements Serializable
                 System.out.println("Timer ringing: " + Timer.this);
             }
             if(notify) {
-                fireActionPerformed(new ActionEvent(Timer.this, 0, null,
+                fireActionPerformed(new ActionEvent(Timer.this, 0, getActionCommand(),
                                                     System.currentTimeMillis(),
                                                     0));
                 if (coalesce) {
@@ -346,8 +346,9 @@ public class Timer implements Serializable
 
 
     /**
-     * Sets the <code>Timer</code>'s delay, the number of milliseconds
-     * between successive action events.
+     * Sets the <code>Timer</code>'s between-event delay, the number of milliseconds
+     * between successive action events. This does not affect the initial delay
+     * property, which can be set by the {@code setInitialDelay} method.
      *
      * @param delay the delay in milliseconds
      * @see #setInitialDelay
@@ -375,17 +376,14 @@ public class Timer implements Serializable
 
 
     /**
-     * Sets the <code>Timer</code>'s initial delay,
-     * which by default is the same as the between-event delay.
-     * This is used only for the first action event.
-     * Subsequent action events are spaced
-     * using the delay property.
+     * Sets the <code>Timer</code>'s initial delay, the time
+     * in milliseconds to wait after the timer is started
+     * before firing the first event. Upon construction, this
+     * is set to be the same as the between-event delay,
+     * but then its value is independent and remains unaffected
+     * by changes to the between-event delay.
      * 
-     * @param initialDelay the delay, in milliseconds, 
-     *                     between the invocation of the <code>start</code>
-     *                     method and the first action event
-     *                     fired by this timer
-     *
+     * @param initialDelay the initial delay, in milliseconds
      * @see #setDelay
      */
     public void setInitialDelay(int initialDelay) {
@@ -472,6 +470,32 @@ public class Timer implements Serializable
      */
     public boolean isCoalesce() {
         return coalesce;
+    }
+
+
+    /**
+     * Sets the string that will be delivered as the action command
+     * in <code>ActionEvent</code>s fired by this timer.
+     * <code>null</code> is an acceptable value.
+     *
+     * @param command the action command
+     * @since 1.6
+     */
+    public void setActionCommand(String command) {
+        this.actionCommand = command;
+    }
+
+
+    /**
+     * Returns the string that will be delivered as the action command
+     * in <code>ActionEvent</code>s fired by this timer. May be
+     * <code>null</code>, which is also the default.
+     *
+     * @return the action command used in firing events
+     * @since 1.6
+     */
+    public String getActionCommand() {
+        return actionCommand;
     }
 
 

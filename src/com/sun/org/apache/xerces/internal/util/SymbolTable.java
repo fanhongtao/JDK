@@ -1,58 +1,44 @@
 /*
- * The Apache Software License, Version 1.1
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
  *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
+
+/*
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)SymbolTable.java	1.11 05/11/17
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ */
+
+/*
+ * Copyright 2005 The Apache Software Foundation.
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.util;
@@ -84,46 +70,43 @@ package com.sun.org.apache.xerces.internal.util;
  *
  * @author Andy Clark
  *
- * @version $Id: SymbolTable.java,v 1.7 2002/02/07 22:15:09 neilg Exp $
+ * @version $Id: SymbolTable.java,v 1.3 2005/10/03 14:55:36 sunithareddy Exp $
  */
 public class SymbolTable {
-
+    
     //
     // Constants
     //
-
+    
     /** Default table size. */
-    protected static final int TABLE_SIZE = 101;
-
-    //
-    // Data
-    //
-
+    protected static final int TABLE_SIZE = 173;
+    
+        
     /** Buckets. */
     protected Entry[] fBuckets = null;
-
+    
     // actual table size
     protected int fTableSize;
-
+    
     //
     // Constructors
     //
-
+    
     /** Constructs a symbol table with a default number of buckets. */
     public SymbolTable() {
         this(TABLE_SIZE);
     }
-
+    
     /** Constructs a symbol table with a specified number of buckets. */
     public SymbolTable(int tableSize) {
         fTableSize = tableSize;
         fBuckets = new Entry[fTableSize];
     }
-
+    
     //
     // Public methods
     //
-
+    
     /**
      * Adds the specified symbol to the symbol table and returns a
      * reference to the unique symbol. If the symbol already exists,
@@ -133,28 +116,39 @@ public class SymbolTable {
      * @param symbol The new symbol.
      */
     public String addSymbol(String symbol) {
-
+        
         // search for identical symbol
-        int bucket = hash(symbol) % fTableSize;
-        int length = symbol.length();
+        final int hash = hash(symbol);
+        final int bucket = hash % fTableSize;
+        final int length = symbol.length();
         OUTER: for (Entry entry = fBuckets[bucket]; entry != null; entry = entry.next) {
-            if (length == entry.characters.length) {
+            if (length == entry.characters.length && hash == entry.hashCode) {
+                if(symbol.regionMatches(0,entry.symbol,0,length)){
+                    return entry.symbol;                    
+                }
+                else{
+                    continue OUTER;
+                }
+                /**
                 for (int i = 0; i < length; i++) {
                     if (symbol.charAt(i) != entry.characters[i]) {
                         continue OUTER;
                     }
-                }
+                }                 
+                symbolAsArray = entry.characters;
                 return entry.symbol;
+                 */
             }
         }
-
+        
         // create new entry
         Entry entry = new Entry(symbol, fBuckets[bucket]);
+        entry.hashCode = hash;
         fBuckets[bucket] = entry;
         return entry.symbol;
-
+        
     } // addSymbol(String):String
-
+    
     /**
      * Adds the specified symbol to the symbol table and returns a
      * reference to the unique symbol. If the symbol already exists,
@@ -166,11 +160,11 @@ public class SymbolTable {
      * @param length The length of the new symbol in the buffer.
      */
     public String addSymbol(char[] buffer, int offset, int length) {
-
         // search for identical symbol
-        int bucket = hash(buffer, offset, length) % fTableSize;
+        int hash = hash(buffer, offset, length);
+        int bucket = hash % fTableSize;
         OUTER: for (Entry entry = fBuckets[bucket]; entry != null; entry = entry.next) {
-            if (length == entry.characters.length) {
+            if (length == entry.characters.length && hash ==entry.hashCode) {
                 for (int i = 0; i < length; i++) {
                     if (buffer[offset + i] != entry.characters[i]) {
                         continue OUTER;
@@ -179,14 +173,15 @@ public class SymbolTable {
                 return entry.symbol;
             }
         }
-
+        
         // add new entry
         Entry entry = new Entry(buffer, offset, length, fBuckets[bucket]);
         fBuckets[bucket] = entry;
+        entry.hashCode = hash;
         return entry.symbol;
-
+        
     } // addSymbol(char[],int,int):String
-
+    
     /**
      * Returns a hashcode value for the specified symbol. The value
      * returned by this method must be identical to the value returned
@@ -196,16 +191,16 @@ public class SymbolTable {
      * @param symbol The symbol to hash.
      */
     public int hash(String symbol) {
-
+        
         int code = 0;
         int length = symbol.length();
         for (int i = 0; i < length; i++) {
             code = code * 37 + symbol.charAt(i);
         }
         return code & 0x7FFFFFF;
-
+        
     } // hash(String):int
-
+    
     /**
      * Returns a hashcode value for the specified symbol information.
      * The value returned by this method must be identical to the value
@@ -218,15 +213,15 @@ public class SymbolTable {
      * @param length The length of the symbol.
      */
     public int hash(char[] buffer, int offset, int length) {
-
+        
         int code = 0;
         for (int i = 0; i < length; i++) {
             code = code * 37 + buffer[offset + i];
         }
         return code & 0x7FFFFFF;
-
+        
     } // hash(char[],int,int):int
-
+    
     /**
      * Returns true if the symbol table already contains the specified
      * symbol.
@@ -234,25 +229,34 @@ public class SymbolTable {
      * @param symbol The symbol to look for.
      */
     public boolean containsSymbol(String symbol) {
-
+        
         // search for identical symbol
-        int bucket = hash(symbol) % fTableSize;
+        int hash = hash(symbol);
+        int bucket = hash % fTableSize;
         int length = symbol.length();
         OUTER: for (Entry entry = fBuckets[bucket]; entry != null; entry = entry.next) {
-            if (length == entry.characters.length) {
+            if (length == entry.characters.length && hash == entry.hashCode) {
+                if(symbol.regionMatches(0,entry.symbol,0,length)){
+                    return true;
+                }
+                else {
+                    continue OUTER;
+                }
+                /**
                 for (int i = 0; i < length; i++) {
                     if (symbol.charAt(i) != entry.characters[i]) {
                         continue OUTER;
                     }
                 }
-                return true;
+                 return true;
+                 */                                
             }
         }
-
+        
         return false;
-
+        
     } // containsSymbol(String):boolean
-
+    
     /**
      * Returns true if the symbol table already contains the specified
      * symbol.
@@ -262,11 +266,12 @@ public class SymbolTable {
      * @param length The length of the symbol in the buffer.
      */
     public boolean containsSymbol(char[] buffer, int offset, int length) {
-
+        
         // search for identical symbol
-        int bucket = hash(buffer, offset, length) % fTableSize;
+        int hash = hash(buffer, offset, length) ;
+        int bucket = hash % fTableSize;
         OUTER: for (Entry entry = fBuckets[bucket]; entry != null; entry = entry.next) {
-            if (length == entry.characters.length) {
+            if (length == entry.characters.length && hash == entry.hashCode) {
                 for (int i = 0; i < length; i++) {
                     if (buffer[offset + i] != entry.characters[i]) {
                         continue OUTER;
@@ -275,41 +280,43 @@ public class SymbolTable {
                 return true;
             }
         }
-
+        
         return false;
-
+        
     } // containsSymbol(char[],int,int):boolean
-
+    
+       
     //
     // Classes
     //
-
+    
     /**
      * This class is a symbol table entry. Each entry acts as a node
      * in a linked list.
      */
     protected static final class Entry {
-
+        
         //
         // Data
         //
-
+        
         /** Symbol. */
         public String symbol;
-
+        int hashCode = 0;
+        
         /**
          * Symbol characters. This information is duplicated here for
          * comparison performance.
          */
         public char[] characters;
-
+        
         /** The next entry. */
         public Entry next;
-
+        
         //
         // Constructors
         //
-
+        
         /**
          * Constructs a new entry from the specified symbol and next entry
          * reference.
@@ -320,18 +327,18 @@ public class SymbolTable {
             symbol.getChars(0, characters.length, characters, 0);
             this.next = next;
         }
-
+        
         /**
          * Constructs a new entry from the specified symbol information and
          * next entry reference.
          */
         public Entry(char[] ch, int offset, int length, Entry next) {
             characters = new char[length];
-            System.arraycopy(ch, offset, characters, 0, length);
+            System.arraycopy(ch, offset, characters, 0, length);                
             symbol = new String(characters).intern();
             this.next = next;
         }
-
+        
     } // class Entry
-
+    
 } // class SymbolTable

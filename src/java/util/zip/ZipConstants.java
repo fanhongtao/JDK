@@ -1,7 +1,7 @@
 /*
- * @(#)ZipConstants.java	1.18 03/12/19
+ * @(#)ZipConstants.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util.zip;
  * This interface defines the constants that are used by the classes
  * which manipulate ZIP files.
  *
- * @version	1.18, 12/19/03
+ * @version	1.19, 11/17/05
  * @author	David Connelly
  */
 interface ZipConstants {

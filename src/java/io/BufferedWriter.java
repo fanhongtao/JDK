@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedWriter.java	1.26 03/12/19
+ * @(#)BufferedWriter.java	1.29 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,7 +9,7 @@ package java.io;
 
 
 /**
- * Write text to a character-output stream, buffering characters so as to
+ * Writes text to a character-output stream, buffering characters so as to
  * provide for the efficient writing of single characters, arrays, and strings.
  *
  * <p> The buffer size may be specified, or the default size may be accepted.
@@ -40,7 +40,7 @@ package java.io;
  * @see FileWriter
  * @see OutputStreamWriter
  *
- * @version 	1.26, 03/12/19
+ * @version 	1.29, 05/11/30
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -61,7 +61,7 @@ public class BufferedWriter extends Writer {
     private String lineSeparator;
 
     /**
-     * Create a buffered character-output stream that uses a default-sized
+     * Creates a buffered character-output stream that uses a default-sized
      * output buffer.
      *
      * @param  out  A Writer
@@ -71,7 +71,7 @@ public class BufferedWriter extends Writer {
     }
 
     /**
-     * Create a new buffered character-output stream that uses an output
+     * Creates a new buffered character-output stream that uses an output
      * buffer of the given size.
      *
      * @param  out  A Writer
@@ -92,14 +92,14 @@ public class BufferedWriter extends Writer {
                new sun.security.action.GetPropertyAction("line.separator"));
     }
 
-    /** Check to make sure that the stream has not been closed */
+    /** Checks to make sure that the stream has not been closed */
     private void ensureOpen() throws IOException {
 	if (out == null)
 	    throw new IOException("Stream closed");
     }
 
     /**
-     * Flush the output buffer to the underlying character stream, without
+     * Flushes the output buffer to the underlying character stream, without
      * flushing the stream itself.  This method is non-private only so that it
      * may be invoked by PrintStream.
      */
@@ -114,7 +114,7 @@ public class BufferedWriter extends Writer {
     }
 
     /**
-     * Write a single character.
+     * Writes a single character.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -137,7 +137,7 @@ public class BufferedWriter extends Writer {
     }
 
     /**
-     * Write a portion of an array of characters.
+     * Writes a portion of an array of characters.
      *
      * <p> Ordinarily this method stores characters from the given array into
      * this stream's buffer, flushing the buffer to the underlying stream as
@@ -184,7 +184,7 @@ public class BufferedWriter extends Writer {
     }
 
     /**
-     * Write a portion of a String.
+     * Writes a portion of a String.
      *
      * <p> If the value of the <tt>len</tt> parameter is negative then no
      * characters are written.  This is contrary to the specification of this
@@ -215,7 +215,7 @@ public class BufferedWriter extends Writer {
     }
 
     /**
-     * Write a line separator.  The line separator string is defined by the
+     * Writes a line separator.  The line separator string is defined by the
      * system property <tt>line.separator</tt>, and is not necessarily a single
      * newline ('\n') character.
      *
@@ -226,7 +226,7 @@ public class BufferedWriter extends Writer {
     }
 
     /**
-     * Flush the stream.
+     * Flushes the stream.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -237,20 +237,18 @@ public class BufferedWriter extends Writer {
 	}
     }
 
-    /**
-     * Close the stream.
-     *
-     * @exception  IOException  If an I/O error occurs
-     */
     public void close() throws IOException {
 	synchronized (lock) {
-	    if (out == null)
+	    if (out == null) {
 		return;
-	    flushBuffer();
-	    out.close();
-	    out = null;
-	    cb = null;
+	    }
+	    try {
+	        flushBuffer();
+	    } finally {
+	        out.close();
+	        out = null;
+	        cb = null;
+	    }
 	}
     }
-
 }

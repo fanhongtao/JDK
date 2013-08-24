@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleContext.java	1.43 04/04/02
+ * @(#)AccessibleContext.java	1.45 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import java.awt.IllegalComponentStateException;
  * description: Minimal information that all accessible objects return
  *
 
- * @version     1.43 04/02/04
+ * @version     1.45 04/07/06
  * @author	Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
@@ -639,6 +639,7 @@ public abstract class AccessibleContext {
      *
      * @return AccessibleEditableText if supported by object; else return null
      * @see AccessibleEditableText
+     * @since 1.4
      */
     public AccessibleEditableText getAccessibleEditableText() {
 	return null;
@@ -663,6 +664,7 @@ public abstract class AccessibleContext {
      * @return an array of AccessibleIcon if supported by object; 
      * otherwise return null 
      * @see AccessibleIcon
+     * @since 1.3
      */
     public AccessibleIcon [] getAccessibleIcon() {
 	return null;
@@ -674,6 +676,7 @@ public abstract class AccessibleContext {
      * @return an AccessibleRelationSet if supported by object;
      * otherwise return null
      * @see AccessibleRelationSet
+     * @since 1.3
      */
     public AccessibleRelationSet getAccessibleRelationSet() {
 	return relationSet;
@@ -685,6 +688,7 @@ public abstract class AccessibleContext {
      * @return an AccessibleTable if supported by object;
      * otherwise return null
      * @see AccessibleTable
+     * @since 1.3
      */
     public AccessibleTable getAccessibleTable() {
 	return null;

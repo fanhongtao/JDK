@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * $Id: FuncExtElementAvailable.java,v 1.2.4.1 2005/09/14 19:58:32 jeffsuttor Exp $
+ */
 package com.sun.org.apache.xpath.internal.functions;
 
 import com.sun.org.apache.xalan.internal.templates.Constants;
-//import com.sun.org.apache.xalan.internal.transformer.TransformerImpl;
+// J2SE does not support Xalan interpretive
+/*
+import com.sun.org.apache.xalan.internal.transformer.TransformerImpl;
+*/
 import com.sun.org.apache.xml.internal.utils.QName;
 import com.sun.org.apache.xpath.internal.ExtensionsProvider;
 import com.sun.org.apache.xpath.internal.XPathContext;
@@ -29,6 +35,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncExtElementAvailable extends FunctionOneArg
 {
+    static final long serialVersionUID = -472533699257968546L;
 
   /**
    * Execute the function.  The function must return
@@ -64,19 +71,21 @@ public class FuncExtElementAvailable extends FunctionOneArg
     }
 
     if (namespace.equals(Constants.S_XSLNAMESPACEURL)
-    ||  namespace.equals(Constants.S_BUILTIN_EXTENSIONS_URL))
-    {
-          // <<<<<<<   TIGER SPECIFIC CHANGE >>>>>>>>>
-          // As we are not supporting Xalan interpretive we are taking away the functionality
-          // dependent on XSLT interpretive Transformer. Only way supported is to use XSLTC
-          // and the execution path needed for supporting standard XPath API defined by
-          // JAXP 1.3 . This method is overridden in XPath implementation to support
-          // standard XPath functionality with xpath package of Xalan
-
+    ||  namespace.equals(Constants.S_BUILTIN_EXTENSIONS_URL)) {
+      
+        // J2SE does not support Xalan interpretive
+    	/*
+      try {
+        TransformerImpl transformer = (TransformerImpl) xctxt.getOwnerObject();
+        return transformer.getStylesheet().getAvailableElements().containsKey(
+                                                            new QName(namespace, methName))
+               ? XBoolean.S_TRUE : XBoolean.S_FALSE;
+      } catch (Exception e) {
         return XBoolean.S_FALSE;
-    }
-    else
-    {
+      }
+      */
+        return XBoolean.S_FALSE;      
+    } else {
       //dml
       ExtensionsProvider extProvider = (ExtensionsProvider)xctxt.getOwnerObject();
       return extProvider.elementAvailable(namespace, methName)

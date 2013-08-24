@@ -1,7 +1,7 @@
 /*
- * @(#)ColorModel.java	1.80 03/12/19
+ * @(#)ColorModel.java	1.82 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -405,6 +405,7 @@ public abstract class ColorModel implements Transparency{
      * The transfer type is the type of primitive array used to represent
      * pixel values as arrays.
      * @return the transfer type.
+     * @since 1.3
      */
     final public int getTransferType() {
         return transferType;

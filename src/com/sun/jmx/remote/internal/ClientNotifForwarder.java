@@ -1,7 +1,7 @@
 /*
- * @(#)ClientNotifForwarder.java	1.39 05/01/04
+ * @(#)ClientNotifForwarder.java	1.46 06/04/07
  * 
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ public abstract class ClientNotifForwarder {
 
        You might expect that a java.util.concurrent.ThreadPoolExecutor 
        with corePoolSize=0 and maximumPoolSize=1 would have the same
-       behaviour, but it does not.  A ThreadPoolExecutor only creates
+       behavior, but it does not.  A ThreadPoolExecutor only creates
        a new thread when a new task is submitted and the number of
        existing threads is < corePoolSize.  This can never happen when
        corePoolSize=0, so new threads are never created.  Surprising,
@@ -244,20 +244,16 @@ public abstract class ClientNotifForwarder {
 	return (Integer[]) ids.toArray(new Integer[0]);
     }
 
-    public synchronized ListenerInfo[] getListenerInfo() {
-	return (ListenerInfo[])infoList.values().toArray(new ListenerInfo[0]);
-    }
-
     /*
      * Called when a connector is doing reconnection. Like <code>postReconnection</code>,
-     * this method is intended to be called only by a client connetor:
-     * <code>RMIConnector</code/> and <code/>ClientIntermediary</code>.
+     * this method is intended to be called only by a client connector:
+     * <code>RMIConnector</code> and <code>ClientIntermediary</code>.
      * Call this method will set the flag beingReconnection to <code>true</code>,
      * and the thread used to fetch notifis will be stopped, a new thread can be
      * created only after the method <code>postReconnection</code> is called.
      *
      * It is caller's responsiblity to not re-call this method before calling
-     * <code>postReconnection.
+     * <code>postReconnection</code>.
      */ 
     public synchronized ClientListenerInfo[] preReconnection() throws IOException {
 	if (state == TERMINATED || beingReconnected) { // should never
@@ -299,8 +295,8 @@ public abstract class ClientNotifForwarder {
 
     /**
      * Called after reconnection is finished.
-     * This method is intended to be called only by a client connetor:
-     * <code>RMIConnector</code/> and <code/>ClientIntermediary</code>.
+     * This method is intended to be called only by a client connector:
+     * <code>RMIConnector</code> and <code>ClientIntermediary</code>.
      */
     public synchronized void postReconnection(ClientListenerInfo[] listenerInfos)
 	throws IOException {
@@ -402,7 +398,7 @@ public abstract class ClientNotifForwarder {
 		final TargetedNotification[] notifs =
 		    nr.getTargetedNotifications();
 		final int len = notifs.length;
-		final HashMap listeners;
+		final Map<Integer, ClientListenerInfo> listeners;
 		final Integer myListenerID;
 
 		long missed = 0;
@@ -418,7 +414,7 @@ public abstract class ClientNotifForwarder {
 		    clientSequenceNumber = nr.getNextSequenceNumber();
 
 		    final int size = infoList.size();
-		    listeners  = new HashMap(((size>len)?len:size));
+		    listeners = new HashMap<Integer, ClientListenerInfo>();
 
 		    for (int i = 0 ; i < len ; i++) {
 			final TargetedNotification tn = notifs[i];
@@ -426,8 +422,7 @@ public abstract class ClientNotifForwarder {
 			
 			// check if an mbean unregistration notif
 			if (!listenerID.equals(mbeanRemovedNotifID)) {
-			    final ListenerInfo li = 
-				(ListenerInfo) infoList.get(listenerID);
+			    final ClientListenerInfo li = infoList.get(listenerID);
 			    if (li != null) 
 				listeners.put(listenerID,li);
 			    continue;
@@ -476,13 +471,13 @@ public abstract class ClientNotifForwarder {
 	}
 
 	void dispatchNotification(TargetedNotification tn, 
-				  Integer myListenerID, Map listeners) {
+				  Integer myListenerID,
+                                  Map<Integer, ClientListenerInfo> listeners) {
 	    final Notification notif = tn.getNotification();
 	    final Integer listenerID = tn.getListenerID();
 	    
 	    if (listenerID.equals(myListenerID)) return;
-	    final ListenerInfo li = (ClientListenerInfo) 
-		listeners.get(listenerID);
+	    final ClientListenerInfo li = listeners.get(listenerID);
 
 	    if (li == null) {
 		logger.trace("NotifFetcher.dispatch",
@@ -732,7 +727,7 @@ public abstract class ClientNotifForwarder {
     }
 
     /**
-     * Import: should not remove a listener dureing reconnection, the reconnection
+     * Import: should not remove a listener during reconnection, the reconnection
      * needs to change the listener list and that will possibly make removal fail.
      */
     private synchronized void beforeRemove() throws IOException {
@@ -763,8 +758,8 @@ public abstract class ClientNotifForwarder {
     private final ClassLoader defaultClassLoader;
     private final Executor executor;
 
-    private final HashMap infoList = new HashMap();
-    // Integer -> ClientListenerInfo
+    private final Map<Integer, ClientListenerInfo> infoList =
+            new HashMap<Integer, ClientListenerInfo>();
 
     // notif stuff
     private long clientSequenceNumber = -1;
@@ -811,7 +806,7 @@ public abstract class ClientNotifForwarder {
      * This variable is used to tell whether a connector (RMIConnector or ClientIntermediary)
      * is doing reconnection.
      * This variable will be set to true by the method <code>preReconnection</code>, and set
-     * fase by <code>postReconnection</code>.
+     * to false by <code>postReconnection</code>.
      * When beingReconnected == true, no thread will be created for fetching notifications.
      */
     private boolean beingReconnected = false;

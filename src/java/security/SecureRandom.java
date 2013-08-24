@@ -1,7 +1,7 @@
 /*
- * @(#)SecureRandom.java	1.47 03/12/19
+ * @(#)SecureRandom.java	1.54 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -15,73 +15,44 @@ import sun.security.jca.*;
 import sun.security.jca.GetInstance.Instance;
 
 /**
- * <p>This class provides a cryptographically strong random number
- * generator (RNG).  Many implementations are in the form of a pseudo-random
- * number generator (PRNG), which means they use a deterministic algorithm
- * to produce a pseudo-random sequence from a true random seed.
- * Other implementations may produce true random numbers
- * and yet others may use a combination of both techniques.
+ * This class provides a cryptographically strong random number
+ * generator (RNG).
  *
  * <p>A cryptographically strong random number
  * minimally complies with the statistical random number generator tests
  * specified in <a href="http://csrc.nist.gov/cryptval/140-2.htm">
  * <i>FIPS 140-2, Security Requirements for Cryptographic Modules</i></a>,
  * section 4.9.1.
- * Additionally, SecureRandom must produce non-deterministic 
- * output and therefore it is required that the seed material be unpredictable
- * and that output of SecureRandom be cryptographically strong sequences as
- * described in <a href="http://www.ietf.org/rfc/rfc1750.txt">
+ * Additionally, SecureRandom must produce non-deterministic output.
+ * Therefore any seed material passed to a SecureRandom object must be
+ * unpredictable, and all SecureRandom output sequences must be
+ * cryptographically strong, as described in
+ * <a href="http://www.ietf.org/rfc/rfc1750.txt">
  * <i>RFC 1750: Randomness Recommendations for Security</i></a>.
  * 
- * <p>Like other algorithm-based classes in Java Security, SecureRandom 
- * provides implementation-independent algorithms, whereby a caller 
- * (application code) requests a particular RNG algorithm
- * and is handed back a SecureRandom object for that algorithm. It is
- * also possible, if desired, to request a particular algorithm from a
- * particular provider. See the <code>getInstance</code> methods.
+ * <p>A caller obtains a SecureRandom instance via the
+ * no-argument constructor or one of the <code>getInstance</code> methods:
  *
- * <p>Thus, there are two ways to request a SecureRandom object: by
- * specifying either just an algorithm name, or both an algorithm name
- * and a package provider.
- *
- * <ul>
- *
- * <li>If just an algorithm name is specified, as in:
  * <pre>
- *      SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
- * </pre>
- * the system will determine if there is an implementation of the algorithm
- * requested available in the environment, and if there is more than one, if
- * there is a preferred one.<p>
- * 
- * <li>If both an algorithm name and a package provider are specified, as in:
- * <pre>
- *      SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
- * </pre>
- * the system will determine if there is an implementation of the
- * algorithm in the package requested, and throw an exception if there
- * is not.
- *
- * </ul>
- *
- * <p>The SecureRandom implementation attempts to completely
- * randomize the internal state of the generator itself unless
- * the caller follows the call to a <code>getInstance</code> method
- * with a call to the <code>setSeed</code> method:
- * <pre>
- *      SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
- *      random.setSeed(seed);
+ *      SecureRandom random = new SecureRandom();
  * </pre>
  *
- * <p>After the caller obtains the SecureRandom object from the
- * <code>getInstance</code> call, it can call <code>nextBytes</code>
- * to generate random bytes:
+ * <p> Many SecureRandom implementations are in the form of a pseudo-random
+ * number generator (PRNG), which means they use a deterministic algorithm
+ * to produce a pseudo-random sequence from a true random seed.
+ * Other implementations may produce true random numbers,
+ * and yet others may use a combination of both techniques.
+ *
+ * <p> Typical callers of SecureRandom invoke the following methods
+ * to retrieve random bytes:
+ *
  * <pre>
+ *      SecureRandom random = new SecureRandom();
  *      byte bytes[] = new byte[20];
  *      random.nextBytes(bytes);
  * </pre>
  *
- * <p>The caller may also invoke the <code>generateSeed</code> method
+ * <p> Callers may also invoke the <code>generateSeed</code> method
  * to generate a given number of seed bytes (to seed other random number
  * generators, for example):
  * <pre>
@@ -91,7 +62,7 @@ import sun.security.jca.GetInstance.Instance;
  * @see java.security.SecureRandomSpi
  * @see java.util.Random
  * 
- * @version 1.47, 12/19/03
+ * @version 1.54, 04/21/06
  * @author Benjamin Renaud
  * @author Josh Bloch 
  */
@@ -123,22 +94,34 @@ public class SecureRandom extends java.util.Random {
     private String algorithm;
 
     // Seed Generator
-    private static SecureRandom seedGenerator = null;
+    private static volatile SecureRandom seedGenerator = null;
 
     /**
-     * <p>By using this constructor, the caller obtains a SecureRandom object
-     * containing the implementation from the highest-priority installed
-     * provider that has a SecureRandom implementation.
-     * 
-     * <p>Note that this instance of SecureRandom has not been seeded.
-     * A call to the <code>setSeed</code> method will seed the SecureRandom
-     * object.  If a call is not made to <code>setSeed</code>, the first call
-     * to the <code>nextBytes</code> method will force the SecureRandom object
-     * to seed itself.
+     * Constructs a secure random number generator (RNG) implementing the
+     * default random number algorithm.
      *
-     * <p>This constructor is provided for backwards compatibility. 
-     * The caller is encouraged to use one of the alternative
-     * <code>getInstance</code> methods to obtain a SecureRandom object.
+     * <p> This constructor traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new SecureRandom object encapsulating the
+     * SecureRandomSpi implementation from the first
+     * Provider that supports a SecureRandom (RNG) algorithm is returned.
+     * If none of the Providers support a RNG algorithm,
+     * then an implementation-specific default is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
+     *
+     * <p> See Appendix A in the <a href=
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard RNG algorithm names.
+     *
+     * <p> The returned SecureRandom object has not been seeded.  To seed the
+     * returned object, call the <code>setSeed</code> method.
+     * If <code>setSeed</code> is not called, the first call to
+     * <code>nextBytes</code> will force the SecureRandom object to seed itself.
+     * This self-seeding will not occur if <code>setSeed</code> was
+     * previously called.
      */
     public SecureRandom() {
 	/*
@@ -151,20 +134,26 @@ public class SecureRandom extends java.util.Random {
     }
 
     /**
-     * <p>By using this constructor, the caller obtains a SecureRandom object
-     * containing the implementation from the highest-priority installed
-     * provider that has a SecureRandom implementation. This constructor 
-     * uses a user-provided seed in
-     * preference to the self-seeding algorithm referred to in the empty
-     * constructor description. It may be preferable to the empty constructor
-     * if the caller has access to high-quality random bytes from some physical
-     * device (for example, a radiation detector or a noisy diode).
-     * 
-     * <p>This constructor is provided for backwards compatibility. 
-     * The caller is encouraged to use one of the alternative
-     * <code>getInstance</code> methods to obtain a SecureRandom object, and
-     * then to call the <code>setSeed</code> method to seed it.
-     * 
+     * Constructs a secure random number generator (RNG) implementing the
+     * default random number algorithm.
+     * The SecureRandom instance is seeded with the specified seed bytes.
+     *
+     * <p> This constructor traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new SecureRandom object encapsulating the
+     * SecureRandomSpi implementation from the first
+     * Provider that supports a SecureRandom (RNG) algorithm is returned.
+     * If none of the Providers support a RNG algorithm,
+     * then an implementation-specific default is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
+     *
+     * <p> See Appendix A in the <a href=
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a> 
+     * for information about standard RNG algorithm names.
+     *
      * @param seed the seed.
      */
     public SecureRandom(byte seed[]) {
@@ -192,9 +181,14 @@ public class SecureRandom extends java.util.Random {
 		}
 	    } catch (NoSuchAlgorithmException nsae) {
 		// never happens, because we made sure the algorithm exists
+		throw new RuntimeException(nsae);
 	    }
 	}
-	// set algorithm if SecureRandom not subclassed (JDK 1.1 style)
+	// JDK 1.1 based implementations subclass SecureRandom instead of
+	// SecureRandomSpi. They will also go through this code path because
+	// they must call a SecureRandom constructor as it is their superclass.
+	// If we are dealing with such an implementation, do not set the
+	// algorithm value as it would be inaccurate.
 	if (getClass() == SecureRandom.class) {
 	    this.algorithm = prng;
 	}
@@ -220,29 +214,38 @@ public class SecureRandom extends java.util.Random {
     }
 
     /**
-     * Generates a SecureRandom object that implements the specified
-     * Random Number Generator (RNG) algorithm. If the default
-     * provider package provides an implementation of the requested algorithm,
-     * an instance of SecureRandom containing that implementation is returned.
-     * If the algorithm is not available in the default 
-     * package, other packages are searched.
+     * Returns a SecureRandom object that implements the specified
+     * Random Number Generator (RNG) algorithm. 
      *
-     * <p>Note that the returned instance of SecureRandom has not been seeded.
-     * A call to the <code>setSeed</code> method will seed the SecureRandom
-     * object.  If a call is not made to <code>setSeed</code>, the first call
-     * to the <code>nextBytes</code> method will force the SecureRandom object
-     * to seed itself.
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new SecureRandom object encapsulating the
+     * SecureRandomSpi implementation from the first
+     * Provider that supports the specified algorithm is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
+     *
+     * <p> The returned SecureRandom object has not been seeded.  To seed the
+     * returned object, call the <code>setSeed</code> method.
+     * If <code>setSeed</code> is not called, the first call to
+     * <code>nextBytes</code> will force the SecureRandom object to seed itself.
+     * This self-seeding will not occur if <code>setSeed</code> was
+     * previously called.
      *
      * @param algorithm the name of the RNG algorithm.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard RNG algorithm names.
      *
      * @return the new SecureRandom object.
      *
-     * @exception NoSuchAlgorithmException if the RNG algorithm is
-     * not available in the caller's environment.
+     * @exception NoSuchAlgorithmException if no Provider supports a
+     *		SecureRandomSpi implementation for the
+     *		specified algorithm.
+     *
+     * @see Provider
      *
      * @since 1.2
      */
@@ -255,19 +258,27 @@ public class SecureRandom extends java.util.Random {
     }
 
     /**
-     * Generates a SecureRandom object for the specified RNG
-     * algorithm, as supplied from the specified provider, if such a
-     * RNG implementation is available from the provider.
+     * Returns a SecureRandom object that implements the specified
+     * Random Number Generator (RNG) algorithm. 
      *
-     * <p>Note that the returned instance of SecureRandom has not been seeded.
-     * A call to the <code>setSeed</code> method will seed the SecureRandom
-     * object.  If a call is not made to <code>setSeed</code>, the first call
-     * to the <code>nextBytes</code> method will force the SecureRandom object
-     * to seed itself.
+     * <p> A new SecureRandom object encapsulating the
+     * SecureRandomSpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
+     *
+     * <p> The returned SecureRandom object has not been seeded.  To seed the
+     * returned object, call the <code>setSeed</code> method.
+     * If <code>setSeed</code> is not called, the first call to
+     * <code>nextBytes</code> will force the SecureRandom object to seed itself.
+     * This self-seeding will not occur if <code>setSeed</code> was
+     * previously called.
      *
      * @param algorithm the name of the RNG algorithm.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard RNG algorithm names.
      *
@@ -275,14 +286,15 @@ public class SecureRandom extends java.util.Random {
      *
      * @return the new SecureRandom object.
      *
-     * @exception NoSuchAlgorithmException if the requested RNG
-     * implementation is not available from the provider.
+     * @exception NoSuchAlgorithmException if a SecureRandomSpi
+     *		implementation for the specified algorithm is not
+     *		available from the specified provider.
      *
-     * @exception NoSuchProviderException if the provider has not been
-     * configured.
+     * @exception NoSuchProviderException if the specified provider is not
+     *          registered in the security provider list.
      *
      * @exception IllegalArgumentException if the provider name is null
-     * or empty.
+     *		or empty.
      *
      * @see Provider
      *
@@ -297,20 +309,24 @@ public class SecureRandom extends java.util.Random {
     }
 
     /**
-     * Generates a SecureRandom object for the specified RNG
-     * algorithm, as supplied from the specified provider, if such a
-     * RNG implementation is available from the provider.
-     * Note: the <code>provider</code> doesn't have to be registered. 
+     * Returns a SecureRandom object that implements the specified
+     * Random Number Generator (RNG) algorithm. 
      *
-     * <p>Note that the returned instance of SecureRandom has not been seeded.
-     * A call to the <code>setSeed</code> method will seed the SecureRandom
-     * object.  If a call is not made to <code>setSeed</code>, the first call
-     * to the <code>nextBytes</code> method will force the SecureRandom object
-     * to seed itself.
+     * <p> A new SecureRandom object encapsulating the
+     * SecureRandomSpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
+     *
+     * <p> The returned SecureRandom object has not been seeded.  To seed the
+     * returned object, call the <code>setSeed</code> method.
+     * If <code>setSeed</code> is not called, the first call to
+     * <code>nextBytes</code> will force the SecureRandom object to seed itself.
+     * This self-seeding will not occur if <code>setSeed</code> was
+     * previously called.
      *
      * @param algorithm the name of the RNG algorithm.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard RNG algorithm names.
      *
@@ -318,11 +334,11 @@ public class SecureRandom extends java.util.Random {
      *
      * @return the new SecureRandom object.
      *
-     * @exception NoSuchAlgorithmException if the requested RNG
-     * implementation is not available from the provider.
+     * @exception NoSuchAlgorithmException if a SecureRandomSpi
+     *		implementation for the specified algorithm is not available
+     *		from the specified Provider object.
      *
-     * @exception IllegalArgumentException if the <code>provider</code> is
-     * null.
+     * @exception IllegalArgumentException if the specified provider is null.
      *
      * @see Provider
      *
@@ -353,10 +369,11 @@ public class SecureRandom extends java.util.Random {
     }
     
     /**
-     * Returns the name of the algorithm implemented by this SecureRandom object.
+     * Returns the name of the algorithm implemented by this SecureRandom
+     * object.
      *
-     * @return the name of the algorithm or <code>unknown</code> if the algorithm
-     *    name cannot be determined.
+     * @return the name of the algorithm or <code>unknown</code>
+     *		if the algorithm name cannot be determined.
      * @since 1.5
      */
     public String getAlgorithm() {
@@ -402,9 +419,12 @@ public class SecureRandom extends java.util.Random {
     }
 
     /**
-     * Generates a user-specified number of random bytes.  This method is
-     * used as the basis of all random entities returned by this class
-     * (except seed bytes).
+     * Generates a user-specified number of random bytes.
+     *
+     * <p> If a call to <code>setSeed</code> had not occurred previously,
+     * the first call to this method forces this SecureRandom object
+     * to seed itself.  This self-seeding will not occur if
+     * <code>setSeed</code> was previously called.
      * 
      * @param bytes the array to be filled in with random bytes.
      */

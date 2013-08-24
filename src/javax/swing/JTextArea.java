@@ -1,7 +1,7 @@
 /*
- * @(#)JTextArea.java	1.92 03/12/19
+ * @(#)JTextArea.java	1.98 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -15,7 +15,6 @@ import javax.accessibility.*;
 import java.util.Collections;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
 
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -77,12 +76,18 @@ import java.io.IOException;
  *    myArea.getDocument().addDocumentListener(myListener);
  * </pre>
  * <p>
+ * <dl>
  * <dt><b><font size=+1>Newlines</font></b>
  * <dd>
  * For a discussion on how newlines are handled, see
  * <a href="text/DefaultEditorKit.html">DefaultEditorKit</a>.
  * </dl>
  *
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -98,7 +103,7 @@ import java.io.IOException;
  * description: A multi-line area that displays plain text.
  * 
  * @author  Timothy Prinzing
- * @version 1.92 12/19/03
+ * @version 1.98 08/08/06
  * @see JTextPane
  * @see JEditorPane
  */
@@ -425,8 +430,8 @@ public class JTextArea extends JTextComponent {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param str the text to insert
      * @param pos the position at which to insert >= 0
@@ -452,8 +457,8 @@ public class JTextArea extends JTextComponent {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param str the text to insert
      * @see #insert
@@ -475,8 +480,8 @@ public class JTextArea extends JTextComponent {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param str the text to use as the replacement
      * @param start the start position >= 0
@@ -688,8 +693,12 @@ public class JTextArea extends JTextComponent {
     public Dimension getPreferredScrollableViewportSize() {
         Dimension size = super.getPreferredScrollableViewportSize();
         size = (size == null) ? new Dimension(400,400) : size;
-        size.width = (columns == 0) ? size.width : columns * getColumnWidth();
-        size.height = (rows == 0) ? size.height : rows * getRowHeight();
+        Insets insets = getInsets();
+
+        size.width = (columns == 0) ? size.width :
+                columns * getColumnWidth() + insets.left + insets.right;
+        size.height = (rows == 0) ? size.height :
+                rows * getRowHeight() + insets.top + insets.bottom;
         return size;
     }
 

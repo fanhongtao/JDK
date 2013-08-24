@@ -1,7 +1,7 @@
 /*
- * @(#)KeyStore.java	1.42 04/06/28
+ * @(#)KeyStore.java	1.53 06/07/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,6 +57,10 @@ import javax.security.auth.callback.*;
  * itself. For example, the entity may authenticate itself using different
  * certificate authorities, or using different public key algorithms.
  *
+ * <p> Whether aliases are case sensitive is implementation dependent. In order
+ * to avoid problems, it is recommended not to use aliases in a KeyStore that
+ * only differ in case.
+ *
  * <p> Whether keystores are persistent, and the mechanisms used by the
  * keystore if it is persistent, are not specified here. This allows
  * use of a variety of techniques for protecting sensitive (e.g., private or
@@ -90,10 +94,16 @@ import javax.security.auth.callback.*;
  *
  *    // get user password and file input stream
  *    char[] password = getPassword();
- *    java.io.FileInputStream fis =
- *        new java.io.FileInputStream("keyStoreName");
- *    ks.load(fis, password);
- *    fis.close();
+ *
+ *    java.io.FileInputStream fis = null;
+ *    try {
+ *        fis = new java.io.FileInputStream("keyStoreName");
+ *        ks.load(fis, password);
+ *    } finally {
+ *        if (fis != null) {
+ *            fis.close();
+ *        }
+ *    }
  * </pre>
  *
  * To create an empty keystore using the above <code>load</code> method,
@@ -112,13 +122,19 @@ import javax.security.auth.callback.*;
  *    javax.crypto.SecretKey mySecretKey;
  *    KeyStore.SecretKeyEntry skEntry =
  *        new KeyStore.SecretKeyEntry(mySecretKey);
- *    ks.setEntry("secretKeyAlias", skEntry, password);
+ *    ks.setEntry("secretKeyAlias", skEntry, 
+ *        new KeyStore.PasswordProtection(password));
  *
  *    // store away the keystore
- *    java.io.FileOutputStream fos =
- *        new java.io.FileOutputStream("newKeyStoreName");
- *    ks.store(fos, password);
- *    fos.close();
+ *    java.io.FileOutputStream fos = null;
+ *    try {
+ *        fos = new java.io.FileOutputStream("newKeyStoreName");
+ *        ks.store(fos, password);
+ *    } finally {
+ *        if (fos != null) {
+ *            fos.close();
+ *        }
+ *    }
  * </pre>
  *
  * Note that although the same password may be used to
@@ -130,7 +146,7 @@ import javax.security.auth.callback.*;
  *
  * @author Jan Luehe
  *
- * @version 1.42, 06/28/04
+ * @version 1.53, 07/28/06
  *
  * @see java.security.PrivateKey
  * @see javax.crypto.SecretKey
@@ -536,24 +552,30 @@ public class KeyStore {
     }
 
     /**
-     * Generates a keystore object of the given type.
+     * Returns a keystore object of the specified type.
      * 
-     * <p>If the default provider package provides a keystore implementation
-     * of the given type, an instance of <code>KeyStore</code> containing that
-     * implementation is returned. If the requested keystore type is not
-     * available in the default package, other packages are searched.
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new KeyStore object encapsulating the
+     * KeyStoreSpi implementation from the first
+     * Provider that supports the specified type is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param type the type of keystore. 
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard keystore types.
      *
      * @return a keystore object of the specified type.
      *
-     * @exception KeyStoreException if the requested keystore type is
-     * not available in the default provider package or any of the other
-     * provider packages that were searched.  
+     * @exception KeyStoreException if no Provider supports a
+     *          KeyStoreSpi implementation for the
+     *          specified type.
+     *
+     * @see Provider
      */
     public static KeyStore getInstance(String type) 
 	throws KeyStoreException
@@ -562,35 +584,42 @@ public class KeyStore {
 	    Object[] objs = Security.getImpl(type, "KeyStore", (String)null);
 	    return new KeyStore((KeyStoreSpi)objs[0], (Provider)objs[1], type);
 	} catch (NoSuchAlgorithmException nsae) {
-	    throw new KeyStoreException(type + " not found");
+	    throw new KeyStoreException(type + " not found", nsae);
 	} catch (NoSuchProviderException nspe) {
-	    throw new KeyStoreException(type + " not found");
+	    throw new KeyStoreException(type + " not found", nspe);
 	}
     }
 
     /**
-     * Generates a keystore object for the specified keystore
-     * type from the specified provider.
+     * Returns a keystore object of the specified type.
+     * 
+     * <p> A new KeyStore object encapsulating the
+     * KeyStoreSpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param type the type of keystore.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard keystore types.
      *
      * @param provider the name of the provider.
      *
-     * @return a keystore object of the specified type, as
-     * supplied by the specified provider.
+     * @return a keystore object of the specified type.
      *
-     * @exception KeyStoreException if the requested keystore type is not
-     * available from the provider.
+     * @exception KeyStoreException if a KeyStoreSpi
+     *          implementation for the specified type is not
+     *          available from the specified provider.
      * 
-     * @exception NoSuchProviderException if the provider has not been
-     * configured.
+     * @exception NoSuchProviderException if the specified provider is not
+     *          registered in the security provider list.
      *
      * @exception IllegalArgumentException if the provider name is null
-     * or empty.
+     *		or empty.
      *
      * @see Provider
      */
@@ -603,31 +632,33 @@ public class KeyStore {
 	    Object[] objs = Security.getImpl(type, "KeyStore", provider);
 	    return new KeyStore((KeyStoreSpi)objs[0], (Provider)objs[1], type);
 	} catch (NoSuchAlgorithmException nsae) {
-	    throw new KeyStoreException(type + " not found");
+	    throw new KeyStoreException(type + " not found", nsae);
 	}
     }
 
     /**
-     * Generates a keystore object for the specified keystore
-     * type from the specified provider. Note: the <code>provider</code> 
-     * doesn't have to be registered. 
+     * Returns a keystore object of the specified type.
+     * 
+     * <p> A new KeyStore object encapsulating the
+     * KeyStoreSpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
      *
      * @param type the type of keystore.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard keystore types.
      *
      * @param provider the provider.
      *
-     * @return a keystore object of the specified type, as
-     * supplied by the specified provider.
+     * @return a keystore object of the specified type.
      *
-     * @exception KeyStoreException if the requested keystore type is not
-     * available from the provider.
+     * @exception KeyStoreException if KeyStoreSpi
+     *          implementation for the specified type is not available
+     *          from the specified Provider object.
      *
-     * @exception IllegalArgumentException if the <code>provider</code> is
-     * null.
+     * @exception IllegalArgumentException if the specified provider is null.
      *
      * @see Provider
      *
@@ -642,7 +673,7 @@ public class KeyStore {
 	    Object[] objs = Security.getImpl(type, "KeyStore", provider);
 	    return new KeyStore((KeyStoreSpi)objs[0], (Provider)objs[1], type);
 	} catch (NoSuchAlgorithmException nsae) {
-	    throw new KeyStoreException(type + " not found");
+	    throw new KeyStoreException(type + " not found", nsae);
 	}
     }
 
@@ -652,8 +683,9 @@ public class KeyStore {
      * &quot;jks&quot; (acronym for &quot;Java keystore&quot;)
      * if no such property exists.
      * The Java security properties file is located in the file named
-     * &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
-     * refers to the directory where the JDK was installed.
+     * &lt;JAVA_HOME&gt;/lib/security/java.security.
+     * &lt;JAVA_HOME&gt; refers to the value of the java.home system property,
+     * and specifies the directory where the JRE is installed.
      *
      * <p>The default keystore type can be used by applications that do not
      * want to use a hard-coded keystore type when calling one of the
@@ -1138,7 +1170,10 @@ public class KeyStore {
      *
      * @exception IOException if there is an I/O or format problem with the
      * keystore data, if a password is required but not given,
-     * or if the given password was incorrect
+     * or if the given password was incorrect. If the error is due to a
+     * wrong password, the {@link Throwable#getCause cause} of the 
+     * <code>IOException</code> should be an 
+     * <code>UnrecoverableKeyException</code>
      * @exception NoSuchAlgorithmException if the algorithm used to check
      * the integrity of the keystore cannot be found
      * @exception CertificateException if any of the certificates in the
@@ -1165,7 +1200,11 @@ public class KeyStore {
      *		<code>LoadStoreParameter</code>
      *		input is not recognized
      * @exception IOException if there is an I/O or format problem with the
-     *		keystore data
+     *		keystore data. If the error is due to an incorrect 
+     *         <code>ProtectionParameter</code> (e.g. wrong password)
+     *         the {@link Throwable#getCause cause} of the 
+     *         <code>IOException</code> should be an 
+     *         <code>UnrecoverableKeyException</code>
      * @exception NoSuchAlgorithmException if the algorithm used to check
      *		the integrity of the keystore cannot be found
      * @exception CertificateException if any of the certificates in the
@@ -1199,6 +1238,10 @@ public class KeyStore {
      *		entry cannot be found
      * @exception UnrecoverableEntryException if the specified
      *		<code>protParam</code> were insufficient or invalid
+     * @exception UnrecoverableKeyException if the entry is a 
+     *          <code>PrivateKeyEntry</code> or <code>SecretKeyEntry</code>
+     *          and the specified <code>protParam</code> does not contain
+     *          the information needed to recover the key (e.g. wrong password)
      * @exception KeyStoreException if the keystore has not been initialized
      *		(loaded).
      * @see #setEntry(String, KeyStore.Entry, KeyStore.ProtectionParameter)
@@ -1306,6 +1349,9 @@ public class KeyStore {
      */
     public static abstract class Builder {
 
+	// maximum times to try the callbackhandler if the password is wrong
+	static final int MAX_CALLBACK_TRIES = 3;
+	
 	/**
 	 * Construct a new Builder.
 	 */
@@ -1458,6 +1504,7 @@ public class KeyStore {
 	    private final Provider provider;
 	    private final File file;
 	    private ProtectionParameter protection;
+	    private ProtectionParameter keyProtection;
 	    private final AccessControlContext context;
 	    
 	    private KeyStore keyStore;
@@ -1487,6 +1534,26 @@ public class KeyStore {
 		PrivilegedExceptionAction action = 
 			new PrivilegedExceptionAction() {
 		    public Object run() throws Exception {
+			if (protection instanceof CallbackHandlerProtection == false) {
+			    return run0();
+			}
+			// when using a CallbackHandler,
+			// reprompt if the password is wrong
+			int tries = 0;
+			while (true) {
+			    tries++;
+			    try {
+				return run0();
+			    } catch (IOException e) {
+				if ((tries < MAX_CALLBACK_TRIES)
+					&& (e.getCause() instanceof UnrecoverableKeyException)) {
+				    continue;
+				}
+				throw e;
+			    }
+			}
+		    }
+		    public Object run0() throws Exception {
 			KeyStore ks;
 			if (provider == null) {
 			    ks = KeyStore.getInstance(type);
@@ -1500,6 +1567,7 @@ public class KeyStore {
 			    if (protection instanceof PasswordProtection) {
 				password = 
 				((PasswordProtection)protection).getPassword();
+				keyProtection = protection;
 			    } else {
 				CallbackHandler handler = 
 				    ((CallbackHandlerProtection)protection)
@@ -1514,7 +1582,7 @@ public class KeyStore {
 								" provided");
 				}
 				callback.clearPassword();
-				protection = new PasswordProtection(password);
+				keyProtection = new PasswordProtection(password);
 			    }
 			    ks.load(in, password);
 			    return ks;
@@ -1545,7 +1613,7 @@ public class KeyStore {
 		    throw new IllegalStateException
 			("getKeyStore() must be called first");
 		}
-		return protection;
+		return keyProtection;
 	    }
 	}
 	
@@ -1584,6 +1652,7 @@ public class KeyStore {
 	    final AccessControlContext context = AccessController.getContext();
 	    return new Builder() {
 		private volatile boolean getCalled;
+		private IOException oldException;
 		
 		private final PrivilegedExceptionAction action
 		= new PrivilegedExceptionAction() {
@@ -1595,7 +1664,30 @@ public class KeyStore {
 			} else {
 			    ks = KeyStore.getInstance(type, provider);
 			}
-			ks.load(new SimpleLoadStoreParameter(protection));
+			LoadStoreParameter param = new SimpleLoadStoreParameter(protection);
+			if (protection instanceof CallbackHandlerProtection == false) {
+			    ks.load(param);
+			} else {
+			    // when using a CallbackHandler,
+			    // reprompt if the password is wrong
+			    int tries = 0;
+			    while (true) {
+				tries++;
+				try {
+				    ks.load(param);
+				    break;
+				} catch (IOException e) {
+				    if (e.getCause() instanceof UnrecoverableKeyException) {
+					if (tries < MAX_CALLBACK_TRIES) {
+					    continue;
+					} else {
+					    oldException = e;
+					}
+				    }
+				    throw e;
+				}
+			    }
+			}
 			getCalled = true;
 			return ks;
 		    }
@@ -1603,6 +1695,11 @@ public class KeyStore {
 		
 		public synchronized KeyStore getKeyStore()
 			throws KeyStoreException {
+		    if (oldException != null) {
+			throw new KeyStoreException
+			    ("Previous KeyStore instantiation failed",
+			     oldException);
+		    }
 		    try {
 			return (KeyStore)AccessController.doPrivileged(action);
 		    } catch (PrivilegedActionException e) {
@@ -1642,4 +1739,3 @@ public class KeyStore {
     }
     
 }
-

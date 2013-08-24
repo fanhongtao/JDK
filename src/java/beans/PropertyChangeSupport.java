@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyChangeSupport.java	1.49 04/05/11
+ * @(#)PropertyChangeSupport.java	1.53 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -236,6 +236,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
      *         the named property.  If no such listeners have been added,
      *         or if <code>propertyName</code> is null, an empty array is
      *         returned.
+     * @since 1.4
      */
     public synchronized PropertyChangeListener[] getPropertyChangeListeners(
             String propertyName) {
@@ -257,6 +258,11 @@ public class PropertyChangeSupport implements java.io.Serializable {
      * Report a bound property update to any registered listeners.
      * No event is fired if old and new are equal and non-null.
      *
+     * <p>
+     * This is merely a convenience wrapper around the more general
+     * firePropertyChange method that takes {@code
+     * PropertyChangeEvent} value.
+     *
      * @param propertyName  The programmatic name of the property
      *		that was changed.
      * @param oldValue  The old value of the property.
@@ -273,7 +279,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
 
     /**
      * Report an int bound property update to any registered listeners.
-     * No event is fired if old and new are equal and non-null.
+     * No event is fired if old and new are equal.
      * <p>
      * This is merely a convenience wrapper around the more general
      * firePropertyChange method that takes Object values.
@@ -294,7 +300,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
 
     /**
      * Report a boolean bound property update to any registered listeners.
-     * No event is fired if old and new are equal and non-null.
+     * No event is fired if old and new are equal.
      * <p>
      * This is merely a convenience wrapper around the more general
      * firePropertyChange method that takes Object values.
@@ -351,6 +357,10 @@ public class PropertyChangeSupport implements java.io.Serializable {
      * No event is fired if old and new values are equal
      * and non-null.
      *
+     * <p>
+     * This is merely a convenience wrapper around the more general
+     * firePropertyChange method that takes {@code PropertyChangeEvent} value.
+     *
      * @param propertyName The programmatic name of the property that
      *                     was changed.
      * @param index        index of the property element that was changed.
@@ -368,8 +378,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
      * Report an <code>int</code> bound indexed property update to any registered 
      * listeners. 
      * <p>
-     * No event is fired if old and new values are equal
-     * and non-null.
+     * No event is fired if old and new values are equal.
      * <p>
      * This is merely a convenience wrapper around the more general
      * fireIndexedPropertyChange method which takes Object values.
@@ -395,7 +404,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
      * Report a <code>boolean</code> bound indexed property update to any 
      * registered listeners. 
      * <p>
-     * No event is fired if old and new values are equal and non-null.
+     * No event is fired if old and new values are equal.
      * <p>
      * This is merely a convenience wrapper around the more general
      * fireIndexedPropertyChange method which takes Object values.

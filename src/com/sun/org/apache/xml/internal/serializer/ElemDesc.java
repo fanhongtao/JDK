@@ -14,91 +14,98 @@
  * limitations under the License.
  */
 /*
- * $Id: ElemDesc.java,v 1.4 2004/02/17 04:18:19 minchau Exp $
+ * $Id: ElemDesc.java,v 1.2.4.1 2005/09/15 08:15:15 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
-import com.sun.org.apache.xml.internal.utils.StringToIntTable;
+import com.sun.org.apache.xml.internal.serializer.utils.StringToIntTable;
 
 /**
  * This class has a series of flags (bit values) that describe an HTML element
+ * 
+ * This class is public because XSLTC uses it, it is not a public API.
+ * 
+ * @xsl.usage internal
  */
 public final class ElemDesc
 {
     /** Bit flags to tell about this element type. */
-    int m_flags;
+    private int m_flags;
 
     /**
      * Table of attribute names to integers, which contain bit flags telling about
      *  the attributes.
      */
-    StringToIntTable m_attrs = null;
+    private StringToIntTable m_attrs = null;
 
     /** Bit position if this element type is empty. */
-    public static final int EMPTY = (1 << 1);
+    static final int EMPTY = (1 << 1);
 
     /** Bit position if this element type is a flow. */
-    public static final int FLOW = (1 << 2);
+    private static final int FLOW = (1 << 2);
 
     /** Bit position if this element type is a block. */
-    public static final int BLOCK = (1 << 3);
+    static final int BLOCK = (1 << 3);
 
     /** Bit position if this element type is a block form. */
-    public static final int BLOCKFORM = (1 << 4);
+    static final int BLOCKFORM = (1 << 4);
 
-    /** Bit position if this element type is a block form field set (?? -sb). */
-    public static final int BLOCKFORMFIELDSET = (1 << 5);
+    /** Bit position if this element type is a block form field set. */
+    static final int BLOCKFORMFIELDSET = (1 << 5);
 
     /** Bit position if this element type is CDATA. */
-    public static final int CDATA = (1 << 6);
+    private static final int CDATA = (1 << 6);
 
     /** Bit position if this element type is PCDATA. */
-    public static final int PCDATA = (1 << 7);
+    private static final int PCDATA = (1 << 7);
 
     /** Bit position if this element type is should be raw characters. */
-    public static final int RAW = (1 << 8);
+    static final int RAW = (1 << 8);
 
     /** Bit position if this element type should be inlined. */
-    public static final int INLINE = (1 << 9);
+    private static final int INLINE = (1 << 9);
 
-    /** Bit position if this element type is INLINEA (?? -sb). */
-    public static final int INLINEA = (1 << 10);
+    /** Bit position if this element type is INLINEA. */
+    private static final int INLINEA = (1 << 10);
 
     /** Bit position if this element type is an inline label. */
-    public static final int INLINELABEL = (1 << 11);
+    static final int INLINELABEL = (1 << 11);
 
     /** Bit position if this element type is a font style. */
-    public static final int FONTSTYLE = (1 << 12);
+    static final int FONTSTYLE = (1 << 12);
 
     /** Bit position if this element type is a phrase. */
-    public static final int PHRASE = (1 << 13);
+    static final int PHRASE = (1 << 13);
 
     /** Bit position if this element type is a form control. */
-    public static final int FORMCTRL = (1 << 14);
+    static final int FORMCTRL = (1 << 14);
 
     /** Bit position if this element type is ???. */
-    public static final int SPECIAL = (1 << 15);
+    static final int SPECIAL = (1 << 15);
 
     /** Bit position if this element type is ???. */
-    public static final int ASPECIAL = (1 << 16);
+    static final int ASPECIAL = (1 << 16);
 
     /** Bit position if this element type is an odd header element. */
-    public static final int HEADMISC = (1 << 17);
+    static final int HEADMISC = (1 << 17);
 
     /** Bit position if this element type is a head element (i.e. H1, H2, etc.) */
-    public static final int HEAD = (1 << 18);
+    static final int HEAD = (1 << 18);
 
     /** Bit position if this element type is a list. */
-    public static final int LIST = (1 << 19);
+    static final int LIST = (1 << 19);
 
     /** Bit position if this element type is a preformatted type. */
-    public static final int PREFORMATTED = (1 << 20);
+    static final int PREFORMATTED = (1 << 20);
 
     /** Bit position if this element type is whitespace sensitive. */
-    public static final int WHITESPACESENSITIVE = (1 << 21);
+    static final int WHITESPACESENSITIVE = (1 << 21);
 
     /** Bit position if this element type is a header element (i.e. HEAD). */
-    public static final int HEADELEM = (1 << 22);
+    static final int HEADELEM = (1 << 22);
+    
+    /** Bit position if this element is the "HTML" element */
+    private static final int HTMLELEM = (1 << 23);
 
     /** Bit position if this attribute type is a URL. */
     public static final int ATTRURL = (1 << 1);
@@ -112,7 +119,7 @@ public final class ElemDesc
      *
      * @param flags Bit flags that describe the basic properties of this element type.
      */
-    public ElemDesc(int flags)
+    ElemDesc(int flags)
     {
         m_flags = flags;
     }
@@ -125,14 +132,14 @@ public final class ElemDesc
      *
      * @return true if any of the flag bits are true.
      */
-    public boolean is(int flags)
+    private boolean is(int flags)
     {
 
         // int which = (m_flags & flags);
         return (m_flags & flags) != 0;
     }
 
-    public int getFlags() {
+    int getFlags() {
         return m_flags;
     }
 
@@ -143,7 +150,7 @@ public final class ElemDesc
      * @param name non-null name of attribute, in upper case.
      * @param flags flag bits.
      */
-    public void setAttr(String name, int flags)
+    void setAttr(String name, int flags)
     {
 
         if (null == m_attrs)

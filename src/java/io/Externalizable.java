@@ -1,7 +1,7 @@
 /*
- * @(#)Externalizable.java	1.19 04/01/12
+ * @(#)Externalizable.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import java.io.ObjectInput;
  * interface.<br>
  *
  * @author  unascribed
- * @version 1.19, 01/12/04
+ * @version 1.20, 11/17/05
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput

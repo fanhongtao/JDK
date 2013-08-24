@@ -1,7 +1,7 @@
 /*
- * @(#)AtomicBoolean.java	1.7 04/07/12
+ * @(#)AtomicBoolean.java	1.13 06/06/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,10 +9,10 @@ package java.util.concurrent.atomic;
 import sun.misc.Unsafe;
 
 /**
- * A <tt>boolean</tt> value that may be updated atomically. See the
+ * A {@code boolean} value that may be updated atomically. See the
  * {@link java.util.concurrent.atomic} package specification for
  * description of the properties of atomic variables. An
- * <tt>AtomicBoolean</tt> is used in applications such as atomically
+ * {@code AtomicBoolean} is used in applications such as atomically
  * updated flags, and cannot be used as a replacement for a
  * {@link java.lang.Boolean}.
  *
@@ -22,7 +22,7 @@ import sun.misc.Unsafe;
 public class AtomicBoolean implements java.io.Serializable {
     private static final long serialVersionUID = 4654671469794556979L;
     // setup to use Unsafe.compareAndSwapInt for updates
-    private static final Unsafe unsafe =  Unsafe.getUnsafe();
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
     private static final long valueOffset;
 
     static {
@@ -35,7 +35,7 @@ public class AtomicBoolean implements java.io.Serializable {
     private volatile int value;
 
     /**
-     * Creates a new <tt>AtomicBoolean</tt> with the given initial value.
+     * Creates a new {@code AtomicBoolean} with the given initial value.
      *
      * @param initialValue the initial value
      */
@@ -44,7 +44,7 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Creates a new <tt>AtomicBoolean</tt> with initial value <tt>false</tt>.
+     * Creates a new {@code AtomicBoolean} with initial value {@code false}.
      */
     public AtomicBoolean() {
     }
@@ -59,8 +59,9 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically set the value to the given updated value
-     * if the current value <tt>==</tt> the expected value.
+     * Atomically sets the value to the given updated value
+     * if the current value {@code ==} the expected value.
+     *
      * @param expect the expected value
      * @param update the new value
      * @return true if successful. False return indicates that
@@ -73,9 +74,13 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Atomically set the value to the given updated value
-     * if the current value <tt>==</tt> the expected value.
-     * May fail spuriously.
+     * Atomically sets the value to the given updated value
+     * if the current value {@code ==} the expected value.
+     *
+     * <p>May <a href="package-summary.html#Spurious">fail spuriously</a>
+     * and does not provide ordering guarantees, so is only rarely an
+     * appropriate alternative to {@code compareAndSet}.
+     *
      * @param expect the expected value
      * @param update the new value
      * @return true if successful.
@@ -96,7 +101,18 @@ public class AtomicBoolean implements java.io.Serializable {
     }
 
     /**
-     * Sets to the given value and returns the previous value.
+     * Eventually sets to the given value.
+     *
+     * @param newValue the new value
+     * @since 1.6
+     */
+    public final void lazySet(boolean newValue) {
+        int v = newValue ? 1 : 0;
+        unsafe.putOrderedInt(this, valueOffset, v);
+    }
+
+    /**
+     * Atomically sets to the given value and returns the previous value.
      *
      * @param newValue the new value
      * @return the previous value

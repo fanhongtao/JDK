@@ -1,15 +1,16 @@
 /*
- * @(#)Tracker.java	1.5 03/12/19
+ * @(#)Tracker.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package sun.tools.hprof;
 
-/* This class and it's methods are used by hprof when injecting bytecodes
+/* This class and it's methods are used by 5.0 hprof when injecting bytecodes
  *   into class file images.
- *   See the directory src/share/tools/newhprof and the file README.txt
+ *   WARNING: This class may not be used by newer versions of hprof.
+ *   See the directory src/share/demo/jvmti/hprof and the file README.txt
  *   for more details.
  */
 

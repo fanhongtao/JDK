@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_loader.h	1.6 04/07/27
+ * @(#)hprof_loader.h	1.9 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,5 +42,6 @@ void        loader_init(void);
 void        loader_list(void);
 void        loader_delete_global_references(JNIEnv *env);
 void        loader_cleanup(void);
+ObjectIndex loader_object_index(JNIEnv *env, LoaderIndex index);
 
 #endif

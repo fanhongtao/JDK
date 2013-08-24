@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMChildIterNodeList.java,v 1.3 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMChildIterNodeList.java,v 1.2.4.1 2005/09/15 08:15:00 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -85,7 +85,7 @@ public class DTMChildIterNodeList extends DTMNodeListBase {
      * Returns the <code>index</code>th item in the collection. If 
      * <code>index</code> is greater than or equal to the number of nodes in 
      * the list, this returns <code>null</code>.
-     * @param indexIndex into the collection.
+     * @param index Index into the collection.
      * @return The node at the <code>index</code>th position in the 
      *   <code>NodeList</code>, or <code>null</code> if that is not a valid 
      *   index.

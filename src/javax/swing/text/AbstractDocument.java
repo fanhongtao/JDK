@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractDocument.java	1.151 04/07/13
+ * @(#)AbstractDocument.java	1.157 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -18,6 +18,7 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeNode;
 
 import sun.font.BidiUtils;
+import sun.swing.SwingUtilities2;
 
 /**
  * An implementation of the document interface to serve as a 
@@ -45,7 +46,7 @@ import sun.font.BidiUtils;
  * asynchronously, because all access to the View hierarchy
  * is serialized by BasicTextUI if the document is of type
  * <code>AbstractDocument</code>.  The locking assumes that an
- * independant thread will access the View hierarchy only from
+ * independent thread will access the View hierarchy only from
  * the DocumentListener methods, and that there will be only
  * one event thread active at a time.
  * <p>
@@ -77,7 +78,7 @@ import sun.font.BidiUtils;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.151 07/13/04
+ * @version 1.157 04/07/06
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -391,8 +392,8 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.
      *
      * @param r the renderer to execute
      */
@@ -554,8 +555,8 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.
      * 
      * @param offs the starting offset >= 0
      * @param len the number of characters to remove >= 0
@@ -614,25 +615,6 @@ public abstract class AbstractDocument implements Document, Serializable {
     }
     
     /**
-     * Indic, Thai, and surrogate char values require complex 
-     * text layout and cursor support.
-     */
-    private static final boolean isComplex(char ch) {
-        return (ch >= '\u0900' && ch <= '\u0D7F') || // Indic
-               (ch >= '\u0E00' && ch <= '\u0E7F') || // Thai
-               (ch >= '\uD800' && ch <= '\uDFFF');   // surrogate value range
-    }
-
-    private static final boolean isComplex(char[] text, int start, int limit) {
-	for (int i = start; i < limit; ++i) {
-	    if (isComplex(text[i])) {
-		return true;
-	    }
-	}
-	return false;
-    }
-
-    /**
      * Deletes the region of text from <code>offset</code> to
      * <code>offset + length</code>, and replaces it with <code>text</code>.
      * It is up to the implementation as to how this is implemented, some
@@ -686,8 +668,8 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.
      *
      * @param offs the starting offset >= 0
      * @param str the string to insert; does nothing with null/empty strings
@@ -740,9 +722,7 @@ public abstract class AbstractDocument implements Document, Serializable {
                 putProperty( I18NProperty, Boolean.TRUE);
             } else {
 		char[] chars = str.toCharArray();
-		if (Bidi.requiresBidi(chars, 0, chars.length) ||
-		    isComplex(chars, 0, chars.length)) {
-		    //
+		if (SwingUtilities2.isComplexLayout(chars, 0, chars.length)) {
 		    putProperty( I18NProperty, Boolean.TRUE);
                 }
             }
@@ -823,8 +803,8 @@ public abstract class AbstractDocument implements Document, Serializable {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.
      *
      * @param offs the position in the model >= 0
      * @return the position
@@ -1773,6 +1753,7 @@ public abstract class AbstractDocument implements Document, Serializable {
          *
          * @param parent the parent element
          * @param a the attributes for the element
+	 * @since 1.4
          */
         public AbstractElement(Element parent, AttributeSet a) {
 	    this.parent = parent;
@@ -2243,6 +2224,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	 *
 	 * @param parent  The parent element
          * @param a the attributes for the element
+	 * @since 1.4
 	 */
 	public BranchElement(Element parent, AttributeSet a) {
 	    super(parent, a);
@@ -2500,6 +2482,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	 * @param a       The element attributes
 	 * @param offs0   The start offset >= 0
 	 * @param offs1   The end offset >= offs0
+	 * @since 1.4
 	 */
 	public LeafElement(Element parent, AttributeSet a, int offs0, int offs1) {
 	    super(parent, a);
@@ -2716,6 +2699,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 	 * @param offs the offset into the document of the change >= 0
 	 * @param len  the length of the change >= 0
 	 * @param type the type of event (DocumentEvent.EventType)
+	 * @since 1.4
 	 */
         public DefaultDocumentEvent(int offs, int len, DocumentEvent.EventType type) {
 	    super();

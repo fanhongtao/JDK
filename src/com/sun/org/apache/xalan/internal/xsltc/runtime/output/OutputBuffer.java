@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: OutputBuffer.java,v 1.3 2004/02/16 22:56:25 minchau Exp $
+ * $Id: OutputBuffer.java,v 1.2.4.1 2005/09/06 11:35:23 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime.output;

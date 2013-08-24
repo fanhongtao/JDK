@@ -1,7 +1,7 @@
 /*
- * @(#)AppletStub.java	1.25 03/12/19
+ * @(#)AppletStub.java	1.27 06/07/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.applet;
@@ -16,7 +16,7 @@ import java.net.URL;
  * is running.
  *
  * @author 	Arthur van Hoff
- * @version     1.25, 12/19/03
+ * @version     1.27, 07/27/06
  * @see         java.applet.Applet#setStub(java.applet.AppletStub)
  * @since       JDK1.0
  */
@@ -78,7 +78,7 @@ public interface AppletStub {
     String getParameter(String name);
 
     /**
-     * Gets a handler to the applet's context.
+     * Returns the applet's context.
      *
      * @return  the applet's context.
      */

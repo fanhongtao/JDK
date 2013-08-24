@@ -1,7 +1,7 @@
 /*
- * @(#)KeyPairGenerator.java	1.56 04/01/28
+ * @(#)KeyPairGenerator.java	1.59 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -89,7 +89,7 @@ import sun.security.jca.GetInstance.Instance;
  *
  * @author Benjamin Renaud
  *
- * @version 1.56, 01/28/04
+ * @version 1.59, 04/21/06
  *
  * @see java.security.spec.AlgorithmParameterSpec
  */
@@ -106,7 +106,7 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      *
      * @param algorithm the standard string name of the algorithm. 
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      */
@@ -117,7 +117,7 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
     /**
      * Returns the standard name of the algorithm for this key pair generator.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      * 
@@ -141,24 +141,31 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
     }
 
     /**
-     * Generates a KeyPairGenerator object that implements the specified digest
-     * algorithm. If the default provider package
-     * provides an implementation of the requested digest algorithm,
-     * an instance of KeyPairGenerator containing that implementation is
-     * returned.
-     * If the algorithm is not available in the default 
-     * package, other packages are searched.
+     * Returns a KeyPairGenerator object that generates public/private
+     * key pairs for the specified algorithm.
+     *
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new KeyPairGenerator object encapsulating the
+     * KeyPairGeneratorSpi implementation from the first
+     * Provider that supports the specified algorithm is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param algorithm the standard string name of the algorithm. 
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      *
      * @return the new KeyPairGenerator object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the environment.  
+     * @exception NoSuchAlgorithmException if no Provider supports a
+     *          KeyPairGeneratorSpi implementation for the
+     *          specified algorithm.
+     *
+     * @see Provider
      */
     public static KeyPairGenerator getInstance(String algorithm)
 	    throws NoSuchAlgorithmException {
@@ -191,13 +198,20 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
     }
 
     /** 
-     * Generates a KeyPairGenerator object implementing the specified
-     * algorithm, as supplied from the specified provider, 
-     * if such an algorithm is available from the provider.
+     * Returns a KeyPairGenerator object that generates public/private
+     * key pairs for the specified algorithm.
+     *
+     * <p> A new KeyPairGenerator object encapsulating the
+     * KeyPairGeneratorSpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param algorithm the standard string name of the algorithm.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      *
@@ -205,14 +219,15 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      *
      * @return the new KeyPairGenerator object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available from the provider.
+     * @exception NoSuchAlgorithmException if a KeyPairGeneratorSpi
+     *          implementation for the specified algorithm is not
+     *          available from the specified provider.
      *
-     * @exception NoSuchProviderException if the provider is not
-     * available in the environment.
+     * @exception NoSuchProviderException if the specified provider is not
+     *          registered in the security provider list.
      *
      * @exception IllegalArgumentException if the provider name is null
-     * or empty.
+     *		or empty.
      * 
      * @see Provider 
      */
@@ -225,14 +240,17 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
     }
 
     /** 
-     * Generates a KeyPairGenerator object implementing the specified
-     * algorithm, as supplied from the specified provider, 
-     * if such an algorithm is available from the provider.
-     * Note: the <code>provider</code> doesn't have to be registered.
+     * Returns a KeyPairGenerator object that generates public/private
+     * key pairs for the specified algorithm.
+     *
+     * <p> A new KeyPairGenerator object encapsulating the
+     * KeyPairGeneratorSpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
      *
      * @param algorithm the standard string name of the algorithm.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      *
@@ -240,11 +258,11 @@ public abstract class KeyPairGenerator extends KeyPairGeneratorSpi {
      *
      * @return the new KeyPairGenerator object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available from the provider.
+     * @exception NoSuchAlgorithmException if a KeyPairGeneratorSpi
+     *          implementation for the specified algorithm is not available
+     *          from the specified Provider object.
      *
-     * @exception IllegalArgumentException if the <code>provider</code> is
-     * null.
+     * @exception IllegalArgumentException if the specified provider is null.
      *
      * @see Provider
      *

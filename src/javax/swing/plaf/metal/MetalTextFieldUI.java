@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTextFieldUI.java	1.15 03/12/19
+ * @(#)MetalTextFieldUI.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.metal;
@@ -28,7 +28,7 @@ import javax.swing.plaf.basic.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Steve Wilson
- * @version 1.15 12/19/03
+ * @version 1.16 11/17/05
  */
 public class MetalTextFieldUI extends BasicTextFieldUI {
 

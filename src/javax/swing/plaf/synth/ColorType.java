@@ -1,7 +1,7 @@
 /*
- * @(#)ColorType.java	1.11 03/12/19
+ * @(#)ColorType.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -39,7 +39,7 @@ package javax.swing.plaf.synth;
  * }
  * </pre>
  *
- * @version 1.11, 12/19/03
+ * @version 1.13, 11/17/05
  * @since 1.5
  * @author Scott Violet
  */
@@ -113,8 +113,10 @@ public class ColorType {
 
     /**
      * Returns the textual description of this <code>ColorType</code>.
+     * This is the same value that the <code>ColorType</code> was created
+     * with.
      *
-     * @return description of the string.
+     * @return the description of the string
      */
     public String toString() {
         return description;

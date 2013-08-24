@@ -1,7 +1,7 @@
 /*
- * @(#)NamedObject.java	1.31 03/12/19
+ * @(#)NamedObject.java	1.33 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,12 +24,12 @@ public class NamedObject  {
     /**
      * Object name.
      */
-    private ObjectName name;
+    private final ObjectName name;
     
     /**
      * Object reference.
      */
-    private Object object= null;
+    private final DynamicMBean object;
     
 
     /**
@@ -38,7 +38,7 @@ public class NamedObject  {
      *@param objectName The object name of the object.     
      *@param object A reference to the object.
      */
-    public NamedObject(ObjectName objectName, Object object)  { 
+    public NamedObject(ObjectName objectName, DynamicMBean object)  { 
 	if (objectName.isPattern()) {
 	    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid name->"+ objectName.toString()));
 	}	
@@ -54,7 +54,7 @@ public class NamedObject  {
      *
      *@exception MalformedObjectNameException The string passed does not have the format of a valid ObjectName
      */
-    public NamedObject(String objectName, Object object) throws MalformedObjectNameException{ 
+    public NamedObject(String objectName, DynamicMBean object) throws MalformedObjectNameException{ 
 	ObjectName objName= new ObjectName(objectName);
 	if (objName.isPattern()) {
 	    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid name->"+ objName.toString()));
@@ -98,7 +98,7 @@ public class NamedObject  {
     /**
      * Get the object
      */
-    public Object getObject()  { 
+    public DynamicMBean getObject()  { 
 	return object;
    } 
     

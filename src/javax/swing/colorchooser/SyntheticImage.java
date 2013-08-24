@@ -1,7 +1,7 @@
 /*
- * @(#)SyntheticImage.java	1.24 03/12/19
+ * @(#)SyntheticImage.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -34,7 +34,7 @@ import java.awt.image.*;
  *  frame has started.  It is acceptable (expected?) for computeRow(0,r)
  *  to pause until the appropriate time to start the next frame.
  *
- *  @version 1.24 12/19/03
+ *  @version 1.25 11/17/05
  *  @author James Gosling
  */
 abstract class SyntheticImage implements ImageProducer {

@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLDocument.java	1.170 05/05/27
+ * @(#)HTMLDocument.java	1.180 06/05/10
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -19,6 +19,7 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.undo.*;
 import java.text.Bidi;
+import sun.swing.SwingUtilities2;
 
 /**
  * A document that models HTML.  The purpose of this model
@@ -65,11 +66,20 @@ import java.text.Bidi;
  * is a gap buffer (<code>GapContent</code>). 
  * Alternatives can be supplied by using the constructor
  * that takes a <code>Content</code> implementation.
+ * <p>
+ * <strong>Warning:</strong>
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.170 05/27/05
+ * @version 1.180 05/10/06
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -275,8 +285,8 @@ public class HTMLDocument extends DefaultStyledDocument {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param offset the offset into the paragraph (must be at least 0)
      * @param length the number of characters affected (must be at least 0)
@@ -1422,20 +1432,6 @@ public class HTMLDocument extends DefaultStyledDocument {
      */
     private static final String I18NProperty = "i18n";
 
-    private static final boolean isComplex(char ch) {
-        return (ch >= '\u0900' && ch <= '\u0D7F') || // Indic
-               (ch >= '\u0E00' && ch <= '\u0E7F');   // Thai
-    }
-
-    private static final boolean isComplex(char[] text, int start, int limit) {
-	for (int i = start; i < limit; ++i) {
-	    if (isComplex(text[i])) {
-		return true;
-	    }
-	}
-	return false;
-    }
-
     static {
 	contentAttributeSet = new SimpleAttributeSet();
 	((MutableAttributeSet)contentAttributeSet).
@@ -1522,6 +1518,9 @@ public class HTMLDocument extends DefaultStyledDocument {
 	    if (elem != null) {
 		AttributeSet a = (AttributeSet) 
 		    elem.getAttributes().getAttribute(tag);
+                if (a == null) {
+                    a = (AttributeSet)elem.getAttributes(); 
+                }
 		return a;
 	    }
 	    return null;
@@ -1909,6 +1908,35 @@ public class HTMLDocument extends DefaultStyledDocument {
 		    generateEndsSpecsForMidInsert();
 		}
 	    }
+            
+            /** 
+             * This block initializes the <code>inParagraph</code> flag. 
+             * It is left in <code>false</code> value automatically  
+             * if the target document is empty or future inserts  
+             * were positioned into the 'body' tag. 
+             */ 
+            if (!emptyDocument && !midInsert) {
+                int targetOffset = Math.max(this.offset - 1, 0);
+                Element elem = 
+                        HTMLDocument.this.getCharacterElement(targetOffset);
+                /* Going up by the left document structure path */
+                for (int i = 0; i <= this.popDepth; i++) {
+                    elem = elem.getParentElement();
+                }
+                /* Going down by the right document structure path */        
+                for (int i = 0; i < this.pushDepth; i++) {
+                    int index = elem.getElementIndex(this.offset);
+                    elem = elem.getElement(index);
+                }
+                AttributeSet attrs = elem.getAttributes();
+                if (attrs != null) {
+                    HTML.Tag tagToInsertInto = 
+                            (HTML.Tag) attrs.getAttribute(StyleConstants.NameAttribute);
+                    if (tagToInsertInto != null) {
+                        this.inParagraph = tagToInsertInto.isParagraph();
+                    }
+                }
+            }
 	}
 
 	/**
@@ -2123,9 +2151,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 		if ((d != null) && (d.equals(TextAttribute.RUN_DIRECTION_RTL))) {
 		    HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
 		} else {
-		    if (Bidi.requiresBidi(data, 0, data.length) ||
-			isComplex(data, 0, data.length)) {
-			//
+		    if (SwingUtilities2.isComplexLayout(data, 0, data.length)) {
 			HTMLDocument.this.putProperty( I18NProperty, Boolean.TRUE);
 		    }
 		}
@@ -3196,7 +3222,9 @@ public class HTMLDocument extends DefaultStyledDocument {
 	/**
 	 * Adds some text with the current character attributes.
 	 *
-	 * @param embedded the attributes of an embedded object.
+         * @param data the content to add
+         * @param offs the initial offset
+         * @param length the length
 	 */
 	protected void addContent(char[] data, int offs, int length) {
 	    addContent(data, offs, length, true);
@@ -3205,7 +3233,11 @@ public class HTMLDocument extends DefaultStyledDocument {
 	/**
 	 * Adds some text with the current character attributes.
 	 *
-	 * @param embedded the attributes of an embedded object.
+         * @param data the content to add
+         * @param offs the initial offset
+         * @param length the length
+         * @param generateImpliedPIfNecessary whether to generate implied 
+         * paragraphs
 	 */
 	protected void addContent(char[] data, int offs, int length,
 				  boolean generateImpliedPIfNecessary) {
@@ -3245,9 +3277,11 @@ public class HTMLDocument extends DefaultStyledDocument {
 	 */
 	protected void addSpecialElement(HTML.Tag t, MutableAttributeSet a) {
 	    if ((t != HTML.Tag.FRAME) && (! inParagraph) && (! inPre)) {
-		blockOpen(HTML.Tag.IMPLIED, new SimpleAttributeSet());
-		inParagraph = true;
-		impliedP = true;
+                nextTagAfterPImplied = t;
+                blockOpen(HTML.Tag.IMPLIED, new SimpleAttributeSet());
+                nextTagAfterPImplied = null;
+                inParagraph = true;
+                impliedP = true;
 	    }
 	    if (!canInsertTag(t, a, t.isBlock())) {
 		return;
@@ -3410,11 +3444,36 @@ public class HTMLDocument extends DefaultStyledDocument {
 	private boolean canInsertTag(HTML.Tag t, AttributeSet attr,
 				     boolean isBlockTag) {
 	    if (!foundInsertTag) {
-		if ((insertTag != null && !isInsertTag(t)) ||
-		    (insertAfterImplied && (t == HTML.Tag.IMPLIED ||
-                               (attr == null || attr.isDefined(IMPLIED))))) {
-		    return false;
-		}
+                boolean needPImplied = ((t == HTML.Tag.IMPLIED) 
+                                                          && (!inParagraph) 
+                                                          && (!inPre));
+                if (needPImplied && (nextTagAfterPImplied != null)) {
+                    
+                    /*
+                     * If insertTag == null then just proceed to 
+                     * foundInsertTag() call below and return true. 
+                     */
+                    if (insertTag != null) { 
+                        boolean nextTagIsInsertTag = 
+                                isInsertTag(nextTagAfterPImplied); 
+                        if ( (! nextTagIsInsertTag) || (! insertInsertTag) ) {
+                            return false; 
+                        }     
+                    }
+                    /*
+                     *  Proceed to foundInsertTag() call...
+                     */
+                 } else if ((insertTag != null && !isInsertTag(t)) 
+                               || (insertAfterImplied 
+                                    && (attr == null 
+                                        || attr.isDefined(IMPLIED) 
+                                        || t == HTML.Tag.IMPLIED 
+                                       ) 
+                                   )
+                           ) { 
+                    return false; 
+                } 
+                
                 // Allow the insert if t matches the insert tag, or
                 // insertAfterImplied is true and the element is implied.
 		foundInsertTag(isBlockTag);
@@ -3598,6 +3657,13 @@ public class HTMLDocument extends DefaultStyledDocument {
 	Stack charAttrStack = new Stack();
 	Hashtable tagMap;
 	int inBlock = 0;
+        
+        /** 
+         * This attribute is sometimes used to refer to next tag
+         * to be handled after p-implied when the latter is 
+         * the current tag which is being handled.
+         */
+        private HTML.Tag nextTagAfterPImplied = null;
     }
 
 
@@ -3627,6 +3693,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	 * @param a       the element attributes
 	 * @param offs0   the start offset (must be at least 0)
 	 * @param offs1   the end offset (must be at least offs0)
+	 * @since 1.4
 	 */
 	public RunElement(Element parent, AttributeSet a, int offs0, int offs1) {
 	    super(parent, a, offs0, offs1);
@@ -3669,6 +3736,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	 *
 	 * @param parent  the parent element
          * @param a       the attributes for the element
+	 * @since 1.4
 	 */
 	public BlockElement(Element parent, AttributeSet a) {
 	    super(parent, a);

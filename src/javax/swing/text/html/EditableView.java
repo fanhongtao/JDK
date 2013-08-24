@@ -1,7 +1,7 @@
 /*
- * @(#)EditableView.java	1.11 03/12/19
+ * @(#)EditableView.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -23,7 +23,7 @@ import java.util.*;
  * size is 0 when not visible.
  *
  * @author  Scott Violet
- * @version 1.11, 12/19/03
+ * @version 1.13, 11/17/05
  */
 class EditableView extends ComponentView {
 
@@ -88,7 +88,11 @@ class EditableView extends ComponentView {
 	if (parent != null) {
 	    Container host = parent.getContainer();
 	    if (host != null) {
-		isVisible = ((JTextComponent)host).isEditable();
+	        if (host instanceof JTextComponent) {
+		    isVisible = ((JTextComponent)host).isEditable();
+		} else {
+		    isVisible = false;
+		}
 	    }
 	}
 	super.setParent(parent);

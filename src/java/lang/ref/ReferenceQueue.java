@@ -1,7 +1,7 @@
 /*
- * @(#)ReferenceQueue.java	1.23 03/12/19
+ * @(#)ReferenceQueue.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.lang.ref;
  * Reference queues, to which registered reference objects are appended by the
  * garbage collector after the appropriate reachability changes are detected.
  *
- * @version  1.23, 12/19/03
+ * @version  1.25, 11/17/05
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -90,7 +90,7 @@ public class ReferenceQueue<T> {
      * <p> This method does not offer real-time guarantees: It schedules the
      * timeout as if by invoking the {@link Object#wait(long)} method.
      *
-     * @param  timeout  If positive, block for up <code>timeout</code>
+     * @param  timeout  If positive, block for up to <code>timeout</code>
      *                  milliseconds while waiting for a reference to be
      *                  added to this queue.  If zero, block indefinitely.
      *

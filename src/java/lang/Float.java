@@ -1,7 +1,7 @@
 /*
- * @(#)Float.java	1.94 04/05/11
+ * @(#)Float.java	1.101 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import sun.misc.DoubleConsts;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Joseph D. Darcy
- * @version 1.94, 05/11/04
+ * @version 1.101, 04/07/06
  * @since JDK1.0 
  */
 public final class Float extends Number implements Comparable<Float> {
@@ -59,15 +59,43 @@ public final class Float extends Number implements Comparable<Float> {
      * <code>0x1.fffffeP+127f</code> and also equal to
      * <code>Float.intBitsToFloat(0x7f7fffff)</code>.
      */
-    public static final float MAX_VALUE = 3.4028235e+38f; // 0x1.fffffeP+127f
+    public static final float MAX_VALUE = 0x1.fffffeP+127f; // 3.4028235e+38f
 
+    /**
+     * A constant holding the smallest positive normal value of type
+     * {@code float}, 2<sup>-126</sup>.  It is equal to the
+     * hexadecimal floating-point literal {@code 0x1.0p-126f} and also
+     * equal to {@code Float.intBitsToFloat(0x00800000)}.
+     *
+     * @since 1.6
+     */
+    public static final float MIN_NORMAL = 0x1.0p-126f; // 1.17549435E-38f
+ 
     /**
      * A constant holding the smallest positive nonzero value of type
      * <code>float</code>, 2<sup>-149</sup>. It is equal to the
      * hexadecimal floating-point literal <code>0x0.000002P-126f</code>
      * and also equal to <code>Float.intBitsToFloat(0x1)</code>.
      */
-    public static final float MIN_VALUE = 1.4e-45f; // 0x0.000002P-126f
+    public static final float MIN_VALUE = 0x0.000002P-126f; // 1.4e-45f
+
+    /**
+     * Maximum exponent a finite {@code float} variable may have.  It
+     * is equal to the value returned by {@code
+     * Math.getExponent(Float.MAX_VALUE)}.
+     *
+     * @since 1.6
+     */
+    public static final int MAX_EXPONENT = 127;
+ 
+    /**
+     * Minimum exponent a normalized {@code float} variable may have.
+     * It is equal to the value returned by {@code
+     * Math.getExponent(Float.MIN_NORMAL)}.
+     *
+     * @since 1.6
+     */
+    public static final int MIN_EXPONENT = -126;
 
     /**
      * The number of bits used to represent a <tt>float</tt> value.
@@ -345,7 +373,7 @@ public final class Float extends Number implements Comparable<Float> {
      * <code>1.0000002f</code>; if the string is converted directly to
      * <code>float</code>, <code>1.000000<b>1</b>f</code> results.
      *
-     * <p>To avoid calling this method on a invalid string and having
+     * <p>To avoid calling this method on an invalid string and having
      * a <code>NumberFormatException</code> be thrown, the documentation
      * for {@link Double#valueOf Double.valueOf} lists a regular
      * expression which can be used to screen the input.
@@ -648,7 +676,16 @@ public final class Float extends Number implements Comparable<Float> {
      * @param   value   a floating-point number.
      * @return the bits that represent the floating-point number.  
      */
-    public static native int floatToIntBits(float value);
+    public static int floatToIntBits(float value) {
+	int result = floatToRawIntBits(value);
+	// Check for NaN based on values of bit fields, maximum
+	// exponent and nonzero significand.
+	if ( ((result & FloatConsts.EXP_BIT_MASK) == 
+	      FloatConsts.EXP_BIT_MASK) &&
+	     (result & FloatConsts.SIGNIF_BIT_MASK) != 0)
+	    result = 0x7fc00000;
+	return result;
+    }
 
     /**
      * Returns a representation of the specified floating-point value
@@ -670,7 +707,7 @@ public final class Float extends Number implements Comparable<Float> {
      * <p>
      * If the argument is NaN, the result is the integer representing
      * the actual NaN value.  Unlike the <code>floatToIntBits</code>
-     * method, <code>intToRawIntBits</code> does not collapse all the
+     * method, <code>floatToRawIntBits</code> does not collapse all the
      * bit patterns encoding a NaN to a single &quot;canonical&quot;
      * NaN value.
      * <p>
@@ -680,6 +717,7 @@ public final class Float extends Number implements Comparable<Float> {
      * <code>floatToRawIntBits</code>.
      * @param   value   a floating-point number.
      * @return the bits that represent the floating-point number.
+     * @since 1.3
      */
     public static native int floatToRawIntBits(float value);
 

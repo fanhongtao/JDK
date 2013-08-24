@@ -1,4 +1,4 @@
-// This file was generated AUTOMATICALLY from a template file Wed Sep 15 04:34:21 PDT 2004
+// This file was generated AUTOMATICALLY from a template file Wed Nov 29 01:26:55 PST 2006
 /* @(#)CharacterData0E.java.template	1.3 03/07/26
  *
  * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
@@ -253,7 +253,7 @@ class CharacterData0E {
     // static char[] toUpperCaseCharArray(int ch);
 
     // The following tables and code generated using:
-  // java GenerateCharacter -plane 14 -template ../../tools/GenerateCharacter/CharacterData0E.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.5.0/control/build/linux-i586/gensrc/java/lang/CharacterData0E.java -string -usecharforbyte 11 4 1
+  // java GenerateCharacter -plane 14 -template ../../tools/GenerateCharacter/CharacterData0E.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk6/control/build/linux-i586/gensrc/java/lang/CharacterData0E.java -string -usecharforbyte 11 4 1
   // The X table has 2048 entries for a total of 4096 bytes.
 
   static final char X[] = (

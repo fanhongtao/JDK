@@ -60,9 +60,9 @@ import  java.io.*;
 /**
  * This class represents a stack map entry recording the types of
  * local variables and the the of stack items at a given byte code offset.
- * See CLDC specification &#247;5.3.1.2
+ * See CLDC specification 5.3.1.2
  *
- * @version $Id: StackMapEntry.java,v 1.1.1.1 2001/10/29 20:00:03 jvanzyl Exp $
+ * @version $Id: StackMapEntry.java,v 1.1.2.1 2005/07/31 23:46:24 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     StackMap
  * @see     StackMapType
@@ -78,7 +78,7 @@ public final class StackMapEntry implements Cloneable {
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   StackMapEntry(DataInputStream file, ConstantPool constant_pool) throws IOException
   {
@@ -111,7 +111,7 @@ public final class StackMapEntry implements Cloneable {
    * Dump stack map entry
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

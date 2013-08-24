@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramSocket.java	1.96 04/03/05
+ * @(#)DatagramSocket.java	1.101 06/06/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.security.PrivilegedExceptionAction;
  * UDP port 8888.
  *
  * @author  Pavani Diwanji
- * @version 1.96, 03/05/04
+ * @version 1.101, 06/08/06
  * @see     java.net.DatagramPacket
  * @see     java.nio.channels.DatagramChannel
  * @since JDK1.0
@@ -785,7 +785,7 @@ class DatagramSocket {
     }
 
     /**
-     * Retrive setting for SO_TIMEOUT.  0 returns implies that the
+     * Retrieve setting for SO_TIMEOUT.  0 returns implies that the
      * option is disabled (i.e., timeout of infinity).
      *
      * @return the setting for SO_TIMEOUT
@@ -936,6 +936,11 @@ class DatagramSocket {
      * <tt>SO_REUSEADDR</tt> socket option is enabled prior
      * to binding the socket using {@link #bind(SocketAddress)}.
      * <p>
+     * Note: This functionality is not supported by all existing platforms,
+     * so it is implementation specific whether this option will be ignored
+     * or not. However, if it is not supported then
+     * {@link #getReuseAddress()} will always return <code>false</code>.
+     * <p>
      * When a <tt>DatagramSocket</tt> is created the initial setting
      * of <tt>SO_REUSEADDR</tt> is disabled.
      * <p>
@@ -1077,7 +1082,7 @@ class DatagramSocket {
     /**
      * Closes this datagram socket.
      * <p>
-     * Any thread currently blocked in {#link receive} upon this socket
+     * Any thread currently blocked in {@link #receive} upon this socket
      * will throw a {@link SocketException}.
      *
      * <p> If this socket has an associated channel then the channel is closed
@@ -1156,6 +1161,7 @@ class DatagramSocket {
      * @see        
      java.net.DatagramSocketImplFactory#createDatagramSocketImpl()
      * @see       SecurityManager#checkSetFactory
+     * @since 1.3
      */
     public static synchronized void 
     setDatagramSocketImplFactory(DatagramSocketImplFactory fac)

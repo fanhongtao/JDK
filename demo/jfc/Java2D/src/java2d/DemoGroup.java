@@ -1,7 +1,7 @@
 /*
- * @(#)DemoGroup.java	1.36 04/07/26
+ * @(#)DemoGroup.java	1.41 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)DemoGroup.java	1.33 03/01/23
+ * @(#)DemoGroup.java	1.41 06/08/29
  */
 
 
@@ -47,7 +47,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.util.Vector;
 
 
 /**
@@ -57,13 +56,15 @@ import java.util.Vector;
  *      java DemoGroup Fonts
  * Loads all the demos found in the demos/Fonts directory.
  */
-public class DemoGroup extends JPanel implements MouseListener, ChangeListener, ActionListener {
+public class DemoGroup extends JPanel
+    implements MouseListener, ChangeListener, ActionListener {
 
     static int columns = 2;
 
     private static Font font = new Font("serif", Font.PLAIN, 10);
     private static EmptyBorder emptyB = new EmptyBorder(5,5,5,5);
     private static BevelBorder bevelB = new BevelBorder(BevelBorder.LOWERED);
+
     private String groupName;
     public JPanel clonePanels[];
     public JTabbedPane tabbedPane;
@@ -78,23 +79,21 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
         JPanel p = new JPanel(new GridLayout(0,2));
         p.setBorder(new CompoundBorder(emptyB, bevelB));
 
-        Vector vector = new Vector(40);
-
-        int index = 0;
-        for (; index < Java2Demo.demos.length; index++) {
-            if (name.compareTo(Java2Demo.demos[index][0]) == 0) {
-               break;
-            }
-        }
+        // Find the named demo group in Java2Demo.demos[].
+        int index = -1;
+        while (!name.equals(Java2Demo.demos[++index][0])) {}
         String[] demos = Java2Demo.demos[index];
-        for (int j = 1; j < demos.length; j++) {
-            vector.add("java2d.demos." + name + "." + demos[j]);
-        }
-        if (vector.size()%2 == 1) {
+
+        // If there are an odd number of demos, use GridBagLayout.
+        // Note that we don't use the first entry.
+        int numDemos = demos.length - 1;
+        if (numDemos%2 == 1) {
             p.setLayout(new GridBagLayout());
         } 
-        for (int i = 0; i < vector.size(); i++) {
-            DemoPanel dp = new DemoPanel((String) vector.elementAt(i));
+
+        // For each demo in the group, prepare a DemoPanel.
+        for (int i = 1; i <= numDemos; i++) {
+            DemoPanel dp = new DemoPanel("java2d.demos."+name+"."+demos[i]);
             dp.setDemoBorder(p);
             if (dp.surface != null) {
                 dp.surface.addMouseListener(this);
@@ -103,7 +102,7 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
             if (p.getLayout() instanceof GridBagLayout) {
                 int x = p.getComponentCount() % 2;
                 int y = p.getComponentCount() / 2;
-                int w = i == vector.size()-1 ? 2 : 1;
+                int w = (i == numDemos) ? 2 : 1;
                 Java2Demo.addToGridBag(p,dp,x,y,w,1,1,1);
             } else {
                 p.add(dp);
@@ -154,7 +153,7 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
             add(p);
 
             tabbedPane.addChangeListener(this);
-            validate();
+            revalidate();
         }
 
         String className = e.getComponent().toString();
@@ -168,13 +167,13 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
             }
         }
 
-        validate();
+        revalidate();
     }
 
-    public void mousePressed(MouseEvent e) { }
+    public void mousePressed (MouseEvent e) { }
     public void mouseReleased(MouseEvent e) { }
-    public void mouseEntered(MouseEvent e) { }
-    public void mouseExited(MouseEvent e) { }
+    public void mouseEntered (MouseEvent e) { }
+    public void mouseExited  (MouseEvent e) { }
 
 
     public void actionPerformed(ActionEvent e) {
@@ -255,12 +254,11 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
             }
             dp.start();
         } 
-        validate();
+        revalidate();
     }
 
 
     public void shutDown(JPanel p) {
-        invalidate();
         for (int i = 0; i < p.getComponentCount(); i++) {
             ((DemoPanel) p.getComponent(i)).stop();
         } 
@@ -269,16 +267,16 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
 
 
     public void cloneDemo() {
-        int i = tabbedPane.getSelectedIndex() - 1;
-        if (clonePanels[i].getComponentCount() == 1) {
-            clonePanels[i].invalidate();
-            clonePanels[i].setLayout(new GridLayout(0,columns,5,5));
-            clonePanels[i].validate();
+        JPanel panel = clonePanels[tabbedPane.getSelectedIndex() - 1];
+        if (panel.getComponentCount() == 1) {
+            panel.invalidate();
+            panel.setLayout(new GridLayout(0,columns,5,5));
+            panel.revalidate();
         }
         DemoPanel original = (DemoPanel) getPanel().getComponent(0);
         DemoPanel clone = new DemoPanel(original.className);
         if (columns == 2) {
-            clone.setDemoBorder(clonePanels[i]);
+            clone.setDemoBorder(panel);
         }
         Image removeImg = DemoImages.getImage("remove.gif", this);
         clone.tools.cloneB = 
@@ -298,34 +296,34 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
         }
         clone.start();
         clone.surface.setMonitor(Java2Demo.performancemonitor != null);
-        clonePanels[i].add(clone);
-        clonePanels[i].repaint();
-        clonePanels[i].validate();
+        panel.add(clone);
+        panel.repaint();
+        panel.revalidate();
     }
 
 
     public void removeClone(Component theClone) {
-        int i = tabbedPane.getSelectedIndex() - 1;
-        if (clonePanels[i].getComponentCount() == 2) {
-            Component cmp = clonePanels[i].getComponent(0);
-            clonePanels[i].removeAll();
-            clonePanels[i].setLayout(new BorderLayout());
-            clonePanels[i].validate();
-            clonePanels[i].add(cmp);
+        JPanel panel = clonePanels[tabbedPane.getSelectedIndex() - 1];
+        if (panel.getComponentCount() == 2) {
+            Component cmp = panel.getComponent(0);
+            panel.removeAll();
+            panel.setLayout(new BorderLayout());
+            panel.revalidate();
+            panel.add(cmp);
         } else {
-            clonePanels[i].remove(theClone);
-            int cmpCount = clonePanels[i].getComponentCount();
-            for (int j = 1;j < cmpCount; j++) {
-                int top = (j+1 >= 3) ? 0 : 5;
+            panel.remove(theClone);
+            int cmpCount = panel.getComponentCount();
+            for (int j = 1; j < cmpCount; j++) {
+                int top  =  (j+1 >= 3)      ? 0 : 5;
                 int left = ((j+1) % 2) == 0 ? 0 : 5;
                 EmptyBorder eb = new EmptyBorder(top,left,5,5);
                 SoftBevelBorder sbb = new SoftBevelBorder(BevelBorder.RAISED);
-                JPanel p = (JPanel) clonePanels[i].getComponent(j);
+                JPanel p = (JPanel) panel.getComponent(j);
                 p.setBorder(new CompoundBorder(eb, sbb));
             }
         }
-        clonePanels[i].repaint();
-        clonePanels[i].validate();
+        panel.repaint();
+        panel.revalidate();
     }
 
 
@@ -341,15 +339,13 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
         });
         f.getContentPane().add("Center", group);
         f.pack();
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int WIDTH = 620;
+        int WIDTH  = 620;
         int HEIGHT = 530;
-        f.setLocation(screenSize.width/2 - WIDTH/2,
-                          screenSize.height/2 - HEIGHT/2);
         f.setSize(WIDTH, HEIGHT);
+        f.setLocationRelativeTo(null);  // centers f on screen
         f.setVisible(true);
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].startsWith("-ccthread")) {
+        for (String arg : args) {
+            if (arg.startsWith("-ccthread")) {
                 Java2Demo.ccthreadCB = new JCheckBoxMenuItem("CCThread", true);
             }
         }

@@ -1,7 +1,7 @@
 /*
- * @(#)Autoscroller.java	1.14 03/12/19
+ * @(#)Autoscroller.java	1.17 06/04/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.awt.event.*;
  * that receive the events to do the actual scrolling in response to the
  * mouse dragged events.
  *
- * @version 1.14 12/19/03
+ * @version 1.17 04/06/06
  * @author Dave Moore
  * @author Scott Violet
  */
@@ -75,7 +75,10 @@ class Autoscroller implements ActionListener {
         event = new MouseEvent(component, e.getID(), e.getWhen(),
                                e.getModifiers(), e.getX() + screenLocation.x,
                                e.getY() + screenLocation.y,
-                               e.getClickCount(), e.isPopupTrigger());
+                               e.getXOnScreen(),
+                               e.getYOnScreen(),
+                               e.getClickCount(), e.isPopupTrigger(),
+                               MouseEvent.NOBUTTON);
 
         if (timer == null) {
             timer = new Timer(100, this);
@@ -117,10 +120,12 @@ class Autoscroller implements ActionListener {
      */
     private void _processMouseDragged(MouseEvent e) {
         JComponent component = (JComponent)e.getComponent();
-	Rectangle visibleRect = component.getVisibleRect();
-	boolean contains = visibleRect.contains(e.getX(), e.getY());
-
-	if (contains) {
+        boolean stop = true;
+        if (component.isShowing()) {
+            Rectangle visibleRect = component.getVisibleRect();
+            stop = visibleRect.contains(e.getX(), e.getY());
+        }
+        if (stop) {
             _stop(component);
 	} else {
             start(component, e);
@@ -146,8 +151,11 @@ class Autoscroller implements ActionListener {
                                       event.getWhen(), event.getModifiers(),
                                       event.getX() - screenLocation.x,
                                       event.getY() - screenLocation.y,
+                                      event.getXOnScreen(),
+                                      event.getYOnScreen(),
                                       event.getClickCount(),
-                                      event.isPopupTrigger());
+                                      event.isPopupTrigger(),
+                                      MouseEvent.NOBUTTON);
         component.superProcessMouseMotionEvent(e);
     }
 

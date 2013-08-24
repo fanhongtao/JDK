@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractPreferences.java	1.20 04/01/12
+ * @(#)AbstractPreferences.java	1.25 06/06/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,8 +53,8 @@ import java.lang.Double;
  * <tt>BackingStoreException</tt>, as they can generally obey their contracts
  * even if the backing store is unavailable.  This is true because they return
  * no information and their effects are not required to become permanent until
- * a subsequent call to {Preferences#flush()} or
- * {Preferences#sync()}. Generally speaking, these SPI methods should not
+ * a subsequent call to {@link Preferences#flush()} or
+ * {@link Preferences#sync()}. Generally speaking, these SPI methods should not
  * throw exceptions.  In some implementations, there may be circumstances
  * under which these calls cannot even enqueue the requested operation for
  * later processing.  Even under these circumstances it is generally better to
@@ -99,7 +99,7 @@ import java.lang.Double;
  * with normal <tt>Preferences</tt> usage and would lead to great confusion.
  *
  * @author  Josh Bloch
- * @version 1.20, 01/12/04
+ * @version 1.25, 06/06/06
  * @see     Preferences
  * @since   1.4
  */
@@ -767,7 +767,7 @@ public abstract class AbstractPreferences extends Preferences {
      * an appropriate <tt>IllegalArgumentException</tt> is thrown.
      *
      * <p> If the first character of <tt>path</tt> is <tt>'/'</tt>
-     * (indicating an absolute path name name) this preference node's
+     * (indicating an absolute path name) this preference node's
      * lock is dropped prior to breaking <tt>path</tt> into tokens, and 
      * this method recursively traverses the path starting from the root
      * (rather than starting from this node).  The traversal is otherwise
@@ -947,15 +947,18 @@ public abstract class AbstractPreferences extends Preferences {
                     kidCache.put(kidNames[i], childSpi(kidNames[i]));
 
             // Recursively remove all cached children
-            for (Iterator i=kidCache.values().iterator(); i.hasNext(); )
-                ((AbstractPreferences)i.next()).removeNode2();
-            kidCache.clear();
-            
-            // Now we have no descendants - it's time to die!
-            removeNodeSpi();
-            removed = true;
-            parent.enqueueNodeRemovedEvent(this);
-        }
+            for (Iterator i = kidCache.values().iterator(); i.hasNext();) {
+		try {
+		    ((AbstractPreferences)i.next()).removeNode2();
+                    i.remove();
+		} catch (BackingStoreException x) { }
+	    }
+
+	    // Now we have no descendants - it's time to die!
+	    removeNodeSpi();
+	    removed = true;
+	    parent.enqueueNodeRemovedEvent(this);
+	}
     }
 
     /**
@@ -1076,17 +1079,19 @@ public abstract class AbstractPreferences extends Preferences {
                 throw new IllegalArgumentException("Listener not registered.");
 
             // Copy-on-write
-            NodeChangeListener[] newNl =
-                new NodeChangeListener[nodeListeners.length - 1];
-            int i = 0;
-            while (i < nodeListeners.length && nodeListeners[i] != ncl)
-                newNl[i] = nodeListeners[i++];
-
-            if (i == nodeListeners.length)
-                throw new IllegalArgumentException("Listener not registered.");
-            while (i < newNl.length)
-                newNl[i] = nodeListeners[++i];
-            nodeListeners = newNl;
+	    int i = 0;
+	    while (i < nodeListeners.length && nodeListeners[i] != ncl)
+		i++;
+	    if (i == nodeListeners.length)
+		throw new IllegalArgumentException("Listener not registered.");
+	    NodeChangeListener[] newNl =
+		new NodeChangeListener[nodeListeners.length - 1];
+            if (i != 0) 
+		System.arraycopy(nodeListeners, 0, newNl, 0, i);
+            if (i != newNl.length) 
+		System.arraycopy(nodeListeners, i + 1, 
+				 newNl, i, newNl.length - i);
+	    nodeListeners = newNl;
         }
     }
 

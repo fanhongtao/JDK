@@ -1,7 +1,7 @@
 /*
- * @(#)DisplayMode.java	1.8 04/01/13
+ * @(#)DisplayMode.java	1.11 06/07/31
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,9 +9,19 @@ package java.awt;
 
 /**
  * The <code>DisplayMode</code> class encapsulates the bit depth, height,
- * width, and refresh rate of a <code>GraphicsDevice</code>.  Display modes
- * are hardware-dependent and may not always be available.
+ * width, and refresh rate of a <code>GraphicsDevice</code>. The ability to 
+ * change graphics device's display mode is platform- and 
+ * configuration-dependent and may not always be available 
+ * (see {@link GraphicsDevice#isDisplayChangeSupported}).
+ * <p>
+ * For more information on full-screen exclusive mode API, see the
+ * <a href="http://java.sun.com/docs/books/tutorial/extra/fullscreen/index.html">
+ * Full-Screen Exclusive Mode API Tutorial</a>.
+ *
  * @see GraphicsDevice
+ * @see GraphicsDevice#isDisplayChangeSupported
+ * @see GraphicsDevice#getDisplayModes
+ * @see GraphicsDevice#setDisplayMode
  * @author Michael Martak
  * @since 1.4
  */
@@ -41,6 +51,7 @@ public final class DisplayMode {
     }
     
     /**
+     * Returns the height of the display, in pixels.
      * @return the height of the display, in pixels
      */
     public int getHeight() {
@@ -48,6 +59,7 @@ public final class DisplayMode {
     }
     
     /**
+     * Returns the width of the display, in pixels.
      * @return the width of the display, in pixels
      */
     public int getWidth() {
@@ -56,14 +68,17 @@ public final class DisplayMode {
     
     /**
      * Value of the bit depth if multiple bit depths are supported in this
-     * dislay mode.
+     * display mode.
      * @see #getBitDepth
      */
     public final static int BIT_DEPTH_MULTI = -1;
+    
     /**
-     * @return the bit depth of the display, in bits per pixel.  This may be
+     * Returns the bit depth of the display, in bits per pixel.  This may be
      * <code>BIT_DEPTH_MULTI</code> if multiple bit depths are supported in
      * this display mode.
+     *
+     * @return the bit depth of the display, in bits per pixel.
      * @see #BIT_DEPTH_MULTI
      */
     public int getBitDepth() {
@@ -71,13 +86,16 @@ public final class DisplayMode {
     }
     
     /**
-     * Value of the refresh rate if not known
+     * Value of the refresh rate if not known.
      * @see #getRefreshRate
      */
     public final static int REFRESH_RATE_UNKNOWN = 0;
+    
     /**
-     * @return the refresh rate of the display, in hertz.  This may be
+     * Returns the refresh rate of the display, in hertz.  This may be
      * <code>REFRESH_RATE_UNKNOWN</code> if the information is not available.
+     *
+     * @return the refresh rate of the display, in hertz.
      * @see #REFRESH_RATE_UNKNOWN
      */
     public int getRefreshRate() {
@@ -85,6 +103,7 @@ public final class DisplayMode {
     }
 
     /**
+     * Returns whether the two display modes are equal.
      * @return whether the two display modes are equal
      */
     public boolean equals(DisplayMode dm) {
@@ -98,7 +117,7 @@ public final class DisplayMode {
     }
     
     /**
-     * @return whether the two display modes are equal
+     * {@inheritDoc}
      */
     public boolean equals(Object dm) {
 	if (dm instanceof DisplayMode) {
@@ -109,7 +128,7 @@ public final class DisplayMode {
     }
     
     /**
-     * @return a hash code value for this object
+     * {@inheritDoc}
      */
     public int hashCode() {
         return getWidth() + getHeight() + getBitDepth() * 7

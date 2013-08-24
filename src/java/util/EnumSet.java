@@ -1,11 +1,13 @@
 /*
- * @(#)EnumSet.java	1.10 04/05/28
+ * @(#)EnumSet.java	1.15 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
+
+import sun.misc.SharedSecrets;
 
 /**
  * A specialized {@link Set} implementation for use with enum types.  All of
@@ -16,9 +18,9 @@ package java.util;
  * class should be good enough to allow its use as a high-quality, typesafe
  * alternative to traditional <tt>int</tt>-based "bit flags."  Even bulk
  * operations (such as <tt>containsAll</tt> and <tt>retainAll</tt>) should
- * run very quickly if the specified collection is also an enum set.
+ * run very quickly if their argument is also an enum set.
  *
- * <p>The iterator returned by the <tt>iterator</tt>method traverses the
+ * <p>The iterator returned by the <tt>iterator</tt> method traverses the
  * elements in their <i>natural order</i> (the order in which the enum
  * constants are declared).  The returned iterator is <i>weakly
  * consistent</i>: it will never throw {@link ConcurrentModificationException}
@@ -30,7 +32,7 @@ package java.util;
  * presence of a null element or to remove one will, however, function
  * properly.
  *
- * <P>Like most collection implementations <tt>EnumSet</tt> is not
+ * <P>Like most collection implementations, <tt>EnumSet</tt> is not
  * synchronized.  If multiple threads access an enum set concurrently, and at
  * least one of the threads modifies the set, it should be synchronized
  * externally.  This is typically accomplished by synchronizing on some
@@ -40,21 +42,20 @@ package java.util;
  * unsynchronized access:
  *
  * <pre>
- * Set&lt;MyEnum&gt; s = Collections.synchronizedSet(EnumSet.noneOf(Foo.class));
+ * Set&lt;MyEnum&gt; s = Collections.synchronizedSet(EnumSet.noneOf(MyEnum.class));
  * </pre>
  *
  * <p>Implementation note: All basic operations execute in constant time.
  * They are likely (though not guaranteed) to be much faster than their
- * {@link HashSet} counterparts.  Even bulk operations, such as {@link
- * #addAll} and  {@link #removeAll} execute in constant time if the
- * parameter is another <tt>EnumSet</tt> instance.
+ * {@link HashSet} counterparts.  Even bulk operations execute in
+ * constant time if their argument is also an enum set.
  *
- * <p>This class is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <p>This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @author Josh Bloch
- * @version 1.10, 05/28/04
+ * @version 1.15, 07/10/06
  * @since 1.5
  * @see EnumMap
  * @serial exclude
@@ -87,7 +88,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      * @throws NullPointerException if <tt>elementType</tt> is null
      */
     public static <E extends Enum<E>> EnumSet<E> noneOf(Class<E> elementType) {
-        Enum[] universe = elementType.getEnumConstants();
+        Enum[] universe = getUniverse(elementType);
         if (universe == null)
             throw new ClassCastException(elementType + " not an enum");
 
@@ -174,7 +175,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *
      * Overloadings of this method exist to initialize an enum set with
      * one through five elements.  A sixth overloading is provided that
-     * uses the varargs feature.  This overloading may be used to create an
+     * uses the varargs feature.  This overloading may be used to create
      * an enum set initially containing an arbitrary number of elements, but
      * is likely to run slower than the overloadings that do not use varargs.
      *
@@ -193,7 +194,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *
      * Overloadings of this method exist to initialize an enum set with
      * one through five elements.  A sixth overloading is provided that
-     * uses the varargs feature.  This overloading may be used to create an
+     * uses the varargs feature.  This overloading may be used to create
      * an enum set initially containing an arbitrary number of elements, but
      * is likely to run slower than the overloadings that do not use varargs.
      *
@@ -214,7 +215,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *
      * Overloadings of this method exist to initialize an enum set with
      * one through five elements.  A sixth overloading is provided that
-     * uses the varargs feature.  This overloading may be used to create an
+     * uses the varargs feature.  This overloading may be used to create
      * an enum set initially containing an arbitrary number of elements, but
      * is likely to run slower than the overloadings that do not use varargs.
      *
@@ -237,7 +238,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *
      * Overloadings of this method exist to initialize an enum set with
      * one through five elements.  A sixth overloading is provided that
-     * uses the varargs feature.  This overloading may be used to create an
+     * uses the varargs feature.  This overloading may be used to create
      * an enum set initially containing an arbitrary number of elements, but
      * is likely to run slower than the overloadings that do not use varargs.
      *
@@ -262,7 +263,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *
      * Overloadings of this method exist to initialize an enum set with
      * one through five elements.  A sixth overloading is provided that
-     * uses the varargs feature.  This overloading may be used to create an
+     * uses the varargs feature.  This overloading may be used to create
      * an enum set initially containing an arbitrary number of elements, but
      * is likely to run slower than the overloadings that do not use varargs.
      *
@@ -338,7 +339,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
     /**
      * Returns a copy of this set.
      *
-     * @return a copy of this set.
+     * @return a copy of this set
      */
     public EnumSet<E> clone() {
         try {
@@ -360,6 +361,15 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
         Class eClass = e.getClass();
         if (eClass != elementType && eClass.getSuperclass() != elementType)
             throw new ClassCastException(eClass + " != " + elementType);
+    }
+
+    /**
+     * Returns all of the values comprising E.
+     * The result is uncloned, cached, and shared by all callers.
+     */
+    private static <E extends Enum<E>> E[] getUniverse(Class<E> elementType) {
+        return SharedSecrets.getJavaLangAccess()
+					.getEnumConstantsShared(elementType);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)Enum.java	1.12 04/06/08
+ * @(#)Enum.java	1.15 06/01/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.io.Serializable;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.12, 06/08/04
+ * @version 1.15, 01/27/06
  * @since   1.5
  */
 public abstract class Enum<E extends Enum<E>>
@@ -114,7 +114,7 @@ public abstract class Enum<E extends Enum<E>>
      * @return a hash code for this enum constant.
      */
     public final int hashCode() {
-        return System.identityHashCode(this);
+        return super.hashCode();
     }
 
     /**
@@ -192,4 +192,9 @@ public abstract class Enum<E extends Enum<E>>
         throw new IllegalArgumentException(
             "No enum const " + enumType +"." + name);
     }
+
+    /**
+     * enum classes cannot have finalize methods.
+     */
+    protected final void finalize() { }
 }

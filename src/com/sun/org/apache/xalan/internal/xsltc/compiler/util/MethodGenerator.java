@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: MethodGenerator.java,v 1.15 2004/02/16 22:26:44 minchau Exp $
+ * $Id: MethodGenerator.java,v 1.2.4.1 2005/09/05 11:16:47 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
+
+import java.util.Hashtable;
 
 import com.sun.org.apache.bcel.internal.generic.ALOAD;
 import com.sun.org.apache.bcel.internal.generic.ASTORE;
@@ -32,6 +34,7 @@ import com.sun.org.apache.bcel.internal.generic.InstructionList;
 import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.MethodGen;
 import com.sun.org.apache.bcel.internal.generic.Type;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.Pattern;
 
 /**
  * @author Jacek Ambroziak
@@ -75,6 +78,14 @@ public class MethodGenerator extends MethodGen
 
     private SlotAllocator _slotAllocator;
     private boolean _allocatorInit = false;
+	/**
+		 * A mapping between patterns and instruction lists used by 
+		 * test sequences to avoid compiling the same pattern multiple 
+		 * times. Note that patterns whose kernels are "*", "node()" 
+		 * and "@*" can between shared by test sequences.
+		 */
+	private Hashtable _preCompiled = new Hashtable();
+
     
     public MethodGenerator(int access_flags, Type return_type,
 			   Type[] arg_types, String[] arg_names,
@@ -304,5 +315,22 @@ public class MethodGenerator extends MethodGen
 
 	super.setMaxLocals(maxLocals);
     }
+
+	/**
+	 * Add a pre-compiled pattern to this mode. 
+	 */
+	public void addInstructionList(Pattern pattern, 
+	InstructionList ilist) 
+	{
+	_preCompiled.put(pattern, ilist);
+	}
+
+	/**
+	 * Get the instruction list for a pre-compiled pattern. Used by 
+	 * test sequences to avoid compiling patterns more than once.
+	 */
+	public InstructionList getInstructionList(Pattern pattern) {
+	return (InstructionList) _preCompiled.get(pattern);
+	}
 
 }

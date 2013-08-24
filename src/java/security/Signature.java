@@ -1,7 +1,7 @@
 /*
- * @(#)Signature.java	1.99 04/05/18
+ * @(#)Signature.java	1.103 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -41,33 +41,10 @@ import sun.security.jca.GetInstance.Instance;
  * <tt>MD2withRSA</tt>, <tt>MD5withRSA</tt>, or <tt>SHA1withRSA</tt>.
  * The algorithm name must be specified, as there is no default.
  *
- * <p>Like other algorithm-based classes in Java Security, Signature 
- * provides implementation-independent algorithms, whereby a caller 
- * (application code) requests a particular signature algorithm
- * and is handed back a properly initialized Signature object. It is
- * also possible, if desired, to request a particular algorithm from a
- * particular provider. See the <code>getInstance </code> methods.
- *
- * <p>Thus, there are two ways to request a Signature algorithm object: by
- * specifying either just an algorithm name, or both an algorithm name
- * and a package provider. <ul>
- *
- * <li>If just an algorithm name is specified, the system will
- * determine if there is an implementation of the algorithm requested
- * available in the environment, and if there is more than one, if
- * there is a preferred one.<p>
- * 
- * <li>If both an algorithm name and a package provider are specified,
- * the system will determine if there is an implementation of the
- * algorithm in the package requested, and throw an exception if there
- * is not.
- *
- * </ul>
- *
- * <p>A Signature object can be used to generate and verify digital
+ * <p> A Signature object can be used to generate and verify digital
  * signatures.
  *
- * <p>There are three phases to the use of a Signature object for
+ * <p> There are three phases to the use of a Signature object for
  * either signing data or verifying a signature:<ol>
  *
  * <li>Initialization, with either 
@@ -105,7 +82,7 @@ import sun.security.jca.GetInstance.Instance;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.99, 05/18/04
+ * @version 1.103, 04/21/06
  */
 
 public abstract class Signature extends SignatureSpi {
@@ -151,7 +128,7 @@ public abstract class Signature extends SignatureSpi {
      *
      * @param algorithm the standard string name of the algorithm. 
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      */
@@ -177,23 +154,31 @@ public abstract class Signature extends SignatureSpi {
     );
 
     /**
-     * Generates a Signature object that implements the specified digest
-     * algorithm. If the default provider package
-     * provides an implementation of the requested digest algorithm,
-     * an instance of Signature containing that implementation is returned.
-     * If the algorithm is not available in the default 
-     * package, other packages are searched.
+     * Returns a Signature object that implements the specified signature
+     * algorithm.
+     *
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new Signature object encapsulating the
+     * SignatureSpi implementation from the first
+     * Provider that supports the specified algorithm is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param algorithm the standard name of the algorithm requested. 
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      *
      * @return the new Signature object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the environment.
+     * @exception NoSuchAlgorithmException if no Provider supports a
+     *          Signature implementation for the
+     *          specified algorithm.
+     *
+     * @see Provider
      */
     public static Signature getInstance(String algorithm) 
 	    throws NoSuchAlgorithmException {
@@ -289,13 +274,20 @@ public abstract class Signature extends SignatureSpi {
     }
 
     /** 
-     * Generates a Signature object implementing the specified
-     * algorithm, as supplied from the specified provider, if such an 
-     * algorithm is available from the provider.
+     * Returns a Signature object that implements the specified signature
+     * algorithm.
+     *
+     * <p> A new Signature object encapsulating the
+     * SignatureSpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param algorithm the name of the algorithm requested.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      *
@@ -303,15 +295,15 @@ public abstract class Signature extends SignatureSpi {
      *
      * @return the new Signature object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the package supplied by the requested
-     * provider.
+     * @exception NoSuchAlgorithmException if a SignatureSpi
+     *		implementation for the specified algorithm is not
+     *		available from the specified provider.
      *
-     * @exception NoSuchProviderException if the provider is not
-     * available in the environment.
+     * @exception NoSuchProviderException if the specified provider is not
+     *		registered in the security provider list.
      *
      * @exception IllegalArgumentException if the provider name is null
-     * or empty.
+     *		or empty.
      * 
      * @see Provider 
      */
@@ -335,14 +327,17 @@ public abstract class Signature extends SignatureSpi {
     }
     
     /** 
-     * Generates a Signature object implementing the specified
-     * algorithm, as supplied from the specified provider, if such an 
-     * algorithm is available from the provider. Note: the 
-     * <code>provider</code> doesn't have to be registered. 
+     * Returns a Signature object that implements the specified
+     * signature algorithm.
+     *
+     * <p> A new Signature object encapsulating the
+     * SignatureSpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
      *
      * @param algorithm the name of the algorithm requested.
      * See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      *
@@ -350,12 +345,11 @@ public abstract class Signature extends SignatureSpi {
      *
      * @return the new Signature object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the package supplied by the requested
-     * provider.
+     * @exception NoSuchAlgorithmException if a SignatureSpi
+     *		implementation for the specified algorithm is not available
+     *		from the specified Provider object.
      *
-     * @exception IllegalArgumentException if the <code>provider</code> is
-     * null.
+     * @exception IllegalArgumentException if the provider is null.
      * 
      * @see Provider
      *
@@ -443,6 +437,7 @@ public abstract class Signature extends SignatureSpi {
      * @exception InvalidKeyException  if the public key in the certificate
      * is not encoded properly or does not include required  parameter
      * information or cannot be used for digital signature purposes.
+     * @since 1.3
      */
     public final void initVerify(Certificate certificate)
 	    throws InvalidKeyException {
@@ -626,6 +621,7 @@ public abstract class Signature extends SignatureSpi {
      * is less than 0, or the sum of the <code>offset</code> and 
      * <code>length</code> is greater than the length of the
      * <code>signature</code> byte array.
+     * @since 1.4
      */
     public final boolean verify(byte[] signature, int offset, int length)
 	throws SignatureException {
@@ -807,6 +803,7 @@ public abstract class Signature extends SignatureSpi {
      * signature does not use any parameters.
      *
      * @see #setParameter(AlgorithmParameterSpec)
+     * @since 1.4
      */
     public final AlgorithmParameters getParameters() {
 	return engineGetParameters();
@@ -903,7 +900,7 @@ public abstract class Signature extends SignatureSpi {
 	    this.lock = new Object();
 	}
 	
-	/*
+	/**
 	 * Returns a clone if the delegate is cloneable.    
 	 * 
 	 * @return a clone if the delegate is cloneable.

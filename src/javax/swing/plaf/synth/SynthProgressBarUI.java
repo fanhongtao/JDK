@@ -1,7 +1,7 @@
 /*
- * @(#)SynthProgressBarUI.java	1.23 04/04/02
+ * @(#)SynthProgressBarUI.java	1.28 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,12 +18,12 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
 import sun.swing.plaf.synth.SynthUI;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * Synth's ProgressBarUI.
  *
- * @version 1.23, 04/02/04
+ * @version 1.28, 11/30/05
  * @author Joshua Outwater
  */
 class SynthProgressBarUI extends BasicProgressBarUI implements SynthUI,
@@ -31,6 +31,7 @@ class SynthProgressBarUI extends BasicProgressBarUI implements SynthUI,
     private SynthStyle style;
 
     private int progressPadding;
+    private boolean paintOutsideClip;
 
     public static ComponentUI createUI(JComponent x) {
         return new SynthProgressBarUI();
@@ -59,6 +60,8 @@ class SynthProgressBarUI extends BasicProgressBarUI implements SynthUI,
             setCellSpacing(style.getInt(context, "ProgressBar.cellSpacing", 0));
             progressPadding = style.getInt(context,
                     "ProgressBar.progressPadding", 0);
+            paintOutsideClip = style.getBoolean(context,
+                    "ProgressBar.paintOutsideClip", false);
         }
         context.dispose();
     }
@@ -88,12 +91,39 @@ class SynthProgressBarUI extends BasicProgressBarUI implements SynthUI,
         return SynthLookAndFeel.getComponentState(c);
     }
 
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        if (progressBar.isStringPainted() &&
+                progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+            SynthContext context = getContext(c);
+            Font font = context.getStyle().getFont(context);
+            FontMetrics metrics = progressBar.getFontMetrics(font);
+            context.dispose();
+            return (height - metrics.getAscent() - metrics.getDescent()) / 2 +
+                    metrics.getAscent();
+        }
+        return -1;
+    }
+
+    protected void setAnimationIndex(int newValue) {
+        if (paintOutsideClip) {
+            if (getAnimationIndex() == newValue) {
+                return;
+            }
+            super.setAnimationIndex(newValue);
+            progressBar.repaint();
+        } else {
+            super.setAnimationIndex(newValue);
+        }
+    }
+
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
         SynthLookAndFeel.update(context, g);
         context.getPainter().paintProgressBarBackground(context,
-                          g, 0, 0, c.getWidth(), c.getHeight());
+                          g, 0, 0, c.getWidth(), c.getHeight(),
+                          progressBar.getOrientation());
         paint(context, g);
         context.dispose();
     }
@@ -192,7 +222,8 @@ class SynthProgressBarUI extends BasicProgressBarUI implements SynthUI,
 
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
-        context.getPainter().paintProgressBarBorder(context, g, x, y, w, h);
+        context.getPainter().paintProgressBarBorder(context, g, x, y, w, h,
+                                                    progressBar.getOrientation());
     }
 
     public void propertyChange(PropertyChangeEvent e) {

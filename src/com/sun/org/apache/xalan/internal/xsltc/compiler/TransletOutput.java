@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 /*
- * $Id: TransletOutput.java,v 1.12 2004/02/16 22:25:10 minchau Exp $
+ * $Id: TransletOutput.java,v 1.2.4.1 2005/09/05 09:19:44 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
 
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
+import com.sun.org.apache.bcel.internal.generic.INVOKESTATIC;
 import com.sun.org.apache.bcel.internal.generic.INVOKEVIRTUAL;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
 import com.sun.org.apache.bcel.internal.generic.PUSH;
@@ -96,6 +97,17 @@ final class TransletOutput extends Instruction {
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
+	final boolean isSecureProcessing = classGen.getParser().getXSLTC()
+	                                   .isSecureProcessing();
+
+	if (isSecureProcessing) {
+	    int index = cpg.addMethodref(BASIS_LIBRARY_CLASS,
+				         "unallowed_extension_elementF",
+				         "(Ljava/lang/String;)V");
+	    il.append(new PUSH(cpg, "redirect"));
+	    il.append(new INVOKESTATIC(index));
+	    return; 	
+	}
 
 	// Save the current output handler on the stack
 	il.append(methodGen.loadHandler());

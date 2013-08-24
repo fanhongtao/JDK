@@ -1,7 +1,7 @@
 /*
- * @(#)X509EncodedKeySpec.java	1.19 03/12/19
+ * @(#)X509EncodedKeySpec.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.19, 12/19/03
+ * @version 1.22, 11/17/05
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -40,6 +40,8 @@ public class X509EncodedKeySpec extends EncodedKeySpec {
      * @param encodedKey the key, which is assumed to be
      * encoded according to the X.509 standard. The contents of the 
      * array are copied to protect against subsequent modification.
+     * @exception NullPointerException if <code>encodedKey</code>
+     * is null.
      */
     public X509EncodedKeySpec(byte[] encodedKey) {
 	super(encodedKey);

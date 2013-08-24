@@ -1,8 +1,8 @@
 /*
  * @(#)file      ModelMBeanAttributeInfo.java
  * @(#)author    IBM Corp.
- * @(#)version   1.34
- * @(#)lastedit      04/02/10
+ * @(#)version   1.41
+ * @(#)lastedit      06/01/17
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -57,7 +57,7 @@ import com.sun.jmx.trace.Trace;
  * setMethod      : name of operation descriptor for set method 
  * protocolMap    : object which implements the Descriptor interface: mappings must be appropriate for the attribute
  *                  and entries can be updated or augmented at runtime.
- * persistPolicy  : OnUpdate|OnTimer|NoMoreOftenThan|Always|Never  
+ * persistPolicy  : OnUpdate|OnTimer|NoMoreOftenThan|OnUnregister|Always|Never  
  * persistPeriod  : seconds - frequency of persist cycle. Used when persistPolicy is"OnTimer" or "NoMoreOftenThan".  
  * currencyTimeLimit : how long value is valid, &lt;0 never, =0 always, &gt;0 seconds
  * lastUpdatedTimeStamp : when value was set  
@@ -73,13 +73,15 @@ import com.sun.jmx.trace.Trace;
  * <code>currencyTimeLimit</code> field.  To indicate that it is
  * always valid, use a very large number for this field.</p>
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>6181543027787327345L</code>.
+ * 
  * @since 1.5
  */
 
 
-public class ModelMBeanAttributeInfo extends MBeanAttributeInfo 
-	 implements DescriptorAccess, Cloneable
-{
+public class ModelMBeanAttributeInfo
+    extends MBeanAttributeInfo
+    implements DescriptorAccess {
 
     // Serialization compatibility stuff:
     // Two serial forms are supported in this class. The selected form depends
@@ -116,8 +118,8 @@ public class ModelMBeanAttributeInfo extends MBeanAttributeInfo
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: No compat with 1.0
@@ -142,8 +144,12 @@ public class ModelMBeanAttributeInfo extends MBeanAttributeInfo
 	private final static String currClass = "ModelMBeanAttributeInfo";
 
 	/**
-	 * Constructs a ModelMBeanAttributeInfo object with a default descriptor.
-	 *
+	 * Constructs a ModelMBeanAttributeInfo object with a default
+	 * descriptor. The {@link Descriptor} of the constructed
+	 * object will include fields contributed by any annotations
+	 * on the {@code Method} objects that contain the {@link
+	 * DescriptorKey} meta-annotation.
+         *
 	 * @param name The name of the attribute.
 	 * @param description A human readable description of the attribute. Optional.
 	 * @param getter The method used for reading the attribute value.
@@ -172,8 +178,12 @@ public class ModelMBeanAttributeInfo extends MBeanAttributeInfo
 	}
 
 	/**
-	 * Constructs a ModelMBeanAttributeInfo object. 
-	 *
+	 * Constructs a ModelMBeanAttributeInfo object.  The {@link
+	 * Descriptor} of the constructed object will include fields
+	 * contributed by any annotations on the {@code Method}
+	 * objects that contain the {@link DescriptorKey}
+	 * meta-annotation.
+         *
 	 * @param name The name of the attribute.
 	 * @param description A human readable description of the attribute. Optional.
 	 * @param getter The method used for reading the attribute value.
@@ -213,7 +223,7 @@ public class ModelMBeanAttributeInfo extends MBeanAttributeInfo
 				attrDescriptor = (Descriptor) descriptor.clone();
 			} else
 			{ 
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanAttributeInfo constructor"));
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanAttributeInfo constructor"));
 			}
 		}
 	}
@@ -288,7 +298,7 @@ public class ModelMBeanAttributeInfo extends MBeanAttributeInfo
 				attrDescriptor = (Descriptor) descriptor.clone();
 			} else
 			{ 
-			    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanAttributeInfo constructor"));
+			    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanAttributeInfo constructor"));
 			}
 		}
 
@@ -386,7 +396,7 @@ public class ModelMBeanAttributeInfo extends MBeanAttributeInfo
             } 
             else {
                 throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), 
-                                                     ("Exception occured in ModelMBeanAttributeInfo setDescriptor"));
+                                                     ("Exception occurred in ModelMBeanAttributeInfo setDescriptor"));
             }
         }
 	}

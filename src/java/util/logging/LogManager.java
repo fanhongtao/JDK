@@ -1,7 +1,7 @@
 /*
- * @(#)LogManager.java	1.47 06/04/12
+ * @(#)LogManager.java	1.51 06/04/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -73,7 +73,7 @@ import sun.security.action.GetPropertyAction;
  * <p>
  * The global logging properties may include:
  * <ul>
- * <li>A property "handlers".  This defines a whitespace separated
+ * <li>A property "handlers".  This defines a whitespace or comma separated
  * list of class names for handler classes to load and register as
  * handlers on the root Logger (the Logger named "").  Each class
  * name must be for a Handler class which has a default constructor.
@@ -96,7 +96,7 @@ import sun.security.action.GetPropertyAction;
  *
  * <li>A property "config".  This property is intended to allow
  * arbitrary configuration code to be run.  The property defines a
- * whitespace separated list of class names.  A new instance will be
+ * whitespace or comma separated list of class names.  A new instance will be
  * created for each named class.  The default constructor of each class
  * may execute arbitrary code to update the logging configuration, such as
  * setting logger levels, adding handlers, adding filters, etc.
@@ -122,7 +122,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.47, 04/12/06
+ * @version 1.51, 04/17/06
  * @since 1.4
 */
 
@@ -581,7 +581,7 @@ public class LogManager {
 	String cname = System.getProperty("java.util.logging.config.class");
 	if (cname != null) {
 	    try {
-		// Instantiate the named class.  It is its contructor's
+		// Instantiate the named class.  It is its constructor's
 		// responsibility to initialize the logging configuration, by
 		// calling readConfiguration(InputStream) with a suitable stream.
 		try {	
@@ -1023,6 +1023,7 @@ public class LogManager {
     /**
      * String representation of the
      * {@link javax.management.ObjectName} for {@link LoggingMXBean}.
+     * @since 1.5
      */
     public final static String LOGGING_MXBEAN_NAME
         = "java.util.logging:type=Logging";
@@ -1036,6 +1037,7 @@ public class LogManager {
      * @return a {@link LoggingMXBean} object.
      *
      * @see java.lang.management.ManagementFactory
+     * @since 1.5
      */
     public static synchronized LoggingMXBean  getLoggingMXBean() {
         if (loggingMXBean == null) {

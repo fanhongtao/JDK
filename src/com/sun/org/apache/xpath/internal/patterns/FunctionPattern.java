@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionPattern.java,v 1.13 2004/02/17 04:35:37 minchau Exp $
+ * $Id: FunctionPattern.java,v 1.2.4.2 2005/09/15 00:21:15 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.patterns;
 
@@ -33,13 +33,11 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FunctionPattern extends StepPattern
 {
+    static final long serialVersionUID = -5426793413091209944L;
 
   /**
    * Construct a FunctionPattern from a
    * {@link com.sun.org.apache.xpath.internal.functions.Function expression}.
-   *
-   *
-   * @param a should be a {@link com.sun.org.apache.xpath.internal.functions.Function expression}.
    *
    * NEEDSDOC @param expr
    */

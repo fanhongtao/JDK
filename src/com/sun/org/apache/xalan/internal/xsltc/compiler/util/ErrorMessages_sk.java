@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages_sk.java,v 1.2 2004/02/16 22:26:44 minchau Exp $
+ * $Id: ErrorMessages_sk.java,v 1.1.6.1 2005/09/05 11:53:00 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -86,7 +86,13 @@ public class ErrorMessages_sk extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final String[][] m_errorMessages = {
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] {
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
         "Viac ne\u017e jeden \u0161t\u00fdl dokumentu bol definovan\u00fd v rovnakom s\u00fabore."},
 
@@ -839,9 +845,5 @@ public class ErrorMessages_sk extends ListResourceBundle {
         {ErrorMsg.RUNTIME_ERROR_KEY,
         "Chyby transletu:"}
     };
-
-
-    public Object[][] getContents() {
-        return m_errorMessages;
     }
 }

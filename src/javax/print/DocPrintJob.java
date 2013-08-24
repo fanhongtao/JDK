@@ -1,7 +1,7 @@
 /*
- * @(#)DocPrintJob.java	1.10 03/12/19
+ * @(#)DocPrintJob.java	1.12 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -79,7 +79,7 @@ public interface DocPrintJob {
      * If listener is null, no exception is thrown and no action is
      * performed.
      * To determine the attribute updates that may be reported by this job,
-     * a client can call <code>getAttributes()/<code> and identify the
+     * a client can call <code>getAttributes()</code> and identify the
      * subset that are interesting and likely to be reported to the
      * listener. Clients expecting to be updated about changes in a
      * specific job attribute should verify it is in that set, but

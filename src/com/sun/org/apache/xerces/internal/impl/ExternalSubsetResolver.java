@@ -33,9 +33,11 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
  * registered external subset resolver does not provide an external subset
  * for a given document, it should return <code>null</code>.</p>
  *
+ * @xerces.internal
+ * 
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: ExternalSubsetResolver.java,v 1.1.1.1 2004/05/04 10:21:42 vk112360 Exp $
+ * @version $Id: ExternalSubsetResolver.java,v 1.1.2.1 2005/08/01 03:34:11 jeffsuttor Exp $
  */
 public interface ExternalSubsetResolver 
     extends XMLEntityResolver {

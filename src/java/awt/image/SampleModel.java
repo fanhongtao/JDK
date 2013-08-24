@@ -1,7 +1,7 @@
 /*
- * @(#)SampleModel.java	1.36 03/12/19
+ * @(#)SampleModel.java	1.39 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -205,7 +205,8 @@ public abstract class SampleModel
      * one sample per array element.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param iArray    If non-null, returns the samples in this array
      * @param data      The DataBuffer containing the image data
      * @return the samples for the specified pixel.
@@ -1187,6 +1188,10 @@ public abstract class SampleModel
     /**
      * Sets a sample in the specified band for the pixel located at (x,y)
      * in the DataBuffer using a float for input.
+     * The default implementation of this method casts the input
+     * float sample to an int and then calls the
+     * <code>setSample(int, int, int, DataBuffer)</code> method using
+     * that int value.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
      * @param x 	The X coordinate of the pixel location.
@@ -1211,6 +1216,10 @@ public abstract class SampleModel
     /**
      * Sets a sample in the specified band for the pixel located at (x,y)
      * in the DataBuffer using a double for input.
+     * The default implementation of this method casts the input
+     * double sample to an int and then calls the
+     * <code>setSample(int, int, int, DataBuffer)</code> method using
+     * that int value.
      * ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
      * @param x 	The X coordinate of the pixel location.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CachedXPathAPI.java,v 1.5 2004/02/17 04:30:02 minchau Exp $
+ * $Id: CachedXPathAPI.java,v 1.2.4.1 2005/09/10 03:47:42 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -59,24 +59,33 @@ public class CachedXPathAPI
   */
   protected XPathContext xpathSupport;
 
-  /** Default constructor. Establishes its own XPathContext, and hence
-   *  its own DTMManager.  Good choice for simple uses.
-   * */
+  /**
+   * <p>Default constructor. Establishes its own {@link XPathContext}, and hence
+   * its own {@link com.sun.org.apache.xml.internal.dtm.DTMManager}.
+   * Good choice for simple uses.</p>
+   * <p>Note that any particular instance of {@link CachedXPathAPI} must not be
+   * operated upon by multiple threads without synchronization; we do
+   * not currently support multithreaded access to a single
+   * {@link com.sun.org.apache.xml.internal.dtm.DTM}.</p>
+   */
   public CachedXPathAPI()
   {
     xpathSupport = new XPathContext();
   }
   
-  /** This constructor shares its XPathContext with a pre-existing
-   *  CachedXPathAPI.  That allows sharing document models (DTMs) and
-   *  previously established location state.
+  /**
+   * <p>This constructor shares its {@link XPathContext} with a pre-existing
+   * {@link CachedXPathAPI}.  That allows sharing document models
+   * ({@link com.sun.org.apache.xml.internal.dtm.DTM}) and previously established location
+   * state.</p>
+   * <p>Note that the original {@link CachedXPathAPI} and the new one should
+   * not be operated upon concurrently; we do not support multithreaded access
+   * to a single {@link com.sun.org.apache.xml.internal.dtm.DTM} at this time.  Similarly,
+   * any particular instance of {@link CachedXPathAPI} must not be operated
+   * upon by multiple threads without synchronization.</p>
+   * <p>%REVIEW% Should this instead do a clone-and-reset on the XPathSupport object?</p>
    *
-   *  Note that the original CachedXPathAPI and the new one should not
-   *  be operated concurrently; we do not support multithreaded access
-   *  to a single DTM at this time.
-   *
-   *  %REVIEW% Should this instead do a clone-and-reset on the XPathSupport object?
-   * */
+   */
   public CachedXPathAPI(CachedXPathAPI priorXPathAPI)
   {
     xpathSupport = priorXPathAPI.xpathSupport;
@@ -217,7 +226,6 @@ public class CachedXPathAPI
    *  XPath namespace prefixes will be resolved from the namespaceNode.
    *  @param contextNode The node to start searching from.
    *  @param str A valid XPath string.
-   *  @param namespaceNode The node from which prefixes in the XPath will be resolved to namespaces.
    *  @return An XObject, which can be used to obtain a string, number, nodelist, etc, should never be null.
    *  @see com.sun.org.apache.xpath.internal.objects.XObject
    *  @see com.sun.org.apache.xpath.internal.objects.XNull
@@ -291,7 +299,6 @@ public class CachedXPathAPI
    *
    *   @param contextNode The node to start searching from.
    *   @param str A valid XPath string.
-   *   @param namespaceNode The node from which prefixes in the XPath will be resolved to namespaces.
    *   @param prefixResolver Will be called if the parser encounters namespace
    *                         prefixes, to resolve the prefixes to URLs.
    *   @return An XObject, which can be used to obtain a string, number, nodelist, etc, should never be null.

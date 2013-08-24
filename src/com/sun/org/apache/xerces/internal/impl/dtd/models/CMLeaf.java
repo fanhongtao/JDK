@@ -62,8 +62,10 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 
 /**
  * Content model leaf node.
+ * 
+ * @xerces.internal
  *
- * @version $Id: CMLeaf.java,v 1.2 2002/01/29 01:15:10 lehors Exp $
+ * @version $Id: CMLeaf.java,v 1.1.2.1 2005/08/01 03:34:26 jeffsuttor Exp $
  */
 public class CMLeaf 
     extends CMNode {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Lt.java,v 1.7 2004/02/17 04:35:12 minchau Exp $
+ * $Id: Lt.java,v 1.2.4.1 2005/09/14 21:31:41 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -26,6 +26,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class Lt extends Operation
 {
+    static final long serialVersionUID = 3388420509289359422L;
 
   /**
    * Apply the operation to two operands, and return the result.

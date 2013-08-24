@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanServerConnection.java	1.21 04/02/10
+ * @(#)MBeanServerConnection.java	1.26 06/07/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ public interface MBeanServerConnection {
      *
      * @exception ReflectionException Wraps a
      * <CODE>java.lang.ClassNotFoundException</CODE> or a
-     * <CODE><CODE>java.lang.Exception</CODE></CODE> that occurred
+     * <CODE>java.lang.Exception</CODE> that occurred
      * when trying to invoke the MBean's constructor.
      * @exception InstanceAlreadyExistsException The MBean is already
      * under the control of the MBean server.
@@ -316,7 +316,7 @@ public interface MBeanServerConnection {
      * @exception IOException A communication problem occurred when
      * talking to the MBean server.
      */
-    public Set queryMBeans(ObjectName name, QueryExp query)
+    public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query)
 	    throws IOException;
 
     /**
@@ -344,7 +344,7 @@ public interface MBeanServerConnection {
      * @exception IOException A communication problem occurred when
      * talking to the MBean server.
      */
-    public Set queryNames(ObjectName name, QueryExp query)
+    public Set<ObjectName> queryNames(ObjectName name, QueryExp query)
 	    throws IOException;
 
 
@@ -686,8 +686,7 @@ public interface MBeanServerConnection {
      *
      * @param name The name of the MBean on which the listener should
      * be removed.
-     * @param listener A listener that was previously added to this
-     * MBean.
+     * @param listener The object name of the listener to be removed.
      * @param filter The filter that was specified when the listener
      * was added.
      * @param handback The handback that was specified when the
@@ -723,7 +722,7 @@ public interface MBeanServerConnection {
      *
      * @param name The name of the MBean on which the listener should
      * be removed.
-     * @param listener The object name of the listener to be removed.
+     * @param listener The listener to be removed.
      *
      * @exception InstanceNotFoundException The MBean name provided
      * does not match any of the registered MBeans.
@@ -754,8 +753,7 @@ public interface MBeanServerConnection {
      *
      * @param name The name of the MBean on which the listener should
      * be removed.
-     * @param listener A listener that was previously added to this
-     * MBean.
+     * @param listener The listener to be removed.
      * @param filter The filter that was specified when the listener
      * was added.
      * @param handback The handback that was specified when the
@@ -818,6 +816,9 @@ public interface MBeanServerConnection {
      *
      * <p>If N equals <code>className</code>, the result is true.</p>
      *
+     * <p>Otherwise, if L successfully loads <code>className</code>
+     * and X is an instance of this class, the result is true.
+     *
      * <p>Otherwise, if L successfully loads both N and
      * <code>className</code>, and the second class is assignable from
      * the first, the result is true.</p>
@@ -834,6 +835,8 @@ public interface MBeanServerConnection {
      * registered in the MBean server.
      * @exception IOException A communication problem occurred when
      * talking to the MBean server.
+     *
+     * @see Class#isInstance
      */
     public boolean isInstanceOf(ObjectName name, String className)
 	    throws InstanceNotFoundException, IOException;

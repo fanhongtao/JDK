@@ -1,7 +1,7 @@
 /*
- * @(#)WindowPeer.java	1.19 06/04/11
+ * @(#)WindowPeer.java	1.24 06/05/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,8 +20,11 @@ import java.awt.event.KeyEvent;
 public interface WindowPeer extends ContainerPeer {
     void toFront();
     void toBack();
-    void updateAlwaysOnTop();
+    void setAlwaysOnTop(boolean alwaysOnTop);
     void updateFocusableWindowState();
     boolean requestWindowFocus();
+    void setModalBlocked(Dialog blocker, boolean blocked);
+    void updateMinimumSize();
+    void updateIconImages();
 }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyChangeEvent.java	1.33 03/12/19
+ * @(#)PropertyChangeEvent.java	1.35 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ public class PropertyChangeEvent extends java.util.EventObject {
     }
     
     /**
-     * Sets the new value for the property, expressed as an Object.
+     * Gets the new value for the property, expressed as an Object.
      *
      * @return  The new value for the property, expressed as an Object.
      *		May be null if multiple properties have changed.

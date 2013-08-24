@@ -1,7 +1,7 @@
 /*
- * @(#)BorderUIResource.java	1.16 03/12/19
+ * @(#)BorderUIResource.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see javax.swing.plaf.UIResource
- * @version 1.16 12/19/03
+ * @version 1.17 11/17/05
  * @author Amy Fowler
  * 
  */

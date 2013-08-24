@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMDOMException.java,v 1.5 2004/02/16 23:03:44 minchau Exp $
+ * $Id: DTMDOMException.java,v 1.2.4.1 2005/09/15 08:14:52 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -27,6 +27,7 @@ package com.sun.org.apache.xml.internal.dtm;
  */
 public class DTMDOMException extends org.w3c.dom.DOMException
 {
+    static final long serialVersionUID = 1895654266613192414L;
   /**
    * Constructs a DOM/DTM exception.
    *

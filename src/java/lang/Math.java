@@ -1,7 +1,7 @@
 /*
- * @(#)Math.java	1.69 04/06/14
+ * @(#)Math.java	1.72 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,7 @@ import java.util.Random;
  * 
  * @author  unascribed
  * @author  Joseph D. Darcy
- * @version 1.69, 06/14/04
+ * @version 1.72, 11/17/05
  * @since   JDK1.0
  */
 
@@ -137,8 +137,8 @@ public final class Math {
     }
 
     /**
-     * Returns the arc sine of an angle, in the range of -<i>pi</i>/2 through
-     * <i>pi</i>/2. Special cases: 
+     * Returns the arc sine of a value; the returned angle is in the
+     * range -<i>pi</i>/2 through <i>pi</i>/2.  Special cases:
      * <ul><li>If the argument is NaN or its absolute value is greater 
      * than 1, then the result is NaN.
      * <li>If the argument is zero, then the result is a zero with the
@@ -155,8 +155,8 @@ public final class Math {
     }
 
     /**
-     * Returns the arc cosine of an angle, in the range of 0.0 through
-     * <i>pi</i>.  Special case:
+     * Returns the arc cosine of a value; the returned angle is in the
+     * range 0.0 through <i>pi</i>.  Special case:
      * <ul><li>If the argument is NaN or its absolute value is greater 
      * than 1, then the result is NaN.</ul>
      * 
@@ -171,8 +171,8 @@ public final class Math {
     }
 
     /**
-     * Returns the arc tangent of an angle, in the range of -<i>pi</i>/2
-     * through <i>pi</i>/2.  Special cases: 
+     * Returns the arc tangent of a value; the returned angle is in the
+     * range -<i>pi</i>/2 through <i>pi</i>/2.  Special cases:
      * <ul><li>If the argument is NaN, then the result is NaN.
      * <li>If the argument is zero, then the result is a zero with the
      * same sign as the argument.</ul>
@@ -427,8 +427,9 @@ public final class Math {
     }
 
     /**
-     * Converts rectangular coordinates (<code>x</code>,&nbsp;<code>y</code>)
-     * to polar (r,&nbsp;<i>theta</i>).
+     * Returns the angle <i>theta</i> from the conversion of rectangular
+     * coordinates (<code>x</code>,&nbsp;<code>y</code>) to polar
+     * coordinates (r,&nbsp;<i>theta</i>).
      * This method computes the phase <i>theta</i> by computing an arc tangent
      * of <code>y/x</code> in the range of -<i>pi</i> to <i>pi</i>. Special 
      * cases:
@@ -1177,6 +1178,7 @@ public final class Math {
      * @param   x   the exponent to raise <i>e</i> to in the computation of
      *              <i>e</i><sup><code>x</code></sup>&nbsp;-1.
      * @return  the value <i>e</i><sup><code>x</code></sup>&nbsp;-&nbsp;1.
+     * @since 1.5
      */
     public static double expm1(double x) {
 	return StrictMath.expm1(x);
@@ -1213,8 +1215,299 @@ public final class Math {
      * @param   x   a value
      * @return the value ln(<code>x</code>&nbsp;+&nbsp;1), the natural
      * log of <code>x</code>&nbsp;+&nbsp;1
+     * @since 1.5
      */
     public static double log1p(double x) {
 	return StrictMath.log1p(x);
+    }
+
+    /**
+     * Returns the first floating-point argument with the sign of the
+     * second floating-point argument.  Note that unlike the {@link
+     * StrictMath#copySign(double, double) StrictMath.copySign}
+     * method, this method does not require NaN <code>sign</code>
+     * arguments to be treated as positive values; implementations are
+     * permitted to treat some NaN arguments as positive and other NaN
+     * arguments as negative to allow greater performance.
+     *
+     * @param magnitude  the parameter providing the magnitude of the result
+     * @param sign   the parameter providing the sign of the result
+     * @return a value with the magnitude of <code>magnitude</code>
+     * and the sign of <code>sign</code>.
+     * @since 1.6
+     */
+    public static double copySign(double magnitude, double sign) {
+	return sun.misc.FpUtils.rawCopySign(magnitude, sign);
+    }
+ 
+    /**
+     * Returns the first floating-point argument with the sign of the
+     * second floating-point argument.  Note that unlike the {@link
+     * StrictMath#copySign(float, float) StrictMath.copySign}
+     * method, this method does not require NaN <code>sign</code>
+     * arguments to be treated as positive values; implementations are
+     * permitted to treat some NaN arguments as positive and other NaN
+     * arguments as negative to allow greater performance.
+     *
+     * @param magnitude  the parameter providing the magnitude of the result
+     * @param sign   the parameter providing the sign of the result
+     * @return a value with the magnitude of <code>magnitude</code>
+     * and the sign of <code>sign</code>.
+     * @since 1.6
+     */
+    public static float copySign(float magnitude, float sign) {
+	return sun.misc.FpUtils.rawCopySign(magnitude, sign);
+    }
+
+    /**
+     * Returns the unbiased exponent used in the representation of a
+     * {@code float}.  Special cases:
+     *
+     * <ul>
+     * <li>If the argument is NaN or infinite, then the result is
+     * {@link Float#MAX_EXPONENT} + 1.
+     * <li>If the argument is zero or subnormal, then the result is
+     * {@link Float#MIN_EXPONENT} -1.
+     * </ul>
+     * @param f a {@code float} value
+     * @return the unbiased exponent of the argument
+     * @since 1.6
+     */
+    public static int getExponent(float f) {
+	return sun.misc.FpUtils.getExponent(f);
+    }
+ 
+    /**
+     * Returns the unbiased exponent used in the representation of a
+     * {@code double}.  Special cases:
+     *
+     * <ul>
+     * <li>If the argument is NaN or infinite, then the result is
+     * {@link Double#MAX_EXPONENT} + 1.
+     * <li>If the argument is zero or subnormal, then the result is
+     * {@link Double#MIN_EXPONENT} -1.
+     * </ul>
+     * @param d a {@code double} value
+     * @return the unbiased exponent of the argument
+     * @since 1.6
+     */
+    public static int getExponent(double d) {
+	return sun.misc.FpUtils.getExponent(d);
+    }
+ 
+    /**
+     * Returns the floating-point number adjacent to the first
+     * argument in the direction of the second argument.  If both
+     * arguments compare as equal the second argument is returned.
+     *
+     * <p>
+     * Special cases:
+     * <ul>
+     * <li> If either argument is a NaN, then NaN is returned.
+     *
+     * <li> If both arguments are signed zeros, {@code direction}
+     * is returned unchanged (as implied by the requirement of
+     * returning the second argument if the arguments compare as
+     * equal).
+     *
+     * <li> If {@code start} is
+     * &plusmn;{@link Double#MIN_VALUE} and {@code direction}
+     * has a value such that the result should have a smaller
+     * magnitude, then a zero with the same sign as {@code start}
+     * is returned.
+     *
+     * <li> If {@code start} is infinite and
+     * {@code direction} has a value such that the result should
+     * have a smaller magnitude, {@link Double#MAX_VALUE} with the
+     * same sign as {@code start} is returned.
+     *
+     * <li> If {@code start} is equal to &plusmn;
+     * {@link Double#MAX_VALUE} and {@code direction} has a
+     * value such that the result should have a larger magnitude, an
+     * infinity with same sign as {@code start} is returned.
+     * </ul>
+     *
+     * @param start  starting floating-point value
+     * @param direction value indicating which of
+     * {@code start}'s neighbors or {@code start} should
+     * be returned
+     * @return The floating-point number adjacent to {@code start} in the
+     * direction of {@code direction}.
+     * @since 1.6
+     */
+    public static double nextAfter(double start, double direction) {
+	return sun.misc.FpUtils.nextAfter(start, direction);
+    }
+ 
+    /**
+     * Returns the floating-point number adjacent to the first
+     * argument in the direction of the second argument.  If both
+     * arguments compare as equal a value equivalent to the second argument
+     * is returned.
+     *
+     * <p>
+     * Special cases:
+     * <ul>
+     * <li> If either argument is a NaN, then NaN is returned.
+     *
+     * <li> If both arguments are signed zeros, a value equivalent
+     * to {@code direction} is returned.
+     *
+     * <li> If {@code start} is
+     * &plusmn;{@link Float#MIN_VALUE} and {@code direction}
+     * has a value such that the result should have a smaller
+     * magnitude, then a zero with the same sign as {@code start}
+     * is returned.
+     *
+     * <li> If {@code start} is infinite and
+     * {@code direction} has a value such that the result should
+     * have a smaller magnitude, {@link Float#MAX_VALUE} with the
+     * same sign as {@code start} is returned.
+     *
+     * <li> If {@code start} is equal to &plusmn;
+     * {@link Float#MAX_VALUE} and {@code direction} has a
+     * value such that the result should have a larger magnitude, an
+     * infinity with same sign as {@code start} is returned.
+     * </ul>
+     *
+     * @param start  starting floating-point value
+     * @param direction value indicating which of
+     * {@code start}'s neighbors or {@code start} should
+     * be returned
+     * @return The floating-point number adjacent to {@code start} in the
+     * direction of {@code direction}.
+     * @since 1.6
+     */
+    public static float nextAfter(float start, double direction) {
+	return sun.misc.FpUtils.nextAfter(start, direction);
+    }
+ 
+    /**
+     * Returns the floating-point value adjacent to {@code d} in
+     * the direction of positive infinity.  This method is
+     * semantically equivalent to {@code nextAfter(d,
+     * Double.POSITIVE_INFINITY)}; however, a {@code nextUp}
+     * implementation may run faster than its equivalent
+     * {@code nextAfter} call.
+     *
+     * <p>Special Cases:
+     * <ul>
+     * <li> If the argument is NaN, the result is NaN.
+     *
+     * <li> If the argument is positive infinity, the result is
+     * positive infinity.
+     *
+     * <li> If the argument is zero, the result is
+     * {@link Double#MIN_VALUE}
+     *
+     * </ul>
+     *
+     * @param d starting floating-point value
+     * @return The adjacent floating-point value closer to positive
+     * infinity.
+     * @since 1.6
+     */
+    public static double nextUp(double d) {
+	return sun.misc.FpUtils.nextUp(d);
+    }
+ 
+    /**
+     * Returns the floating-point value adjacent to {@code f} in
+     * the direction of positive infinity.  This method is
+     * semantically equivalent to {@code nextAfter(f,
+     * Float.POSITIVE_INFINITY)}; however, a {@code nextUp}
+     * implementation may run faster than its equivalent
+     * {@code nextAfter} call.
+     *
+     * <p>Special Cases:
+     * <ul>
+     * <li> If the argument is NaN, the result is NaN.
+     *
+     * <li> If the argument is positive infinity, the result is
+     * positive infinity.
+     *
+     * <li> If the argument is zero, the result is
+     * {@link Float#MIN_VALUE}
+     *
+     * </ul>
+     *
+     * @param f starting floating-point value
+     * @return The adjacent floating-point value closer to positive
+     * infinity.
+     * @since 1.6
+     */
+    public static float nextUp(float f) {
+	return sun.misc.FpUtils.nextUp(f);
+    }
+ 
+ 
+    /**
+     * Return {@code d} &times;
+     * 2<sup>{@code scaleFactor}</sup> rounded as if performed
+     * by a single correctly rounded floating-point multiply to a
+     * member of the double value set.  See the Java
+     * Language Specification for a discussion of floating-point
+     * value sets.  If the exponent of the result is between {@link
+     * Double#MIN_EXPONENT} and {@link Double#MAX_EXPONENT}, the
+     * answer is calculated exactly.  If the exponent of the result
+     * would be larger than {@code Double.MAX_EXPONENT}, an
+     * infinity is returned.  Note that if the result is subnormal,
+     * precision may be lost; that is, when {@code scalb(x, n)}
+     * is subnormal, {@code scalb(scalb(x, n), -n)} may not equal
+     * <i>x</i>.  When the result is non-NaN, the result has the same
+     * sign as {@code d}.
+     *
+     *<p>
+     * Special cases:
+     * <ul>
+     * <li> If the first argument is NaN, NaN is returned.
+     * <li> If the first argument is infinite, then an infinity of the
+     * same sign is returned.
+     * <li> If the first argument is zero, then a zero of the same
+     * sign is returned.
+     * </ul>
+     *
+     * @param d number to be scaled by a power of two.
+     * @param scaleFactor power of 2 used to scale {@code d}
+     * @return {@code d} &times; 2<sup>{@code scaleFactor}</sup>
+     * @since 1.6
+     */
+    public static double scalb(double d, int scaleFactor) {
+	return sun.misc.FpUtils.scalb(d, scaleFactor);
+    }
+ 
+    /**
+     * Return {@code f} &times;
+     * 2<sup>{@code scaleFactor}</sup> rounded as if performed
+     * by a single correctly rounded floating-point multiply to a
+     * member of the float value set.  See the Java
+     * Language Specification for a discussion of floating-point
+     * value sets.  If the exponent of the result is between {@link
+     * Float#MIN_EXPONENT} and {@link Float#MAX_EXPONENT}, the
+     * answer is calculated exactly.  If the exponent of the result
+     * would be larger than {@code Float.MAX_EXPONENT}, an
+     * infinity is returned.  Note that if the result is subnormal,
+     * precision may be lost; that is, when {@code scalb(x, n)}
+     * is subnormal, {@code scalb(scalb(x, n), -n)} may not equal
+     * <i>x</i>.  When the result is non-NaN, the result has the same
+     * sign as {@code f}.
+     *
+     *<p>
+     * Special cases:
+     * <ul>
+     * <li> If the first argument is NaN, NaN is returned.
+     * <li> If the first argument is infinite, then an infinity of the
+     * same sign is returned.
+     * <li> If the first argument is zero, then a zero of the same
+     * sign is returned.
+     * </ul>
+     *
+     * @param f number to be scaled by a power of two.
+     * @param scaleFactor power of 2 used to scale {@code f}
+     * @return {@code f} &times; 2<sup>{@code scaleFactor}</sup>
+     * @since 1.6
+     */
+    public static float scalb(float f, int scaleFactor) {
+	return sun.misc.FpUtils.scalb(f, scaleFactor);
     }
 }

@@ -59,20 +59,19 @@ import  java.io.*;
 import  java.util.zip.*;
 
 /**
- * Wrapper class that parses a given Java .class file. The method
- * <A href ="#parse">parse</A> returns a
- * <A href ="com.sun.org.apache.bcel.internal.classfile.JavaClass.html">
+ * Wrapper class that parses a given Java .class file. The method <A
+ * href ="#parse">parse</A> returns a <A href ="JavaClass.html">
  * JavaClass</A> object on success. When an I/O error or an
- * inconsistency occurs an appropiate exception is propagated back
- * to the caller.
+ * inconsistency occurs an appropiate exception is propagated back to
+ * the caller.
  *
  * The structure and the names comply, except for a few conveniences,
  * exactly with the <A href="ftp://java.sun.com/docs/specs/vmspec.ps">
  * JVM specification 1.0</a>. See this paper for
  * further details about the structure of a bytecode file.
  *
- * @version $Id: ClassParser.java,v 1.1.1.1 2001/10/29 19:59:57 jvanzyl Exp $
- * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
+ * @version $Id: ClassParser.java,v 1.1.2.1 2005/07/31 23:46:27 jeffsuttor Exp $
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
  */
 public final class ClassParser {
   private DataInputStream file;
@@ -111,7 +110,7 @@ public final class ClassParser {
   /** Parse class from given .class file.
    *
    * @param file_name file name
-   * @throw IOException
+   * @throws IOException
    */
   public ClassParser(String file_name) throws IOException
   {    
@@ -124,7 +123,7 @@ public final class ClassParser {
   /** Parse class from given .class file in a ZIP-archive
    *
    * @param file_name file name
-   * @throw IOException
+   * @throws IOException
    */
   public ClassParser(String zip_file, String file_name) throws IOException
   {    
@@ -141,15 +140,15 @@ public final class ClassParser {
   /**
    * Parse the given Java class file and return an object that represents
    * the contained data, i.e., constants, methods, fields and commands.
-   * A <em>ClassFormatError</em> is raised, if the file is not a valid
+   * A <em>ClassFormatException</em> is raised, if the file is not a valid
    * .class file. (This does not include verification of the byte code as it
    * is performed by the java interpreter).
    *
    * @return Class object representing the parsed class file
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */  
-  public JavaClass parse() throws IOException, ClassFormatError
+  public JavaClass parse() throws IOException, ClassFormatException
   {
     /****************** Read headers ********************************/
     // Check magic tag of class file
@@ -208,11 +207,11 @@ public final class ClassParser {
   }
 
   /**
-   * Read information about the attributes of the attributes of the class.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * Read information about the attributes of the class.
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readAttributes() throws IOException, ClassFormatError
+  private final void readAttributes() throws IOException, ClassFormatException
   {
     int attributes_count;
 
@@ -225,10 +224,10 @@ public final class ClassParser {
 
   /**
    * Read information about the class and its super class.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readClassInfo() throws IOException, ClassFormatError
+  private final void readClassInfo() throws IOException, ClassFormatException
   {
     access_flags = file.readUnsignedShort();
 
@@ -240,27 +239,27 @@ public final class ClassParser {
 
     if(((access_flags & Constants.ACC_ABSTRACT) != 0) && 
        ((access_flags & Constants.ACC_FINAL)    != 0 ))
-      throw new ClassFormatError("Class can't be both final and abstract");
+      throw new ClassFormatException("Class can't be both final and abstract");
 
     class_name_index      = file.readUnsignedShort();
     superclass_name_index = file.readUnsignedShort();
   }    
   /**
    * Read constant pool entries.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readConstantPool() throws IOException, ClassFormatError
+  private final void readConstantPool() throws IOException, ClassFormatException
   {
     constant_pool = new ConstantPool(file);
   }    
 
   /**
    * Read information about the fields of the class, i.e., its variables.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readFields() throws IOException, ClassFormatError
+  private final void readFields() throws IOException, ClassFormatException
   {
     int fields_count;
 
@@ -276,22 +275,22 @@ public final class ClassParser {
   /**
    * Check whether the header of the file is ok.
    * Of course, this has to be the first action on successive file reads.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readID() throws IOException, ClassFormatError
+  private final void readID() throws IOException, ClassFormatException
   {
     int magic = 0xCAFEBABE;
 
     if(file.readInt() != magic)
-      throw new ClassFormatError(file_name + " is not a Java .class file");
+      throw new ClassFormatException(file_name + " is not a Java .class file");
   }    
   /**
    * Read information about the interfaces implemented by this class.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readInterfaces() throws IOException, ClassFormatError
+  private final void readInterfaces() throws IOException, ClassFormatException
   {
     int interfaces_count;
 
@@ -303,10 +302,10 @@ public final class ClassParser {
   }     
   /**
    * Read information about the methods of the class.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readMethods() throws IOException, ClassFormatError
+  private final void readMethods() throws IOException, ClassFormatException
   {
     int methods_count;
 
@@ -318,10 +317,10 @@ public final class ClassParser {
   }      
   /**
    * Read major and minor version of compiler which created the file.
-   * @throw  IOException
-   * @throw  ClassFormatError
+   * @throws  IOException
+   * @throws  ClassFormatException
    */
-  private final void readVersion() throws IOException, ClassFormatError
+  private final void readVersion() throws IOException, ClassFormatException
   {
     minor = file.readUnsignedShort();
     major = file.readUnsignedShort();

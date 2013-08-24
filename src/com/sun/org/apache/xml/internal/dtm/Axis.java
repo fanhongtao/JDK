@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Axis.java,v 1.5 2004/02/16 23:03:44 minchau Exp $
+ * $Id: Axis.java,v 1.2.4.1 2005/09/15 08:14:51 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -25,7 +25,7 @@ package com.sun.org.apache.xml.internal.dtm;
  * and together they contain all the nodes in the document.</p>
  *
  */
-public interface Axis
+public final class Axis
 {
 
   /**
@@ -157,30 +157,62 @@ public interface Axis
    */
   public static final int FILTEREDLIST = 20;
 
-
-  /** The names of the axes for diagnostic purposes. */
-  public static final String[] names =
-  {
-    "ancestor",  // 0
-    "ancestor-or-self",  // 1
-    "attribute",  // 2
-    "child",  // 3
-    "descendant",  // 4
-    "descendant-or-self",  // 5
-    "following",  // 6
-    "following-sibling",  // 7
-    "namespace-decls",  // 8
-    "namespace",  // 9
-    "parent",  // 10
-    "preceding",  // 11
-    "preceding-sibling",  // 12
-    "self",  // 13
-    "all-from-node",  // 14
-    "preceding-and-ancestor",  // 15
-    "all",  // 16
-    "descendants-from-root",  // 17
-    "descendants-or-self-from-root",  // 18
-    "root",  // 19
-    "filtered-list"  // 20
+  /**
+   * A table to identify whether an axis is a reverse axis;
+   */
+  private static final boolean[] isReverse = {
+      true,  // ancestor
+      true,  // ancestor-or-self
+      false, // attribute
+      false, // child
+      false, // descendant
+      false, // descendant-or-self
+      false, // following
+      false, // following-sibling
+      false, // namespace
+      false, // namespace-declarations
+      false, // parent (one node, has no order)
+      true,  // preceding
+      true,  // preceding-sibling
+      false  // self (one node, has no order)
   };
+
+    /** The names of the axes for diagnostic purposes. */
+    private static final String[] names =
+    {
+      "ancestor",  // 0
+      "ancestor-or-self",  // 1
+      "attribute",  // 2
+      "child",  // 3
+      "descendant",  // 4
+      "descendant-or-self",  // 5
+      "following",  // 6
+      "following-sibling",  // 7
+      "namespace-decls",  // 8
+      "namespace",  // 9
+      "parent",  // 10
+      "preceding",  // 11
+      "preceding-sibling",  // 12
+      "self",  // 13
+      "all-from-node",  // 14
+      "preceding-and-ancestor",  // 15
+      "all",  // 16
+      "descendants-from-root",  // 17
+      "descendants-or-self-from-root",  // 18
+      "root",  // 19
+      "filtered-list"  // 20
+    };
+
+  public static boolean isReverse(int axis){
+      return isReverse[axis];
+  }
+    
+    public static String getNames(int index){
+    	return names[index];    
+    }
+    
+    public static int getNamesLength(){
+    	return names.length;
+    }
+
 }

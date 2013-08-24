@@ -1,7 +1,7 @@
 /*
- * @(#)OpenMBeanParameterInfo.java	3.21 03/12/19
+ * @(#)OpenMBeanParameterInfo.java	3.25 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.lang.Comparable; // to be substituted for jdk1.1.x
  * interface (typically {@link OpenMBeanParameterInfoSupport}) should
  * extend {@link javax.management.MBeanParameterInfo}.</p>
  *
- * @version     3.21  03/12/19
+ * @version     3.25  05/11/17
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
@@ -66,7 +66,7 @@ public interface OpenMBeanParameterInfo {
      *
      * @return the open type.
      */
-    public OpenType getOpenType() ; 
+    public OpenType<?> getOpenType() ; 
 
     /**
      * Returns the default value for this parameter, if it has one, or
@@ -82,7 +82,7 @@ public interface OpenMBeanParameterInfo {
      *
      * @return the set of legal values.
      */
-    public Set getLegalValues() ;
+    public Set<?> getLegalValues() ;
 
     /**
      * Returns the minimal value for this parameter, if it has one, or
@@ -90,7 +90,7 @@ public interface OpenMBeanParameterInfo {
      *
      * @return the minimum value.
      */
-    public Comparable getMinValue() ;
+    public Comparable<?> getMinValue() ;
 
     /**
      * Returns the maximal value for this parameter, if it has one, or
@@ -98,7 +98,7 @@ public interface OpenMBeanParameterInfo {
      *
      * @return the maximum value.
      */
-    public Comparable getMaxValue() ;
+    public Comparable<?> getMaxValue() ;
 
     /**
      * Returns <tt>true</tt> if this parameter has a specified default
@@ -139,7 +139,7 @@ public interface OpenMBeanParameterInfo {
      * @param obj the object to be tested.
      *
      * @return <code>true</code> if <var>obj</var> is a valid value
-     * for for the parameter described by this
+     * for the parameter described by this
      * <code>OpenMBeanParameterInfo</code> instance,
      * <code>false</code> otherwise.
      */

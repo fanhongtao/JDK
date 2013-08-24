@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializerTrace.java,v 1.2 2004/02/17 04:18:18 minchau Exp $
+ * $Id: SerializerTrace.java,v 1.2.4.1 2005/09/15 08:15:24 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -23,6 +23,8 @@ import org.xml.sax.Attributes;
 /**
  * This interface defines a set of integer constants that identify trace event
  * types.
+ * 
+ * @xsl.usage internal
  */
 
 public interface SerializerTrace {

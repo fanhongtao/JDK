@@ -1,12 +1,14 @@
 /*
- * @(#)Clob.java	1.29 03/12/19
+ * @(#)Clob.java	1.35 06/08/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.sql;
- 
+
+import java.io.Reader;
+
 /**
  * The mapping in the Java<sup><font size=-2>TM</font></sup> programming language 
  * for the SQL <code>CLOB</code> type.
@@ -28,6 +30,9 @@ package java.sql;
  * <code>getClob</code> and <code>setClob</code> allow a programmer to
  * access an SQL <code>CLOB</code> value.  In addition, this interface
  * has methods for updating a <code>CLOB</code> value.
+ * <p>
+ * All methods on the <code>Clob</code> interface must be fully implemented if the 
+ * JDBC driver supports the data type.
  * 
  * @since 1.2
  */
@@ -42,6 +47,8 @@ public interface Clob {
    * @return length of the <code>CLOB</code> in characters
    * @exception SQLException if there is an error accessing the
    *            length of the <code>CLOB</code> value
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   long length() throws SQLException;
@@ -56,11 +63,15 @@ public interface Clob {
    *
    * @param pos the first character of the substring to be extracted.
    *            The first character is at position 1.
-   * @param length the number of consecutive characters to be copied
+   * @param length the number of consecutive characters to be copied;
+   * the value for length must be 0 or greater
    * @return a <code>String</code> that is the specified substring in
    *         the <code>CLOB</code> value designated by this <code>Clob</code> object
    * @exception SQLException if there is an error accessing the
-   *            <code>CLOB</code> value
+   *            <code>CLOB</code> value; if pos is less than 1 or length is
+   * less than 0
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   String getSubString(long pos, int length) throws SQLException;
@@ -74,6 +85,8 @@ public interface Clob {
    *         <code>CLOB</code> data
    * @exception SQLException if there is an error accessing the 
    *            <code>CLOB</code> value
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @see #setCharacterStream
    * @since 1.2
    */
@@ -87,6 +100,8 @@ public interface Clob {
    *         <code>CLOB</code> data
    * @exception SQLException if there is an error accessing the 
    *            <code>CLOB</code> value
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @see #setAsciiStream
    * @since 1.2
    */
@@ -104,7 +119,9 @@ public interface Clob {
    * @return the position at which the substring appears or -1 if it is not
    *         present; the first position is 1
    * @exception SQLException if there is an error accessing the       
-   *            <code>CLOB</code> value
+   *            <code>CLOB</code> value or if pos is less than 1
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   long position(String searchstr, long start) throws SQLException;
@@ -121,7 +138,9 @@ public interface Clob {
    * @return the position at which the <code>Clob</code> object appears 
    *              or -1 if it is not present; the first position is 1
    * @exception SQLException if there is an error accessing the 
-   *            <code>CLOB</code> value
+   *            <code>CLOB</code> value or if start is less than 1
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   long position(Clob searchstr, long start) throws SQLException;
@@ -131,16 +150,29 @@ public interface Clob {
     /**
      * Writes the given Java <code>String</code> to the <code>CLOB</code>
      * value that this <code>Clob</code> object designates at the position 
-     * <code>pos</code>.
+     * <code>pos</code>. The string will overwrite the existing characters 
+     * in the <code>Clob</code> object starting at the position 
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached 
+     * while writing the given string, then the length of the <code>Clob</code> 
+     * value will be increased to accomodate the extra characters.
+     * <p>
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the 
+     * behavior is undefined. Some JDBC drivers may throw a 
+     * <code>SQLException</code> while other drivers may support this 
+     * operation.
      *
      * @param pos the position at which to start writing to the <code>CLOB</code>
-     *         value that this <code>Clob</code> object represents
+     *         value that this <code>Clob</code> object represents;
+     * The first position is 1
      * @param str the string to be written to the <code>CLOB</code>
      *        value that this <code>Clob</code> designates
      * @return the number of characters written
      * @exception SQLException if there is an error accessing the 
-     *            <code>CLOB</code> value
+     *            <code>CLOB</code> value or if pos is less than 1
      *
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.4
      */
     int setString(long pos, String str) throws SQLException;
@@ -148,10 +180,20 @@ public interface Clob {
     /**
      * Writes <code>len</code> characters of <code>str</code>, starting 
      * at character <code>offset</code>, to the <code>CLOB</code> value
-     * that this <code>Clob</code> represents.
+     * that this <code>Clob</code> represents.  The string will overwrite the existing characters 
+     * in the <code>Clob</code> object starting at the position 
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached 
+     * while writing the given string, then the length of the <code>Clob</code> 
+     * value will be increased to accomodate the extra characters.
+     * <p>
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the 
+     * behavior is undefined. Some JDBC drivers may throw a 
+     * <code>SQLException</code> while other drivers may support this 
+     * operation.
      *
      * @param pos the position at which to start writing to this
-     *        <code>CLOB</code> object
+     *        <code>CLOB</code> object; The first position  is 1
      * @param str the string to be written to the <code>CLOB</code> 
      *        value that this <code>Clob</code> object represents
      * @param offset the offset into <code>str</code> to start reading
@@ -159,8 +201,10 @@ public interface Clob {
      * @param len the number of characters to be written
      * @return the number of characters written
      * @exception SQLException if there is an error accessing the 
-     *            <code>CLOB</code> value
+     *            <code>CLOB</code> value or if pos is less than 1
      *
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.4
      */
     int setString(long pos, String str, int offset, int len) throws SQLException;
@@ -168,13 +212,26 @@ public interface Clob {
     /**
      * Retrieves a stream to be used to write Ascii characters to the
      * <code>CLOB</code> value that this <code>Clob</code> object represents, 
-     * starting at position <code>pos</code>.
+     * starting at position <code>pos</code>.  Characters written to the stream 
+     * will overwrite the existing characters 
+     * in the <code>Clob</code> object starting at the position 
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached 
+     * while writing characters to the stream, then the length of the <code>Clob</code> 
+     * value will be increased to accomodate the extra characters.
+     * <p>
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the 
+     * behavior is undefined. Some JDBC drivers may throw a 
+     * <code>SQLException</code> while other drivers may support this 
+     * operation.
      *
      * @param pos the position at which to start writing to this
-     *        <code>CLOB</code> object
+     *        <code>CLOB</code> object; The first position is 1
      * @return the stream to which ASCII encoded characters can be written
      * @exception SQLException if there is an error accessing the 
-     *            <code>CLOB</code> value
+     *            <code>CLOB</code> value or if pos is less than 1
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @see #getAsciiStream
      *
      * @since 1.4
@@ -184,14 +241,27 @@ public interface Clob {
     /**
      * Retrieves a stream to be used to write a stream of Unicode characters 
      * to the <code>CLOB</code> value that this <code>Clob</code> object
-     * represents, at position <code>pos</code>.
+     * represents, at position <code>pos</code>. Characters written to the stream 
+     * will overwrite the existing characters 
+     * in the <code>Clob</code> object starting at the position 
+     * <code>pos</code>.  If the end of the <code>Clob</code> value is reached 
+     * while writing characters to the stream, then the length of the <code>Clob</code> 
+     * value will be increased to accomodate the extra characters.
+     * <p>
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the 
+     * behavior is undefined. Some JDBC drivers may throw a 
+     * <code>SQLException</code> while other drivers may support this 
+     * operation.
      *
      * @param  pos the position at which to start writing to the
-     *        <code>CLOB</code> value
+     *        <code>CLOB</code> value; The first position is 1
      *
      * @return a stream to which Unicode encoded characters can be written
      * @exception SQLException if there is an error accessing the 
-     *            <code>CLOB</code> value
+     *            <code>CLOB</code> value or if pos is less than 1
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @see #getCharacterStream
      *
      * @since 1.4
@@ -202,14 +272,60 @@ public interface Clob {
      * Truncates the <code>CLOB</code> value that this <code>Clob</code> 
      * designates to have a length of <code>len</code> 
      * characters.
-     * @param len the length, in bytes, to which the <code>CLOB</code> value
+     * <p>
+     * <b>Note:</b> If the value specified for <code>pos</code>
+     * is greater then the length+1 of the <code>CLOB</code> value then the 
+     * behavior is undefined. Some JDBC drivers may throw a 
+     * <code>SQLException</code> while other drivers may support this 
+     * operation.
+     *
+     * @param len the length, in characters, to which the <code>CLOB</code> value
      *        should be truncated
      * @exception SQLException if there is an error accessing the 
-     *            <code>CLOB</code> value
+     *            <code>CLOB</code> value or if len is less than 0
      *
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.4
      */
     void truncate(long len) throws SQLException;
+
+    /**
+     * This method frees the <code>Clob</code> object and releases the resources the resources
+     * that it holds.  The object is invalid once the <code>free</code> method
+     * is called. 
+     * <p>
+     * After <code>free</code> has been called, any attempt to invoke a
+     * method other than <code>free</code> will result in a <code>SQLException</code> 
+     * being thrown.  If <code>free</code> is called multiple times, the subsequent
+     * calls to <code>free</code> are treated as a no-op.
+     * <p>
+     * @throws SQLException if an error occurs releasing
+     * the Clob's resources
+     *
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.6
+     */
+    void free() throws SQLException;
+
+    /**
+     * Returns a <code>Reader</code> object that contains a partial <code>Clob</code> value, starting
+     * with the character specified by pos, which is length characters in length.
+     *
+     * @param pos the offset to the first character of the partial value to
+     * be retrieved.  The first character in the Clob is at position 1.
+     * @param length the length in characters of the partial value to be retrieved.
+     * @return <code>Reader</code> through which the partial <code>Clob</code> value can be read.
+     * @throws SQLException if pos is less than 1 or if pos is greater than the number of
+     * characters in the <code>Clob</code> or if pos + length is greater than the number of
+     * characters in the <code>Clob</code>
+     *
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.6
+     */
+    Reader getCharacterStream(long pos, long length) throws SQLException;
 
 }
 

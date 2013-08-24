@@ -1,7 +1,7 @@
 /*
- * @(#)MirroredTypesException.java	1.1 04/04/20
+ * @(#)MirroredTypesException.java	1.3 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ public class MirroredTypesException extends RuntimeException {
     public MirroredTypesException(Collection<TypeMirror> types) {
 	super("Attempt to access Class objects for TypeMirrors " + types);
 	this.types = types;
-	names = new ArrayList();
+	names = new ArrayList<String>();
 	for (TypeMirror t : types) {
 	    names.add(t.toString());
 	}

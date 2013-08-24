@@ -1,7 +1,7 @@
 /*
- * @(#)AnnotationProcessorEnvironment.java	1.7 04/07/19
+ * @(#)AnnotationProcessorEnvironment.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import com.sun.mirror.util.*;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.7 04/07/19
+ * @version 1.8 05/11/17
  * @since 1.5
  */
 

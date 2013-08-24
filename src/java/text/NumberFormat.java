@@ -1,7 +1,7 @@
 /*
- * @(#)NumberFormat.java	1.65 04/05/10
+ * @(#)NumberFormat.java	1.74 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,13 +25,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.text.spi.NumberFormatProvider;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import sun.text.resources.LocaleData;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.spi.LocaleServiceProvider;
+import sun.util.LocaleServiceProviderPool;
+import sun.util.resources.LocaleData;
 
 /**
  * <code>NumberFormat</code> is the abstract base class for all number
@@ -60,7 +66,7 @@ import sun.text.resources.LocaleData;
  * <blockquote>
  * <pre>
  * NumberFormat nf = NumberFormat.getInstance();
- * for (int i = 0; i < a.length; ++i) {
+ * for (int i = 0; i < myNumber.length; ++i) {
  *     output.println(nf.format(myNumber[i]) + "; ");
  * }
  * </pre>
@@ -152,7 +158,7 @@ import sun.text.resources.LocaleData;
  *
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.65, 05/10/04
+ * @version      1.74, 11/17/05
  * @author       Mark Davis
  * @author       Helena Shih
  */
@@ -171,6 +177,13 @@ public abstract class NumberFormat extends Format  {
      * @see java.text.FieldPosition
      */
     public static final int FRACTION_FIELD = 1;
+
+    /**
+     * Sole constructor.  (For invocation by subclass constructors, typically
+     * implicit.)
+     */
+    protected NumberFormat() {
+    }
 
     /**
      * Formats a number and appends the resulting text to the given string
@@ -198,6 +211,8 @@ public abstract class NumberFormat extends Format  {
      *                   null or not an instance of <code>Number</code>.
      * @exception        NullPointerException if <code>toAppendTo</code> or
      *                   <code>pos</code> is null
+     * @exception        ArithmeticException if rounding is needed with rounding
+     *                   mode being set to RoundingMode.UNNECESSARY
      * @see              java.text.FieldPosition
      */
     public StringBuffer format(Object number,
@@ -205,6 +220,7 @@ public abstract class NumberFormat extends Format  {
                                FieldPosition pos) {
         if (number instanceof Long || number instanceof Integer ||
             number instanceof Short || number instanceof Byte ||
+            number instanceof AtomicInteger || number instanceof AtomicLong ||
             (number instanceof BigInteger &&
              ((BigInteger)number).bitLength() < 64)) {
             return format(((Number)number).longValue(), toAppendTo, pos);
@@ -245,6 +261,8 @@ public abstract class NumberFormat extends Format  {
 
    /**
      * Specialization of format.
+     * @exception        ArithmeticException if rounding is needed with rounding
+     *                   mode being set to RoundingMode.UNNECESSARY
      * @see java.text.Format#format
      */
     public final String format(double number) {
@@ -254,6 +272,8 @@ public abstract class NumberFormat extends Format  {
 
    /**
      * Specialization of format.
+     * @exception        ArithmeticException if rounding is needed with rounding
+     *                   mode being set to RoundingMode.UNNECESSARY
      * @see java.text.Format#format
      */
     public final String format(long number) {
@@ -263,6 +283,8 @@ public abstract class NumberFormat extends Format  {
 
    /**
      * Specialization of format.
+     * @exception        ArithmeticException if rounding is needed with rounding
+     *                   mode being set to RoundingMode.UNNECESSARY
      * @see java.text.Format#format
      */
     public abstract StringBuffer format(double number,
@@ -271,6 +293,8 @@ public abstract class NumberFormat extends Format  {
 
    /**
      * Specialization of format.
+     * @exception        ArithmeticException if rounding is needed with rounding
+     *                   mode being set to RoundingMode.UNNECESSARY
      * @see java.text.Format#format
      */
     public abstract StringBuffer format(long number,
@@ -369,11 +393,12 @@ public abstract class NumberFormat extends Format  {
     /**
      * Returns an integer number format for the current default locale. The
      * returned number format is configured to round floating point numbers
-     * to the nearest integer using IEEE half-even rounding (see {@link 
-     * java.math.BigDecimal#ROUND_HALF_EVEN ROUND_HALF_EVEN}) for formatting,
+     * to the nearest integer using half-even rounding (see {@link
+     * java.math.RoundingMode#HALF_EVEN RoundingMode.HALF_EVEN}) for formatting,
      * and to parse only the integer part of an input string (see {@link
      * #isParseIntegerOnly isParseIntegerOnly}).
      *
+     * @see #getRoundingMode()
      * @return a number format for integer values
      * @since 1.4
      */
@@ -384,12 +409,12 @@ public abstract class NumberFormat extends Format  {
     /**
      * Returns an integer number format for the specified locale. The
      * returned number format is configured to round floating point numbers
-     * to the nearest integer using IEEE half-even rounding (see {@link 
-     * java.math.BigDecimal#ROUND_HALF_EVEN ROUND_HALF_EVEN}) for formatting,
+     * to the nearest integer using half-even rounding (see {@link
+     * java.math.RoundingMode#HALF_EVEN RoundingMode.HALF_EVEN}) for formatting,
      * and to parse only the integer part of an input string (see {@link
      * #isParseIntegerOnly isParseIntegerOnly}).
      *
-     * @param inLocale the locale for which a number format is needed
+     * @see #getRoundingMode()
      * @return a number format for integer values
      * @since 1.4
      */
@@ -443,14 +468,19 @@ public abstract class NumberFormat extends Format  {
      * Returns an array of all locales for which the
      * <code>get*Instance</code> methods of this class can return
      * localized instances.
-     * The array returned must contain at least a <code>Locale</code>
-     * instance equal to {@link java.util.Locale#US Locale.US}.
+     * The returned array represents the union of locales supported by the Java 
+     * runtime and by installed 
+     * {@link java.text.spi.NumberFormatProvider NumberFormatProvider} implementations.  
+     * It must contain at least a <code>Locale</code> instance equal to
+     * {@link java.util.Locale#US Locale.US}.
      *
      * @return An array of locales for which localized
      *         <code>NumberFormat</code> instances are available.
      */
     public static Locale[] getAvailableLocales() {
-        return LocaleData.getAvailableLocales("NumberPatterns");
+        LocaleServiceProviderPool pool =
+            LocaleServiceProviderPool.getPool(NumberFormatProvider.class);
+	return pool.getAvailableLocales();
     }
 
     /**
@@ -655,20 +685,69 @@ public abstract class NumberFormat extends Format  {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Gets the {@link java.math.RoundingMode} used in this NumberFormat.
+     * The default implementation of this method in NumberFormat
+     * always throws {@link java.lang.UnsupportedOperationException}.
+     * Subclasses which handle different rounding modes should override 
+     * this method.
+     *
+     * @exception UnsupportedOperationException The default implementation
+     *     always throws this exception
+     * @return The <code>RoundingMode</code> used for this NumberFormat.
+     * @see #setRoundingMode(RoundingMode)
+     * @since 1.6
+     */
+    public RoundingMode getRoundingMode() {
+        throw new UnsupportedOperationException();
+    }
+ 
+    /**
+     * Sets the {@link java.math.RoundingMode} used in this NumberFormat.
+     * The default implementation of this method in NumberFormat always
+     * throws {@link java.lang.UnsupportedOperationException}.
+     * Subclasses which handle different rounding modes should override 
+     * this method.
+     *
+     * @exception UnsupportedOperationException The default implementation
+     *     always throws this exception
+     * @exception NullPointerException if <code>roundingMode</code> is null
+     * @param roundingMode The <code>RoundingMode</code> to be used
+     * @see #getRoundingMode()
+     * @since 1.6
+     */
+    public void setRoundingMode(RoundingMode roundingMode) {
+        throw new UnsupportedOperationException();
+    }
+ 
     // =======================privates===============================
 
     private static NumberFormat getInstance(Locale desiredLocale,
                                            int choice) {
+        // Check whether a provider can provide an implementation that's closer 
+        // to the requested locale than what the Java runtime itself can provide.
+        LocaleServiceProviderPool pool =
+            LocaleServiceProviderPool.getPool(NumberFormatProvider.class);
+        if (pool.hasProviders()) {
+            NumberFormat providersInstance = pool.getLocalizedObject(
+                                    NumberFormatGetter.INSTANCE,
+                                    desiredLocale,
+                                    choice);
+            if (providersInstance != null) {
+                return providersInstance;
+            }
+        }
+
         /* try the cache first */
         String[] numberPatterns = (String[])cachedLocaleData.get(desiredLocale);
         if (numberPatterns == null) { /* cache miss */
-            ResourceBundle resource = LocaleData.getLocaleElements(desiredLocale);
+            ResourceBundle resource = LocaleData.getNumberFormatData(desiredLocale);
             numberPatterns = resource.getStringArray("NumberPatterns");
             /* update cache */
             cachedLocaleData.put(desiredLocale, numberPatterns);
         }
-        
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(desiredLocale);
+
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(desiredLocale);
         int entry = (choice == INTEGERSTYLE) ? NUMBERSTYLE : choice;
         DecimalFormat format = new DecimalFormat(numberPatterns[entry], symbols);
         
@@ -758,7 +837,7 @@ public abstract class NumberFormat extends Format  {
     private static final int INTEGERSTYLE = 4;
 
     /**
-     * True if the the grouping (i.e. thousands) separator is used when
+     * True if the grouping (i.e. thousands) separator is used when
      * formatting and parsing numbers.
      *
      * @serial
@@ -1030,5 +1109,37 @@ public abstract class NumberFormat extends Format  {
          * Constant identifying the exponent sign field.
          */
         public static final Field EXPONENT_SIGN = new Field("exponent sign");
+    }
+
+    /**
+     * Obtains a NumberFormat instance from a NumberFormatProvider implementation. 
+     */
+    private static class NumberFormatGetter 
+        implements LocaleServiceProviderPool.LocalizedObjectGetter<NumberFormatProvider, 
+                                                                   NumberFormat> {
+        private static final NumberFormatGetter INSTANCE = new NumberFormatGetter();
+
+        public NumberFormat getObject(NumberFormatProvider numberFormatProvider, 
+                                Locale locale, 
+                                String key,
+                                Object... params) {
+            assert params.length == 1;
+            int choice = (Integer)params[0];
+
+	    switch (choice) {
+	    case NUMBERSTYLE:
+		return numberFormatProvider.getNumberInstance(locale);
+	    case PERCENTSTYLE:
+		return numberFormatProvider.getPercentInstance(locale);
+	    case CURRENCYSTYLE:
+		return numberFormatProvider.getCurrencyInstance(locale);
+	    case INTEGERSTYLE:
+		return numberFormatProvider.getIntegerInstance(locale);
+	    default:
+		assert false : choice;
+	    }
+
+            return null;
+        }
     }
 }

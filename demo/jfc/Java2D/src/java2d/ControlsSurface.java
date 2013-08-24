@@ -1,7 +1,7 @@
 /*
- * @(#)ControlsSurface.java	1.8 04/07/26
+ * @(#)ControlsSurface.java	1.11 06/08/25
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,12 +35,13 @@
  */
 
 /*
- * @(#)ControlsSurface.java	1.8 04/07/26
+ * @(#)ControlsSurface.java	1.11 06/08/25
  */
 
 package java2d;
 
 import java.awt.Component;
+import static java2d.CustomControlsContext.State.*;
 
 /**
  * The class to utilize custom controls for a Demo.
@@ -63,15 +64,13 @@ public abstract class ControlsSurface extends Surface implements CustomControlsC
         return controls;
     }
 
-    public void handleThread(int state) {
-        for (int i = 0; i < controls.length; i++) {
-            if (state == CustomControlsContext.START) {
-                if (controls[i] instanceof CustomControls) {
-                    ((CustomControls) controls[i]).start();
-                }
-            } else if (state == CustomControlsContext.STOP) {
-                if (controls[i] instanceof CustomControls) {
-                    ((CustomControls) controls[i]).stop();
+    public void handleThread(CustomControlsContext.State state) {
+        for (Component control : controls) {
+            if (control instanceof CustomControls) {
+                if (state == START) {
+                    ((CustomControls) control).start();
+                } else {
+                    ((CustomControls) control).stop();
                 }
             }
         }

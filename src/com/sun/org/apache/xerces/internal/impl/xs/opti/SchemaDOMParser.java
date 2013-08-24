@@ -1,66 +1,28 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.opti;
 
+import java.io.IOException;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
 import com.sun.org.apache.xerces.internal.impl.xs.SchemaSymbols;
 import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
+import com.sun.org.apache.xerces.internal.util.XMLAttributesImpl;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.xni.Augmentations;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
@@ -69,44 +31,51 @@ import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
 import com.sun.org.apache.xerces.internal.xni.XMLLocator;
 import com.sun.org.apache.xerces.internal.xni.XMLString;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLEntityResolver;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
 import org.w3c.dom.Document;
 
 /**
- * {@link XMLDocumentHandler} that 
- * builds DOM representation for XML Schema documents.
- * 
- * <p>
- * TODO: this class should be better renamed to
- * SchemaDOMBuilder since this class is not a "parser", which is used
- * to imply software that reads raw Unicode and angle brackets.
+ * @xerces.internal  
  * 
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: SchemaDOMParser.java,v 1.8 2004/04/30 02:42:43 mrglavas Exp $
+ * @version $Id: SchemaDOMParser.java,v 1.2.6.1 2005/09/08 10:42:07 sunithareddy Exp $
  */
 public class SchemaDOMParser extends DefaultXMLDocumentHandler {
-
+    
     //
     // Data
     //
     
+    /** Property identifier: error reporter. */
+    public static final String ERROR_REPORTER =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY;
+    
+    /** Feature identifier: generate synthetic annotations. */
+    public static final String GENERATE_SYNTHETIC_ANNOTATION =
+        Constants.XERCES_FEATURE_PREFIX + Constants.GENERATE_SYNTHETIC_ANNOTATIONS_FEATURE;
+    
     // the locator containing line/column information
     protected XMLLocator   fLocator;
-
+    
     // namespace context, needed for producing
     // representations of annotations
     protected NamespaceContext fNamespaceContext = null;
-
+    
     SchemaDOM schemaDOM;
-   
-
+    
+    XMLParserConfiguration config;
+    
     //
     // Constructors
     //
-
-    public SchemaDOMParser(XMLErrorReporter errorReporter) {
-        fErrorReporter = errorReporter;
+    
+    /** Default constructor. */
+    public SchemaDOMParser(XMLParserConfiguration config) {
+        this.config = config;
     }
     
     // where an annotation element itself begins
@@ -119,23 +88,33 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
     private int fDepth = -1;
     // Use to report the error when characters are not allowed.
     XMLErrorReporter fErrorReporter;
-
-
+    
+    // fields for generate-synthetic annotations feature
+    private boolean fGenerateSyntheticAnnotation = false;
+    private BooleanStack fHasNonSchemaAttributes = new BooleanStack();
+    private BooleanStack fSawAnnotation = new BooleanStack();
+    private XMLAttributes fEmptyAttr = new XMLAttributesImpl();
+    
     //
     // XMLDocumentHandler methods
     //
-
+    
     public void startDocument(XMLLocator locator, String encoding, 
-                              NamespaceContext namespaceContext, Augmentations augs)
-        throws XNIException {
+            NamespaceContext namespaceContext, Augmentations augs)
+    throws XNIException {
+        fErrorReporter = (XMLErrorReporter)config.getProperty(ERROR_REPORTER);
+        fGenerateSyntheticAnnotation = config.getFeature(GENERATE_SYNTHETIC_ANNOTATION);
+        fHasNonSchemaAttributes.clear();
+        fSawAnnotation.clear();
         schemaDOM = new SchemaDOM(); 
         fAnnotationDepth = -1;
         fInnerAnnotationDepth = -1;
         fDepth = -1;
         fLocator = locator;
         fNamespaceContext = namespaceContext;
+        schemaDOM.setDocumentURI(locator.getExpandedSystemId());
     } // startDocument(XMLLocator,String,NamespaceContext, Augmentations)
-
+    
     /**
      * The end of the document.
      * @param augs     Additional information that may include infoset augmentations
@@ -146,8 +125,8 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
         // To debug the DOM created uncomment the line below
         // schemaDOM.printDOM();
     } // endDocument()
-
-
+    
+    
     /**
      * A comment.
      * 
@@ -162,7 +141,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
             schemaDOM.comment(text);
         }
     }
-
+    
     /**
      * A processing instruction. Processing instructions consist of a
      * target name and, optionally, text data. The data is only meaningful
@@ -182,12 +161,12 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      *                   Thrown by handler to signal an error.
      */
     public void processingInstruction(String target, XMLString data, Augmentations augs)
-        throws XNIException {
+    throws XNIException {
         if(fAnnotationDepth > -1) {
             schemaDOM.processingInstruction(target, data.toString());
         }
     }
-
+    
     /**
      * Character content.
      * 
@@ -207,9 +186,9 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
                     String txt = new String(text.ch, i, text.length+text.offset-i);
                     // report an error
                     fErrorReporter.reportError(XSMessageFormatter.SCHEMA_DOMAIN,
-                                               "s4s-elt-character",
-                                               new Object[]{txt},
-                                               XMLErrorReporter.SEVERITY_ERROR);
+                            "s4s-elt-character",
+                            new Object[]{txt},
+                            XMLErrorReporter.SEVERITY_ERROR);
                     break;
                 }
             }
@@ -222,10 +201,10 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
         else {
             schemaDOM.characters(text);
         }
-
+        
     }
-
-
+    
+    
     /**
      * The start of an element.
      * 
@@ -237,8 +216,8 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      *                   Thrown by handler to signal an error.
      */
     public void startElement(QName element, XMLAttributes attributes, Augmentations augs)
-        throws XNIException {
-
+    throws XNIException {
+        
         fDepth++;
         // while it is true that non-whitespace character data
         // may only occur in appInfo or documentation
@@ -248,9 +227,19 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
         if (fAnnotationDepth == -1) {
             if (element.uri == SchemaSymbols.URI_SCHEMAFORSCHEMA &&
                     element.localpart == SchemaSymbols.ELT_ANNOTATION) {
+                if (fGenerateSyntheticAnnotation) {
+                    if (fSawAnnotation.size() > 0) {
+                        fSawAnnotation.pop();
+                    }
+                    fSawAnnotation.push(true);
+                }
                 fAnnotationDepth = fDepth;
                 schemaDOM.startAnnotation(element, attributes, fNamespaceContext);
             } 
+            else if (element.uri == SchemaSymbols.URI_SCHEMAFORSCHEMA && fGenerateSyntheticAnnotation) {
+                fSawAnnotation.push(false);
+                fHasNonSchemaAttributes.push(hasNonSchemaAttributes(element, attributes));
+            }
         } else if(fDepth == fAnnotationDepth+1) {
             fInnerAnnotationDepth = fDepth;
             schemaDOM.startAnnotationElement(element, attributes);
@@ -260,12 +249,13 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
             return;
         }
         schemaDOM.startElement(element, attributes, 
-                               fLocator.getLineNumber(),
-                               fLocator.getColumnNumber());
-
+                fLocator.getLineNumber(),
+                fLocator.getColumnNumber(),
+                fLocator.getCharacterOffset());
+        
     }
-
-
+    
+    
     /**
      * An empty element.
      * 
@@ -277,7 +267,30 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      *                   Thrown by handler to signal an error.
      */
     public void emptyElement(QName element, XMLAttributes attributes, Augmentations augs)
-        throws XNIException {
+    throws XNIException {
+        
+        if (fGenerateSyntheticAnnotation && fAnnotationDepth == -1 && 
+                element.uri == SchemaSymbols.URI_SCHEMAFORSCHEMA && element.localpart != SchemaSymbols.ELT_ANNOTATION && hasNonSchemaAttributes(element, attributes)) { 
+            
+            schemaDOM.startElement(element, attributes,
+                    fLocator.getLineNumber(),
+                    fLocator.getColumnNumber(),
+                    fLocator.getCharacterOffset());
+            
+            attributes.removeAllAttributes();
+            String schemaPrefix = fNamespaceContext.getPrefix(SchemaSymbols.URI_SCHEMAFORSCHEMA);
+            QName annQName = new QName(schemaPrefix, SchemaSymbols.ELT_ANNOTATION, schemaPrefix + (schemaPrefix.length() == 0?"":":") + SchemaSymbols.ELT_ANNOTATION, SchemaSymbols.URI_SCHEMAFORSCHEMA);
+            schemaDOM.startAnnotation(annQName, attributes, fNamespaceContext);
+            QName elemQName = new QName(schemaPrefix, SchemaSymbols.ELT_DOCUMENTATION, schemaPrefix + (schemaPrefix.length() == 0?"":":") + SchemaSymbols.ELT_DOCUMENTATION, SchemaSymbols.URI_SCHEMAFORSCHEMA);
+            schemaDOM.startAnnotationElement(elemQName, attributes);
+            schemaDOM.characters(new XMLString("SYNTHETIC_ANNOTATION".toCharArray(), 0, 20 ));     
+            schemaDOM.endSyntheticAnnotationElement(elemQName, false);
+            schemaDOM.endSyntheticAnnotationElement(annQName, true);
+            
+            schemaDOM.endElement();
+            
+            return;
+        }
         // the order of events that occurs here is:
         //   schemaDOM.startAnnotation/startAnnotationElement (if applicable)
         //   schemaDOM.emptyElement  (basically the same as startElement then endElement)
@@ -300,8 +313,9 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
         }
         
         schemaDOM.emptyElement(element, attributes, 
-                               fLocator.getLineNumber(),
-                               fLocator.getColumnNumber());
+                fLocator.getLineNumber(),
+                fLocator.getColumnNumber(),
+                fLocator.getCharacterOffset());
         
         if (fAnnotationDepth == -1) {
             // this is messed up, but a case to consider:
@@ -313,8 +327,8 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
             schemaDOM.endAnnotationElement(element, false);
         } 
     }
-
-
+    
+    
     /**
      * The end of an element.
      * 
@@ -325,7 +339,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      *                   Thrown by handler to signal an error.
      */
     public void endElement(QName element, Augmentations augs) throws XNIException {
-
+        
         // when we reach the endElement of xs:appinfo or xs:documentation,
         // change fInnerAnnotationDepth to -1
         if(fAnnotationDepth > -1) {
@@ -341,10 +355,42 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
                 schemaDOM.endAnnotationElement(element, false);
             }
         } else { // not in an annotation at all
+            if(element.uri == SchemaSymbols.URI_SCHEMAFORSCHEMA && fGenerateSyntheticAnnotation) {
+                boolean value = fHasNonSchemaAttributes.pop();
+                boolean sawann = fSawAnnotation.pop();
+                if (value && !sawann) {
+                    String schemaPrefix = fNamespaceContext.getPrefix(SchemaSymbols.URI_SCHEMAFORSCHEMA);
+                    QName annQName = new QName(schemaPrefix, SchemaSymbols.ELT_ANNOTATION, schemaPrefix + (schemaPrefix.length() == 0?"":":") + SchemaSymbols.ELT_ANNOTATION, SchemaSymbols.URI_SCHEMAFORSCHEMA);
+                    schemaDOM.startAnnotation(annQName, fEmptyAttr, fNamespaceContext);
+                    QName elemQName = new QName(schemaPrefix, SchemaSymbols.ELT_DOCUMENTATION, schemaPrefix + (schemaPrefix.length() == 0?"":":") + SchemaSymbols.ELT_DOCUMENTATION, SchemaSymbols.URI_SCHEMAFORSCHEMA);
+                    schemaDOM.startAnnotationElement(elemQName, fEmptyAttr);
+                    schemaDOM.characters(new XMLString("SYNTHETIC_ANNOTATION".toCharArray(), 0, 20 ));     
+                    schemaDOM.endSyntheticAnnotationElement(elemQName, false);
+                    schemaDOM.endSyntheticAnnotationElement(annQName, true);
+                }
+            }
             schemaDOM.endElement();
         }
         fDepth--;
-
+        
+    }
+    
+    /**
+     * @param attributes
+     * @return
+     */
+    private boolean hasNonSchemaAttributes(QName element, XMLAttributes attributes) {
+        final int length = attributes.getLength();
+        for (int i = 0; i < length; ++i) {
+            String uri = attributes.getURI(i);
+            if (uri != null && uri != SchemaSymbols.URI_SCHEMAFORSCHEMA && 
+                    uri != NamespaceContext.XMLNS_URI &&
+                    !(uri == NamespaceContext.XML_URI && 
+                            attributes.getQName(i) == SchemaSymbols.ATT_XML_LANG && element.localpart == SchemaSymbols.ELT_SCHEMA)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -367,7 +413,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
             schemaDOM.characters(text);
         }
     }
-
+    
     /**
      * The start of a CDATA section.
      * 
@@ -382,7 +428,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
             schemaDOM.startAnnotationCDATA();
         }
     }
-
+    
     /**
      * The end of a CDATA section.
      * 
@@ -397,7 +443,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
             schemaDOM.endAnnotationCDATA();
         }
     }
-
+    
     
     //
     // other methods
@@ -409,5 +455,145 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
     public Document getDocument() {
         return schemaDOM;
     }
+    
+    /**
+     * Delegates to SchemaParsingConfig.setFeature
+     * @param featureId
+     * @param state
+     */
+    public void setFeature(String featureId, boolean state){
+    	config.setFeature(featureId, state);
+    }
+    
+    /**
+     * Delegates to SchemaParsingConfig.getFeature
+     * @param featureId
+     * @return boolean
+     */
+    public boolean getFeature(String featureId){
+        return config.getFeature(featureId);
+    }
+    
+    /**
+     * Delegates to SchemaParsingConfig.setProperty.
+     * @param propertyId
+     * @param value
+     */
+    public void setProperty(String propertyId, Object value){
+        config.setProperty(propertyId, value);
+    }
+    
+    /**
+     * Delegates to SchemaParsingConfig.getProperty.
+     * @param propertyId
+     * @return Object
+     */
+    public Object getProperty(String propertyId){
+        return config.getProperty(propertyId);
+    }
+    
+    /**
+     * Delegates to SchemaParsingConfig.setEntityResolver.
+     * @param er XMLEntityResolver
+     */
+    public void setEntityResolver(XMLEntityResolver er) {
+    	config.setEntityResolver(er);
+    }
+    
+    /**
+     * Delegates parsing to SchemaParsingConfig
+     * 
+     * @param inputSource
+     * @throws IOException
+     */
+    public void parse(XMLInputSource inputSource) throws IOException {
+        config.parse(inputSource);
+    }
+    
+    /**
+     * Gets the document from SchemaParsingConfig
+     * @return Document
+     */
+    public Document getDocument2() {
+    	return ((SchemaParsingConfig)config).getDocument();
+    }
+    
+    /**
+     * Reset SchemaParsingConfig
+     */
+    public void reset() {
+    	((SchemaParsingConfig)config).reset();
+    }
+    
+    /**
+     * ResetNodePool on SchemaParsingConfig
+     */
+    public void resetNodePool() {
+    	((SchemaParsingConfig)config).resetNodePool();
+    }
+    
+    /**
+     * A simple boolean based stack.
+     * 
+     * @xerces.internal
+     */
+    private static final class BooleanStack {
 
+        //
+        // Data
+        //
+
+        /** Stack depth. */
+        private int fDepth;
+
+        /** Stack data. */
+        private boolean[] fData;
+        
+        //
+        // Constructor
+        //
+        
+        public BooleanStack () {}
+
+        //
+        // Public methods
+        //
+
+        /** Returns the size of the stack. */
+        public int size() {
+            return fDepth;
+        }
+
+        /** Pushes a value onto the stack. */
+        public void push(boolean value) {
+            ensureCapacity(fDepth + 1);
+            fData[fDepth++] = value;
+        }
+
+        /** Pops a value off of the stack. */
+        public boolean pop() {
+            return fData[--fDepth];
+        }
+
+        /** Clears the stack. */
+        public void clear() {
+            fDepth = 0;
+        }
+
+        //
+        // Private methods
+        //
+
+        /** Ensures capacity. */
+        private void ensureCapacity(int size) {
+            if (fData == null) {
+                fData = new boolean[32];
+            }
+            else if (fData.length <= size) {
+                boolean[] newdata = new boolean[fData.length * 2];
+                System.arraycopy(fData, 0, newdata, 0, fData.length);
+                fData = newdata;
+            }
+        }
+    }
 }

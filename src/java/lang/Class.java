@@ -1,7 +1,7 @@
 /*
- * @(#)Class.java	1.188 06/05/10
+ * @(#)Class.java	1.201 06/08/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,11 +20,11 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.ref.SoftReference;
 import java.io.InputStream;
-import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -85,8 +85,13 @@ import sun.reflect.annotation.*;
  *     System.out.println("The name of class Foo is: "+Foo.class.getName());
  * </pre></blockquote>
  *
+ * @param <T> the type of the class modeled by this {@code Class}
+ * object.  For example, the type of {@code String.class} is {@code
+ * Class<String>}.  Use {@code Class<?>} if the class being modeled is
+ * unknown.
+ *
  * @author  unascribed
- * @version 1.135, 05/25/01
+ * @version 1.201, 08/07/06
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
@@ -511,16 +516,17 @@ public final
      * nesting.  The encoding of element type names is as follows:
      *
      * <blockquote><table summary="Element types and encodings">
-     * <tr><th> Element Type <th> Encoding
-     * <tr><td> boolean      <td align=center> Z
-     * <tr><td> byte         <td align=center> B
-     * <tr><td> char         <td align=center> C
-     * <tr><td> class or interface  <td align=center> L<i>classname;</i>
-     * <tr><td> double       <td align=center> D
-     * <tr><td> float        <td align=center> F
-     * <tr><td> int          <td align=center> I
-     * <tr><td> long         <td align=center> J
-     * <tr><td> short        <td align=center> S
+     * <tr><th> Element Type <th> &nbsp;&nbsp;&nbsp; <th> Encoding
+     * <tr><td> boolean      <td> &nbsp;&nbsp;&nbsp; <td align=center> Z
+     * <tr><td> byte         <td> &nbsp;&nbsp;&nbsp; <td align=center> B
+     * <tr><td> char         <td> &nbsp;&nbsp;&nbsp; <td align=center> C
+     * <tr><td> class or interface  
+     *                       <td> &nbsp;&nbsp;&nbsp; <td align=center> L<i>classname</i>;
+     * <tr><td> double       <td> &nbsp;&nbsp;&nbsp; <td align=center> D
+     * <tr><td> float        <td> &nbsp;&nbsp;&nbsp; <td align=center> F
+     * <tr><td> int          <td> &nbsp;&nbsp;&nbsp; <td align=center> I
+     * <tr><td> long         <td> &nbsp;&nbsp;&nbsp; <td align=center> J
+     * <tr><td> short        <td> &nbsp;&nbsp;&nbsp; <td align=center> S
      * </table></blockquote>
      *
      * <p> The class or interface name <i>classname</i> is the binary name of
@@ -733,7 +739,7 @@ public final
      *
      * @return an array of interfaces implemented by this class.
      */
-    public native Class[] getInterfaces();
+    public native Class<?>[] getInterfaces();
 
     /**
      * Returns the <tt>Type</tt>s representing the interfaces 
@@ -920,8 +926,6 @@ public final
     private native Object[] getEnclosingMethod0();
 
     private EnclosingMethodInfo getEnclosingMethodInfo() {
-	if (isPrimitive())
-	    return null;
 	Object[] enclosingInfo = getEnclosingMethod0();
 	if (enclosingInfo == null)
 	    return null;
@@ -1143,7 +1147,7 @@ public final
     }
 
     /**
-     * Returns the canonical name of the the underlying class as
+     * Returns the canonical name of the underlying class as
      * defined by the Java Language Specification.  Returns null if
      * the underlying class does not have a canonical name (i.e., if
      * it is a local or anonymous class or an array whose component
@@ -1269,7 +1273,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Class[] getClasses() {
+    public Class<?>[] getClasses() {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
@@ -1414,9 +1418,18 @@ public final
      * class has no public constructors, or if the class is an array class, or
      * if the class reflects a primitive type or void.
      *
-     * @return the array containing <code>Method</code> objects for all the
-     * declared public constructors of this class matches the specified
-     * <code>parameterTypes</code>
+     * Note that while this method returns an array of {@code
+     * Constructor<T>} objects (that is an array of constructors from
+     * this class), the return type of this method is {@code
+     * Constructor<?>[]} and <em>not</em> {@code Constructor<T>[]} as
+     * might be expected.  This less informative return type is
+     * necessary since after being returned from this method, the
+     * array could be modified to hold {@code Constructor} objects for
+     * different classes, which would violate the type guarantees of
+     * {@code Constructor<T>[]}.
+     *
+     * @return the array of <code>Constructor</code> objects representing the
+     *  public constructors of this class
      * @exception  SecurityException
      *             If a security manager, <i>s</i>, is present and any of the
      *             following conditions is met:
@@ -1438,7 +1451,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Constructor[] getConstructors() throws SecurityException {
+    public Constructor<?>[] getConstructors() throws SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
@@ -1514,13 +1527,13 @@ public final
      * Returns a <code>Method</code> object that reflects the specified public
      * member method of the class or interface represented by this
      * <code>Class</code> object. The <code>name</code> parameter is a
-     * <code>String</code> specifying the simple name the desired method. The
+     * <code>String</code> specifying the simple name of the desired method. The
      * <code>parameterTypes</code> parameter is an array of <code>Class</code>
      * objects that identify the method's formal parameter types, in declared
      * order. If <code>parameterTypes</code> is <code>null</code>, it is 
      * treated as if it were an empty array.
      *
-     * <p> If the <code>name</code> is "&lt;init&gt;"or "&lt;clinit&gt;" a
+     * <p> If the <code>name</code> is "{@code <init>};"or "{@code <clinit>}" a
      * <code>NoSuchMethodException</code> is raised. Otherwise, the method to
      * be reflected is determined by the algorithm that follows.  Let C be the
      * class represented by this object:
@@ -1539,6 +1552,17 @@ public final
      * method is found in C, and one of these methods has a return type that is
      * more specific than any of the others, that method is reflected;
      * otherwise one of the methods is chosen arbitrarily.
+     *
+     * <p>Note that there may be more than one matching method in a
+     * class because while the Java language forbids a class to
+     * declare multiple methods with the same signature but different
+     * return types, the Java virtual machine does not.  This
+     * increased flexibility in the virtual machine can be used to
+     * implement various language features.  For example, covariant
+     * returns can be implemented with {@linkplain
+     * java.lang.reflect.Method#isBridge bridge methods}; the bridge
+     * method and the method being overridden would have the same
+     * signature but different return types.
      *
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.4.
      *
@@ -1570,7 +1594,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Method getMethod(String name, Class ... parameterTypes)
+    public Method getMethod(String name, Class<?>... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1589,14 +1613,18 @@ public final
      * public constructor of the class represented by this <code>Class</code>
      * object. The <code>parameterTypes</code> parameter is an array of
      * <code>Class</code> objects that identify the constructor's formal
-     * parameter types, in declared order.
+     * parameter types, in declared order.  
+     *
+     * If this <code>Class</code> object represents an inner class
+     * declared in a non-static context, the formal parameter types
+     * include the explicit enclosing instance as the first parameter.
      *
      * <p> The constructor to reflect is the public constructor of the class
      * represented by this <code>Class</code> object whose formal parameter
      * types match those specified by <code>parameterTypes</code>.
      *
      * @param parameterTypes the parameter array
-     * @return the <code>Method</code> object of the public constructor that
+     * @return the <code>Constructor</code> object of the public constructor that
      * matches the specified <code>parameterTypes</code>
      * @exception NoSuchMethodException if a matching method is not found.
      * @exception  SecurityException
@@ -1620,7 +1648,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Constructor<T> getConstructor(Class ... parameterTypes)
+    public Constructor<T> getConstructor(Class<?>... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1663,7 +1691,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Class[] getDeclaredClasses() throws SecurityException {
+    public Class<?>[] getDeclaredClasses() throws SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
@@ -1777,7 +1805,7 @@ public final
      *
      * <p> See <em>The Java Language Specification</em>, section 8.2.
      *
-     * @return    the array of <code>Method</code> objects representing all the
+     * @return    the array of <code>Constructor</code> objects representing all the
      * declared constructors of this class
      * @exception  SecurityException
      *             If a security manager, <i>s</i>, is present and any of the
@@ -1800,7 +1828,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Constructor[] getDeclaredConstructors() throws SecurityException {
+    public Constructor<?>[] getDeclaredConstructors() throws SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
 	// see java.lang.SecurityManager.checkMemberAccess
@@ -1898,7 +1926,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Method getDeclaredMethod(String name, Class ... parameterTypes)
+    public Method getDeclaredMethod(String name, Class<?>... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1919,8 +1947,12 @@ public final
      * an array of <code>Class</code> objects that identify the constructor's
      * formal parameter types, in declared order.
      *
+     * If this <code>Class</code> object represents an inner class
+     * declared in a non-static context, the formal parameter types
+     * include the explicit enclosing instance as the first parameter.
+     *
      * @param parameterTypes the parameter array
-     * @return    The <code>Method</code> object for the constructor with the
+     * @return    The <code>Constructor</code> object for the constructor with the
      * specified parameter list
      * @exception NoSuchMethodException if a matching method is not found.
      * @exception  SecurityException
@@ -1944,7 +1976,7 @@ public final
      *
      * @since JDK1.1
      */
-    public Constructor<T> getDeclaredConstructor(Class ... parameterTypes)
+    public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -2175,7 +2207,7 @@ public final
     // Intermediate results for getFields and getMethods
     private volatile transient SoftReference declaredPublicFields;
     private volatile transient SoftReference declaredPublicMethods;
-  
+
     // Incremented by the VM on each call to JVM TI RedefineClasses()
     // that redefines this class or a superclass.
     private volatile transient int classRedefinedCount = 0;
@@ -2414,9 +2446,7 @@ public final
         
         void add(Method m) {
             if (length == methods.length) {
-                Method[] newMethods = new Method[2 * methods.length];
-                System.arraycopy(methods, 0, newMethods, 0, methods.length);
-                methods = newMethods;
+                methods = Arrays.copyOf(methods, 2 * methods.length);
             }
             methods[length++] = m;
         }
@@ -2486,9 +2516,7 @@ public final
                 }
             }
             if (newPos != methods.length) {
-                Method[] newMethods = new Method[newPos];
-                System.arraycopy(methods, 0, newMethods, 0, newPos);
-                methods = newMethods;
+                methods = Arrays.copyOf(methods, newPos);
             }
         }
 
@@ -2773,7 +2801,7 @@ public final
      * @see java.io.ObjectStreamClass
      */
     private static final ObjectStreamField[] serialPersistentFields = 
-        ObjectStreamClass.NO_FIELDS;
+	new ObjectStreamField[0];
 
 
     /**
@@ -2889,6 +2917,17 @@ public final
      * @since 1.5
      */
     public T[] getEnumConstants() {
+	T[] values = getEnumConstantsShared();
+	return (values != null) ? values.clone() : null;
+    }
+
+    /**
+     * Returns the elements of this enum class or null if this
+     * Class object does not represent an enum type;
+     * identical to getEnumConstantsShared except that
+     * the result is uncloned, cached, and shared by all callers.
+     */
+    T[] getEnumConstantsShared() {
 	if (enumConstants == null) {
 	    if (!isEnum()) return null;
 	    try {
@@ -2908,7 +2947,7 @@ public final
 	    catch (NoSuchMethodException ex) { return null; }
 	    catch (IllegalAccessException ex) { return null; }
 	}
-	return enumConstants.clone();
+	return enumConstants;
     }
     private volatile transient T[] enumConstants = null;
 
@@ -2921,7 +2960,7 @@ public final
      */
     Map<String, T> enumConstantDirectory() {
 	if (enumConstantDirectory == null) {
-            T[] universe = getEnumConstants();  // Does unnecessary clone
+            T[] universe = getEnumConstantsShared();
             if (universe == null)
                 throw new IllegalArgumentException(
                     getName() + " is not an enum type");
@@ -2980,7 +3019,8 @@ public final
     }
 
     /**
-     * {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
      */
     public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
         if (annotationClass == null)
@@ -2991,7 +3031,8 @@ public final
     }
 
     /**
-     * {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
      */
     public boolean isAnnotationPresent(
         Class<? extends Annotation> annotationClass) {
@@ -3005,7 +3046,7 @@ public final
     private static Annotation[] EMPTY_ANNOTATIONS_ARRAY = new Annotation[0];
 
     /**
-     * {@inheritDoc}
+     * @since 1.5
      */
     public Annotation[] getAnnotations() { 
         initAnnotationsIfNecessary();
@@ -3013,7 +3054,7 @@ public final
     }
 
     /**
-     * {@inheritDoc}
+     * @since 1.5
      */
     public Annotation[] getDeclaredAnnotations()  {
         initAnnotationsIfNecessary();
@@ -3025,7 +3066,7 @@ public final
     private transient Map<Class, Annotation> declaredAnnotations;
 
     private synchronized void initAnnotationsIfNecessary() {
-	clearCachesOnClassRedefinition();
+        clearCachesOnClassRedefinition();
         if (annotations != null)
             return;
         declaredAnnotations = AnnotationParser.parseAnnotations(

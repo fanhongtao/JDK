@@ -1,13 +1,13 @@
 /*
- * @(#)MotifDesktopIconUI.java	1.24 04/04/15
+ * @(#)MotifDesktopIconUI.java	1.29 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -22,7 +22,7 @@ import java.io.Serializable;
 /**
  * Motif rendition of the component.
  *
- * @version 1.24 04/15/04
+ * @version 1.29 11/30/05
  * @author Thomas Ball
  * @author Rich Schiavi
  */
@@ -45,7 +45,8 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
     final static int LABEL_HEIGHT = 18;
     final static int LABEL_DIVIDER = 4;    // padding between icon and label
 
-    final static Font defaultTitleFont = new Font("SansSerif", Font.PLAIN, 12);
+    final static Font defaultTitleFont =
+	new Font(Font.SANS_SERIF, Font.PLAIN, 12);
 
     public static ComponentUI createUI(JComponent c)    {
         return new MotifDesktopIconUI();
@@ -86,6 +87,7 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
 	desktopIconMouseListener = createDesktopIconMouseListener();
 	iconButton.addActionListener(desktopIconActionListener);
 	iconButton.addMouseListener(desktopIconMouseListener);
+        iconLabel.addMouseListener(desktopIconMouseListener);
     }
 
     JInternalFrame.JDesktopIcon getDesktopIcon(){
@@ -220,7 +222,9 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
         void forwardEventToParent(MouseEvent e) {
             getParent().dispatchEvent(new MouseEvent(
                 getParent(), e.getID(), e.getWhen(), e.getModifiers(),
-                e.getX(), e.getY(), e.getClickCount(), e.isPopupTrigger()));
+                e.getX(), e.getY(), e.getXOnScreen(),
+                e.getYOnScreen(), e.getClickCount(),
+                e.isPopupTrigger(), MouseEvent.NOBUTTON));
         }
 
         public boolean isFocusTraversable() { 
@@ -309,7 +313,8 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
         void forwardEventToParent(MouseEvent e) {
             getParent().dispatchEvent(new MouseEvent(
                 getParent(), e.getID(), e.getWhen(), e.getModifiers(),
-                e.getX(), e.getY(), e.getClickCount(), e.isPopupTrigger()));
+                e.getX(), e.getY(), e.getXOnScreen(), e.getYOnScreen(),
+                e.getClickCount(), e.isPopupTrigger(), MouseEvent.NOBUTTON ));
         }
 
         public boolean isFocusTraversable() { 
@@ -327,7 +332,7 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
     protected class DesktopIconMouseListener extends MouseAdapter {
 	// if we drag or move we should deengage the popup
         public void mousePressed(MouseEvent e){
-	    if (e.getClickCount() == 2){
+	    if (e.getClickCount() > 1) {
 		try {
 		    getFrame().setIcon(false);
 		} catch (PropertyVetoException e2){ }

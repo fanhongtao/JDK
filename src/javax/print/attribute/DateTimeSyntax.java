@@ -1,7 +1,7 @@
 /*
- * @(#)DateTimeSyntax.java	1.5 04/01/07
+ * @(#)DateTimeSyntax.java	1.8 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.util.Date;
  * implementation of all attributes whose value is a date and time. 
  * <P>
  * Under the hood, a date-time attribute is stored as a value of class <code> 
- * java.util.Date</code>}. You can get a date-time attribute's Date value by 
+ * java.util.Date</code>. You can get a date-time attribute's Date value by 
  * calling {@link #getValue() <CODE>getValue()</CODE>}. A date-time attribute's 
  * Date value is established when it is constructed (see {@link 
  * #DateTimeSyntax(Date) <CODE>DateTimeSyntax(Date)</CODE>}). Once 
@@ -26,7 +26,7 @@ import java.util.Date;
  * To construct a date-time attribute from separate values of the year, month, 
  * day, hour, minute, and so on, use a <code>java.util.Calendar</code> 
  * object to construct a <code>java.util.Date</code> object, then use the 
- * <code>java.util.Date</code >object to construct the date-time attribute.
+ * <code>java.util.Date</code> object to construct the date-time attribute.
  * To convert 
  * a date-time attribute to separate values of the year, month, day, hour, 
  * minute, and so on, create a <code>java.util.Calendar</code> object and 

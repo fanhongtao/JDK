@@ -1,7 +1,7 @@
 /*
- * @(#)DemoImages.java	1.18 04/07/26
+ * @(#)DemoImages.java	1.21 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)DemoImages.java	1.18 04/07/26
+ * @(#)DemoImages.java	1.21 06/08/29
  */
 
 
@@ -43,17 +43,19 @@ package java2d;
 
 import java.awt.*;
 import java.awt.image.*;
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.net.URL;
 import java.net.URLClassLoader;
 
 
 /**
- * A cache of all the demo images found in the images directory.
+ * A collection of all the demo images found in the images directory.
+ * Certain classes are preloaded; the rest are loaded lazily.
  */
 public class DemoImages extends Component {
 
-    private String[] names = 
+    private static String[] names = 
     { 
         "java-logo.gif", "bld.jpg", "boat.png", "box.gif",
         "boxwave.gif", "clouds.jpg", "duke.gif", "duke.running.gif",
@@ -64,28 +66,34 @@ public class DemoImages extends Component {
         "loop.gif", "looping.gif", "start.gif", "start2.gif",
         "stop.gif", "stop2.gif", "clone.gif"
     };
-    private static Hashtable cache;
 
+    private static Map<String,Image> cache =
+        new ConcurrentHashMap<String,Image>(names.length);
 
     public DemoImages() {
-        cache = new Hashtable(names.length);
-        for (int i = 0; i < names.length; i++) {
-            cache.put(names[i], getImage(names[i], this));
+        for (String name : names) {
+            cache.put(name, getImage(name, this));
         }
     }
 
 
+    /*
+     * Gets the named image using the toolkit of the specified component.
+     * Note that this has to work even before we have had a chance to
+     * instantiate DemoImages and preload the cache. 
+     */
     public static Image getImage(String name, Component cmp) {
         Image img = null;
         if (cache != null) {
-            if ((img = (Image) cache.get(name)) != null) {
+            if ((img = cache.get(name)) != null) {
                 return img;
             }
         }
 
-	URLClassLoader urlLoader = (URLClassLoader)cmp.getClass().getClassLoader();
-	URL fileLoc = urlLoader.findResource("images/" + name);
-	img = cmp.getToolkit().createImage(fileLoc);
+        URLClassLoader urlLoader =
+            (URLClassLoader)cmp.getClass().getClassLoader();
+        URL fileLoc = urlLoader.findResource("images/" + name);
+        img = cmp.getToolkit().createImage(fileLoc);
 
         MediaTracker tracker = new MediaTracker(cmp);
         tracker.addImage(img, 0);

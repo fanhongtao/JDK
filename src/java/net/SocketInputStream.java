@@ -1,7 +1,7 @@
 /*
- * @(#)SocketInputStream.java	1.34 03/12/19
+ * @(#)SocketInputStream.java	1.35 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import sun.net.ConnectionResetException;
  * SocketInputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.34, 12/19/03
+ * @version     1.35, 11/17/05
  * @author	Jonathan Payne
  * @author	Arthur van Hoff
  */

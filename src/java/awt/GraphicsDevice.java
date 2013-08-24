@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsDevice.java	1.30 03/12/19
+ * @(#)GraphicsDevice.java	1.41 06/07/31
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@
 package java.awt;
 
 import java.awt.image.ColorModel;
+import sun.awt.AppContext;
 
 /**
  * The <code>GraphicsDevice</code> class describes the graphics devices
@@ -44,14 +45,25 @@ import java.awt.image.ColorModel;
  *         f.show();
  *      }
  *   }
- * </pre>                           
+ * </pre>
+ * <p>
+ * For more information on full-screen exclusive mode API, see the
+ * <a href="http://java.sun.com/docs/books/tutorial/extra/fullscreen/index.html">
+ * Full-Screen Exclusive Mode API Tutorial</a>.
+ *
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.30, 12/19/03
+ * @version 1.41, 07/31/06
  */
 public abstract class GraphicsDevice {
 
     private Window fullScreenWindow;
+    private AppContext fullScreenAppContext; // tracks which AppContext
+					     // created the FS window
+    // this lock is used for making synchronous changes to the AppContext's 
+    // current full screen window
+    private final Object fsAppContextLock = new Object();
+    
     private Rectangle windowedModeBounds;
     
     /**
@@ -149,8 +161,14 @@ public abstract class GraphicsDevice {
     /**
      * Returns <code>true</code> if this <code>GraphicsDevice</code>
      * supports full-screen exclusive mode.
+     * If a SecurityManager is installed, its 
+     * <code>checkPermission</code> method will be called
+     * with <code>AWTPermission("fullScreenExclusive")</code>.
+     * <code>isFullScreenSupported</code> returns true only if
+     * that permission is granted.
      * @return whether full-screen exclusive mode is available for
      * this graphics device
+     * @see java.awt.AWTPermission
      * @since 1.4
      */
     public boolean isFullScreenSupported() {
@@ -158,23 +176,28 @@ public abstract class GraphicsDevice {
     }
     
     /**
-     * Enter full-screen mode, or return to windowed mode.
+     * Enter full-screen mode, or return to windowed mode.  The entered
+     * full-screen mode may be either exclusive or simulated.  Exclusive
+     * mode is only available if <code>isFullScreenSupported</code> 
+     * returns <code>true</code>.
      * <p>
-     * If <code>isFullScreenSupported</code> returns <code>true</code>, full
-     * screen mode is considered to be <i>exclusive</i>, which implies:
+     * Exclusive mode implies:
      * <ul>
      * <li>Windows cannot overlap the full-screen window.  All other application
      * windows will always appear beneath the full-screen window in the Z-order.
+     * <li>There can be only one full-screen window on a device at any time,
+     * so calling this method while there is an existing full-screen Window 
+     * will cause the existing full-screen window to
+     * return to windowed mode. 
      * <li>Input method windows are disabled.  It is advisable to call
      * <code>Component.enableInputMethods(false)</code> to make a component
      * a non-client of the input method framework.
      * </ul>
      * <p>
-     * If <code>isFullScreenSupported</code> returns
-     * <code>false</code>, full-screen exclusive mode is simulated by resizing
-     * the window to the size of the screen and positioning it at (0,0).
+     * Simulated full-screen mode resizes
+     * the window to the size of the screen and positions it at (0,0).
      * <p>
-     * When entering full-screen exclusive mode, if the window to be used as the 
+     * When entering full-screen mode, if the window to be used as the 
      * full-screen window is not visible, this method will make it visible. 
      * It will remain visible when returning to windowed mode.  
      * <p>
@@ -195,21 +218,27 @@ public abstract class GraphicsDevice {
      * @since 1.4
      */
     public void setFullScreenWindow(Window w) {
-        // Get display mode before changing the full screen window
-        DisplayMode dm;
-        if (w == null) {
-            dm = null;
-        } else {
-            dm = getDisplayMode();
-        }
         if (fullScreenWindow != null && windowedModeBounds != null) {
             fullScreenWindow.setBounds(windowedModeBounds);
 	}
         // Set the full screen window
-        fullScreenWindow = w;
+        synchronized (fsAppContextLock) {
+	    // Associate fullscreen window with current AppContext
+	    if (w == null) {
+		fullScreenAppContext = null;
+	    } else {
+		fullScreenAppContext = AppContext.getAppContext();
+	    }
+	    fullScreenWindow = w;
+	}
         if (fullScreenWindow != null) {
             windowedModeBounds = fullScreenWindow.getBounds();
-            fullScreenWindow.setBounds(0, 0, dm.getWidth(), dm.getHeight());
+            // Note that we use the graphics configuration of the device,
+            // not the window's, because we're setting the fs window for
+            // this device.
+            Rectangle screenBounds = getDefaultConfiguration().getBounds();
+            fullScreenWindow.setBounds(screenBounds.x, screenBounds.y, 
+                                       screenBounds.width, screenBounds.height);
             fullScreenWindow.setVisible(true);
             fullScreenWindow.toFront();
         }
@@ -225,16 +254,29 @@ public abstract class GraphicsDevice {
      * @since 1.4
      */
     public Window getFullScreenWindow() {
-        return fullScreenWindow;
+	Window returnWindow = null;
+        synchronized (fsAppContextLock) {
+	    // Only return a handle to the current fs window if we are in the
+	    // same AppContext that set the fs window
+	    if (fullScreenAppContext == AppContext.getAppContext()) {
+		returnWindow = fullScreenWindow;
+	    }
+	}
+        return returnWindow;
     }
     
     /**
      * Returns <code>true</code> if this <code>GraphicsDevice</code>
      * supports low-level display changes.
+     * On some platforms low-level display changes may only be allowed in 
+     * full-screen exclusive mode (i.e., if {@link #isFullScreenSupported()}
+     * returns {@code true} and the application has already entered
+     * full-screen mode using {@link #setFullScreenWindow}).
      * @return whether low-level display changes are supported for this
-     * graphics device.  Note that this may or may not be dependent on
-     * full-screen exclusive mode.
+     * graphics device.
+     * @see #isFullScreenSupported
      * @see #setDisplayMode
+     * @see #setFullScreenWindow
      * @since 1.4
      */
     public boolean isDisplayChangeSupported() {
@@ -242,9 +284,46 @@ public abstract class GraphicsDevice {
     }
     
     /**
-     * Sets the display mode of this graphics device.  This may only be allowed
-     * in full-screen, exclusive mode.
-     * @param dm the new display mode of this graphics device
+     * Sets the display mode of this graphics device. This is only allowed
+     * if {@link #isDisplayChangeSupported()} returns {@code true} and may
+     * require first entering full-screen exclusive mode using
+     * {@link #setFullScreenWindow} providing that full-screen exclusive mode is
+     * supported (i.e., {@link #isFullScreenSupported()} returns 
+     * {@code true}).
+     * <p>
+     *
+     * The display mode must be one of the display modes returned by 
+     * {@link #getDisplayModes()}, with one exception: passing a display mode
+     * with {@link DisplayMode#REFRESH_RATE_UNKNOWN} refresh rate will result in
+     * selecting a display mode from the list of available display modes with 
+     * matching width, height and bit depth. 
+     * However, passing a display mode with {@link DisplayMode#BIT_DEPTH_MULTI}
+     * for bit depth is only allowed if such mode exists in the list returned by
+     * {@link #getDisplayModes()}.
+     * <p>
+     * Example code:
+     * <pre><code>
+     * Frame frame;
+     * DisplayMode newDisplayMode;
+     * GraphicsDevice gd;
+     * // create a Frame, select desired DisplayMode from the list of modes
+     * // returned by gd.getDisplayModes() ...
+     *
+     * if (gd.isFullScreenSupported()) {
+     *     gd.setFullScreenWindow(frame);
+     * } else {
+     *    // proceed in non-full-screen mode
+     *    frame.setSize(...);
+     *    frame.setLocation(...);
+     *    frame.setVisible(true);
+     * }
+     *
+     * if (gd.isDisplayChangeSupported()) {
+     *     gd.setDisplayMode(newDisplayMode);
+     * }
+     * </code></pre>
+     *
+     * @param dm The new display mode of this graphics device.
      * @exception IllegalArgumentException if the <code>DisplayMode</code>
      * supplied is <code>null</code>, or is not available in the array returned
      * by <code>getDisplayModes</code>
@@ -262,6 +341,11 @@ public abstract class GraphicsDevice {
     /**
      * Returns the current display mode of this 
      * <code>GraphicsDevice</code>.
+     * The returned display mode is allowed to have a refresh rate
+     * {@link DisplayMode#REFRESH_RATE_UNKNOWN} if it is indeterminate.
+     * Likewise, the returned display mode is allowed to have a bit depth
+     * {@link DisplayMode#BIT_DEPTH_MULTI} if it is indeterminate or if multiple
+     * bit depths are supported.
      * @return the current display mode of this graphics device.
      * @see #setDisplayMode(DisplayMode)
      * @since 1.4
@@ -276,6 +360,11 @@ public abstract class GraphicsDevice {
     /**
      * Returns all display modes available for this      
      * <code>GraphicsDevice</code>.
+     * The returned display modes are allowed to have a refresh rate
+     * {@link DisplayMode#REFRESH_RATE_UNKNOWN} if it is indeterminate.
+     * Likewise, the returned display modes are allowed to have a bit depth
+     * {@link DisplayMode#BIT_DEPTH_MULTI} if it is indeterminate or if multiple
+     * bit depths are supported.
      * @return all of the display modes available for this graphics device.
      * @since 1.4
      */
@@ -305,10 +394,11 @@ public abstract class GraphicsDevice {
      * whether a particular VolatileImage has been created in accelerated
      * memory.
      * @return number of bytes available in accelerated memory.
-     * A negative return value indicates that accelerated memory
-     * is unlimited.
+     * A negative return value indicates that the amount of accelerated memory
+     * on this GraphicsDevice is indeterminate.
      * @see java.awt.image.VolatileImage#flush
      * @see ImageCapabilities#isAccelerated
+     * @since 1.4
      */
     public int getAvailableAcceleratedMemory() {
 	return -1;

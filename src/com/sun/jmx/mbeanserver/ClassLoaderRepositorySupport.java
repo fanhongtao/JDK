@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoaderRepositorySupport.java	1.25 05/05/27
- * 
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * @(#)ClassLoaderRepositorySupport.java	1.27 05/12/30
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
 
 // JMX import
 import javax.management.ObjectName;
@@ -24,13 +24,13 @@ import com.sun.jmx.trace.Trace;
 
 /**
  * This class keeps the list of Class Loaders registered in the MBean Server.
- * It provides the necessary methods to load classes using the 
+ * It provides the necessary methods to load classes using the
  * registered Class Loaders.
  *
  * @since 1.5
  * @since.unbundled JMX RI 1.2
  */
-final class ClassLoaderRepositorySupport 
+final class ClassLoaderRepositorySupport
     implements ModifiableClassLoaderRepository {
 
     /* We associate an optional ObjectName with each entry so that
@@ -60,23 +60,24 @@ final class ClassLoaderRepositorySupport
      * is small, probably less than ten, and that the vast majority
      * of operations are searches (loadClass) which are by definition
      * linear.
-     */ 
+     */
     private LoaderEntry[] loaders = EMPTY_LOADER_ARRAY;
 
     /**
-     * Same behaviour as add(Object o) in {@link java.util.List}.
+     * Same behavior as add(Object o) in {@link java.util.List}.
      * Replace the loader list with a new one in which the new
      * loader has been added.
      **/
     private synchronized boolean add(ObjectName name, ClassLoader cl) {
-	List l = new ArrayList(Arrays.asList(loaders));
+	List<LoaderEntry> l =
+	    new ArrayList<LoaderEntry>(Arrays.asList(loaders));
 	l.add(new LoaderEntry(name, cl));
-	loaders = (LoaderEntry[]) l.toArray(EMPTY_LOADER_ARRAY);
+	loaders = l.toArray(EMPTY_LOADER_ARRAY);
 	return true;
     }
 
     /**
-     * Same behaviour as remove(Object o) in {@link java.util.List}.
+     * Same behavior as remove(Object o) in {@link java.util.List}.
      * Replace the loader list with a new one in which the old loader
      * has been removed.
      *
@@ -111,36 +112,38 @@ final class ClassLoaderRepositorySupport
     /**
      * List of valid search
      */
-    private final Hashtable search= new Hashtable(10);
+    private final Map<String,List<ClassLoader>> search =
+	new Hashtable<String,List<ClassLoader>>(10);
 
     /**
      * List of named class loaders.
      */
-    private final Hashtable loadersWithNames = new Hashtable(10);
+    private final Map<ObjectName,ClassLoader> loadersWithNames =
+	new Hashtable<ObjectName,ClassLoader>(10);
 
-    
+
     private final static String dbgTag = "ClassLoaderRepositorySupport";
 
 
     // from javax.management.loading.DefaultLoaderRepository
-    public final Class loadClass(String className) 
+    public final Class loadClass(String className)
 	throws ClassNotFoundException {
 	return  loadClass(loaders, className, null, null);
     }
 
-    
+
     // from javax.management.loading.DefaultLoaderRepository
-    public final Class loadClassWithout(ClassLoader without, String className) 
-	    throws ClassNotFoundException {	
+    public final Class loadClassWithout(ClassLoader without, String className)
+	    throws ClassNotFoundException {
 	if (isTraceOn()) {
 	    trace("loadClassWithout", className + "\twithout " + without);
-	} 
+	}
 
 	// without is null => just behave as loadClass
 	//
 	if (without == null)
 	    return loadClass(loaders, className, null, null);
-	
+
 	// We must try to load the class without the given loader.
 	//
 	startValidSearch(without, className);
@@ -169,10 +172,10 @@ final class ClassLoaderRepositorySupport
     }
 
 
-    private Class loadClass(final LoaderEntry list[], 
+    private Class loadClass(final LoaderEntry list[],
 			    final String className,
 			    final ClassLoader without,
-			    final ClassLoader stop) 
+			    final ClassLoader stop)
 	    throws ClassNotFoundException {
 	final int size = list.length;
         for(int i=0; i<size; i++) {
@@ -209,47 +212,47 @@ final class ClassLoaderRepositorySupport
     }
 
     private synchronized void startValidSearch(ClassLoader aloader,
-					       String className) 
+					       String className)
         throws ClassNotFoundException {
         // Check if we have such a current search
         //
-        Vector excluded= (Vector) search.get(className);
+        List<ClassLoader> excluded = search.get(className);
         if ((excluded!= null) && (excluded.contains(aloader))) {
 	    if (isTraceOn()) {
-		trace("startValidSearch", "already requested loader=" + 
+		trace("startValidSearch", "already requested loader=" +
 		      aloader + " class= " + className);
-	    }            
+	    }
             throw new ClassNotFoundException(className);
         }
-      
+
         // Add an entry
         //
         if (excluded == null) {
-            excluded= new Vector(1);
+            excluded = new ArrayList<ClassLoader>(1);
             search.put(className, excluded);
-        }         
-        excluded.addElement(aloader);
+        }
+        excluded.add(aloader);
 	if (isTraceOn()) {
-	    trace("startValidSearch", "loader=" + aloader + " class= " + 
+	    trace("startValidSearch", "loader=" + aloader + " class= " +
 		  className);
-	}     
+	}
     }
 
     private synchronized void stopValidSearch(ClassLoader aloader,
 					      String className) {
-    
+
         // Retrieve the search.
         //
-        Vector excluded= (Vector) search.get(className);
-        if (excluded!= null) {
-            excluded.removeElement(aloader);
+        List<ClassLoader> excluded = search.get(className);
+        if (excluded != null) {
+            excluded.remove(aloader);
 	    if (isTraceOn()) {
-		trace("stopValidSearch", "loader=" + aloader + 
+		trace("stopValidSearch", "loader=" + aloader +
 		      " class= " + className);
-	    }               
+	    }
 	}
     }
-  
+
     public final void addClassLoader(ClassLoader loader) {
 	add(null, loader);
     }
@@ -258,7 +261,7 @@ final class ClassLoaderRepositorySupport
 	remove(null, loader);
     }
 
-    public final synchronized void addClassLoader(ObjectName name, 
+    public final synchronized void addClassLoader(ObjectName name,
 						  ClassLoader loader) {
 	loadersWithNames.put(name, loader);
 	if (!(loader instanceof PrivateClassLoader))
@@ -266,13 +269,13 @@ final class ClassLoaderRepositorySupport
     }
 
     public final synchronized void removeClassLoader(ObjectName name) {
-	ClassLoader loader = (ClassLoader) loadersWithNames.remove(name);
+	ClassLoader loader = loadersWithNames.remove(name);
 	if (!(loader instanceof PrivateClassLoader))
 	    remove(name, loader);
     }
 
     public final ClassLoader getClassLoader(ObjectName name) {
-	return (ClassLoader)loadersWithNames.get(name);
+	return loadersWithNames.get(name);
     }
 
     // TRACES & DEBUG
@@ -301,5 +304,5 @@ final class ClassLoaderRepositorySupport
     private static void debug(String func, String info) {
         debug(dbgTag, func, info);
     }
- 
+
 }

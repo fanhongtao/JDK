@@ -1,7 +1,7 @@
 /*
- * @(#)ContentHandler.java	1.17 03/12/19
+ * @(#)ContentHandler.java	1.20 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,11 +38,11 @@ import java.io.IOException;
  *     YoyoDyne.experimental.text.plain
  * </pre>
  * If the loading of the content handler class would be performed by 
- * a classloader that is outside of the the delegation chain of the caller,
+ * a classloader that is outside of the delegation chain of the caller,
  * the JVM will need the RuntimePermission "getClassLoader".
  * 
  * @author  James Gosling
- * @version 1.17, 12/19/03
+ * @version 1.20, 04/07/06
  * @see     java.net.ContentHandler#getContent(java.net.URLConnection)
  * @see     java.net.ContentHandlerFactory
  * @see     java.net.URL#getContent()
@@ -77,6 +77,7 @@ abstract public class ContentHandler {
      *                 the first match of the suggested types. 
      *                 null if none of the requested  are supported.
      * @exception  IOException  if an I/O error occurs while reading the object.
+     * @since 1.3
      */
     public Object getContent(URLConnection urlc, Class[] classes) throws IOException {
         Object obj = getContent(urlc);

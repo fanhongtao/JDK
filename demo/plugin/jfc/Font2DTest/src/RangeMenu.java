@@ -1,7 +1,7 @@
 /*
- * @(#)RangeMenu.java	1.16 04/07/26
+ * @(#)RangeMenu.java	1.18 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)RangeMenu.java	1.16 04/07/26
+ * @(#)RangeMenu.java	1.18 05/11/17
  */
 
 import java.awt.BorderLayout;
@@ -186,6 +186,7 @@ public final class RangeMenu extends JComboBox implements ActionListener {
         { 0x0e0100, 0x0e01ef }, /// VARIATION_SELECTORS_SUPPLEMENT
         { 0x0f0000, 0x0fffff }, /// SUPPLEMENTARY_PRIVATE_USE_AREA_A
         { 0x100000, 0x10ffff }, /// SUPPLEMENTARY_PRIVATE_USE_AREA_B
+        { 0x000000, 0x00007f }, /// OTHER [USER DEFINED RANGE]
      };
 
     private final String[] UNICODE_RANGE_NAMES = {
@@ -312,6 +313,7 @@ public final class RangeMenu extends JComboBox implements ActionListener {
         "Variation Selectors Supplement",
         "Supplementary Private Use Area-A",
         "Supplementary Private Use Area-B",
+        "Custom...",
     };
 
     private boolean useCustomRange = false;
@@ -325,6 +327,8 @@ public final class RangeMenu extends JComboBox implements ActionListener {
 
     /// Parent Font2DTest Object holder
     private final Font2DTest parent;
+
+    public static final int SURROGATES_AREA_INDEX = 91;
 
     public RangeMenu( Font2DTest demo, JFrame f ) {
         super();
@@ -343,7 +347,7 @@ public final class RangeMenu extends JComboBox implements ActionListener {
         JPanel dialogTop = new JPanel();
         JPanel dialogBottom = new JPanel();
         JButton okButton = new JButton("OK");
-        JLabel from = new JLabel( "From" );
+        JLabel from = new JLabel( "From:" );
         JLabel to = new JLabel("To:");
         Font labelFont = new Font( "dialog", Font.BOLD, 12 );
         from.setFont( labelFont );
@@ -428,8 +432,9 @@ public final class RangeMenu extends JComboBox implements ActionListener {
         if ( source instanceof JComboBox ) {
 	        String rangeName = (String)((JComboBox)source).getSelectedItem();
 
-	        if ( rangeName.equals("Other...") ) {
+	        if ( rangeName.equals("Custom...") ) {
             	    useCustomRange = true;
+                    customRangeDialog.setLocationRelativeTo(parent);
         	    customRangeDialog.show();
 	        }
         	else {

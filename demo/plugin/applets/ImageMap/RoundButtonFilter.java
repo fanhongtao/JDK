@@ -1,7 +1,7 @@
 /*
- * @(#)RoundButtonFilter.java	1.14 04/07/26
+ * @(#)RoundButtonFilter.java	1.15 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)RoundButtonFilter.java	1.14 04/07/26
+ * @(#)RoundButtonFilter.java	1.15 05/11/17
  */
 
 /**
@@ -44,7 +44,7 @@
  * that can be dynamically loaded over the net.
  *
  * @author 	Jim Graham
- * @version 	1.14, 07/26/04
+ * @version 	1.15, 11/17/05
  */
 class RoundButtonFilter extends ButtonFilter {
     int Xcenter;

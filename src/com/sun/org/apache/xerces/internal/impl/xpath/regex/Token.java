@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xpath.regex;
@@ -62,10 +21,15 @@ import java.util.Hashtable;
 
 /**
  * This class represents a node in parse tree.
+ * 
+ * @xerces.internal
  *
- * @version $Id: Token.java,v 1.7 2003/02/25 14:43:13 sandygao Exp $
+ * @version $Id: Token.java,v 1.2.6.1 2005/09/06 11:46:35 neerajbj Exp $
  */
 class Token implements java.io.Serializable {
+
+    private static final long serialVersionUID = 4049923761862293040L;
+
     static final boolean COUNTTOKENS = true;
     static int tokens = 0;
 
@@ -1127,6 +1091,9 @@ class Token implements java.io.Serializable {
      * This class represents a node in parse tree.
      */
     static class StringToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3257288015452780086L;
+        
         String string;
         int refNumber;
 
@@ -1155,6 +1122,9 @@ class Token implements java.io.Serializable {
      * This class represents a node in parse tree.
      */
     static class ConcatToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 4050760502994940212L;
+        
         Token child;
         Token child2;
         
@@ -1187,6 +1157,9 @@ class Token implements java.io.Serializable {
      * This class represents a node in parse tree.
      */
     static class CharToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3257284751277569842L;
+        
         int chardata;
 
         CharToken(int type, int ch) {
@@ -1248,6 +1221,9 @@ class Token implements java.io.Serializable {
      * This class represents a node in parse tree.
      */
     static class ClosureToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3545230349706932537L;
+        
         int min;
         int max;
         Token child;
@@ -1314,6 +1290,9 @@ class Token implements java.io.Serializable {
      * This class represents a node in parse tree.
      */
     static class ParenToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3257572797621219636L;
+        
         Token child;
         int parennumber;
 
@@ -1369,6 +1348,9 @@ class Token implements java.io.Serializable {
      * (?(condition)yes-pattern|no-pattern)
      */
     static class ConditionToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3761408607870399794L;
+        
         int refNumber;
         Token condition;
         Token yes;
@@ -1412,6 +1394,9 @@ class Token implements java.io.Serializable {
      * (ims-ims: .... )
      */
     static class ModifierToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3258689892778324790L;
+        
         Token child;
         int add;
         int mask;
@@ -1452,6 +1437,9 @@ class Token implements java.io.Serializable {
      * for UNION or CONCAT.
      */
     static class UnionToken extends Token implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3256723987530003507L;
+        
         Vector children;
 
         UnionToken(int type) {

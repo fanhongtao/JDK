@@ -1,7 +1,7 @@
 /*
- * @(#)JmxMBeanServer.java	1.67 04/01/21
+ * @(#)JmxMBeanServer.java	1.75 05/12/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -94,8 +94,6 @@ public final class JmxMBeanServer
     private final MBeanInstantiator instantiator;
     private final SecureClassLoaderRepository secureClr;
 
-    private final MetaData meta;
-
     /** true if interceptors are enabled **/
     private final boolean interceptorsEnabled;
 
@@ -109,10 +107,6 @@ public final class JmxMBeanServer
     /** The MBeanServerDelegate object representing the MBean Server */
     private final transient MBeanServerDelegate mBeanServerDelegateObject;
 
-    /** Revisit: transient ??? **/
-    /** The MBeanServerDelegate object name */
-    private transient ObjectName mBeanServerDelegateObjectName = null;
-    
     /**
      * <b>Package:</b> Creates an MBeanServer with the 
      * specified default domain name, outer interface, and delegate.
@@ -139,7 +133,7 @@ public final class JmxMBeanServer
      */
     JmxMBeanServer(String domain, MBeanServer outer, 
 		   MBeanServerDelegate delegate) {
-	this(domain,outer,delegate,null,null,false);
+	this(domain,outer,delegate,null,false);
     } 
 
     /**
@@ -163,12 +157,15 @@ public final class JmxMBeanServer
      *        this MBean in its MBean repository.
      * @param interceptors If <code>true</code>, 
      *        {@link MBeanServerInterceptor} will be enabled (default is
-     *        <code>false</code>).
+     *        <code>false</code>) 
+     *        Note: this parameter is not taken into account by this
+     *        implementation - the default value <code>false</code> is
+     *        always used.
      * @exception IllegalArgumentException if the instantiator is null.
      */
     JmxMBeanServer(String domain, MBeanServer outer, 
 		   MBeanServerDelegate delegate, boolean interceptors) {
-	this(domain,outer,delegate,null,null,false);
+	this(domain,outer,delegate,null,false);
     } 
 
     /**
@@ -192,32 +189,28 @@ public final class JmxMBeanServer
     JmxMBeanServer(String domain, MBeanServer outer, 
 		   MBeanServerDelegate    delegate, 
 		   MBeanInstantiator      instantiator, 
-		   MetaData               metadata,
 		   boolean                interceptors)  {
 
 	if (instantiator == null) {
 	    final ModifiableClassLoaderRepository
 		clr = new ClassLoaderRepositorySupport();
-	    instantiator = new MBeanInstantiatorImpl(clr);
+	    instantiator = new MBeanInstantiator(clr);
 	}
 	this.secureClr = new 
 	  SecureClassLoaderRepository(instantiator.getClassLoaderRepository());
-	if (metadata == null)
-	    metadata = new MetaDataImpl(instantiator);
 	if (delegate == null) 
 	    delegate = new MBeanServerDelegateImpl();
 	if (outer == null)
 	    outer = this;
 	
 	this.instantiator = instantiator;
-	this.meta         = metadata;
 	this.mBeanServerDelegateObject = delegate;
 	this.outerShell   = outer;
 
-	final Repository repository = new RepositorySupport(domain);
+	final Repository repository = new Repository(domain);
 	this.mbsInterceptor = 
 	    new DefaultMBeanServerInterceptor(outer, delegate, instantiator, 
-					      metadata, repository);
+					      repository);
 	this.interceptorsEnabled = interceptors;
 	initialize();
     }
@@ -244,14 +237,6 @@ public final class JmxMBeanServer
 	if (interceptorsEnabled) return instantiator;
 	else throw new UnsupportedOperationException(
 	               "MBeanServerInterceptors are disabled.");
-    }
-
-    /**
-     * Return the MetaData associated to this MBeanServer.
-     */
-    public MetaData getMetaData() {
-
-	return meta;
     }
 
     /**
@@ -518,14 +503,8 @@ public final class JmxMBeanServer
      **/
     public void unregisterMBean(ObjectName name) 
 	throws InstanceNotFoundException, MBeanRegistrationException  {
-	// Now handled by the delegate itself..
-        // if (name.equals(MBeanServerDelegateObjectName)) {
-        //    throw new RuntimeOperationsException(
-        //          new IllegalArgumentException(
-	//               "The MBeanDelegate MBean cannot be unregistered"));
-        // }  
 	mbsInterceptor.unregisterMBean(cloneObjectName(name));
-    } 
+    }
 
     /**
      * Gets the <CODE>ObjectInstance</CODE> for a given MBean registered 
@@ -568,7 +547,7 @@ public final class JmxMBeanServer
      *      If no MBean satisfies the query an empty list is returned.
      *
      */
-    public Set queryMBeans(ObjectName name, QueryExp query) {
+    public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query) {
 	
 	return mbsInterceptor.queryMBeans(cloneObjectName(name), query);
     } 
@@ -595,7 +574,7 @@ public final class JmxMBeanServer
      *     If no MBean satisfies the query, an empty list is returned.
      *
      */
-    public Set queryNames(ObjectName name, QueryExp query) {
+    public Set<ObjectName> queryNames(ObjectName name, QueryExp query) {
 
         return mbsInterceptor.queryNames(cloneObjectName(name), query); 
     } 
@@ -695,8 +674,6 @@ public final class JmxMBeanServer
      *     to be set.
      * @param attribute The identification of the attribute to be set 
      *     and the value it is to be set to.
-     *
-     * @return  The value of the attribute that has been set.
      *
      * @exception InstanceNotFoundException The MBean specified is 
      *     not registered in the MBean server.
@@ -1090,6 +1067,7 @@ public final class JmxMBeanServer
      *     related exceptions.
      *
      */
+    @Deprecated
     public ObjectInputStream deserialize(ObjectName name, byte[] data)
         throws InstanceNotFoundException, OperationsException {
 
@@ -1116,6 +1094,7 @@ public final class JmxMBeanServer
      *      loaded by the default loader repository     
      *
      */
+    @Deprecated
     public ObjectInputStream deserialize(String className, byte[] data)
         throws OperationsException, ReflectionException {
 
@@ -1167,6 +1146,7 @@ public final class JmxMBeanServer
      *     be loaded by the specified class loader.
      *
      */
+    @Deprecated
     public ObjectInputStream deserialize(String className,
 					 ObjectName loaderName,
 					 byte[] data) throws
@@ -1200,29 +1180,25 @@ public final class JmxMBeanServer
 	
 	// Registers the MBeanServer identification MBean
 	try {
-	    mBeanServerDelegateObjectName = 
-		new  ObjectName(ServiceName.DELEGATE) ;
-
-	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
+	    AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
 		public Object run() throws Exception {
-		    mbsInterceptor.registerMBean(mBeanServerDelegateObject,
-						 mBeanServerDelegateObjectName);
+		    mbsInterceptor.registerMBean(
+                            mBeanServerDelegateObject,
+                            MBeanServerDelegate.DELEGATE_NAME);
 		    return null;
 		}
 	    });
 	} catch (SecurityException e) {
 	    if (isDebugOn()) {
-		debug("new", "Unexpected security exception occured: " + 
+		debug("new", "Unexpected security exception occurred: " + 
 		      e);       
-	    }   
-	    mBeanServerDelegateObjectName = null;
+	    }
 	    throw e;
 	} catch (Exception e) {
 	    if (isDebugOn()) {
-		debug("new", "Unexpected exception occured: " + 
+		debug("new", "Unexpected exception occurred: " + 
 		      e.getClass().getName());       
-	    }   
-	    mBeanServerDelegateObjectName = null;
+	    }
 	    throw new
 		IllegalStateException("Can't register delegate.");
 	}
@@ -1323,6 +1299,8 @@ public final class JmxMBeanServer
     }
 
     public MBeanServerDelegate getMBeanServerDelegate() {
+	if (!interceptorsEnabled) throw new UnsupportedOperationException(
+	               "MBeanServerInterceptors are disabled.");
 	return mBeanServerDelegateObject;
     }
 
@@ -1383,6 +1361,9 @@ public final class JmxMBeanServer
      * @param interceptors If <code>true</code>, 
      *        {@link MBeanServerInterceptor}s will be enabled (default is
      *        <code>false</code>).
+     *        Note: this parameter is not taken into account by this
+     *        implementation - the default value <code>false</code> is
+     *        always used.
      * @return A new private implementation of an MBeanServer.
      * @see #interceptorsEnabled
      * @see javax.management.MBeanServerBuilder
@@ -1392,6 +1373,13 @@ public final class JmxMBeanServer
 					     MBeanServer outer, 
 					     MBeanServerDelegate delegate,
 					     boolean interceptors) {
+        // This constructor happens to disregard the value of the interceptors
+        // flag - that is, it always uses the default value - false.
+        // This is admitedly a bug, but we chose not to fix it for now
+        // since we would rather not have anybody depending on the Sun private
+        // interceptor APIs - which is most probably going to be removed and 
+        // replaced by a public (javax) feature in the future.
+        //
 	return new JmxMBeanServer(defaultDomain,outer,delegate,interceptors);
     }
 

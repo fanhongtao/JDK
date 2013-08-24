@@ -1,13 +1,14 @@
 /*
- * @(#)WindowsScrollBarUI.java	1.20 06/03/22
+ * @(#)WindowsScrollBarUI.java	1.25 06/08/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.*;
 import java.lang.ref.*;
 import java.util.*;
@@ -15,6 +16,8 @@ import javax.swing.plaf.basic.*;
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
 
+import static com.sun.java.swing.plaf.windows.TMSchema.*;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
 
 /**
@@ -83,6 +86,32 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 				    UIManager.getColor("ScrollBar.thumbHighlight"));
     }
 
+    /** 
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    @Override
+    protected ArrowButtonListener createArrowButtonListener(){
+        // we need to repaint the entire scrollbar because state change for each
+        // button causes a state change for the thumb and other button on Vista
+        if(XPStyle.isVista()) {
+            return new ArrowButtonListener() {
+                public void mouseEntered(MouseEvent evt) { 
+                    repaint();
+                    super.mouseEntered(evt);
+                }
+                public void mouseExited(MouseEvent evt) { 
+                    repaint();
+                    super.mouseExited(evt);
+                }
+                private void repaint() {
+                    scrollbar.repaint();
+                }
+            };
+        } else {
+            return super.createArrowButtonListener();
+        }
+    }
 
     protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds){
 	boolean v = (scrollbar.getOrientation() == JScrollBar.VERTICAL);
@@ -90,13 +119,13 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    JScrollBar sb = (JScrollBar)c;
-	    int index = 0;
-	    // Pending: Implement rollover 1 and pressed 2
+	    State state = State.NORMAL;
+	    // Pending: Implement rollover (hot) and pressed
 	    if (!sb.isEnabled()) {
-		index = 3;
+		state = State.DISABLED;
 	    }
-	    String category = v ? "scrollbar.lowertrackvert" : "scrollbar.lowertrackhorz";
-	    xp.getSkin(sb, category).paintSkin(g, trackBounds, index);
+	    Part part = v ? Part.SBP_LOWERTRACKVERT : Part.SBP_LOWERTRACKHORZ;
+	    xp.getSkin(sb, part).paintSkin(g, trackBounds, state);
 	} else if (thumbGrid == null) {
             super.paintTrack(g, c, trackBounds);
         }
@@ -118,31 +147,35 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    JScrollBar sb = (JScrollBar)c;
-	    int index = 0;
+	    State state = State.NORMAL;
 	    if (!sb.isEnabled()) {
-		index = 3;
+		state = State.DISABLED;
 	    } else if (isDragging) {
-		index = 2;
+		state = State.PRESSED;
 	    } else if (isThumbRollover()) {
-		index = 1;
-	    }
+		state = State.HOT;
+            } else if (XPStyle.isVista()) {
+                if ((incrButton != null && incrButton.getModel().isRollover()) ||
+                    (decrButton != null && decrButton.getModel().isRollover())) {
+                    state = State.HOVER;
+                }
+            }
 	    // Paint thumb
-	    XPStyle.Skin skin = xp.getSkin(sb, v ? "scrollbar.thumbbtnvert" : "scrollbar.thumbbtnhorz");
-	    skin.paintSkin(g, thumbBounds, index);
+	    Part thumbPart = v ? Part.SBP_THUMBBTNVERT : Part.SBP_THUMBBTNHORZ;
+	    xp.getSkin(sb, thumbPart).paintSkin(g, thumbBounds, state);
 	    // Paint gripper
-	    skin = xp.getSkin(sb, v ? "scrollbar.grippervert" : "scrollbar.gripperhorz");
-            Insets gripperInsets = xp.getMargin(c, v ? "scrollbar.thumbbtnvert"
-                                                     : "scrollbar.thumbbtnhorz",
-                                                null, "contentmargins");
+	    Part gripperPart = v ? Part.SBP_GRIPPERVERT : Part.SBP_GRIPPERHORZ;
+	    Skin skin = xp.getSkin(sb, gripperPart);
+            Insets gripperInsets = xp.getMargin(c, thumbPart, null, Prop.CONTENTMARGINS);
             if (gripperInsets == null ||
-                    (v && (thumbBounds.height - gripperInsets.top -
-                           gripperInsets.bottom >= skin.getHeight())) ||
-                    (!v && (thumbBounds.width - gripperInsets.left -
-                            gripperInsets.right >= skin.getWidth()))) {
+                (v && (thumbBounds.height - gripperInsets.top -
+                       gripperInsets.bottom >= skin.getHeight())) ||
+                (!v && (thumbBounds.width - gripperInsets.left -
+                        gripperInsets.right >= skin.getWidth()))) {
                 skin.paintSkin(g,
                                thumbBounds.x + (thumbBounds.width  - skin.getWidth()) / 2,
                                thumbBounds.y + (thumbBounds.height - skin.getHeight()) / 2,
-                               skin.getWidth(), skin.getHeight(), index);
+                               skin.getWidth(), skin.getHeight(), state);
             }
 	} else {
 	    super.paintThumb(g, c, thumbBounds);
@@ -201,6 +234,21 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
         }
     }      
 
+    
+    /** 
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    @Override
+    protected void setThumbRollover(boolean active) {
+        boolean old = isThumbRollover();
+        super.setThumbRollover(active);
+        // we need to repaint the entire scrollbar because state change for thumb
+        // causes state change for incr and decr buttons on Vista
+        if(XPStyle.isVista() && active != old) {
+            scrollbar.repaint();
+        }
+    }
 
     /**
      * WindowsArrowButton is used for the buttons to position the
@@ -222,25 +270,52 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
 		ButtonModel model = getModel();
-		XPStyle.Skin skin = xp.getSkin(scrollbar, "scrollbar.arrowbtn");
-		int index = 0;
-		switch (direction) {
-		    case NORTH: index =  0; break;
-		    case SOUTH: index =  4; break;
-		    case WEST:  index =  8; break;
-		    case EAST:  index = 12; break;
-		}
+                Skin skin = xp.getSkin(this, Part.SBP_ARROWBTN);
+		State state = null;
+
+                boolean jointRollover = XPStyle.isVista() && (isThumbRollover() ||
+                    (this == incrButton && decrButton.getModel().isRollover()) ||
+                    (this == decrButton && incrButton.getModel().isRollover()));
 
 		// normal, rollover, pressed, disabled
 		if (model.isArmed() && model.isPressed()) {
-		    index += 2;
+		    switch (direction) {
+			case NORTH: state = State.UPPRESSED;    break;
+			case SOUTH: state = State.DOWNPRESSED;  break;
+			case WEST:  state = State.LEFTPRESSED;  break;
+			case EAST:  state = State.RIGHTPRESSED; break;
+		    }
 		} else if (!model.isEnabled()) {
-		    index += 3;
+		    switch (direction) {
+			case NORTH: state = State.UPDISABLED;    break;
+			case SOUTH: state = State.DOWNDISABLED;  break;
+			case WEST:  state = State.LEFTDISABLED;  break;
+			case EAST:  state = State.RIGHTDISABLED; break;
+		    }
 		} else if (model.isRollover() || model.isPressed()) {
-		    index += 1;
+		    switch (direction) {
+			case NORTH: state = State.UPHOT;    break;
+			case SOUTH: state = State.DOWNHOT;  break;
+			case WEST:  state = State.LEFTHOT;  break;
+			case EAST:  state = State.RIGHTHOT; break;
+		    }
+                } else if (jointRollover) {
+                    switch (direction) {
+                        case NORTH: state = State.UPHOVER;    break;
+                        case SOUTH: state = State.DOWNHOVER;  break;
+                        case WEST:  state = State.LEFTHOVER;  break;
+                        case EAST:  state = State.RIGHTHOVER; break;
+                    }
+		} else {
+		    switch (direction) {
+			case NORTH: state = State.UPNORMAL;    break;
+			case SOUTH: state = State.DOWNNORMAL;  break;
+			case WEST:  state = State.LEFTNORMAL;  break;
+			case EAST:  state = State.RIGHTNORMAL; break;
+		    }
 		}
 
-		skin.paintSkin(g, 0, 0, getWidth(), getHeight(), index);
+		skin.paintSkin(g, 0, 0, getWidth(), getHeight(), state);
 	    } else {
 		super.paint(g);
 	    }

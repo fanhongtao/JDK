@@ -1,7 +1,7 @@
 /*
- * @(#)Gradient.java	1.15 04/07/26
+ * @(#)Gradient.java	1.17 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Gradient.java	1.12 03/01/23
+ * @(#)Gradient.java	1.17 06/08/09
  */
 
 package java2d.demos.Paint;
@@ -49,6 +49,8 @@ import javax.swing.*;
 import java2d.ControlsSurface;
 import java2d.CustomControls;
 
+import static java.awt.Color.*;
+
 
 
 public class Gradient extends ControlsSurface {
@@ -58,9 +60,9 @@ public class Gradient extends ControlsSurface {
 
 
     public Gradient() {
-        setBackground(Color.white);
-        innerC = Color.green;
-        outerC = Color.blue;
+        setBackground(white);
+        innerC = green;
+        outerC = blue;
         setControls(new Component[] { new DemoControls(this) });
     }
 
@@ -78,7 +80,7 @@ public class Gradient extends ControlsSurface {
         g2.setPaint(new GradientPaint(w,h,outerC,w*.65f,h*.65f,innerC));
         g2.fillRect(w2, h2, w2, h2);
 
-        g2.setColor(Color.black);
+        g2.setColor(black);
         TextLayout tl = new TextLayout(
                 "GradientPaint", g2.getFont(), g2.getFontRenderContext());
         tl.draw(g2, (int) (w/2-tl.getBounds().getWidth()/2),
@@ -95,8 +97,7 @@ public class Gradient extends ControlsSurface {
 
         Gradient demo;
         Color colors[] = 
-                { Color.red, Color.orange, Color.yellow, Color.green,
-                  Color.blue, Color.lightGray, Color.cyan, Color.magenta };
+                { red, orange, yellow, green, blue, lightGray, cyan, magenta };
         String colorName[] =
                 { "Red", "Orange", "Yellow", "Green", 
                   "Blue", "lightGray", "Cyan", "Magenta" };
@@ -188,7 +189,7 @@ public class Gradient extends ControlsSurface {
                 g.fill3DRect(x,y,getIconWidth(), getIconHeight(), true);
                 g.setColor(oldColor);
             }
-            public int getIconWidth() { return 12; }
+            public int getIconWidth()  { return 12; }
             public int getIconHeight() { return 12; }
         } // End ColoredSquare class
     } // End DemoControls

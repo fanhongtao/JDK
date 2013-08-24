@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ReverseAxesWalker.java,v 1.14 2004/02/17 04:32:08 minchau Exp $
+ * $Id: ReverseAxesWalker.java,v 1.2.4.1 2005/09/14 19:45:21 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.XPathContext;
  */
 public class ReverseAxesWalker extends AxesWalker
 {
+    static final long serialVersionUID = 2847007647832768941L;
 
   /**
    * Construct an AxesWalker using a LocPathIterator.

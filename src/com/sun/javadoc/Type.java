@@ -1,7 +1,7 @@
 /*
- * @(#)Type.java	1.18 04/04/30
+ * @(#)Type.java	1.20 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package com.sun.javadoc;
  * a type variable, a wildcard type ("<code>?</code>"),
  * or a primitive data type (like <code>char</code>).
  *
- * @since JDK1.2
+ * @since 1.2
  * @author Kaiyang Liu (original)
  * @author Robert Field (rewrite)
  * @author Scott Seligman (generics)

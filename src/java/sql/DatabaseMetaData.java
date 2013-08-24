@@ -1,7 +1,7 @@
 /*
- * @(#)DatabaseMetaData.java	1.53 03/12/19
+ * @(#)DatabaseMetaData.java	1.68 06/09/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,8 +36,11 @@ package java.sql;
  * Regular <code>ResultSet</code> methods, such as
  * <code>getString</code> and <code>getInt</code>, can be used 
  * to retrieve the data from these <code>ResultSet</code> objects.  If 
- * a given form of metadata is not available, the <code>ResultSet</code>
- * getter methods throw an <code>SQLException</code>.
+ * a given form of metadata is not available, an empty <code>ResultSet</code>
+ * will be returned. Additional columns beyond the columns defined to be 
+ * returned by the <code>ResultSet</code> object for a given method 
+ * can be defined by the JDBC driver vendor and must be accessed 
+ * by their <B>column label</B>.
  * <P>
  * Some <code>DatabaseMetaData</code> methods take arguments that are 
  * String patterns.  These arguments all have names such as fooPattern.  
@@ -47,13 +50,8 @@ package java.sql;
  * argument is set to <code>null</code>, that argument's criterion will 
  * be dropped from the search.
  * <P>
- * A method that gets information about a feature that the driver does not
- * support will throw an <code>SQLException</code>.
- * In the case of methods that return a <code>ResultSet</code>
- * object, either a <code>ResultSet</code> object (which may be empty) is 
- * returned or an <code>SQLException</code> is thrown.
  */
-public interface DatabaseMetaData {
+public interface DatabaseMetaData extends Wrapper {
 
     //----------------------------------------------------------------------
     // First, a variety of minor information about the target database.
@@ -294,10 +292,10 @@ public interface DatabaseMetaData {
 
     /**
      * Retrieves a comma-separated list of all of this database's SQL keywords
-     * that are NOT also SQL92 keywords.
+     * that are NOT also SQL:2003 keywords.
      *
      * @return the list of this database's keywords that are not also
-     *         SQL92 keywords
+     *         SQL:2003 keywords
      * @exception SQLException if a database access error occurs
      */
     String getSQLKeywords() throws SQLException;
@@ -409,8 +407,10 @@ public interface DatabaseMetaData {
     boolean nullPlusNonNullIsNull() throws SQLException;
 
     /**
-     * Retrieves whether this database supports the <code>CONVERT</code>
-     * function between SQL types.
+     * Retrieves whether this database supports the JDBC scalar function 
+     * <code>CONVERT</code> for the conversion of one JDBC type to another.
+     * The JDBC types are the generic SQL data types defined 
+     * in <code>java.sql.Types</code>.
      *
      * @return <code>true</code> if so; <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
@@ -418,8 +418,10 @@ public interface DatabaseMetaData {
     boolean supportsConvert() throws SQLException;
 
     /**
-     * Retrieves whether this database supports the <code>CONVERT</code>
-     * for two given SQL types.
+     * Retrieves whether this database supports the JDBC scalar function 
+     * <code>CONVERT</code> for conversions between the JDBC types <i>fromType</i>
+     * and <i>toType</i>.  The JDBC types are the generic SQL data types defined 
+     * in <code>java.sql.Types</code>.
      *
      * @param fromType the type to convert from; one of the type codes from
      *        the class <code>java.sql.Types</code>
@@ -797,7 +799,7 @@ public interface DatabaseMetaData {
 
     /**
      * Retrieves whether this database supports subqueries in 
-     * <code>IN</code> statements.
+     * <code>IN</code> expressions.
      *
      * @return <code>true</code> if so; <code>false</code> otherwise
      * @exception SQLException if a database access error occurs
@@ -1193,7 +1195,8 @@ public interface DatabaseMetaData {
      * <P>
      * Only procedure descriptions matching the schema and
      * procedure name criteria are returned.  They are ordered by
-     * <code>PROCEDURE_SCHEM</code> and <code>PROCEDURE_NAME</code>.
+     * <code>PROCEDURE_CAT</code>, <code>PROCEDURE_SCHEM</code>,
+     * <code>PROCEDURE_NAME</code> and <code>SPECIFIC_ NAME</code>.
      *
      * <P>Each procedure description has the the following columns:
      *  <OL>
@@ -1206,11 +1209,17 @@ public interface DatabaseMetaData {
      *	<LI><B>REMARKS</B> String => explanatory comment on the procedure
      *	<LI><B>PROCEDURE_TYPE</B> short => kind of procedure:
      *      <UL>
-     *      <LI> procedureResultUnknown - May return a result
-     *      <LI> procedureNoResult - Does not return a result
-     *      <LI> procedureReturnsResult - Returns a result
+     *      <LI> procedureResultUnknown - Cannot determine if  a return value
+     *       will be returned
+     *      <LI> procedureNoResult - Does not return a return value
+     *      <LI> procedureReturnsResult - Returns a return value
      *      </UL>
+     *	<LI><B>SPECIFIC_NAME</B> String  => The name which uniquely identifies this 
+     * procedure within its schema. 
      *  </OL>
+     * <p>
+     * A user may not have permissions to execute any of the procedures that are
+     * returned by <code>getProcedures</code>
      *
      * @param catalog a catalog name; must match the catalog name as it
      *        is stored in the database; "" retrieves those without a catalog;
@@ -1263,7 +1272,7 @@ public interface DatabaseMetaData {
      *
      * <P>Only descriptions matching the schema, procedure and
      * parameter name criteria are returned.  They are ordered by
-     * PROCEDURE_SCHEM and PROCEDURE_NAME. Within this, the return value,
+     * PROCEDURE_CAT, PROCEDURE_SCHEM, PROCEDURE_NAME and SPECIFIC_NAME. Within this, the return value,
      * if any, is first. Next are the parameter descriptions in call
      * order. The column descriptions follow in column number order.
      *
@@ -1288,7 +1297,8 @@ public interface DatabaseMetaData {
      *  type name is fully qualified
      *	<LI><B>PRECISION</B> int => precision
      *	<LI><B>LENGTH</B> int => length in bytes of data
-     *	<LI><B>SCALE</B> short => scale
+     *	<LI><B>SCALE</B> short => scale -  null is returned for data types where  
+     * SCALE is not applicable.
      *	<LI><B>RADIX</B> short => radix
      *	<LI><B>NULLABLE</B> short => can it contain NULL.
      *      <UL>
@@ -1297,12 +1307,40 @@ public interface DatabaseMetaData {
      *      <LI> procedureNullableUnknown - nullability unknown
      *      </UL>
      *	<LI><B>REMARKS</B> String => comment describing parameter/column
+     * 	<LI><B>COLUMN_DEF</B> String => default value for the column, which should be interpreted as a string when the value is enclosed in single quotes (may be <code>null</code>)
+     *      <UL>
+     *      <LI> The string NULL (not enclosed in quotes) - if NULL was specified as the default value
+     *      <LI> TRUNCATE (not enclosed in quotes)        - if the specified default value cannot be represented without truncation
+     *      <LI> NULL                                     - if a default value was not specified
+     *      </UL>
+     *	<LI><B>SQL_DATA_TYPE</B> int  => reserved for future use
+     *	<LI><B>SQL_DATETIME_SUB</B> int  => reserved for future use
+     *	<LI><B>CHAR_OCTET_LENGTH</B> int  => the maximum length of binary and character based columns.  For any other datatype the returned value is a 
+     * NULL
+     *	<LI><B>ORDINAL_POSITION</B> int  => the ordinal position, starting from 1, for the input and output parameters for a procedure. A value of 0
+     *is returned if this row describes the procedure's return value.  For result set columns, it is the
+     *ordinal position of the column in the result set starting from 1.  If there are
+     *multiple result sets, the column ordinal positions are implementation
+     * defined.
+     *	<LI><B>IS_NULLABLE</B> String  => ISO rules are used to determine the nullability for a column.
+     *       <UL>
+     *       <LI> YES           --- if the parameter can include NULLs
+     *       <LI> NO            --- if the parameter cannot include NULLs
+     *       <LI> empty string  --- if the nullability for the 
+     * parameter is unknown
+     *       </UL>
+     *	<LI><B>SPECIFIC_NAME</B> String  => the name which uniquely identifies this procedure within its schema.
      *  </OL>
      *
      * <P><B>Note:</B> Some databases may not return the column
-     * descriptions for a procedure. Additional columns beyond
-     * REMARKS can be defined by the database.
-     *
+     * descriptions for a procedure. 
+     * 
+     * <p>The PRECISION column represents the specified column size for the given column. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. Null is returned for data types where the
+     * column size is not applicable.
      * @param catalog a catalog name; must match the catalog name as it
      *        is stored in the database; "" retrieves those without a catalog;
      *        <code>null</code> means that the catalog name should not be used to narrow
@@ -1361,7 +1399,7 @@ public interface DatabaseMetaData {
      * A possible value for the column
      * <code>COLUMN_TYPE</code>
      * in the <code>ResultSet</code> 
-     * returned by the method <code>getProcedureColumns</code>.
+    * returned by the method <code>getProcedureColumns</code>.
      */
     int procedureColumnOut = 4;
     /**
@@ -1420,7 +1458,8 @@ public interface DatabaseMetaData {
      * Retrieves a description of the tables available in the given catalog.
      * Only table descriptions matching the catalog, schema, table
      * name and type criteria are returned.  They are ordered by
-     * TABLE_TYPE, TABLE_SCHEM and TABLE_NAME.
+     * <code>TABLE_TYPE</code>, <code>TABLE_CAT</code>, 
+     * <code>TABLE_SCHEM</code> and <code>TABLE_NAME</code>.
      * <P>
      * Each table description has the following columns:
      *  <OL>
@@ -1454,7 +1493,9 @@ public interface DatabaseMetaData {
      *        the search
      * @param tableNamePattern a table name pattern; must match the
      *        table name as it is stored in the database 
-     * @param types a list of table types to include; <code>null</code> returns all types 
+     * @param types a list of table types, which must be from the list of table types 
+     *         returned from {@link #getTableTypes},to include; <code>null</code> returns
+     * all types
      * @return <code>ResultSet</code> - each row is a table description
      * @exception SQLException if a database access error occurs
      * @see #getSearchStringEscape 
@@ -1464,17 +1505,19 @@ public interface DatabaseMetaData {
 
     /**
      * Retrieves the schema names available in this database.  The results
-     * are ordered by schema name.
+     * are ordered by <code>TABLE_CATALOG</code> and 
+     * <code>TABLE_SCHEM</code>.
      *
-     * <P>The schema column is:
+     * <P>The schema columns are:
      *  <OL>
      *	<LI><B>TABLE_SCHEM</B> String => schema name
      *  <LI><B>TABLE_CATALOG</B> String => catalog name (may be <code>null</code>)
      *  </OL>
      *
      * @return a <code>ResultSet</code> object in which each row is a 
-     *         schema decription 
+     *         schema description 
      * @exception SQLException if a database access error occurs
+     *
      */
     ResultSet getSchemas() throws SQLException;
 
@@ -1516,8 +1559,8 @@ public interface DatabaseMetaData {
      *
      * <P>Only column descriptions matching the catalog, schema, table
      * and column name criteria are returned.  They are ordered by
-     * <code>TABLE_SCHEM</code>, <code>TABLE_NAME</code>, and 
-     * <code>ORDINAL_POSITION</code>.
+     * <code>TABLE_CAT</code>,<code>TABLE_SCHEM</code>, 
+     * <code>TABLE_NAME</code>, and <code>ORDINAL_POSITION</code>.
      *
      * <P>Each column description has the following columns:
      *  <OL>
@@ -1528,11 +1571,10 @@ public interface DatabaseMetaData {
      *	<LI><B>DATA_TYPE</B> int => SQL type from java.sql.Types
      *	<LI><B>TYPE_NAME</B> String => Data source dependent type name,
      *  for a UDT the type name is fully qualified
-     *	<LI><B>COLUMN_SIZE</B> int => column size.  For char or date
-     *	    types this is the maximum number of characters, for numeric or
-     *	    decimal types this is precision.
+     *	<LI><B>COLUMN_SIZE</B> int => column size.  
      *	<LI><B>BUFFER_LENGTH</B> is not used.
-     *	<LI><B>DECIMAL_DIGITS</B> int => the number of fractional digits
+     *	<LI><B>DECIMAL_DIGITS</B> int => the number of fractional digits. Null is returned for data types where  
+     * DECIMAL_DIGITS is not applicable.
      *	<LI><B>NUM_PREC_RADIX</B> int => Radix (typically either 10 or 2)
      *	<LI><B>NULLABLE</B> int => is NULL allowed.
      *      <UL>
@@ -1541,16 +1583,20 @@ public interface DatabaseMetaData {
      *      <LI> columnNullableUnknown - nullability unknown
      *      </UL>
      *	<LI><B>REMARKS</B> String => comment describing column (may be <code>null</code>)
-     * 	<LI><B>COLUMN_DEF</B> String => default value (may be <code>null</code>)
+     * 	<LI><B>COLUMN_DEF</B> String => default value for the column, which should be interpreted as a string when the value is enclosed in single quotes (may be <code>null</code>)
      *	<LI><B>SQL_DATA_TYPE</B> int => unused
      *	<LI><B>SQL_DATETIME_SUB</B> int => unused
      *	<LI><B>CHAR_OCTET_LENGTH</B> int => for char types the 
      *       maximum number of bytes in the column
      *	<LI><B>ORDINAL_POSITION</B> int	=> index of column in table 
      *      (starting at 1)
-     *	<LI><B>IS_NULLABLE</B> String => "NO" means column definitely 
-     *      does not allow NULL values; "YES" means the column might 
-     *      allow NULL values.  An empty string means nobody knows.
+     *	<LI><B>IS_NULLABLE</B> String  => ISO rules are used to determine the nullability for a column.
+     *       <UL>
+     *       <LI> YES           --- if the parameter can include NULLs
+     *       <LI> NO            --- if the parameter cannot include NULLs
+     *       <LI> empty string  --- if the nullability for the 
+     * parameter is unknown
+     *       </UL>
      *  <LI><B>SCOPE_CATLOG</B> String => catalog of table that is the scope
      *      of a reference attribute (<code>null</code> if DATA_TYPE isn't REF)
      *  <LI><B>SCOPE_SCHEMA</B> String => schema of table that is the scope
@@ -1560,7 +1606,21 @@ public interface DatabaseMetaData {
      *  <LI><B>SOURCE_DATA_TYPE</B> short => source type of a distinct type or user-generated
      *      Ref type, SQL type from java.sql.Types (<code>null</code> if DATA_TYPE 
      *      isn't DISTINCT or user-generated REF)
+     *   <LI><B>IS_AUTOINCREMENT</B> String  => Indicates whether this column is auto incremented
+     *       <UL>
+     *       <LI> YES           --- if the column is auto incremented
+     *       <LI> NO            --- if the column is not auto incremented
+     *       <LI> empty string  --- if it cannot be determined whether the column is auto incremented
+     * parameter is unknown
+     *       </UL>
      *  </OL>
+     *    
+     * <p>The COLUMN_SIZE column the specified column size for the given column. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. Null is returned for data types where the
+     * column size is not applicable.
      *
      * @param catalog a catalog name; must match the catalog name as it
      *        is stored in the database; "" retrieves those without a catalog;
@@ -1624,7 +1684,7 @@ public interface DatabaseMetaData {
      *	<LI><B>TABLE_SCHEM</B> String => table schema (may be <code>null</code>)
      *	<LI><B>TABLE_NAME</B> String => table name
      *	<LI><B>COLUMN_NAME</B> String => column name
-     *	<LI><B>GRANTOR</B> => grantor of access (may be <code>null</code>)
+     *	<LI><B>GRANTOR</B> String => grantor of access (may be <code>null</code>)
      *	<LI><B>GRANTEE</B> String => grantee of access
      *	<LI><B>PRIVILEGE</B> String => name of access (SELECT, 
      *      INSERT, UPDATE, REFRENCES, ...)
@@ -1659,15 +1719,17 @@ public interface DatabaseMetaData {
      * some systems but is not true for all.)
      *
      * <P>Only privileges matching the schema and table name
-     * criteria are returned.  They are ordered by TABLE_SCHEM,
-     * TABLE_NAME, and PRIVILEGE.
+     * criteria are returned.  They are ordered by 
+     * <code>TABLE_CAT</code>, 
+     * <code>TABLE_SCHEM</code>, <code>TABLE_NAME</code>,
+     * and <code>PRIVILEGE</code>.
      *
      * <P>Each privilige description has the following columns:
      *  <OL>
      *	<LI><B>TABLE_CAT</B> String => table catalog (may be <code>null</code>)
      *	<LI><B>TABLE_SCHEM</B> String => table schema (may be <code>null</code>)
      *	<LI><B>TABLE_NAME</B> String => table name
-     *	<LI><B>GRANTOR</B> => grantor of access (may be <code>null</code>)
+     *	<LI><B>GRANTOR</B> String => grantor of access (may be <code>null</code>)
      *	<LI><B>GRANTEE</B> String => grantee of access
      *	<LI><B>PRIVILEGE</B> String => name of access (SELECT, 
      *      INSERT, UPDATE, REFRENCES, ...)
@@ -1710,7 +1772,8 @@ public interface DatabaseMetaData {
      *  for a UDT the type name is fully qualified
      *	<LI><B>COLUMN_SIZE</B> int => precision
      *	<LI><B>BUFFER_LENGTH</B> int => not used
-     *	<LI><B>DECIMAL_DIGITS</B> short	 => scale
+     *	<LI><B>DECIMAL_DIGITS</B> short	 => scale - Null is returned for data types where  
+     * DECIMAL_DIGITS is not applicable.
      *	<LI><B>PSEUDO_COLUMN</B> short => is this a pseudo column 
      *      like an Oracle ROWID
      *      <UL>
@@ -1719,6 +1782,13 @@ public interface DatabaseMetaData {
      *      <LI> bestRowPseudo - is a pseudo column
      *      </UL>
      *  </OL>
+     *
+     * <p>The COLUMN_SIZE column represents the specified column size for the given column. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. Null is returned for data types where the
+     * column size is not applicable.
      *
      * @param catalog a catalog name; must match the catalog name as it
      *        is stored in the database; "" retrieves those without a catalog;
@@ -1815,7 +1885,8 @@ public interface DatabaseMetaData {
      *	<LI><B>TYPE_NAME</B> String => Data source-dependent type name
      *	<LI><B>COLUMN_SIZE</B> int => precision
      *	<LI><B>BUFFER_LENGTH</B> int => length of column value in bytes
-     *	<LI><B>DECIMAL_DIGITS</B> short	 => scale
+     *	<LI><B>DECIMAL_DIGITS</B> short	 => scale - Null is returned for data types where  
+     * DECIMAL_DIGITS is not applicable.
      *	<LI><B>PSEUDO_COLUMN</B> short => whether this is pseudo column 
      *      like an Oracle ROWID
      *      <UL>
@@ -1824,7 +1895,13 @@ public interface DatabaseMetaData {
      *      <LI> versionColumnPseudo - is a pseudo column
      *      </UL>
      *  </OL>
-     *
+     *    
+     * <p>The COLUMN_SIZE column represents the specified column size for the given column. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. Null is returned for data types where the
+     * column size is not applicable.
      * @param catalog a catalog name; must match the catalog name as it
      *        is stored in the database; "" retrieves those without a catalog;
      *        <code>null</code> means that the catalog name should not be used to narrow
@@ -1882,7 +1959,9 @@ public interface DatabaseMetaData {
      *	<LI><B>TABLE_SCHEM</B> String => table schema (may be <code>null</code>)
      *	<LI><B>TABLE_NAME</B> String => table name
      *	<LI><B>COLUMN_NAME</B> String => column name
-     *	<LI><B>KEY_SEQ</B> short => sequence number within primary key
+     *	<LI><B>KEY_SEQ</B> short => sequence number within primary key( a value
+     *  of 1 represents the first column of the primary key, a value of 2 would
+     *  represent the second column within the primary key).
      *	<LI><B>PK_NAME</B> String => primary key name (may be <code>null</code>)
      *  </OL>
      *
@@ -1904,7 +1983,7 @@ public interface DatabaseMetaData {
 
     /**
      * Retrieves a description of the primary key columns that are
-     * referenced by a table's foreign key columns (the primary keys
+     * referenced by the given table's foreign key columns (the primary keys
      * imported by a table).  They are ordered by PKTABLE_CAT,
      * PKTABLE_SCHEM, PKTABLE_NAME, and KEY_SEQ.
      *
@@ -1922,7 +2001,9 @@ public interface DatabaseMetaData {
      *	<LI><B>FKTABLE_SCHEM</B> String => foreign key table schema (may be <code>null</code>)
      *	<LI><B>FKTABLE_NAME</B> String => foreign key table name
      *	<LI><B>FKCOLUMN_NAME</B> String => foreign key column name
-     *	<LI><B>KEY_SEQ</B> short => sequence number within a foreign key
+     *	<LI><B>KEY_SEQ</B> short => sequence number within a foreign key( a value
+     *  of 1 represents the first column of the foreign key, a value of 2 would
+     *  represent the second column within the foreign key).
      *	<LI><B>UPDATE_RULE</B> short => What happens to a
      *       foreign key when the primary key is updated:
      *      <UL>
@@ -2103,7 +2184,9 @@ public interface DatabaseMetaData {
      *      being exported
      *	<LI><B>FKCOLUMN_NAME</B> String => foreign key column name
      *      being exported
-     *	<LI><B>KEY_SEQ</B> short => sequence number within foreign key
+     *	<LI><B>KEY_SEQ</B> short => sequence number within foreign key( a value
+     *  of 1 represents the first column of the foreign key, a value of 2 would
+     *  represent the second column within the foreign key).
      *	<LI><B>UPDATE_RULE</B> short => What happens to 
      *       foreign key when primary is updated:
      *      <UL>
@@ -2162,19 +2245,18 @@ public interface DatabaseMetaData {
 
     /**
      * Retrieves a description of the foreign key columns in the given foreign key
-     * table that reference the primary key columns of the given primary key
-     * table (describe how one table imports another's key). This
-     * should normally return a single foreign key/primary key pair because
-     * most tables import a foreign key from a table only once.  They
+     * table that reference the primary key or the columns representing a unique constraint of the  parent table (could be the same or a different table).
+     * The number of columns returned from the parent table must match the number of
+     * columns that make up the foreign key.  They
      * are ordered by FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, and
      * KEY_SEQ.
      *
      * <P>Each foreign key column description has the following columns:
      *  <OL>
-     *	<LI><B>PKTABLE_CAT</B> String => primary key table catalog (may be <code>null</code>)
-     *	<LI><B>PKTABLE_SCHEM</B> String => primary key table schema (may be <code>null</code>)
-     *	<LI><B>PKTABLE_NAME</B> String => primary key table name
-     *	<LI><B>PKCOLUMN_NAME</B> String => primary key column name
+     *	<LI><B>PKTABLE_CAT</B> String => parent key table catalog (may be <code>null</code>)
+     *	<LI><B>PKTABLE_SCHEM</B> String => parent key table schema (may be <code>null</code>)
+     *	<LI><B>PKTABLE_NAME</B> String => parent key table name
+     *	<LI><B>PKCOLUMN_NAME</B> String => parent key column name
      *	<LI><B>FKTABLE_CAT</B> String => foreign key table catalog (may be <code>null</code>)
      *      being exported (may be <code>null</code>)
      *	<LI><B>FKTABLE_SCHEM</B> String => foreign key table schema (may be <code>null</code>)
@@ -2183,25 +2265,27 @@ public interface DatabaseMetaData {
      *      being exported
      *	<LI><B>FKCOLUMN_NAME</B> String => foreign key column name
      *      being exported
-     *	<LI><B>KEY_SEQ</B> short => sequence number within foreign key
+     *	<LI><B>KEY_SEQ</B> short => sequence number within foreign key( a value
+     *  of 1 represents the first column of the foreign key, a value of 2 would
+     *  represent the second column within the foreign key).
      *	<LI><B>UPDATE_RULE</B> short => What happens to 
-     *       foreign key when primary is updated:
+     *       foreign key when parent key is updated:
      *      <UL>
-     *      <LI> importedNoAction - do not allow update of primary 
+     *      <LI> importedNoAction - do not allow update of parent 
      *               key if it has been imported
      *      <LI> importedKeyCascade - change imported key to agree 
-     *               with primary key update
+     *               with parent key update
      *      <LI> importedKeySetNull - change imported key to <code>NULL</code> if 
-     *               its primary key has been updated
+     *               its parent key has been updated
      *      <LI> importedKeySetDefault - change imported key to default values 
-     *               if its primary key has been updated
+     *               if its parent key has been updated
      *      <LI> importedKeyRestrict - same as importedKeyNoAction 
      *                                 (for ODBC 2.x compatibility)
      *      </UL>
      *	<LI><B>DELETE_RULE</B> short => What happens to 
-     *      the foreign key when primary is deleted.
+     *      the foreign key when parent key is deleted.
      *      <UL>
-     *      <LI> importedKeyNoAction - do not allow delete of primary 
+     *      <LI> importedKeyNoAction - do not allow delete of parent 
      *               key if it has been imported
      *      <LI> importedKeyCascade - delete rows that import a deleted key
      *      <LI> importedKeySetNull - change imported key to <code>NULL</code> if 
@@ -2209,10 +2293,10 @@ public interface DatabaseMetaData {
      *      <LI> importedKeyRestrict - same as importedKeyNoAction 
      *                                 (for ODBC 2.x compatibility)
      *      <LI> importedKeySetDefault - change imported key to default if 
-     *               its primary key has been deleted
+     *               its parent key has been deleted
      *      </UL>
      *	<LI><B>FK_NAME</B> String => foreign key name (may be <code>null</code>)
-     *	<LI><B>PK_NAME</B> String => primary key name (may be <code>null</code>)
+     *	<LI><B>PK_NAME</B> String => parent key name (may be <code>null</code>)
      *	<LI><B>DEFERRABILITY</B> short => can the evaluation of foreign key 
      *      constraints be deferred until commit
      *      <UL>
@@ -2222,13 +2306,13 @@ public interface DatabaseMetaData {
      *      </UL>
      *  </OL>
      *
-     * @param primaryCatalog a catalog name; must match the catalog name
+     * @param parentCatalog a catalog name; must match the catalog name
      * as it is stored in the database; "" retrieves those without a
      * catalog; <code>null</code> means drop catalog name from the selection criteria 
-     * @param primarySchema a schema name; must match the schema name as
+     * @param parentSchema a schema name; must match the schema name as
      * it is stored in the database; "" retrieves those without a schema;
      * <code>null</code> means drop schema name from the selection criteria 
-     * @param primaryTable the name of the table that exports the key; must match
+     * @param parentTable the name of the table that exports the key; must match
      * the table name as it is stored in the database
      * @param foreignCatalog a catalog name; must match the catalog name as
      * it is stored in the database; "" retrieves those without a
@@ -2243,14 +2327,24 @@ public interface DatabaseMetaData {
      * @see #getImportedKeys 
      */
     ResultSet getCrossReference(
-				String primaryCatalog, String primarySchema, String primaryTable,
+				String parentCatalog, String parentSchema, String parentTable,
 				String foreignCatalog, String foreignSchema, String foreignTable
 				) throws SQLException;
 
     /**
-     * Retrieves a description of all the standard SQL types supported by
+     * Retrieves a description of all the data types supported by
      * this database. They are ordered by DATA_TYPE and then by how
      * closely the data type maps to the corresponding JDBC SQL type.
+     *
+     * <P>If the database supports SQL distinct types, then getTypeInfo() will return
+     * a single row with a TYPE_NAME of DISTINCT and a DATA_TYPE of Types.DISTINCT.
+     * If the database supports SQL structured types, then getTypeInfo() will return
+     * a single row with a TYPE_NAME of STRUCT and a DATA_TYPE of Types.STRUCT.
+     *
+     * <P>If SQL distinct or structured types are supported, then information on the
+     * individual types may be obtained from the getUDTs() method.
+     *
+
      *
      * <P>Each type description has the following columns:
      *  <OL>
@@ -2290,6 +2384,13 @@ public interface DatabaseMetaData {
      *	<LI><B>NUM_PREC_RADIX</B> int => usually 2 or 10
      *  </OL>
      *
+     * <p>The PRECISION column represents the maximum column size that the server supports for the given datatype. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. Null is returned for data types where the
+     * column size is not applicable.
+     *   
      * @return a <code>ResultSet</code> object in which each row is an SQL 
      *         type description 
      * @exception SQLException if a database access error occurs
@@ -2337,8 +2438,9 @@ public interface DatabaseMetaData {
     int typePredNone = 0;
 
     /**
-     * Indicates that the only <code>WHERE</code> search clause that can
-     * be based on this type is <code>WHERE . . . LIKE</code>.
+     * Indicates that the data type 
+     * can be only be used in <code>WHERE</code> search clauses 
+     * that  use <code>LIKE</code> predicates.
      * <P>
      * A possible value for column <code>SEARCHABLE</code> in the
      * <code>ResultSet</code> object returned by the method
@@ -2347,8 +2449,9 @@ public interface DatabaseMetaData {
     int typePredChar = 1;
 
     /**
-     * Indicates that one can base all <code>WHERE</code> search clauses 
-     * except <code>WHERE . . . LIKE</code> on this data type.
+     * Indicates that the data type can be only be used in <code>WHERE</code> 
+     * search clauses 
+     * that do not use <code>LIKE</code> predicates.
      * <P>
      * A possible value for column <code>SEARCHABLE</code> in the
      * <code>ResultSet</code> object returned by the method
@@ -2647,8 +2750,9 @@ public interface DatabaseMetaData {
      * or <code>DISTINCT</code>.
      *
      * <P>Only types matching the catalog, schema, type name and type  
-     * criteria are returned.  They are ordered by DATA_TYPE, TYPE_SCHEM 
-     * and TYPE_NAME.  The type name parameter may be a fully-qualified 
+     * criteria are returned.  They are ordered by <code>DATA_TYPE</code>, 
+     * <code>TYPE_CAT</code>, <code>TYPE_SCHEM</code>  and  
+     * <code>TYPE_NAME</code>.  The type name parameter may be a fully-qualified 
      * name.  In this case, the catalog and schemaPattern parameters are
      * ignored.
      *
@@ -2685,6 +2789,7 @@ public interface DatabaseMetaData {
      *        STRUCT, or DISTINCT) to include; <code>null</code> returns all types 
      * @return <code>ResultSet</code> object in which each row describes a UDT
      * @exception SQLException if a database access error occurs
+     * @see #getSearchStringEscape 
      * @since 1.2
      */
     ResultSet getUDTs(String catalog, String schemaPattern, 
@@ -2738,10 +2843,13 @@ public interface DatabaseMetaData {
 
     /**
      * Retrieves whether auto-generated keys can be retrieved after 
-     * a statement has been executed.
+     * a statement has been executed
      *
      * @return <code>true</code> if auto-generated keys can be retrieved
      *         after a statement has executed; <code>false</code> otherwise
+     *<p>If <code>true</code> is returned, the JDBC driver must support the 
+     * returning of auto-generated keys for at least SQL INSERT statements
+     *<p>
      * @exception SQLException if a database access error occurs
      * @since 1.4
      */
@@ -2784,7 +2892,8 @@ public interface DatabaseMetaData {
      *        name
      * @return a <code>ResultSet</code> object in which a row gives information
      *         about the designated UDT
-     * @throws SQLException if a database access error occurs
+     * @throws SQLException if a database access error occurs     
+     * @see #getSearchStringEscape 
      * @since 1.4
      */
     ResultSet getSuperTypes(String catalog, String schemaPattern, 
@@ -2821,6 +2930,7 @@ public interface DatabaseMetaData {
      *        name
      * @return a <code>ResultSet</code> object in which each row is a type description
      * @throws SQLException if a database access error occurs
+     * @see #getSearchStringEscape 
      * @since 1.4
      */
     ResultSet getSuperTables(String catalog, String schemaPattern,
@@ -2861,7 +2971,8 @@ public interface DatabaseMetaData {
      * <P>
      * Descriptions are returned only for attributes of UDTs matching the 
      * catalog, schema, type, and attribute name criteria. They are ordered by
-     * TYPE_SCHEM, TYPE_NAME and ORDINAL_POSITION. This description
+     * <code>TYPE_CAT</code>, <code>TYPE_SCHEM</code>, 
+     * <code>TYPE_NAME</code> and <code>ORDINAL_POSITION</code>. This description
      * does not contain inherited attributes.
      * <P>
      * The <code>ResultSet</code> object that is returned has the following 
@@ -2878,7 +2989,8 @@ public interface DatabaseMetaData {
      *	<LI><B>ATTR_SIZE</B> int => column size.  For char or date
      *	    types this is the maximum number of characters; for numeric or
      *	    decimal types this is precision.
-     *	<LI><B>DECIMAL_DIGITS</B> int => the number of fractional digits
+     *	<LI><B>DECIMAL_DIGITS</B> int => the number of fractional digits. Null is returned for data types where  
+     * DECIMAL_DIGITS is not applicable.
      *	<LI><B>NUM_PREC_RADIX</B> int => Radix (typically either 10 or 2)
      *	<LI><B>NULLABLE</B> int => whether NULL is allowed
      *      <UL>
@@ -2892,11 +3004,16 @@ public interface DatabaseMetaData {
      *	<LI><B>SQL_DATETIME_SUB</B> int => unused
      *	<LI><B>CHAR_OCTET_LENGTH</B> int => for char types the 
      *       maximum number of bytes in the column
-     *	<LI><B>ORDINAL_POSITION</B> int	=> index of column in table 
+     *	<LI><B>ORDINAL_POSITION</B> int	=> index of the attribute in the UDT  
      *      (starting at 1)
-     *	<LI><B>IS_NULLABLE</B> String => "NO" means column definitely 
-     *      does not allow NULL values; "YES" means the column might 
-     *      allow NULL values.  An empty string means unknown.
+     *	<LI><B>IS_NULLABLE</B> String  => ISO rules are used to determine 
+     * the nullability for a attribute.
+     *       <UL>
+     *       <LI> YES           --- if the attribute can include NULLs
+     *       <LI> NO            --- if the attribute cannot include NULLs
+     *       <LI> empty string  --- if the nullability for the 
+     * attribute is unknown
+     *       </UL>
      *  <LI><B>SCOPE_CATALOG</B> String => catalog of table that is the
      *      scope of a reference attribute (<code>null</code> if DATA_TYPE isn't REF)
      *  <LI><B>SCOPE_SCHEMA</B> String => schema of table that is the 
@@ -2922,6 +3039,7 @@ public interface DatabaseMetaData {
      * @return a <code>ResultSet</code> object in which each row is an 
      *         attribute description
      * @exception SQLException if a database access error occurs
+     * @see #getSearchStringEscape      
      * @since 1.4
      */
     ResultSet getAttributes(String catalog, String schemaPattern,
@@ -2942,8 +3060,8 @@ public interface DatabaseMetaData {
     boolean supportsResultSetHoldability(int holdability) throws SQLException;
 
     /**
-     * Retrieves the default holdability of this <code>ResultSet</code>
-     * object.
+     * Retrieves this database's default holdability for <code>ResultSet</code>
+     * objects.
      *
      * @return the default holdability; either 
      *         <code>ResultSet.HOLD_CURSORS_OVER_COMMIT</code> or
@@ -2992,30 +3110,45 @@ public interface DatabaseMetaData {
     int getJDBCMinorVersion() throws SQLException;
 
     /**
-     * Indicates that the value is an
+     *  A possible return value for the method 
+     * <code>DatabaseMetaData.getSQLStateType</code> which is used to indicate
+     * whether the value returned by the method 
+     * <code>SQLException.getSQLState</code> is an 
      * X/Open (now know as Open Group) SQL CLI SQLSTATE value.
      * <P>
-     * A possible return value for the method
-     * <code>SQLException.getSQLState</code>.
      * @since 1.4
      */
     int sqlStateXOpen = 1;
 
     /**
-     * Indicates that the value is an SQL99 SQLSTATE value.
+     *  A possible return value for the method 
+     * <code>DatabaseMetaData.getSQLStateType</code> which is used to indicate
+     * whether the value returned by the method 
+     * <code>SQLException.getSQLState</code> is an SQLSTATE value.
      * <P>
-     * A possible return value for the method
-     * <code>SQLException.getSQLState</code>.
+     * @since 1.6
+     */
+    int sqlStateSQL = 2;
+    
+     /**
+     *  A possible return value for the method 
+     * <code>DatabaseMetaData.getSQLStateType</code> which is used to indicate
+     * whether the value returned by the method 
+     * <code>SQLException.getSQLState</code> is an SQL99 SQLSTATE value.
+     * <P>
+     * <b>Note:</b>This constant remains only for compatibility reasons. Developers
+     * should use the constant <code>sqlStateSQL</code> instead.
+     *
      * @since 1.4
      */
-    int sqlStateSQL99 = 2;
+    int sqlStateSQL99 = sqlStateSQL;
 
     /**
      * Indicates whether the SQLSTATE returned by <code>SQLException.getSQLState</code>
-     * is X/Open (now known as Open Group) SQL CLI or SQL99.
+     * is X/Open (now known as Open Group) SQL CLI or SQL:2003.
      * @return the type of SQLSTATE; one of:
      *        sqlStateXOpen or
-     *        sqlStateSQL99
+     *        sqlStateSQL
      * @throws SQLException if a database access error occurs 
      * @since 1.4
      */
@@ -3039,6 +3172,384 @@ public interface DatabaseMetaData {
      * @since 1.4
      */
     boolean supportsStatementPooling() throws SQLException;
+    
+    //------------------------- JDBC 4.0 -----------------------------------
+
+    /**
+     * Indicates whether or not this data source supports the SQL <code>ROWID</code> type,
+     * and if so  the lifetime for which a <code>RowId</code> object remains valid. 
+     * <p>
+     * The returned int values have the following relationship: 
+     * <pre>
+     *     ROWID_UNSUPPORTED < ROWID_VALID_OTHER < ROWID_VALID_TRANSACTION
+     *         < ROWID_VALID_SESSION < ROWID_VALID_FOREVER
+     * </pre>
+     * so conditional logic such as 
+     * <pre>
+     *     if (metadata.getRowIdLifetime() > DatabaseMetaData.ROWID_VALID_TRANSACTION)
+     * </pre>
+     * can be used. Valid Forever means valid across all Sessions, and valid for 
+     * a Session means valid across all its contained Transactions. 
+     *
+     * @return the status indicating the lifetime of a <code>RowId</code>
+     * @throws SQLException if a database access error occurs
+     * @since 1.6
+     */
+    RowIdLifetime getRowIdLifetime() throws SQLException;
+
+    /**
+     * Retrieves the schema names available in this database.  The results
+     * are ordered by <code>TABLE_CATALOG</code> and 
+     * <code>TABLE_SCHEM</code>.
+     *
+     * <P>The schema columns are:
+     *  <OL>
+     *	<LI><B>TABLE_SCHEM</B> String => schema name
+     *  <LI><B>TABLE_CATALOG</B> String => catalog name (may be <code>null</code>)
+     *  </OL>
+     *
+     *
+     * @param catalog a catalog name; must match the catalog name as it is stored
+     * in the database;"" retrieves those without a catalog; null means catalog
+     * name should not be used to narrow down the search.
+     * @param schemaPattern a schema name; must match the schema name as it is
+     * stored in the database; null means
+     * schema name should not be used to narrow down the search.
+     * @return a <code>ResultSet</code> object in which each row is a
+     *         schema description
+     * @exception SQLException if a database access error occurs
+     * @see #getSearchStringEscape 
+     * @since 1.6
+     */
+    ResultSet getSchemas(String catalog, String schemaPattern) throws SQLException;
+    
+    /**
+     * Retrieves whether this database supports invoking user-defined or vendor functions 
+     * using the stored procedure escape syntax.
+     *
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
+     * @since 1.6
+     */
+    boolean supportsStoredFunctionsUsingCallSyntax() throws SQLException;
+     
+    /**
+     * Retrieves whether a <code>SQLException</code> while autoCommit is <code>true</code> inidcates 
+     * that all open ResultSets are closed, even ones that are holdable.  When a <code>SQLException</code> occurs while
+     * autocommit is <code>true</code>, it is vendor specific whether the JDBC driver responds with a commit operation, a 
+     * rollback operation, or by doing neither a commit nor a rollback.  A potential result of this difference
+     * is in whether or not holdable ResultSets are closed.
+     *
+     * @return <code>true</code> if so; <code>false</code> otherwise 
+     * @exception SQLException if a database access error occurs
+     * @since 1.6
+     */
+    boolean autoCommitFailureClosesAllResultSets() throws SQLException;
+	/**
+	 * Retrieves a list of the client info properties 
+	 * that the driver supports.  The result set contains the following columns
+	 * <p>
+         * <ol>
+	 * <li><b>NAME</b> String=> The name of the client info property<br>
+	 * <li><b>MAX_LEN</b> int=> The maximum length of the value for the property<br>
+	 * <li><b>DEFAULT_VALUE</b> String=> The default value of the property<br>
+	 * <li><b>DESCRIPTION</b> String=> A description of the property.  This will typically 
+	 * 						contain information as to where this property is 
+	 * 						stored in the database.
+	 * </ol>
+         * <p>
+	 * The <code>ResultSet</code> is sorted by the NAME column
+	 * <p>
+	 * @return	A <code>ResultSet</code> object; each row is a supported client info
+         * property
+	 * <p>
+	 *  @exception SQLException if a database access error occurs
+	 * <p>
+	 * @since 1.6
+	 */
+	ResultSet getClientInfoProperties()
+		throws SQLException;
+    
+    /**
+     * Retrieves a description of the  system and user functions available 
+     * in the given catalog.
+     * <P>
+     * Only system and user function descriptions matching the schema and
+     * function name criteria are returned.  They are ordered by
+     * <code>FUNCTION_CAT</code>, <code>FUNCTION_SCHEM</code>,
+     * <code>FUNCTION_NAME</code> and 
+     * <code>SPECIFIC_ NAME</code>.
+     *
+     * <P>Each function description has the the following columns:
+     *  <OL>
+     *	<LI><B>FUNCTION_CAT</B> String => function catalog (may be <code>null</code>)
+     *	<LI><B>FUNCTION_SCHEM</B> String => function schema (may be <code>null</code>)
+     *	<LI><B>FUNCTION_NAME</B> String => function name.  This is the name 
+     * used to invoke the function
+     *	<LI><B>REMARKS</B> String => explanatory comment on the function
+     * <LI><B>FUNCTION_TYPE</B> short => kind of function:
+     *      <UL>
+     *      <LI>functionResultUnknown - Cannot determine if a return value
+     *       or table will be returned
+     *      <LI> functionNoTable- Does not return a table
+     *      <LI> functionReturnsTable - Returns a table
+     *      </UL>
+     *	<LI><B>SPECIFIC_NAME</B> String  => the name which uniquely identifies 
+     *  this function within its schema.  This is a user specified, or DBMS
+     * generated, name that may be different then the <code>FUNCTION_NAME</code> 
+     * for example with overload functions
+     *  </OL>
+     * <p>
+     * A user may not have permission to execute any of the functions that are
+     * returned by <code>getFunctions</code>
+     *
+     * @param catalog a catalog name; must match the catalog name as it
+     *        is stored in the database; "" retrieves those without a catalog;
+     *        <code>null</code> means that the catalog name should not be used to narrow
+     *        the search
+     * @param schemaPattern a schema name pattern; must match the schema name
+     *        as it is stored in the database; "" retrieves those without a schema;
+     *        <code>null</code> means that the schema name should not be used to narrow
+     *        the search
+     * @param functionNamePattern a function name pattern; must match the
+     *        function name as it is stored in the database 
+     * @return <code>ResultSet</code> - each row is a function description 
+     * @exception SQLException if a database access error occurs
+     * @see #getSearchStringEscape 
+     * @since 1.6
+     */
+    ResultSet getFunctions(String catalog, String schemaPattern,
+			    String functionNamePattern) throws SQLException;
+    /**
+     * Retrieves a description of the given catalog's system or user 
+     * function parameters and return type.
+     *
+     * <P>Only descriptions matching the schema,  function and
+     * parameter name criteria are returned. They are ordered by
+     * <code>FUNCTION_CAT</code>, <code>FUNCTION_SCHEM</code>,
+     * <code>FUNCTION_NAME</code> and 
+     * <code>SPECIFIC_ NAME</code>. Within this, the return value,
+     * if any, is first. Next are the parameter descriptions in call
+     * order. The column descriptions follow in column number order.
+     *
+     * <P>Each row in the <code>ResultSet</code> 
+     * is a parameter description, column description or
+     * return type description with the following fields:
+     *  <OL>
+     *  <LI><B>FUNCTION_CAT</B> String => function catalog (may be <code>null</code>)
+     *	<LI><B>FUNCTION_SCHEM</B> String => function schema (may be <code>null</code>)
+     *	<LI><B>FUNCTION_NAME</B> String => function name.  This is the name 
+     * used to invoke the function
+     *	<LI><B>COLUMN_NAME</B> String => column/parameter name 
+     *	<LI><B>COLUMN_TYPE</B> Short => kind of column/parameter:
+     *      <UL>
+     *      <LI> functionColumnUnknown - nobody knows
+     *      <LI> functionColumnIn - IN parameter
+     *      <LI> functionColumnInOut - INOUT parameter
+     *      <LI> functionColumnOut - OUT parameter
+     *      <LI> functionColumnReturn - function return value
+     *      <LI> functionColumnResult - Indicates that the parameter or column
+     *  is a column in the <code>ResultSet</code>
+     *      </UL>
+     *  <LI><B>DATA_TYPE</B> int => SQL type from java.sql.Types
+     *	<LI><B>TYPE_NAME</B> String => SQL type name, for a UDT type the
+     *  type name is fully qualified
+     *	<LI><B>PRECISION</B> int => precision
+     *	<LI><B>LENGTH</B> int => length in bytes of data
+     *	<LI><B>SCALE</B> short => scale -  null is returned for data types where  
+     * SCALE is not applicable.
+     *	<LI><B>RADIX</B> short => radix
+     *	<LI><B>NULLABLE</B> short => can it contain NULL.
+     *      <UL>
+     *      <LI> functionNoNulls - does not allow NULL values
+     *      <LI> functionNullable - allows NULL values
+     *      <LI> functionNullableUnknown - nullability unknown
+     *      </UL>
+     *	<LI><B>REMARKS</B> String => comment describing column/parameter
+     *	<LI><B>CHAR_OCTET_LENGTH</B> int  => the maximum length of binary 
+     * and character based parameters or columns.  For any other datatype the returned value 
+     * is a NULL
+     *	<LI><B>ORDINAL_POSITION</B> int  => the ordinal position, starting 
+     * from 1, for the input and output parameters. A value of 0
+     * is returned if this row describes the function's return value. 
+     * For result set columns, it is the
+     * ordinal position of the column in the result set starting from 1.  
+     *	<LI><B>IS_NULLABLE</B> String  => ISO rules are used to determine 
+     * the nullability for a parameter or column.
+     *       <UL>
+     *       <LI> YES           --- if the parameter or column can include NULLs
+     *       <LI> NO            --- if the parameter or column  cannot include NULLs
+     *       <LI> empty string  --- if the nullability for the 
+     * parameter  or column is unknown
+     *       </UL>
+     *	<LI><B>SPECIFIC_NAME</B> String  => the name which uniquely identifies 
+     * this function within its schema.  This is a user specified, or DBMS
+     * generated, name that may be different then the <code>FUNCTION_NAME</code> 
+     * for example with overload functions
+     *  </OL>
+     * 
+     * <p>The PRECISION column represents the specified column size for the given 
+     * parameter or column. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. Null is returned for data types where the
+     * column size is not applicable.
+     * @param catalog a catalog name; must match the catalog name as it
+     *        is stored in the database; "" retrieves those without a catalog;
+     *        <code>null</code> means that the catalog name should not be used to narrow
+     *        the search
+     * @param schemaPattern a schema name pattern; must match the schema name
+     *        as it is stored in the database; "" retrieves those without a schema;
+     *        <code>null</code> means that the schema name should not be used to narrow
+     *        the search
+     * @param functionNamePattern a procedure name pattern; must match the
+     *        function name as it is stored in the database 
+     * @param columnNamePattern a parameter name pattern; must match the 
+     * parameter or column name as it is stored in the database 
+     * @return <code>ResultSet</code> - each row describes a 
+     * user function parameter, column  or return type
+     *
+     * @exception SQLException if a database access error occurs
+     * @see #getSearchStringEscape 
+     * @since 1.6
+     */
+    ResultSet getFunctionColumns(String catalog,
+				  String schemaPattern,
+				  String functionNamePattern, 
+				  String columnNamePattern) throws SQLException;
+   
+
+    /**
+     * Indicates that type of the parameter or column is unknown.
+     * <P>
+     * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+     * in the <code>ResultSet</code> 
+     * returned by the method <code>getFunctionColumns</code>.
+     */
+    int functionColumnUnknown = 0;
+
+    /**
+     * Indicates that the parameter or column is an IN parameter.
+     * <P>
+     *  A possible value for the column
+     * <code>COLUMN_TYPE</code>
+     * in the <code>ResultSet</code> 
+     * returned by the method <code>getFunctionColumns</code>.
+     * @since 1.6
+     */
+    int functionColumnIn = 1;
+
+    /**
+     * Indicates that the parameter or column is an INOUT parameter.
+     * <P>
+     * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+     * in the <code>ResultSet</code> 
+     * returned by the method <code>getFunctionColumns</code>.     
+     * @since 1.6
+     */
+    int functionColumnInOut = 2;
+
+    /**
+     * Indicates that the parameter or column is an OUT parameter.
+     * <P>
+     * A possible value for the column
+     * <code>COLUMN_TYPE</code>
+     * in the <code>ResultSet</code> 
+     * returned by the method <code>getFunctionColumns</code>.
+     * @since 1.6
+     */
+    int functionColumnOut = 3;
+    /**
+     * Indicates that the parameter or column is a return value.
+     * <P>
+     *  A possible value for the column
+     * <code>COLUMN_TYPE</code>
+     * in the <code>ResultSet</code> 
+     * returned by the method <code>getFunctionColumns</code>.     
+     * @since 1.6
+     */
+    int functionReturn = 4;
+    
+       /**
+     * Indicates that the parameter or column is a column in a result set.
+     * <P>
+     *  A possible value for the column
+     * <code>COLUMN_TYPE</code>
+     * in the <code>ResultSet</code> 
+     * returned by the method <code>getFunctionColumns</code>.     
+     * @since 1.6
+     */
+    int functionColumnResult = 5;
+
+    
+    /**
+     * Indicates that <code>NULL</code> values are not allowed.
+     * <P>
+     * A possible value for the column
+     * <code>NULLABLE</code>
+     * in the <code>ResultSet</code> object
+     * returned by the method <code>getFunctionColumns</code>.     
+     * @since 1.6
+     */
+    int functionNoNulls = 0;
+
+    /**
+     * Indicates that <code>NULL</code> values are allowed.
+     * <P>
+     * A possible value for the column
+     * <code>NULLABLE</code>
+     * in the <code>ResultSet</code> object
+     * returned by the method <code>getFunctionColumns</code>.     
+     * @since 1.6
+     */
+    int functionNullable = 1;
+
+    /**
+     * Indicates that whether <code>NULL</code> values are allowed
+     * is unknown.
+     * <P>
+     * A possible value for the column
+     * <code>NULLABLE</code>
+     * in the <code>ResultSet</code> object
+     * returned by the method <code>getFunctionColumns</code>.    
+     * @since 1.6
+     */
+    int functionNullableUnknown = 2;    
+       
+    /**
+     * Indicates that it is not known whether the function returns
+     * a result or a table.
+     * <P>
+     * A possible value for column <code>FUNCTION_TYPE</code> in the
+     * <code>ResultSet</code> object returned by the method
+     * <code>getFunctions</code>.
+     * @since 1.6
+     */
+    int functionResultUnknown	= 0;
+
+    /**
+     * Indicates that the function  does not return a table.
+     * <P>
+     * A possible value for column <code>FUNCTION_TYPE</code> in the
+     * <code>ResultSet</code> object returned by the method
+     * <code>getFunctions</code>.
+     * @since 1.6
+     */
+    int functionNoTable		= 1;
+
+    /**
+     * Indicates that the function  returns a table.
+     * <P>
+     * A possible value for column <code>FUNCTION_TYPE</code> in the
+     * <code>ResultSet</code> object returned by the method
+     * <code>getFunctions</code>.
+     * @since 1.6
+     */
+    int functionReturnsTable	= 2;
+
 }
 
 

@@ -1,76 +1,71 @@
 /*
- * The Apache Software License, Version 1.1
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
  *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
  *
- * Copyright (c) 1999-2004 The Apache Software Foundation.  
- * All rights reserved.
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
+
+/*
+ * $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
+ * @(#)XMLScanner.java	1.18 06/08/10
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ */
+
+/*
+ * Copyright 2005 The Apache Software Foundation.
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl;
 
-import java.io.IOException;
 
+import com.sun.xml.internal.stream.XMLEntityStorage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import javax.xml.stream.events.XMLEvent;
 import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.util.XMLResourceIdentifierImpl;
 import com.sun.org.apache.xerces.internal.util.XMLStringBuffer;
 import com.sun.org.apache.xerces.internal.xni.Augmentations;
+import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
 import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
 import com.sun.org.apache.xerces.internal.xni.XMLString;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponent;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
+import com.sun.xml.internal.stream.Entity;
+
+//import com.sun.xml.stream.XMLEntityManager;
+//import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
 
 /**
  * This class is responsible for holding scanning methods common to
@@ -82,8 +77,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
  * This component requires the following features and properties from the
  * component manager that uses it:
  * <ul>
- *  <li>http://xml.org/sax/features/validation</li> 
- *  <li>http://xml.org/sax/features/namespaces</li>
+ *  <li>http://xml.org/sax/features/validation</li>
  *  <li>http://apache.org/xml/features/scanner/notify-char-refs</li>
  *  <li>http://apache.org/xml/properties/internal/symbol-table</li>
  *  <li>http://apache.org/xml/properties/internal/error-reporter</li>
@@ -93,60 +87,70 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
  * @author Andy Clark, IBM
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
- *
- * @version $Id: XMLScanner.java,v 1.48 2004/04/25 05:05:50 mrglavas Exp $
+ * @author K.Venugopal SUN Microsystems
+ * @author Sunitha Reddy, SUN Microsystems
+ * @version $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
  */
-public abstract class XMLScanner 
-    implements XMLComponent {
-
+public abstract class XMLScanner
+        implements XMLComponent {
+    
     //
     // Constants
     //
-
+    
     // feature identifiers
-
+    
+    /** Feature identifier: namespaces. */
+    protected static final String NAMESPACES =
+            Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
+    
     /** Feature identifier: validation. */
     protected static final String VALIDATION =
-        Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
-
-    /** Feature identifier: namespaces. */
-    protected static final String NAMESPACES = 
-        Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
-
+            Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
+    
     /** Feature identifier: notify character references. */
     protected static final String NOTIFY_CHAR_REFS =
-        Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_CHAR_REFS_FEATURE;
-	
-	protected static final String PARSER_SETTINGS = 
-				Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
-
+            Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_CHAR_REFS_FEATURE;
+    
     // property identifiers
-
+    
+    protected static final String PARSER_SETTINGS = 
+				Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;    
     /** Property identifier: symbol table. */
-    protected static final String SYMBOL_TABLE = 
-        Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
-
+    protected static final String SYMBOL_TABLE =
+            Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
+    
     /** Property identifier: error reporter. */
-    protected static final String ERROR_REPORTER = 
-        Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY;
-
+    protected static final String ERROR_REPORTER =
+            Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY;
+    
     /** Property identifier: entity manager. */
-    protected static final String ENTITY_MANAGER = 
-        Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_MANAGER_PROPERTY;
-
+    protected static final String ENTITY_MANAGER =
+            Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_MANAGER_PROPERTY;
+    
     // debugging
-
+    
     /** Debug attribute normalization. */
     protected static final boolean DEBUG_ATTR_NORMALIZATION = false;
-
+    
+    
+    //xxx: setting the default value as false, as we dont need to calculate this value
+    //we should have a feature when set to true computes this value
+    private boolean fNeedNonNormalizedValue = false;
+    
+    protected ArrayList attributeValueCache = new ArrayList();
+    protected ArrayList stringBufferCache = new ArrayList();
+    protected int fStringBufferIndex = 0;
+    protected boolean fAttributeCacheInitDone = false;
+    protected int fAttributeCacheUsedCount = 0;
+    
     //
     // Data
     //
     
-
     // features
-
-    /** 
+    
+    /**
      * Validation. This feature identifier is:
      * http://xml.org/sax/features/validation
      */
@@ -154,105 +158,113 @@ public abstract class XMLScanner
     
     /** Namespaces. */
     protected boolean fNamespaces;
-
+    
     /** Character references notification. */
     protected boolean fNotifyCharRefs = false;
-    
+
     /** Internal parser-settings feature */
 	protected boolean fParserSettings = true;
-	
+    
     // properties
-
+    
+    protected PropertyManager fPropertyManager = null ;
     /** Symbol table. */
     protected SymbolTable fSymbolTable;
-
+    
     /** Error reporter. */
     protected XMLErrorReporter fErrorReporter;
-
+    
     /** Entity manager. */
-    protected XMLEntityManager fEntityManager;
-
+    //protected XMLEntityManager fEntityManager = PropertyManager.getEntityManager();
+    protected XMLEntityManager fEntityManager = null ;
+    
+    /** xxx this should be available from EntityManager Entity storage */
+    protected XMLEntityStorage fEntityStore = null ;
+    
     // protected data
-
-    /** Entity scanner. */
-    protected XMLEntityScanner fEntityScanner;
-
+    
+    /** event type */
+    protected XMLEvent fEvent ;
+    
+    /** Entity scanner, this alwasy works on last entity that was opened. */
+    protected XMLEntityScanner fEntityScanner = null;
+    
     /** Entity depth. */
     protected int fEntityDepth;
-
+    
     /** Literal value of the last character refence scanned. */
     protected String fCharRefLiteral = null;
-
+    
     /** Scanning attribute. */
     protected boolean fScanningAttribute;
-
+    
     /** Report entity boundary. */
     protected boolean fReportEntity;
-
+    
     // symbols
-
+    
     /** Symbol: "version". */
     protected final static String fVersionSymbol = "version".intern();
-
+    
     /** Symbol: "encoding". */
     protected final static String fEncodingSymbol = "encoding".intern();
-
+    
     /** Symbol: "standalone". */
     protected final static String fStandaloneSymbol = "standalone".intern();
-
+    
     /** Symbol: "amp". */
     protected final static String fAmpSymbol = "amp".intern();
-
+    
     /** Symbol: "lt". */
     protected final static String fLtSymbol = "lt".intern();
-
+    
     /** Symbol: "gt". */
     protected final static String fGtSymbol = "gt".intern();
-
+    
     /** Symbol: "quot". */
     protected final static String fQuotSymbol = "quot".intern();
-
+    
     /** Symbol: "apos". */
     protected final static String fAposSymbol = "apos".intern();
-
+    
     // temporary variables
-
+    
     // NOTE: These objects are private to help prevent accidental modification
     //       of values by a subclass. If there were protected *and* the sub-
     //       modified the values, it would be difficult to track down the real
-    //       cause of the bug. By making these private, we avoid this 
+    //       cause of the bug. By making these private, we avoid this
     //       possibility.
-
+    
     /** String. */
     private XMLString fString = new XMLString();
-
+    
     /** String buffer. */
     private XMLStringBuffer fStringBuffer = new XMLStringBuffer();
-
+    
     /** String buffer. */
     private XMLStringBuffer fStringBuffer2 = new XMLStringBuffer();
-
+    
     /** String buffer. */
     private XMLStringBuffer fStringBuffer3 = new XMLStringBuffer();
-
+    
     // temporary location for Resource identification information.
     protected XMLResourceIdentifierImpl fResourceIdentifier = new XMLResourceIdentifierImpl();
-
+    int initialCacheCount = 6;
     //
     // XMLComponent methods
     //
-
+    
     /**
-     * 
-     * 
+     *
+     *
      * @param componentManager The component manager.
      *
      * @throws SAXException Throws exception if required features and
      *                      properties cannot be found.
      */
     public void reset(XMLComponentManager componentManager)
-        throws XMLConfigurationException {
-
+    throws XMLConfigurationException {
+        
 		try {
 			fParserSettings = componentManager.getFeature(PARSER_SETTINGS);
 		} catch (XMLConfigurationException e) {
@@ -265,16 +277,19 @@ public abstract class XMLScanner
 			return;
 		}
 
+        
         // Xerces properties
         fSymbolTable = (SymbolTable)componentManager.getProperty(SYMBOL_TABLE);
         fErrorReporter = (XMLErrorReporter)componentManager.getProperty(ERROR_REPORTER);
         fEntityManager = (XMLEntityManager)componentManager.getProperty(ENTITY_MANAGER);
-
+        
+        //this step is extra because we have separated the storage of entity
+        fEntityStore = fEntityManager.getEntityStore() ;
+        
         // sax features
         try {
             fValidation = componentManager.getFeature(VALIDATION);
-        }
-        catch (XMLConfigurationException e) {
+        } catch (XMLConfigurationException e) {
             fValidation = false;
         }
         try {
@@ -285,50 +300,52 @@ public abstract class XMLScanner
         }
         try {
             fNotifyCharRefs = componentManager.getFeature(NOTIFY_CHAR_REFS);
-        }
-        catch (XMLConfigurationException e) {
+        } catch (XMLConfigurationException e) {
             fNotifyCharRefs = false;
         }
         
         init();
-
     } // reset(XMLComponentManager)
-
+    
+    protected void setPropertyManager(PropertyManager propertyManager){
+        fPropertyManager = propertyManager ;
+    }
+        
     /**
      * Sets the value of a property during parsing.
-     * 
-     * @param propertyId 
-     * @param value 
+     *
+     * @param propertyId
+     * @param value
      */
     public void setProperty(String propertyId, Object value)
-        throws XMLConfigurationException {
+    throws XMLConfigurationException {
         
         // Xerces properties
         if (propertyId.startsWith(Constants.XERCES_PROPERTY_PREFIX)) {
-        	final int suffixLength = propertyId.length() - Constants.XERCES_PROPERTY_PREFIX.length();
-        	
-            if (suffixLength == Constants.SYMBOL_TABLE_PROPERTY.length() && 
-                propertyId.endsWith(Constants.SYMBOL_TABLE_PROPERTY)) {
+            String property =
+                    propertyId.substring(Constants.XERCES_PROPERTY_PREFIX.length());
+            if (property.equals(Constants.SYMBOL_TABLE_PROPERTY)) {
                 fSymbolTable = (SymbolTable)value;
-            }
-            else if (suffixLength == Constants.ERROR_REPORTER_PROPERTY.length() && 
-                propertyId.endsWith(Constants.ERROR_REPORTER_PROPERTY)) {
+            } else if (property.equals(Constants.ERROR_REPORTER_PROPERTY)) {
                 fErrorReporter = (XMLErrorReporter)value;
-            }
-            else if (suffixLength == Constants.ENTITY_MANAGER_PROPERTY.length() && 
-                propertyId.endsWith(Constants.ENTITY_MANAGER_PROPERTY)) {
+            } else if (property.equals(Constants.ENTITY_MANAGER_PROPERTY)) {
                 fEntityManager = (XMLEntityManager)value;
             }
         }
-
+                /*else if(propertyId.equals(Constants.STAX_PROPERTIES)){
+            fStaxProperties = (HashMap)value;
+            //TODO::discuss with neeraj what are his thoughts on passing properties.
+            //For now use this
+        }*/
+        
     } // setProperty(String,Object)
-
+    
     /*
      * Sets the feature of the scanner.
      */
     public void setFeature(String featureId, boolean value)
-        throws XMLConfigurationException {
-            
+    throws XMLConfigurationException {
+        
         if (VALIDATION.equals(featureId)) {
             fValidation = value;
         } else if (NOTIFY_CHAR_REFS.equals(featureId)) {
@@ -340,8 +357,8 @@ public abstract class XMLScanner
      * Gets the state of the feature of the scanner.
      */
     public boolean getFeature(String featureId)
-        throws XMLConfigurationException {
-            
+    throws XMLConfigurationException {
+        
         if (VALIDATION.equals(featureId)) {
             return fValidation;
         } else if (NOTIFY_CHAR_REFS.equals(featureId)) {
@@ -353,7 +370,7 @@ public abstract class XMLScanner
     //
     // Protected methods
     //
-
+    
     // anybody calling this had better have set Symtoltable!
     protected void reset() {
         init();
@@ -363,9 +380,25 @@ public abstract class XMLScanner
         fNotifyCharRefs = false;
 
     }
-
+    
+    public void reset(PropertyManager propertyManager) {
+        init();
+        // Xerces properties
+        fSymbolTable = (SymbolTable)propertyManager.getProperty(Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY);
+        
+        fErrorReporter = (XMLErrorReporter)propertyManager.getProperty(Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY);
+        
+        fEntityManager = (XMLEntityManager)propertyManager.getProperty(ENTITY_MANAGER);
+        fEntityStore = fEntityManager.getEntityStore() ;
+        fEntityScanner = (XMLEntityScanner)fEntityManager.getEntityScanner() ;
+        //fEntityManager.reset();
+        // DTD preparsing defaults:
+        fValidation = false;
+        fNotifyCharRefs = false;
+        
+    }
     // common scanning methods
-
+    
     /**
      * Scans an XML or text declaration.
      * <p>
@@ -391,117 +424,110 @@ public abstract class XMLScanner
      * at the time of calling is lost.
      */
     protected void scanXMLDeclOrTextDecl(boolean scanningTextDecl,
-                                         String[] pseudoAttributeValues) 
-        throws IOException, XNIException {
-
+            String[] pseudoAttributeValues)
+            throws IOException, XNIException {
+        
         // pseudo-attribute values
         String version = null;
         String encoding = null;
         String standalone = null;
-
+        
         // scan pseudo-attributes
         final int STATE_VERSION = 0;
         final int STATE_ENCODING = 1;
         final int STATE_STANDALONE = 2;
         final int STATE_DONE = 3;
         int state = STATE_VERSION;
-
+        
         boolean dataFoundForTarget = false;
-        boolean sawSpace = fEntityScanner.skipDeclSpaces();
-        // since pseudoattributes are *not* attributes,
-        // their quotes don't need to be preserved in external parameter entities.
-        // the XMLEntityScanner#scanLiteral method will continue to
-        // emit -1 in such cases when it finds a quote; this is
-        // fine for other methods that parse scanned entities,
-        // but not for the scanning of pseudoattributes.  So,
-        // temporarily, we must mark the current entity as not being "literal"
-        XMLEntityManager.ScannedEntity currEnt = fEntityManager.getCurrentEntity();
-        boolean currLiteral = currEnt.literal;
-        currEnt.literal = false;
+        boolean sawSpace = fEntityScanner.skipSpaces();
         while (fEntityScanner.peekChar() != '?') {
             dataFoundForTarget = true;
             String name = scanPseudoAttribute(scanningTextDecl, fString);
             switch (state) {
                 case STATE_VERSION: {
-                    if (name == fVersionSymbol) {
+                    if (name.equals(fVersionSymbol)) {
                         if (!sawSpace) {
                             reportFatalError(scanningTextDecl
-                                       ? "SpaceRequiredBeforeVersionInTextDecl"
-                                       : "SpaceRequiredBeforeVersionInXMLDecl",
-                                             null);
+                                    ? "SpaceRequiredBeforeVersionInTextDecl"
+                                    : "SpaceRequiredBeforeVersionInXMLDecl",
+                                    null);
                         }
                         version = fString.toString();
                         state = STATE_ENCODING;
                         if (!versionSupported(version)) {
-                            reportFatalError(getVersionNotSupportedKey(), 
-                                             new Object[]{version});
+                            reportFatalError("VersionNotSupported",
+                                    new Object[]{version});
                         }
-                    }
-                    else if (name == fEncodingSymbol) {
+                        
+                        if (version.equals("1.1")) {
+                            Entity.ScannedEntity top = fEntityManager.getTopLevelEntity();
+                            if (top != null && (top.version == null || top.version.equals("1.0"))) {
+                                reportFatalError("VersionMismatch", null);
+                            }
+                            fEntityManager.setScannerVersion(Constants.XML_VERSION_1_1);
+                        }
+                        
+                    } else if (name.equals(fEncodingSymbol)) {
                         if (!scanningTextDecl) {
                             reportFatalError("VersionInfoRequired", null);
                         }
                         if (!sawSpace) {
                             reportFatalError(scanningTextDecl
-                                      ? "SpaceRequiredBeforeEncodingInTextDecl"
-                                      : "SpaceRequiredBeforeEncodingInXMLDecl",
-                                             null);
+                                    ? "SpaceRequiredBeforeEncodingInTextDecl"
+                                    : "SpaceRequiredBeforeEncodingInXMLDecl",
+                                    null);
                         }
                         encoding = fString.toString();
                         state = scanningTextDecl ? STATE_DONE : STATE_STANDALONE;
-                    }
-                    else {
+                    } else {
                         if (scanningTextDecl) {
                             reportFatalError("EncodingDeclRequired", null);
-                        }
-                        else {
+                        } else {
                             reportFatalError("VersionInfoRequired", null);
                         }
                     }
                     break;
                 }
                 case STATE_ENCODING: {
-                    if (name == fEncodingSymbol) {
+                    if (name.equals(fEncodingSymbol)) {
                         if (!sawSpace) {
                             reportFatalError(scanningTextDecl
-                                      ? "SpaceRequiredBeforeEncodingInTextDecl"
-                                      : "SpaceRequiredBeforeEncodingInXMLDecl",
-                                             null);
+                                    ? "SpaceRequiredBeforeEncodingInTextDecl"
+                                    : "SpaceRequiredBeforeEncodingInXMLDecl",
+                                    null);
                         }
                         encoding = fString.toString();
                         state = scanningTextDecl ? STATE_DONE : STATE_STANDALONE;
                         // TODO: check encoding name; set encoding on
                         //       entity scanner
-                    }
-                    else if (!scanningTextDecl && name == fStandaloneSymbol) {
+                    } else if (!scanningTextDecl && name.equals(fStandaloneSymbol)) {
                         if (!sawSpace) {
                             reportFatalError("SpaceRequiredBeforeStandalone",
-                                             null);
+                                    null);
                         }
                         standalone = fString.toString();
                         state = STATE_DONE;
                         if (!standalone.equals("yes") && !standalone.equals("no")) {
-                            reportFatalError("SDDeclInvalid", new Object[] {standalone});
+                            reportFatalError("SDDeclInvalid", null);
                         }
-                    }
-                    else {
+                    } else {
                         reportFatalError("EncodingDeclRequired", null);
                     }
                     break;
                 }
                 case STATE_STANDALONE: {
-                    if (name == fStandaloneSymbol) {
+                    if (name.equals(fStandaloneSymbol)) {
                         if (!sawSpace) {
                             reportFatalError("SpaceRequiredBeforeStandalone",
-                                             null);
+                                    null);
                         }
                         standalone = fString.toString();
                         state = STATE_DONE;
                         if (!standalone.equals("yes") && !standalone.equals("no")) {
-                            reportFatalError("SDDeclInvalid", new Object[] {standalone});
+                            reportFatalError("SDDeclInvalid", null);
                         }
-                    }
-                    else {
+                    } else {
                         reportFatalError("EncodingDeclRequired", null);
                     }
                     break;
@@ -510,53 +536,49 @@ public abstract class XMLScanner
                     reportFatalError("NoMorePseudoAttributes", null);
                 }
             }
-            sawSpace = fEntityScanner.skipDeclSpaces();
+            sawSpace = fEntityScanner.skipSpaces();
         }
-        // restore original literal value
-        if(currLiteral) 
-            currEnt.literal = true;
         // REVISIT: should we remove this error reporting?
         if (scanningTextDecl && state != STATE_DONE) {
             reportFatalError("MorePseudoAttributes", null);
         }
         
-        // If there is no data in the xml or text decl then we fail to report error 
+        // If there is no data in the xml or text decl then we fail to report error
         // for version or encoding info above.
         if (scanningTextDecl) {
             if (!dataFoundForTarget && encoding == null) {
                 reportFatalError("EncodingDeclRequired", null);
             }
-        }
-        else {
+        } else {
             if (!dataFoundForTarget && version == null) {
                 reportFatalError("VersionInfoRequired", null);
             }
         }
-
+        
         // end
         if (!fEntityScanner.skipChar('?')) {
             reportFatalError("XMLDeclUnterminated", null);
         }
         if (!fEntityScanner.skipChar('>')) {
             reportFatalError("XMLDeclUnterminated", null);
-
+            
         }
         
         // fill in return array
         pseudoAttributeValues[0] = version;
         pseudoAttributeValues[1] = encoding;
         pseudoAttributeValues[2] = standalone;
-
+        
     } // scanXMLDeclOrTextDecl(boolean)
-
+    
     /**
      * Scans a pseudo attribute.
      *
      * @param scanningTextDecl True if scanning this pseudo-attribute for a
-     *                         TextDecl; false if scanning XMLDecl. This 
+     *                         TextDecl; false if scanning XMLDecl. This
      *                         flag is needed to report the correct type of
      *                         error.
-     * @param value            The string to fill in with the attribute 
+     * @param value            The string to fill in with the attribute
      *                         value.
      *
      * @return The name of the attribute
@@ -564,37 +586,26 @@ public abstract class XMLScanner
      * <strong>Note:</strong> This method uses fStringBuffer2, anything in it
      * at the time of calling is lost.
      */
-    public String scanPseudoAttribute(boolean scanningTextDecl, 
-                                      XMLString value) 
-        throws IOException, XNIException {
-
-        // REVISIT: This method is used for generic scanning of 
-        // pseudo attributes, but since there are only three such
-        // attributes: version, encoding, and standalone there are
-        // for performant ways of scanning them. Every decl must
-        // have a version, and in TextDecls this version must
-        // be followed by an encoding declaration. Also the
-        // methods we invoke on the scanners allow non-ASCII
-        // characters to be parsed in the decls, but since
-        // we don't even know what the actual encoding of the
-        // document is until we scan the encoding declaration
-        // you cannot reliably read any characters outside
-        // of the ASCII range here. -- mrglavas
+    public String scanPseudoAttribute(boolean scanningTextDecl,
+            XMLString value)
+            throws IOException, XNIException {
+        
         String name = fEntityScanner.scanName();
-        XMLEntityManager.print(fEntityManager.getCurrentEntity());
+        // XMLEntityManager.print(fEntityManager.getCurrentEntity());
+        
         if (name == null) {
             reportFatalError("PseudoAttrNameExpected", null);
         }
-        fEntityScanner.skipDeclSpaces();
+        fEntityScanner.skipSpaces();
         if (!fEntityScanner.skipChar('=')) {
             reportFatalError(scanningTextDecl ? "EqRequiredInTextDecl"
-                             : "EqRequiredInXMLDecl", new Object[]{name});
+                    : "EqRequiredInXMLDecl", new Object[]{name});
         }
-        fEntityScanner.skipDeclSpaces();
+        fEntityScanner.skipSpaces();
         int quote = fEntityScanner.peekChar();
         if (quote != '\'' && quote != '"') {
             reportFatalError(scanningTextDecl ? "QuoteRequiredInTextDecl"
-                             : "QuoteRequiredInXMLDecl" , new Object[]{name});
+                    : "QuoteRequiredInXMLDecl" , new Object[]{name});
         }
         fEntityScanner.scanChar();
         int c = fEntityScanner.scanLiteral(quote, value);
@@ -605,19 +616,14 @@ public abstract class XMLScanner
                 if (c != -1) {
                     if (c == '&' || c == '%' || c == '<' || c == ']') {
                         fStringBuffer2.append((char)fEntityScanner.scanChar());
-                    }
-                    // REVISIT: Even if you could reliably read non-ASCII chars
-                    // why bother scanning for surrogates here? Only ASCII chars
-                    // match the productions in XMLDecls and TextDecls. -- mrglavas
-                    else if (XMLChar.isHighSurrogate(c)) {
+                    } else if (XMLChar.isHighSurrogate(c)) {
                         scanSurrogates(fStringBuffer2);
-                    }
-                    else if (isInvalidLiteral(c)) {
+                    } else if (isInvalidLiteral(c)) {
                         String key = scanningTextDecl
-                            ? "InvalidCharInTextDecl" : "InvalidCharInXMLDecl";
+                                ? "InvalidCharInTextDecl" : "InvalidCharInXMLDecl";
                         reportFatalError(key,
-                                       new Object[] {Integer.toString(c, 16)});
-                        fEntityScanner.scanChar();
+                                new Object[] {Integer.toString(c, 16)});
+                                fEntityScanner.scanChar();
                     }
                 }
                 c = fEntityScanner.scanLiteral(quote, value);
@@ -627,13 +633,13 @@ public abstract class XMLScanner
         }
         if (!fEntityScanner.skipChar(quote)) {
             reportFatalError(scanningTextDecl ? "CloseQuoteMissingInTextDecl"
-                             : "CloseQuoteMissingInXMLDecl",
-                             new Object[]{name});
+                    : "CloseQuoteMissingInXMLDecl",
+                    new Object[]{name});
         }
-
+        
         // return
         return name;
-
+        
     } // scanPseudoAttribute(XMLString):String
     
     /**
@@ -643,43 +649,49 @@ public abstract class XMLScanner
      * [16] PI ::= '&lt;?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
      * [17] PITarget ::= Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
      * </pre>
-     * <strong>Note:</strong> This method uses fString, anything in it
-     * at the time of calling is lost.
      */
-    protected void scanPI() throws IOException, XNIException {
-
+    //CHANGED:
+    //EARLIER: scanPI()
+    //NOW: scanPI(XMLStringBuffer)
+    //it makes things more easy if XMLStringBUffer is passed. Motivation for this change is same
+    // as that for scanContent()
+    
+    protected void scanPI(XMLStringBuffer data) throws IOException, XNIException {
+        
         // target
         fReportEntity = false;
-        String target = null;
-        if(fNamespaces) {
-            target = fEntityScanner.scanNCName();
-        } else {
-            target = fEntityScanner.scanName();
-        }
+        String target = fEntityScanner.scanName();
         if (target == null) {
             reportFatalError("PITargetRequired", null);
         }
-
+        
         // scan data
-        scanPIData(target, fString);
+        scanPIData(target, data);
         fReportEntity = true;
-
-    } // scanPI()
-
+        
+    } // scanPI(XMLStringBuffer)
+    
     /**
      * Scans a processing data. This is needed to handle the situation
-     * where a document starts with a processing instruction whose 
+     * where a document starts with a processing instruction whose
      * target name <em>starts with</em> "xml". (e.g. xmlfoo)
      *
-     * <strong>Note:</strong> This method uses fStringBuffer, anything in it
-     * at the time of calling is lost.
+     * This method would always read the whole data. We have while loop and data is buffered
+     * until delimeter is encountered.
      *
      * @param target The PI target
      * @param data The string to fill in with the data
      */
-    protected void scanPIData(String target, XMLString data) 
-        throws IOException, XNIException {
-
+    
+    //CHANGED:
+    //Earlier:This method uses the fStringBuffer and later buffer values are set to
+    //the supplied XMLString....
+    //Now: Changed the signature of this function to pass XMLStringBuffer.. and data would
+    //be appended to that buffer
+    
+    protected void scanPIData(String target, XMLStringBuffer data)
+    throws IOException, XNIException {
+        
         // check target
         if (target.length() == 3) {
             char c0 = Character.toLowerCase(target.charAt(0));
@@ -689,52 +701,38 @@ public abstract class XMLScanner
                 reportFatalError("ReservedPITarget", null);
             }
         }
-
+        
         // spaces
         if (!fEntityScanner.skipSpaces()) {
             if (fEntityScanner.skipString("?>")) {
-                // we found the end, there is no data
-                data.clear();
+                // we found the end, there is no data just return
                 return;
-            }
-            else {
-                if(fNamespaces && fEntityScanner.peekChar() == ':') { 
-                    fEntityScanner.scanChar();
-                    XMLStringBuffer colonName = new XMLStringBuffer(target);
-                    colonName.append(":");
-                    String str = fEntityScanner.scanName();
-                    if (str != null)
-                        colonName.append(str);
-                    reportFatalError("ColonNotLegalWithNS", new Object[] {colonName.toString()});
-                    fEntityScanner.skipSpaces();
-                } else {
-                    // if there is data there should be some space
-                    reportFatalError("SpaceRequiredInPI", null);
-                }
+            } else {
+                // if there is data there should be some space
+                reportFatalError("SpaceRequiredInPI", null);
             }
         }
-
-        fStringBuffer.clear();
-        // data
-        if (fEntityScanner.scanData("?>", fStringBuffer)) {
+        
+        // since scanData appends the parsed data to the buffer passed
+        // a while loop would append the whole of parsed data to the buffer(data:XMLStringBuffer)
+        //until all of the data is buffered.
+        if (fEntityScanner.scanData("?>", data)) {
             do {
                 int c = fEntityScanner.peekChar();
                 if (c != -1) {
                     if (XMLChar.isHighSurrogate(c)) {
-                        scanSurrogates(fStringBuffer);
-                    }
-                    else if (isInvalidLiteral(c)) {
+                        scanSurrogates(data);
+                    } else if (isInvalidLiteral(c)) {
                         reportFatalError("InvalidCharInPI",
-                                         new Object[]{Integer.toHexString(c)});
-                        fEntityScanner.scanChar();
+                                new Object[]{Integer.toHexString(c)});
+                                fEntityScanner.scanChar();
                     }
                 }
-            } while (fEntityScanner.scanData("?>", fStringBuffer));
+            } while (fEntityScanner.scanData("?>", data));
         }
-        data.setValues(fStringBuffer);
-
+        
     } // scanPIData(String,XMLString)
-
+    
     /**
      * Scans a comment.
      * <p>
@@ -749,254 +747,258 @@ public abstract class XMLScanner
      * @param text The buffer to fill in with the text.
      */
     protected void scanComment(XMLStringBuffer text)
-        throws IOException, XNIException {
-
+    throws IOException, XNIException {
+        
+        //System.out.println( "XMLScanner#scanComment# In Scan Comment" );
         // text
         // REVISIT: handle invalid character, eof
         text.clear();
         while (fEntityScanner.scanData("--", text)) {
             int c = fEntityScanner.peekChar();
+            
+            //System.out.println( "XMLScanner#scanComment#text.toString() == " + text.toString() );
+            //System.out.println( "XMLScanner#scanComment#c == " + c );
+            
             if (c != -1) {
                 if (XMLChar.isHighSurrogate(c)) {
                     scanSurrogates(text);
                 }
-                else if (isInvalidLiteral(c)) {
+                if (isInvalidLiteral(c)) {
                     reportFatalError("InvalidCharInComment",
-                                     new Object[] { Integer.toHexString(c) }); 
-                    fEntityScanner.scanChar();
+                            new Object[] { Integer.toHexString(c) });
+                            fEntityScanner.scanChar();
                 }
-            } 
+            }
         }
         if (!fEntityScanner.skipChar('>')) {
             reportFatalError("DashDashInComment", null);
         }
-
+        
     } // scanComment()
-
+    
     /**
      * Scans an attribute value and normalizes whitespace converting all
      * whitespace characters to space characters.
-     * 
+     *
      * [10] AttValue ::= '"' ([^<&"] | Reference)* '"' | "'" ([^<&'] | Reference)* "'"
      *
      * @param value The XMLString to fill in with the value.
-     * @param nonNormalizedValue The XMLString to fill in with the 
+     * @param nonNormalizedValue The XMLString to fill in with the
      *                           non-normalized value.
      * @param atName The name of the attribute being parsed (for error msgs).
-     * @param checkEntities true if undeclared entities should be reported as VC violation,  
+     * @param attributes The attributes list for the scanned attribute.
+     * @param attrIndex The index of the attribute to use from the list.
+     * @param checkEntities true if undeclared entities should be reported as VC violation,
      *                      false if undeclared entities should be reported as WFC violation.
-     * @param eleName The name of element to which this attribute belongs.
      *
      * <strong>Note:</strong> This method uses fStringBuffer2, anything in it
      * at the time of calling is lost.
      **/
-    protected void scanAttributeValue(XMLString value, 
-                                      XMLString nonNormalizedValue,
-                                      String atName,
-                                      boolean checkEntities,String eleName)
-        throws IOException, XNIException
-    {
+    protected void scanAttributeValue(XMLString value,
+            XMLString nonNormalizedValue,
+            String atName,
+            XMLAttributes attributes, int attrIndex,
+            boolean checkEntities)
+            throws IOException, XNIException {
+        XMLStringBuffer stringBuffer = null;
         // quote
         int quote = fEntityScanner.peekChar();
         if (quote != '\'' && quote != '"') {
-			reportFatalError("OpenQuoteExpected", new Object[]{eleName,atName});
+            reportFatalError("OpenQuoteExpected", new Object[]{atName});
         }
-
+        
         fEntityScanner.scanChar();
         int entityDepth = fEntityDepth;
-
+        
         int c = fEntityScanner.scanLiteral(quote, value);
         if (DEBUG_ATTR_NORMALIZATION) {
             System.out.println("** scanLiteral -> \""
-                               + value.toString() + "\"");
+                    + value.toString() + "\"");
         }
-        fStringBuffer2.clear();
-        fStringBuffer2.append(value);
-        normalizeWhitespace(value);
+        if(fNeedNonNormalizedValue){
+            fStringBuffer2.clear();
+            fStringBuffer2.append(value);
+        }
+        if(fEntityScanner.whiteSpaceLen > 0)
+            normalizeWhitespace(value);
         if (DEBUG_ATTR_NORMALIZATION) {
             System.out.println("** normalizeWhitespace -> \""
-                               + value.toString() + "\"");
+                    + value.toString() + "\"");
         }
         if (c != quote) {
             fScanningAttribute = true;
-            fStringBuffer.clear();
+            stringBuffer = getStringBuffer();
+            stringBuffer.clear();
             do {
-                fStringBuffer.append(value);
+                stringBuffer.append(value);
                 if (DEBUG_ATTR_NORMALIZATION) {
                     System.out.println("** value2: \""
-                                       + fStringBuffer.toString() + "\"");
+                            + stringBuffer.toString() + "\"");
                 }
                 if (c == '&') {
                     fEntityScanner.skipChar('&');
-                    if (entityDepth == fEntityDepth) {
+                    if (entityDepth == fEntityDepth && fNeedNonNormalizedValue ) {
                         fStringBuffer2.append('&');
                     }
                     if (fEntityScanner.skipChar('#')) {
-                        if (entityDepth == fEntityDepth) {
+                        if (entityDepth == fEntityDepth && fNeedNonNormalizedValue ) {
                             fStringBuffer2.append('#');
                         }
-                        int ch = scanCharReferenceValue(fStringBuffer, fStringBuffer2);
+                        int ch ;
+                        if (fNeedNonNormalizedValue)
+                            ch = scanCharReferenceValue(stringBuffer, fStringBuffer2);
+                        else
+                            ch = scanCharReferenceValue(stringBuffer, null);
+                        
                         if (ch != -1) {
                             if (DEBUG_ATTR_NORMALIZATION) {
                                 System.out.println("** value3: \""
-                                                   + fStringBuffer.toString()
-                                                   + "\"");
+                                        + stringBuffer.toString()
+                                        + "\"");
                             }
                         }
-                    }
-                    else {
+                    } else {
                         String entityName = fEntityScanner.scanName();
                         if (entityName == null) {
                             reportFatalError("NameRequiredInReference", null);
-                        }
-                        else if (entityDepth == fEntityDepth) {
+                        } else if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
                             fStringBuffer2.append(entityName);
                         }
                         if (!fEntityScanner.skipChar(';')) {
                             reportFatalError("SemicolonRequiredInReference",
-                                             new Object []{entityName});
-                        }
-                        else if (entityDepth == fEntityDepth) {
+                                    new Object []{entityName});
+                        } else if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
                             fStringBuffer2.append(';');
                         }
                         if (entityName == fAmpSymbol) {
-                            fStringBuffer.append('&');
+                            stringBuffer.append('&');
                             if (DEBUG_ATTR_NORMALIZATION) {
                                 System.out.println("** value5: \""
-                                                   + fStringBuffer.toString()
-                                                   + "\"");
+                                        + stringBuffer.toString()
+                                        + "\"");
                             }
-                        }
-                        else if (entityName == fAposSymbol) {
-                            fStringBuffer.append('\'');
+                        } else if (entityName == fAposSymbol) {
+                            stringBuffer.append('\'');
                             if (DEBUG_ATTR_NORMALIZATION) {
                                 System.out.println("** value7: \""
-                                                   + fStringBuffer.toString()
-                                                   + "\"");
+                                        + stringBuffer.toString()
+                                        + "\"");
                             }
-                        }
-                        else if (entityName == fLtSymbol) {
-                            fStringBuffer.append('<');
+                        } else if (entityName == fLtSymbol) {
+                            stringBuffer.append('<');
                             if (DEBUG_ATTR_NORMALIZATION) {
                                 System.out.println("** value9: \""
-                                                   + fStringBuffer.toString()
-                                                   + "\"");
+                                        + stringBuffer.toString()
+                                        + "\"");
                             }
-                        }
-                        else if (entityName == fGtSymbol) {
-                            fStringBuffer.append('>');
+                        } else if (entityName == fGtSymbol) {
+                            stringBuffer.append('>');
                             if (DEBUG_ATTR_NORMALIZATION) {
                                 System.out.println("** valueB: \""
-                                                   + fStringBuffer.toString()
-                                                   + "\"");
+                                        + stringBuffer.toString()
+                                        + "\"");
                             }
-                        }
-                        else if (entityName == fQuotSymbol) {
-                            fStringBuffer.append('"');
+                        } else if (entityName == fQuotSymbol) {
+                            stringBuffer.append('"');
                             if (DEBUG_ATTR_NORMALIZATION) {
                                 System.out.println("** valueD: \""
-                                                   + fStringBuffer.toString()
-                                                   + "\"");
+                                        + stringBuffer.toString()
+                                        + "\"");
                             }
-                        }
-                        else {
-                            if (fEntityManager.isExternalEntity(entityName)) {
+                        } else {
+                            if (fEntityStore.isExternalEntity(entityName)) {
                                 reportFatalError("ReferenceToExternalEntity",
-                                                 new Object[] { entityName });
-                            }
-                            else {
-                                if (!fEntityManager.isDeclaredEntity(entityName)) {
+                                        new Object[] { entityName });
+                            } else {
+                                if (!fEntityStore.isDeclaredEntity(entityName)) {
                                     //WFC & VC: Entity Declared
                                     if (checkEntities) {
                                         if (fValidation) {
-                                            fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
-                                                                       "EntityNotDeclared",
-                                                                       new Object[]{entityName},
-                                                                       XMLErrorReporter.SEVERITY_ERROR);
+                                            fErrorReporter.reportError(fEntityScanner,XMLMessageFormatter.XML_DOMAIN,
+                                                    "EntityNotDeclared",
+                                                    new Object[]{entityName},
+                                                    XMLErrorReporter.SEVERITY_ERROR);
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         reportFatalError("EntityNotDeclared",
-                                                         new Object[]{entityName});
+                                                new Object[]{entityName});
                                     }
                                 }
                                 fEntityManager.startEntity(entityName, true);
                             }
                         }
                     }
-                }
-                else if (c == '<') {
+                } else if (c == '<') {
                     reportFatalError("LessthanInAttValue",
-									 new Object[] { eleName, atName });
+                            new Object[] { null, atName });
+                            fEntityScanner.scanChar();
+                            if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
+                                fStringBuffer2.append((char)c);
+                            }
+                } else if (c == '%' || c == ']') {
                     fEntityScanner.scanChar();
-                    if (entityDepth == fEntityDepth) {
-                        fStringBuffer2.append((char)c);
-                    }
-                }
-                else if (c == '%' || c == ']') {
-                    fEntityScanner.scanChar();
-                    fStringBuffer.append((char)c);
-                    if (entityDepth == fEntityDepth) {
+                    stringBuffer.append((char)c);
+                    if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
                         fStringBuffer2.append((char)c);
                     }
                     if (DEBUG_ATTR_NORMALIZATION) {
                         System.out.println("** valueF: \""
-                                           + fStringBuffer.toString() + "\"");
+                                + stringBuffer.toString() + "\"");
                     }
-                }
-                else if (c == '\n' || c == '\r') {
+                } else if (c == '\n' || c == '\r') {
                     fEntityScanner.scanChar();
-                    fStringBuffer.append(' ');
-                    if (entityDepth == fEntityDepth) {
+                    stringBuffer.append(' ');
+                    if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
                         fStringBuffer2.append('\n');
                     }
-                }
-                else if (c != -1 && XMLChar.isHighSurrogate(c)) {
-                    fStringBuffer3.clear();
+                } else if (c != -1 && XMLChar.isHighSurrogate(c)) {
                     if (scanSurrogates(fStringBuffer3)) {
-                        fStringBuffer.append(fStringBuffer3);
-                        if (entityDepth == fEntityDepth) {
+                        stringBuffer.append(fStringBuffer3);
+                        if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
                             fStringBuffer2.append(fStringBuffer3);
                         }
                         if (DEBUG_ATTR_NORMALIZATION) {
                             System.out.println("** valueI: \""
-                                               + fStringBuffer.toString()
-                                               + "\"");
+                                    + stringBuffer.toString()
+                                    + "\"");
                         }
                     }
-                }
-                else if (c != -1 && isInvalidLiteral(c)) {
+                } else if (c != -1 && isInvalidLiteral(c)) {
                     reportFatalError("InvalidCharInAttValue",
-					new Object[] {eleName, atName, Integer.toString(c, 16)});
-                    fEntityScanner.scanChar();
-                    if (entityDepth == fEntityDepth) {
-                        fStringBuffer2.append((char)c);
-                    }
+                            new Object[] {Integer.toString(c, 16)});
+                            fEntityScanner.scanChar();
+                            if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
+                                fStringBuffer2.append((char)c);
+                            }
                 }
                 c = fEntityScanner.scanLiteral(quote, value);
-                if (entityDepth == fEntityDepth) {
+                if (entityDepth == fEntityDepth && fNeedNonNormalizedValue) {
                     fStringBuffer2.append(value);
                 }
-                normalizeWhitespace(value);
+                if(fEntityScanner.whiteSpaceLen > 0)
+                    normalizeWhitespace(value);
+                //Todo ::Move this check  to Attributes , do conversion
+                //only if attribute is being accessed. -Venu
             } while (c != quote || entityDepth != fEntityDepth);
-            fStringBuffer.append(value);
+            stringBuffer.append(value);
             if (DEBUG_ATTR_NORMALIZATION) {
                 System.out.println("** valueN: \""
-                                   + fStringBuffer.toString() + "\"");
+                        + stringBuffer.toString() + "\"");
             }
-            value.setValues(fStringBuffer);
+            value.setValues(stringBuffer);
             fScanningAttribute = false;
         }
-        nonNormalizedValue.setValues(fStringBuffer2);
-
+        if(fNeedNonNormalizedValue)
+            nonNormalizedValue.setValues(fStringBuffer2);
+        
         // quote
         int cquote = fEntityScanner.scanChar();
         if (cquote != quote) {
-			reportFatalError("CloseQuoteExpected", new Object[]{eleName,atName});
+            reportFatalError("CloseQuoteExpected", new Object[]{atName});
         }
     } // scanAttributeValue()
-
-
+    
+    
     /**
      * Scans External ID and return the public and system IDs.
      *
@@ -1008,9 +1010,9 @@ public abstract class XMLScanner
      * anything in them at the time of calling is lost.
      */
     protected void scanExternalID(String[] identifiers,
-                                  boolean optionalSystemId)
-        throws IOException, XNIException {
-
+            boolean optionalSystemId)
+            throws IOException, XNIException {
+        
         String systemId = null;
         String publicId = null;
         if (fEntityScanner.skipString("PUBLIC")) {
@@ -1019,12 +1021,12 @@ public abstract class XMLScanner
             }
             scanPubidLiteral(fString);
             publicId = fString.toString();
-
+            
             if (!fEntityScanner.skipSpaces() && !optionalSystemId) {
                 reportFatalError("SpaceRequiredBetweenPublicAndSystem", null);
             }
         }
-
+        
         if (publicId != null || fEntityScanner.skipString("SYSTEM")) {
             if (publicId == null && !fEntityScanner.skipSpaces()) {
                 reportFatalError("SpaceRequiredAfterSYSTEM", null);
@@ -1059,17 +1061,17 @@ public abstract class XMLScanner
                 reportFatalError("SystemIDUnterminated", null);
             }
         }
-
+        
         // store result in array
         identifiers[0] = systemId;
         identifiers[1] = publicId;
     }
-
-
+    
+    
     /**
      * Scans public ID literal.
      *
-     * [12] PubidLiteral ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'" 
+     * [12] PubidLiteral ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
      * [13] PubidChar::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
      *
      * The returned string is normalized according to the following rule,
@@ -1086,14 +1088,13 @@ public abstract class XMLScanner
      * the time of calling is lost.
      */
     protected boolean scanPubidLiteral(XMLString literal)
-        throws IOException, XNIException
-    {
+    throws IOException, XNIException {
         int quote = fEntityScanner.scanChar();
         if (quote != '\'' && quote != '"') {
             reportFatalError("QuoteRequiredInPublicID", null);
             return false;
         }
-
+        
         fStringBuffer.clear();
         // skip leading whitespace
         boolean skipSpace = true;
@@ -1106,63 +1107,58 @@ public abstract class XMLScanner
                     fStringBuffer.append(' ');
                     skipSpace = true;
                 }
-            }
-            else if (c == quote) {
+            } else if (c == quote) {
                 if (skipSpace) {
                     // if we finished on a space let's trim it
                     fStringBuffer.length--;
                 }
                 literal.setValues(fStringBuffer);
                 break;
-            }
-            else if (XMLChar.isPubid(c)) {
+            } else if (XMLChar.isPubid(c)) {
                 fStringBuffer.append((char)c);
                 skipSpace = false;
-            }
-            else if (c == -1) {
+            } else if (c == -1) {
                 reportFatalError("PublicIDUnterminated", null);
                 return false;
-            }
-            else {
+            } else {
                 dataok = false;
                 reportFatalError("InvalidCharInPublicID",
-                                 new Object[]{Integer.toHexString(c)});
+                        new Object[]{Integer.toHexString(c)});
             }
         }
         return dataok;
-   }
-
-
+    }
+    
+    
     /**
      * Normalize whitespace in an XMLString converting all whitespace
      * characters to space characters.
      */
     protected void normalizeWhitespace(XMLString value) {
+        int i=0;
+        int j=0;
+        int [] buff = fEntityScanner.whiteSpaceLookup;
+        int buffLen = fEntityScanner.whiteSpaceLen;
         int end = value.offset + value.length;
-        for (int i = value.offset; i < end; i++) {
-            int c = value.ch[i];
-            // Performance: For XML 1.0 documents take advantage of 
-            // the fact that the only legal characters below 0x20 
-            // are 0x09 (TAB), 0x0A (LF) and 0x0D (CR). Since we've 
-            // already determined the well-formedness of these
-            // characters it is sufficient (and safe) to check
-            // against 0x20. -- mrglavas
-            if (c < 0x20) {
-                value.ch[i] = ' ';
+        while(i < buffLen){
+            j = buff[i];
+            if(j < end ){
+                value.ch[j] = ' ';
             }
+            i++;
         }
     }
-
+    
     //
     // XMLEntityHandler methods
     //
-
+    
     /**
      * This method notifies of the start of an entity. The document entity
-     * has the pseudo-name of "[xml]" the DTD has the pseudo-name of "[dtd]" 
+     * has the pseudo-name of "[xml]" the DTD has the pseudo-name of "[dtd]"
      * parameter entity names start with '%'; and general entities are just
      * specified by their name.
-     * 
+     *
      * @param name     The name of the entity.
      * @param identifier The resource identifier.
      * @param encoding The auto-detected IANA encoding name of the entity
@@ -1170,39 +1166,37 @@ public abstract class XMLScanner
      *                 where the entity encoding is not auto-detected (e.g.
      *                 internal entities or a document entity that is
      *                 parsed from a java.io.Reader).
-     * @param augs     Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startEntity(String name, 
-                            XMLResourceIdentifier identifier,
-                            String encoding, Augmentations augs) throws XNIException {
-
+    public void startEntity(String name,
+            XMLResourceIdentifier identifier,
+            String encoding, Augmentations augs) throws XNIException {
+        
         // keep track of the entity depth
         fEntityDepth++;
         // must reset entity scanner
         fEntityScanner = fEntityManager.getEntityScanner();
-
+        fEntityStore = fEntityManager.getEntityStore() ;
     } // startEntity(String,XMLResourceIdentifier,String)
-
+    
     /**
      * This method notifies the end of an entity. The document entity has
-     * the pseudo-name of "[xml]" the DTD has the pseudo-name of "[dtd]" 
+     * the pseudo-name of "[xml]" the DTD has the pseudo-name of "[dtd]"
      * parameter entity names start with '%'; and general entities are just
      * specified by their name.
-     * 
+     *
      * @param name The name of the entity.
-     * @param augs Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void endEntity(String name, Augmentations augs) throws XNIException {
-
+    public void endEntity(String name, Augmentations augs) throws IOException, XNIException {
+        
         // keep track of the entity depth
         fEntityDepth--;
-
+        
     } // endEntity(String)
-
+    
     /**
      * Scans a character reference and append the corresponding chars to the
      * specified buffer.
@@ -1220,9 +1214,8 @@ public abstract class XMLScanner
      *
      * @return the character value or (-1) on conversion failure
      */
-    protected int scanCharReferenceValue(XMLStringBuffer buf, XMLStringBuffer buf2) 
-        throws IOException, XNIException {
-
+    protected int scanCharReferenceValue(XMLStringBuffer buf, XMLStringBuffer buf2)
+    throws IOException, XNIException {
         // scan hexadecimal value
         boolean hex = false;
         if (fEntityScanner.skipChar('x')) {
@@ -1251,12 +1244,11 @@ public abstract class XMLScanner
                         fStringBuffer3.append((char)c);
                     }
                 } while (digit);
-            }
-            else {
+            } else {
                 reportFatalError("HexdigitRequiredInCharRef", null);
             }
         }
-
+        
         // scan decimal value
         else {
             fStringBuffer3.clear();
@@ -1278,12 +1270,11 @@ public abstract class XMLScanner
                         fStringBuffer3.append((char)c);
                     }
                 } while (digit);
-            }
-            else {
+            } else {
                 reportFatalError("DigitRequiredInCharRef", null);
             }
         }
-
+        
         // end
         if (!fEntityScanner.skipChar(';')) {
             reportFatalError("SemicolonRequiredInCharRef", null);
@@ -1294,37 +1285,35 @@ public abstract class XMLScanner
         int value = -1;
         try {
             value = Integer.parseInt(fStringBuffer3.toString(),
-                                     hex ? 16 : 10);
+                    hex ? 16 : 10);
             
             // character reference must be a valid XML character
             if (isInvalid(value)) {
-            	StringBuffer errorBuf = new StringBuffer(fStringBuffer3.length + 1);
+                StringBuffer errorBuf = new StringBuffer(fStringBuffer3.length + 1);
                 if (hex) errorBuf.append('x');
                 errorBuf.append(fStringBuffer3.ch, fStringBuffer3.offset, fStringBuffer3.length);
                 reportFatalError("InvalidCharRef",
-                                 new Object[]{errorBuf.toString()});
+                        new Object[]{errorBuf.toString()});
             }
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             // Conversion failed, let -1 value drop through.
             // If we end up here, the character reference was invalid.
             StringBuffer errorBuf = new StringBuffer(fStringBuffer3.length + 1);
             if (hex) errorBuf.append('x');
             errorBuf.append(fStringBuffer3.ch, fStringBuffer3.offset, fStringBuffer3.length);
             reportFatalError("InvalidCharRef",
-                             new Object[]{errorBuf.toString()});
+                    new Object[]{errorBuf.toString()});
         }
-
+        
         // append corresponding chars to the given buffer
         if (!XMLChar.isSupplemental(value)) {
             buf.append((char) value);
-        }
-        else {
+        } else {
             // character is supplemental, split it into surrogate chars
             buf.append(XMLChar.highSurrogate(value));
             buf.append(XMLChar.lowSurrogate(value));
         }
-
+        
         // char refs notification code
         if (fNotifyCharRefs && value != -1) {
             String literal = "#" + (hex ? "x" : "") + fStringBuffer3.toString();
@@ -1332,37 +1321,29 @@ public abstract class XMLScanner
                 fCharRefLiteral = literal;
             }
         }
-                
+        
         return value;
     }
-
     // returns true if the given character is not
     // valid with respect to the version of
     // XML understood by this scanner.
     protected boolean isInvalid(int value) {
-        return (XMLChar.isInvalid(value)); 
+        return (XMLChar.isInvalid(value));
     } // isInvalid(int):  boolean
-
+    
     // returns true if the given character is not
-    // valid or may not be used outside a character reference 
+    // valid or may not be used outside a character reference
     // with respect to the version of XML understood by this scanner.
     protected boolean isInvalidLiteral(int value) {
-        return (XMLChar.isInvalid(value)); 
+        return (XMLChar.isInvalid(value));
     } // isInvalidLiteral(int):  boolean
-
-    // returns true if the given character is 
+    
+    // returns true if the given character is
     // a valid nameChar with respect to the version of
     // XML understood by this scanner.
     protected boolean isValidNameChar(int value) {
-        return (XMLChar.isName(value)); 
+        return (XMLChar.isName(value));
     } // isValidNameChar(int):  boolean
-
-    // returns true if the given character is 
-    // a valid nameStartChar with respect to the version of
-    // XML understood by this scanner.
-    protected boolean isValidNameStartChar(int value) {
-        return (XMLChar.isNameStart(value)); 
-    } // isValidNameStartChar(int):  boolean
     
     // returns true if the given character is
     // a valid NCName character with respect to the version of
@@ -1371,25 +1352,17 @@ public abstract class XMLScanner
         return (XMLChar.isNCName(value));
     } // isValidNCName(int):  boolean
     
-    // returns true if the given character is 
-    // a valid high surrogate for a nameStartChar 
-    // with respect to the version of XML understood 
-    // by this scanner.
-    protected boolean isValidNameStartHighSurrogate(int value) {
-        return false; 
-    } // isValidNameStartHighSurrogate(int):  boolean
+    // returns true if the given character is
+    // a valid nameStartChar with respect to the version of
+    // XML understood by this scanner.
+    protected boolean isValidNameStartChar(int value) {
+        return (XMLChar.isNameStart(value));
+    } // isValidNameStartChar(int):  boolean
     
     protected boolean versionSupported(String version ) {
-        return version.equals("1.0");
+        return version.equals("1.0") || version.equals("1.1");
     } // version Supported
     
-    // returns the error message key for unsupported
-    // versions of XML with respect to the version of
-    // XML understood by this scanner.
-    protected String getVersionNotSupportedKey () {
-        return "VersionNotSupported";
-    } // getVersionNotSupportedKey: String
-
     /**
      * Scans surrogates and append them to the specified buffer.
      * <p>
@@ -1400,53 +1373,76 @@ public abstract class XMLScanner
      * @return True if it succeeded.
      */
     protected boolean scanSurrogates(XMLStringBuffer buf)
-        throws IOException, XNIException {
-
+    throws IOException, XNIException {
+        
         int high = fEntityScanner.scanChar();
         int low = fEntityScanner.peekChar();
         if (!XMLChar.isLowSurrogate(low)) {
             reportFatalError("InvalidCharInContent",
-                             new Object[] {Integer.toString(high, 16)});
-            return false;
+                    new Object[] {Integer.toString(high, 16)});
+                    return false;
         }
         fEntityScanner.scanChar();
-
+        
         // convert surrogates to supplemental character
         int c = XMLChar.supplemental((char)high, (char)low);
-
+        
         // supplemental character must be a valid XML character
         if (isInvalid(c)) {
             reportFatalError("InvalidCharInContent",
-                             new Object[]{Integer.toString(c, 16)}); 
-            return false;
+                    new Object[]{Integer.toString(c, 16)});
+                    return false;
         }
-
+        
         // fill in the buffer
         buf.append((char)high);
         buf.append((char)low);
-
+        
         return true;
-
+        
     } // scanSurrogates():boolean
-
-
+    
+    
     /**
      * Convenience function used in all XML scanners.
      */
     protected void reportFatalError(String msgId, Object[] args)
-        throws XNIException {
-        fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
-                                   msgId, args,
-                                   XMLErrorReporter.SEVERITY_FATAL_ERROR);
+    throws XNIException {
+        fErrorReporter.reportError(fEntityScanner, XMLMessageFormatter.XML_DOMAIN,
+                msgId, args,
+                XMLErrorReporter.SEVERITY_FATAL_ERROR);
     }
-
+    
     // private methods
-    private void init() { 
-        fEntityScanner = null;       
+    private void init() {
+        // initialize scanner
+        fEntityScanner = null;        
         // initialize vars
         fEntityDepth = 0;
         fReportEntity = true;
         fResourceIdentifier.clear();
-    } 
 
+        if(!fAttributeCacheInitDone){
+            for(int i = 0; i < initialCacheCount; i++){
+                attributeValueCache.add(new XMLString());
+                stringBufferCache.add(new XMLStringBuffer());
+            }
+            fAttributeCacheInitDone = true;
+        }
+        fStringBufferIndex = 0;
+        fAttributeCacheUsedCount = 0;
+        
+    }
+    
+    XMLStringBuffer getStringBuffer(){
+        if((fStringBufferIndex < initialCacheCount )|| (fStringBufferIndex < stringBufferCache.size())){
+            return (XMLStringBuffer)stringBufferCache.get(fStringBufferIndex++);
+        }else{
+            XMLStringBuffer tmpObj = new XMLStringBuffer();
+            stringBufferCache.add(fStringBufferIndex, tmpObj);
+            return tmpObj;
+        }
+    }
+    
+    
 } // class XMLScanner

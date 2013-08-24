@@ -1,22 +1,17 @@
 /*
- * @(#)RMIConnection.java	1.39 04/05/05
+ * @(#)RMIConnection.java	1.47 06/06/26
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.remote.rmi;
 
-// IO
+import java.io.Closeable;
 import java.io.IOException;
-import java.io.Serializable;
-import java.io.InterruptedIOException;
-
-// RMI
-import java.rmi.Remote;
 import java.rmi.MarshalledObject;
-
-// JMX
+import java.rmi.Remote;
+import java.util.Set;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceAlreadyExistsException;
@@ -24,25 +19,19 @@ import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ListenerNotFoundException;
-import javax.management.MalformedObjectNameException;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
 import javax.management.MBeanServerConnection;
-import javax.management.NotificationListener;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
-import javax.management.RuntimeOperationsException;
-import javax.management.loading.ClassLoaderRepository;
-
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.NotificationFilter;
+import javax.management.QueryExp;
 import javax.management.remote.NotificationResult;
-
-// Util
-import java.util.Set;
-
 import javax.security.auth.Subject;
 
 /** 
@@ -65,19 +54,26 @@ import javax.security.auth.Subject;
  * <code>MarshalledObject</code> or <code>MarshalledObject[]</code>
  * must not be null; the behavior is unspecified if it is.</p>
  *
- * <p>Class loading aspects are detailed in the companion document 
- * <em>JMX Remote API</em>, which completes this documentation.
- * It should be available as a PDF document in the same place as this 
- * Javadoc specification.</p>
+ * <p>Class loading aspects are detailed in the 
+ * <a href="{@docRoot}/../technotes/guides/jmx/JMX_1_4_specification.pdf">
+ * JMX Specification, version 1.4</a> PDF document.</p>
  *
- * @since 1.5
- * @since.unbundled 1.0
  * <p>Most methods in this interface parallel methods in the {@link
  * MBeanServerConnection} interface.  Where an aspect of the behavior
  * of a method is not specified here, it is the same as in the
  * corresponding <code>MBeanServerConnection</code> method.
+ *
+ * @since 1.5
+ * @since.unbundled 1.0
  */
-public interface RMIConnection extends Remote {
+/*
+ * Notice that we omit the type parameter from MarshalledObject everywhere,
+ * even though it would add useful information to the documentation.  The
+ * reason is that it was only added in Mustang (Java SE 6), whereas versions
+ * 1.4 and 2.0 of the JMX API must be implementable on Tiger per our
+ * commitments for JSR 255.
+ */
+public interface RMIConnection extends Closeable, Remote {
     /**
      * <p>Returns the connection ID.  This string is different for
      * every open connection to a given RMI connector server.</p>
@@ -258,10 +254,10 @@ public interface RMIConnection extends Remote {
      * @throws IOException if a general communication exception occurred.
      */
     public ObjectInstance createMBean(String className,
-                                      ObjectName name,
-                                      MarshalledObject params,
-                                      String signature[],
-				      Subject delegationSubject)
+                                ObjectName name,
+                                MarshalledObject params,
+                                String signature[],
+				Subject delegationSubject)
 	throws
 	ReflectionException,
 	InstanceAlreadyExistsException,
@@ -323,11 +319,11 @@ public interface RMIConnection extends Remote {
      * @throws IOException if a general communication exception occurred.
      */
     public ObjectInstance createMBean(String className,
-                                      ObjectName name,
-                                      ObjectName loaderName,
-                                      MarshalledObject params,
-                                      String signature[],
-				      Subject delegationSubject)
+                                ObjectName name,
+                                ObjectName loaderName,
+                                MarshalledObject params,
+                                String signature[],
+			        Subject delegationSubject)
 	throws
 	ReflectionException,
 	InstanceAlreadyExistsException,
@@ -654,8 +650,8 @@ public interface RMIConnection extends Remote {
      * @see #getAttributes
      */
     public AttributeList setAttributes(ObjectName name,
-                                       MarshalledObject attributes,
-				       Subject delegationSubject)
+                          MarshalledObject attributes,
+		          Subject delegationSubject)
 	throws
 	InstanceNotFoundException,
 	ReflectionException,
@@ -757,7 +753,7 @@ public interface RMIConnection extends Remote {
      * @return An instance of <code>MBeanInfo</code> allowing the
      * retrieval of all attributes and operations of this MBean.
      *
-     * @throws IntrospectionException An exception occured during
+     * @throws IntrospectionException An exception occurred during
      * introspection.
      * @throws InstanceNotFoundException The MBean specified was
      * not found.
@@ -834,9 +830,9 @@ public interface RMIConnection extends Remote {
      * not match any of the registered MBeans.
      * @throws RuntimeOperationsException Wraps an {@link
      * IllegalArgumentException}.  The MBean named by
-     * <code>listener</code> exists but does not implement the {@link
-     * NotificationListener} interface, or <code>name</code> or
-     * <code>listener</code> is null.
+     * <code>listener</code> exists but does not implement the
+     * {@link javax.management.NotificationListener} interface,
+     * or <code>name</code> or <code>listener</code> is null.
      * @throws SecurityException if the client, or the delegated Subject
      * if any, does not have permission to perform this operation.
      * @throws IOException if a general communication exception occurred.
@@ -846,10 +842,10 @@ public interface RMIConnection extends Remote {
      * MarshalledObject, MarshalledObject, Subject)
      */
     public void addNotificationListener(ObjectName name,
-                                        ObjectName listener,
-                                        MarshalledObject filter,
-                                        MarshalledObject handback,
-					Subject delegationSubject)
+                        ObjectName listener,
+                        MarshalledObject filter,
+                        MarshalledObject handback,
+			Subject delegationSubject)
 	throws InstanceNotFoundException, IOException;
 
     /**
@@ -920,10 +916,10 @@ public interface RMIConnection extends Remote {
      * @see #addNotificationListener
      */
     public void removeNotificationListener(ObjectName name,
-                                           ObjectName listener,
-                                           MarshalledObject filter,
-                                           MarshalledObject handback,
-					   Subject delegationSubject)
+                      ObjectName listener,
+                      MarshalledObject filter,
+                      MarshalledObject handback,
+		      Subject delegationSubject)
 	throws
 	InstanceNotFoundException,
 	ListenerNotFoundException,
@@ -984,8 +980,8 @@ public interface RMIConnection extends Remote {
      * @throws IOException if a general communication exception occurred.
      */
     public Integer[] addNotificationListeners(ObjectName[] names,
-					      MarshalledObject[] filters,
-					      Subject[] delegationSubjects)
+		    MarshalledObject[] filters,
+		    Subject[] delegationSubjects)
 	throws InstanceNotFoundException, IOException;
 
     /**

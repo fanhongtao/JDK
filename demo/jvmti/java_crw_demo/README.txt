@@ -1,5 +1,11 @@
+#
+# @(#)README.txt	1.8 06/01/28
+#
+# Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+# SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+#
 
-java_crw_demo Library: @(#)README.txt	1.7 04/06/23
+java_crw_demo Library: @(#)README.txt	1.8 06/01/28
 
 The library java_crw_demo is a small C library that is used by HPROF
 and other agent libraries to do some very basic bytecode 

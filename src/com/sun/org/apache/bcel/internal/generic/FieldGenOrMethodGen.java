@@ -1,4 +1,5 @@
 package com.sun.org.apache.bcel.internal.generic;
+import com.sun.org.apache.bcel.internal.Constants;
 
 /* ====================================================================
  * The Apache Software License, Version 1.1
@@ -61,7 +62,7 @@ import java.util.ArrayList;
  * Super class for FieldGen and MethodGen objects, since they have
  * some methods in common!
  *
- * @version $Id: FieldGenOrMethodGen.java,v 1.1.1.1 2001/10/29 20:00:12 jvanzyl Exp $
+ * @version $Id: FieldGenOrMethodGen.java,v 1.1.2.1 2005/07/31 23:44:49 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class FieldGenOrMethodGen extends AccessFlags
@@ -74,7 +75,12 @@ public abstract class FieldGenOrMethodGen extends AccessFlags
 
   protected FieldGenOrMethodGen() {}
 
-  public void            setType(Type type)   { this.type = type; }
+  public void            setType(Type type)   {
+    if(type.getType() == Constants.T_ADDRESS)
+      throw new IllegalArgumentException("Type can not be " + type);
+
+    this.type = type;
+  }
   public Type            getType()            { return type; }
 
   /** @return name of method/field.

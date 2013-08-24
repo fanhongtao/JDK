@@ -1,5 +1,5 @@
 /*
- * @(#)ClassDefinition.java	1.4 04/05/05
+ * @(#)ClassDefinition.java	1.5 06/04/07
  *
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
  */
@@ -15,7 +15,7 @@ package java.lang.instrument;
  * Serves to bind the <code>Class</code> that needs redefining together with the new class file bytes.
  *
  * @see     java.lang.instrument.Instrumentation#redefineClasses
- * @since   JDK1.5
+ * @since   1.5
  */
 public final class ClassDefinition {
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)CurveQuadTo.java	1.24 04/07/26
+ * @(#)CurveQuadTo.java	1.26 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)CurveQuadTo.java	1.24 04/07/26
+ * @(#)CurveQuadTo.java	1.26 06/08/29
  */
 
 package java2d.demos.Paths;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java2d.Surface;
@@ -51,7 +52,7 @@ import java2d.Surface;
 public class CurveQuadTo extends Surface {
 
     public CurveQuadTo() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -61,9 +62,9 @@ public class CurveQuadTo extends Surface {
         p.curveTo(w*.4f, h*.5f, w*.6f, 0.0f, w*.8f, h*.25f);
         p.moveTo(w*.2f, h*.6f);
         p.quadTo(w*.5f, h*1.0f, w*.8f, h*.6f);
-        g2.setColor(Color.lightGray);
+        g2.setColor(LIGHT_GRAY);
         g2.fill(p);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(p);
         g2.drawString("curveTo", (int) (w*.2), (int) (h*.25f)-5);
         g2.drawString("quadTo", (int) (w*.2), (int) (h*.6f)-5);

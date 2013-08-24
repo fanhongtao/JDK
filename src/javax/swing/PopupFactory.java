@@ -1,7 +1,7 @@
 /*
- * @(#)PopupFactory.java	1.24 03/12/19
+ * @(#)PopupFactory.java	1.26 05/02/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.24 12/19/03
+ * @version 1.26 02/22/05
  * @since 1.4
  */
 public class PopupFactory {
@@ -558,8 +558,7 @@ public class PopupFactory {
                         r.y += i.top;
                         r.width -= (i.left + i.right);
                         r.height -= (i.top + i.bottom);
-                        return SwingUtilities.isRectangleContainingRectangle(
-                                   r, new Rectangle(x, y, width, height));
+                        return r.contains(x, y, width, height);
                                                   
                     } else if (parent instanceof JApplet) {
                         Rectangle r = parent.getBounds();
@@ -567,8 +566,7 @@ public class PopupFactory {
 
                         r.x = p.x;
                         r.y = p.y;
-                        return SwingUtilities.isRectangleContainingRectangle(
-                            r, new Rectangle(x, y, width, height));
+                        return r.contains(x, y, width, height);
                     } else if (parent instanceof Window || 
 			       parent instanceof Applet) {
 			// No suitable swing component found
@@ -748,7 +746,8 @@ public class PopupFactory {
             super.reset(owner, contents, ownerX, ownerY);
 
             JComponent component = (JComponent)getComponent();
-
+            
+            component.setOpaque(contents.isOpaque());
             component.setLocation(ownerX, ownerY);
             component.add(contents, BorderLayout.CENTER);
             contents.invalidate();
@@ -884,7 +883,7 @@ public class PopupFactory {
         }
 
         Component createComponent(Component owner) {
-            Panel component = new Panel(new BorderLayout());
+            Panel component = new MediumWeightComponent();
 
 	    rootPane = new JRootPane();
             // NOTE: this uses setOpaque vs LookAndFeel.installProperty as
@@ -910,6 +909,16 @@ public class PopupFactory {
             contents.invalidate();
             component.validate();
             pack();
+        }
+
+
+        // This implements SwingHeavyWeight so that repaints on it
+        // are processed by the RepaintManager and SwingPaintEventDispatcher.
+        private static class MediumWeightComponent extends Panel implements
+                                                           SwingHeavyWeight {
+            MediumWeightComponent() {
+                super(new BorderLayout());
+            }
         }
     }
 }

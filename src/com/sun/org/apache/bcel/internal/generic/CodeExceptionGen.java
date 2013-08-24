@@ -66,13 +66,14 @@ import com.sun.org.apache.bcel.internal.classfile.*;
  * The end of the region is automatically mapped to be exclusive when calling
  * getCodeException(), i.e., there is no difference semantically.
  *
- * @version $Id: CodeExceptionGen.java,v 1.1.1.1 2001/10/29 20:00:08 jvanzyl Exp $
+ * @version $Id: CodeExceptionGen.java,v 1.1.2.1 2005/07/31 23:45:15 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     MethodGen
  * @see     CodeException
  * @see     InstructionHandle
  */
-public final class CodeExceptionGen implements InstructionTargeter, Cloneable {
+public final class CodeExceptionGen
+  implements InstructionTargeter, Cloneable, java.io.Serializable {
   private InstructionHandle start_pc;
   private InstructionHandle end_pc;
   private InstructionHandle handler_pc;

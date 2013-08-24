@@ -1,7 +1,7 @@
 /*
- * @(#)PopupMenu.java	1.29 04/03/16
+ * @(#)PopupMenu.java	1.34 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,13 +21,15 @@ import javax.accessibility.*;
  * (e.g., you add it to a <code>MenuBar</code>), then you <b>cannot</b>
  * call <code>show</code> on that <code>PopupMenu</code>.
  *
- * @version	1.29 03/16/04
+ * @version	1.34 04/07/06
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
 
     private static final String base = "popup";
     static int nameCounter = 0;
+
+    transient boolean isTrayIconPopup = false;
 
     /*
      * JDK 1.1 serialVersionUID
@@ -55,6 +57,16 @@ public class PopupMenu extends Menu {
      */
     public PopupMenu(String label) throws HeadlessException {
 	super(label);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public MenuContainer getParent() {
+        if (isTrayIconPopup) {
+            return null;
+        }
+        return super.getParent();
     }
 
     /**
@@ -124,11 +136,17 @@ public class PopupMenu extends Menu {
 	        "PopupMenus with non-Component parents cannot be shown");
 	}
         Component compParent = (Component)localParent;
-	if (compParent != origin &&
-	    compParent instanceof Container &&
-	    !((Container)compParent).isAncestorOf(origin)) {
-	        throw new IllegalArgumentException(
-		    "origin not in parent's hierarchy");
+        //Fixed 6278745: Incorrect exception throwing in PopupMenu.show() method  
+        //Exception was not thrown if compParent was not equal to origin and
+        //was not Container
+        if (compParent != origin) {
+            if (compParent instanceof Container) {
+                if (!((Container)compParent).isAncestorOf(origin)) {
+                    throw new IllegalArgumentException("origin not in parent's hierarchy");
+                }
+            } else {
+                throw new IllegalArgumentException("origin not in parent's hierarchy");
+            }
 	}
 	if (compParent.getPeer() == null || !compParent.isShowing()) {
 	    throw new RuntimeException("parent not showing on screen");
@@ -155,6 +173,7 @@ public class PopupMenu extends Menu {
      *
      * @return the <code>AccessibleContext</code> of this
      *                <code>PopupMenu</code>
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -170,6 +189,7 @@ public class PopupMenu extends Menu {
      * subclassed by menu component developers.
      * <p>
      * The class used to obtain the accessible role for this object.
+     * @since 1.3
      */
     protected class AccessibleAWTPopupMenu extends AccessibleAWTMenu
     {

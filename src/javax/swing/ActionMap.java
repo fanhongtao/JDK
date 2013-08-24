@@ -1,7 +1,7 @@
 /*
- * @(#)ActionMap.java	1.14 03/12/19
+ * @(#)ActionMap.java	1.16 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -34,8 +34,9 @@ import java.util.Set;
  *
  * @see InputMap
  *
- * @version 1.14 12/19/03
+ * @version 1.16 04/07/06
  * @author Scott Violet
+ * @since 1.3
  */
 public class ActionMap implements Serializable {
     /** Handles the mapping between Action name and Action. */

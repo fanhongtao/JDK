@@ -1,13 +1,13 @@
 /*
- * @(#)MetalButtonUI.java	1.37 04/04/02
+ * @(#)MetalButtonUI.java	1.39 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.metal;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
@@ -28,7 +28,7 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.37 04/02/04
+ * @version 1.39 11/30/05
  * @author Tom Santos
  */
 public class MetalButtonUI extends BasicButtonUI {

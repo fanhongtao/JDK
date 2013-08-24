@@ -62,10 +62,12 @@ package com.sun.org.apache.xerces.internal.impl;
  * This class performs namespace binding on the startElement and endElement
  * method calls in accordance with Namespaces in XML 1.1.  It extends the standard,
  * Namespace-1.0-compliant binder in order to do this.
+ * 
+ * @xerces.internal
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: XML11NamespaceBinder.java,v 1.3 2003/05/08 20:11:54 elena Exp $
+ * @version $Id: XML11NamespaceBinder.java,v 1.1.2.1 2005/08/01 03:34:16 jeffsuttor Exp $
  */
 public class XML11NamespaceBinder extends XMLNamespaceBinder {
 

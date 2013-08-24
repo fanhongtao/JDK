@@ -1,7 +1,7 @@
 /*
- * @(#)DelegateInvocationHandlerImpl.java	1.9 05/10/31
+ * @(#)DelegateInvocationHandlerImpl.java	1.10 06/08/12
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,11 +24,10 @@ public abstract class DelegateInvocationHandlerImpl
 
     public static InvocationHandler create( final Object delegate )
     {
-        SecurityManager s = System.getSecurityManager();
-        if (s != null) {
-            s.checkPermission(new DynamicAccessPermission("access"));
-        }
-
+	SecurityManager s = System.getSecurityManager();
+	if (s != null) {
+	    s.checkPermission(new DynamicAccessPermission("access"));
+	}
 	return new InvocationHandler() {
 	    public Object invoke( Object proxy, Method method, Object[] args )
 		throws Throwable

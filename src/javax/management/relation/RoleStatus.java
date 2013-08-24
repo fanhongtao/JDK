@@ -1,7 +1,7 @@
 /*
- * @(#)RoleStatus.java	1.13 03/12/19
+ * @(#)RoleStatus.java	1.15 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,18 +56,18 @@ public class RoleStatus {
      * Returns true if given value corresponds to a known role status, false
      * otherwise.
      *
-     * @param theRoleStatus a status code.
+     * @param status a status code.
      *
      * @return true if this value is a known role status.
      */
-    public static boolean isRoleStatus(int theRoleStatus) {
-	if (theRoleStatus != NO_ROLE_WITH_NAME &&
-	    theRoleStatus != ROLE_NOT_READABLE &&
-	    theRoleStatus != ROLE_NOT_WRITABLE &&
-	    theRoleStatus != LESS_THAN_MIN_ROLE_DEGREE &&
-	    theRoleStatus != MORE_THAN_MAX_ROLE_DEGREE &&
-	    theRoleStatus != REF_MBEAN_OF_INCORRECT_CLASS &&
-	    theRoleStatus != REF_MBEAN_NOT_REGISTERED) {
+    public static boolean isRoleStatus(int status) {
+	if (status != NO_ROLE_WITH_NAME &&
+	    status != ROLE_NOT_READABLE &&
+	    status != ROLE_NOT_WRITABLE &&
+	    status != LESS_THAN_MIN_ROLE_DEGREE &&
+	    status != MORE_THAN_MAX_ROLE_DEGREE &&
+	    status != REF_MBEAN_OF_INCORRECT_CLASS &&
+	    status != REF_MBEAN_NOT_REGISTERED) {
 	    return false;
 	}
 	return true;

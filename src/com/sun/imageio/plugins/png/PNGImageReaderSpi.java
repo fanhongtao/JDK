@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageReaderSpi.java	1.25 03/12/19
+ * @(#)PNGImageReaderSpi.java	1.27 05/12/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ public class PNGImageReaderSpi extends ImageReaderSpi {
 
     private static final String version = "1.0";
 
-    private static final String[] names = { "png" };
+    private static final String[] names = { "png", "PNG" };
 
     private static final String[] suffixes = { "png" };
     

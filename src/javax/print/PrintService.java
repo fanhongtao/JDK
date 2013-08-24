@@ -1,7 +1,7 @@
 /*
- * @(#)PrintService.java	1.11 04/05/05
+ * @(#)PrintService.java	1.14 06/06/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,16 +24,17 @@ import javax.print.event.PrintServiceAttributeListener;
  * Example:
  *   <PRE>
  *   DocFlavor flavor = DocFlavor.INPUT_STREAM.POSTSCRIPT;
- *   PrintRequestAttributeSet aset = new HashPrintRequestHashAttributeSet();
+ *   PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
  *   aset.add(MediaSizeName.ISO_A4);
  *   PrintService[] pservices =
  *                 PrintServiceLookup.lookupPrintServices(flavor, aset);
  *   if (pservices.length > 0) {
  *       DocPrintJob pj = pservices[0].createPrintJob();
- *       // InputStreamDoc is an implementation of the Doc interface //
- *       Doc doc = new InputStreamDoc("test.ps", flavor);
  *       try {
- *             pj.print(doc, aset);
+ *           FileInputStream fis = new FileInputStream("test.ps");
+ *           Doc doc = new SimpleDoc(fis, flavor, null);
+ *           pj.print(doc, aset);
+ *        } catch (FileNotFoundException fe) {
  *        } catch (PrintException e) { 
  *        }
  *   }

@@ -1,7 +1,7 @@
 /*
- * @(#)SynthPainter.java	1.10 03/12/19
+ * @(#)SynthPainter.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -39,7 +39,7 @@ import javax.swing.*;
  * they can throw a <code>NullPointerException</code> or
  * <code>IllegalArgumentException</code> in response to invalid arguments.
  *
- * @version 1.10, 12/19/03
+ * @version 1.13, 11/17/05
  * @since 1.5
  * @author Scott Violet
  */
@@ -793,6 +793,27 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
+    
+    /**
+     * Paints the background of a progress bar. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation one of <code>JProgressBar.HORIZONTAL</code> or
+     *                    <code>JProgressBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintProgressBarBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintProgressBarBackground(context, g, x, y, w, h);
+    }
 
     /**
      * Paints the border of a progress bar.
@@ -811,7 +832,28 @@ public abstract class SynthPainter {
     }
 
     /**
-     * Paints the foreground of a progress bar. This is responsible for
+     * Paints the border of a progress bar. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation one of <code>JProgressBar.HORIZONTAL</code> or
+     *                    <code>JProgressBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintProgressBarBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintProgressBarBorder(context, g, x, y, w, h);
+    }
+
+    /**
+     * Paints the foreground of a progress bar. is responsible for
      * providing an indication of the progress of the progress bar.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -942,6 +984,28 @@ public abstract class SynthPainter {
     }
 
     /**
+     * Paints the background of a scrollbar. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation Orientation of the JScrollBar, one of
+     *                    <code>JScrollBar.HORIZONTAL</code> or
+     *                    <code>JScrollBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintScrollBarBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintScrollBarBackground(context, g, x, y, w, h);
+    }
+    
+    /**
      * Paints the border of a scrollbar.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -955,6 +1019,28 @@ public abstract class SynthPainter {
     public void paintScrollBarBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+    
+    /**
+     * Paints the border of a scrollbar. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation Orientation of the JScrollBar, one of
+     *                    <code>JScrollBar.HORIZONTAL</code> or
+     *                    <code>JScrollBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintScrollBarBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintScrollBarBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1015,6 +1101,29 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
+    
+    /**
+     * Paints the background of the track of a scrollbar. The track contains
+     * the thumb. This implementation invokes the method of the same name without
+     * the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation Orientation of the JScrollBar, one of
+     *                    <code>JScrollBar.HORIZONTAL</code> or
+     *                    <code>JScrollBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintScrollBarTrackBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintScrollBarTrackBackground(context, g, x, y, w, h);
+    }
 
     /**
      * Paints the border of the track of a scrollbar. The track contains
@@ -1031,6 +1140,29 @@ public abstract class SynthPainter {
     public void paintScrollBarTrackBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+
+    /**
+     * Paints the border of the track of a scrollbar. The track contains
+     * the thumb. This implementation invokes the method of the same name without
+     * the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation Orientation of the JScrollBar, one of
+     *                    <code>JScrollBar.HORIZONTAL</code> or
+     *                    <code>JScrollBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintScrollBarTrackBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintScrollBarTrackBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1082,6 +1214,27 @@ public abstract class SynthPainter {
     }
 
     /**
+     * Paints the background of a separator. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSeparator.HORIZONTAL</code> or
+     *                           <code>JSeparator.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintSeparatorBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintSeparatorBackground(context, g, x, y, w, h);
+    }
+
+    /**
      * Paints the border of a separator.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -1095,6 +1248,27 @@ public abstract class SynthPainter {
     public void paintSeparatorBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+
+    /**
+     * Paints the border of a separator. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSeparator.HORIZONTAL</code> or
+     *                           <code>JSeparator.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintSeparatorBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintSeparatorBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1132,6 +1306,27 @@ public abstract class SynthPainter {
     }
 
     /**
+     * Paints the background of a slider. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSlider.HORIZONTAL</code> or
+     *                           <code>JSlider.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintSliderBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintSliderBackground(context, g, x, y, w, h);
+    }
+
+    /**
      * Paints the border of a slider.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -1145,6 +1340,27 @@ public abstract class SynthPainter {
     public void paintSliderBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+    
+    /**
+     * Paints the border of a slider. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSlider.HORIZONTAL</code> or
+     *                           <code>JSlider.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintSliderBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintSliderBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1198,6 +1414,27 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
+    
+    /**
+     * Paints the background of the track of a slider. This implementation invokes
+     * the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSlider.HORIZONTAL</code> or
+     *                           <code>JSlider.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintSliderTrackBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintSliderTrackBackground(context, g, x, y, w, h);
+    }
 
     /**
      * Paints the border of the track of a slider.
@@ -1213,6 +1450,27 @@ public abstract class SynthPainter {
     public void paintSliderTrackBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+    
+    /**
+     * Paints the border of the track of a slider. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSlider.HORIZONTAL</code> or
+     *                           <code>JSlider.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintSliderTrackBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintSliderTrackBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1261,6 +1519,27 @@ public abstract class SynthPainter {
     public void paintSplitPaneDividerBackground(SynthContext context,
                                      Graphics g, int x, int y,
                                      int w, int h) {
+    }
+    
+    /**
+     * Paints the background of the divider of a split pane. This implementation
+     * invokes the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JSplitPane.HORIZONTAL_SPLIT</code> or
+     *                           <code>JSplitPane.VERTICAL_SPLIT</code>
+     * @since 1.6
+     */
+    public void paintSplitPaneDividerBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintSplitPaneDividerBackground(context, g, x, y, w, h);
     }
 
     /**
@@ -1381,6 +1660,30 @@ public abstract class SynthPainter {
     }
 
     /**
+     * Paints the background of the area behind the tabs of a tabbed pane.
+     * This implementation invokes the method of the same name without the
+     * orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JTabbedPane.TOP</code>,
+     *                    <code>JTabbedPane.LEFT</code>,
+     *                    <code>JTabbedPane.BOTTOM</code>, or
+     *                    <code>JTabbedPane.RIGHT</code>
+     * @since 1.6
+     */
+    public void paintTabbedPaneTabAreaBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintTabbedPaneTabAreaBackground(context, g, x, y, w, h);
+    }
+
+    /**
      * Paints the border of the area behind the tabs of a tabbed pane.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -1394,6 +1697,29 @@ public abstract class SynthPainter {
     public void paintTabbedPaneTabAreaBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+    
+    /**
+     * Paints the border of the area behind the tabs of a tabbed pane. This
+     * implementation invokes the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JTabbedPane.TOP</code>,
+     *                    <code>JTabbedPane.LEFT</code>,
+     *                    <code>JTabbedPane.BOTTOM</code>, or
+     *                    <code>JTabbedPane.RIGHT</code>
+     * @since 1.6
+     */
+    public void paintTabbedPaneTabAreaBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintTabbedPaneTabAreaBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1412,6 +1738,30 @@ public abstract class SynthPainter {
                                          int x, int y, int w, int h,
                                          int tabIndex) {
     }
+    
+    /**
+     * Paints the background of a tab of a tabbed pane. This implementation
+     * invokes the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param tabIndex Index of tab being painted.
+     * @param orientation One of <code>JTabbedPane.TOP</code>,
+     *                    <code>JTabbedPane.LEFT</code>,
+     *                    <code>JTabbedPane.BOTTOM</code>, or
+     *                    <code>JTabbedPane.RIGHT</code>
+     * @since 1.6
+     */
+    public void paintTabbedPaneTabBackground(SynthContext context, Graphics g,
+                                         int x, int y, int w, int h,
+                                         int tabIndex, int orientation) {
+        paintTabbedPaneTabBackground(context, g, x, y, w, h, tabIndex);
+    }
 
     /**
      * Paints the border of a tab of a tabbed pane.
@@ -1428,6 +1778,30 @@ public abstract class SynthPainter {
     public void paintTabbedPaneTabBorder(SynthContext context, Graphics g,
                                          int x, int y, int w, int h,
                                          int tabIndex) {
+    }
+    
+    /**
+     * Paints the border of a tab of a tabbed pane. This implementation invokes
+     * the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param tabIndex Index of tab being painted.
+     * @param orientation One of <code>JTabbedPane.TOP</code>,
+     *                    <code>JTabbedPane.LEFT</code>,
+     *                    <code>JTabbedPane.BOTTOM</code>, or
+     *                    <code>JTabbedPane.RIGHT</code>
+     * @since 1.6
+     */
+    public void paintTabbedPaneTabBorder(SynthContext context, Graphics g,
+                                         int x, int y, int w, int h,
+                                         int tabIndex, int orientation) {
+        paintTabbedPaneTabBorder(context, g, x, y, w, h, tabIndex);
     }
 
     /**
@@ -1672,6 +2046,27 @@ public abstract class SynthPainter {
     }
 
     /**
+     * Paints the background of a tool bar. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JToolBar.HORIZONTAL</code> or
+     *                           <code>JToolBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintToolBarBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintToolBarBackground(context, g, x, y, w, h);
+    }
+
+    /**
      * Paints the border of a tool bar.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -1685,6 +2080,27 @@ public abstract class SynthPainter {
     public void paintToolBarBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+
+    /**
+     * Paints the border of a tool bar. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JToolBar.HORIZONTAL</code> or
+     *                           <code>JToolBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintToolBarBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintToolBarBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1704,6 +2120,27 @@ public abstract class SynthPainter {
     }
 
     /**
+     * Paints the background of the tool bar's content area. This implementation
+     * invokes the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JToolBar.HORIZONTAL</code> or
+     *                           <code>JToolBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintToolBarContentBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintToolBarContentBackground(context, g, x, y, w, h);
+    }
+
+    /**
      * Paints the border of the content area of a tool bar.
      *
      * @param context SynthContext identifying the <code>JComponent</code> and
@@ -1717,6 +2154,27 @@ public abstract class SynthPainter {
     public void paintToolBarContentBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+
+    /**
+     * Paints the border of the content area of a tool bar. This implementation
+     * invokes the method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JToolBar.HORIZONTAL</code> or
+     *                           <code>JToolBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintToolBarContentBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintToolBarContentBorder(context, g, x, y, w, h);
     }
 
     /**
@@ -1735,6 +2193,28 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
+    
+    /**
+     * Paints the background of the window containing the tool bar when it
+     * has been detached from its primary frame. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JToolBar.HORIZONTAL</code> or
+     *                           <code>JToolBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintToolBarDragWindowBackground(SynthContext context,
+                                     Graphics g, int x, int y,
+                                     int w, int h, int orientation) {
+        paintToolBarDragWindowBackground(context, g, x, y, w, h);
+    }
 
     /**
      * Paints the border of the window containing the tool bar when it
@@ -1751,6 +2231,28 @@ public abstract class SynthPainter {
     public void paintToolBarDragWindowBorder(SynthContext context,
                                  Graphics g, int x, int y,
                                  int w, int h) {
+    }
+    
+    /**
+     * Paints the border of the window containing the tool bar when it
+     * has been detached from it's primary frame. This implementation invokes the
+     * method of the same name without the orientation.
+     *
+     * @param context SynthContext identifying the <code>JComponent</code> and
+     *        <code>Region</code> to paint to
+     * @param g <code>Graphics</code> to paint to
+     * @param x X coordinate of the area to paint to
+     * @param y Y coordinate of the area to paint to
+     * @param w Width of the area to paint to
+     * @param h Height of the area to paint to
+     * @param orientation One of <code>JToolBar.HORIZONTAL</code> or
+     *                           <code>JToolBar.VERTICAL</code>
+     * @since 1.6
+     */
+    public void paintToolBarDragWindowBorder(SynthContext context,
+                                 Graphics g, int x, int y,
+                                 int w, int h, int orientation) {
+        paintToolBarDragWindowBorder(context, g, x, y, w, h);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)JTextPane.java	1.90 03/12/19
+ * @(#)JTextPane.java	1.95 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -32,12 +32,18 @@ import javax.swing.plaf.*;
  * on the paragraph or character run.  Components and images may
  * be embedded in the flow of text.
  * <p>
+ * <dl>
  * <dt><b><font size=+1>Newlines</font></b>
  * <dd>
  * For a discussion on how newlines are handled, see
  * <a href="text/DefaultEditorKit.html">DefaultEditorKit</a>.
  * </dl>
  *
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -53,7 +59,7 @@ import javax.swing.plaf.*;
  * description: A text component that can be marked up with attributes that are graphically represented.
  *
  * @author  Timothy Prinzing
- * @version 1.90 12/19/03
+ * @version 1.95 08/08/06
  * @see javax.swing.text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {
@@ -65,7 +71,14 @@ public class JTextPane extends JEditorPane {
      */
     public JTextPane() {
         super();
-        setEditorKit(createDefaultEditorKit());
+        EditorKit editorKit = createDefaultEditorKit();
+        String contentType = editorKit.getContentType();
+        if (contentType != null 
+            && getEditorKitClassNameForContentType(contentType) ==
+                 defaultEditorKitMap.get(contentType)) {
+            setEditorKitForContentType(contentType, editorKit);
+        }
+        setEditorKit(editorKit);
     }
 
     /**
@@ -140,8 +153,8 @@ public class JTextPane extends JEditorPane {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param content  the content to replace the selection with
      */
@@ -202,8 +215,8 @@ public class JTextPane extends JEditorPane {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param c    the component to insert
      */
@@ -225,8 +238,8 @@ public class JTextPane extends JEditorPane {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param g    the icon to insert
      * @see Icon
@@ -293,8 +306,8 @@ public class JTextPane extends JEditorPane {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param s  the logical style to assign to the paragraph,
      *		or <code>null</code> for no style
@@ -340,8 +353,8 @@ public class JTextPane extends JEditorPane {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param attr the attributes
      * @param replace if true, then replace the existing attributes first
@@ -385,8 +398,8 @@ public class JTextPane extends JEditorPane {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param attr the non-<code>null</code> attributes
      * @param replace if true, replace the existing attributes first

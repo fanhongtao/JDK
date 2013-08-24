@@ -1,7 +1,7 @@
 /*
- * @(#)TypeVariable.java	1.2 03/12/19
+ * @(#)TypeVariable.java	1.3 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  * 
  */
@@ -17,7 +17,7 @@ package com.sun.javadoc;
  * {@code C<R extends Remote>}.
  *
  * @author Scott Seligman
- * @version 1.2 03/12/19
+ * @version 1.3 05/11/17
  * @since 1.5
  */
 public interface TypeVariable extends Type {

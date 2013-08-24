@@ -1,7 +1,7 @@
 /*
- * @(#)Serializable.java	1.22 03/12/19
+ * @(#)Serializable.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,8 @@ package java.io;
  * package fields.  The subtype may assume this responsibility only if
  * the class it extends has an accessible no-arg constructor to
  * initialize the class's state.  It is an error to declare a class
- * Serializable if this is not the case.  The error will be detected at runtime. <p>
+ * Serializable if this is not the case.  The error will be detected at 
+ * runtime. <p>
  *
  * During deserialization, the fields of non-serializable classes will
  * be initialized using the public or protected no-arg constructor of
@@ -43,9 +44,11 @@ package java.io;
  *     throws IOException
  * private void readObject(java.io.ObjectInputStream in)
  *     throws IOException, ClassNotFoundException;
- * </PRE><p>
+ * private void readObjectNoData() 
+ *     throws ObjectStreamException;
+ * </PRE>
  *
- * The writeObject method is responsible for writing the state of the
+ * <p>The writeObject method is responsible for writing the state of the
  * object for its particular class so that the corresponding
  * readObject method can restore it.  The default mechanism for saving
  * the Object's fields can be invoked by calling
@@ -53,21 +56,32 @@ package java.io;
  * itself with the state belonging to its superclasses or subclasses.
  * State is saved by writing the individual fields to the
  * ObjectOutputStream using the writeObject method or by using the
- * methods for primitive data types supported by DataOutput. <p>
+ * methods for primitive data types supported by DataOutput.
  *
- * The readObject method is responsible for reading from the stream and
+ * <p>The readObject method is responsible for reading from the stream and
  * restoring the classes fields. It may call in.defaultReadObject to invoke
- * the default mechanism for restoring the object's non-static and non-transient
- * fields.  The defaultReadObject method uses information in the stream to
- * assign the fields of the object saved in the stream with the correspondingly
- * named fields in the current object.  This handles the case when the class
- * has evolved to add new fields. The method does not need to concern
- * itself with the state belonging to its superclasses or subclasses.
+ * the default mechanism for restoring the object's non-static and 
+ * non-transient fields.  The defaultReadObject method uses information in 
+ * the stream to assign the fields of the object saved in the stream with the 
+ * correspondingly named fields in the current object.  This handles the case 
+ * when the class has evolved to add new fields. The method does not need to 
+ * concern itself with the state belonging to its superclasses or subclasses.
  * State is saved by writing the individual fields to the
  * ObjectOutputStream using the writeObject method or by using the
- * methods for primitive data types supported by DataOutput. <p>
+ * methods for primitive data types supported by DataOutput.
  *
- * Serializable classes that need to designate an alternative object to be
+ * <p>The readObjectNoData method is responsible for initializing the state of
+ * the object for its particular class in the event that the serialization
+ * stream does not list the given class as a superclass of the object being
+ * deserialized.  This may occur in cases where the receiving party uses a
+ * different version of the deserialized instance's class than the sending
+ * party, and the receiver's version extends classes that are not extended by
+ * the sender's version.  This may also occur if the serialization stream has
+ * been tampered; hence, readObjectNoData is useful for initializing
+ * deserialized objects properly despite a "hostile" or incomplete source
+ * stream.
+ *
+ * <p>Serializable classes that need to designate an alternative object to be
  * used when writing an object to the stream should implement this
  * special method with the exact signature: <p>
  *
@@ -121,10 +135,13 @@ package java.io;
  * serialVersionUID value.  It is also strongly advised that explicit
  * serialVersionUID declarations use the <code>private</code> modifier where
  * possible, since such declarations apply only to the immediately declaring
- * class--serialVersionUID fields are not useful as inherited members.
+ * class--serialVersionUID fields are not useful as inherited members. Array
+ * classes cannot declare an explicit serialVersionUID, so they always have
+ * the default computed value, but the requirement for matching
+ * serialVersionUID values is waived for array classes.
  *
  * @author  unascribed
- * @version 1.22, 12/19/03
+ * @version 1.25, 11/17/05
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput

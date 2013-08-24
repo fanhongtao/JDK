@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ExpressionContext.java,v 1.8 2004/02/11 05:26:23 minchau Exp $
+ * $Id: ExpressionContext.java,v 1.2.4.1 2005/09/10 19:34:03 jeffsuttor Exp $
  */
 package com.sun.org.apache.xalan.internal.extensions;
 

@@ -1,7 +1,7 @@
 /*
- * @(#)SQLInputImpl.java	1.4 04/05/05 
+ * @(#)SQLInputImpl.java	1.7 06/08/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -97,9 +97,9 @@ public class SQLInputImpl implements SQLInput {
      *        is a <code>null</code> value
      */
   
-    public SQLInputImpl(Object[] attributes, Map<String,Class<?>> map)
-	throws SQLException
-    {
+    public SQLInputImpl(Object[] attributes, Map<String,Class<?>> map) 
+        throws SQLException 
+    {        
         if ((attributes == null) || (map == null)) {
             throw new SQLException("Cannot instantiate a SQLInputImpl " +
             "object with null parameters");
@@ -753,5 +753,60 @@ public class SQLInputImpl implements SQLInput {
     public java.net.URL readURL() throws SQLException {
         throw new SQLException("Operation not supported");    
     }
+
+    //---------------------------- JDBC 4.0 -------------------------
+
+    /**
+     * Reads an SQL <code>NCLOB</code> value from the stream and returns it as a
+     * <code>Clob</code> object in the Java programming language.
+     *
+     * @return a <code>NClob</code> object representing data of the SQL <code>NCLOB</code> value
+     * at the head of the stream; <code>null</code> if the value read is
+     * SQL <code>NULL</code>
+     * @exception SQLException if a database access error occurs
+     */
+     public NClob readNClob() throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+
+    /**
+     * Reads the next attribute in the stream and returns it as a <code>String</code>
+     * in the Java programming language. It is intended for use when
+     * accessing  <code>NCHAR</code>,<code>NVARCHAR</code>
+     * and <code>LONGNVARCHAR</code> columns.
+     *
+     * @return the attribute; if the value is SQL <code>NULL</code>, returns <code>null</code>
+     * @exception SQLException if a database access error occurs
+     */
+    public String readNString() throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+
+    /**
+     * Reads an SQL <code>XML</code> value from the stream and returns it as a
+     * <code>SQLXML</code> object in the Java programming language.
+     *
+     * @return a <code>SQLXML</code> object representing data of the SQL <code>XML</code> value
+     * at the head of the stream; <code>null</code> if the value read is
+     * SQL <code>NULL</code>
+     * @exception SQLException if a database access error occurs
+     */
+    public SQLXML readSQLXML() throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+
+     /**
+     * Reads an SQL <code>ROWID</code> value from the stream and returns it as a
+     * <code>RowId</code> object in the Java programming language.
+     *
+     * @return a <code>RowId</code> object representing data of the SQL <code>ROWID</code> value
+     * at the head of the stream; <code>null</code> if the value read is
+     * SQL <code>NULL</code>
+     * @exception SQLException if a database access error occurs
+     */
+    public RowId readRowId() throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+
 
 }

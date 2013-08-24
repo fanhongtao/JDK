@@ -1,68 +1,26 @@
 /*
- * @(#)$Id: SmartTransformerFactoryImpl.java,v 1.9 2003/08/14 16:27:43 ilene Exp $
+ * Copyright 2001-2004 The Apache Software Foundation.
  *
- * The Apache Software License, Version 1.1
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xalan" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, Sun
- * Microsystems., http://www.sun.com.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- * @author G. Todd Miller 
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * $Id: SmartTransformerFactoryImpl.java,v 1.2.4.1 2005/09/14 09:57:13 pvedula Exp $
  */
 
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -80,7 +38,7 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import com.sun.org.apache.xml.internal.utils.ObjectFactory;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import org.xml.sax.XMLFilter;
 
 /**
@@ -88,15 +46,25 @@ import org.xml.sax.XMLFilter;
  * transformer factory for the creation of Templates objects
  * and uses the Xalan processor transformer factory for the
  * creation of Transformer objects.  
+ * @author G. Todd Miller 
  */
 public class SmartTransformerFactoryImpl extends SAXTransformerFactory 
 {
+    /**
+     * <p>Name of class as a constant to use for debugging.</p>
+     */
+    private static final String CLASS_NAME = "SmartTransformerFactoryImpl";
 
     private SAXTransformerFactory _xsltcFactory = null;
     private SAXTransformerFactory _xalanFactory = null;
     private SAXTransformerFactory _currFactory = null;
     private ErrorListener      _errorlistener = null;
     private URIResolver        _uriresolver = null;
+    
+    /**
+     * <p>State of secure processing feature.</p>
+     */
+    private boolean featureSecureProcessing = false;
 
     /**
      * implementation of the SmartTransformerFactory. This factory
@@ -183,6 +151,48 @@ public class SmartTransformerFactoryImpl extends SAXTransformerFactory
     }
 
     /**
+     * <p>Set a feature for this <code>SmartTransformerFactory</code> and <code>Transformer</code>s
+     * or <code>Template</code>s created by this factory.</p>
+     * 
+     * <p>
+     * Feature names are fully qualified {@link java.net.URI}s.
+     * Implementations may define their own features.
+     * An {@link TransformerConfigurationException} is thrown if this <code>TransformerFactory</code> or the
+     * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
+     * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
+     * </p>
+     * 
+     * <p>See {@link javax.xml.transform.TransformerFactory} for full documentation of specific features.</p>
+     * 
+     * @param name Feature name.
+     * @param value Is feature state <code>true</code> or <code>false</code>.
+     *  
+     * @throws TransformerConfigurationException if this <code>TransformerFactory</code>
+     *   or the <code>Transformer</code>s or <code>Template</code>s it creates cannot support this feature.
+     * @throws NullPointerException If the <code>name</code> parameter is null.
+     */
+    public void setFeature(String name, boolean value)
+        throws TransformerConfigurationException {
+
+	// feature name cannot be null
+	if (name == null) {
+            ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_SET_FEATURE_NULL_NAME);
+    	    throw new NullPointerException(err.toString());
+	}
+	// secure processing?
+	else if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+	    featureSecureProcessing = value;		
+	    // all done processing feature
+	    return;
+	}
+	else {	
+	    // unknown feature
+            ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_UNSUPPORTED_FEATURE, name);
+            throw new TransformerConfigurationException(err.toString());
+        }
+    }
+
+    /**
      * javax.xml.transform.sax.TransformerFactory implementation.
      * Look up the value of a feature (to see if it is supported).
      * This method must be updated as the various methods and features of this
@@ -201,13 +211,25 @@ public class SmartTransformerFactoryImpl extends SAXTransformerFactory
             StreamSource.FEATURE,
             StreamResult.FEATURE
         };
-
-        // Inefficient, but it really does not matter in a function like this
-        for (int i=0; i<features.length; i++) {
-            if (name.equals(features[i])) return true;
+		
+	// feature name cannot be null
+	if (name == null) {
+    	    ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_GET_FEATURE_NULL_NAME);
+    	    throw new NullPointerException(err.toString());
 	}
 
-        // Feature not supported
+	// Inefficient, but it really does not matter in a function like this
+	for (int i = 0; i < features.length; i++) {
+	    if (name.equals(features[i]))
+		return true;
+	}
+
+	// secure processing?
+	if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+	    return featureSecureProcessing;
+	}
+
+	// unknown feature
         return false;
     }
 

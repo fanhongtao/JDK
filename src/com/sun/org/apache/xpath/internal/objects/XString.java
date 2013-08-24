@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XString.java,v 1.14 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XString.java,v 1.2.4.1 2005/09/14 20:47:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -35,9 +35,10 @@ import com.sun.org.apache.xpath.internal.XPathVisitor;
  */
 public class XString extends XObject implements XMLString
 {
+    static final long serialVersionUID = 2020470518395094525L;
 
   /** Empty string XString object */
-  public static XString EMPTYSTRING = new XString("");
+  public static final XString EMPTYSTRING = new XString("");
 
   /**
    * Construct a XString object.  This constructor exists for derived classes.
@@ -110,96 +111,30 @@ public class XString extends XObject implements XMLString
    */
   public double toDouble()
   {
-    int end = length();
-    
-    if(0 == end)
-      return Double.NaN;
-
-    double result = 0.0;
-    int start = 0;
-    int punctPos = end-1;
-
-    // Scan to first whitespace character.
-    for (int i = start; i < end; i++)
-    {
-      char c = charAt(i);
-
-      if (!XMLCharacterRecognizer.isWhiteSpace(c))
-      {
-        break;
-      }
-      else
-        start++;
-    }
-
-    double sign = 1.0;
-
-    if (start < end && charAt(start) == '-')
-    {
-      sign = -1.0;
-
-      start++;
-    }
-
-    int digitsFound = 0;
-
-    for (int i = start; i < end; i++)  // parse the string from left to right converting the integer part
-    {
-      char c = charAt(i);
-
-      if (c != '.')
-      {
-        if (XMLCharacterRecognizer.isWhiteSpace(c))
-          break;
-        else if (Character.isDigit(c))
-        {
-          result = result * 10.0 + (c - 0x30);
-
-          digitsFound++;
+    /* XMLCharacterRecognizer.isWhiteSpace(char c) methods treats the following 
+     * characters as white space characters.
+     * ht - horizontal tab, nl - newline , cr - carriage return and sp - space
+     * trim() methods by default also takes care of these white space characters
+     * So trim() method is used to remove leading and trailing white spaces.
+     */
+	XMLString s = trim();
+	double result = Double.NaN;
+	for (int i = 0; i < s.length(); i++)
+	{
+		char c = s.charAt(i);
+    if (c != '-' && c != '.' && ( c < 0X30 || c > 0x39)) {
+            // The character is not a '-' or a '.' or a digit
+            // then return NaN because something is wrong.
+			return result;
         }
-        else
-        {
-          return Double.NaN;
-        }
-      }
-      else
-      {
-        punctPos = i;
+	}
+	try
+	{
+		result = Double.parseDouble(s.toString());
+	} catch (NumberFormatException e){}
 
-        break;
-      }
-    }
-
-    if (charAt(punctPos) == '.')  // parse the string from the end to the '.' converting the fractional part
-    {
-      double fractPart = 0.0;
-
-      for (int i = end - 1; i > punctPos; i--)
-      {
-        char c = charAt(i);
-
-        if (XMLCharacterRecognizer.isWhiteSpace(c))
-          break;
-        else if (Character.isDigit(c))
-        {
-          fractPart = fractPart / 10.0 + (c - 0x30);
-
-          digitsFound++;
-        }
-        else
-        {
-          return Double.NaN;
-        }
-      }
-
-      result += fractPart / 10.0;
-    }
-
-    if (0 == digitsFound)
-      return Double.NaN;
-
-    return result * sign;
-  }
+	return result;
+}
 
   /**
    * Cast result object to a boolean.
@@ -410,10 +345,8 @@ public class XString extends XObject implements XMLString
    * <code>null</code> and is a <code>String</code> object that represents
    * the same sequence of characters as this object.
    *
-   * @param   anObject   the object to compare this <code>String</code>
+   * @param   obj2       the object to compare this <code>String</code>
    *                     against.
-   *
-   * NEEDSDOC @param obj2
    * @return  <code>true</code> if the <code>String </code>are equal;
    *          <code>false</code> otherwise.
    * @see     java.lang.String#compareTo(java.lang.String)
@@ -459,9 +392,8 @@ public class XString extends XObject implements XMLString
   /**
    * Compares two strings lexicographically.
    *
-   * @param   anotherString   the <code>String</code> to be compared.
+   * @param   xstr   the <code>String</code> to be compared.
    *
-   * NEEDSDOC @param xstr
    * @return  the value <code>0</code> if the argument string is equal to
    *          this string; a value less than <code>0</code> if this string
    *          is lexicographically less than the string argument; and a
@@ -1020,7 +952,7 @@ public class XString extends XObject implements XMLString
    * this <code>String</code> object. <p>
    * Examples:
    * <blockquote><pre>
-   * "Fahrvergngen".toUpperCase() returns "FAHRVERGNGEN"
+   * "Fahrvergn&uuml;gen".toUpperCase() returns "FAHRVERGN&Uuml;GEN"
    * "Visit Ljubinje!".toUpperCase() returns "VISIT LJUBINJE!"
    * </pre></blockquote>
    *
@@ -1159,7 +1091,7 @@ public class XString extends XObject implements XMLString
   }
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

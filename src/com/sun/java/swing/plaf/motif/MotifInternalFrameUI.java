@@ -1,7 +1,7 @@
 /*
- * @(#)MotifInternalFrameUI.java	1.26 04/05/18
+ * @(#)MotifInternalFrameUI.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.26 05/18/04
+ * @version 1.27 11/17/05
  * @author Tom Ball
  */
 public class MotifInternalFrameUI extends BasicInternalFrameUI {

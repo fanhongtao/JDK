@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_init.c	1.84 05/03/18
+ * @(#)hprof_init.c	1.92 05/12/06
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -58,10 +58,9 @@
 
 /* The default output filenames. */
 
+#define DEFAULT_TXT_SUFFIX	".txt"
 #define DEFAULT_OUTPUTFILE	"java.hprof"
-#define DEFAULT_OUTPUTFILETXT	"java.hprof.txt"
 #define DEFAULT_OUTPUTTEMP	"java.hprof.temp"
-#define DEFAULT_OUTPUTCHECKTXT	"java.hprof.check.txt"
 
 /* The only global variable, defined by this library */
 GlobalData *gdata;
@@ -170,12 +169,15 @@ get_gdata(void)
     data.micro_state_accounting        	= JNI_FALSE;
     data.force_output        	        = JNI_TRUE;
     data.verbose		        = JNI_TRUE;
+    data.primfields		        = JNI_TRUE;
+    data.primarrays		        = JNI_TRUE;
     
     data.table_serial_number_start    = 1;
     data.class_serial_number_start    = 100000;
     data.thread_serial_number_start   = 200000;
     data.trace_serial_number_start    = 300000;
     data.object_serial_number_start   = 400000;
+    data.frame_serial_number_start    = 500000;
     data.gref_serial_number_start     = 1;
     
     data.table_serial_number_counter  = data.table_serial_number_start;
@@ -183,8 +185,9 @@ get_gdata(void)
     data.thread_serial_number_counter = data.thread_serial_number_start;
     data.trace_serial_number_counter  = data.trace_serial_number_start;
     data.object_serial_number_counter = data.object_serial_number_start;
+    data.frame_serial_number_counter  = data.frame_serial_number_start;
     data.gref_serial_number_counter   = data.gref_serial_number_start;
-
+   
     data.unknown_thread_serial_num    = data.thread_serial_number_counter++;
     return &data;
 }
@@ -278,14 +281,31 @@ make_unique_filename(char **filename)
 	/* Look for .txt suffix if not binary output */
 	if (gdata->output_format != 'b') {
 	    char *dot;
+	    char *format_suffix;
 
+	    format_suffix = DEFAULT_TXT_SUFFIX;
+	    
+	    (void)strcpy(suffix, format_suffix);
+	    
 	    dot = strrchr(old_name, '.');
-	    if ( dot != NULL && 
-		 (strcmp(dot, ".txt")==0 || strcmp(dot, ".TXT")==0) ) {
-		(void)strcpy(suffix, dot);
-		*dot = 0; /* truncates prefix and old_name */
-	    } else {
-		(void)strcpy(suffix, ".txt");
+	    if ( dot != NULL ) {
+		int i;
+		int slen;
+		int match;
+
+		slen = (int)strlen(format_suffix);
+		match = 1;
+		for ( i = 0; i < slen; i++ ) {
+		    if ( dot[i]==0 ||
+			 tolower(format_suffix[i]) != tolower(dot[i]) ) {
+			match = 0;
+			break;
+		    }
+		}
+		if ( match ) {
+		    (void)strcpy(suffix, dot);
+		    *dot = 0; /* truncates prefix and old_name */
+	        }
 	    }
 	}
 
@@ -312,7 +332,7 @@ get_tok(char **src, char *buf, int buflen, int sep)
     }
     p = strchr(*src, sep);
     if ( p==NULL ) {
-	len = strlen(*src);
+	len = (int)strlen(*src);
 	p = (*src) + len;
     } else {
 	/*LINTED*/
@@ -365,7 +385,7 @@ AGENTNAME " usage: java " AGENTLIB "=[help]|[<option>=<value>, ...]\n"
 "cpu=samples|times|old  CPU usage                      off\n"
 "monitor=y|n            monitor contention             n\n"
 "format=a|b             text(txt) or binary output     a\n"
-"file=<file>            write data to file             " DEFAULT_OUTPUTFILE "[.txt]\n"
+"file=<file>            write data to file             " DEFAULT_OUTPUTFILE "[{" DEFAULT_TXT_SUFFIX "}]\n"
 "net=<host>:<port>      send data over a socket        off\n"
 "depth=<size>           stack trace depth              " TO_STR(DEFAULT_TRACE_DEPTH) "\n"
 "interval=<ms>          sample interval in ms          " TO_STR(DEFAULT_SAMPLE_INTERVAL) "\n"
@@ -385,16 +405,18 @@ AGENTNAME " usage: java " AGENTLIB "=[help]|[<option>=<value>, ...]\n"
 "\n"
 "DEBUG Option           Description                    Default\n"
 "------------           -----------                    -------\n"
+"primfields=y|n         include primitive field values y\n"
+"primarrays=y|n         include primitive array values y\n"
+"debugflags=MASK        Various debug flags            0\n"
+"                        0x01   Report refs in and of unprepared classes\n"
 "logflags=MASK          Logging to stderr              0\n"
 "                        " TO_STR(LOG_DUMP_MISC)    " Misc logging\n"
 "                        " TO_STR(LOG_DUMP_LISTS)   " Dump out the tables\n"
 "                        " TO_STR(LOG_CHECK_BINARY) " Verify & dump format=b\n"
 "coredump=y|n           Core dump on fatal             n\n"
-"exitpause=y|n          Pause on exit & echo PID       n\n"
 "errorexit=y|n          Exit on any error              n\n"
 "pause=y|n              Pause on onload & echo PID     n\n"
 "debug=y|n              Turn on all debug checking     n\n"
-"precrash=y|n           On fatal run precrash          n\n"
 "X=MASK                 Internal use only              0\n"
 
 "\n"
@@ -443,7 +465,7 @@ AGENTNAME " usage: java " AGENTLIB "=[help]|[<option>=<value>, ...]\n"
 "Warnings\n"
 "--------\n"
 "  - This is demonstration code for the JVMTI interface and use of BCI,\n"
-"    it is not an official product or formal part of the J2SE.\n"
+"    it is not an official product or formal part of the JDK.\n"
 "  - The " XRUN " interface will be removed in a future release.\n"
 "  - The option format=b is considered experimental, this format may change\n"
 "    in a future release.\n"
@@ -473,11 +495,12 @@ option_error(char *description)
 static void 
 parse_options(char *command_line_options)
 {
-    int output_specified = JNI_FALSE;
+    int file_or_net_option_seen = JNI_FALSE;
     char *all_options;
     char *extra_options;
     char *options;
     char *default_filename;
+    int   ulen;
     
     if (command_line_options == 0)
         command_line_options = "";
@@ -492,8 +515,8 @@ parse_options(char *command_line_options)
 	extra_options = "";
     }
 
-    all_options = HPROF_MALLOC(strlen(command_line_options) + 
-			        strlen(extra_options) + 2);
+    all_options = HPROF_MALLOC((int)strlen(command_line_options) + 
+			        (int)strlen(extra_options) + 2);
     gdata->options = all_options;
     (void)strcpy(all_options, command_line_options);
     if ( extra_options[0] != 0 ) {
@@ -515,18 +538,18 @@ parse_options(char *command_line_options)
             option_error("general syntax error parsing options");
         }
         if (strcmp(option, "file") == 0) {
-            if ( output_specified  ) {
+            if ( file_or_net_option_seen  ) {
                 option_error("file or net options should only appear once");
             }
             if (!get_tok(&options, suboption, (int)sizeof(suboption), ',')) {
                 option_error("syntax error parsing file=filename");
             }
-            gdata->output_filename = HPROF_MALLOC(strlen(suboption)+1);
-            (void)strcpy(gdata->output_filename, suboption);
-            output_specified = JNI_TRUE;
+            gdata->utf8_output_filename = HPROF_MALLOC((int)strlen(suboption)+1);
+            (void)strcpy(gdata->utf8_output_filename, suboption);
+            file_or_net_option_seen = JNI_TRUE;
         } else if (strcmp(option, "net") == 0) {
             char port_number[16];
-            if (output_specified ) {
+            if (file_or_net_option_seen ) {
                 option_error("file or net options should only appear once");
 	    }
 	    if (!get_tok(&options, suboption, (int)sizeof(suboption), ':')) {
@@ -535,10 +558,10 @@ parse_options(char *command_line_options)
 	    if (!get_tok(&options, port_number, (int)sizeof(port_number), ',')) {
                 option_error("net option missing port");
             }
-            gdata->net_hostname = HPROF_MALLOC(strlen(suboption)+1);
+            gdata->net_hostname = HPROF_MALLOC((int)strlen(suboption)+1);
             (void)strcpy(gdata->net_hostname, suboption);
             gdata->net_port = (int)strtol(port_number, NULL, 10);
-            output_specified = JNI_TRUE;
+            file_or_net_option_seen = JNI_TRUE;
         } else if (strcmp(option, "format") == 0) {
             if (!get_tok(&options, suboption, (int)sizeof(suboption), ',')) {
                 option_error("syntax error parsing format=a|b");
@@ -629,6 +652,14 @@ parse_options(char *command_line_options)
             if ( !setBinarySwitch(&options, &(gdata->verbose)) ) {
                 option_error("verbose option value must be y|n");
             }
+        } else if( strcmp(option,"primfields") == 0) {
+            if ( !setBinarySwitch(&options, &(gdata->primfields)) ) {
+                option_error("primfields option value must be y|n");
+            }
+        } else if( strcmp(option,"primarrays") == 0) {
+            if ( !setBinarySwitch(&options, &(gdata->primarrays)) ) {
+                option_error("primarrays option value must be y|n");
+            }
         } else if( strcmp(option,"monitor") == 0) {
             if ( !setBinarySwitch(&options, &(gdata->monitor_tracing)) ) {
                 option_error("monitor option value must be y|n");
@@ -642,14 +673,17 @@ parse_options(char *command_line_options)
                 option_error("logflags option value must be numeric");
             }
             gdata->logflags = (int)strtol(suboption, NULL, 0);
+        } else if (strcmp(option, "debugflags") == 0) {
+            if (!get_tok(&options, suboption, (int)sizeof(suboption), ',')) {
+                option_error("debugflags option value must be numeric");
+            }
+            gdata->debugflags = (int)strtol(suboption, NULL, 0);
         } else if (strcmp(option, "coredump") == 0) {
             if ( !setBinarySwitch(&options, &(gdata->coredump)) ) {
                 option_error("coredump option value must be y|n");
             }
         } else if (strcmp(option, "exitpause") == 0) {
-            if ( !setBinarySwitch(&options, &(gdata->exitpause)) ) {
-                option_error("exitpause option value must be y|n");
-            }
+	    option_error("The exitpause option was removed, use -XX:OnError='cmd %%p'");
         } else if (strcmp(option, "errorexit") == 0) {
             if ( !setBinarySwitch(&options, &(gdata->errorexit)) ) {
                 option_error("errorexit option value must be y|n");
@@ -663,9 +697,7 @@ parse_options(char *command_line_options)
                 option_error("debug option value must be y|n");
             }
         } else if (strcmp(option, "precrash") == 0) {
-            if ( !setBinarySwitch(&options, &(gdata->precrash)) ) {
-                option_error("precrash option value must be y|n");
-            }
+	    option_error("The precrash option was removed, use -XX:OnError='precrash -p %%p'");
         } else if (strcmp(option, "X") == 0) {
             if (!get_tok(&options, suboption, (int)sizeof(suboption), ',')) {
                 option_error("X option value must be numeric");
@@ -695,12 +727,25 @@ parse_options(char *command_line_options)
     if (gdata->output_format == 'b') {
 	default_filename = DEFAULT_OUTPUTFILE;
     } else {
-	default_filename = DEFAULT_OUTPUTFILETXT;
+        default_filename = DEFAULT_OUTPUTFILE DEFAULT_TXT_SUFFIX;
     }
     
-    if (!output_specified) {
-	gdata->output_filename = HPROF_MALLOC(strlen(default_filename)+1);
-	(void)strcpy(gdata->output_filename, default_filename);
+    if (!file_or_net_option_seen) {
+	gdata->utf8_output_filename = HPROF_MALLOC((int)strlen(default_filename)+1);
+	(void)strcpy(gdata->utf8_output_filename, default_filename);
+    }
+
+    if ( gdata->utf8_output_filename != NULL ) {
+	/* UTF-8 to platform encoding (fill in gdata->output_filename) */
+	ulen = (int)strlen(gdata->utf8_output_filename);
+	gdata->output_filename = (char*)HPROF_MALLOC(ulen*3+3);
+#ifdef SKIP_NPT
+	(void)strcpy(gdata->output_filename, gdata->utf8_output_filename);
+#else
+	(void)(gdata->npt->utf8ToPlatform)
+	      (gdata->npt->utf, (jbyte*)gdata->utf8_output_filename, ulen, 
+	       gdata->output_filename, ulen*3+3);
+#endif
     }
 
     /* By default we turn on gdata->alloc_sites and gdata->heap_dump */
@@ -740,10 +785,10 @@ parse_options(char *command_line_options)
 	    if ( gdata->logflags & LOG_CHECK_BINARY ) {
 		char * check_suffix;
 
-		check_suffix = ".check.txt";
+		check_suffix = ".check" DEFAULT_TXT_SUFFIX;
 		gdata->checkfilename = 
-		    HPROF_MALLOC(strlen(default_filename)+
-				strlen(check_suffix)+1);
+		    HPROF_MALLOC((int)strlen(default_filename)+
+				(int)strlen(check_suffix)+1);
 		(void)strcpy(gdata->checkfilename, default_filename);
 		(void)strcat(gdata->checkfilename, check_suffix);
 		(void)remove(gdata->checkfilename);
@@ -1100,6 +1145,27 @@ cbVMInit(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 	TlsIndex    tls_index;
 
         gdata->jvm_initializing = JNI_TRUE;
+    
+	/* Header to use in heap dumps */
+	gdata->header    = "JAVA PROFILE 1.0.1";
+	gdata->segmented = JNI_FALSE;
+	if (gdata->output_format == 'b') {
+	    /* We need JNI here to call in and get the current maximum memory */
+	    gdata->maxMemory      = getMaxMemory(env);
+	    gdata->maxHeapSegment = (jlong)2000000000;
+	    /* More than 2Gig triggers segments and 1.0.2 */ 
+	    if ( gdata->maxMemory >= gdata->maxHeapSegment ) {
+	        gdata->header    = "JAVA PROFILE 1.0.2";
+	        gdata->segmented = JNI_TRUE; /* 1.0.2 */
+	    }
+	}
+
+	/* We write the initial header after the VM initializes now
+	 *    because we needed to use JNI to get maxMemory and determine if
+	 *    a 1.0.1 or a 1.0.2 header will be used.
+	 *    This used to be done in Agent_OnLoad.
+	 */
+	io_write_file_header();
 	
 	LOG("cbVMInit begin");
      
@@ -1306,6 +1372,9 @@ cbVMDeath(jvmtiEnv *jvmti, JNIEnv *env)
 	setup_event_mode(JNI_FALSE, JVMTI_DISABLE);
 	setup_event_mode(JNI_TRUE, JVMTI_DISABLE);
     
+	/* Write tail of file */
+        io_write_file_footer();
+	
     } rawMonitorExit(gdata->callbackBlock);
 	
     /* Shutdown the listener thread and socket, or flush I/O buffers */
@@ -1321,7 +1390,7 @@ cbVMDeath(jvmtiEnv *jvmti, JNIEnv *env)
 	gdata->fd = -1;
 	if ( gdata->logflags & LOG_CHECK_BINARY ) {
 	    if (gdata->output_format == 'b' && gdata->output_filename != NULL) {
-		io_check_binary_file(gdata->output_filename);
+		check_binary_file(gdata->output_filename);
 	    }
 	}
     }
@@ -1356,7 +1425,7 @@ cbVMDeath(jvmtiEnv *jvmti, JNIEnv *env)
 static void JNICALL
 cbThreadStart(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 {
-    LOG3("cbThreadStart", "thread is", (int)(long)thread);
+    LOG3("cbThreadStart", "thread is", (int)(long)(ptrdiff_t)thread);
     
     BEGIN_CALLBACK() {
         event_thread_start(env, thread);
@@ -1367,7 +1436,7 @@ cbThreadStart(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 static void JNICALL
 cbThreadEnd(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 {
-    LOG3("cbThreadEnd", "thread is", (int)(long)thread);
+    LOG3("cbThreadEnd", "thread is", (int)(long)(ptrdiff_t)thread);
     
     BEGIN_CALLBACK() {
         event_thread_end(env, thread);
@@ -1421,7 +1490,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 	    }
 	    
 	    /* The tracker class itself? */
-	    if ( strcmp(classname,"sun/tools/hprof/Tracker") != 0 ) {
+	    if ( strcmp(classname, TRACKER_CLASS_NAME) != 0 ) {
 		ClassIndex            cnum;
 		int                   system_class;
 		unsigned char *       new_image;
@@ -1868,14 +1937,35 @@ lookup_library_symbol(void *library, char **symbols, int nsymbols)
 JNIEXPORT jint JNICALL 
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 {
+    /* See if it's already loaded */
+    if ( gdata!=NULL && gdata->isLoaded==JNI_TRUE ) {
+        HPROF_ERROR(JNI_TRUE, "Cannot load this JVM TI agent twice, check your java command line for duplicate hprof options.");
+        return JNI_ERR;
+    }
+    
     gdata = get_gdata();
+
+    gdata->isLoaded = JNI_TRUE;
 
     error_setup();
 
     LOG2("Agent_OnLoad", "gdata setup");
     
     gdata->jvm = vm;
-    
+
+#ifndef SKIP_NPT
+    /* Load in NPT library for character conversions */
+    NPT_INITIALIZE(&(gdata->npt), NPT_VERSION, NULL);
+    if ( gdata->npt == NULL ) {
+        HPROF_ERROR(JNI_TRUE, "Cannot load npt library");
+    }
+    gdata->npt->utf = (gdata->npt->utfInitialize)(NULL);
+    if ( gdata->npt->utf == NULL ) {
+        HPROF_ERROR(JNI_TRUE, "Cannot initialize npt utf functions");
+    }
+#endif
+
+    /* Get the JVMTI environment */
     getJvmti();
    
     /* Lock needed to protect debug_malloc() code, which is not MT safe */
@@ -1934,9 +2024,11 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 
     /* Write the header information */
     io_setup();
-    io_write_file_header();
 
-    gdata->micro_sec_ticks = md_get_milliticks() * 1000;
+    /* We sample the start time now so that the time increments can be
+     *    placed in the various heap dump segments in micro seconds.
+     */
+    gdata->micro_sec_ticks = md_get_microsecs();
 
     /* Load java_crw_demo library and find function "java_crw_demo" */
     if ( gdata->bci ) {
@@ -1968,6 +2060,8 @@ Agent_OnUnload(JavaVM *vm)
     
     LOG("Agent_OnUnload");
     
+    gdata->isLoaded = JNI_FALSE;
+    
     stack = gdata->object_free_stack;
     gdata->object_free_stack = NULL;
     if ( stack != NULL ) {
@@ -1988,6 +2082,9 @@ Agent_OnUnload(JavaVM *vm)
     /* Deallocate any memory in gdata */
     if ( gdata->net_hostname != NULL ) {
 	HPROF_FREE(gdata->net_hostname);
+    }
+    if ( gdata->utf8_output_filename != NULL ) {
+        HPROF_FREE(gdata->utf8_output_filename);
     }
     if ( gdata->output_filename != NULL ) {
         HPROF_FREE(gdata->output_filename);

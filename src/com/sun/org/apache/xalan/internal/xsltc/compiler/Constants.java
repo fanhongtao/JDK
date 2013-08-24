@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Constants.java,v 1.40 2004/02/23 17:29:35 aruny Exp $
+ * $Id: Constants.java,v 1.7 2006/06/19 19:49:04 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -236,6 +236,8 @@ public interface Constants extends InstructionConstants {
     public static final String KEY_INDEX_SIG
 	= "Lcom/sun/org/apache/xalan/internal/xsltc/dom/KeyIndex;";
 
+    public static final String KEY_INDEX_ITERATOR_SIG
+	= "Lcom/sun/org/apache/xalan/internal/xsltc/dom/KeyIndex$KeyIndexIterator;";
     public static final String DOM_INTF
 	= "com.sun.org.apache.xalan.internal.xsltc.DOM";
     public static final String DOM_IMPL
@@ -258,8 +260,6 @@ public interface Constants extends InstructionConstants {
     public static final String TRANSLET_OUTPUT_BASE       
 	= "com.sun.org.apache.xalan.internal.xsltc.TransletOutputBase";
     // output interface
-    public static final String CALL_FUNCTION_CLASS
-	= "com.sun.org.apache.xalan.internal.xsltc.runtime.CallFunction";
     public static final String TRANSLET_OUTPUT_INTERFACE
 	= "com.sun.org.apache.xml.internal.serializer.SerializationHandler";
     public static final String BASIS_LIBRARY_CLASS 
@@ -333,7 +333,7 @@ public interface Constants extends InstructionConstants {
 	= "reset";
 
     public static final String ATTR_SET_SIG
-	= "(" + DOM_INTF_SIG  + NODE_ITERATOR_SIG + TRANSLET_OUTPUT_SIG + ")V";
+	= "(" + DOM_INTF_SIG  + NODE_ITERATOR_SIG + TRANSLET_OUTPUT_SIG + "I)V";
 
     public static final String GET_NODE_NAME_SIG   
 	= "(" + NODE_SIG + ")" + STRING_SIG;

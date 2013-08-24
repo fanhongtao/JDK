@@ -1,7 +1,7 @@
 /*
- * @(#)MotifSeparatorUI.java	1.21 03/12/19
+ * @(#)MotifSeparatorUI.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.plaf.basic.BasicSeparatorUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 12/19/03
+ * @version 1.22 11/17/05
  * @author Georges Saab
  * @author Jeff Shapiro
  */

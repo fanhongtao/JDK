@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPathException.java,v 1.12 2004/02/17 04:30:02 minchau Exp $
+ * $Id: XPathException.java,v 1.3 2005/09/28 13:49:30 pvedula Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -33,6 +33,7 @@ import org.w3c.dom.Node;
  */
 public class XPathException extends TransformerException
 {
+    static final long serialVersionUID = 4263549717619045963L;
 
   /** The home of the expression that caused the error.
    *  @serial  */
@@ -254,45 +255,60 @@ public class XPathException extends TransformerException
 
     if (s == null)
       s = new java.io.PrintWriter(System.err);
-
+        
     try
     {
       super.printStackTrace(s);
     }
     catch (Exception e){}
+    
+    
+    boolean isJdk14OrHigher = false;
+    try {
+        Throwable.class.getMethod("getCause", (Class[]) null);
+        isJdk14OrHigher = true;
+    } catch (NoSuchMethodException nsme) {
+        // do nothing
+    }
+        
+    // The printStackTrace method of the Throwable class in jdk 1.4 
+    // and higher will include the cause when printing the backtrace.
+    // The following code is only required when using jdk 1.3 or lower               
+    if (!isJdk14OrHigher) {
+    	        
+      Throwable exception = m_exception;
 
-    Throwable exception = m_exception;
-
-    for (int i = 0; (i < 10) && (null != exception); i++)
-    {
-      s.println("---------");
-
-      try
+      for (int i = 0; (i < 10) && (null != exception); i++)
       {
-        exception.printStackTrace(s);
-      }
-      catch (Exception e)
-      {
-        s.println("Could not print stack trace...");
-      }
+        s.println("---------");
 
-      if (exception instanceof TransformerException)
-      {
-        TransformerException se = (TransformerException) exception;
-        Throwable prev = exception;
+        try
+        {
+          exception.printStackTrace(s);
+        }
+        catch (Exception e)
+        {
+          s.println("Could not print stack trace...");
+        }
 
-        exception = se.getException();
+        if (exception instanceof TransformerException)
+        {
+          TransformerException se = (TransformerException) exception;
+          Throwable prev = exception;
 
-        if (prev == exception)
+          exception = se.getException();
+
+          if (prev == exception)
+          {
+            exception = null;
+
+            break;
+          }
+        }
+        else
         {
           exception = null;
-
-          break;
         }
-      }
-      else
-      {
-        exception = null;
       }
     }
   }

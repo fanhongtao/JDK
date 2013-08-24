@@ -1,7 +1,7 @@
 /*
- * @(#)AWTPermission.java	1.28 04/04/21
+ * @(#)AWTPermission.java	1.32 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,6 +48,16 @@ import java.security.BasicPermission;
  * malicious code may peek at and even remove existing events
  * from its event queue, as well as post bogus events which may purposefully
  * cause the application or applet to misbehave in an insecure manner.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>accessSystemTray</td>
+ *   <td>Access to the AWT SystemTray instance</td>
+ *   <td>This would allow malicious code to add tray icons to the system tray.
+ * First, such an icon may look like the icon of some known application
+ * (such as a firewall or anti-virus) and order a user to do something unsafe
+ * (with help of balloon messages). Second, the system tray may be glutted with
+ * tray icons so that no one could add a tray icon anymore.</td>
  * </tr>
  *
  * <tr>
@@ -99,6 +109,20 @@ import java.security.BasicPermission;
  * </tr>
  *
  * <tr>
+ *   <td>setAppletStub</td>
+ *   <td>Setting the stub which implements Applet container services</td>
+ *   <td>Malicious code could set an applet's stub and result in unexpected
+ * behavior or denial of service to an applet.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>setWindowAlwaysOnTop</td>
+ *   <td>Setting always-on-top property of the window: {@link Window#setAlwaysOnTop}</td>
+ *   <td>The malicious window might make itself look and behave like a real full desktop, so that
+ * information entered by the unsuspecting user is captured and subsequently misused </td> 
+ * </tr>
+ *
+ * <tr>
  *   <td>showWindowWithoutWarningBanner</td>
  *   <td>Display of a window without also displaying a banner warning
  * that the window was created by an applet</td>
@@ -112,6 +136,17 @@ import java.security.BasicPermission;
  * </tr>
  *
  * <tr>
+ *   <td>toolkitModality</td>
+ *   <td>Creating {@link Dialog.ModalityType#TOOLKIT_MODAL TOOLKIT_MODAL} dialogs
+ *       and setting the {@link Dialog.ModalExclusionType#TOOLKIT_EXCLUDE
+ *       TOOLKIT_EXCLUDE} window property.</td>
+ *   <td>When a toolkit-modal dialog is shown from an applet, it blocks all other
+ * applets in the browser. When launching applications from Java Web Start,
+ * its windows (such as the security dialog) may also be blocked by toolkit-modal
+ * dialogs, shown from these applications.</td>
+ * </tr>
+ *
+ * <tr>
  *   <td>watchMousePointer</td>
  *   <td>Getting the information about the mouse pointer position at any
  * time</td>
@@ -122,29 +157,15 @@ import java.security.BasicPermission;
  * so that keyboard is emulated using the mouse, an applet may guess what
  * is being typed.</td>
  * </tr>
- * 
- * <tr>
- *   <td>setWindowAlwaysOnTop</td>
- *   <td>Setting always-on-top property of the window: {@link Window#setAlwaysOnTop}</td>
- *   <td>The malicious window might make itself look and behave like a real full desktop, so that
- * information entered by the unsuspecting user is captured and subsequently misused </td> 
- * </tr>
- *
- * <tr>
- *   <td>setAppletStub</td>
- *   <td>Setting the stub which implements Applet container services</td>
- *   <td>Malicious code could set an applet's stub and result in unexpected
- * behavior or denial of service to an applet.</td>
- * </tr>
  * </table>
- *
+ * 
  * @see java.security.BasicPermission
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 	1.28, 04/21/04
+ * @version 	1.32, 04/21/06
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -162,6 +183,9 @@ public final class AWTPermission extends BasicPermission {
      * may be used to indicate all AWT permissions.
      *
      * @param name the name of the AWTPermission
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
 
     public AWTPermission(String name)
@@ -176,6 +200,9 @@ public final class AWTPermission extends BasicPermission {
      *
      * @param name the name of the <code>AWTPermission</code>
      * @param actions should be <code>null</code>
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
 
     public AWTPermission(String name, String actions)

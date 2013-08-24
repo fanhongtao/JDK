@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSelectionKey.java	1.12 06/07/15
+ * @(#)AbstractSelectionKey.java	1.13 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.nio.channels.*;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.12, 06/07/15
+ * @version 1.13, 06/06/07
  * @since 1.4
  */
 

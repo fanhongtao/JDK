@@ -1,7 +1,7 @@
 /*
- * @(#)ControllerEventListener.java	1.15 03/12/19
+ * @(#)ControllerEventListener.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.util.EventListener;
  *
  * @see MidiChannel#controlChange(int, int)
  *
- * @version 1.15, 03/12/19
+ * @version 1.16, 05/11/17
  * @author Kara Kytle
  */
 public interface ControllerEventListener extends EventListener {

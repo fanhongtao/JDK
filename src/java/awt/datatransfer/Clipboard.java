@@ -1,7 +1,7 @@
 /*
- * @(#)Clipboard.java	1.22 03/12/19
+ * @(#)Clipboard.java	1.24 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import sun.awt.EventListenerAggregate;
  * @see java.awt.Toolkit#getSystemClipboard
  * @see java.awt.Toolkit#getSystemSelection
  *
- * @version 	1.22, 12/19/03
+ * @version 	1.24, 04/07/06
  * @author	Amy Fowler
  * @author      Alexander Gerasimov
  */
@@ -51,7 +51,7 @@ public class Clipboard {
     /** 
      * A set of <code>DataFlavor</code>s that is available on
      * this local clipboard. It is used for tracking changes
-     * of <code>DataFlavor/code>s available on this clipboard.
+     * of <code>DataFlavor</code>s available on this clipboard.
      *
      * @since 1.5
      */

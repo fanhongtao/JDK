@@ -69,7 +69,7 @@ import  java.io.*;
  * is used for debugging purposes and <em>LocalVariableTable</em> which 
  * contains information about the local variables.
  *
- * @version $Id: Code.java,v 1.1.1.1 2001/10/29 19:59:58 jvanzyl Exp $
+ * @version $Id: Code.java,v 1.1.2.1 2005/07/31 23:46:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  * @see     CodeException
@@ -182,7 +182,7 @@ public final class Code extends Attribute {
    * Dump code attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

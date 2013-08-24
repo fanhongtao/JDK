@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ThreadControllerWrapper.java,v 1.3 2004/02/17 04:21:14 minchau Exp $
+ * $Id: ThreadControllerWrapper.java,v 1.2.4.1 2005/09/15 08:15:59 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -26,18 +26,7 @@ public class ThreadControllerWrapper
 {
   
   /** The ThreadController pool   */
-  static ThreadController m_tpool = new ThreadController();
-
-  /**
-   * Change the ThreadController that will be used to
-   * manage the transform threads.
-   *
-   * @param tp A ThreadController object
-   */
-  public static void setThreadController(ThreadController tpool)
-  {
-    m_tpool = tpool;
-  }
+  private static ThreadController m_tpool = new ThreadController();
   
   public static Thread runThread(Runnable runnable, int priority)
   {
@@ -69,10 +58,8 @@ public class ThreadControllerWrapper
      * NEEDSDOC @param task
      * @param priority if >0 the task will run with the given priority
      *  ( doesn't seem to be used in xalan, since it's allways the default )
-     * @returns The thread that is running the task, can be used
+     * @return  The thread that is running the task, can be used
      *          to wait for completion
-     *
-     * NEEDSDOC ($objectName$) @return
      */
     public Thread run(Runnable task, int priority)
     {

@@ -1,7 +1,7 @@
 /*
- * @(#)ImageMap.java	1.20 04/07/26
+ * @(#)ImageMap.java	1.21 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ImageMap.java	1.20 04/07/26
+ * @(#)ImageMap.java	1.21 05/11/17
  */
 
 import java.applet.Applet;
@@ -60,7 +60,7 @@ import java.net.MalformedURLException;
  * that can be dynamically loaded over the net.
  *
  * @author 	Jim Graham
- * @version 	1.20, 07/26/04
+ * @version 	1.21, 11/17/05
  */
 public class ImageMap
     extends Applet

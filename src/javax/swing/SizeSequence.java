@@ -1,7 +1,7 @@
 /*
- * @(#)SizeSequence.java	1.14 03/12/19
+ * @(#)SizeSequence.java	1.17 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -91,8 +91,9 @@ package javax.swing;
  * a set of integer sizes, copying it into the new array, and then 
  * reforming the hybrid representation in place. 
  *
- * @version 1.14 12/19/03
+ * @version 1.17 04/07/06
  * @author Philip Milne
+ * @since 1.3
  */   
 
 /*
@@ -156,6 +157,26 @@ public class SizeSequence {
     public SizeSequence(int[] sizes) { 
         this(); 
 	setSizes(sizes); 
+    }
+
+    /**
+     * Resets the size sequence to contain <code>length</code> items
+     * all with a size of <code>size</code>.
+     */
+    void setSizes(int length, int size) {
+        if (a.length != length) {
+            a = new int[length];
+        }
+        setSizes(0, length, size);
+    }
+
+    private int setSizes(int from, int to, int size) { 
+        if (to <= from) { 
+            return 0; 
+        }
+        int m = (from + to)/2; 
+        a[m] = size + setSizes(from, m, size); 
+        return a[m] + setSizes(m + 1, to, size); 
     }
 
     /**

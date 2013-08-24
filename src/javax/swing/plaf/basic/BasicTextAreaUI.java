@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextAreaUI.java	1.68 03/01/23
+ * @(#)BasicTextAreaUI.java	1.75 06/04/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -30,7 +30,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.68 01/23/03
+ * @version 1.75 04/20/06
  */
 public class BasicTextAreaUI extends BasicTextUI {
     
@@ -78,6 +78,7 @@ public class BasicTextAreaUI extends BasicTextUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
+        super.propertyChange(evt);
 	if (evt.getPropertyName().equals("lineWrap") ||
 	    evt.getPropertyName().equals("wrapStyleWord") ||
 		evt.getPropertyName().equals("tabSize")) {
@@ -157,6 +158,53 @@ public class BasicTextAreaUI extends BasicTextUI {
 	}
 	return null;
     }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+	Object i18nFlag = ((JTextComponent)c).getDocument().
+                                              getProperty("i18n");
+        Insets insets = c.getInsets();
+	if (Boolean.TRUE.equals(i18nFlag)) {
+            View rootView = getRootView((JTextComponent)c);
+            if (rootView.getViewCount() > 0) {
+                height = height - insets.top - insets.bottom;
+                int baseline = insets.top;
+                int fieldBaseline = BasicHTML.getBaseline(
+                        rootView.getView(0), width - insets.left -
+                        insets.right, height);
+                if (fieldBaseline < 0) {
+                    return -1;
+                }
+                return baseline + fieldBaseline;
+            }
+            return -1;
+        }
+        FontMetrics fm = c.getFontMetrics(c.getFont());
+        return insets.top + fm.getAscent();
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
+    }
+
 
     /**
      * Paragraph for representing plain-text lines that support

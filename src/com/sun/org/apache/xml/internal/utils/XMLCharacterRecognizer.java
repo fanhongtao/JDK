@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLCharacterRecognizer.java,v 1.7 2004/02/17 04:21:14 minchau Exp $
+ * $Id: XMLCharacterRecognizer.java,v 1.2.4.1 2005/09/15 08:16:01 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -84,7 +84,7 @@ public class XMLCharacterRecognizer
   /**
    * Tell if the string is whitespace.
    *
-   * @param buf StringBuffer to check as XML whitespace.
+   * @param s String to check as XML whitespace.
    * @return True if characters in buffer are XML whitespace, false otherwise
    */
   public static boolean isWhiteSpace(String s)

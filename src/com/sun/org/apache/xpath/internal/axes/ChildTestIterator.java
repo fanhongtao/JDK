@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ChildTestIterator.java,v 1.20 2004/02/17 04:32:08 minchau Exp $
+ * $Id: ChildTestIterator.java,v 1.2.4.2 2005/09/14 19:45:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -32,6 +32,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public class ChildTestIterator extends BasicTestIterator
 {
+    static final long serialVersionUID = -7936835957960705722L;
   /** The traverser to use to navigate over the descendants. */
   transient protected DTMAxisTraverser m_traverser;
   
@@ -115,7 +116,7 @@ public class ChildTestIterator extends BasicTestIterator
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)

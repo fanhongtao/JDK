@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultColorSelectionModel.java	1.15 03/12/19
+ * @(#)DefaultColorSelectionModel.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.io.Serializable;
 /**
  * A generic implementation of <code>ColorSelectionModel</code>.
  *
- * @version 1.15 12/19/03
+ * @version 1.16 11/17/05
  * @author Steve Wilson
  *
  * @see java.awt.Color

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ObjectFactory.java,v 1.3 2004/06/03 11:43:37 ay131335 Exp $
+ * $Id: ObjectFactory.java,v 1.1.2.1 2005/08/01 01:30:35 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xpath.internal.compiler;
@@ -43,7 +43,7 @@ import java.io.InputStreamReader;
  * class and modified to be used as a general utility for creating objects
  * dynamically.
  *
- * @version $Id: ObjectFactory.java,v 1.3 2004/06/03 11:43:37 ay131335 Exp $
+ * @version $Id: ObjectFactory.java,v 1.1.2.1 2005/08/01 01:30:35 jeffsuttor Exp $
  */
 class ObjectFactory {
 

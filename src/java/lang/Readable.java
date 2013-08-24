@@ -1,7 +1,7 @@
 /*
- * @(#)Readable.java	1.3 03/12/19
+ * @(#)Readable.java	1.4 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.io.IOException;
  * a <tt>Readable</tt> are made available to callers of the read
  * method via a {@link java.nio.CharBuffer CharBuffer}.
  *
- * @version 1.3 03/12/19
+ * @version 1.4 05/11/17
  * @since 1.5
  */
 

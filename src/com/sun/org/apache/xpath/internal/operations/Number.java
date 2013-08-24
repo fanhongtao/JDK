@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Number.java,v 1.8 2004/02/17 04:35:12 minchau Exp $
+ * $Id: Number.java,v 1.2.4.1 2005/09/14 21:31:42 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -27,6 +27,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class Number extends UnaryOperation
 {
+    static final long serialVersionUID = 7196954482871619765L;
 
   /**
    * Apply the operation to two operands, and return the result.

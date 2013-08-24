@@ -1,7 +1,7 @@
 /*
- * @(#)ImageWriter.java	1.94 04/05/05
+ * @(#)ImageWriter.java	1.96 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1465,6 +1465,7 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>prepareReplacePixels</code> without a matching call to
      * <code>endReplacePixels</code>.
      * @exception IllegalArgumentException if any of the following are true:
+     * <ul>
      * <li> <code>image</code> is <code>null</code>.
      * <li> <code>param</code> is <code>null</code>.
      * <li> the intersected region does not contain at least one pixel.
@@ -1525,6 +1526,7 @@ public abstract class ImageWriter implements ImageTranscoder {
      * @exception UnsupportedOperationException if
      * <code>canWriteRasters</code> returns <code>false</code>.
      * @exception IllegalArgumentException if any of the following are true:
+     * <ul>
      * <li> <code>raster</code> is <code>null</code>.
      * <li> <code>param</code> is <code>null</code>.
      * <li> the intersected region does not contain at least one pixel.

@@ -1,7 +1,7 @@
 /*
- * @(#)MessageFormat.java	1.56 03/12/19
+ * @(#)MessageFormat.java	1.62 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,15 +25,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import sun.text.Utility;
 
 
 /**
  * <code>MessageFormat</code> provides a means to produce concatenated
- * messages in language-neutral way. Use this to construct messages
+ * messages in a language-neutral way. Use this to construct messages
  * displayed for end users.
  *
  * <p>
@@ -161,7 +161,7 @@ import sun.text.Utility;
  *       <td headers="sc"><code>NumberFormat.getPercentInstance(getLocale())</code>
  *    <tr>
  *       <td headers="fs"><i>SubformatPattern</i>
- *       <td headers="sc"><code>new DecimalFormat(subformatPattern, new DecimalFormatSymbols(getLocale()))</code>
+ *       <td headers="sc"><code>new DecimalFormat(subformatPattern, DecimalFormatSymbols.getInstance(getLocale()))</code>
  *    <tr>
  *       <td headers="ft" rowspan=6><code>date</code>
  *       <td headers="fs"><i>(none)</i>
@@ -180,7 +180,7 @@ import sun.text.Utility;
  *       <td headers="sc"><code>DateFormat.getDateInstance(DateFormat.FULL, getLocale())</code>
  *    <tr>
  *       <td headers="fs"><i>SubformatPattern</i>
- *       <td headers="sc"><code>new SimpleDateFormat(subformatPattern, getLocale())
+ *       <td headers="sc"><code>new SimpleDateFormat(subformatPattern, getLocale())</code>
  *    <tr>
  *       <td headers="ft" rowspan=6><code>time</code>
  *       <td headers="fs"><i>(none)</i>
@@ -199,7 +199,7 @@ import sun.text.Utility;
  *       <td headers="sc"><code>DateFormat.getTimeInstance(DateFormat.FULL, getLocale())</code>
  *    <tr>
  *       <td headers="fs"><i>SubformatPattern</i>
- *       <td headers="sc"><code>new SimpleDateFormat(subformatPattern, getLocale())
+ *       <td headers="sc"><code>new SimpleDateFormat(subformatPattern, getLocale())</code>
  *    <tr>
  *       <td headers="ft"><code>choice</code>
  *       <td headers="fs"><i>SubformatPattern</i>
@@ -284,8 +284,8 @@ import sun.text.Utility;
  *
  * <p>
  * <strong>Note:</strong> As we see above, the string produced
- * by a <code>ChoiceFormat</code> in <code>MessageFormat</code> is treated specially;
- * occurences of '{' are used to indicated subformats, and cause recursion.
+ * by a <code>ChoiceFormat</code> in <code>MessageFormat</code> is treated as special;
+ * occurrences of '{' are used to indicate subformats, and cause recursion.
  * If you create both a <code>MessageFormat</code> and <code>ChoiceFormat</code>
  * programmatically (instead of using the string patterns), then be careful not to
  * produce a format that recurses on itself, which will cause an infinite loop.
@@ -304,7 +304,7 @@ import sun.text.Utility;
  *
  * <p>
  * Likewise, parsing with a MessageFormat object using patterns containing
- * multiple occurences of the same argument would return the last match.  For
+ * multiple occurrences of the same argument would return the last match.  For
  * example,
  * <blockquote><pre>
  * MessageFormat mf = new MessageFormat("{0}, {0}, {0}");
@@ -326,7 +326,7 @@ import sun.text.Utility;
  * @see          NumberFormat
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.56, 12/19/03
+ * @version      1.62, 04/07/06
  * @author       Mark Davis
  */
 
@@ -370,10 +370,18 @@ public class MessageFormat extends Format {
 
     /**
      * Sets the locale to be used when creating or comparing subformats.
-     * This affects subsequent calls to the {@link #applyPattern applyPattern}
-     * and {@link #toPattern toPattern} methods as well as to the
-     * <code>format</code> and
-     * {@link #formatToCharacterIterator formatToCharacterIterator} methods.
+     * This affects subsequent calls
+     * <ul>
+     * <li>to the {@link #applyPattern applyPattern}
+     *     and {@link #toPattern toPattern} methods if format elements specify
+     *     a format type and therefore have the subformats created in the
+     *     <code>applyPattern</code> method, as well as
+     * <li>to the <code>format</code> and
+     *     {@link #formatToCharacterIterator formatToCharacterIterator} methods
+     *     if format elements do not specify a format type and therefore have
+     *     the subformats created in the formatting methods.
+     * </ul>
+     * Subformats that have already been created are not affected.
      *
      * @param locale the locale to be used when creating or comparing subformats
      */
@@ -900,7 +908,7 @@ public class MessageFormat extends Format {
      *     then the later parse wins.
      * </ul>
      * When the parse fails, use ParsePosition.getErrorIndex() to find out
-     * where in the string did the parsing failed.  The returned error
+     * where in the string the parsing failed.  The returned error
      * index is the starting offset of the sub-patterns that the string
      * is comparing with.  For example, if the parsing string "AAA {0} BBB"
      * is comparing against the pattern "AAD {0} BBB", the error index is
@@ -1064,10 +1072,11 @@ public class MessageFormat extends Format {
         MessageFormat other = (MessageFormat) obj;
         return (maxOffset == other.maxOffset
                 && pattern.equals(other.pattern)
-            && Utility.objectEquals(locale, other.locale)   // does null check
-                && Utility.arrayEquals(offsets,other.offsets)
-            && Utility.arrayEquals(argumentNumbers,other.argumentNumbers)
-            && Utility.arrayEquals(formats,other.formats));
+                && ((locale != null && locale.equals(other.locale))
+                 || (locale == null && other.locale == null))
+                && Arrays.equals(offsets,other.offsets)
+                && Arrays.equals(argumentNumbers,other.argumentNumbers)
+                && Arrays.equals(formats,other.formats));
     }
 
     /**
@@ -1371,7 +1380,7 @@ public class MessageFormat extends Format {
                 newFormat = NumberFormat.getIntegerInstance(locale);
                 break;
             default: // pattern
-                newFormat = new DecimalFormat(segments[3].toString(), new DecimalFormatSymbols(locale));
+                newFormat = new DecimalFormat(segments[3].toString(), DecimalFormatSymbols.getInstance(locale));
                 break;
             }
             break;

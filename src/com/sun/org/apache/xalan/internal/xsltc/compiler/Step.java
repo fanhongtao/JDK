@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2004 The Apache Software Foundation.
+ * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 /*
- * $Id: Step.java,v 1.46 2004/02/24 04:21:22 zongaro Exp $
+ * $Id: Step.java,v 1.6 2006/06/06 22:34:34 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
 
 import java.util.Vector;
 
+import com.sun.org.apache.bcel.internal.generic.ALOAD;
+import com.sun.org.apache.bcel.internal.generic.ASTORE;
 import com.sun.org.apache.bcel.internal.generic.CHECKCAST;
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
 import com.sun.org.apache.bcel.internal.generic.ICONST;
+import com.sun.org.apache.bcel.internal.generic.ILOAD;
+import com.sun.org.apache.bcel.internal.generic.ISTORE;
 import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
+import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.bcel.internal.generic.PUSH;
 import com.sun.org.apache.xalan.internal.xsltc.DOM;
@@ -34,7 +39,8 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 
 /**
@@ -141,6 +147,13 @@ final class Step extends RelativeLocationPath {
     }
     
     /**
+     * Returns 'true' if this step has a parent location path.
+     */
+    private boolean hasParentLocationPath() {
+	return getParent() instanceof ParentLocationPath;
+    }
+    
+    /**
      * Returns 'true' if this step has any predicates
      */
     private boolean hasPredicates() {
@@ -189,7 +202,7 @@ final class Step extends RelativeLocationPath {
  	//   in the case where '.' has a context such as book/. 
 	//   or .[false()] we can not optimize the nodeset to a single node. 
 	if (isAbbreviatedDot()) {
-	    _type =  (hasParentPattern() || hasPredicates() ) ? 
+	    _type = (hasParentPattern() || hasPredicates() || hasParentLocationPath()) ? 
 		Type.NodeSet : Type.Node;
 	}
 	else {
@@ -250,6 +263,7 @@ final class Step extends RelativeLocationPath {
 		return;
 	    }
 
+	    SyntaxTreeNode parent = getParent();
 	    // Special case for '.'
 	    if (isAbbreviatedDot()) {
 		if (_type == Type.Node) {
@@ -257,19 +271,29 @@ final class Step extends RelativeLocationPath {
 		    il.append(methodGen.loadContextNode());
 		}
 		else {
-		    // Wrap the context node in a singleton iterator if not.
-		    int init = cpg.addMethodref(SINGLETON_ITERATOR,
-						"<init>", "("+NODE_SIG+")V");
-		    il.append(new NEW(cpg.addClass(SINGLETON_ITERATOR)));
-		    il.append(DUP);
-		    il.append(methodGen.loadContextNode());
-		    il.append(new INVOKESPECIAL(init));
+		    if (parent instanceof ParentLocationPath){
+			// Wrap the context node in a singleton iterator if not.
+			int init = cpg.addMethodref(SINGLETON_ITERATOR,
+						    "<init>",
+						    "("+NODE_SIG+")V");
+			il.append(new NEW(cpg.addClass(SINGLETON_ITERATOR)));
+			il.append(DUP);
+			il.append(methodGen.loadContextNode());
+			il.append(new INVOKESPECIAL(init));
+		    } else {
+			// DOM.getAxisIterator(int axis);
+			int git = cpg.addInterfaceMethodref(DOM_INTF,
+						"getAxisIterator",
+						"(I)"+NODE_ITERATOR_SIG);
+			il.append(methodGen.loadDOM());
+			il.append(new PUSH(cpg, _axis));
+			il.append(new INVOKEINTERFACE(git, 2));
+		    }
 		}
 		return;
 	    }
 
 	    // Special case for /foo/*/bar
-	    SyntaxTreeNode parent = getParent();
 	    if ((parent instanceof ParentLocationPath) &&
 		(parent.getParent() instanceof ParentLocationPath)) {
 		if ((_nodeType == NodeTest.ELEMENT) && (!_hadPredicates)) {
@@ -365,7 +389,9 @@ final class Step extends RelativeLocationPath {
 		// Otherwise we create a parent location path with this Step and
 		// the predicates Step, and place the node test on top of that
 		else {
-		    ParentLocationPath path = new ParentLocationPath(this,step);
+		    ParentLocationPath path = new ParentLocationPath(this, step);
+                    _parent = step._parent = path;      // Force re-parenting
+                    
 		    try {
 			path.typeCheck(getParser().getSymbolTable());
 		    }
@@ -396,10 +422,34 @@ final class Step extends RelativeLocationPath {
 		idx = cpg.addMethodref(NTH_ITERATOR_CLASS,
 				       "<init>",
 				       "("+NODE_ITERATOR_SIG+"I)V");
+
+                // Backwards branches are prohibited if an uninitialized object
+                // is on the stack by section 4.9.4 of the JVM Specification,
+                // 2nd Ed.  We don't know whether this code might contain
+                // backwards branches, so we mustn't create the new object until
+                // after we've created the suspect arguments to its constructor.
+                // Instead we calculate the values of the arguments to the
+                // constructor first, store them in temporary variables, create
+                // the object and reload the arguments from the temporaries to
+                // avoid the problem.
+		translatePredicates(classGen, methodGen); // recursive call
+                LocalVariableGen iteratorTemp
+                        = methodGen.addLocalVariable("step_tmp1",
+                                         Util.getJCRefType(NODE_ITERATOR_SIG),
+                                         il.getEnd(), null);
+                il.append(new ASTORE(iteratorTemp.getIndex()));
+
+		predicate.translate(classGen, methodGen);
+                LocalVariableGen predicateValueTemp
+                        = methodGen.addLocalVariable("step_tmp2",
+                                         Util.getJCRefType("I"),
+                                         il.getEnd(), null);
+                il.append(new ISTORE(predicateValueTemp.getIndex()));
+
 		il.append(new NEW(cpg.addClass(NTH_ITERATOR_CLASS)));
 		il.append(DUP);
-		translatePredicates(classGen, methodGen); // recursive call
-		predicate.translate(classGen, methodGen);
+                il.append(new ALOAD(iteratorTemp.getIndex()));
+                il.append(new ILOAD(predicateValueTemp.getIndex()));
 		il.append(new INVOKESPECIAL(idx));
 	    }
 	    else {
@@ -411,11 +461,36 @@ final class Step extends RelativeLocationPath {
 				       + NODE_SIG
 				       + TRANSLET_SIG
 				       + ")V");
+
+                // Backwards branches are prohibited if an uninitialized object
+                // is on the stack by section 4.9.4 of the JVM Specification,
+                // 2nd Ed.  We don't know whether this code might contain
+                // backwards branches, so we mustn't create the new object until
+                // after we've created the suspect arguments to its constructor.
+                // Instead we calculate the values of the arguments to the
+                // constructor first, store them in temporary variables, create
+                // the object and reload the arguments from the temporaries to
+                // avoid the problem.
+		translatePredicates(classGen, methodGen); // recursive call
+                LocalVariableGen iteratorTemp
+                        = methodGen.addLocalVariable("step_tmp1",
+                                         Util.getJCRefType(NODE_ITERATOR_SIG),
+                                         il.getEnd(), null);
+                il.append(new ASTORE(iteratorTemp.getIndex()));
+
+		predicate.translateFilter(classGen, methodGen);
+                LocalVariableGen filterTemp
+                        = methodGen.addLocalVariable("step_tmp2",
+                              Util.getJCRefType(CURRENT_NODE_LIST_FILTER_SIG),
+                              il.getEnd(), null);
+                il.append(new ASTORE(filterTemp.getIndex()));
+
 		// create new CurrentNodeListIterator
 		il.append(new NEW(cpg.addClass(CURRENT_NODE_LIST_ITERATOR)));
 		il.append(DUP);
-		translatePredicates(classGen, methodGen); // recursive call
-		predicate.translateFilter(classGen, methodGen);
+
+                il.append(new ALOAD(iteratorTemp.getIndex()));
+                il.append(new ALOAD(filterTemp.getIndex()));
 		
 		il.append(methodGen.loadCurrentNode());
 		il.append(classGen.loadTranslet());
@@ -433,7 +508,7 @@ final class Step extends RelativeLocationPath {
      */
     public String toString() {
 	final StringBuffer buffer = new StringBuffer("step(\"");
-	buffer.append(Axis.names[_axis]).append("\", ").append(_nodeType);
+        buffer.append(Axis.getNames(_axis)).append("\", ").append(_nodeType);
 	if (_predicates != null) {
 	    final int n = _predicates.size();
 	    for (int i = 0; i < n; i++) {

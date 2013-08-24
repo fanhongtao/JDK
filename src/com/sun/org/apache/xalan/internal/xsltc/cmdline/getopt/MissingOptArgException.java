@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MissingOptArgException.java,v 1.4 2004/02/16 21:21:06 minchau Exp $
+ * $Id: MissingOptArgException.java,v 1.2.4.1 2005/08/31 11:49:21 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt; 
@@ -24,6 +24,7 @@ package com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt;
  * @author G Todd Miller 
  */
 class MissingOptArgException extends GetOptsException{
+    static final long serialVersionUID = -1972471465394544822L;
     public MissingOptArgException(String msg){
 	super(msg);
     }

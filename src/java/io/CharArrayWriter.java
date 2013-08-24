@@ -1,11 +1,13 @@
 /*
- * @(#)CharArrayWriter.java	1.23 04/07/16
+ * @(#)CharArrayWriter.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
+
+import java.util.Arrays;
 
 /**
  * This class implements a character buffer that can be used as an Writer.
@@ -17,7 +19,7 @@ package java.io;
  * without generating an IOException.
  *
  * @author	Herb Jellinek
- * @version 	1.23, 07/16/04
+ * @version 	1.25, 11/17/05
  * @since       JDK1.1
  */
 public
@@ -60,9 +62,7 @@ class CharArrayWriter extends Writer {
 	synchronized (lock) {
 	    int newcount = count + 1;
 	    if (newcount > buf.length) {
-		char newbuf[] = new char[Math.max(buf.length << 1, newcount)];
-		System.arraycopy(buf, 0, newbuf, 0, count);
-		buf = newbuf;
+                buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
 	    }
 	    buf[count] = (char)c;
 	    count = newcount;
@@ -85,9 +85,7 @@ class CharArrayWriter extends Writer {
 	synchronized (lock) {
 	    int newcount = count + len;
 	    if (newcount > buf.length) {
-		char newbuf[] = new char[Math.max(buf.length << 1, newcount)];
-		System.arraycopy(buf, 0, newbuf, 0, count);
-		buf = newbuf;
+                buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
 	    }
 	    System.arraycopy(c, off, buf, count, len);
 	    count = newcount;
@@ -104,9 +102,7 @@ class CharArrayWriter extends Writer {
 	synchronized (lock) {
 	    int newcount = count + len;
 	    if (newcount > buf.length) {
-		char newbuf[] = new char[Math.max(buf.length << 1, newcount)];
-		System.arraycopy(buf, 0, newbuf, 0, count);
-		buf = newbuf;
+                buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
 	    }
 	    str.getChars(off, off + len, buf, count);
 	    count = newcount;
@@ -229,9 +225,7 @@ class CharArrayWriter extends Writer {
      */
     public char toCharArray()[] {
 	synchronized (lock) {
-	    char newbuf[] = new char[count];
-	    System.arraycopy(buf, 0, newbuf, 0, count);
-	    return newbuf;
+            return Arrays.copyOf(buf, count);
 	}
     }
 

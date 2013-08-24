@@ -1,7 +1,7 @@
 /*
- * @(#)FutureTask.java	1.7 04/04/15
+ * @(#)FutureTask.java	1.14 06/07/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.util.concurrent.locks.*;
  * @author Doug Lea
  * @param <V> The result type returned by this FutureTask's <tt>get</tt> method
  */
-public class FutureTask<V> implements Future<V>, Runnable {
+public class FutureTask<V> implements RunnableFuture<V> {
     /** Synchronization control for FutureTask */
     private final Sync sync;
 
@@ -67,7 +67,7 @@ public class FutureTask<V> implements Future<V>, Runnable {
     public boolean isCancelled() {
         return sync.innerIsCancelled();
     }
-    
+
     public boolean isDone() {
         return sync.innerIsDone();
     }
@@ -75,11 +75,17 @@ public class FutureTask<V> implements Future<V>, Runnable {
     public boolean cancel(boolean mayInterruptIfRunning) {
         return sync.innerCancel(mayInterruptIfRunning);
     }
-    
+
+    /**
+     * @throws CancellationException {@inheritDoc}
+     */
     public V get() throws InterruptedException, ExecutionException {
         return sync.innerGet();
     }
 
+    /**
+     * @throws CancellationException {@inheritDoc}
+     */
     public V get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
         return sync.innerGet(unit.toNanos(timeout));
@@ -99,8 +105,10 @@ public class FutureTask<V> implements Future<V>, Runnable {
     /**
      * Sets the result of this Future to the given value unless
      * this future has already been set or has been cancelled.
+     * This method is invoked internally by the <tt>run</tt> method
+     * upon successful completion of the computation.
      * @param v the value
-     */ 
+     */
     protected void set(V v) {
         sync.innerSet(v);
     }
@@ -109,15 +117,22 @@ public class FutureTask<V> implements Future<V>, Runnable {
      * Causes this future to report an <tt>ExecutionException</tt>
      * with the given throwable as its cause, unless this Future has
      * already been set or has been cancelled.
-     * @param t the cause of failure.
-     */ 
+     * This method is invoked internally by the <tt>run</tt> method
+     * upon failure of the computation.
+     * @param t the cause of failure
+     */
     protected void setException(Throwable t) {
         sync.innerSetException(t);
     }
-    
+
+    // The following (duplicated) doc comment can be removed once
+    //
+    // 6270645: Javadoc comments should be inherited from most derived
+    //          superinterface or superclass
+    // is fixed.
     /**
-     * Sets this Future to the result of computation unless
-     * it has been cancelled.
+     * Sets this Future to the result of its computation
+     * unless it has been cancelled.
      */
     public void run() {
         sync.innerRun();
@@ -144,6 +159,8 @@ public class FutureTask<V> implements Future<V>, Runnable {
      * Uses AQS sync state to represent run status
      */
     private final class Sync extends AbstractQueuedSynchronizer {
+        private static final long serialVersionUID = -7828117401763700385L;
+
         /** State value representing that task is running */
         private static final int RUNNING   = 1;
         /** State value representing that task ran */
@@ -158,7 +175,7 @@ public class FutureTask<V> implements Future<V>, Runnable {
         /** The exception to throw from get() */
         private Throwable exception;
 
-        /** 
+        /**
          * The thread running task. When nulled after set/cancel, this
          * indicates that the results are accessible.  Must be
          * volatile, to ensure visibility upon completion.
@@ -186,13 +203,13 @@ public class FutureTask<V> implements Future<V>, Runnable {
          */
         protected boolean tryReleaseShared(int ignore) {
             runner = null;
-            return true; 
+            return true;
         }
 
         boolean innerIsCancelled() {
             return getState() == CANCELLED;
         }
-        
+
         boolean innerIsDone() {
             return ranOrCancelled(getState()) && runner == null;
         }
@@ -208,7 +225,7 @@ public class FutureTask<V> implements Future<V>, Runnable {
 
         V innerGet(long nanosTimeout) throws InterruptedException, ExecutionException, TimeoutException {
             if (!tryAcquireSharedNanos(0, nanosTimeout))
-                throw new TimeoutException();                
+                throw new TimeoutException();
             if (getState() == CANCELLED)
                 throw new CancellationException();
             if (exception != null)
@@ -219,28 +236,44 @@ public class FutureTask<V> implements Future<V>, Runnable {
         void innerSet(V v) {
 	    for (;;) {
 		int s = getState();
-		if (ranOrCancelled(s))
+		if (s == RAN)
 		    return;
-		if (compareAndSetState(s, RAN))
-		    break;
-	    }
-            result = v;
-            releaseShared(0);
-            done();
+                if (s == CANCELLED) {
+		    // aggressively release to set runner to null,
+		    // in case we are racing with a cancel request
+		    // that will try to interrupt runner
+                    releaseShared(0);
+                    return;
+                }
+		if (compareAndSetState(s, RAN)) {
+                    result = v;
+                    releaseShared(0);
+                    done();
+		    return;
+                }
+            }
         }
 
         void innerSetException(Throwable t) {
 	    for (;;) {
 		int s = getState();
-		if (ranOrCancelled(s))
+		if (s == RAN)
 		    return;
-		if (compareAndSetState(s, RAN))
-		    break;
+                if (s == CANCELLED) {
+		    // aggressively release to set runner to null,
+		    // in case we are racing with a cancel request
+		    // that will try to interrupt runner
+                    releaseShared(0);
+                    return;
+                }
+		if (compareAndSetState(s, RAN)) {
+                    exception = t;
+                    result = null;
+                    releaseShared(0);
+                    done();
+		    return;
+                }
 	    }
-            exception = t;
-            result = null;
-            releaseShared(0);
-            done();
         }
 
         boolean innerCancel(boolean mayInterruptIfRunning) {
@@ -262,28 +295,32 @@ public class FutureTask<V> implements Future<V>, Runnable {
         }
 
         void innerRun() {
-            if (!compareAndSetState(0, RUNNING)) 
+            if (!compareAndSetState(0, RUNNING))
                 return;
             try {
                 runner = Thread.currentThread();
-                innerSet(callable.call());
-            } catch(Throwable ex) {
+                if (getState() == RUNNING) // recheck after setting thread
+                    innerSet(callable.call());
+                else
+                    releaseShared(0); // cancel
+            } catch (Throwable ex) {
                 innerSetException(ex);
-            } 
+            }
         }
 
         boolean innerRunAndReset() {
-            if (!compareAndSetState(0, RUNNING)) 
+            if (!compareAndSetState(0, RUNNING))
                 return false;
             try {
                 runner = Thread.currentThread();
-                callable.call(); // don't set result
+                if (getState() == RUNNING)
+                    callable.call(); // don't set result
                 runner = null;
                 return compareAndSetState(RUNNING, 0);
-            } catch(Throwable ex) {
+            } catch (Throwable ex) {
                 innerSetException(ex);
                 return false;
-            } 
+            }
         }
     }
 }

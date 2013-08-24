@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AttributeSet.java,v 1.17 2004/02/24 03:55:47 zongaro Exp $
+ * $Id: AttributeSet.java,v 1.5 2005/09/28 13:48:04 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -32,7 +32,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -85,7 +85,7 @@ final class AttributeSet extends TopLevelElement {
 	// Get this attribute set's name
         final String name = getAttribute("name");
         
-        if (!XMLChar.isValidQName(name)) {
+        if (!XML11Char.isXML11ValidQName(name)) {
             ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
             parser.reportError(Constants.ERROR, err);           
         }        
@@ -166,6 +166,7 @@ final class AttributeSet extends TopLevelElement {
             il.append(methodGen.loadDOM());
             il.append(methodGen.loadIterator());
             il.append(methodGen.loadHandler());
+            il.append(methodGen.loadCurrentNode());
             final int method = cpg.addMethodref(classGen.getClassName(),
                                                 methodName, ATTR_SET_SIG);
             il.append(new INVOKESPECIAL(method));

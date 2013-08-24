@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorSupport.java
  * @(#)author    IBM Corp.
- * @(#)version   1.53
- * @(#)lastedit      05/11/23
+ * @(#)version   1.66
+ * @(#)lastedit      06/06/15
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against
  * you regarding the Program.
  *
- * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * Copyright 2005 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation.
  *
@@ -45,9 +45,10 @@ import javax.management.MBeanException;
 import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 import com.sun.jmx.trace.Trace;
-import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.management.Descriptor;
+import javax.management.ImmutableDescriptor;
 
 
 /**
@@ -67,6 +68,8 @@ import java.util.TreeMap;
  * ModelMBeanNotificationInfo, ModelMBeanOperationInfo and ModelMBean
  * classes.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-6292969195866300415L</code>.
+ * 
  * @since 1.5
  */
 
@@ -111,7 +114,7 @@ public class DescriptorSupport
 	boolean compat = false;
 	try {
 	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
-	    form = (String) AccessController.doPrivileged(act);
+	    form = AccessController.doPrivileged(act);
 	    compat = "1.0".equals(form);  // form may be null
 	} catch (Exception e) {
 	    // OK: No compat with 1.0
@@ -153,8 +156,8 @@ public class DescriptorSupport
      * (the method {@link #isValid isValid} returns <CODE>false</CODE>)
      */
     public DescriptorSupport() {
-        if (tracing())
-            trace("DescriptorSupport()", "Constructor");
+        if (debugging())
+            debug("DescriptorSupport()", "Constructor");
         init(null);
     }
 
@@ -174,13 +177,13 @@ public class DescriptorSupport
      */
     public DescriptorSupport(int initNumFields)
 	    throws MBeanException, RuntimeOperationsException {
-        if (tracing()) {
-            trace("Descriptor(initNumFields=" + initNumFields + ")",
+        if (debugging()) {
+            debug("Descriptor(initNumFields=" + initNumFields + ")",
                   "Constructor");
         }
 	if (initNumFields <= 0) {
-	    if (tracing()) {
-		trace("Descriptor(maxNumFields)",
+	    if (debugging()) {
+		debug("Descriptor(maxNumFields)",
 		      "Illegal arguments: initNumFields <= 0");
 	    }
 	    final String msg =
@@ -201,8 +204,8 @@ public class DescriptorSupport
      * fields, an empty Descriptor will be created.
      */
     public DescriptorSupport(DescriptorSupport inDescr) {
-	if (tracing()) {
-	    trace("Descriptor(Descriptor)","Constructor");
+	if (debugging()) {
+	    debug("Descriptor(Descriptor)","Constructor");
 	}
 	if (inDescr == null)
             init(null);
@@ -248,12 +251,12 @@ public class DescriptorSupport
 		   XMLParseException {
 	/* parse an XML-formatted string and populate internal
 	 * structure with it */
-	if (tracing()) {
-	    trace("Descriptor(String ='" + inStr + "')","Constructor");
+	if (debugging()) {
+	    debug("Descriptor(String ='" + inStr + "')","Constructor");
 	}
 	if (inStr == null) {
-	    if (tracing()) {
-		trace("Descriptor(String = null)","Illegal arguments");
+	    if (debugging()) {
+		debug("Descriptor(String = null)","Illegal arguments");
 	    }
 	    final String msg = "String in parameter is null";
 	    final RuntimeException iae = new IllegalArgumentException(msg);
@@ -327,14 +330,14 @@ public class DescriptorSupport
 	    }
 	}  // while tokens
 
-	if (tracing()) {
-	    trace("Descriptor(XMLString)","Exit");
+	if (debugging()) {
+	    debug("Descriptor(XMLString)","Exit");
 	}
     }
 
     /**
-     * Constructor taking field names and field values.  The array and
-     * array elements cannot be null.
+     * Constructor taking field names and field values.  Neither array
+     * can be null.
      *
      * @param fieldNames String array of field names.  No elements of
      * this array can be null.
@@ -345,7 +348,7 @@ public class DescriptorSupport
      * isValid})
      *
      * <p>Note: array sizes of parameters should match. If both arrays
-     * are null or empty, then an empty descriptor is created.</p>
+     * are empty, then an empty descriptor is created.</p>
      *
      * @exception RuntimeOperationsException for illegal value for
      * field Names or field Values.  The array lengths must be equal.
@@ -355,14 +358,14 @@ public class DescriptorSupport
      */
     public DescriptorSupport(String[] fieldNames, Object[] fieldValues)
 	    throws RuntimeOperationsException {
-	if (tracing()) {
-	    trace("Descriptor(fieldNames, fieldObjects)","Constructor");
+	if (debugging()) {
+	    debug("Descriptor(fieldNames, fieldObjects)","Constructor");
 	}
-
+        
 	if ((fieldNames == null) || (fieldValues == null) ||
 	    (fieldNames.length != fieldValues.length)) {
-	    if (tracing()) {
-		trace("Descriptor(String[],Object[])","Illegal arguments");
+	    if (debugging()) {
+		debug("Descriptor(String[],Object[])","Illegal arguments");
 	    }
 
 	    final String msg =
@@ -378,8 +381,8 @@ public class DescriptorSupport
 	    // the fieldName and fieldValue will be validated in setField.
 	    setField(fieldNames[i], fieldValues[i]);
 	}
-	if (tracing()) {
-	    trace("Descriptor(fieldNames, fieldObjects)","Exit");
+	if (debugging()) {
+	    debug("Descriptor(fieldNames, fieldObjects)","Exit");
 	}
     }
 
@@ -397,7 +400,10 @@ public class DescriptorSupport
      * fields correctly.
      *
      * <p>Note: Each string should be of the form
-     * <i>fieldName=fieldValue</i>.
+     * <i>fieldName=fieldValue</i>.  The field name
+     * ends at the first {@code =} character; for example if the String
+     * is {@code a=b=c} then the field name is {@code a} and its value
+     * is {@code b=c}.
      *
      * @exception RuntimeOperationsException for illegal value for
      * field Names or field Values.  The field must contain an
@@ -407,10 +413,10 @@ public class DescriptorSupport
      * this exception will be thrown.
      *
      */
-    public DescriptorSupport(String[] fields)
+    public DescriptorSupport(String... fields)
     {
-	if (tracing()) {
-	    trace("Descriptor(fields)","Constructor");
+	if (debugging()) {
+	    debug("Descriptor(fields)","Constructor");
 	}
         init(null);
 	if (( fields == null ) || ( fields.length == 0))
@@ -425,8 +431,8 @@ public class DescriptorSupport
 	    int eq_separator = fields[i].indexOf("=");
 	    if (eq_separator < 0) {
 		// illegal if no = or is first character
-		if (tracing()) {
-		    trace("Descriptor(String[])",
+		if (debugging()) {
+		    debug("Descriptor(String[])",
 			  "Illegal arguments: field does not have '=' " +
 			  "as a name and value separator");
 		}
@@ -443,8 +449,8 @@ public class DescriptorSupport
 	    }
 
 	    if (fieldName.equals("")) {
-		if (tracing()) {
-		    trace("Descriptor(String[])",
+		if (debugging()) {
+		    debug("Descriptor(String[])",
 			  "Illegal arguments: fieldName is empty");
 		}
 
@@ -455,8 +461,8 @@ public class DescriptorSupport
 
 	    setField(fieldName,fieldValue);
 	}
-	if (tracing()) {
-	    trace("Descriptor(fields)","Exit");
+	if (debugging()) {
+	    debug("Descriptor(fields)","Exit");
 	}
     }
     
@@ -470,108 +476,68 @@ public class DescriptorSupport
     // Implementation of the Descriptor interface
 
 
-    /**
-     * Returns the value for a specific fieldname.
-     *
-     * @param inFieldName The field name in question; if not found,
-     * null is returned.
-     *
-     * @return An Object representing the field value
-     *
-     * @exception RuntimeOperationsException for illegal value (null
-     * or empty string) for field Names.
-     */
-    public synchronized Object getFieldValue(String inFieldName)
+    public synchronized Object getFieldValue(String fieldName)
 	    throws RuntimeOperationsException {
 
-	if ((inFieldName == null) || (inFieldName.equals(""))) {
-	    if (tracing()) {
-		trace("getField()","Illegal arguments: null field name.");
+	if ((fieldName == null) || (fieldName.equals(""))) {
+	    if (debugging()) {
+		debug("getField()","Illegal arguments: null field name.");
 	    }
 	    final String msg = "Fieldname requested is null";
 	    final RuntimeException iae = new IllegalArgumentException(msg);
 	    throw new RuntimeOperationsException(iae, msg);
 	}
-	Object retValue = descriptorMap.get(inFieldName);
-	if (tracing()) {
-	    trace("getField(" + inFieldName + ")",
+	Object retValue = descriptorMap.get(fieldName);
+	if (debugging()) {
+	    debug("getField(" + fieldName + ")",
 		  "Returns '" + retValue + "'");
 	}
 	return(retValue);
     }
 
-    /**
-     * Sets the string value for a specific fieldname. The value
-     * must be valid for the field (as defined in method {@link
-     * #isValid isValid}).  If the field does not exist, it is
-     * added to the Descriptor.  If it does exist, the
-     * value is replaced.
-     *
-     * @param inFieldName The field name to be set. Must
-     * not be null or empty string.
-     * @param fieldValue The field value to be set for the field
-     * name. Can be null or empty string.
-     *
-     * @exception RuntimeOperationsException for illegal value for
-     * field Names.
-     *
-     */
-    public synchronized void setField(String inFieldName, Object fieldValue)
+    public synchronized void setField(String fieldName, Object fieldValue)
 	    throws RuntimeOperationsException {
 
 	// field name cannot be null or empty
-	if ((inFieldName == null) || (inFieldName.equals(""))) {
-	    if (tracing()) {
-		trace("setField(String,String)",
+	if ((fieldName == null) || (fieldName.equals(""))) {
+	    if (debugging()) {
+		debug("setField(fieldName,fieldValue)",
 		      "Illegal arguments: null or empty field name");
 	    }
 
-	    final String msg = "Fieldname to be set is null or empty";
+	    final String msg = "Field name to be set is null or empty";
 	    final RuntimeException iae = new IllegalArgumentException(msg);
 	    throw new RuntimeOperationsException(iae, msg);
 	}
 
-	if (!validateField(inFieldName, fieldValue)) {
-	    if (tracing()) {
-		trace("setField(fieldName,FieldValue)","Illegal arguments");
+	if (!validateField(fieldName, fieldValue)) {
+	    if (debugging()) {
+		debug("setField(fieldName,fieldValue)", "Illegal arguments");
 	    }
 
 	    final String msg =
-		"Field value invalid: " + inFieldName + "=" + fieldValue;
+		"Field value invalid: " + fieldName + "=" + fieldValue;
 	    final RuntimeException iae = new IllegalArgumentException(msg);
 	    throw new RuntimeOperationsException(iae, msg);
 	}
 
-	if (tracing()) {
+	if (debugging()) {
 	    if (fieldValue != null) {
-		trace("setField(fieldName, fieldValue)",
-		      "Entry: setting '" + inFieldName + "' to '" +
+		debug("setField(fieldName, fieldValue)",
+		      "Entry: setting '" + fieldName + "' to '" +
 		      fieldValue + "'.");
 	    }
 	}
 
         // Since we do not remove any existing entry with this name,
 	// the field will preserve whatever case it had, ignoring
-	// any difference there might be in inFieldName.
-	descriptorMap.put(inFieldName, fieldValue);
+	// any difference there might be in fieldName.
+	descriptorMap.put(fieldName, fieldValue);
     }
 
-    /**
-     * Returns all the fields in the descriptor. The order is not the
-     * order in which the fields were set.
-     *
-     * @return String array of fields in the format
-     * <i>fieldName=fieldValue</i>. If there are no fields in the
-     * descriptor, then an empty String array is returned. If a
-     * fieldValue is not a String then the toString() method is called
-     * on it and its returned value is used as the value for the field
-     * enclosed in parenthesis.
-     *
-     * @see #setFields
-     */
     public synchronized String[] getFields() {
-	if (tracing()) {
-	    trace("getFields()","Entry");
+	if (debugging()) {
+	    debug("getFields()","Entry");
 	}
 	int numberOfEntries = descriptorMap.size();
 
@@ -582,15 +548,15 @@ public class DescriptorSupport
 	Object currValue = null;
 	Map.Entry currElement = null;
 
-	if (tracing()) {
-	    trace("getFields()","Returning " + numberOfEntries + " fields");
+	if (debugging()) {
+	    debug("getFields()","Returning " + numberOfEntries + " fields");
 	}
 	for (Iterator iter = returnedSet.iterator(); iter.hasNext(); i++) {
 	    currElement = (Map.Entry) iter.next();
 
 	    if (currElement == null) {
-		if (tracing()) {
-		    trace("getFields()","Element is null");
+		if (debugging()) {
+		    debug("getFields()","Element is null");
 		}
 	    } else {
 		currValue = currElement.getValue();
@@ -609,24 +575,16 @@ public class DescriptorSupport
 	    }
 	}
 
-	if (tracing()) {
-	    trace("getFields()","Exit");
+	if (debugging()) {
+	    debug("getFields()","Exit");
 	}
 
 	return responseFields;
     }
 
-    /**
-     * Returns all the fields names in the descriptor. The order is
-     * not the order in which the fields were set.
-     *
-     * @return String array of fields names. If the descriptor is
-     * empty, you will get an empty array.
-     *
-     */
     public synchronized String[] getFieldNames() {
-	if (tracing()) {
-	    trace("getFieldNames()","Entry");
+	if (debugging()) {
+	    debug("getFieldNames()","Entry");
 	}
 	int numberOfEntries = descriptorMap.size();
 
@@ -635,73 +593,45 @@ public class DescriptorSupport
 
 	int i = 0;
 
-	if (tracing()) {
-	    trace("getFieldNames()","Returning " + numberOfEntries + " fields");
+	if (debugging()) {
+	    debug("getFieldNames()","Returning " + numberOfEntries + " fields");
 	}
 
 	for (Iterator iter = returnedSet.iterator(); iter.hasNext(); i++) {
 	    Map.Entry currElement = (Map.Entry) iter.next();
 
 	    if (( currElement == null ) || (currElement.getKey() == null)) {
-		if (tracing()) {
-		    trace("getFieldNames()","Field is null");
+		if (debugging()) {
+		    debug("getFieldNames()","Field is null");
 		}
 	    } else {
 		responseFields[i] = currElement.getKey().toString();
 	    }
 	}
 
-	if (tracing()) {
-	    trace("getFieldNames()","Exit");
+	if (debugging()) {
+	    debug("getFieldNames()","Exit");
 	}
 
 	return responseFields;
     }
 
 
-    /**
-     * Returns all the field values in the descriptor as an array of
-     * Objects. The returned values are in the same order as the
-     * fieldNames String array parameter.
-     *
-     * @param fieldNames String array of the names of the fields that
-     * the values should be returned for.<br>
-     * If the array is empty then an empty array will be returned.<br>
-     * If the array is 'null' then all values will be returned. The
-     * order is not the order in which the fields were set.<br>
-     * If a field name in the array does not exist, then null is
-     * returned for the matching array element being returned.
-     *
-     * @return Object array of field values. If the descriptor is
-     * empty, you will get an empty array.
-     */
-    public synchronized Object[] getFieldValues(String[] fieldNames) {
-	if (tracing()) {
-	    trace("getFieldValues(fieldNames)","Entry");
+    public synchronized Object[] getFieldValues(String... fieldNames) {
+	if (debugging()) {
+	    debug("getFieldValues(fieldNames)","Entry");
 	}
 	// if fieldNames == null return all values
 	// if fieldNames is String[0] return no values
 
-	int numberOfEntries = descriptorMap.size();
-
-	/* Following test is somewhat inconsistent but is called for
-	   by the @return clause above. */
-	if (numberOfEntries == 0)
-	    return new Object[0];
-
-	Object[] responseFields;
-	if (fieldNames != null) {
-	    responseFields = new Object[fieldNames.length];
-	    // room for selected
-	} else {
-	    responseFields = new Object[numberOfEntries];
-	    // room for all
-	}
+	final int numberOfEntries =
+	    (fieldNames == null) ? descriptorMap.size() : fieldNames.length;
+	final Object[] responseFields = new Object[numberOfEntries];
 
 	int i = 0;
 
-	if (tracing()) {
-	    trace("getFieldValues()",
+	if (debugging()) {
+	    debug("getFieldValues()",
 		  "Returning " + numberOfEntries + " fields");
 	}
 
@@ -720,69 +650,47 @@ public class DescriptorSupport
 	}
 
 
-	if (tracing()) {
-	    trace("getFieldValues()","Exit");
+	if (debugging()) {
+	    debug("getFieldValues()","Exit");
 	}
 
 	return responseFields;
     }
 
-    /**
-     * Sets all Fields in the list to the new value with the same
-     * index in the fieldValue array.  Array sizes must match.  The
-     * field value will be validated before it is set (by calling the
-     * method {@link #isValid isValid}).  If it is not valid, then an
-     * exception will be thrown.  If the arrays are empty, then no
-     * change will take effect.
-     *
-     * @param fieldNames String array of field names. The array and
-     * array elements cannot be null.
-     * @param fieldValues Object array of the corresponding field
-     * values.  The array cannot be null.  Elements of the array can
-     * be null.
-     *
-     * @exception RuntimeOperationsException for illegal value for
-     * field Names or field Values.  Neither can be null.  The array
-     * lengths must be equal.
-     *
-     * @see #getFields
-     */
     public synchronized void setFields(String[] fieldNames,
 				       Object[] fieldValues)
 	    throws RuntimeOperationsException {
 
-	if (tracing()) {
-	    trace("setFields(fieldNames, ObjectValues)","Entry");
+	if (debugging()) {
+	    debug("setFields(fieldNames,fieldValues)", "Entry");
 	}
-
 
 	if ((fieldNames == null) || (fieldValues == null) ||
 	    (fieldNames.length != fieldValues.length)) {
-	    if (tracing()) {
-		trace("Descriptor.setFields(String[],Object[])",
-		      "Illegal arguments");
+	    if (debugging()) {
+		debug("setFields(fieldNames,fieldValues)","Illegal arguments");
 	    }
 
-	    final String msg = "FieldNames and FieldValues are null or invalid";
+	    final String msg = "fieldNames and fieldValues are null or invalid";
 	    final RuntimeException iae = new IllegalArgumentException(msg);
 	    throw new RuntimeOperationsException(iae, msg);
 	}
 
 	for (int i=0; i < fieldNames.length; i++) {
 	    if (( fieldNames[i] == null) || (fieldNames[i].equals(""))) {
-		if (tracing()) {
-		    trace("Descriptor.setFields(String[],Object[])",
+		if (debugging()) {
+		    debug("setFields(fieldNames,fieldValues)",
 			  "Null field name encountered at " + i + " element");
 		}
 
-		final String msg = "FieldNames is null or invalid";
+		final String msg = "fieldNames is null or invalid";
 		final RuntimeException iae = new IllegalArgumentException(msg);
 		throw new RuntimeOperationsException(iae, msg);
 	    }
 	    setField(fieldNames[i], fieldValues[i]);
 	}
-	if (tracing()) {
-	    trace("Descriptor.setFields(fieldNames, fieldObjects)","Exit");
+	if (debugging()) {
+	    debug("setFields(fieldNames, fieldValues)","Exit");
 	}
     }
 
@@ -795,18 +703,12 @@ public class DescriptorSupport
      */
 
     public synchronized Object clone() throws RuntimeOperationsException {
-	if (tracing()) {
-	    trace("Descriptor.clone()","Executed");
+	if (debugging()) {
+	    debug("Descriptor.clone()","Executed");
 	}
 	return(new DescriptorSupport(this));
     }
 
-    /**
-     * Removes a field from the descriptor.
-     *
-     * @param fieldName String name of the field to be removed.
-     * If the field is not found no exception is thrown.
-     */
     public synchronized void removeField(String fieldName) {
 	if ((fieldName == null) || (fieldName.equals(""))) {
 	    return;
@@ -815,6 +717,65 @@ public class DescriptorSupport
 	descriptorMap.remove(fieldName);
     }
 
+    /**
+     * Compares this descriptor to the given object.  The objects are equal if
+     * the given object is also a Descriptor, and if the two Descriptors have
+     * the same field names (possibly differing in case) and the same
+     * associated values.  The respective values for a field in the two
+     * Descriptors are equal if the following conditions hold:</p>
+     * 
+     * <ul>
+     * <li>If one value is null then the other must be too.</li>
+     * <li>If one value is a primitive array then the other must be a primitive
+     * array of the same type with the same elements.</li>
+     * <li>If one value is an object array then the other must be too and
+     * {@link java.util.Arrays#deepEquals(Object[],Object[]) Arrays.deepEquals} 
+     * must return true.</li>
+     * <li>Otherwise {@link Object#equals(Object)} must return true.</li>
+     * </ul>
+     *
+     * @param o the object to compare with.
+     *
+     * @return {@code true} if the objects are the same; {@code false}
+     * otherwise.
+     *
+     */
+    // XXXX TODO: This is not very efficient! 
+    // Note: this Javadoc is copied from javax.management.Descriptor
+    //       due to 6369229.
+    public synchronized boolean equals(Object o) {
+        if (o == this)
+            return true;
+        
+        return new ImmutableDescriptor(descriptorMap).equals(o);
+    }
+    
+    /**
+     * <p>Returns the hash code value for this descriptor.  The hash
+     * code is computed as the sum of the hash codes for each field in
+     * the descriptor.  The hash code of a field with name {@code n}
+     * and value {@code v} is {@code n.toLowerCase().hashCode() ^ h}.
+     * Here {@code h} is the hash code of {@code v}, computed as
+     * follows:</p>
+     * 
+     * <ul>
+     * <li>If {@code v} is null then {@code h} is 0.</li>
+     * <li>If {@code v} is a primitive array then {@code h} is computed using
+     * the appropriate overloading of {@code java.util.Arrays.hashCode}.</li>
+     * <li>If {@code v} is an object array then {@code h} is computed using
+     * {@link java.util.Arrays#deepHashCode(Object[]) Arrays.deepHashCode}.</li>
+     * <li>Otherwise {@code h} is {@code v.hashCode()}.</li>
+     * </ul>
+     *
+     * @return A hash code value for this object.
+     *
+     */
+    // XXXX TODO: This is not very efficient! 
+    // Note: this Javadoc is copied from javax.management.Descriptor
+    //       due to 6369229.
+    public synchronized int hashCode() {
+        return new ImmutableDescriptor(descriptorMap).hashCode();
+    }
 
     /**
      * Returns true if all of the fields have legal values given their
@@ -841,9 +802,9 @@ public class DescriptorSupport
      * Numeric String or a not Numeric Value >= 1 and <= 4
      * <LI> severity fieldName, if defined, is null, or not a Numeric
      * String or not a Numeric Value >= 0 and <= 6<br>
-     * <LI> persistPolicy fieldName, if defined, is null, or not a
-     * following String :<br>
-     *   "OnUpdate", "OnTimer", "NoMoreOftenThan", "Always",
+     * <LI> persistPolicy fieldName, if defined, is null, or not one of
+     * the following strings:<br>
+     *   "OnUpdate", "OnTimer", "NoMoreOftenThan", "OnUnregister", "Always",
      *   "Never". These String values must not be case sensitive.<br>
      * </UL>
      *
@@ -852,16 +813,16 @@ public class DescriptorSupport
      */
 
     public synchronized boolean isValid() throws RuntimeOperationsException {
-	if (tracing()) {
-	    trace("Descriptor.isValid()","Executed");
+	if (debugging()) {
+	    debug("Descriptor.isValid()","Executed");
 	}
 	// verify that the descriptor is valid, by iterating over each field...
 
 	Set returnedSet = descriptorMap.entrySet();
 
 	if (returnedSet == null) {   // null descriptor, not valid
-	    if (tracing()) {
-		trace("Descriptor.isValid()","returns false (null set)");
+	    if (debugging()) {
+		debug("Descriptor.isValid()","returns false (null set)");
 	    }
 	    return false;
 	}
@@ -886,8 +847,8 @@ public class DescriptorSupport
 				      (currElement.getValue()).toString())) {
 			continue;
 		    } else {
-			if (tracing()) {
-			    trace("isValid()",
+			if (debugging()) {
+			    debug("isValid()",
 				  "Field " + currElement.getKey() + "=" +
 				  currElement.getValue() + " is not valid");
 			}
@@ -899,8 +860,8 @@ public class DescriptorSupport
 
 	// fell through, all fields OK
 
-	if (tracing()) {
-	    trace("Descriptor.isValid()","returns true");
+	if (debugging()) {
+	    debug("Descriptor.isValid()","returns true");
 	}
 
 	return true;
@@ -973,7 +934,8 @@ public class DescriptorSupport
 		      SfldValue.equalsIgnoreCase("OnTimer") ||
 		      SfldValue.equalsIgnoreCase("NoMoreOftenThan") ||
 		      SfldValue.equalsIgnoreCase("Always") ||
-		      SfldValue.equalsIgnoreCase("Never") ));
+		      SfldValue.equalsIgnoreCase("Never") ||
+                      SfldValue.equalsIgnoreCase("OnUnregister")));
 	} else if (fldName.equalsIgnoreCase("PersistPeriod") ||
 		   fldName.equalsIgnoreCase("CurrencyTimeLimit") ||
 		   fldName.equalsIgnoreCase("LastUpdatedTimeStamp") ||
@@ -1025,7 +987,7 @@ public class DescriptorSupport
      * @return the XML string.
      *
      * @exception RuntimeOperationsException for illegal value for
-     * field Names or field Values.  If the XML formated string
+     * field Names or field Values.  If the XML formatted string
      * construction fails for any reason, this exception will be
      * thrown.
      */
@@ -1037,7 +999,7 @@ public class DescriptorSupport
 	    final String name = currElement.getKey().toString();
 	    Object value = currElement.getValue();
 	    String valueString = null;
-	    /* Set valueString to non-null iff this is a string that
+	    /* Set valueString to non-null if and only if this is a string that
 	       cannot be confused with the encoding of an object.  If it
 	       could be so confused (surrounded by parentheses) then we
 	       call makeFieldValue as for any non-String object and end
@@ -1206,7 +1168,7 @@ public class DescriptorSupport
                     sm.checkPackageAccess(className);
                 }
             }
-	    final Class c =
+            final Class c =
 		Class.forName(className, false, contextClassLoader);
 	    constr = c.getConstructor(new Class[] {String.class});
 	} catch (Exception e) {
@@ -1241,21 +1203,21 @@ public class DescriptorSupport
      * for any reason, this exception will be thrown.
      */
     public synchronized String toString() {
-	if (tracing()) {
-	    trace("Descriptor.toString()","Entry");
+	if (debugging()) {
+	    debug("Descriptor.toString()","Entry");
 	}
 
 	String respStr = "";
 	String[] fields = getFields();
 
-	if (tracing()) {
-	    trace("Descriptor.toString()",
+	if (debugging()) {
+	    debug("Descriptor.toString()",
 		  "Printing " + fields.length + " fields");
 	}
 
 	if ((fields == null) || (fields.length == 0)) {
-	    if (tracing()) {
-		trace("Descriptor.toString()","Empty Descriptor");
+	    if (debugging()) {
+		debug("Descriptor.toString()","Empty Descriptor");
 	    }
 	    return respStr;
 	}
@@ -1268,8 +1230,8 @@ public class DescriptorSupport
 	    }
 	}
 
-	if (tracing()) {
-	    trace("Descriptor.toString()","Exit returning " + respStr);
+	if (debugging()) {
+	    debug("Descriptor.toString()","Exit returning " + respStr);
 	}
 
 	return respStr;
@@ -1288,20 +1250,20 @@ public class DescriptorSupport
     }
 
 
-    // Trace and debug functions
+    // Debug functions
 
-    private boolean tracing() {
-	return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MODELMBEAN);
+    private boolean debugging() {
+	return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MODELMBEAN);
     }
 
-    private void trace(String inClass, String inMethod, String inText) {
-	Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MODELMBEAN, inClass,
+    private void debug(String inClass, String inMethod, String inText) {
+	Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MODELMBEAN, inClass,
 		   inMethod,
 		   Integer.toHexString(this.hashCode()) + " " + inText);
     }
 
-    private void trace(String inMethod, String inText) {
-	trace(currClass, inMethod, inText);
+    private void debug(String inMethod, String inText) {
+	debug(currClass, inMethod, inText);
     }
 
     /**
@@ -1311,9 +1273,12 @@ public class DescriptorSupport
     private void readObject(ObjectInputStream in)
 	    throws IOException, ClassNotFoundException {
 	ObjectInputStream.GetField fields = in.readFields();
-	Map descriptor = (Map) fields.get("descriptor", null);
+	Map<String, Object> descriptor = 
+	    (Map<String, Object>) fields.get("descriptor", null);
 	init(null);
-        descriptorMap.putAll(descriptor);
+	if (descriptor != null) {
+	    descriptorMap.putAll(descriptor); 
+	}
     }
 
 
@@ -1336,7 +1301,7 @@ public class DescriptorSupport
 	boolean compat = "1.0".equals(serialForm);
 	if (compat)
 	    fields.put("currClass", currClass);
-        
+
         /* Purge the field "targetObject" from the DescriptorSupport before
          * serializing since the referenced object is typically not
          * serializable.  We do this here rather than purging the "descriptor"
@@ -1361,4 +1326,5 @@ public class DescriptorSupport
 	fields.put("descriptor", descriptor);
 	out.writeFields();
     }
+
 }

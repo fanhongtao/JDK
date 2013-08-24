@@ -1,7 +1,7 @@
 /*
- * @(#)FormattableFlags.java	1.1 04/04/21
+ * @(#)FormattableFlags.java	1.2 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.util;
  * Formattable Formattables}.  Implementations of {@link Formattable} are
  * responsible for interpreting and validating any flags.
  *
- * @version 	1.1, 04/21/04
+ * @version 	1.2, 11/17/05
  * @since  1.5
  */
 public class FormattableFlags {

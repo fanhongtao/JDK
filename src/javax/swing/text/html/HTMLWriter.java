@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLWriter.java	1.36 03/12/19
+ * @(#)HTMLWriter.java	1.40 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -261,7 +261,7 @@ public class HTMLWriter extends AbstractWriter {
     protected void emptyTag(Element elem) throws BadLocationException, IOException {
 
 	if (!inContent && !inPre) {
-	    indent();
+	    indentSmart();
 	}
 
 	AttributeSet attr = elem.getAttributes();
@@ -277,7 +277,7 @@ public class HTMLWriter extends AbstractWriter {
 	    boolean isBlock = isBlockTag(elem.getAttributes());
 	    if (inContent && isBlock ) {
 		writeLineSeparator();
-		indent();
+		indentSmart();
 	    }
 
 	    Object nameTag = (attr != null) ? attr.getAttribute
@@ -317,7 +317,7 @@ public class HTMLWriter extends AbstractWriter {
 	    } else if (!inContent || isBlock) {
 		writeLineSeparator();
 		if (isBlock && inContent) {
-		    indent();
+		    indentSmart();
 		}
 	    }
 	}
@@ -381,19 +381,19 @@ public class HTMLWriter extends AbstractWriter {
 	if (completeDoc && name == HTML.Tag.BODY && !wroteHead) {
 	    // If the head has not been output, output it and the styles.
 	    wroteHead = true;
-	    indent();
+	    indentSmart();
 	    write("<head>");
 	    writeLineSeparator();
 	    incrIndent();
 	    writeStyles(((HTMLDocument)getDocument()).getStyleSheet());
 	    decrIndent();
 	    writeLineSeparator();
-	    indent();
+	    indentSmart();
 	    write("</head>");
 	    writeLineSeparator();
 	}
 
-	indent();
+	indentSmart();
 	write('<');
 	write(elem.getName());
 	writeAttributes(attr);
@@ -412,18 +412,15 @@ public class HTMLWriter extends AbstractWriter {
 	    writeMaps(((HTMLDocument)getDocument()).getMaps());
 	}
 	else if (name == HTML.Tag.HEAD) {
+            HTMLDocument document = (HTMLDocument)getDocument();
 	    wroteHead = true;
             incrIndent();
-            writeStyles(((HTMLDocument)getDocument()).getStyleSheet());
-            decrIndent();
-	}
-	HTMLDocument document = null;
-	if (name == HTML.Tag.BODY
-	    && (document = (HTMLDocument)getDocument()).hasBaseTag()) {
-            incrIndent();
-	    indent();
-	    write("<base href = \"" + document.getBase() + "\">");
-	    writeLineSeparator();
+            writeStyles(document.getStyleSheet());
+            if (document.hasBaseTag()) {
+                indentSmart();
+                write("<base href=\"" + document.getBase() + "\">");
+                writeLineSeparator();
+            }
             decrIndent();
 	}
 	
@@ -449,7 +446,7 @@ public class HTMLWriter extends AbstractWriter {
 	    if (segment.count > 0) {
 		inTextArea = true;
 		incrIndent();
-		indent();
+		indentSmart();
 		setCanWrapLines(true);
 		replaceEntities = true;
 		write(segment.array, segment.offset, segment.count);
@@ -539,7 +536,7 @@ public class HTMLWriter extends AbstractWriter {
      */
     protected void writeOption(Option option) throws IOException {
 	
-	indent();
+	indentSmart();
 	write('<');
 	write("option");
         // PENDING: should this be changed to check for null first?
@@ -579,7 +576,7 @@ public class HTMLWriter extends AbstractWriter {
 	    inContent = false;
 	}
 	if (!inPre) {
-	    indent();
+	    indentSmart();
 	}
 	if (matchNameAttribute(elem.getAttributes(), HTML.Tag.PRE)) {
 	    inPre = false;
@@ -630,6 +627,7 @@ public class HTMLWriter extends AbstractWriter {
 	}
 	write("-->");
 	writeLineSeparator();
+        indentSmart();
     }
 
 
@@ -843,7 +841,7 @@ public class HTMLWriter extends AbstractWriter {
 		String name = map.getName();
 
 		incrIndent();
-		indent();
+		indentSmart();
 		write("<map");
 		if (name != null) {
 		    write(" name=\"");
@@ -861,7 +859,7 @@ public class HTMLWriter extends AbstractWriter {
 		if (areas != null) {
 		    for (int counter = 0, maxCounter = areas.length;
 			 counter < maxCounter; counter++) {
-			indent();
+			indentSmart();
 			write("<area");
 			writeAttributes(areas[counter]);
 			write("></area>");
@@ -869,7 +867,7 @@ public class HTMLWriter extends AbstractWriter {
 		    }
 		}
 		decrIndent();
-		indent();
+		indentSmart();
 		write("</map>");
 		writeLineSeparator();
 		decrIndent();
@@ -923,7 +921,7 @@ public class HTMLWriter extends AbstractWriter {
 			}
 			if (!didOutputStyle) {
 			    didOutputStyle = true;
-			    indent();
+			    indentSmart();
 			    write(name);
 			    write(" {");
 			}
@@ -946,11 +944,11 @@ public class HTMLWriter extends AbstractWriter {
     }
 
     void writeStyleStartTag() throws IOException {
-	indent();
+	indentSmart();
 	write("<style type=\"text/css\">");
 	incrIndent();
 	writeLineSeparator();
-	indent();
+	indentSmart();
 	write("<!--");
 	incrIndent();
 	writeLineSeparator();
@@ -958,14 +956,14 @@ public class HTMLWriter extends AbstractWriter {
 
     void writeStyleEndTag() throws IOException {
 	decrIndent();
-	indent();
+	indentSmart();
 	write("-->");
 	writeLineSeparator();
 	decrIndent();
-	indent();
+	indentSmart();
 	write("</style>");
 	writeLineSeparator();
-	indent();
+	indentSmart();
     }
 
     // --- conversion support ---------------------------
@@ -1152,18 +1150,21 @@ public class HTMLWriter extends AbstractWriter {
     /**
      * Writes the line separator. This is overriden to make sure we don't
      * replace the newline content in case it is outside normal ascii.
+     * @since 1.3
      */
     protected void writeLineSeparator() throws IOException {
 	boolean oldReplace = replaceEntities;
 	replaceEntities = false;
 	super.writeLineSeparator();
 	replaceEntities = oldReplace;
+        indented = false;
     }
 
     /**
      * This method is overriden to map any character entities, such as
      * &lt; to &amp;lt;. <code>super.output</code> will be invoked to
      * write the content.
+     * @since 1.3
      */
     protected void output(char[] chars, int start, int length)
 	           throws IOException {
@@ -1242,5 +1243,17 @@ public class HTMLWriter extends AbstractWriter {
 	}
 	string.getChars(0, length, tempChars, 0);
 	super.output(tempChars, 0, length);
+    }
+
+    private boolean indented = false;
+
+    /**
+     * Writes indent only once per line.
+     */
+    private void indentSmart() throws IOException {
+        if (!indented) {
+            indent();
+            indented = true;
+        }
     }
 }

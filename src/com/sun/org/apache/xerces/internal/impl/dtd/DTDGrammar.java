@@ -89,13 +89,15 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDSource;
  * A DTD grammar. This class implements the XNI handler interfaces
  * for DTD information so that it can build the approprate validation
  * structures automatically from the callbacks.
+ * 
+ * @xerces.internal
  *
  * @author Eric Ye, IBM
  * @author Jeffrey Rodriguez, IBM
  * @author Andy Clark, IBM
  * @author Neil Graham, IBM
  *
- * @version $Id: DTDGrammar.java,v 1.28 2004/03/28 04:06:46 mrglavas Exp $
+ * @version $Id: DTDGrammar.java,v 1.1.2.1 2005/08/01 03:36:39 jeffsuttor Exp $
  */
 public class DTDGrammar 
     implements XMLDTDHandler, XMLDTDContentModelHandler, EntityState, Grammar {
@@ -2611,11 +2613,13 @@ public class DTDGrammar
     
     /**
      * Children list for <code>contentSpecTree</code> method.
+     * 
+     * @xerces.internal
      *
      * @author Eric Ye, IBM
      */
     private static class ChildrenList {
-        
+       
         //
         // Data
         //
@@ -2632,6 +2636,12 @@ public class DTDGrammar
 
         /** Left and right children types. */
         public int[] type = new int[2];
+        
+        //
+        // Constructors
+        //
+        
+        public ChildrenList () {}
 
     } // class ChildrenList
 
@@ -2642,6 +2652,8 @@ public class DTDGrammar
     /**
      * A simple Hashtable implementation that takes a tuple (String, String)
      * as the key and a int as value.
+     * 
+     * @xerces.internal
      *
      * @author Eric Ye, IBM
      * @author Andy Clark, IBM

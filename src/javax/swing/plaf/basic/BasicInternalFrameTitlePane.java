@@ -1,13 +1,13 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.61 03/12/19
+ * @(#)BasicInternalFrameTitlePane.java	1.64 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.accessibility.AccessibleContext;
@@ -171,18 +171,21 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void createButtons() {
 	iconButton = new NoFocusButton(
-                     "InternalFrameTitlePane.iconifyButtonAccessibleName");
+                     "InternalFrameTitlePane.iconifyButtonAccessibleName",
+                     "InternalFrameTitlePane.iconifyButtonOpacity");
 	iconButton.addActionListener(iconifyAction);
         if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
             iconButton.setToolTipText(iconButtonToolTip);
         }
 
 	maxButton = new NoFocusButton(
-                        "InternalFrameTitlePane.maximizeButtonAccessibleName");
+                        "InternalFrameTitlePane.maximizeButtonAccessibleName",
+                        "InternalFrameTitlePane.maximizeButtonOpacity");
 	maxButton.addActionListener(maximizeAction);
 
 	closeButton = new NoFocusButton(
-                      "InternalFrameTitlePane.closeButtonAccessibleName");
+                      "InternalFrameTitlePane.closeButtonAccessibleName",
+                      "InternalFrameTitlePane.closeButtonOpacity");
 	closeButton.addActionListener(closeAction);
         if (closeButtonToolTip != null && closeButtonToolTip.length() != 0) {
             closeButton.setToolTipText(closeButtonToolTip);
@@ -190,7 +193,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 
         setButtonIcons();
     }
-
+    
     protected void setButtonIcons() {
         if(frame.isIcon()) {
             if (minIcon != null) {
@@ -743,11 +746,15 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     private class NoFocusButton extends JButton {
         private String uiKey;
-        public NoFocusButton(String uiKey) {
+        public NoFocusButton(String uiKey, String opacityKey) {
             setFocusPainted(false);
             setMargin(new Insets(0,0,0,0));
-	    setOpaque(true);
             this.uiKey = uiKey;
+            
+            Object opacity = UIManager.get(opacityKey);
+            if (opacity instanceof Boolean) {
+                setOpaque(((Boolean)opacity).booleanValue());
+            }
         }
 	public boolean isFocusTraversable() { return false; }
 	public void requestFocus() {};

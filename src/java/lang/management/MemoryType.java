@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryType.java	1.7 04/04/18
+ * @(#)MemoryType.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.lang.management;
  * Types of {@link MemoryPoolMXBean memory pools}.
  *
  * @author  Mandy Chung
- * @version 1.7, 04/18/04
+ * @version 1.8, 11/17/05
  * @since   1.5
  */
 public enum MemoryType {

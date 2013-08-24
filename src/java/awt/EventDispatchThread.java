@@ -1,7 +1,7 @@
 /*
- * @(#)EventDispatchThread.java	1.54 05/03/03
+ * @(#)EventDispatchThread.java	1.60 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,8 @@ import sun.security.action.GetPropertyAction;
 import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
 import sun.awt.SunToolkit;
+
+import java.util.Vector;
 
 import sun.awt.dnd.SunDragSourceContextPeer;
 
@@ -37,7 +39,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.54, 03/03/05
+ * @version 1.60, 11/17/05
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -46,6 +48,10 @@ class EventDispatchThread extends Thread {
     private EventQueue theQueue;
     private boolean doDispatch = true;
     private static final int ANY_EVENT = -1;
+
+    private Vector<EventFilter> eventFilters = new Vector<EventFilter>();
+    // used in handleException
+    private int modalFiltersCount = 0;
 
     EventDispatchThread(ThreadGroup group, String name, EventQueue queue) {
         super(group, name);
@@ -96,6 +102,11 @@ class EventDispatchThread extends Thread {
     }
 
     class StopDispatchEvent extends AWTEvent implements ActiveEvent {
+        /*
+         * serialVersionUID
+         */
+        static final long serialVersionUID = -3692158172100730735L;
+
         public StopDispatchEvent() {
             super(EventDispatchThread.this,0);
         }
@@ -159,18 +170,63 @@ class EventDispatchThread extends Thread {
 
     void pumpEventsForHierarchy(int id, Conditional cond, Component modalComponent)
     {
+        pumpEventsForFilter(id, cond, new HierarchyEventFilter(modalComponent));
+    }
+
+    void pumpEventsForFilter(Conditional cond, EventFilter filter) {
+        pumpEventsForFilter(ANY_EVENT, cond, filter);
+    }
+
+    void pumpEventsForFilter(int id, Conditional cond, EventFilter filter) {
+        addEventFilter(filter);
         while (doDispatch && cond.evaluate()) {
-            if (isInterrupted() || !pumpOneEventForHierarchy(id, modalComponent)) {
+            if (isInterrupted() || !pumpOneEventForFilters(id)) {
                 doDispatch = false;
+            }
+        }
+        removeEventFilter(filter);
+    }
+
+    void addEventFilter(EventFilter filter) {
+        synchronized (eventFilters) {
+            if (!eventFilters.contains(filter)) {
+                if (filter instanceof ModalEventFilter) {
+                    ModalEventFilter newFilter = (ModalEventFilter)filter;
+                    int k = 0;
+                    for (k = 0; k < eventFilters.size(); k++) {
+                        EventFilter f = eventFilters.get(k);
+                        if (f instanceof ModalEventFilter) {
+                            ModalEventFilter cf = (ModalEventFilter)f;
+                            if (cf.compareTo(newFilter) > 0) {
+                                break;
+                            }
+                        }
+                    }
+                    eventFilters.add(k, filter);
+                    modalFiltersCount++;
+                } else {
+                    eventFilters.add(filter);
+                }
             }
         }
     }
 
-    boolean checkMouseEventForModalJInternalFrame(MouseEvent me, Component modalComp) {
+    void removeEventFilter(EventFilter filter) {
+        synchronized (eventFilters) {
+            if (eventFilters.contains(filter)) {
+                if (filter instanceof ModalEventFilter) {
+                    modalFiltersCount--;
+                }
+                eventFilters.remove(filter);
+            }
+        }
+    }
+
+    static boolean checkMouseEventForModalJInternalFrame(MouseEvent me, Component modalComp) {
         // Check if the MouseEvent is targeted to the HW parent of the
         // LW component, if so, then return true. The job of distinguishing
         // between the LW components is done by the LW dispatcher.
-        if (modalComp instanceof javax.swing.JInternalFrame) {
+        if (Component.isInstanceOf(modalComp, "javax.swing.JInternalFrame")) {
             Container c;
             synchronized (modalComp.getTreeLock()) {
                 c = ((Container)modalComp).getHeavyweightContainer();
@@ -181,53 +237,25 @@ class EventDispatchThread extends Thread {
         return false;
     }
 
-    boolean pumpOneEventForHierarchy(int id, Component modalComponent) {
+    boolean pumpOneEventForFilters(int id) {
         try {
             AWTEvent event;
             boolean eventOK;
             do {
-	        event = (id == ANY_EVENT)
-		    ? theQueue.getNextEvent()
-		    : theQueue.getNextEvent(id);
+                event = (id == ANY_EVENT)
+                    ? theQueue.getNextEvent()
+                    : theQueue.getNextEvent(id);
 
                 eventOK = true;
-                if (modalComponent != null) {
-                    /*
-                     * filter out MouseEvent and ActionEvent that's outside
-                     * the modalComponent hierarchy.
-                     * KeyEvent is handled by using enqueueKeyEvent
-                     * in Dialog.show
-                     */
-                    int eventID = event.getID();
-                    if (((eventID >= MouseEvent.MOUSE_FIRST &&
-                            eventID <= MouseEvent.MOUSE_LAST) &&
-                            !(checkMouseEventForModalJInternalFrame((MouseEvent)
-                                event, modalComponent))) || 
-                            (eventID >= ActionEvent.ACTION_FIRST &&
-                            eventID <= ActionEvent.ACTION_LAST) ||
-                            eventID == WindowEvent.WINDOW_CLOSING) {
-                        Object o = event.getSource();
-                        if (o instanceof sun.awt.ModalExclude) {
-                            // Exclude this object from modality and
-                            // continue to pump it's events.
-                        } else if (o instanceof Component) {
-                            Component c = (Component) o;
-                            boolean modalExcluded = false;
-                            if (modalComponent instanceof Container) {
-                                while (c != modalComponent && c != null) {
-                                    if ((c instanceof Window) &&
-                                        (sun.awt.SunToolkit.isModalExcluded((Window)c))) {
-                                            // Exclude this window and all its children from
-                                            //  modality and continue to pump it's events.
-                                        modalExcluded = true;
-                                        break;
-                                    }
-                                    c = c.getParent();
-                                }
-                            }
-                            if (!modalExcluded && (c != modalComponent)) {
-                                eventOK = false;
-                            }
+                synchronized (eventFilters) {
+                    for (int i = eventFilters.size() - 1; i >= 0; i--) {
+                        EventFilter f = eventFilters.get(i);
+                        EventFilter.FilterAction accept = f.acceptEvent(event);
+                        if (accept == EventFilter.FilterAction.REJECT) {
+                            eventOK = false;
+                            break;
+                        } else if (accept == EventFilter.FilterAction.ACCEPT_IMMEDIATELY) {
+                            break;
                         }
                     }
                 }
@@ -235,24 +263,30 @@ class EventDispatchThread extends Thread {
                 if (!eventOK) {
                     event.consume();
                 }
-            } while (eventOK == false);
+            }
+            while (eventOK == false);
                       
-	    if ( dbg.on ) dbg.println("Dispatching: "+event);
+            if (dbg.on) {
+                dbg.println("Dispatching: "+event);
+            }
 
             theQueue.dispatchEvent(event);
             return true;
-        } catch (ThreadDeath death) {
+        }
+        catch (ThreadDeath death) {
             return false;
 
-        } catch (InterruptedException interruptedException) {
+        }
+        catch (InterruptedException interruptedException) {
             return false; // AppContext.dispose() interrupts all
                           // Threads in the AppContext
 
-	    // Can get and throw only unchecked exceptions
-        } catch (RuntimeException e) {
-            processException(e, modalComponent != null);
+        }
+        // Can get and throw only unchecked exceptions
+        catch (RuntimeException e) {
+            processException(e, modalFiltersCount > 0);
         } catch (Error e) {
-            processException(e, modalComponent != null);
+            processException(e, modalFiltersCount > 0);
         }
         return true;
     }
@@ -366,4 +400,56 @@ class EventDispatchThread extends Thread {
     }
 
     EventQueue getEventQueue() { return theQueue; }
+
+    private static class HierarchyEventFilter implements EventFilter {
+        private Component modalComponent;
+        public HierarchyEventFilter(Component modalComponent) {
+            this.modalComponent = modalComponent;
+        }
+        public FilterAction acceptEvent(AWTEvent event) {
+            if (modalComponent != null) {
+                /*
+                 * filter out MouseEvent and ActionEvent that's outside
+                 * the modalComponent hierarchy.
+                 * KeyEvent is handled by using enqueueKeyEvent
+                 * in Dialog.show
+                 */
+                int eventID = event.getID();
+                if (((eventID >= MouseEvent.MOUSE_FIRST &&
+                      eventID <= MouseEvent.MOUSE_LAST) &&
+                     !(checkMouseEventForModalJInternalFrame((MouseEvent)event, modalComponent))) || 
+                    (eventID >= ActionEvent.ACTION_FIRST &&
+                     eventID <= ActionEvent.ACTION_LAST) ||
+                    eventID == WindowEvent.WINDOW_CLOSING)
+                {
+                    Object o = event.getSource();
+                    if (o instanceof sun.awt.ModalExclude) {
+                        // Exclude this object from modality and
+                        // continue to pump it's events.
+                        return FilterAction.ACCEPT;
+                    } else if (o instanceof Component) {
+                        Component c = (Component) o;
+                        // 5.0u3 modal exclusion
+                        boolean modalExcluded = false;
+                        if (modalComponent instanceof Container) {
+                            while (c != modalComponent && c != null) {
+                                if ((c instanceof Window) &&
+                                    (sun.awt.SunToolkit.isModalExcluded((Window)c))) {
+                                    // Exclude this window and all its children from
+                                    //  modality and continue to pump it's events.
+                                    modalExcluded = true;
+                                    break;
+                                }
+                                c = c.getParent();
+                            }
+                        }
+                        if (!modalExcluded && (c != modalComponent)) {
+                            return FilterAction.REJECT;
+                        }
+                    }
+                }
+            }
+            return FilterAction.ACCEPT;
+        }
+    }
 }

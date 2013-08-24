@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteCall.java	1.19 04/05/18
+ * @(#)RemoteCall.java	1.21 06/07/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,10 +16,10 @@ import java.io.IOException;
  * <code>RemoteCall</code> is an abstraction used solely by the RMI runtime
  * (in conjunction with stubs and skeletons of remote objects) to carry out a
  * call to a remote object.  The <code>RemoteCall</code> interface is
- * deprecated in the Java 2 platform since it is only used by deprecated methods of
+ * deprecated because it is only used by deprecated methods of
  * <code>java.rmi.server.RemoteRef</code>.
  *
- * @version 1.19, 05/18/04
+ * @version 1.21, 07/17/06
  * @since   JDK1.1
  * @author  Ann Wollrath
  * @author  Roger Riggs

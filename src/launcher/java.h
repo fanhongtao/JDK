@@ -1,7 +1,7 @@
 /*
- * @(#)java.h	1.26 04/01/12
+ * @(#)java.h	1.34 05/12/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,7 @@
  */
 #include "jni.h"
 #include "java_md.h"
+#include "jli_util.h"
 
 /*
  * Pointers to the needed JNI invocation API, initialized by LoadJavaVM.
@@ -67,12 +68,22 @@ void ReportExceptionDescription(JNIEnv * env);
 jboolean RemovableMachineDependentOption(char * option);
 void PrintMachineDependentOptions();
 
+const char *jlong_format_specifier();
+/*
+ * Block current thread and continue execution in new thread
+ */
+int ContinueInNewThread(int (JNICALL *continuation)(void *), 
+                        jlong stack_size, void * args);
+
+/* sun.java.launcher.* platform properties. */
+void SetJavaLauncherPlatformProps(void);
+
 /* 
  * Functions defined in java.c and used in java_md.c.
  */
 jint ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative); 
 char *CheckJvmType(int *argc, char ***argv, jboolean speculative);
-void* MemAlloc(size_t size);
+void AddOption(char *str, void *info);
 
 /*
  * Make launcher spit debug output.

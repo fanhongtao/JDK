@@ -71,6 +71,11 @@ public final class DOMImplementationRegistry {
     private Vector sources;
     
     /**
+     * Default class name.
+     */
+    private static final String FALLBACK_CLASS = 
+            "com.sun.org.apache.xerces.internal.dom.DOMXSImplementationSourceImpl";
+    /**
      * Private constructor.
      * @param srcs Vector List of DOMImplementationSources
      */
@@ -127,8 +132,9 @@ public final class DOMImplementationRegistry {
 	    //
 	    // DOM Implementations can modify here to add *additional* fallback
 	    // mechanisms to access a list of default DOMImplementationSources.
-	    
-	}
+            //fall back to JAXP implementation class com.sun.org.apache.xerces.internal.dom.DOMXSImplementationSourceImpl
+            p = FALLBACK_CLASS;
+        }
 	if (p != null) {
 	    StringTokenizer st = new StringTokenizer(p);
 	    while (st.hasMoreTokens()) {

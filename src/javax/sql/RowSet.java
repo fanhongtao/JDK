@@ -1,7 +1,7 @@
 /*
- * @(#)RowSet.java	1.15 04/05/05
+ * @(#)RowSet.java	1.19 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -93,11 +93,11 @@ public interface RowSet extends ResultSet {
    * <code>DriverManager</code> to create a connection.
    *
    * Setting this property is optional.  If a URL is used, a JDBC driver
-   * that accepts the URL must be loaded by the application before the
+   * that accepts the URL must be loaded before the
    * rowset is used to connect to a database.  The rowset will use the URL
    * internally to create a database connection when reading or writing
    * data.  Either a URL or a data source name is used to create a
-   * connection, whichever was specified most recently.
+   * connection, whichever was set to non null value most recently.
    * 
    * @param url a string value; may be <code>null</code>
    * @exception SQLException if a database access error occurs
@@ -107,9 +107,7 @@ public interface RowSet extends ResultSet {
 
   /**
    * Retrieves the logical name that identifies the data source for this
-   * <code>RowSet</code> object.  Users should set
-   * either the url property or the data source name property.  The rowset will use
-   * the property that was set more recently to get a connection.
+   * <code>RowSet</code> object.  
    *
    * @return a data source name
    * @see #setDataSourceName
@@ -127,7 +125,7 @@ public interface RowSet extends ResultSet {
    * used to create a connection to the data source that it represents.
    *
    * @param name the logical name of the data source for this <code>RowSet</code>
-   *        object
+   *        object; may be <code>null</code>
    * @exception SQLException if a database access error occurs
    * @see #getDataSourceName
    */
@@ -215,7 +213,7 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    * @see #setTypeMap
    */
-  java.util.Map<String,Class<?>> getTypeMap() throws SQLException;
+   java.util.Map<String,Class<?>> getTypeMap() throws SQLException;
 
   /**
    * Installs the given <code>java.util.Map</code> object as the default 
@@ -228,7 +226,7 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    * @see #getTypeMap
    */
-  void setTypeMap(java.util.Map<String,Class<?>> map) throws SQLException;
+   void setTypeMap(java.util.Map<String,Class<?>> map) throws SQLException; 
 
   //-----------------------------------------------------------------------
   // The following properties may be used to create a Statement.
@@ -291,7 +289,8 @@ public interface RowSet extends ResultSet {
    * for certain column values. 
    * This limit applies only to <code>BINARY</code>,
    * <code>VARBINARY</code>, <code>LONGVARBINARYBINARY</code>, <code>CHAR</code>,
-   * <code>VARCHAR</code>, and <code>LONGVARCHAR</code> columns.
+   * <code>VARCHAR</code>, <code>LONGVARCHAR</code>, <code>NCHAR</code>
+   * and <code>NVARCHAR</code> columns.
    * If the limit is exceeded, the excess data is silently discarded.
    *
    * @return the current maximum column size limit; zero means that there
@@ -306,7 +305,8 @@ public interface RowSet extends ResultSet {
    * value to the given number of bytes.
    * This limit applies only to <code>BINARY</code>,
    * <code>VARBINARY</code>, <code>LONGVARBINARYBINARY</code>, <code>CHAR</code>,
-   * <code>VARCHAR</code>, and <code>LONGVARCHAR</code> columns.
+   * <code>VARCHAR</code>, <code>LONGVARCHAR</code>, <code>NCHAR</code>
+   * and <code>NVARCHAR</code> columns.
    * If the limit is exceeded, the excess data is silently discarded.
    * For maximum portability, use values greater than 256.
    *
@@ -438,6 +438,21 @@ public interface RowSet extends ResultSet {
   void setNull(int parameterIndex, int sqlType) throws SQLException;
 
   /**
+     * Sets the designated parameter to SQL <code>NULL</code>.
+     *
+     * <P><B>Note:</B> You must specify the parameter's SQL type.
+     *
+     * @param parameterName the name of the parameter
+     * @param sqlType the SQL type code defined in <code>java.sql.Types</code>
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.4
+     */
+    void setNull(String parameterName, int sqlType) throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's SQL
    * command to SQL <code>NULL</code>. This version of the method <code>setNull</code>
    * should  be used for SQL user-defined types (UDTs) and <code>REF</code> type
@@ -469,6 +484,41 @@ public interface RowSet extends ResultSet {
     throws SQLException;
 
   /**
+     * Sets the designated parameter to SQL <code>NULL</code>.
+     * This version of the method <code>setNull</code> should
+     * be used for user-defined types and REF type parameters.  Examples
+     * of user-defined types include: STRUCT, DISTINCT, JAVA_OBJECT, and
+     * named array types.
+     *
+     * <P><B>Note:</B> To be portable, applications must give the
+     * SQL type code and the fully-qualified SQL type name when specifying
+     * a NULL user-defined or REF parameter.  In the case of a user-defined type
+     * the name is the type name of the parameter itself.  For a REF
+     * parameter, the name is the type name of the referenced type.  If
+     * a JDBC driver does not need the type code or type name information,
+     * it may ignore it.
+     *
+     * Although it is intended for user-defined and Ref parameters,
+     * this method may be used to set a null parameter of any JDBC type.
+     * If the parameter does not have a user-defined or REF type, the given
+     * typeName is ignored.
+     *
+     *
+     * @param parameterName the name of the parameter
+     * @param sqlType a value from <code>java.sql.Types</code>
+     * @param typeName the fully-qualified name of an SQL user-defined type;
+     *        ignored if the parameter is not a user-defined type or
+     *        SQL <code>REF</code> value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.4
+     */
+    void setNull (String parameterName, int sqlType, String typeName)
+        throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given Java <code>boolean</code> value. The driver converts this to
    * an SQL <code>BIT</code> value before sending it to the database.
@@ -480,6 +530,22 @@ public interface RowSet extends ResultSet {
   void setBoolean(int parameterIndex, boolean x) throws SQLException;
 
   /**
+     * Sets the designated parameter to the given Java <code>boolean</code> value.
+     * The driver converts this
+     * to an SQL <code>BIT</code> or <code>BOOLEAN</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @see #getBoolean
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.4
+     */
+    void setBoolean(String parameterName, boolean x) throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given Java <code>byte</code> value. The driver converts this to
    * an SQL <code>TINYINT</code> value before sending it to the database.
@@ -489,7 +555,23 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setByte(int parameterIndex, byte x) throws SQLException;
-  
+ 
+  /**
+     * Sets the designated parameter to the given Java <code>byte</code> value.
+     * The driver converts this
+     * to an SQL <code>TINYINT</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getByte
+     * @since 1.4
+     */
+    void setByte(String parameterName, byte x) throws SQLException;
+ 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given Java <code>short</code> value. The driver converts this to
@@ -500,6 +582,22 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setShort(int parameterIndex, short x) throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given Java <code>short</code> value.
+     * The driver converts this
+     * to an SQL <code>SMALLINT</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getShort
+     * @since 1.4
+     */
+    void setShort(String parameterName, short x) throws SQLException;
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -513,6 +611,22 @@ public interface RowSet extends ResultSet {
   void setInt(int parameterIndex, int x) throws SQLException;
 
   /**
+     * Sets the designated parameter to the given Java <code>int</code> value.
+     * The driver converts this
+     * to an SQL <code>INTEGER</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getInt
+     * @since 1.4
+     */
+    void setInt(String parameterName, int x) throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given Java <code>long</code> value. The driver converts this to
    * an SQL <code>BIGINT</code> value before sending it to the database.
@@ -522,6 +636,22 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setLong(int parameterIndex, long x) throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given Java <code>long</code> value.
+     * The driver converts this
+     * to an SQL <code>BIGINT</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getLong
+     * @since 1.4
+     */
+    void setLong(String parameterName, long x) throws SQLException;
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -535,6 +665,22 @@ public interface RowSet extends ResultSet {
   void setFloat(int parameterIndex, float x) throws SQLException;
 
   /**
+     * Sets the designated parameter to the given Java <code>float</code> value.
+     * The driver converts this
+     * to an SQL <code>FLOAT</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getFloat
+     * @since 1.4
+     */
+    void setFloat(String parameterName, float x) throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given Java <code>double</code> value. The driver converts this to
    * an SQL <code>DOUBLE</code> value before sending it to the database.
@@ -544,7 +690,23 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setDouble(int parameterIndex, double x) throws SQLException;
-  
+ 
+  /**
+     * Sets the designated parameter to the given Java <code>double</code> value.
+     * The driver converts this
+     * to an SQL <code>DOUBLE</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getDouble
+     * @since 1.4
+     */
+    void setDouble(String parameterName, double x) throws SQLException;
+ 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given <code>java.math.BigDeciaml</code> value.
@@ -556,6 +718,23 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given
+     * <code>java.math.BigDecimal</code> value.
+     * The driver converts this to an SQL <code>NUMERIC</code> value when
+     * it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getBigDecimal
+     * @since 1.4
+     */
+    void setBigDecimal(String parameterName, BigDecimal x) throws SQLException;
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -571,6 +750,25 @@ public interface RowSet extends ResultSet {
   void setString(int parameterIndex, String x) throws SQLException;
 
   /**
+     * Sets the designated parameter to the given Java <code>String</code> value.
+     * The driver converts this
+     * to an SQL <code>VARCHAR</code> or <code>LONGVARCHAR</code> value
+     * (depending on the argument's
+     * size relative to the driver's limits on <code>VARCHAR</code> values)
+     * when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getString
+     * @since 1.4
+     */
+    void setString(String parameterName, String x) throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given Java array of <code>byte</code> values. Before sending it to the 
    * database, the driver converts this to an SQL <code>VARBINARY</code> or
@@ -582,6 +780,24 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setBytes(int parameterIndex, byte x[]) throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given Java array of bytes.
+     * The driver converts this to an SQL <code>VARBINARY</code> or
+     * <code>LONGVARBINARY</code> (depending on the argument's size relative
+     * to the driver's limits on <code>VARBINARY</code> values) when it sends
+     * it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getBytes
+     * @since 1.4
+     */
+    void setBytes(String parameterName, byte x[]) throws SQLException;
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -621,6 +837,24 @@ public interface RowSet extends ResultSet {
     throws SQLException;
 
   /**
+     * Sets the designated parameter to the given <code>java.sql.Timestamp</code> value.
+     * The driver
+     * converts this to an SQL <code>TIMESTAMP</code> value when it sends it to the
+     * database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getTimestamp
+     * @since 1.4
+     */
+    void setTimestamp(String parameterName, java.sql.Timestamp x)
+        throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given <code>java.io.InputStream</code> value. 
    * It may be more practical to send a very large ASCII value via a
@@ -639,7 +873,32 @@ public interface RowSet extends ResultSet {
    */
   void setAsciiStream(int parameterIndex, java.io.InputStream x, int length)
     throws SQLException;
-  
+ 
+  /**
+     * Sets the designated parameter to the given input stream, which will have
+     * the specified number of bytes.
+     * When a very large ASCII value is input to a <code>LONGVARCHAR</code>
+     * parameter, it may be more practical to send it via a
+     * <code>java.io.InputStream</code>. Data will be read from the stream
+     * as needed until end-of-file is reached.  The JDBC driver will
+     * do any necessary conversion from ASCII to the database char format.
+     *
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the Java input stream that contains the ASCII parameter value
+     * @param length the number of bytes in the stream
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.4
+     */
+    void setAsciiStream(String parameterName, java.io.InputStream x, int length)
+        throws SQLException;
+ 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given <code>java.io.InputStream</code> value. 
@@ -661,6 +920,30 @@ public interface RowSet extends ResultSet {
 		       int length) throws SQLException;
 
   /**
+     * Sets the designated parameter to the given input stream, which will have
+     * the specified number of bytes.
+     * When a very large binary value is input to a <code>LONGVARBINARY</code>
+     * parameter, it may be more practical to send it via a
+     * <code>java.io.InputStream</code> object. The data will be read from the stream
+     * as needed until end-of-file is reached.
+     *
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the java input stream which contains the binary parameter value
+     * @param length the number of bytes in the stream
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.4
+     */
+    void setBinaryStream(String parameterName, java.io.InputStream x,
+                         int length) throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * to the given <code>java.io.Reader</code> value. 
    * It may be more practical to send a very large UNICODE value via a
@@ -680,24 +963,240 @@ public interface RowSet extends ResultSet {
    */
   void setCharacterStream(int parameterIndex,
        			  Reader reader,
-			  int length) throws SQLException;
-  
+  			  int length) throws SQLException;
+ 
+  /**
+     * Sets the designated parameter to the given <code>Reader</code>
+     * object, which is the given number of characters long.
+     * When a very large UNICODE value is input to a <code>LONGVARCHAR</code>
+     * parameter, it may be more practical to send it via a
+     * <code>java.io.Reader</code> object. The data will be read from the stream
+     * as needed until end-of-file is reached.  The JDBC driver will
+     * do any necessary conversion from UNICODE to the database char format.
+     *
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     *
+     * @param parameterName the name of the parameter
+     * @param reader the <code>java.io.Reader</code> object that
+     *        contains the UNICODE data used as the designated parameter
+     * @param length the number of characters in the stream
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.4
+     */
+    void setCharacterStream(String parameterName,
+                            java.io.Reader reader,
+                            int length) throws SQLException;
+ 
+  /**
+   * Sets the designated parameter in this <code>RowSet</code> object's command 
+   * to the given input stream.
+   * When a very large ASCII value is input to a <code>LONGVARCHAR</code>
+   * parameter, it may be more practical to send it via a
+   * <code>java.io.InputStream</code>. Data will be read from the stream
+   * as needed until end-of-file is reached.  The JDBC driver will
+   * do any necessary conversion from ASCII to the database char format.
+   *
+   * <P><B>Note:</B> This stream object can either be a standard
+   * Java stream object or your own subclass that implements the
+   * standard interface.
+   * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+   * it might be more efficient to use a version of
+   * <code>setAsciiStream</code> which takes a length parameter.
+   *
+   * @param parameterIndex the first parameter is 1, the second is 2, ...
+   * @param x the Java input stream that contains the ASCII parameter value
+   * @exception SQLException if a database access error occurs or
+   * this method is called on a closed <code>PreparedStatement</code>
+   * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+   * @since 1.6
+   */
+  void setAsciiStream(int parameterIndex, java.io.InputStream x)
+                      throws SQLException;
+
+   /**
+     * Sets the designated parameter to the given input stream.
+     * When a very large ASCII value is input to a <code>LONGVARCHAR</code>
+     * parameter, it may be more practical to send it via a
+     * <code>java.io.InputStream</code>. Data will be read from the stream
+     * as needed until end-of-file is reached.  The JDBC driver will
+     * do any necessary conversion from ASCII to the database char format.
+     *
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setAsciiStream</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the Java input stream that contains the ASCII parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+       * @since 1.6
+    */
+    void setAsciiStream(String parameterName, java.io.InputStream x)
+            throws SQLException;
+
+  /**
+   * Sets the designated parameter in this <code>RowSet</code> object's command 
+   * to the given input stream.
+   * When a very large binary value is input to a <code>LONGVARBINARY</code>
+   * parameter, it may be more practical to send it via a
+   * <code>java.io.InputStream</code> object. The data will be read from the
+   * stream as needed until end-of-file is reached.
+   *
+   * <P><B>Note:</B> This stream object can either be a standard
+   * Java stream object or your own subclass that implements the
+   * standard interface.
+   * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+   * it might be more efficient to use a version of
+   * <code>setBinaryStream</code> which takes a length parameter.
+   *
+   * @param parameterIndex the first parameter is 1, the second is 2, ...
+   * @param x the java input stream which contains the binary parameter value
+   * @exception SQLException if a database access error occurs or
+   * this method is called on a closed <code>PreparedStatement</code>
+   * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+   * @since 1.6
+   */
+  void setBinaryStream(int parameterIndex, java.io.InputStream x)
+                       throws SQLException; 
+
+  /**
+     * Sets the designated parameter to the given input stream.
+     * When a very large binary value is input to a <code>LONGVARBINARY</code>
+     * parameter, it may be more practical to send it via a
+     * <code>java.io.InputStream</code> object. The data will be read from the
+     * stream as needed until end-of-file is reached.
+     *
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setBinaryStream</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the java input stream which contains the binary parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.6
+     */
+    void setBinaryStream(String parameterName, java.io.InputStream x)
+    throws SQLException;
+
+  /**
+   * Sets the designated parameter in this <code>RowSet</code> object's command
+   * to the given <code>Reader</code>
+   * object.
+   * When a very large UNICODE value is input to a <code>LONGVARCHAR</code>
+   * parameter, it may be more practical to send it via a
+   * <code>java.io.Reader</code> object. The data will be read from the stream
+   * as needed until end-of-file is reached.  The JDBC driver will
+   * do any necessary conversion from UNICODE to the database char format.
+   *
+   * <P><B>Note:</B> This stream object can either be a standard
+   * Java stream object or your own subclass that implements the
+   * standard interface.
+   * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+   * it might be more efficient to use a version of
+   * <code>setCharacterStream</code> which takes a length parameter.
+   *
+   * @param parameterIndex the first parameter is 1, the second is 2, ...
+   * @param reader the <code>java.io.Reader</code> object that contains the
+   *        Unicode data
+   * @exception SQLException if a database access error occurs or
+   * this method is called on a closed <code>PreparedStatement</code>
+   * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+   * @since 1.6
+   */
+  void setCharacterStream(int parameterIndex,
+                          java.io.Reader reader) throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given <code>Reader</code>
+     * object.
+     * When a very large UNICODE value is input to a <code>LONGVARCHAR</code>
+     * parameter, it may be more practical to send it via a
+     * <code>java.io.Reader</code> object. The data will be read from the stream
+     * as needed until end-of-file is reached.  The JDBC driver will
+     * do any necessary conversion from UNICODE to the database char format.
+     *
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setCharacterStream</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param reader the <code>java.io.Reader</code> object that contains the
+     *        Unicode data
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.6
+     */
+    void setCharacterStream(String parameterName,
+                          java.io.Reader reader) throws SQLException;
+
+  /**
+   * Sets the designated parameter in this <code>RowSet</code> object's command
+   * to a <code>Reader</code> object. The
+   * <code>Reader</code> reads the data till end-of-file is reached. The
+   * driver does the necessary conversion from Java character format to
+   * the national character set in the database.
+
+   * <P><B>Note:</B> This stream object can either be a standard
+   * Java stream object or your own subclass that implements the
+   * standard interface.
+   * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+   * it might be more efficient to use a version of
+   * <code>setNCharacterStream</code> which takes a length parameter.
+   *
+   * @param parameterIndex of the first parameter is 1, the second is 2, ...
+   * @param value the parameter value
+   * @throws SQLException if the driver does not support national
+   *         character sets;  if the driver can detect that a data conversion
+   *  error could occur ; if a database access error occurs; or
+   * this method is called on a closed <code>PreparedStatement</code>
+   * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+   * @since 1.6
+   */
+   void setNCharacterStream(int parameterIndex, Reader value) throws SQLException;
+
+   
+
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * with the given Java <code>Object</code>.  For integral values, the 
    * <code>java.lang</code> equivalent objects should be used (for example,
    * an instance of the class <code>Integer</code> for an <code>int</code>).
    *
+   * If the second argument is an <code>InputStream</code> then the stream must contain 
+   * the number of bytes specified by scaleOrLength.  If the second argument is a
+   * <code>Reader</code> then the reader must contain the number of characters specified    * by scaleOrLength. If these conditions are not true the driver will generate a
+   * <code>SQLException</code> when the prepared statement is executed.
+   * 
    * <p>The given Java object will be converted to the targetSqlType
    * before being sent to the database.
    * <P>
    * If the object is of a class implementing <code>SQLData</code>,
    * the rowset should call the method <code>SQLData.writeSQL</code>
    * to write the object to an <code>SQLOutput</code> data stream.
-   * If the object is an instance of a class implementing the <code>Ref</code>,
-   * <code>Struct</code>, <code>Array</code>, <code>Blob</code>,
-   * or <code>Clob</code> interfaces,
-   * the driver uses the default mapping to the corresponding SQL type.
+   * If, on the other hand, the object is of a class implementing
+   * <code>Ref</code>, <code>Blob</code>, <code>Clob</code>,  <code>NClob</code>,
+   *  <code>Struct</code>, <code>java.net.URL</code>,
+   * or <code>Array</code>, the driver should pass it to the database as a
+   * value of the corresponding SQL type.
+   * <P>
    *
    * <p>Note that this method may be used to pass datatabase-specific
    * abstract data types. 
@@ -707,15 +1206,62 @@ public interface RowSet extends ResultSet {
    * @param targetSqlType the SQL type (as defined in <code>java.sql.Types</code>) 
    *        to be sent to the database. The scale argument may further qualify this
    *        type.
-   * @param scale for <code>java.sql.Types.DECIMAL</code> or
-   *        <code>java.sql.Types.NUMERIC</code> types, this is the number of
-   *         digits after the decimal point.  For all other types, this value
-   *         will be ignored.
+   * @param scaleOrLength for <code>java.sql.Types.DECIMAL</code>
+   *          or <code>java.sql.Types.NUMERIC types</code>,
+   *          this is the number of digits after the decimal point. For
+   *          Java Object types <code>InputStream</code> and <code>Reader</code>, 
+   *          this is the length
+   *          of the data in the stream or reader.  For all other types,
+   *          this value will be ignored.
    * @exception SQLException if a database access error occurs
    * @see java.sql.Types 
    */
-  void setObject(int parameterIndex, Object x, int targetSqlType, int scale)
+  void setObject(int parameterIndex, Object x, int targetSqlType, int scaleOrLength)
             throws SQLException;
+
+  /**
+     * Sets the value of the designated parameter with the given object. The second
+     * argument must be an object type; for integral values, the
+     * <code>java.lang</code> equivalent objects should be used.
+     *
+     * <p>The given Java object will be converted to the given targetSqlType
+     * before being sent to the database.
+     *
+     * If the object has a custom mapping (is of a class implementing the
+     * interface <code>SQLData</code>),
+     * the JDBC driver should call the method <code>SQLData.writeSQL</code> to write it
+     * to the SQL data stream.
+     * If, on the other hand, the object is of a class implementing
+     * <code>Ref</code>, <code>Blob</code>, <code>Clob</code>,  <code>NClob</code>,
+     *  <code>Struct</code>, <code>java.net.URL</code>,
+     * or <code>Array</code>, the driver should pass it to the database as a
+     * value of the corresponding SQL type.
+     * <P>
+     * Note that this method may be used to pass datatabase-
+     * specific abstract data types.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the object containing the input parameter value
+     * @param targetSqlType the SQL type (as defined in java.sql.Types) to be
+     * sent to the database. The scale argument may further qualify this type.
+     * @param scale for java.sql.Types.DECIMAL or java.sql.Types.NUMERIC types,
+     *          this is the number of digits after the decimal point.  For all other
+     *          types, this value will be ignored.
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if <code>targetSqlType</code> is
+     * a <code>ARRAY</code>, <code>BLOB</code>, <code>CLOB</code>,
+     * <code>DATALINK</code>, <code>JAVA_OBJECT</code>, <code>NCHAR</code>,
+     * <code>NCLOB</code>, <code>NVARCHAR</code>, <code>LONGNVARCHAR</code>,
+     *  <code>REF</code>, <code>ROWID</code>, <code>SQLXML</code>
+     * or  <code>STRUCT</code> data type and the JDBC driver does not support
+     * this data type
+     * @see Types
+     * @see #getObject
+     * @since 1.4
+     */
+    void setObject(String parameterName, Object x, int targetSqlType, int scale)
+        throws SQLException;
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -736,7 +1282,69 @@ public interface RowSet extends ResultSet {
    */
   void setObject(int parameterIndex, Object x, 
 		 int targetSqlType) throws SQLException;
-  
+ 
+  /**
+     * Sets the value of the designated parameter with the given object.
+     * This method is like the method <code>setObject</code>
+     * above, except that it assumes a scale of zero.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the object containing the input parameter value
+     * @param targetSqlType the SQL type (as defined in java.sql.Types) to be
+     *                      sent to the database
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if <code>targetSqlType</code> is
+     * a <code>ARRAY</code>, <code>BLOB</code>, <code>CLOB</code>,
+     * <code>DATALINK</code>, <code>JAVA_OBJECT</code>, <code>NCHAR</code>,
+     * <code>NCLOB</code>, <code>NVARCHAR</code>, <code>LONGNVARCHAR</code>,
+     *  <code>REF</code>, <code>ROWID</code>, <code>SQLXML</code>
+     * or  <code>STRUCT</code> data type and the JDBC driver does not support
+     * this data type
+     * @see #getObject
+     * @since 1.4
+     */
+    void setObject(String parameterName, Object x, int targetSqlType)
+        throws SQLException;
+
+   /**
+     * Sets the value of the designated parameter with the given object.
+     * The second parameter must be of type <code>Object</code>; therefore, the
+     * <code>java.lang</code> equivalent objects should be used for built-in types.
+     *
+     * <p>The JDBC specification specifies a standard mapping from
+     * Java <code>Object</code> types to SQL types.  The given argument
+     * will be converted to the corresponding SQL type before being
+     * sent to the database.
+     *
+     * <p>Note that this method may be used to pass datatabase-
+     * specific abstract data types, by using a driver-specific Java
+     * type.
+     *
+     * If the object is of a class implementing the interface <code>SQLData</code>,
+     * the JDBC driver should call the method <code>SQLData.writeSQL</code>
+     * to write it to the SQL data stream.
+     * If, on the other hand, the object is of a class implementing
+     * <code>Ref</code>, <code>Blob</code>, <code>Clob</code>,  <code>NClob</code>,
+     *  <code>Struct</code>, <code>java.net.URL</code>,
+     * or <code>Array</code>, the driver should pass it to the database as a
+     * value of the corresponding SQL type.
+     * <P>
+     * This method throws an exception if there is an ambiguity, for example, if the
+     * object is of a class implementing more than one of the interfaces named above.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the object containing the input parameter value
+     * @exception SQLException if a database access error occurs,
+     * this method is called on a closed <code>CallableStatement</code> or if the given
+     *            <code>Object</code> parameter is ambiguous
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getObject
+     * @since 1.4
+     */
+    void setObject(String parameterName, Object x) throws SQLException;
+ 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * with a Java <code>Object</code>.  For integral values, the 
@@ -753,10 +1361,12 @@ public interface RowSet extends ResultSet {
    * If the object is of a class implementing <code>SQLData</code>,
    * the rowset should call the method <code>SQLData.writeSQL</code>
    * to write the object to an <code>SQLOutput</code> data stream.
-   * If the object is an instance of a class implementing the <code>Ref</code>,
-   * <code>Struct</code>, <code>Array</code>, <code>Blob</code>,
-   * or <code>Clob</code> interfaces,
-   * the driver uses the default mapping to the corresponding SQL type.
+   * If, on the other hand, the object is of a class implementing
+   * <code>Ref</code>, <code>Blob</code>, <code>Clob</code>,  <code>NClob</code>,
+   *  <code>Struct</code>, <code>java.net.URL</code>,
+   * or <code>Array</code>, the driver should pass it to the database as a
+   * value of the corresponding SQL type.
+   * <P>
    * <P>
    * An exception is thrown if there is an ambiguity, for example, if the
    * object is of a class implementing more than one of these interfaces.
@@ -766,6 +1376,7 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setObject(int parameterIndex, Object x) throws SQLException;
+
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -790,6 +1401,128 @@ public interface RowSet extends ResultSet {
    */
   void setBlob (int i, Blob x) throws SQLException;
 
+  /**
+     * Sets the designated parameter to a <code>InputStream</code> object.  The inputstream must contain  the number
+     * of characters specified by length otherwise a <code>SQLException</code> will be
+     * generated when the <code>PreparedStatement</code> is executed.
+     * This method differs from the <code>setBinaryStream (int, InputStream, int)</code>
+     * method because it informs the driver that the parameter value should be
+     * sent to the server as a <code>BLOB</code>.  When the <code>setBinaryStream</code> method is used,
+     * the driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGVARBINARY</code> or a <code>BLOB</code>
+     * @param parameterIndex index of the first parameter is 1,
+     * the second is 2, ...
+     * @param inputStream An object that contains the data to set the parameter
+     * value to.
+     * @param length the number of bytes in the parameter data.
+     * @throws SQLException if a database access error occurs,
+     * this method is called on a closed <code>PreparedStatement</code>,
+     * if parameterIndex does not correspond
+     * to a parameter marker in the SQL statement,  if the length specified
+     * is less than zero or if the number of bytes in the inputstream does not match
+     * the specfied length.
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     *
+     * @since 1.6
+     */
+     void setBlob(int parameterIndex, InputStream inputStream, long length)
+        throws SQLException;
+
+  /**
+     * Sets the designated parameter to a <code>InputStream</code> object.
+     * This method differs from the <code>setBinaryStream (int, InputStream)</code>
+     * method because it informs the driver that the parameter value should be
+     * sent to the server as a <code>BLOB</code>.  When the <code>setBinaryStream</code> method is used,
+     * the driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGVARBINARY</code> or a <code>BLOB</code>
+     *
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setBlob</code> which takes a length parameter.
+     *
+     * @param parameterIndex index of the first parameter is 1,
+     * the second is 2, ...
+     * @param inputStream An object that contains the data to set the parameter
+     * value to.
+     * @throws SQLException if a database access error occurs,
+     * this method is called on a closed <code>PreparedStatement</code> or
+     * if parameterIndex does not correspond
+     * to a parameter marker in the SQL statement,
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     *
+     * @since 1.6
+     */
+     void setBlob(int parameterIndex, InputStream inputStream)
+        throws SQLException;
+
+  /**
+     * Sets the designated parameter to a <code>InputStream</code> object.  The <code>inputstream</code> must contain  the number
+     * of characters specified by length, otherwise a <code>SQLException</code> will be
+     * generated when the <code>CallableStatement</code> is executed.
+     * This method differs from the <code>setBinaryStream (int, InputStream, int)</code>
+     * method because it informs the driver that the parameter value should be
+     * sent to the server as a <code>BLOB</code>.  When the <code>setBinaryStream</code> method is used,
+     * the driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGVARBINARY</code> or a <code>BLOB</code>
+     *
+     * @param parameterName the name of the parameter to be set
+     * the second is 2, ...
+     *
+     * @param inputStream An object that contains the data to set the parameter
+     * value to.
+     * @param length the number of bytes in the parameter data.
+     * @throws SQLException  if parameterIndex does not correspond
+     * to a parameter marker in the SQL statement,  or if the length specified
+     * is less than zero; if the number of bytes in the inputstream does not match
+     * the specfied length; if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     *
+     * @since 1.6
+     */
+     void setBlob(String parameterName, InputStream inputStream, long length)
+        throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given <code>java.sql.Blob</code> object.
+     * The driver converts this to an SQL <code>BLOB</code> value when it
+     * sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x a <code>Blob</code> object that maps an SQL <code>BLOB</code> value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.6
+     */
+    void setBlob (String parameterName, Blob x) throws SQLException;
+
+  /**
+     * Sets the designated parameter to a <code>InputStream</code> object.
+     * This method differs from the <code>setBinaryStream (int, InputStream)</code>
+     * method because it informs the driver that the parameter value should be
+     * sent to the server as a <code>BLOB</code>.  When the <code>setBinaryStream</code> method is used,
+     * the driver may have to do extra work to determine whether the parameter
+     * data should be send to the server as a <code>LONGVARBINARY</code> or a <code>BLOB</code>
+     *
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setBlob</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param inputStream An object that contains the data to set the parameter
+     * value to.
+     * @throws SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     *
+     * @since 1.6
+     */
+     void setBlob(String parameterName, InputStream inputStream)
+        throws SQLException;
+
   /** 
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * with the given  <code>Clob</code> value.  The driver will convert this
@@ -801,7 +1534,115 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    */
   void setClob (int i, Clob x) throws SQLException;
-  
+ 
+  /**
+     * Sets the designated parameter to a <code>Reader</code> object.  The reader must contain  the number
+     * of characters specified by length otherwise a <code>SQLException</code> will be
+     * generated when the <code>PreparedStatement</code> is executed.
+     *This method differs from the <code>setCharacterStream (int, Reader, int)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>CLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGVARCHAR</code> or a <code>CLOB</code>
+     * @param parameterIndex index of the first parameter is 1, the second is 2, ...
+     * @param reader An object that contains the data to set the parameter value to.
+     * @param length the number of characters in the parameter data.
+     * @throws SQLException if a database access error occurs, this method is called on
+     * a closed <code>PreparedStatement</code>, if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement, or if the length specified is less than zero.
+     *
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.6
+     */
+     void setClob(int parameterIndex, Reader reader, long length)
+       throws SQLException;
+
+  /**
+     * Sets the designated parameter to a <code>Reader</code> object.
+     * This method differs from the <code>setCharacterStream (int, Reader)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>CLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGVARCHAR</code> or a <code>CLOB</code>
+     *
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setClob</code> which takes a length parameter.
+     *
+     * @param parameterIndex index of the first parameter is 1, the second is 2, ...
+     * @param reader An object that contains the data to set the parameter value to.
+     * @throws SQLException if a database access error occurs, this method is called on
+     * a closed <code>PreparedStatement</code>or if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement
+     *
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.6
+     */
+     void setClob(int parameterIndex, Reader reader)
+       throws SQLException;
+
+  /**
+     * Sets the designated parameter to a <code>Reader</code> object.  The <code>reader</code> must contain  the number
+     * of characters specified by length otherwise a <code>SQLException</code> will be
+     * generated when the <code>CallableStatement</code> is executed.
+     * This method differs from the <code>setCharacterStream (int, Reader, int)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>CLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be send to the server as a <code>LONGVARCHAR</code> or a <code>CLOB</code>
+     * @param parameterName the name of the parameter to be set
+     * @param reader An object that contains the data to set the parameter value to.
+     * @param length the number of characters in the parameter data.
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if the length specified is less than zero;
+     * a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     *
+     * @since 1.6
+     */
+     void setClob(String parameterName, Reader reader, long length)
+       throws SQLException;
+
+   /**
+     * Sets the designated parameter to the given <code>java.sql.Clob</code> object.
+     * The driver converts this to an SQL <code>CLOB</code> value when it
+     * sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x a <code>Clob</code> object that maps an SQL <code>CLOB</code> value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.6
+     */
+    void setClob (String parameterName, Clob x) throws SQLException;
+
+  /**
+     * Sets the designated parameter to a <code>Reader</code> object.
+     * This method differs from the <code>setCharacterStream (int, Reader)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>CLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be send to the server as a <code>LONGVARCHAR</code> or a <code>CLOB</code>
+     *
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setClob</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param reader An object that contains the data to set the parameter value to.
+     * @throws SQLException if a database access error occurs or this method is called on
+     * a closed <code>CallableStatement</code>
+     *
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.6
+     */
+     void setClob(String parameterName, Reader reader)
+       throws SQLException;
+ 
   /** 
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * with the given  <code>Array</code> value.  The driver will convert this
@@ -829,6 +1670,49 @@ public interface RowSet extends ResultSet {
     throws SQLException;
 
   /**
+     * Sets the designated parameter to the given <code>java.sql.Date</code> value
+     * using the default time zone of the virtual machine that is running
+     * the application.
+     * The driver converts this
+     * to an SQL <code>DATE</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getDate
+     * @since 1.4
+     */
+    void setDate(String parameterName, java.sql.Date x)
+        throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given <code>java.sql.Date</code> value,
+     * using the given <code>Calendar</code> object.  The driver uses
+     * the <code>Calendar</code> object to construct an SQL <code>DATE</code> value,
+     * which the driver then sends to the database.  With a
+     * a <code>Calendar</code> object, the driver can calculate the date
+     * taking into account a custom timezone.  If no
+     * <code>Calendar</code> object is specified, the driver uses the default
+     * timezone, which is that of the virtual machine running the application.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @param cal the <code>Calendar</code> object the driver will use
+     *            to construct the date
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getDate
+     * @since 1.4
+     */
+    void setDate(String parameterName, java.sql.Date x, Calendar cal)
+        throws SQLException;
+
+  /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
    * with the given  <code>java.sql.Time</code> value.  The driver will convert this
    * to an SQL <code>TIME</code> value, using the given <code>java.util.Calendar</code>
@@ -841,6 +1725,47 @@ public interface RowSet extends ResultSet {
    */
   void setTime(int parameterIndex, java.sql.Time x, Calendar cal) 
     throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given <code>java.sql.Time</code> value.
+     * The driver converts this
+     * to an SQL <code>TIME</code> value when it sends it to the database.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getTime
+     * @since 1.4
+     */
+    void setTime(String parameterName, java.sql.Time x)
+        throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given <code>java.sql.Time</code> value,
+     * using the given <code>Calendar</code> object.  The driver uses
+     * the <code>Calendar</code> object to construct an SQL <code>TIME</code> value,
+     * which the driver then sends to the database.  With a
+     * a <code>Calendar</code> object, the driver can calculate the time
+     * taking into account a custom timezone.  If no
+     * <code>Calendar</code> object is specified, the driver uses the default
+     * timezone, which is that of the virtual machine running the application.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @param cal the <code>Calendar</code> object the driver will use
+     *            to construct the time
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getTime
+     * @since 1.4
+     */
+    void setTime(String parameterName, java.sql.Time x, Calendar cal)
+        throws SQLException;
 
   /**
    * Sets the designated parameter in this <code>RowSet</code> object's command
@@ -857,6 +1782,30 @@ public interface RowSet extends ResultSet {
    */
   void setTimestamp(int parameterIndex, java.sql.Timestamp x, Calendar cal)
     throws SQLException;
+
+  /**
+     * Sets the designated parameter to the given <code>java.sql.Timestamp</code> value,
+     * using the given <code>Calendar</code> object.  The driver uses
+     * the <code>Calendar</code> object to construct an SQL <code>TIMESTAMP</code> value,
+     * which the driver then sends to the database.  With a
+     * a <code>Calendar</code> object, the driver can calculate the timestamp
+     * taking into account a custom timezone.  If no
+     * <code>Calendar</code> object is specified, the driver uses the default
+     * timezone, which is that of the virtual machine running the application.
+     *
+     * @param parameterName the name of the parameter
+     * @param x the parameter value
+     * @param cal the <code>Calendar</code> object the driver will use
+     *            to construct the timestamp
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @see #getTimestamp
+     * @since 1.4
+     */
+    void setTimestamp(String parameterName, java.sql.Timestamp x, Calendar cal)
+        throws SQLException;
 
   /**
    * Clears the parameters set for this <code>RowSet</code> object's command.
@@ -928,7 +1877,294 @@ public interface RowSet extends ResultSet {
    * @see #addRowSetListener
    */
   void removeRowSetListener(RowSetListener listener);
- 
+
+    /**
+      * Sets the designated parameter to the given <code>java.sql.SQLXML</code> object. The driver converts this to an
+      * SQL <code>XML</code> value when it sends it to the database.
+      * @param parameterIndex index of the first parameter is 1, the second is 2, ...
+      * @param xmlObject a <code>SQLXML</code> object that maps an SQL <code>XML</code> value
+      * @throws SQLException if a database access error occurs, this method
+      *  is called on a closed result set,
+      * the <code>java.xml.transform.Result</code>,
+      *  <code>Writer</code> or <code>OutputStream</code> has not been closed
+      * for the <code>SQLXML</code> object  or
+      *  if there is an error processing the XML value.  The <code>getCause</code> method 
+      *  of the exception may provide a more detailed exception, for example, if the 
+      *  stream does not contain valid XML.
+      * @since 1.6
+      */
+     void setSQLXML(int parameterIndex, SQLXML xmlObject) throws SQLException;
+
+    /**
+     * Sets the designated parameter to the given <code>java.sql.SQLXML</code> object. The driver converts this to an
+     * <code>SQL XML</code> value when it sends it to the database.
+     * @param parameterName the name of the parameter
+     * @param xmlObject a <code>SQLXML</code> object that maps an <code>SQL XML</code> value
+     * @throws SQLException if a database access error occurs, this method
+     *  is called on a closed result set,
+     * the <code>java.xml.transform.Result</code>,
+     *  <code>Writer</code> or <code>OutputStream</code> has not been closed
+     * for the <code>SQLXML</code> object  or
+     *  if there is an error processing the XML value.  The <code>getCause</code> method 
+     *  of the exception may provide a more detailed exception, for example, if the 
+     *  stream does not contain valid XML.
+     * @since 1.6
+     */
+    void setSQLXML(String parameterName, SQLXML xmlObject) throws SQLException;
+
+    /**
+     * Sets the designated parameter to the given <code>java.sql.RowId</code> object. The
+     * driver converts this to a SQL <code>ROWID</code> value when it sends it
+     * to the database
+     *
+     * @param parameterIndex the first parameter is 1, the second is 2, ...
+     * @param x the parameter value
+     * @throws SQLException if a database access error occurs
+     *
+     * @since 1.6
+     */
+    void setRowId(int parameterIndex, RowId x) throws SQLException;
+
+    /**
+    * Sets the designated parameter to the given <code>java.sql.RowId</code> object. The
+    * driver converts this to a SQL <code>ROWID</code> when it sends it to the
+    * database.
+    *
+    * @param parameterName the name of the parameter
+    * @param x the parameter value
+    * @throws SQLException if a database access error occurs
+    * @since 1.6
+    */
+   void setRowId(String parameterName, RowId x) throws SQLException;
+
+    /**
+     * Sets the designated paramter to the given <code>String</code> object.
+     * The driver converts this to a SQL <code>NCHAR</code> or
+     * <code>NVARCHAR</code> or <code>LONGNVARCHAR</code> value
+     * (depending on the argument's
+     * size relative to the driver's limits on <code>NVARCHAR</code> values)
+     * when it sends it to the database.
+     *
+     * @param parameterIndex of the first parameter is 1, the second is 2, ...
+     * @param value the parameter value
+     * @throws SQLException if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur ; or if a database access error occurs
+     * @since 1.6
+     */
+     void setNString(int parameterIndex, String value) throws SQLException;
+
+    /**
+     * Sets the designated paramter to the given <code>String</code> object.
+     * The driver converts this to a SQL <code>NCHAR</code> or
+     * <code>NVARCHAR</code> or <code>LONGNVARCHAR</code>
+     * @param parameterName the name of the column to be set
+     * @param value the parameter value
+     * @throws SQLException if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur; or if a database access error occurs
+     * @since 1.6
+     */
+    public void setNString(String parameterName, String value)
+            throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object. The
+     * <code>Reader</code> reads the data till end-of-file is reached. The
+     * driver does the necessary conversion from Java character format to
+     * the national character set in the database.
+     * @param parameterIndex of the first parameter is 1, the second is 2, ...
+     * @param value the parameter value
+     * @param length the number of characters in the parameter data.
+     * @throws SQLException if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur ; or if a database access error occurs
+     * @since 1.6
+     */
+     void setNCharacterStream(int parameterIndex, Reader value, long length) throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object. The
+     * <code>Reader</code> reads the data till end-of-file is reached. The
+     * driver does the necessary conversion from Java character format to
+     * the national character set in the database.
+     * @param parameterName the name of the column to be set
+     * @param value the parameter value
+     * @param length the number of characters in the parameter data.
+     * @throws SQLException if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur; or if a database access error occurs
+     * @since 1.6
+     */
+    public void setNCharacterStream(String parameterName, Reader value, long length)
+            throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object. The
+     * <code>Reader</code> reads the data till end-of-file is reached. The
+     * driver does the necessary conversion from Java character format to
+     * the national character set in the database.
+
+     * <P><B>Note:</B> This stream object can either be a standard
+     * Java stream object or your own subclass that implements the
+     * standard interface.
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setNCharacterStream</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param value the parameter value
+     * @throws SQLException if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur ; if a database access error occurs; or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.6
+     */
+     void setNCharacterStream(String parameterName, Reader value) throws SQLException;
+
+    /**
+    * Sets the designated parameter to a <code>java.sql.NClob</code> object. The object
+    * implements the <code>java.sql.NClob</code> interface. This <code>NClob</code>
+    * object maps to a SQL <code>NCLOB</code>.
+    * @param parameterName the name of the column to be set
+    * @param value the parameter value
+    * @throws SQLException if the driver does not support national
+    *         character sets;  if the driver can detect that a data conversion
+    *  error could occur; or if a database access error occurs
+    * @since 1.6
+    */
+    void setNClob(String parameterName, NClob value) throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object.  The <code>reader</code> must contain  the number
+     * of characters specified by length otherwise a <code>SQLException</code> will be
+     * generated when the <code>CallableStatement</code> is executed.
+     * This method differs from the <code>setCharacterStream (int, Reader, int)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>NCLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be send to the server as a <code>LONGNVARCHAR</code> or a <code>NCLOB</code>
+     *
+     * @param parameterName the name of the parameter to be set
+     * @param reader An object that contains the data to set the parameter value to.
+     * @param length the number of characters in the parameter data.
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if the length specified is less than zero;
+     * if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur; if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.6
+     */
+     void setNClob(String parameterName, Reader reader, long length)
+       throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object.
+     * This method differs from the <code>setCharacterStream (int, Reader)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>NCLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be send to the server as a <code>LONGNVARCHAR</code> or a <code>NCLOB</code>
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setNClob</code> which takes a length parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @param reader An object that contains the data to set the parameter value to.
+     * @throws SQLException if the driver does not support national character sets;
+     * if the driver can detect that a data conversion
+     *  error could occur;  if a database access error occurs or
+     * this method is called on a closed <code>CallableStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     *
+     * @since 1.6
+     */
+     void setNClob(String parameterName, Reader reader)
+       throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object.  The reader must contain  the number
+     * of characters specified by length otherwise a <code>SQLException</code> will be
+     * generated when the <code>PreparedStatement</code> is executed.
+     * This method differs from the <code>setCharacterStream (int, Reader, int)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>NCLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGNVARCHAR</code> or a <code>NCLOB</code>
+     * @param parameterIndex index of the first parameter is 1, the second is 2, ...
+     * @param reader An object that contains the data to set the parameter value to.
+     * @param length the number of characters in the parameter data.
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if the length specified is less than zero;
+     * if the driver does not support national character sets;
+     * if the driver can detect that a data conversion
+     *  error could occur;  if a database access error occurs or
+     * this method is called on a closed <code>PreparedStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     *
+     * @since 1.6
+     */
+     void setNClob(int parameterIndex, Reader reader, long length)
+       throws SQLException;
+
+    /**
+     * Sets the designated parameter to a <code>java.sql.NClob</code> object. The driver converts this to a
+     * SQL <code>NCLOB</code> value when it sends it to the database.
+     * @param parameterIndex of the first parameter is 1, the second is 2, ...
+     * @param value the parameter value
+     * @throws SQLException if the driver does not support national
+     *         character sets;  if the driver can detect that a data conversion
+     *  error could occur ; or if a database access error occurs
+     * @since 1.6
+     */
+     void setNClob(int parameterIndex, NClob value) throws SQLException;
+    
+    /**
+     * Sets the designated parameter to a <code>Reader</code> object.
+     * This method differs from the <code>setCharacterStream (int, Reader)</code> method
+     * because it informs the driver that the parameter value should be sent to
+     * the server as a <code>NCLOB</code>.  When the <code>setCharacterStream</code> method is used, the
+     * driver may have to do extra work to determine whether the parameter
+     * data should be sent to the server as a <code>LONGNVARCHAR</code> or a <code>NCLOB</code>
+     * <P><B>Note:</B> Consult your JDBC driver documentation to determine if
+     * it might be more efficient to use a version of
+     * <code>setNClob</code> which takes a length parameter.
+     *
+     * @param parameterIndex index of the first parameter is 1, the second is 2, ...
+     * @param reader An object that contains the data to set the parameter value to.
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement;
+     * if the driver does not support national character sets;
+     * if the driver can detect that a data conversion
+     *  error could occur;  if a database access error occurs or
+     * this method is called on a closed <code>PreparedStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     *
+     * @since 1.6
+     */
+     void setNClob(int parameterIndex, Reader reader)
+       throws SQLException;
+
+    /**
+     * Sets the designated parameter to the given <code>java.net.URL</code> value.
+     * The driver converts this to an SQL <code>DATALINK</code> value
+     * when it sends it to the database.
+     *
+     * @param parameterIndex the first parameter is 1, the second is 2, ...
+     * @param x the <code>java.net.URL</code> object to be set
+     * @exception SQLException if a database access error occurs or
+     * this method is called on a closed <code>PreparedStatement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
+     * @since 1.4
+     */
+    void setURL(int parameterIndex, java.net.URL x) throws SQLException;
+
+
+
 }
 
 

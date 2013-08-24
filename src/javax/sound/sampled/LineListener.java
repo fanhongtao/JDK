@@ -1,7 +1,7 @@
 /*
- * @(#)LineListener.java	1.9 03/12/19
+ * @(#)LineListener.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package javax.sound.sampled;
  * receive events when a line's status changes.
  *
  * @author Kara Kytle
- * @version 1.9 03/12/19
+ * @version 1.10 05/11/17
  *
  * @see Line
  * @see Line#addLineListener
@@ -32,7 +32,7 @@ package javax.sound.sampled;
  * @see Line#removeLineListener
  * @see LineEvent
  *
- * @version 1.9 03/12/19
+ * @version 1.10 05/11/17
  * @author Kara Kytle
  */
 public interface LineListener extends java.util.EventListener {

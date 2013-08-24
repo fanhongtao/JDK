@@ -1,7 +1,7 @@
 /*
- * @(#)AppletContext.java	1.31 04/05/05
+ * @(#)AppletContext.java	1.35 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * information about its environment.
  *
  * @author 	Arthur van Hoff
- * @version     1.31, 05/05/04
+ * @version     1.35, 04/07/06
  * @since       JDK1.0
  */
 public interface AppletContext {
@@ -74,9 +74,11 @@ public interface AppletContext {
     Enumeration<Applet> getApplets();
 
     /**
-     * Replaces the Web page currently being viewed with the given URL.
-     * This method may be ignored by applet contexts that are not
-     * browsers.
+     * Requests that the browser or applet viewer show the Web page 
+     * indicated by the <code>url</code> argument. The browser or 
+     * applet viewer determines which window or frame to display the 
+     * Web page. This method may be ignored by applet contexts that 
+     * are not browsers.
      *
      * @param   url   an absolute URL giving the location of the document.
      */
@@ -136,12 +138,12 @@ public interface AppletContext {
      * <p>
      * @param key key with which the specified value is to be associated.
      * @param stream stream to be associated with the specified key. If this
-     *               parameter is <code>null<code>, the specified key is removed 
+     *               parameter is <code>null</code>, the specified key is removed 
      *               in this applet context.
      * @throws <code>IOException</code> if the stream size exceeds a certain
      *         size limit. Size limit is decided by the implementor of this
      *         interface.
-     * @since JDK1.4
+     * @since 1.4
      */
     public void setStream(String key, InputStream stream)throws IOException;
 
@@ -156,7 +158,7 @@ public interface AppletContext {
      * <p>
      * @return the stream to which this applet context maps the key
      * @param key key whose associated stream is to be returned.
-     * @since JDK1.4
+     * @since 1.4
      */
     public InputStream getStream(String key);
 
@@ -169,7 +171,7 @@ public interface AppletContext {
      * <p>
      * @return  an Iterator of all the names of the streams in this applet 
      *          context.
-     * @since JDK1.4
+     * @since 1.4
      */
     public Iterator<String> getStreamKeys();
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)XAConnection.java	1.8 03/12/19
+ * @(#)XAConnection.java	1.10 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,6 +34,9 @@ public interface XAConnection extends PooledConnection {
    *
    * @return the <code>XAResource</code> object
    * @exception SQLException if a database access error occurs
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
+   * @since 1.4
    */
   javax.transaction.xa.XAResource getXAResource() throws SQLException;
 

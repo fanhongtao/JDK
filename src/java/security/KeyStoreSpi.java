@@ -1,7 +1,7 @@
 /*
- * @(#)KeyStoreSpi.java	1.18 04/05/25
+ * @(#)KeyStoreSpi.java	1.22 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.security.auth.callback.*;
  *
  * @author Jan Luehe
  *
- * @version 1.18, 05/25/04
+ * @version 1.22, 04/07/06
  *
  * @see KeyStore
  *
@@ -320,7 +320,10 @@ public abstract class KeyStoreSpi {
      *
      * @exception IOException if there is an I/O or format problem with the
      * keystore data, if a password is required but not given,
-     * or if the given password was incorrect
+     * or if the given password was incorrect. If the error is due to a
+     * wrong password, the {@link Throwable#getCause cause} of the 
+     * <code>IOException</code> should be an 
+     * <code>UnrecoverableKeyException</code>
      * @exception NoSuchAlgorithmException if the algorithm used to check
      * the integrity of the keystore cannot be found
      * @exception CertificateException if any of the certificates in the
@@ -344,7 +347,11 @@ public abstract class KeyStoreSpi {
      *		<code>KeyStore.LoadStoreParameter</code>
      *		input is not recognized
      * @exception IOException if there is an I/O or format problem with the
-     *		keystore data
+     *		keystore data. If the error is due to an incorrect 
+     *         <code>ProtectionParameter</code> (e.g. wrong password)
+     *         the {@link Throwable#getCause cause} of the 
+     *         <code>IOException</code> should be an 
+     *         <code>UnrecoverableKeyException</code>
      * @exception NoSuchAlgorithmException if the algorithm used to check
      *		the integrity of the keystore cannot be found
      * @exception CertificateException if any of the certificates in the
@@ -365,10 +372,10 @@ public abstract class KeyStoreSpi {
 	    ProtectionParameter protection = param.getProtectionParameter();
 	    char[] password;
 	    if (protection instanceof PasswordProtection) {
-		password = ((PasswordProtection)param).getPassword();
+		password = ((PasswordProtection)protection).getPassword();
 	    } else if (protection instanceof CallbackHandlerProtection) {
 		CallbackHandler handler = 
-		    ((CallbackHandlerProtection)param).getCallbackHandler();
+		    ((CallbackHandlerProtection)protection).getCallbackHandler();
 		PasswordCallback callback = 
 		    new PasswordCallback("Password: ", false);
 		try {
@@ -411,6 +418,10 @@ public abstract class KeyStoreSpi {
      *		entry cannot be found
      * @exception UnrecoverableEntryException if the specified
      *		<code>protParam</code> were insufficient or invalid
+     * @exception UnrecoverableKeyException if the entry is a 
+     *          <code>PrivateKeyEntry</code> or <code>SecretKeyEntry</code>
+     *          and the specified <code>protParam</code> does not contain
+     *          the information needed to recover the key (e.g. wrong password)
      *
      * @since 1.5
      */
@@ -428,7 +439,7 @@ public abstract class KeyStoreSpi {
 		return new KeyStore.TrustedCertificateEntry
 				(engineGetCertificate(alias));
 	    } else {
-		throw new UnrecoverableEntryException
+		throw new UnrecoverableKeyException
 			("requested entry requires a password");
 	    }
 	}
@@ -442,20 +453,12 @@ public abstract class KeyStoreSpi {
 			(KeyStore.PasswordProtection)protParam;
 		char[] password = pp.getPassword();
 		
-		try {
-		    Key key = engineGetKey(alias, password);
-		    if (key instanceof PrivateKey) {
-			Certificate[] chain = engineGetCertificateChain(alias);
-			return new KeyStore.PrivateKeyEntry
-						((PrivateKey)key, chain);
-		    } else if (key instanceof SecretKey) {
-			return new KeyStore.SecretKeyEntry((SecretKey)key);
-		    }
-		} catch (UnrecoverableKeyException uke) {
-		    UnrecoverableEntryException uee =
-			new UnrecoverableEntryException();
-		    uee.initCause(uke);
-		    throw uee;
+		Key key = engineGetKey(alias, password);
+		if (key instanceof PrivateKey) {
+		    Certificate[] chain = engineGetCertificateChain(alias);
+		    return new KeyStore.PrivateKeyEntry((PrivateKey)key, chain);
+		} else if (key instanceof SecretKey) {
+		    return new KeyStore.SecretKeyEntry((SecretKey)key);
 		}
 	    }
 	}

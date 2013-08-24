@@ -1,7 +1,7 @@
 /*
- * @(#)PlainDocument.java	1.43 03/12/19
+ * @(#)PlainDocument.java	1.45 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -36,7 +36,7 @@ import javax.swing.event.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.43 12/19/03
+ * @version 1.45 11/17/05
  * @see     Document
  * @see     AbstractDocument
  */
@@ -84,8 +84,8 @@ public class PlainDocument extends AbstractDocument {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.
      *
      * @param offs the starting offset >= 0
      * @param str the string to insert; does nothing with null/empty strings

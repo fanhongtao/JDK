@@ -1,7 +1,7 @@
 /*
- * @(#)FillStroke.java	1.26 04/07/26
+ * @(#)FillStroke.java	1.28 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)FillStroke.java	1.26 04/07/26
+ * @(#)FillStroke.java	1.28 06/08/29
  */
 
 package java2d.demos.Paths;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.font.TextLayout;
 import java.awt.geom.GeneralPath;
@@ -53,7 +54,7 @@ public class FillStroke extends Surface {
 
 
     public FillStroke() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -62,9 +63,9 @@ public class FillStroke extends Surface {
         p.moveTo( w*.5f, h*.15f);
         p.lineTo( w*.8f, h*.75f);
         p.lineTo( w*.2f, h*.75f);
-        g2.setColor(Color.lightGray);
+        g2.setColor(LIGHT_GRAY);
         g2.fill(p);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.setStroke(new BasicStroke(10));
         g2.draw(p);
         TextLayout tl = new TextLayout("Fill, Stroke w/o closePath", 

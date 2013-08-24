@@ -1,7 +1,7 @@
 /*
- * @(#)ArrayNotificationBuffer.java	1.22 05/08/31
+ * @(#)ArrayNotificationBuffer.java	1.28 06/03/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,6 +25,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.MalformedObjectNameException;
 import javax.management.MBeanServer;
+import javax.management.MBeanServerDelegate;
 import javax.management.MBeanServerNotification;
 import javax.management.Notification;
 import javax.management.NotificationBroadcaster;
@@ -113,13 +114,13 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
 	}
 
 	public NotificationResult
-	    fetchNotifications(Set<ListenerInfo> listeners,
+	    fetchNotifications(NotificationBufferFilter filter,
 			       long startSequenceNumber,
 			       long timeout,
 			       int maxNotifications)
 		throws InterruptedException {
 	    NotificationBuffer buf = ArrayNotificationBuffer.this;
-	    return buf.fetchNotifications(listeners, startSequenceNumber,
+	    return buf.fetchNotifications(filter, startSequenceNumber,
 					  timeout, maxNotifications);
 	}
 
@@ -186,13 +187,9 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
      * operation will block until one arrives, subject to the
      * timeout.</p>
      *
-     * @param listeners a Set of {@link ListenerInfo} that reflects
-     * the filters to be applied to notifications.  Accesses to this
-     * Set are synchronized on the Set object.  The Set is consulted
-     * for selected notifications that are present when the method
-     * starts, and for selected notifications that arrive while it is
-     * executing.  The contents of the Set can be modified, with
-     * appropriate synchronization, while the method is running.
+     * @param filter an object that will add notifications to a
+     * {@code List<TargetedNotification>} if they match the current
+     * listeners with their filters.
      * @param startSequenceNumber the first sequence number to
      * consider.
      * @param timeout the maximum time to wait.  May be 0 to indicate
@@ -206,7 +203,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
      * different notifications.
      */
     public NotificationResult
-        fetchNotifications(Set<ListenerInfo> listeners,
+        fetchNotifications(NotificationBufferFilter filter,
                            long startSequenceNumber,
                            long timeout,
                            int maxNotifications)
@@ -223,7 +220,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
 	}
 	
         // Check arg validity
-        if (listeners == null
+        if (filter == null
             || startSequenceNumber < 0 || timeout < 0
             || maxNotifications < 0) {
             logger.trace("fetchNotifications", "Bad args");
@@ -232,7 +229,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
 
         if (logger.debugOn()) {
             logger.trace("fetchNotifications",
-                  "listener-length=" + listeners.size() + "; startSeq=" +
+                  "filter=" + filter + "; startSeq=" +
                   startSequenceNumber + "; timeout=" + timeout +
                   "; max=" + maxNotifications);
         }
@@ -357,31 +354,8 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             List<TargetedNotification> matchedNotifs =
                 new ArrayList<TargetedNotification>();
             logger.debug("fetchNotifications", 
-			 "applying filters to candidate");
-            synchronized (listeners) {
-                for (ListenerInfo li : listeners) {
-                    ObjectName pattern = li.getObjectName();
-                    NotificationFilter filter = li.getNotificationFilter();
-
-                    if (logger.debugOn()) {
-                        logger.debug("fetchNotifications",
-                              "pattern=<" + pattern + ">; filter=" + filter);
-                    }
-
-                    if (pattern.apply(name)) {
-                        logger.debug("fetchNotifications", "pattern matches");
-                        if (filter == null
-                            || filter.isNotificationEnabled(notif)) {
-                            logger.debug("fetchNotifications", 
-					 "filter matches");
-                            Integer listenerID = li.getListenerID();
-                            TargetedNotification tn =
-                                new TargetedNotification(notif, listenerID);
-                            matchedNotifs.add(tn);
-                        }
-                    }
-                }
-            }
+			 "applying filter to candidate");
+            filter.apply(matchedNotifs, name, notif);
 
             if (matchedNotifs.size() > 0) {
                 /* We only check the max size now, so that our
@@ -523,7 +497,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
         }
 
         try {
-            addNotificationListener(delegateName,
+            addNotificationListener(MBeanServerDelegate.DELEGATE_NAME,
                                     creationListener, creationFilter, null);
             logger.debug("createListeners", "added creationListener");
         } catch (Exception e) {
@@ -718,7 +692,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
     private void destroyListeners() {
         logger.debug("destroyListeners", "starts");
         try {
-            removeNotificationListener(delegateName,
+            removeNotificationListener(MBeanServerDelegate.DELEGATE_NAME,
                                        creationListener);
         } catch (Exception e) {
             logger.warning("remove listener from MBeanServer delegate", e);
@@ -747,22 +721,6 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
     private static final ClassLogger logger =
 	new ClassLogger("javax.management.remote.misc",
 			"ArrayNotificationBuffer");
-
-    private static final ObjectName delegateName;
-    static {
-        try {
-            delegateName =
-                ObjectName.getInstance("JMImplementation:" +
-                                       "type=MBeanServerDelegate");
-        } catch (MalformedObjectNameException e) {
-            RuntimeException re =
-                new RuntimeException("Can't create delegate name: " + e);
-            EnvHelp.initCause(re, e);
-            logger.error("<init>", "Can't create delegate name: " + e);
-	    logger.debug("<init>",e);
-            throw re;
-        }
-    }
 
     private final MBeanServer mBeanServer;
     private final ArrayQueue<NamedNotification> queue;

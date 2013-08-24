@@ -1,7 +1,7 @@
 /*
- * @(#)JViewport.java	1.114 04/05/18
+ * @(#)JViewport.java	1.122 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,6 +65,11 @@ import java.io.Serializable;
  * scrolling while the viewport is obscured by another window or offscreen,
  * so this optimization is usually worth the performance hit when obscured.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -74,7 +79,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.114 05/18/04
+ * @version 1.122 08/08/06
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -233,6 +238,11 @@ public class JViewport extends JComponent implements Accessible
     private transient Timer repaintTimer;
 
     /**
+     * Set to true in paintView when paint is invoked.
+     */
+    private transient boolean inBlitPaint;
+
+    /**
      * Whether or not a valid view has been installed.
      */
     private boolean hasHadValidView;
@@ -243,6 +253,7 @@ public class JViewport extends JComponent implements Accessible
         setLayout(createLayoutManager());
 	setOpaque(true);
         updateUI();
+        setInheritsPopupMenu(true);
     }
 
 
@@ -251,6 +262,7 @@ public class JViewport extends JComponent implements Accessible
      * Returns the L&F object that renders this component.
      *
      * @return a <code>ViewportUI</code> object
+     * @since 1.3
      */
     public ViewportUI getUI() {
         return (ViewportUI)ui;
@@ -267,6 +279,7 @@ public class JViewport extends JComponent implements Accessible
      *       hidden: true
      *    attribute: visualUpdate true
      *  description: The UI object that implements the Component's LookAndFeel. 
+     * @since 1.3
      */
     public void setUI(ViewportUI ui) {
         super.setUI(ui);
@@ -693,6 +706,12 @@ public class JViewport extends JComponent implements Accessible
             return;
         }
 
+        if (inBlitPaint) {
+            // We invoked paint as part of copyArea cleanup, let it through.
+            super.paint(g);
+            return;
+        }
+
 	if (repaintAll) {
 	    repaintAll = false;
 	    Rectangle clipB = g.getClipBounds();
@@ -936,11 +955,7 @@ public class JViewport extends JComponent implements Accessible
      * @see #setView
      */
     public Component getView() {
-        try {
-	    return getComponent(0);
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    return null;
-	}
+        return (getComponentCount() > 0) ? getComponent(0) : null;
     }
 
     /**
@@ -1085,23 +1100,36 @@ public class JViewport extends JComponent implements Accessible
 	
 	if ((oldX != newX) || (oldY != newY)) {
 	    if (!waitingForRepaint && isBlitting() && canUseWindowBlitter()) {
-		Graphics g = getGraphics();
-		flushViewDirtyRegion(g);
-		// This calls setBounds(), and then repaint().
-                view.setLocation(newX, newY);
-		// The cast to JComponent here is valid, if view is not 
-		// a JComponent, isBlitting will return false.
-		g.setClip(0,0,getWidth(), Math.min(getHeight(),
-				 ((JComponent)view).getHeight()));
-                // Repaint the complete component if the blit succeeded
-                // and needsRepaintAfterBlit returns true.
-		repaintAll = (windowBlitPaint(g) &&
-                              needsRepaintAfterBlit());
-		g.dispose();
 		RepaintManager rm = RepaintManager.currentManager(this);
-		rm.markCompletelyClean((JComponent)getParent());
-		rm.markCompletelyClean(this);
-		rm.markCompletelyClean((JComponent)view);
+                // The cast to JComponent will work, if view is not 
+                // a JComponent, isBlitting will return false.
+                JComponent jview = (JComponent)view;
+                Rectangle dirty = rm.getDirtyRegion(jview);
+                if (dirty == null || !dirty.contains(jview.getVisibleRect())) {
+                    rm.beginPaint();
+                    try {
+                        Graphics g = JComponent.safelyGetGraphics(this);
+                        flushViewDirtyRegion(g, dirty);
+                        view.setLocation(newX, newY);
+                        g.setClip(0,0,getWidth(), Math.min(getHeight(),
+                                                           jview.getHeight()));
+                        // Repaint the complete component if the blit succeeded
+                        // and needsRepaintAfterBlit returns true.
+                        repaintAll = (windowBlitPaint(g) &&
+                                      needsRepaintAfterBlit());
+                        g.dispose();
+                        rm.markCompletelyClean((JComponent)getParent());
+                        rm.markCompletelyClean(this);
+                        rm.markCompletelyClean(jview);
+                    } finally {
+                        rm.endPaint();
+                    }
+                }
+                else {
+                    // The visible region is dirty, no point in doing copyArea
+                    view.setLocation(newX, newY);
+                    repaintAll = false;
+                }
 	    }
 	    else {
 		scrollUnderway = true;
@@ -1195,7 +1223,6 @@ public class JViewport extends JComponent implements Accessible
             blitSize.width = extentSize.width - dxAbs;
             blitSize.height = extentSize.height;
 
-            blitPaint.y = 0;
             blitPaint.width = dxAbs;
             blitPaint.height = extentSize.height;
 
@@ -1479,12 +1506,8 @@ public class JViewport extends JComponent implements Accessible
      *
      * @param g  the <code>Graphics</code> context within which to paint
      */
-    private void flushViewDirtyRegion(Graphics g) {
-	RepaintManager rm = RepaintManager.currentManager(this);
-	JComponent view = (JComponent) getView();
-	Rectangle dirty;
-
-	dirty = rm.getDirtyRegion(view);
+    private void flushViewDirtyRegion(Graphics g, Rectangle dirty) {
+        JComponent view = (JComponent) getView();
 	if(dirty != null && dirty.width > 0 && dirty.height > 0) {
 	    dirty.x += view.getX();
 	    dirty.y += view.getY();
@@ -1547,38 +1570,9 @@ public class JViewport extends JComponent implements Accessible
 		r.x -= view.getX();
 		r.y -= view.getY();
 
-		// Attempt to use VolatileImage buffer for maximum performance.
-		// If for any reason this fails (which should be rare), fallback to
-		// plain old Image buffer.
-		//
-		boolean paintCompleted = false;
-		Image off = null;
-		if (rm.useVolatileDoubleBuffer() &&
-		    (off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight())) != null) {
-		    VolatileImage vImage = (java.awt.image.VolatileImage)off;
-                    GraphicsConfiguration gc = view.getGraphicsConfiguration();
-		    for(int i = 0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-		        if (vImage.validate(gc) ==
-			    VolatileImage.IMAGE_INCOMPATIBLE)
-			{
-			    rm.resetVolatileDoubleBuffer(gc);
-			    off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight());
-			    vImage = (java.awt.image.VolatileImage)off;
-			}
-		        blitDoubleBuffered(view, g, r.x, r.y, r.width, r.height,
-				       blitFrom.x, blitFrom.y, blitTo.x, blitTo.y,
-				       blitSize.width, blitSize.height, off);
-				       
-		        paintCompleted = !(vImage.contentsLost());
-		    }
-		}
-		if (!paintCompleted) {
-		    off = rm.getOffscreenBuffer(this, getWidth(), getHeight());
-		    blitDoubleBuffered(view, g, r.x, r.y, r.width, r.height,
-				       blitFrom.x, blitFrom.y, blitTo.x, blitTo.y, 
-				       blitSize.width, blitSize.height, off);
-		    paintCompleted = true;
-		}
+                blitDoubleBuffered(view, g, r.x, r.y, r.width, r.height,
+                                   blitFrom.x, blitFrom.y, blitTo.x, blitTo.y,
+                                   blitSize.width, blitSize.height);
 		retValue = true;
 	    }
 	}
@@ -1586,30 +1580,37 @@ public class JViewport extends JComponent implements Accessible
 	return retValue;
     }
 
-    private void blitDoubleBuffered(JComponent view, Graphics g, 
+    //
+    // NOTE: the code below uses paintForceDoubleBuffered for historical
+    // reasons.  If we're going to allow a blit we've already accounted for
+    // everything that paintImmediately and _paintImmediately does, for that
+    // reason we call into paintForceDoubleBuffered to diregard whether or
+    // not setDoubleBuffered(true) was invoked on the view.
+    //
+
+    private void blitDoubleBuffered(JComponent view, Graphics g,
 				    int clipX, int clipY, int clipW, int clipH, 
 				    int blitFromX, int blitFromY, int blitToX, int blitToY,
-				    int blitW, int blitH, Image off) {
+				    int blitW, int blitH) {
+        // NOTE:
+        //   blitFrom/blitTo are in JViewport coordinates system
+        //     not the views coordinate space.
+        //   clip* are in the views coordinate space.
 	RepaintManager rm = RepaintManager.currentManager(this);
-	boolean isDBE = rm.isDoubleBufferingEnabled();
 	int bdx = blitToX - blitFromX;
 	int bdy = blitToY - blitFromY;
 
-	Graphics og = off.getGraphics();
-	og.translate(-clipX,-clipY);
-	og.setClip(clipX,clipY,clipW,clipH);
-	rm.setDoubleBufferingEnabled(false);
-	view.paint(og);
-	rm.setDoubleBufferingEnabled(isDBE);
+        // Shift the scrolled region
+        rm.copyArea(this, g, blitFromX, blitFromY, blitW, blitH, bdx, bdy,
+                    false);
 
-	// Move the relevant part of the backing store.
-	blitWindowGraphics(blitFromX, blitFromY, blitW, blitH, bdx, bdy);
-				    
-	clipX += view.getX();
-	clipY += view.getY();
-	g.setClip(clipX,clipY,clipW,clipH);
-	g.drawImage(off,clipX,clipY,null);
-	og.dispose();
+        // Paint the newly exposed region.
+        int x = view.getX();
+        int y = view.getY();
+        g.translate(x, y);
+        g.setClip(clipX, clipY, clipW, clipH);
+        view.paintForceDoubleBuffered(g);
+        g.translate(-x, -y);
     }
 
     /**
@@ -1619,74 +1620,30 @@ public class JViewport extends JComponent implements Accessible
      * @param g the <code>Graphics</code> context within which to paint
      */
     private void paintView(Graphics g) {
-	Rectangle r = g.getClipBounds();
-	RepaintManager rm = RepaintManager.currentManager(this);
-	JComponent view = (JComponent) getView();
-	r.x -= view.getX();
-	r.y -= view.getY();
+	Rectangle clip = g.getClipBounds();
+        JComponent view = (JComponent)getView();
 
-	// Attempt to use VolatileImage buffer for maximum performance.
-	// If for any reason this fails (which should be rare), fallback to
-	// plain old Image buffer.
-	//
-	boolean paintCompleted = false;
-	Image off = null;
-	if (rm.useVolatileDoubleBuffer() &&
-	    (off = rm.getVolatileOffscreenBuffer(this,r.width,r.height)) != null) {
-	    VolatileImage vImage = (java.awt.image.VolatileImage)off;
-            GraphicsConfiguration gc = view.getGraphicsConfiguration();
-	    for(int i=0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-		if (vImage.validate(gc) ==
-		    VolatileImage.IMAGE_INCOMPATIBLE)
-		{
-		    rm.resetVolatileDoubleBuffer(gc);
-		    off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight());
-		    vImage = (java.awt.image.VolatileImage)off;
-		}
-	        paintViewDoubleBuffered(view, g, r.x, r.y, r.width, r.height, off);
-	        paintCompleted = !(vImage.contentsLost());
-	    }
-	}
-	if (!paintCompleted) {
-	    off = rm.getOffscreenBuffer(this,r.width,r.height);
-	    paintViewDoubleBuffered(view, g, r.x, r.y, r.width, r.height, off);
-	    paintCompleted = true;
-	}
-    }
-
-    private void paintViewDoubleBuffered(JComponent view, Graphics g, 
-					 int clipX, int clipY, int clipW, int clipH, Image off) {
-	RepaintManager rm = RepaintManager.currentManager(this);
-	boolean isDBE = rm.isDoubleBufferingEnabled();
-
-	Graphics og = off.getGraphics();
-	if (view.getWidth() < clipW) {
-	    og.setColor(getBackground());
-	    og.fillRect(0,0,clipW,clipH);
-	}
-	og.translate(-clipX, -clipY);
-	og.setClip(clipX, clipY, clipW, clipH);
-	rm.setDoubleBufferingEnabled(false);
-	view.paint(og);
-	rm.setDoubleBufferingEnabled(isDBE);
-	g.drawImage(off, clipX + view.getX(), clipY + view.getY(), null);
-	og.dispose();
-    }
-
-    /**
-     * Blits the parent windows graphics from the given region offset
-     * to <code>ox</code>, <code>oy</code>.
-     */
-    private void blitWindowGraphics(int x, int y, int w, int h, int ox,
-				    int oy) {
-	Container parent;
-	for(parent = getParent() ; isLightweightComponent(parent) ;
-	    parent = parent.getParent());
-	Graphics wg = parent.getGraphics();
-	Rectangle r = new Rectangle(x,y,w,h);
-	r = SwingUtilities.convertRectangle(this, r, parent);
-	wg.copyArea(r.x,r.y,r.width,r.height, ox, oy);
-	wg.dispose();
+        if (view.getWidth() >= getWidth()) {
+            // Graphics is relative to JViewport, need to map to view's
+            // coordinates space.
+            int x = view.getX();
+            int y = view.getY();
+            g.translate(x, y);
+            g.setClip(clip.x - x, clip.y - y, clip.width, clip.height);
+            view.paintForceDoubleBuffered(g);
+            g.translate(-x, -y);
+            g.setClip(clip.x, clip.y, clip.width, clip.height);
+        }
+        else {
+            // To avoid any problems that may result from the viewport being
+            // bigger than the view we start painting from the viewport.
+            try {
+                inBlitPaint = true;
+                paintForceDoubleBuffered(g);
+            } finally {
+                inBlitPaint = false;
+            }
+        }
     }
 
     /**

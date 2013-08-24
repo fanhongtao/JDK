@@ -1,8 +1,8 @@
 /*
  * @(#)file      ModelMBeanNotificationBroadcaster.java
  * @(#)author    IBM Corp.
- * @(#)version   1.21
- * @(#)lastedit      04/02/10
+ * @(#)version   1.22
+ * @(#)lastedit      05/11/17
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *

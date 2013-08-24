@@ -1,7 +1,7 @@
 /*
- * @(#)BasicEditorPaneUI.java	1.33 05/11/10
+ * @(#)BasicEditorPaneUI.java	1.39 06/04/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -31,7 +31,7 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.33 11/10/05
+ * @version 1.39 04/20/06
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 
@@ -130,6 +130,7 @@ public class BasicEditorPaneUI extends BasicTextUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
+        super.propertyChange(evt);
         String name = evt.getPropertyName();
 	if ("editorKit".equals(name)) {
 	    ActionMap map = SwingUtilities.getUIActionMap(getComponent());
@@ -268,7 +269,9 @@ public class BasicEditorPaneUI extends BasicTextUI {
                 }
             }
             Style style = ((StyledDocument) document).getStyle(StyleContext.DEFAULT_STYLE);
-            style.removeAttribute(FONT_ATTRIBUTE_KEY);
+            if (style.getAttribute(FONT_ATTRIBUTE_KEY) != null) {
+                style.removeAttribute(FONT_ATTRIBUTE_KEY);
+            }
         }
     }
     
@@ -290,7 +293,7 @@ public class BasicEditorPaneUI extends BasicTextUI {
                     }
                 }
             }
-            String cssRule = com.sun.java.swing.
+            String cssRule = sun.swing.
                 SwingUtilities2.displayPropertiesToCSS(font,
                                                        fg);
             styleSheet.addRule(cssRule);
@@ -298,7 +301,9 @@ public class BasicEditorPaneUI extends BasicTextUI {
             documentStyleSheet.addRule("BASE_SIZE " + 
                                        component.getFont().getSize());
             Style style = ((StyledDocument) document).getStyle(StyleContext.DEFAULT_STYLE);
-            style.addAttribute(FONT_ATTRIBUTE_KEY, font);
+            if (! font.equals(style.getAttribute(FONT_ATTRIBUTE_KEY))) {
+                style.addAttribute(FONT_ATTRIBUTE_KEY, font);
+            }
         }
     }
 
@@ -322,9 +327,13 @@ public class BasicEditorPaneUI extends BasicTextUI {
         }
 
         if (color == null) {
-            style.removeAttribute(StyleConstants.Foreground);
+            if (style.getAttribute(StyleConstants.Foreground) != null) {
+                style.removeAttribute(StyleConstants.Foreground);
+            }
         } else {
-            StyleConstants.setForeground(style, color);
+            if (! color.equals(StyleConstants.getForeground(style))) {
+                StyleConstants.setForeground(style, color);
+            }
         }
     }
     
@@ -342,18 +351,46 @@ public class BasicEditorPaneUI extends BasicTextUI {
             return;
         }
 
+        String fontFamily = (String) style.getAttribute(StyleConstants.FontFamily); 
+        Integer fontSize = (Integer) style.getAttribute(StyleConstants.FontSize);
+        Boolean isBold = (Boolean) style.getAttribute(StyleConstants.Bold);
+        Boolean isItalic = (Boolean) style.getAttribute(StyleConstants.Italic);
+        Font  fontAttribute = (Font) style.getAttribute(FONT_ATTRIBUTE_KEY);
         if (font == null) {
-            style.removeAttribute(StyleConstants.FontFamily);
-            style.removeAttribute(StyleConstants.FontSize);
-            style.removeAttribute(StyleConstants.Bold);
-            style.removeAttribute(StyleConstants.Italic);
-            style.removeAttribute(FONT_ATTRIBUTE_KEY);
+            if (fontFamily != null) {
+                style.removeAttribute(StyleConstants.FontFamily);
+            }
+            if (fontSize != null) {
+                style.removeAttribute(StyleConstants.FontSize);
+            }
+            if (isBold != null) {
+                style.removeAttribute(StyleConstants.Bold);
+            }
+            if (isItalic != null) {
+                style.removeAttribute(StyleConstants.Italic);
+            }
+            if (fontAttribute != null) {
+                style.removeAttribute(FONT_ATTRIBUTE_KEY);
+           } 
         } else {
-            StyleConstants.setFontFamily(style, font.getName());
-            StyleConstants.setFontSize(style, font.getSize());
-            StyleConstants.setBold(style, font.isBold());
-            StyleConstants.setItalic(style, font.isItalic());
-            style.addAttribute(FONT_ATTRIBUTE_KEY, font);
+            if (! font.getName().equals(fontFamily)) {
+                StyleConstants.setFontFamily(style, font.getName());
+            }
+            if (fontSize == null 
+                  || fontSize.intValue() != font.getSize()) {
+                StyleConstants.setFontSize(style, font.getSize());
+            }
+            if (isBold == null 
+                  || isBold.booleanValue() != font.isBold()) {
+                StyleConstants.setBold(style, font.isBold());
+            }
+            if (isItalic == null 
+                  || isItalic.booleanValue() != font.isItalic()) {
+                StyleConstants.setItalic(style, font.isItalic());
+            }
+            if (! font.equals(fontAttribute)) {
+                style.addAttribute(FONT_ATTRIBUTE_KEY, font);
+            }
         }
     }
 }

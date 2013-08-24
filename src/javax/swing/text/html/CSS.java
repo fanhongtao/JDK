@@ -1,7 +1,7 @@
 /*
- * @(#)CSS.java	1.59 06/02/24
+ * @(#)CSS.java	1.67 06/02/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -11,6 +11,7 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.HeadlessException;
+import java.awt.Image;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -92,7 +93,7 @@ import javax.swing.text.*;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.59 02/24/06
+ * @version 1.67 02/27/06
  * @see StyleSheet
  */
 public class CSS implements Serializable {
@@ -265,19 +266,19 @@ public class CSS implements Serializable {
          * 5088268 for more details
          */
         static final Attribute MARGIN_LEFT_LTR =
-            new Attribute("margin-left-ltr", 
+	    new Attribute("margin-left-ltr", 
                           Integer.toString(Integer.MIN_VALUE), false);
 
         static final Attribute MARGIN_LEFT_RTL =
-            new Attribute("margin-left-rtl", 
+	    new Attribute("margin-left-rtl", 
                           Integer.toString(Integer.MIN_VALUE), false);
         
         static final Attribute MARGIN_RIGHT_LTR =
-            new Attribute("margin-right-ltr", 
+	    new Attribute("margin-right-ltr", 
                           Integer.toString(Integer.MIN_VALUE), false);
 
         static final Attribute MARGIN_RIGHT_RTL =
-            new Attribute("margin-right-rtl", 
+	    new Attribute("margin-right-rtl", 
                           Integer.toString(Integer.MIN_VALUE), false);
 
 
@@ -343,7 +344,7 @@ public class CSS implements Serializable {
 	    MARGIN_TOP, PADDING, PADDING_BOTTOM, PADDING_LEFT, PADDING_RIGHT,
 	    PADDING_TOP, TEXT_ALIGN, TEXT_DECORATION, TEXT_INDENT, TEXT_TRANSFORM,
 	    VERTICAL_ALIGN, WORD_SPACING, WHITE_SPACE, WIDTH, 
-            BORDER_SPACING, CAPTION_SIDE, 
+	    BORDER_SPACING, CAPTION_SIDE, 
             MARGIN_LEFT_LTR, MARGIN_LEFT_RTL, MARGIN_RIGHT_LTR, MARGIN_RIGHT_RTL
 	};
 
@@ -429,11 +430,11 @@ public class CSS implements Serializable {
 	valueConvertor.put(CSS.Attribute.MARGIN_TOP, lv);
 	valueConvertor.put(CSS.Attribute.MARGIN_BOTTOM, lv);
 	valueConvertor.put(CSS.Attribute.MARGIN_LEFT, lv);
-        valueConvertor.put(CSS.Attribute.MARGIN_LEFT_LTR, lv);
-        valueConvertor.put(CSS.Attribute.MARGIN_LEFT_RTL, lv);
+	valueConvertor.put(CSS.Attribute.MARGIN_LEFT_LTR, lv);
+	valueConvertor.put(CSS.Attribute.MARGIN_LEFT_RTL, lv);
 	valueConvertor.put(CSS.Attribute.MARGIN_RIGHT, lv);
-        valueConvertor.put(CSS.Attribute.MARGIN_RIGHT_LTR, lv);
-        valueConvertor.put(CSS.Attribute.MARGIN_RIGHT_RTL, lv);
+	valueConvertor.put(CSS.Attribute.MARGIN_RIGHT_LTR, lv);
+	valueConvertor.put(CSS.Attribute.MARGIN_RIGHT_RTL, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_TOP, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_BOTTOM, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_LEFT, lv);
@@ -619,7 +620,7 @@ public class CSS implements Serializable {
 	FontFamily familyValue = (FontFamily)a.getAttribute
 	                                    (CSS.Attribute.FONT_FAMILY);
 	String family = (familyValue != null) ? familyValue.getValue() :
-	                          "SansSerif";
+	                          Font.SANS_SERIF;
 	int style = Font.PLAIN;
 	FontWeight weightValue = (FontWeight) a.getAttribute
 	                          (CSS.Attribute.FONT_WEIGHT);
@@ -631,13 +632,13 @@ public class CSS implements Serializable {
 	    style |= Font.ITALIC;
 	}
         if (family.equalsIgnoreCase("monospace")) {
-            family = "Monospaced";
+            family = Font.MONOSPACED;
         }
 	Font f = sc.getFont(family, style, size);
         if (f == null 
-            || (f.getFamily().equals("Dialog")
-                && ! family.equalsIgnoreCase("Dialog"))) {
-            family = "SansSerif";
+            || (f.getFamily().equals(Font.DIALOG)
+                && ! family.equalsIgnoreCase(Font.DIALOG))) {
+            family = Font.SANS_SERIF;
             f = sc.getFont(family, style, size);
         }
 	return f;
@@ -649,8 +650,8 @@ public class CSS implements Serializable {
 	FontSize sizeValue = (FontSize)attr.getAttribute(CSS.Attribute.
 							 FONT_SIZE);
 
-	return (sizeValue != null) ? (int)sizeValue.getValue(attr, ss) :
-	                             defaultSize;
+	return (sizeValue != null) ? sizeValue.getValue(attr, ss)
+                                   : defaultSize;
     }
 
     /**
@@ -1700,19 +1701,19 @@ public class CSS implements Serializable {
 	 *  requested from.  We may need to walk up the
 	 *  resolve hierarchy if it's relative.
 	 */
-	float getValue(AttributeSet a, StyleSheet ss) {
+	int getValue(AttributeSet a, StyleSheet ss) {
             ss = getStyleSheet(ss);
 	    if (index) {
 		// it's an index, translate from size table
-		return getPointSize((int) value, ss);
+		return Math.round(getPointSize((int) value, ss));
 	    }
 	    else if (lu == null) {
-		return value;
+		return Math.round(value);
 	    }
 	    else {
 		if (lu.type == 0) {
                     boolean isW3CLengthUnits = (ss == null) ? false : ss.isW3CLengthUnits();
-                    return lu.getValue(isW3CLengthUnits);
+		    return Math.round(lu.getValue(isW3CLengthUnits));
 		}
 		if (a != null) {
 		    AttributeSet resolveParent = a.getResolveParent();
@@ -1727,7 +1728,7 @@ public class CSS implements Serializable {
 			else {
 			    retValue = lu.value + (float)pValue;
 			}
-			return retValue;
+			return Math.round(retValue);
 		    }
 		}
 		// a is null, or no resolve parent.
@@ -1845,9 +1846,9 @@ public class CSS implements Serializable {
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    if (v != null) {
-		return new Integer((int) getValue(v.getAttributes(), null));
+                return Integer.valueOf(getValue(v.getAttributes(), null));
 	    }
-	    return new Integer((int) getValue(null, null));
+            return Integer.valueOf(getValue(null, null));
 	}
 
 	float value;
@@ -1907,7 +1908,7 @@ public class CSS implements Serializable {
 		}
 	    }
 	    if (ff.family == null) {
-		ff.family = "SansSerif";
+		ff.family = Font.SANS_SERIF;
 	    }
 	    return ff;
 	}
@@ -2491,7 +2492,11 @@ public class CSS implements Serializable {
 			URL url = CSS.getURL(base, svalue);
 			loadedImage = true;
 			if (url != null) {
-			    image = new ImageIcon(url);
+                            image = new ImageIcon();
+                            Image tmpImg = Toolkit.getDefaultToolkit().createImage(url);
+                            if (tmpImg != null) {
+                                image.setImage(tmpImg);
+                            }
 			}
 		    }
 		}
@@ -2752,7 +2757,7 @@ public class CSS implements Serializable {
 	    }
 	    else {
 		css.addInternalCSSValue(attr, CSS.Attribute.FONT_FAMILY,
-					"SansSerif");
+					Font.SANS_SERIF);
 	    }
 	}
 

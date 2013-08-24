@@ -1,7 +1,7 @@
 /*
- * @(#)SerialBlob.java	1.8 04/05/29
+ * @(#)SerialBlob.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -395,8 +395,40 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
               buf = this.getBytes(1, (int)len);
          }  
     }
-
     
+    
+    /**
+     * Returns an <code>InputStream</code> object that contains a partial <code>Blob</code> value, 
+     * starting  with the byte specified by pos, which is length bytes in length.
+     *
+     * @param pos the offset to the first byte of the partial value to be retrieved.
+     *  The first byte in the <code>Blob</code> is at position 1
+     * @param length the length in bytes of the partial value to be retrieved
+     * @return <code>InputStream</code> through which the partial <code>Blob</code> value can be read.
+     * @throws SQLException if pos is less than 1 or if pos is greater than the number of bytes
+     * in the <code>Blob</code> or if pos + length is greater than the number of bytes 
+     * in the <code>Blob</code>
+     *
+     * @since 1.6
+     */
+    public InputStream getBinaryStream(long pos,long length) throws SQLException {
+        throw new java.lang.UnsupportedOperationException("Not supported");
+    }
+
+
+    /**
+     * This method frees the <code>Blob</code> object and releases the resources that it holds.
+     * <code>Blob</code> object. The object is invalid once the <code>free</code>
+     * method is called. If <code>free</code> is called multiple times, the subsequent
+     * calls to <code>free</code> are treated as a no-op.
+     * 
+     * @throws SQLException if an error occurs releasing 
+     * the Blob's resources
+     * @since 1.6
+     */
+    public void free() throws SQLException {
+        throw new java.lang.UnsupportedOperationException("Not supported");
+    }
     /**
 	 * The identifier that assists in the serialization of this <code>SerialBlob</code>
      * object.

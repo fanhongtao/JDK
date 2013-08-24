@@ -1,7 +1,7 @@
 /*
- * @(#)TreeSelectionEvent.java	1.26 03/12/19
+ * @(#)TreeSelectionEvent.java	1.28 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,14 +29,14 @@ import javax.swing.tree.TreePath;
  * @see TreeSelectionListener
  * @see javax.swing.tree.TreeSelectionModel
  *
- * @version 1.26 12/19/03
+ * @version 1.28 11/17/05
  * @author Scott Violet
  */
 public class TreeSelectionEvent extends EventObject 
 {
     /** Paths this event represents. */
     protected TreePath[]     paths;
-    /** For each path identifies if that is path is in fact new. */
+    /** For each path identifies if that path is in fact new. */
     protected boolean[]       areNew;
     /** leadSelectionPath before the paths changed, may be null. */
     protected TreePath        oldLeadSelectionPath;

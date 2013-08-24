@@ -1,7 +1,7 @@
 /*
- * @(#)JLayeredPane.java	1.54 04/05/05
+ * @(#)JLayeredPane.java	1.56 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -118,6 +118,11 @@ import javax.accessibility.*;
  * <b>Note:</b> that these layers are simply a logical construct and LayoutManagers
  * will affect all child components of this container without regard for
  * layer settings.
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with

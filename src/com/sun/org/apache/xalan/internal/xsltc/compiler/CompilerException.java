@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CompilerException.java,v 1.3 2004/02/16 22:24:29 minchau Exp $
+ * $Id: CompilerException.java,v 1.2.4.1 2005/09/01 12:04:22 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -23,6 +23,7 @@ package com.sun.org.apache.xalan.internal.xsltc.compiler;
  * @author Morten Jorgensen
  */
 public final class CompilerException extends Exception {
+    static final long serialVersionUID = 1732939618562742663L;
 
     private String _msg;
 

@@ -1,7 +1,7 @@
 /*
- * @(#)AuthPermission.java	1.51 03/12/19
+ * @(#)AuthPermission.java	1.55 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -73,6 +73,10 @@ package javax.security.auth;
  *	getLoginConfiguration - allow for the retrieval of the system-wide
  *				login Configuration.
  *
+ *	createLoginConfiguration.{type} - allow code to obtain a Configuration
+ *				object via
+ *				<code>Configuration.getInstance</code>.
+ *
  *	setLoginConfiguration - allow for the setting of the system-wide
  *				login Configuration.
  *
@@ -103,7 +107,7 @@ package javax.security.auth;
  *				Subject-based access control policy.
  * </pre>
  *
- * @version 1.51, 12/19/03
+ * @version 1.55, 04/21/06
  */
 public final class AuthPermission extends
 java.security.BasicPermission {
@@ -117,6 +121,9 @@ java.security.BasicPermission {
      * <p>
      *
      * @param name the name of the AuthPermission
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
     public AuthPermission(String name) {
 	// for backwards compatibility --
@@ -135,6 +142,9 @@ java.security.BasicPermission {
      * @param name the name of the AuthPermission <p>
      *
      * @param actions should be null.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
     public AuthPermission(String name, String actions) {
 	// for backwards compatibility --

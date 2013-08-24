@@ -1,5 +1,5 @@
 /*
- * @(#)BigDecimal.java	1.56 06/02/08
+ * @(#)BigDecimal.java	1.63 06/04/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -548,7 +548,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * <i>significand</i>.
      *
      * <p>The exponent consists of the character <tt>'e'</tt>
-     * (<tt>'&#92;u0075'</tt>) or <tt>'E'</tt> (<tt>'&#92;u0045'</tt>)
+     * (<tt>'&#92;u0065'</tt>) or <tt>'E'</tt> (<tt>'&#92;u0045'</tt>)
      * followed by one or more decimal digits.  The value of the
      * exponent must lie between -{@link Integer#MAX_VALUE} ({@link
      * Integer#MIN_VALUE}+1) and {@link Integer#MAX_VALUE}, inclusive.
@@ -1457,6 +1457,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *         <tt>roundingMode==RoundingMode.UNNECESSARY</tt> and
      *         <tt>this.scale()</tt> is insufficient to represent the result
      *         of the division exactly.
+     * @since 1.5
      */
     public BigDecimal divide(BigDecimal divisor, RoundingMode roundingMode) {
 	return this.divide(divisor, scale, roundingMode.oldMode);
@@ -1985,6 +1986,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @return <tt>abs(this)</tt>, rounded as necessary.
      * @throws ArithmeticException if the result is inexact but the
      *         rounding mode is <tt>UNNECESSARY</tt>.
+     * @since 1.5
      */
     public BigDecimal abs(MathContext mc) {
         return (signum() < 0 ? negate(mc) : plus(mc));
@@ -2013,7 +2015,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * @param mc the context to use.
      * @return <tt>-this</tt>, rounded as necessary.
-     * @throws ArithmeticException if or the result is inexact but the 
+     * @throws ArithmeticException if the result is inexact but the 
      *         rounding mode is <tt>UNNECESSARY</tt>.
      * @since  1.5
      */
@@ -2430,6 +2432,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * @return a numerically equal <tt>BigDecimal</tt> with any
      * trailing zeros removed.
+     * @since 1.5
      */
     public BigDecimal stripTrailingZeros() {
 	this.inflate();
@@ -2709,7 +2712,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * numerical value of this <tt>BigDecimal</tt> will necessarily be
      * recovered; the representation of the new <tt>BigDecimal</tt>
      * may have a different scale.  In particular, if this
-     * <tt>BigDecimal</tt> has a positive scale, the string resulting
+     * <tt>BigDecimal</tt> has a negative scale, the string resulting
      * from this method will have a scale of zero when processed by
      * the string constructor.
      *
@@ -3175,7 +3178,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     }
 
     /**
-     * Match the scales of two <tt>BigDecimal<tt>s to align their
+     * Match the scales of two <tt>BigDecimal</tt>s to align their
      * least significant digits.
      * 
      * <p>If the scales of val[0] and val[1] differ, rescale

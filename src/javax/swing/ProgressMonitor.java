@@ -1,7 +1,7 @@
 /*
- * @(#)ProgressMonitor.java	1.30 04/04/15
+ * @(#)ProgressMonitor.java	1.37 06/04/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import javax.swing.text.*;
  * @see ProgressMonitorInputStream
  * @author James Gosling
  * @author Lynn Monsanto (accessibility) 
- * @version 1.30 04/15/04
+ * @version 1.37 04/12/06
  */
 public class ProgressMonitor extends Object implements Accessible
 {
@@ -77,9 +77,6 @@ public class ProgressMonitor extends Object implements Accessible
     private int             millisToPopup = 2000;
     private int             min;
     private int             max;
-    private int             v;
-    private int             lastDisp;
-    private int             reportDelta;
 
 
     /**
@@ -127,9 +124,6 @@ public class ProgressMonitor extends Object implements Accessible
         cancelOption = new Object[1];
         cancelOption[0] = UIManager.getString("OptionPane.cancelButtonText");
 
-        reportDelta = (max - min) / 100;
-        if (reportDelta < 1) reportDelta = 1;
-        v = min;
         this.message = message;
         this.note = note;
         if (group != null) {
@@ -249,12 +243,10 @@ public class ProgressMonitor extends Object implements Accessible
      * @see #close
      */
     public void setProgress(int nv) {
-        v = nv;
         if (nv >= max) {
             close();
         }
-        else if (nv >= lastDisp + reportDelta) {
-            lastDisp = nv;
+        else {
             if (myBar != null) {
                 myBar.setValue(nv);
             }
@@ -325,6 +317,9 @@ public class ProgressMonitor extends Object implements Accessible
      * @see #getMinimum
      */
     public void setMinimum(int m) {
+        if (myBar != null) {
+            myBar.setMinimum(m);
+        }
         min = m;
     }
 
@@ -347,6 +342,9 @@ public class ProgressMonitor extends Object implements Accessible
      * @see #getMaximum
      */
     public void setMaximum(int m) {
+        if (myBar != null) {
+            myBar.setMaximum(m);
+        }
         max = m;
     }
 
@@ -441,7 +439,7 @@ public class ProgressMonitor extends Object implements Accessible
     // Accessibility support
     ////////////////
 	
-    /*
+    /**
      * The <code>AccessibleContext</code> for the <code>ProgressMonitor</code> 
      * @since 1.5
      */

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_io.h	1.13 04/07/27
+ * @(#)hprof_io.h	1.16 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,10 +42,11 @@ void io_setup(void);
 void io_cleanup(void);
 
 void io_write_file_header(void);
+void io_write_file_footer(void);
 
 void io_write_class_load(SerialNumber class_serial_num, ObjectIndex index, 
 			SerialNumber trace_serial_num, char *csig);
-void io_write_class_unload(SerialNumber class_serial_num);
+void io_write_class_unload(SerialNumber class_serial_num, ObjectIndex index);
 
 void io_write_sites_header(const char * comment_str, jint flags,
                         double cutoff, jint total_live_bytes,
@@ -63,15 +64,20 @@ void io_write_thread_start(SerialNumber thread_serial_num, TlsIndex tls_index,
                         char *thread_group_name, char *thread_parent_name);
 void io_write_thread_end(SerialNumber thread_serial_num);
 
-void io_write_frame(FrameIndex index, char *mname, char *msig,
-			char *sname, SerialNumber class_serial_num, 
+void io_write_frame(FrameIndex index, SerialNumber serial_num,
+		    char *mname, char *msig,
+		    char *sname, SerialNumber class_serial_num, 
 			jint lineno);
 
 void io_write_trace_header(SerialNumber trace_serial_num, 
+			SerialNumber thread_serial_num, jint n_frames, 
+			char * phase_str);
+void io_write_trace_elem(SerialNumber trace_serial_num,
+			 FrameIndex frame_index, SerialNumber frame_serial_num,
+			 char *csig, char *mname, 
+			 char *sname, jint lineno);
+void io_write_trace_footer(SerialNumber trace_serial_num,
 			SerialNumber thread_serial_num, jint n_frames);
-void io_write_trace_elem(FrameIndex frame_index, char *csig, char *mname, 
-			char *sname, jint lineno);
-void io_write_trace_footer(void);
 
 void io_write_cpu_samples_header(jlong total_cost, jint n_items);
 void io_write_cpu_samples_elem(jint index, double percent, double accum,
@@ -124,7 +130,7 @@ void io_heap_root_jni_global(ObjectIndex obj_id, SerialNumber gref_serial_num,
 			SerialNumber trace_serial_num);
 void io_heap_root_jni_local(ObjectIndex obj_id, 
 			SerialNumber thread_serial_num, jint frame_depth);
-void io_heap_root_system_class(ObjectIndex obj_id, char *sig);
+void io_heap_root_system_class(ObjectIndex obj_id, char *sig, SerialNumber class_serial_num);
 void io_heap_root_monitor(ObjectIndex obj_id);
 void io_heap_root_thread(ObjectIndex obj_id, 
 			SerialNumber thread_serial_num);
@@ -147,16 +153,13 @@ void io_heap_instance_dump(ClassIndex cnum, ObjectIndex obj_id,
 			char *sig, FieldInfo *fields, 
 			jvalue *fvalues, jint n_fields);
 
-void io_heap_object_array(ObjectIndex obj_id, 
-			SerialNumber trace_serial_num, 
-			jint size, jint num_elements, ObjectIndex class_id, 
-			jvalue *values, char *sig);
-void io_heap_prim_array(ObjectIndex obj_id, jint size, 
-			SerialNumber trace_serial_num, 
-			jint num_elements, char *sig, jvalue *values);
+void io_heap_object_array(ObjectIndex obj_id, SerialNumber trace_serial_num, 
+			jint size, jint num_elements, char *sig,
+			ObjectIndex *values, ObjectIndex class_id);
+void io_heap_prim_array(ObjectIndex obj_id, SerialNumber trace_serial_num,  
+			jint size, jint num_elements, char *sig, 
+			void *elements);
 
 void io_heap_footer(void);
-
-void io_check_binary_file(char *filename);
 
 #endif

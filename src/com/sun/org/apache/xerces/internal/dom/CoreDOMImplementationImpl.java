@@ -1,63 +1,24 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.sun.org.apache.xerces.internal.dom;
+
 import com.sun.org.apache.xerces.internal.impl.RevalidationHandler;
 import com.sun.org.apache.xerces.internal.parsers.DOMParserImpl;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
+import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription;
 import com.sun.org.apache.xml.internal.serialize.DOMSerializerImpl;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
@@ -81,7 +42,10 @@ import org.w3c.dom.ls.LSSerializer;
  * This particular class, along with CoreDocumentImpl, supports the DOM
  * Core and Load/Save (Experimental). Optional modules are supported by
  * the more complete DOMImplementation class along with DocumentImpl.
- * @version $Id: CoreDOMImplementationImpl.java,v 1.30 2004/02/17 07:14:48 neeraj Exp $
+ * 
+ * @xerces.internal
+ * 
+ * @version $Id: CoreDOMImplementationImpl.java,v 1.2.6.1 2005/08/30 14:57:58 sunithareddy Exp $
  * @since PR-DOM-Level-1-19980818.
  */
 public class CoreDOMImplementationImpl
@@ -93,14 +57,17 @@ public class CoreDOMImplementationImpl
     // validators pool
     private static final int SIZE = 2;
     private RevalidationHandler validators[] = new RevalidationHandler[SIZE];
+    
+    private RevalidationHandler dtdValidators[] = new RevalidationHandler[SIZE];
     private int freeValidatorIndex = -1;
+    private int freeDTDValidatorIndex = -1;
     private int currentSize = SIZE;
 
     // Document and doctype counter.  Used to assign order to documents and
     // doctypes without owners, on an demand basis.   Used for
     // compareDocumentPosition
     private int docAndDoctypeCounter = 0;
-
+    
 	// static
 	/** Dom implementation singleton. */
 	static CoreDOMImplementationImpl singleton =
@@ -119,53 +86,65 @@ public class CoreDOMImplementationImpl
 	 * Test if the DOM implementation supports a specific "feature" --
 	 * currently meaning language and level thereof.
 	 *
-	 * @param feature      The package name of the feature to test.
+	 * @param feature The package name of the feature to test.
 	 * In Level 1, supported values are "HTML" and "XML" (case-insensitive).
 	 * At this writing, com.sun.org.apache.xerces.internal.dom supports only XML.
 	 *
-	 * @param version      The version number of the feature being tested.
+	 * @param version The version number of the feature being tested.
 	 * This is interpreted as "Version of the DOM API supported for the
 	 * specified Feature", and in Level 1 should be "1.0"
 	 *
-	 * @return    true iff this implementation is compatable with the specified
+	 * @return true iff this implementation is compatable with the specified
 	 * feature and version.
 	 */
-    public boolean hasFeature(String feature, String version) {
-
-        boolean anyVersion = version == null || version.length() == 0;
-		if (feature.startsWith("+")) {
-			feature = feature.substring(1);
-		}
-        // check if Xalan implementation is around and if yes report true for supporting
-        // XPath API
-        if ((feature.equalsIgnoreCase("XPath")
-            || feature.equalsIgnoreCase("+XPath"))
-            && (anyVersion || version.equals("3.0"))) {
-            try {
-                Class xpathClass =
-                    ObjectFactory.findProviderClass(
-                        "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl",
-                        ObjectFactory.findClassLoader(),
-                        true);
-            } catch (Exception e) {
-                return false;
-            }
-            return true;
-        }
-        return (
-            feature.equalsIgnoreCase("Core")
-                && (anyVersion
-                    || version.equals("1.0")
-                    || version.equals("2.0")
-                    || version.equals("3.0")))
-            || (feature.equalsIgnoreCase("XML")
-                && (anyVersion
-                    || version.equals("1.0")
-                    || version.equals("2.0")
-                    || version.equals("3.0")))
-            || (feature.equalsIgnoreCase("LS")
-                && (anyVersion || version.equals("3.0")));
-    } // hasFeature(String,String):boolean
+	public boolean hasFeature(String feature, String version) {
+	    
+	    boolean anyVersion = version == null || version.length() == 0;
+	    
+	    // check if Xalan implementation is around and if yes report true for supporting
+	    // XPath API
+	    // if a plus sign "+" is prepended to any feature name, implementations 
+	    // are considered in which the specified feature may not be directly 
+	    // castable DOMImplementation.getFeature(feature, version). Without a 
+	    // plus, only features whose interfaces are directly castable are considered.
+	    if ((feature.equalsIgnoreCase("+XPath"))       
+	        && (anyVersion || version.equals("3.0"))) {
+	        try {
+	            Class xpathClass = ObjectFactory.findProviderClass(
+	                "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl",
+	                ObjectFactory.findClassLoader(), true);
+                
+                // Check if the DOM XPath implementation implements
+                // the interface org.w3c.dom.XPathEvaluator
+                Class interfaces[] = xpathClass.getInterfaces();
+                for (int i = 0; i < interfaces.length; i++) {
+                    if (interfaces[i].getName().equals(
+                        "org.w3c.dom.xpath.XPathEvaluator")) {
+                        return true;
+                    }
+                }
+	        } catch (Exception e) {
+	            return false;
+	        }
+	        return true;
+	    }
+	    if (feature.startsWith("+")) {
+	        feature = feature.substring(1);
+	    }
+	    return (
+	        feature.equalsIgnoreCase("Core")
+	            && (anyVersion
+	                || version.equals("1.0")
+	                || version.equals("2.0")
+	                || version.equals("3.0")))
+	                || (feature.equalsIgnoreCase("XML")
+	            && (anyVersion
+	                || version.equals("1.0")
+	                || version.equals("2.0")
+	                || version.equals("3.0")))
+	                || (feature.equalsIgnoreCase("LS")
+	            && (anyVersion || version.equals("3.0")));
+	} // hasFeature(String,String):boolean
 
 
 	/**
@@ -293,13 +272,32 @@ public class CoreDOMImplementationImpl
 
 	/**
 	 * DOM Level 3 WD - Experimental.
-     */
+	 */
 	public Object getFeature(String feature, String version) {
-		if (singleton.hasFeature(feature, version)){
-			return singleton;
-		}
-		return null;
-
+	    if (singleton.hasFeature(feature, version)) {
+	        if ((feature.equalsIgnoreCase("+XPath"))) {
+	            try {
+	                Class xpathClass = ObjectFactory.findProviderClass(
+	                    "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl",
+	                    ObjectFactory.findClassLoader(), true);
+	                
+	                // Check if the DOM XPath implementation implements
+	                // the interface org.w3c.dom.XPathEvaluator
+	                Class interfaces[] = xpathClass.getInterfaces();
+	                for (int i = 0; i < interfaces.length; i++) {
+	                    if (interfaces[i].getName().equals(
+	                        "org.w3c.dom.xpath.XPathEvaluator")) {
+	                        return xpathClass.newInstance();
+	                    }
+	                }
+	            } catch (Exception e) {
+	                return null;
+	            }
+	        } else {
+	            return singleton;
+	        }
+	    }
+	    return null;
 	}
 
 	// DOM L3 LS
@@ -361,13 +359,13 @@ public class CoreDOMImplementationImpl
 		if (schemaType != null
 			&& schemaType.equals("http://www.w3.org/TR/REC-xml")) {
 			return new DOMParserImpl(
-				"com.sun.org.apache.xerces.internal.parsers.XML11Configuration",
+				"com.sun.org.apache.xerces.internal.parsers.DTDConfiguration",
 				schemaType);
 		}
 		else {
 			// create default parser configuration validating against XMLSchemas
 			return new DOMParserImpl(
-				"com.sun.org.apache.xerces.internal.parsers.XML11Configuration",
+				"com.sun.org.apache.xerces.internal.parsers.XIncludeAwareParserConfiguration",
 				schemaType);
 		}
 	}
@@ -386,8 +384,8 @@ public class CoreDOMImplementationImpl
          * reference to the default error handler.
 	 */
 	public LSSerializer createLSSerializer() {
-		return new DOMSerializerImpl();
-	}
+        return new DOMSerializerImpl();
+    } 
 	/**
 	 * DOM Level 3 LS CR - Experimental.
          * Create a new empty input source.
@@ -395,10 +393,6 @@ public class CoreDOMImplementationImpl
 	 */
 	public LSInput createLSInput() {
 		return new DOMInputImpl();
-	} 
-
-	synchronized Object getDTDValidator() {
-	 return ObjectFactory.newInstance( "com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator", ObjectFactory.findClassLoader(), true); 
 	}
 
 	//
@@ -407,32 +401,64 @@ public class CoreDOMImplementationImpl
 	/** NON-DOM: retrieve validator. */
 	synchronized RevalidationHandler getValidator(String schemaType) {
 		// REVISIT: implement retrieving DTD validator
-        if (freeValidatorIndex < 0) {
+        if (schemaType == XMLGrammarDescription.XML_SCHEMA) {
             // create new validator - we should not attempt
             // to restrict the number of validation handlers being
             // requested
-            return (RevalidationHandler) (ObjectFactory .newInstance( "com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator", ObjectFactory.findClassLoader(), true));
-
+            if(freeValidatorIndex < 0) {
+                return (RevalidationHandler) (ObjectFactory
+                            .newInstance(
+                                "com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator",
+                                ObjectFactory.findClassLoader(),
+                                true));
+            }
+            // return first available validator
+            RevalidationHandler val = validators[freeValidatorIndex];
+            validators[freeValidatorIndex--] = null;
+            return val;
         }
-        // return first available validator
-        RevalidationHandler val = validators[freeValidatorIndex];
-        validators[freeValidatorIndex--] = null;
-        return val;
+        else if(schemaType == XMLGrammarDescription.XML_DTD) {
+            if(freeDTDValidatorIndex < 0) {
+                return (RevalidationHandler) (ObjectFactory
+                            .newInstance(
+                                "com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator",
+                                ObjectFactory.findClassLoader(),
+                                true));
+            }
+            // return first available validator
+            RevalidationHandler val = dtdValidators[freeDTDValidatorIndex];
+            dtdValidators[freeDTDValidatorIndex--] = null;
+            return val;
+        }
+        return null;
 	}
 
 	/** NON-DOM: release validator */
 	synchronized void releaseValidator(String schemaType,
                                          RevalidationHandler validator) {
        // REVISIT: implement support for DTD validators as well
-       ++freeValidatorIndex;
-       if (validators.length == freeValidatorIndex ){
-            // resize size of the validators
-            currentSize+=SIZE;
-            RevalidationHandler newarray[] =  new RevalidationHandler[currentSize];
-            System.arraycopy(validators, 0, newarray, 0, validators.length);
-            validators = newarray;
+       if(schemaType == XMLGrammarDescription.XML_SCHEMA) {
+           ++freeValidatorIndex;
+           if (validators.length == freeValidatorIndex ){
+                // resize size of the validators
+                currentSize+=SIZE;
+                RevalidationHandler newarray[] =  new RevalidationHandler[currentSize];
+                System.arraycopy(validators, 0, newarray, 0, validators.length);
+                validators = newarray;
+           }
+           validators[freeValidatorIndex]=validator;
        }
-       validators[freeValidatorIndex]=validator;
+       else if(schemaType == XMLGrammarDescription.XML_DTD) {
+           ++freeDTDValidatorIndex;
+           if (dtdValidators.length == freeDTDValidatorIndex ){
+                // resize size of the validators
+                currentSize+=SIZE;
+                RevalidationHandler newarray[] =  new RevalidationHandler[currentSize];
+                System.arraycopy(dtdValidators, 0, newarray, 0, dtdValidators.length);
+                dtdValidators = newarray;
+           }
+           dtdValidators[freeDTDValidatorIndex]=validator;
+       }
 	}
 
        /** NON-DOM:  increment document/doctype counter */

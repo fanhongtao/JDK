@@ -1,7 +1,7 @@
 /*
- * @(#)MenuBarUI.java	1.15 03/12/19
+ * @(#)MenuBarUI.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import javax.swing.JMenu;
 /**
  * Pluggable look and feel interface for JMenuBar.
  *
- * @version 1.15 12/19/03
+ * @version 1.16 11/17/05
  * @author Georges Saab
  * @author David Karlton
  */

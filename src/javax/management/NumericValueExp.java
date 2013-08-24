@@ -1,7 +1,7 @@
 /*
- * @(#)NumericValueExp.java	4.24 03/12/19
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)NumericValueExp.java	4.28 06/02/07
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,11 +21,13 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * This class represents numbers that are arguments to relational constraints.
  * A NumericValueExp may be used anywhere a ValueExp is required.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-4679739485102359104L</code>.
+ * 
  * @serial include
  *
  * @since 1.5
  */
-class NumericValueExp extends QueryEval implements ValueExp { 
+class NumericValueExp extends QueryEval implements ValueExp {
 
     // Serialization compatibility stuff:
     // Two serial forms are supported in this class. The selected form depends
@@ -33,14 +35,14 @@ class NumericValueExp extends QueryEval implements ValueExp {
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = -6227876276058904000L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = -4679739485102359104L;
     //
     // Serializable fields in old serial form
-    private static final ObjectStreamField[] oldSerialPersistentFields = 
+    private static final ObjectStreamField[] oldSerialPersistentFields =
     {
 	new ObjectStreamField("longVal", Long.TYPE),
 	new ObjectStreamField("doubleVal", Double.TYPE),
@@ -48,22 +50,27 @@ class NumericValueExp extends QueryEval implements ValueExp {
     };
     //
     // Serializable fields in new serial form
-    private static final ObjectStreamField[] newSerialPersistentFields = 
+    private static final ObjectStreamField[] newSerialPersistentFields =
     {
 	new ObjectStreamField("val", Number.class)
     };
     //
     // Actual serial version and serial form
     private static final long serialVersionUID;
+
     /**
-     * @serialField val Number The {@link Number} representing the numeric value
+     * @serialField val Number The numeric value
+     *
+     * <p>The <b>serialVersionUID</b> of this class is <code>-4679739485102359104L</code>. 
      */
     private static final ObjectStreamField[] serialPersistentFields;
-    private static boolean compat = false;  
+    private Number val = new Double(0);
+
+    private static boolean compat = false;
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: exception means no compat with 1.0, too bad
@@ -79,19 +86,15 @@ class NumericValueExp extends QueryEval implements ValueExp {
     //
     // END Serialization compatibility stuff
 
-    /**
-     * @serial The {@link Number} representing the numeric value
-     */
-    private Number val = new Double(0);
-        
+
     /**
      * Basic constructor.
-     */   
-    public NumericValueExp() { 
-    } 
+     */
+    public NumericValueExp() {
+    }
 
-    /** Creates a new NumericValue representing the numeric literal <val>.*/    
-    NumericValueExp(Number val) 
+    /** Creates a new NumericValue representing the numeric literal <val>.*/
+    NumericValueExp(Number val)
     {
       this.val = val;
     }
@@ -99,42 +102,42 @@ class NumericValueExp extends QueryEval implements ValueExp {
     /**
      * Returns a double numeric value
      */
-    public double doubleValue()  { 
+    public double doubleValue()  {
       if (val instanceof Long || val instanceof Integer)
       {
         return (double)(val.longValue());
       }
       return val.doubleValue();
-    } 
+    }
 
     /**
      * Returns a long numeric value
      */
-    public long longValue()  { 
+    public long longValue()  {
       if (val instanceof Long || val instanceof Integer)
       {
         return val.longValue();
       }
       return (long)(val.doubleValue());
-    } 
+    }
 
     /**
      * Returns true is if the numeric value is a long, false otherwise.
      */
-    public boolean isLong()  { 
+    public boolean isLong()  {
 	return (val instanceof Long || val instanceof Integer);
-    } 
-    
+    }
+
     /**
      * Returns the string representing the object
-     */    
-    public String toString()  { 
+     */
+    public String toString()  {
       if (val instanceof Long || val instanceof Integer)
       {
         return String.valueOf(val.longValue());
       }
       return String.valueOf(val.doubleValue());
-    }     
+    }
 
     /**
      * Applies the ValueExp on a MBean.
@@ -145,13 +148,14 @@ class NumericValueExp extends QueryEval implements ValueExp {
      *
      * @exception BadStringOperationException
      * @exception BadBinaryOpValueExpException
-     * @exception BadAttributeValueExpException 
+     * @exception BadAttributeValueExpException
      * @exception InvalidApplicationException
-     */   
-    public ValueExp apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException  { 
+     */
+    public ValueExp apply(ObjectName name)
+	    throws BadStringOperationException, BadBinaryOpValueExpException,
+		   BadAttributeValueExpException, InvalidApplicationException {
 	return this;
-    } 
+    }
 
     /**
      * Deserializes a {@link NumericValueExp} from an {@link ObjectInputStream}.

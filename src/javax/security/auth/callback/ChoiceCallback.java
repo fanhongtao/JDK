@@ -1,7 +1,7 @@
 /*
- * @(#)ChoiceCallback.java	1.17 03/12/19
+ * @(#)ChoiceCallback.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package javax.security.auth.callback;
  * method of a <code>CallbackHandler</code> to display a list of choices
  * and to retrieve the selected choice(s).
  *
- * @version 1.17, 12/19/03
+ * @version 1.18, 11/17/05
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class ChoiceCallback implements Callback, java.io.Serializable {

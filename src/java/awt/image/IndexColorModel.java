@@ -1,7 +1,7 @@
 /*
- * @(#)IndexColorModel.java	1.96 03/12/19
+ * @(#)IndexColorModel.java	1.101 06/05/31
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,8 @@ import java.math.BigInteger;
  * the value is <code>Transparency.BITMASK</code>.
  * Otherwise, the value is <code>Transparency.TRANSLUCENT</code>, indicating
  * that some valid color has an alpha component that is
- * neither completely transparent nor completely opaque (0.0 < alpha < 1.0).
+ * neither completely transparent nor completely opaque
+ * (0.0 &lt; alpha &lt; 1.0).
  * </a>
  *
  * <p>
@@ -66,12 +67,20 @@ import java.math.BigInteger;
  * and <code>getNumComponents</code> returns 4.
  *
  * <p>
- * The index represented by a pixel value is stored in the least
- * significant <em>n</em> bits of the pixel representations passed to the
- * methods of this class, where <em>n</em> is the pixel size specified to the
- * constructor for a particular <code>IndexColorModel</code> object;
- * <em>n</em> must be between 1 and 16, inclusive.  
- * Higher order bits in pixel representations are assumed to be zero.
+ * <a name="index_values">
+ * The values used to index into the colormap are taken from the least
+ * significant <em>n</em> bits of pixel representations where
+ * <em>n</em> is based on the pixel size specified in the constructor.
+ * For pixel sizes smaller than 8 bits, <em>n</em> is rounded up to a
+ * power of two (3 becomes 4 and 5,6,7 become 8).
+ * For pixel sizes between 8 and 16 bits, <em>n</em> is equal to the
+ * pixel size.
+ * Pixel sizes larger than 16 bits are not supported by this class.
+ * Higher order bits beyond <em>n</em> are ignored in pixel representations.
+ * Index values greater than or equal to the map size, but less than
+ * 2<sup><em>n</em></sup>, are undefined and return 0 for all color and
+ * alpha components.
+ * <p>
  * For those methods that use a primitive array pixel representation of
  * type <code>transferType</code>, the array length is always one.  
  * The transfer types supported are <code>DataBuffer.TYPE_BYTE</code> and 
@@ -98,6 +107,7 @@ import java.math.BigInteger;
 public class IndexColorModel extends ColorModel {
     private int rgb[];
     private int map_size;
+    private int pixel_mask;
     private int transparent_index = -1;
     private boolean allgrayopaque;
     private BigInteger validBits;
@@ -144,6 +154,7 @@ public class IndexColorModel extends ColorModel {
                                                +" 1 and 16.");
         }
 	setRGBs(size, r, g, b, null);
+        calculatePixelMask();
     }
 
     /**
@@ -184,6 +195,7 @@ public class IndexColorModel extends ColorModel {
         }
 	setRGBs(size, r, g, b, null);
 	setTransparentPixel(trans);
+        calculatePixelMask();
     }
  
     /**
@@ -221,6 +233,7 @@ public class IndexColorModel extends ColorModel {
                                                +" 1 and 16.");
         }
         setRGBs (size, r, g, b, a);
+        calculatePixelMask();
     }
 
     /**
@@ -334,6 +347,7 @@ public class IndexColorModel extends ColorModel {
 	this.allgrayopaque = allgray;
 	setTransparency(transparency);
 	setTransparentPixel(trans);
+        calculatePixelMask();
     }
 
     /**
@@ -394,6 +408,7 @@ public class IndexColorModel extends ColorModel {
 
 	setRGBs(size, cmap, start, hasalpha);
         setTransparentPixel(trans);
+        calculatePixelMask();
     }
 
     /**
@@ -433,6 +448,7 @@ public class IndexColorModel extends ColorModel {
      *           one of <code>DataBuffer.TYPE_BYTE</code> or
      *           <code>DataBuffer.TYPE_USHORT</code>
      *    
+     * @since 1.3
      */
     public IndexColorModel(int bits, int size, int cmap[], int start,
                            int transferType, BigInteger validBits) {
@@ -466,6 +482,7 @@ public class IndexColorModel extends ColorModel {
         }
         
 	setRGBs(size, cmap, start, true);
+        calculatePixelMask();
     }
     
     private void setRGBs(int size, byte r[], byte g[], byte b[], byte a[]) {
@@ -711,61 +728,94 @@ public class IndexColorModel extends ColorModel {
     }
 
     /**
+     * This method is called from the constructors to set the pixel_mask
+     * value, which is based on the value of pixel_bits.  The pixel_mask
+     * value is used to mask off the pixel parameters for methods such
+     * as getRed(), getGreen(), getBlue(), getAlpha(), and getRGB().
+     */
+    private final void calculatePixelMask() {
+        // Note that we adjust the mask so that our masking behavior here
+        // is consistent with that of our native rendering loops.
+        int maskbits = pixel_bits;
+        if (maskbits == 3) {
+            maskbits = 4;
+        } else if (maskbits > 4 && maskbits < 8) {
+            maskbits = 8;
+        }
+        pixel_mask = (1 << maskbits) - 1;
+    }
+
+    /**
      * Returns the red color component for the specified pixel, scaled
      * from 0 to 255 in the default RGB ColorSpace, sRGB.  The pixel value
-     * is specified as an int.  The returned value is a
-     * non pre-multiplied value.
+     * is specified as an int.
+     * Only the lower <em>n</em> bits of the pixel value, as specified in the
+     * <a href="#index_values">class description</a> above, are used to
+     * calculate the returned value.
+     * The returned value is a non pre-multiplied value.
      * @param pixel the specified pixel 
      * @return the value of the red color component for the specified pixel
      */
     final public int getRed(int pixel) {
-	return (rgb[pixel] >> 16) & 0xff;
+        return (rgb[pixel & pixel_mask] >> 16) & 0xff;
     }
 
     /**
      * Returns the green color component for the specified pixel, scaled
      * from 0 to 255 in the default RGB ColorSpace, sRGB.  The pixel value
-     * is specified as an int.  The returned value is a
-     * non pre-multiplied value.
+     * is specified as an int.
+     * Only the lower <em>n</em> bits of the pixel value, as specified in the
+     * <a href="#index_values">class description</a> above, are used to
+     * calculate the returned value.
+     * The returned value is a non pre-multiplied value.
      * @param pixel the specified pixel 
      * @return the value of the green color component for the specified pixel
      */
     final public int getGreen(int pixel) {
-	return (rgb[pixel] >> 8) & 0xff;
+        return (rgb[pixel & pixel_mask] >> 8) & 0xff;
     }
 
     /**
      * Returns the blue color component for the specified pixel, scaled
      * from 0 to 255 in the default RGB ColorSpace, sRGB.  The pixel value
-     * is specified as an int.  The returned value is a
-     * non pre-multiplied value.
+     * is specified as an int.
+     * Only the lower <em>n</em> bits of the pixel value, as specified in the
+     * <a href="#index_values">class description</a> above, are used to
+     * calculate the returned value.
+     * The returned value is a non pre-multiplied value.
      * @param pixel the specified pixel 
      * @return the value of the blue color component for the specified pixel
      */
     final public int getBlue(int pixel) {
-	return rgb[pixel] & 0xff;
+        return rgb[pixel & pixel_mask] & 0xff;
     }
 
     /**
      * Returns the alpha component for the specified pixel, scaled
      * from 0 to 255.  The pixel value is specified as an int.
+     * Only the lower <em>n</em> bits of the pixel value, as specified in the
+     * <a href="#index_values">class description</a> above, are used to
+     * calculate the returned value.
      * @param pixel the specified pixel 
      * @return the value of the alpha component for the specified pixel
      */
     final public int getAlpha(int pixel) {
-	return (rgb[pixel] >> 24) & 0xff;
+        return (rgb[pixel & pixel_mask] >> 24) & 0xff;
     }
 
     /**
      * Returns the color/alpha components of the pixel in the default
      * RGB color model format.  The pixel value is specified as an int.
+     * Only the lower <em>n</em> bits of the pixel value, as specified in the
+     * <a href="#index_values">class description</a> above, are used to
+     * calculate the returned value.
      * The returned value is in a non pre-multiplied format.
      * @param pixel the specified pixel 
      * @return the color and alpha components of the specified pixel
      * @see ColorModel#getRGBdefault
      */
     final public int getRGB(int pixel) {
-	return rgb[pixel];
+        return rgb[pixel & pixel_mask];
     }
 
     private static final int CACHESIZE = 40;
@@ -812,6 +862,11 @@ public class IndexColorModel extends ColorModel {
         int alpha = (rgb>>>24);
         int pix = 0;
 
+        // Note that pixels are stored at lookupcache[2*i]
+        // and the rgb that was searched is stored at
+        // lookupcache[2*i+1].  Also, the pixel is first
+        // inverted using the unary complement operator
+        // before storing in the cache so it can never be 0.
 	for (int i = CACHESIZE - 2; i >= 0; i -= 2) {
 	    if ((pix = lookupcache[i]) == 0) {
 		break;
@@ -822,6 +877,16 @@ public class IndexColorModel extends ColorModel {
 	}
 
 	if (allgrayopaque) {
+            // IndexColorModel objects are all tagged as
+            // non-premultiplied so ignore the alpha value
+            // of the incoming color, convert the
+            // non-premultiplied color components to a
+            // grayscale value and search for the closest
+            // gray value in the palette.  Since all colors
+            // in the palette are gray, we only need compare
+            // to one of the color components for a match
+            // using a simple linear distance formula.
+
 	    int minDist = 256;
 	    int d;
 	    int gray = (int) (red*77 + green*150 + blue*29 + 128)/256;
@@ -843,66 +908,98 @@ public class IndexColorModel extends ColorModel {
 		    minDist = d;
 		}
 	    }
-	} else if (alpha == 0) {
-            // Return transparent pixel if we have one
-            if (transparent_index >= 0) {
-                pix = transparent_index;
+	} else if (transparency == OPAQUE) {
+            // IndexColorModel objects are all tagged as
+            // non-premultiplied so ignore the alpha value
+            // of the incoming color and search for closest
+            // color match independently using a 3 component
+            // Euclidean distance formula.
+            // For opaque colormaps, palette entries are 0
+            // iff they are an invalid color and should be
+            // ignored during color searches.
+            // As an optimization, exact color searches are
+            // likely to be fairly common in opaque colormaps
+            // so first we will do a quick search for an
+            // exact match.
+
+            int smallestError = Integer.MAX_VALUE;
+            int lut[] = this.rgb;
+            int lutrgb;
+            for (int i=0; i < map_size; i++) {
+		lutrgb = lut[i];
+		if (lutrgb == rgb && lutrgb != 0) {
+		    pix = i;
+                    smallestError = 0;
+		    break;
+		}
             }
-            else {
-                // Search for smallest alpha
-		int smallestAlpha = 256;
-                for (int i = 0; i < map_size; i++) {
-		    int a = this.rgb[i] >>> 24;
-		    if (smallestAlpha > alpha &&
-			(validBits == null || validBits.testBit(i)))
-		    {
-			smallestAlpha = alpha;
-			pix = i;
+
+            if (smallestError != 0) {
+                for (int i=0; i < map_size; i++) {
+                    lutrgb = lut[i];
+                    if (lutrgb == 0) {
+                        continue;
+                    }
+
+                    int tmp = ((lutrgb >> 16) & 0xff) - red;
+                    int currentError = tmp*tmp;
+                    if (currentError < smallestError) {
+                        tmp = ((lutrgb >> 8) & 0xff) - green;
+                        currentError += tmp * tmp;
+                        if (currentError < smallestError) {
+                            tmp = (lutrgb & 0xff) - blue;
+                            currentError += tmp * tmp;
+                            if (currentError < smallestError) {
+                                pix = i;
+                                smallestError = currentError;
+                            }
+                        }
                     }
                 }
             }
-        } else {
-            // a heuristic which says find the closest color,
-            // after finding the closest alpha
-            // if user wants different behavior, they can derive
-            // a class and override this method
-            // SLOW --- but accurate
-            // REMIND - need a native implementation, and inverse color-map
-            int smallestError = 255 * 255 * 255;   // largest possible
-	    int smallestAlphaError = 255;
+	} else if (alpha == 0 && transparent_index >= 0) {
+            // Special case - transparent color maps to the
+            // specified transparent pixel, if there is one
 
-	    if (false && red == green && green == blue) {
-		// Grayscale
-	    }
+            pix = transparent_index;
+	} else {
+            // IndexColorModel objects are all tagged as
+            // non-premultiplied so use non-premultiplied
+            // color components in the distance calculations.
+            // Look for closest match using a 4 component
+            // Euclidean distance formula.
 
+            int smallestError = Integer.MAX_VALUE;
+            int lut[] = this.rgb;
             for (int i=0; i < map_size; i++) {
-		int lutrgb = this.rgb[i];
+		int lutrgb = lut[i];
 		if (lutrgb == rgb) {
+                    if (validBits != null && !validBits.testBit(i)) {
+                        continue;
+                    }
 		    pix = i;
 		    break;
 		}
-                int tmp = (lutrgb>>>24) - alpha;
-		if (tmp < 0) {
-		    tmp = -tmp;
-		}
-		if (tmp <= smallestAlphaError) {
-		    smallestAlphaError = tmp;
-		    tmp = ((lutrgb>>16) & 0xff) - red;
-		    int currentError = tmp * tmp;
-		    if (currentError < smallestError) {
-			tmp = ((lutrgb>>8) & 0xff) - green;
-			currentError += tmp * tmp;
-			if (currentError < smallestError) {
-			    tmp = (lutrgb & 0xff) - blue;
-			    currentError += tmp * tmp;
-			    if (currentError < smallestError &&
-				(validBits == null || validBits.testBit(i)))
-			    {
-				pix = i;
-				smallestError = currentError;
-			    }
-			}
-		    }
+
+                int tmp = ((lutrgb >> 16) & 0xff) - red;
+		int currentError = tmp*tmp;
+		if (currentError < smallestError) {
+                    tmp = ((lutrgb >> 8) & 0xff) - green;
+		    currentError += tmp * tmp;
+                    if (currentError < smallestError) {
+                        tmp = (lutrgb & 0xff) - blue;
+                        currentError += tmp * tmp;
+                        if (currentError < smallestError) {
+                            tmp = (lutrgb >>> 24) - alpha;
+                            currentError += tmp * tmp;
+                            if (currentError < smallestError &&
+                                (validBits == null || validBits.testBit(i)))
+                            {
+                                pix = i;
+                                smallestError = currentError;
+                            }
+                        }
+                    }
 		}
             }
         }
@@ -1289,6 +1386,10 @@ public class IndexColorModel extends ColorModel {
      * TYPE_INT_RGB that has a <code>Raster</code> with pixel data 
      * computed by expanding the indices in the source <code>Raster</code>
      * using the color/alpha component arrays of this <code>ColorModel</code>.
+     * Only the lower <em>n</em> bits of each index value in the source
+     * <code>Raster</code>, as specified in the
+     * <a href="#index_values">class description</a> above, are used to
+     * compute the color/alpha values in the returned image.
      * If <code>forceARGB</code> is <code>true</code>, a TYPE_INT_ARGB image is
      * returned regardless of whether or not this <code>ColorModel</code>
      * has an alpha component array or a transparent pixel.
@@ -1338,7 +1439,7 @@ public class IndexColorModel extends ColorModel {
                 data = DataBuffer.toIntArray(obj);
             }
             for (int x=0; x < w; x++) {
-                data[x] = rgb[data[x]];
+                data[x] = rgb[data[x] & pixel_mask];
             }
             discreteRaster.setDataElements(0, y, w, 1, data);
         }
@@ -1351,6 +1452,7 @@ public class IndexColorModel extends ColorModel {
      * @param pixel the specified pixel value
      * @return <code>true</code> if <code>pixel</code>
      * is valid; <code>false</code> otherwise.
+     * @since 1.3
      */
     public boolean isValid(int pixel) {
 	return ((pixel >= 0 && pixel < map_size) &&
@@ -1361,6 +1463,7 @@ public class IndexColorModel extends ColorModel {
      * Returns whether or not all of the pixels are valid.
      * @return <code>true</code> if all pixels are valid;
      * <code>false</code> otherwise.
+     * @since 1.3
      */
     public boolean isValid() {
         return (validBits == null);
@@ -1374,6 +1477,7 @@ public class IndexColorModel extends ColorModel {
      * The only valid ranges to query in the <code>BigInteger</code> are
      * between 0 and the map size.
      * @return a <code>BigInteger</code> indicating the valid/invalid pixels.
+     * @since 1.3
      */
     public BigInteger getValidPixels() {
         if (validBits == null) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TrAXFilter.java,v 1.8 2004/02/16 22:57:21 minchau Exp $
+ * $Id: TrAXFilter.java,v 1.2.4.1 2005/09/06 12:23:19 pvedula Exp $
  */
 
 
@@ -22,6 +22,7 @@ package com.sun.org.apache.xalan.internal.xsltc.trax;
 
 import java.io.IOException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -68,6 +69,14 @@ public class TrAXFilter extends XMLFilterImpl {
         try {
             SAXParserFactory pfactory = SAXParserFactory.newInstance();
             pfactory.setNamespaceAware(true);
+            
+            if (_transformer.isSecureProcessing()) {
+                try {
+                    pfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                }
+                catch (SAXException e) {}
+            }
+            
             SAXParser saxparser = pfactory.newSAXParser();
             parent = saxparser.getXMLReader();
         }

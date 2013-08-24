@@ -1,7 +1,7 @@
 /*
- * @(#)Relation.java	1.21 04/02/10
+ * @(#)Relation.java	1.26 05/12/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ public interface Relation {
      * <P>Checks if the role exists and is readable according to the relation
      * type.
      *
-     * @param theRoleName  name of role
+     * @param roleName  name of role
      *
      * @return the ArrayList of ObjectName objects being the role value
      *
@@ -51,7 +51,7 @@ public interface Relation {
      *
      * @see #setRole
      */
-    public List getRole(String theRoleName)
+    public List<ObjectName> getRole(String roleName)
 	throws IllegalArgumentException,
 	       RoleNotFoundException,
 	       RelationServiceNotRegisteredException;
@@ -61,7 +61,7 @@ public interface Relation {
      * <P>Checks for each role if it exists and is readable according to the
      * relation type.
      *
-     * @param theRoleNameArray  array of names of roles to be retrieved
+     * @param roleNameArray  array of names of roles to be retrieved
      *
      * @return a RoleResult object, including a RoleList (for roles
      * successfully retrieved) and a RoleUnresolvedList (for roles not
@@ -73,21 +73,21 @@ public interface Relation {
      *
      * @see #setRoles
      */
-    public RoleResult getRoles(String[] theRoleNameArray)
+    public RoleResult getRoles(String[] roleNameArray)
 	throws IllegalArgumentException,
 	       RelationServiceNotRegisteredException;
 
     /**
      * Returns the number of MBeans currently referenced in the given role.
      *
-     * @param theRoleName  name of role
+     * @param roleName  name of role
      *
      * @return the number of currently referenced MBeans in that role
      *
      * @exception IllegalArgumentException  if null role name
      * @exception RoleNotFoundException  if there is no role with given name
      */
-    public Integer getRoleCardinality(String theRoleName)
+    public Integer getRoleCardinality(String roleName)
 	throws IllegalArgumentException,
 	       RoleNotFoundException;
 
@@ -119,11 +119,12 @@ public interface Relation {
      * RELATION_BASIC_UPDATE or RELATION_MBEAN_UPDATE, depending if the
      * relation is a MBean or not).
      *
-     * @param theRole  role to be set (name and new value)
+     * @param role  role to be set (name and new value)
      *
      * @exception IllegalArgumentException  if null role
-     * @exception RoleNotFoundException  if the role is not writable (no
-     * test on the write access mode performed when initialising the role)
+     * @exception RoleNotFoundException  if there is no role with the supplied
+     * role's name or if the role is not writable (no test on the write access
+     * mode performed when initializing the role)
      * @exception InvalidRoleValueException  if value provided for
      * role is not valid, i.e.:
      * <P>- the number of referenced MBeans in given value is less than
@@ -142,7 +143,7 @@ public interface Relation {
      *
      * @see #getRole
      */
-    public void setRole(Role theRole)
+    public void setRole(Role role)
 	throws IllegalArgumentException,
 	       RoleNotFoundException,
 	       RelationTypeNotFoundException,
@@ -158,13 +159,13 @@ public interface Relation {
      * RELATION_BASIC_UPDATE or RELATION_MBEAN_UPDATE, depending if the
      * relation is a MBean or not) per updated role.
      *
-     * @param theRoleList  list of roles to be set
+     * @param roleList  list of roles to be set
      *
      * @return a RoleResult object, including a RoleList (for roles
      * successfully set) and a RoleUnresolvedList (for roles not
      * set).
      *
-     * @exception IllegalArgumentException  if null role name
+     * @exception IllegalArgumentException  if null role list
      * @exception RelationServiceNotRegisteredException  if the Relation
      * Service is not registered in the MBean Server
      * @exception RelationTypeNotFoundException  if the relation type has not
@@ -174,7 +175,7 @@ public interface Relation {
      *
      * @see #getRoles
      */
-    public RoleResult setRoles(RoleList theRoleList)
+    public RoleResult setRoles(RoleList roleList)
 	throws IllegalArgumentException,
 	       RelationServiceNotRegisteredException,
                RelationTypeNotFoundException,
@@ -190,8 +191,8 @@ public interface Relation {
      * (list of ObjectNames of referenced MBeans) without the unregistered
      * one.
      *
-     * @param theObjName  ObjectName of unregistered MBean
-     * @param theRoleName  name of role where the MBean is referenced
+     * @param objectName  ObjectName of unregistered MBean
+     * @param roleName  name of role where the MBean is referenced
      *
      * @exception IllegalArgumentException  if null parameter
      * @exception RoleNotFoundException  if role does not exist in the
@@ -206,8 +207,8 @@ public interface Relation {
      * @exception RelationNotFoundException  if this method is called for a
      * relation MBean not added in the Relation Service.
      */
-    public void handleMBeanUnregistration(ObjectName theObjName,
-					  String theRoleName)
+    public void handleMBeanUnregistration(ObjectName objectName,
+					  String roleName)
 	throws IllegalArgumentException,
                RoleNotFoundException,
                InvalidRoleValueException,
@@ -221,7 +222,7 @@ public interface Relation {
      * @return a HashMap mapping:
      * <P> ObjectName -> ArrayList of String (role names)
      */
-    public Map getReferencedMBeans();
+    public Map<ObjectName,List<String>> getReferencedMBeans();
 
     /**
      * Returns name of associated relation type.

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboBoxEditor.java	1.26 03/12/19
+ * @(#)BasicComboBoxEditor.java	1.28 06/05/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 /**
  * The default editor for editable combo boxes. The editor is implemented as a JTextField.
  *
- * @version 1.26 12/19/03
+ * @version 1.28 05/25/06
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -30,11 +30,23 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
     private Object oldValue;
 
     public BasicComboBoxEditor() {
-        editor = new BorderlessTextField("",9);
-        editor.setBorder(null);
+        editor = createEditorComponent();
     }
 
     public Component getEditorComponent() {
+        return editor;
+    }
+    
+    /**
+     * Creates the internal editor component. Override this to provide
+     * a custom implementation.
+     *
+     * @return a new editor component
+     * @since 1.6
+     */
+    protected JTextField createEditorComponent() {
+        JTextField editor = new BorderlessTextField("",9);
+        editor.setBorder(null);
         return editor;
     }
 
@@ -109,7 +121,11 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
             super.setText(s);
         }
 
-        public void setBorder(Border b) {}
+        public void setBorder(Border b) {
+            if (!(b instanceof UIResource)) {
+                super.setBorder(b);
+            }
+        }
     }
     
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)MetalToolBarUI.java	1.39 03/12/19
+ * @(#)MetalToolBarUI.java	1.42 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import javax.swing.plaf.basic.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.39 12/19/03
+ * @version 1.42 11/30/05
  * @author Jeff Shapiro
  */
 public class MetalToolBarUI extends BasicToolBarUI
@@ -64,6 +64,10 @@ public class MetalToolBarUI extends BasicToolBarUI
 
     private static Border nonRolloverBorder;
 
+    /**
+     * Last menubar the toolbar touched.  This is only useful for ocean.
+     */
+    private JMenuBar lastMenuBar;
 
     /**
      * Registers the specified component.
@@ -272,6 +276,9 @@ public class MetalToolBarUI extends BasicToolBarUI
      * @since 1.5
      */
     public void update(Graphics g, JComponent c) {
+        if (g == null) {
+            throw new NullPointerException("graphics must be non-null");
+        }
         if (c.isOpaque() && (c.getBackground() instanceof UIResource) &&
                             ((JToolBar)c).getOrientation() ==
                       JToolBar.HORIZONTAL && UIManager.get(
@@ -292,17 +299,36 @@ public class MetalToolBarUI extends BasicToolBarUI
                      MetalUtils.drawGradient(c, g, "MenuBar.gradient",
                      0, -mb.getHeight(), c.getWidth(), c.getHeight() +
                      mb.getHeight(), true)) {
+                    setLastMenuBar(mb);
                     paint(g, c);
                     return;
                 }
             }
             if (MetalUtils.drawGradient(c, g, "MenuBar.gradient",
                            0, 0, c.getWidth(), c.getHeight(), true)) {
+                setLastMenuBar(null);
                 paint(g, c);
                 return;
             }
         }
+        setLastMenuBar(null);
         super.update(g, c);
+    }
+
+    private void setLastMenuBar(JMenuBar lastMenuBar) {
+        if (MetalLookAndFeel.usingOcean()) {
+            if (this.lastMenuBar != lastMenuBar) {
+                // The menubar we previously touched has changed, force it
+                // to repaint.
+                if (this.lastMenuBar != null) {
+                    this.lastMenuBar.repaint();
+                }
+                if (lastMenuBar != null) {
+                    lastMenuBar.repaint();
+                }
+                this.lastMenuBar = lastMenuBar;
+            }
+        }
     }
 
     // No longer used. Cannot remove for compatibility reasons

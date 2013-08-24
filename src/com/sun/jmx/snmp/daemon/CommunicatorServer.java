@@ -1,10 +1,10 @@
 /*
  * @(#)file      CommunicatorServer.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.58
- * @(#)lastedit      04/02/19
+ * @(#)version   1.60
+ * @(#)lastedit      05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -19,7 +19,6 @@ package com.sun.jmx.snmp.daemon;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Date;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -41,6 +40,7 @@ import javax.management.MBeanServerFactory;
 // jmx RI import
 //
 import com.sun.jmx.trace.Trace;
+import java.util.NoSuchElementException;
 
 // JSR 160 import
 //
@@ -97,7 +97,7 @@ import javax.management.remote.MBeanServerForwarder;
  *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     1.58     02/19/04
+ * @version     1.60     11/17/05
  * @author      Sun Microsystems, Inc
  */
 
@@ -213,7 +213,8 @@ public abstract class CommunicatorServer
        be taken first.  */
     private transient Object stateLock = new Object();
 
-    private transient Vector clientHandlerVector = new Vector() ;
+    private transient Vector<ClientHandler> 
+            clientHandlerVector = new Vector<ClientHandler>() ;
 
     private transient Thread fatherThread = Thread.currentThread() ;
     private transient Thread mainThread = null ;
@@ -1008,10 +1009,24 @@ public abstract class CommunicatorServer
             }
         }
 
-        for (Enumeration e = clientHandlerVector.elements() ; 
-	     e.hasMoreElements();){
-            ClientHandler h = (ClientHandler)e.nextElement() ;
-            h.join() ;
+        // The ClientHandler will remove themselves from the 
+        // clientHandlerVector at the end of their run() method, by
+        // calling notifyClientHandlerDeleted().
+        // Since the clientHandlerVector is modified by the ClientHandler
+        // threads we must avoid using Enumeration or Iterator to loop
+        // over this array. We must also take care of NoSuchElementException
+        // which could be thrown if the last ClientHandler removes itself
+        // between the call to clientHandlerVector.isEmpty() and the call
+        // to clientHandlerVector.firstElement().
+        // What we *MUST NOT DO* is locking the clientHandlerVector, because
+        // this would most probably cause a deadlock.
+        //
+        while (! clientHandlerVector.isEmpty()) {
+            try {
+                clientHandlerVector.firstElement().join();
+            } catch (NoSuchElementException x) {
+                trace("waitClientTermination","No element left: " + x);
+            }
         }
 
         if (isTraceOn()) {  
@@ -1025,17 +1040,41 @@ public abstract class CommunicatorServer
      * Call <CODE>interrupt()</CODE> on each pending client.
      */
     private void terminateAllClient() {
-        int s = clientHandlerVector.size() ;
+        final int s = clientHandlerVector.size() ;
         if (isTraceOn()) {
             if (s >= 1) {
                 trace("terminateAllClient","Interrupting " + s + " clients") ;
             }
         }
     
-        for (Enumeration e = clientHandlerVector.elements() ; 
-	     e.hasMoreElements();){
-            ClientHandler h = (ClientHandler)e.nextElement() ;
-            h.interrupt() ;
+        // The ClientHandler will remove themselves from the 
+        // clientHandlerVector at the end of their run() method, by
+        // calling notifyClientHandlerDeleted().
+        // Since the clientHandlerVector is modified by the ClientHandler
+        // threads we must avoid using Enumeration or Iterator to loop
+        // over this array. 
+        // We cannot use the same logic here than in waitClientTermination()
+        // because there is no guarantee that calling interrupt() on the 
+        // ClientHandler will actually terminate the ClientHandler. 
+        // Since we do not want to wait for the actual ClientHandler 
+        // termination, we cannot simply loop over the array until it is 
+        // empty (this might result in calling interrupt() endlessly on
+        // the same client handler. So what we do is simply take a snapshot
+        // copy of the vector and loop over the copy.
+        // What we *MUST NOT DO* is locking the clientHandlerVector, because
+        // this would most probably cause a deadlock.
+        //
+        final  ClientHandler[] handlers = 
+                clientHandlerVector.toArray(new ClientHandler[0]);
+         for (ClientHandler h : handlers) {
+             try {
+                 h.interrupt() ;
+             } catch (Exception x) {
+                 if (isTraceOn())
+                    trace("terminateAllClient",
+                          "Failed to interrupt pending request: "+x+
+                          " - skiping");
+            }
         }
     }
 
@@ -1057,7 +1096,7 @@ public abstract class CommunicatorServer
 	state = OFFLINE;
         stopRequested = false;
         servedClientCount = 0;
-        clientHandlerVector = new Vector();
+        clientHandlerVector = new Vector<ClientHandler>();
 	fatherThread = Thread.currentThread();
 	mainThread = null;
 	notifCount = 0;

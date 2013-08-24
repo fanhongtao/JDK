@@ -1,13 +1,13 @@
 /*
- * @(#)WindowsLabelUI.java	1.18 03/12/19
+ * @(#)WindowsLabelUI.java	1.20 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.Color;
 import java.awt.Graphics;
 

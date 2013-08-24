@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IncrementalSAXSource_Xerces.java,v 1.15 2004/02/23 10:29:36 aruny Exp $
+ * $Id: IncrementalSAXSource_Xerces.java,v 1.2.4.1 2005/09/15 08:15:08 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.dtm.ref;
@@ -36,9 +36,9 @@ import org.xml.sax.XMLReader;
  * incremental mode is already a coroutine of sorts, and just wraps our
  * IncrementalSAXSource API around it.</p>
  *
- * <p>Usage example: See _main().</p>
+ * <p>Usage example: See main().</p>
  *
- * <p>Status: Passes simple _main() unit-test. NEEDS JAVADOC.</p>
+ * <p>Status: Passes simple main() unit-test. NEEDS JAVADOC.</p>
  * */
 public class IncrementalSAXSource_Xerces
   implements IncrementalSAXSource
@@ -355,10 +355,10 @@ public class IncrementalSAXSource_Xerces
 			return ((Boolean)ret).booleanValue();
 		}
 	}
-	
-	static final Object[] noparms=new Object[0]; // Would null work???
-	static final Object[] parmsfalse={Boolean.FALSE};
-	private boolean parseSome()
+//  Would null work???
+    private static final Object[] noparms=new Object[0];
+    private static final Object[] parmsfalse={Boolean.FALSE};
+    private boolean parseSome()
 		throws SAXException, IOException, IllegalAccessException,
 					 java.lang.reflect.InvocationTargetException
 	{

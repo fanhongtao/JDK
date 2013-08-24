@@ -1,7 +1,7 @@
 /*
- * @(#)ProtectionDomain.java	1.45 03/12/19
+ * @(#)ProtectionDomain.java	1.47 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -28,7 +28,7 @@ import sun.security.util.SecurityConstants;
  * is checked.
  * <p>
  * 
- * @version 	1.45, 12/19/03
+ * @version 	1.47, 11/17/05
  * @author Li Gong 
  * @author Roland Schemers
  * @author Gary Ellison
@@ -47,6 +47,9 @@ public class ProtectionDomain {
 
     /* the rights this protection domain is granted */
     private PermissionCollection permissions;
+
+    /* if the permissions object has AllPermission */
+    private boolean hasAllPerm = false;
 
     /* the PermissionCollection is static (pre 1.4 constructor)
        or dynamic (via a policy refresh) */
@@ -70,6 +73,10 @@ public class ProtectionDomain {
 	if (permissions != null) {
 	    this.permissions = permissions;
 	    this.permissions.setReadOnly();
+	    if (permissions instanceof Permissions &&
+		((Permissions)permissions).allPermission != null) {
+		hasAllPerm = true;
+	    }
 	}
 	this.classloader = null;
 	this.principals = new Principal[0];
@@ -113,6 +120,10 @@ public class ProtectionDomain {
 	if (permissions != null) {
 	    this.permissions = permissions;
 	    this.permissions.setReadOnly();
+	    if (permissions instanceof Permissions &&
+		((Permissions)permissions).allPermission != null) {
+		hasAllPerm = true;
+	    }
 	}
 	this.classloader = classloader;
 	this.principals = (principals != null ?
@@ -192,6 +203,13 @@ public class ProtectionDomain {
      * @return true if "permission" is implicit to this ProtectionDomain.
      */
     public boolean implies(Permission permission) {
+
+	if (hasAllPerm) {
+	    // internal permission collection already has AllPermission -
+	    // no need to go to policy
+	    return true;
+	}
+
 	if (!staticPermissions && 
 	    Policy.getPolicyNoCheck().implies(this, permission))
 	    return true;

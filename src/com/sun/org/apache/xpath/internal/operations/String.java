@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: String.java,v 1.7 2004/02/17 04:35:12 minchau Exp $
+ * $Id: String.java,v 1.2.4.1 2005/09/14 21:31:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -26,6 +26,7 @@ import com.sun.org.apache.xpath.internal.objects.XString;
  */
 public class String extends UnaryOperation
 {
+    static final long serialVersionUID = 2973374377453022888L;
 
   /**
    * Apply the operation to two operands, and return the result.

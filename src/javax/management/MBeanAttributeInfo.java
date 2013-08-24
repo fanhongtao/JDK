@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanAttributeInfo.java	1.36 03/12/19
+ * @(#)MBeanAttributeInfo.java	1.46 06/03/15
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,9 +9,10 @@ package javax.management;
 
 import java.lang.reflect.Method;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import com.sun.jmx.mbeanserver.GetPropertyAction;
+import com.sun.jmx.mbeanserver.Introspector;
+
 
 /**
  * Describes an MBean attribute exposed for management.  Instances of
@@ -20,7 +21,7 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  *
  * @since 1.5
  */
-public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Serializable, Cloneable  {
+public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
 
     /* Serial version */
     private static final long serialVersionUID;
@@ -36,8 +37,8 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Seri
 	*/
 	long uid = 8644704819898565848L;
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    if ("1.0".equals(form))
 		uid = 7043855487133450673L;
 	} catch (Exception e) {
@@ -79,32 +80,73 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Seri
      * @param isReadable True if the attribute has a getter method, false otherwise.
      * @param isWritable True if the attribute has a setter method, false otherwise.
      * @param isIs True if this attribute has an "is" getter, false otherwise.
+     *
+     * @throws IllegalArgumentException if {@code isIs} is true but
+     * {@code isReadable} is not, or if {@code isIs} is true and
+     * {@code type} is not {@code boolean} or {@code java.lang.Boolean}.
+     * (New code should always use {@code boolean} rather than
+     * {@code java.lang.Boolean}.)
      */
     public MBeanAttributeInfo(String name,
 			      String type,
 			      String description,
 			      boolean isReadable,
 			      boolean isWritable,
-			      boolean isIs)
-	    throws IllegalArgumentException {
-
-	super(name, description);
+			      boolean isIs) {
+        this(name, type, description, isReadable, isWritable, isIs,
+             (Descriptor) null);
+    }
+    
+    /**
+     * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
+     *
+     * @param name The name of the attribute.
+     * @param type The type or class name of the attribute.
+     * @param description A human readable description of the attribute.
+     * @param isReadable True if the attribute has a getter method, false otherwise.
+     * @param isWritable True if the attribute has a setter method, false otherwise.
+     * @param isIs True if this attribute has an "is" getter, false otherwise.
+     * @param descriptor The descriptor for the attribute.  This may be null
+     * which is equivalent to an empty descriptor.
+     *
+     * @throws IllegalArgumentException if {@code isIs} is true but
+     * {@code isReadable} is not, or if {@code isIs} is true and
+     * {@code type} is not {@code boolean} or {@code java.lang.Boolean}.
+     * (New code should always use {@code boolean} rather than
+     * {@code java.lang.Boolean}.)
+     *
+     * @since 1.6
+     */
+    public MBeanAttributeInfo(String name,
+			      String type,
+			      String description,
+			      boolean isReadable,
+			      boolean isWritable,
+			      boolean isIs,
+                              Descriptor descriptor) {
+        super(name, description, descriptor);
 
 	this.attributeType = type;
-	this.isRead= isReadable;
+	this.isRead = isReadable;
 	this.isWrite = isWritable;
 	if (isIs && !isReadable) {
-	    throw new IllegalArgumentException("Cannot have an \"is\" getter for a non-readable attribute.");
+	    throw new IllegalArgumentException("Cannot have an \"is\" getter " +
+                                               "for a non-readable attribute");
 	}
-	if (isIs && (!type.equals("java.lang.Boolean") && (!type.equals("boolean")))) {
-	    throw new IllegalArgumentException("Cannot have an \"is\" getter for a non-boolean attribute.");
+	if (isIs && !type.equals("java.lang.Boolean") &&
+                !type.equals("boolean")) {
+	    throw new IllegalArgumentException("Cannot have an \"is\" getter " +
+                                               "for a non-boolean attribute");
 	}
 	this.is = isIs;
     }
 
     /**
-     * This constructor takes the name of a simple attribute, and Method
-     * objects for reading and writing the attribute.
+     * <p>This constructor takes the name of a simple attribute, and Method
+     * objects for reading and writing the attribute.  The {@link Descriptor}
+     * of the constructed object will include fields contributed by any
+     * annotations on the {@code Method} objects that contain the
+     * {@link DescriptorKey} meta-annotation.
      *
      * @param name The programmatic name of the attribute.
      * @param description A human readable description of the attribute.
@@ -119,12 +161,14 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Seri
 			      String description,
 			      Method getter,
 			      Method setter) throws IntrospectionException {
-	this(name,
+        this(name,
 	     attributeType(getter, setter),
 	     description,
 	     (getter != null),
 	     (setter != null),
-	     isIs(getter));
+	     isIs(getter),
+             ImmutableDescriptor.union(Introspector.descriptorForElement(getter),
+                                   Introspector.descriptorForElement(setter)));
     }
 
     /**
@@ -139,7 +183,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Seri
      */
      public Object clone () {
 	 try {
-	     return  super.clone() ;
+	     return super.clone() ;
 	 } catch (CloneNotSupportedException e) {
 	     // should not happen as this class is cloneable
 	     return null;
@@ -182,12 +226,35 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Seri
 	return is;
     }
 
+    public String toString() {
+        String access;
+        if (isReadable()) {
+            if (isWritable())
+                access = "read/write";
+            else
+                access = "read-only";
+        } else if (isWritable())
+            access = "write-only";
+        else
+            access = "no-access";
+        
+        return
+            getClass().getName() + "[" +
+            "description=" + getDescription() + ", " +
+            "name=" + getName() + ", " +
+            "type=" + getType() + ", " +
+            access + ", " +
+            (isIs() ? "isIs, " : "") +
+            "descriptor=" + getDescriptor() +
+            "]";
+    }
+            
     /**
      * Compare this MBeanAttributeInfo to another.
      *
      * @param o the object to compare to.
      *
-     * @return true iff <code>o</code> is an MBeanAttributeInfo such
+     * @return true if and only if <code>o</code> is an MBeanAttributeInfo such
      * that its {@link #getName()}, {@link #getType()}, {@link
      * #getDescription()}, {@link #isReadable()}, {@link
      * #isWritable()}, and {@link #isIs()} values are equal (not
@@ -202,6 +269,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements java.io.Seri
 	return (p.getName().equals(getName()) &&
 		p.getType().equals(getType()) &&
 		p.getDescription().equals(getDescription()) &&
+                p.getDescriptor().equals(getDescriptor()) &&
 		p.isReadable() == isReadable() &&
 		p.isWritable() == isWritable() &&
 		p.isIs() == isIs());

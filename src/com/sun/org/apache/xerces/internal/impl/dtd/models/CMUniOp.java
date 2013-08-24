@@ -60,10 +60,11 @@ package com.sun.org.apache.xerces.internal.impl.dtd.models;
 import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
 
 /**
- *
  * Content model Uni-Op node.
+ * 
+ * @xerces.internal
  *
- * @version $Id: CMUniOp.java,v 1.2 2002/01/29 01:15:10 lehors Exp $
+* @version $Id: CMUniOp.java,v 1.1.2.1 2005/08/01 03:34:24 jeffsuttor Exp $
  */
 public class CMUniOp extends CMNode
 {

@@ -1,7 +1,7 @@
 /*
- * @(#)Integer.java	1.90 04/05/11
+ * @(#)Integer.java	1.92 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.90, 05/11/04
+ * @version 1.92, 04/07/06
  * @since JDK1.0
  */
 public final class Integer extends Number implements Comparable<Integer> {
@@ -876,7 +876,6 @@ public final class Integer extends Number implements Comparable<Integer> {
      * @exception NumberFormatException  if the <code>String</code> does not
      *            contain a parsable integer.
      * @see java.lang.Integer#parseInt(java.lang.String, int)
-     * @since 1.2
      */
     public static Integer decode(String nm) throws NumberFormatException {
         int radix = 10;

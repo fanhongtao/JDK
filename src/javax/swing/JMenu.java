@@ -1,7 +1,7 @@
 /*
- * @(#)JMenu.java	1.172 03/12/19
+ * @(#)JMenu.java	1.181 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,9 +52,23 @@ import java.lang.ref.WeakReference;
  * If the "button" is another menu item, then the <code>JPopupMenu</code> is
  * "pull-right" menu.
  * <p>
+ * Menus can be configured, and to some degree controlled, by 
+ * <code><a href="Action.html">Action</a></code>s.  Using an
+ * <code>Action</code> with a menu has many benefits beyond directly
+ * configuring a menu.  Refer to <a href="Action.html#buttonActions">
+ * Swing Components Supporting <code>Action</code></a> for more
+ * details, and you can find more information in <a
+ * href="http://java.sun.com/docs/books/tutorial/uiswing/misc/action.html">How
+ * to Use Actions</a>, a section in <em>The Java Tutorial</em>.
+ * <p>
  * For information and examples of using menus see
  * <a href="http://java.sun.com/doc/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
  * a section in <em>The Java Tutorial.</em>
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -69,7 +83,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.172 12/19/03
+ * @version 1.181 08/08/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -322,7 +336,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
                 getPopupMenu().setVisible(false);
             }
         }
-
     }
 
     /**
@@ -545,8 +558,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @return the <code>JMenuItem</code> added
      */
     public JMenuItem add(JMenuItem menuItem) {
-        AccessibleContext ac = menuItem.getAccessibleContext();
-        ac.setAccessibleParent(this);
         ensurePopupMenuCreated();
         return popupMenu.add(menuItem);
     }
@@ -559,12 +570,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @return the <code>Component</code> added
      */
     public Component add(Component c) {
- 	if (c instanceof JComponent) {	
-	    AccessibleContext ac = ((JComponent) c).getAccessibleContext();
-	    if (ac != null) {
-		ac.setAccessibleParent(this);
-	    }
-	}
         ensurePopupMenuCreated();
         popupMenu.add(c);
         return c;
@@ -581,12 +586,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @see java.awt.Container#add(Component, int)
      */
     public Component add(Component c, int index) {
- 	if (c instanceof JComponent) {	
-	    AccessibleContext ac = ((JComponent) c).getAccessibleContext();
-	    if (ac != null) {
-		ac.setAccessibleParent(this);
-	    }
-	}
         ensurePopupMenuCreated();
         popupMenu.add(c, index);
         return c;
@@ -605,12 +604,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Creates a new menu item attached to the specified 
      * <code>Action</code> object and appends it to the end of this menu.
-     * As of 1.3, this is no longer the preferred method for adding 
-     * <code>Actions</code> to
-     * a container. Instead it is recommended to configure a control with 
-     * an action using <code>setAction</code>,
-     * and then add that control directly 
-     * to the <code>Container</code>.
      *
      * @param a the <code>Action</code> for the menu item to be added
      * @see Action
@@ -625,11 +618,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
     /**
      * Factory method which creates the <code>JMenuItem</code> for 
      * <code>Action</code>s added to the <code>JMenu</code>.
-     * As of 1.3, this is no
-     * longer the preferred method. Instead it is recommended to configure
-     * a control with an action using <code>setAction</code>,
-     * and then adding that
-     * control directly to the <code>Container</code>.
      *
      * @param a the <code>Action</code> for the menu item to be added
      * @return the new menu item
@@ -638,8 +626,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
      * @since 1.3
      */
     protected JMenuItem createActionComponent(Action a) {
-        JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME),
-                                     (Icon)a.getValue(Action.SMALL_ICON)){
+        JMenuItem mi = new JMenuItem() {
 	    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
 		PropertyChangeListener pcl = createActionChangeListener(this);
 		if (pcl == null) {
@@ -650,60 +637,15 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 	};
         mi.setHorizontalTextPosition(JButton.TRAILING);
         mi.setVerticalTextPosition(JButton.CENTER);
-        mi.setEnabled(a.isEnabled());   
 	return mi;
     }
 
     /**
      * Returns a properly configured <code>PropertyChangeListener</code>
      * which updates the control as changes to the <code>Action</code> occur. 
-     * As of 1.3, this is no longer the preferred method for adding
-     * <code>Action</code>s to a <code>Container</code>.
-     * Instead it is recommended to configure a control with 
-     * an action using <code>setAction</code>, and then add that
-     * control directly 
-     * to the <code>Container</code>.
      */
     protected PropertyChangeListener createActionChangeListener(JMenuItem b) {
-        return new ActionChangedListener(b);
-    }
-
-    private class ActionChangedListener implements PropertyChangeListener {
-        WeakReference menuItem;
-        
-        ActionChangedListener(JMenuItem mi) {
-            super();
-	    setTarget(mi);
-        }
-        public void propertyChange(PropertyChangeEvent e) {
-            String propertyName = e.getPropertyName();
-            JMenuItem mi = (JMenuItem)getTarget();
-            if (mi == null) {
-                Action action = (Action)e.getSource();
-                action.removePropertyChangeListener(this);
-            } else {
-                if (propertyName.equals(Action.NAME)) {
-                    String text = (String) e.getNewValue();
-                    mi.setText(text);
-                } else if (propertyName.equals("enabled")) {
-                    Boolean enabledState = (Boolean) e.getNewValue();
-                    mi.setEnabled(enabledState.booleanValue());
-                } else if (propertyName.equals(Action.SMALL_ICON)) {
-                    Icon icon = (Icon) e.getNewValue();
-                    mi.setIcon(icon);
-                    mi.invalidate();
-                    mi.repaint();
-                } else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
-                    mi.setActionCommand((String)e.getNewValue());
-                }
-            }
-        }
-	public void setTarget(JMenuItem b) {
-	    menuItem = new WeakReference(b);
-	}
-        public JMenuItem getTarget() {
-            return (JMenuItem)menuItem.get();
-        }
+        return b.createActionPropertyChangeListener0(b.getAction());
     }
 
     /**
@@ -748,8 +690,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         if (pos < 0) {
             throw new IllegalArgumentException("index less than zero.");
         }
-        AccessibleContext ac = mi.getAccessibleContext();
-        ac.setAccessibleParent(this);
         ensurePopupMenuCreated();
         popupMenu.insert(mi, pos);
         return mi;
@@ -771,12 +711,9 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         }
 
         ensurePopupMenuCreated();
-        JMenuItem mi = new JMenuItem((String)a.getValue(Action.NAME),
-				     (Icon)a.getValue(Action.SMALL_ICON));
+        JMenuItem mi = new JMenuItem(a);
         mi.setHorizontalTextPosition(JButton.TRAILING);
         mi.setVerticalTextPosition(JButton.CENTER);
-        mi.setEnabled(a.isEnabled());   
-        mi.setAction(a);
         popupMenu.insert(mi, pos);
         return mi;
     }
@@ -1155,22 +1092,8 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         }
     }
 
-    /**
-     * Factory method which sets the <code>ActionEvent</code>
-     * source's properties according to values from the
-     * <code>Action</code> instance.  The properties 
-     * which are set may differ for subclasses.  By default,
-     * the properties which get set are <code>Text, Icon, Enabled,
-     * ToolTipText, ActionCommand</code>, and <code>Mnemonic</code>.
-     *
-     * @param a the <code>Action</code> from which to get the properties,
-     *		or <code>null</code>
-     * @since 1.4
-     * @see Action
-     * @see #setAction
-     */
-    protected void configurePropertiesFromAction(Action a) {
-        configurePropertiesFromAction(a, null);
+    // Overriden to do nothing, JMenu doesn't support an accelerator
+    void configureAcceleratorFromAction(Action a) {
     }
 
     class MenuChangeListener implements ChangeListener, Serializable {
@@ -1224,6 +1147,7 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         JPopupMenu popupMenu;
         /**
          *  Create the window listener for the specified popup.
+	 * @since 1.4
          */
         public WinListener(JPopupMenu p) {
             this.popupMenu = p;
@@ -1622,7 +1546,6 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
 		    MenuElement me[] = buildMenuElementArray((JMenu) mi);
 		    MenuSelectionManager.defaultManager().setSelectedPath(me);
 		} else {
-		    mi.doClick();
 		    MenuSelectionManager.defaultManager().setSelectedPath(null);
 	        }
 	    }

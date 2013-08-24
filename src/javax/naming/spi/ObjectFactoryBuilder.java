@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectFactoryBuilder.java	1.10 04/07/16
+ * @(#)ObjectFactoryBuilder.java	1.11 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.10 04/07/16
+  * @version 1.11 05/11/17
   *
   * @see ObjectFactory
   * @see NamingManager#getObjectInstance

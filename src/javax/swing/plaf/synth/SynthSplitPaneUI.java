@@ -1,7 +1,7 @@
 /*
- * @(#)SynthSplitPaneUI.java	1.15 03/12/19
+ * @(#)SynthSplitPaneUI.java	1.17 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's SplitPaneUI.
  *
- * @version 1.15, 12/19/03
+ * @version 1.17, 06/07/06
  * @author Scott Violet
  */
 class SynthSplitPaneUI extends BasicSplitPaneUI implements
@@ -79,7 +79,7 @@ class SynthSplitPaneUI extends BasicSplitPaneUI implements
 
 	// focus forward traversal key
 	if (managingFocusForwardTraversalKeys==null) {
-	    managingFocusForwardTraversalKeys = new TreeSet();
+	    managingFocusForwardTraversalKeys = new HashSet();
 	    managingFocusForwardTraversalKeys.add(
 		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0));
 	}
@@ -87,7 +87,7 @@ class SynthSplitPaneUI extends BasicSplitPaneUI implements
 					managingFocusForwardTraversalKeys);
 	// focus backward traversal key
 	if (managingFocusBackwardTraversalKeys==null) {
-	    managingFocusBackwardTraversalKeys = new TreeSet();
+	    managingFocusBackwardTraversalKeys = new HashSet();
 	    managingFocusBackwardTraversalKeys.add(
 		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK));
 	}

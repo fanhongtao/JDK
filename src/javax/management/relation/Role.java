@@ -1,7 +1,7 @@
 /*
- * @(#)Role.java	1.32 03/12/19
+ * @(#)Role.java	1.36 05/12/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,6 +29,8 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * ObjectNames). The role value is always represented as an ArrayList
  * collection (of ObjectNames) to homogenize the access.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-279985518429862552L</code>.
+ * 
  * @since 1.5
  */
 public class Role implements Serializable {
@@ -69,8 +71,8 @@ public class Role implements Serializable {
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -98,7 +100,7 @@ public class Role implements Serializable {
     /**
      * @serial {@link List} of {@link ObjectName}s of referenced MBeans
      */
-    private List objectNameList = new ArrayList();
+    private List<ObjectName> objectNameList = new ArrayList<ObjectName>();
 
     //
     // Constructors
@@ -110,22 +112,22 @@ public class Role implements Serializable {
      * an MBean server.  That check will be made when the role is set
      * in a relation.
      *
-     * @param theRoleName  role name
-     * @param theRoleValue  role value (List of ObjectName objects)
+     * @param roleName  role name
+     * @param roleValue  role value (List of ObjectName objects)
      *
      * @exception IllegalArgumentException  if null parameter
      */
-    public Role(String theRoleName,
-		List theRoleValue)
+    public Role(String roleName,
+		List<ObjectName> roleValue)
 	throws IllegalArgumentException {
 
-	if (theRoleName == null || theRoleValue == null) {
+	if (roleName == null || roleValue == null) {
 	    String excMsg = "Invalid parameter";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	setRoleName(theRoleName);
-	setRoleValue(theRoleValue);
+	setRoleName(roleName);
+	setRoleValue(roleValue);
 
 	return;
     }
@@ -152,52 +154,50 @@ public class Role implements Serializable {
      *
      * @see #setRoleValue
      */
-    public List getRoleValue() {
+    public List<ObjectName> getRoleValue() {
 	return objectNameList;
     }
 
     /**
      * Sets role name.
      *
-     * @param theRoleName  role name
+     * @param roleName  role name
      *
      * @exception IllegalArgumentException  if null parameter
      *
      * @see #getRoleName
      */
-    public void setRoleName(String theRoleName)
+    public void setRoleName(String roleName)
 	throws IllegalArgumentException {
 
-	if (theRoleName == null) {
-	    // Revisit [cebro] Localize message
+	if (roleName == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	name = theRoleName;
+	name = roleName;
 	return;
     }
 
     /**
      * Sets role value.
      *
-     * @param theRoleValue  List of ObjectName objects for referenced
+     * @param roleValue  List of ObjectName objects for referenced
      * MBeans.
      *
      * @exception IllegalArgumentException  if null parameter
      *
      * @see #getRoleValue
      */
-    public void setRoleValue(List theRoleValue)
+    public void setRoleValue(List<ObjectName> roleValue)
 	throws IllegalArgumentException {
 
-	if (theRoleValue == null) {
-	    // Revisit [cebro] Localize message
+	if (roleValue == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	objectNameList = new ArrayList(theRoleValue);
+	objectNameList = new ArrayList<ObjectName>(roleValue);
 	return;
     }
 
@@ -241,29 +241,26 @@ public class Role implements Serializable {
     /**
      * Returns a string for the given role value.
      *
-     * @param theRoleValue  List of ObjectName objects
+     * @param roleValue  List of ObjectName objects
      *
      * @return A String consisting of the ObjectNames separated by
      * newlines (\n).
      *
      * @exception IllegalArgumentException  if null parameter
      */
-    public static String roleValueToString(List theRoleValue)
+    public static String roleValueToString(List<ObjectName> roleValue)
 	throws IllegalArgumentException {
 
-	if (theRoleValue == null) {
+	if (roleValue == null) {
 	    String excMsg = "Invalid parameter";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	StringBuffer result = new StringBuffer();
-	for (Iterator objNameIter = theRoleValue.iterator();
-	     objNameIter.hasNext();) {
-	    ObjectName currObjName = (ObjectName)(objNameIter.next());
-	    result.append(currObjName.toString());
-	    if (objNameIter.hasNext()) {
+	StringBuilder result = new StringBuilder();
+	for (ObjectName currObjName : roleValue) {
+	    if (result.length() > 0)
 		result.append("\n");
-	    }
+	    result.append(currObjName.toString());
 	}
 	return result.toString();
     }
@@ -283,7 +280,7 @@ public class Role implements Serializable {
         {
           throw new NullPointerException("myName");
         }
-	objectNameList = (List) fields.get("myObjNameList", null);
+	objectNameList = (List<ObjectName>) fields.get("myObjNameList", null);
 	if (fields.defaulted("myObjNameList"))
         {
           throw new NullPointerException("myObjNameList");

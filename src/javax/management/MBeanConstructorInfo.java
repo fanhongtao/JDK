@@ -1,12 +1,14 @@
 /*
- * @(#)MBeanConstructorInfo.java	1.28 03/12/19
+ * @(#)MBeanConstructorInfo.java	1.37 06/03/15
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management;
 
+import com.sun.jmx.mbeanserver.Introspector;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 
@@ -17,7 +19,7 @@ import java.util.Arrays;
  *
  * @since 1.5
  */
-public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Serializable, Cloneable  { 
+public class MBeanConstructorInfo extends MBeanFeatureInfo implements Cloneable {
 
     /* Serial version */
     static final long serialVersionUID = 4433990064191844427L;
@@ -25,8 +27,8 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
     static final MBeanConstructorInfo[] NO_CONSTRUCTORS =
 	new MBeanConstructorInfo[0];
 
-    /** @see MBeanInfo#immutable */
-    private final transient boolean immutable;
+    /** @see MBeanInfo#arrayGettersSafe */
+    private final transient boolean arrayGettersSafe;
 
     /**
      * @serial The signature of the method, that is, the class names of the arguments.
@@ -34,7 +36,11 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
     private final MBeanParameterInfo[] signature;
 
     /**
-     * Constructs an <CODE>MBeanConstructorInfo</CODE> object.
+     * Constructs an <CODE>MBeanConstructorInfo</CODE> object.  The
+     * {@link Descriptor} of the constructed object will include
+     * fields contributed by any annotations on the {@code
+     * Constructor} object that contain the {@link DescriptorKey}
+     * meta-annotation.
      *
      * @param description A human readable description of the operation.
      * @param constructor The <CODE>java.lang.reflect.Constructor</CODE>
@@ -42,7 +48,8 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
      */
     public MBeanConstructorInfo(String description, Constructor constructor) {
 	this(constructor.getName(), description,
-	     constructorSignature(constructor));
+	     constructorSignature(constructor),
+             Introspector.descriptorForElement(constructor));
     }
 
     /**
@@ -56,18 +63,36 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
      */
     public MBeanConstructorInfo(String name, 
 				String description,
-				MBeanParameterInfo[] signature)
-	    throws IllegalArgumentException {
-	super(name, description);
+				MBeanParameterInfo[] signature) {
+        this(name, description, signature, null);
+    }
 
+    /**
+     * Constructs an <CODE>MBeanConstructorInfo</CODE> object.
+     *
+     * @param name The name of the constructor.
+     * @param signature <CODE>MBeanParameterInfo</CODE> objects
+     * describing the parameters(arguments) of the constructor.  This
+     * may be null with the same effect as a zero-length array.
+     * @param description A human readable description of the constructor.
+     * @param descriptor The descriptor for the constructor.  This may be null
+     * which is equivalent to an empty descriptor.
+     *
+     * @since 1.6
+     */
+    public MBeanConstructorInfo(String name, 
+				String description,
+				MBeanParameterInfo[] signature,
+                                Descriptor descriptor) {
+	super(name, description, descriptor);
 
 	if (signature == null || signature.length == 0)
 	    signature = MBeanParameterInfo.NO_PARAMS;
 	else
 	    signature = (MBeanParameterInfo[]) signature.clone();
 	this.signature = signature;
-	this.immutable =
-	    MBeanInfo.isImmutableClass(this.getClass(),
+	this.arrayGettersSafe =
+	    MBeanInfo.arrayGettersSafe(this.getClass(),
 				       MBeanConstructorInfo.class);
     }
 
@@ -84,7 +109,7 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
      */
      public Object clone () {
 	 try {
-	     return  super.clone() ;
+	     return super.clone() ;
 	 } catch (CloneNotSupportedException e) {
 	     // should not happen as this class is cloneable
 	     return null;
@@ -112,20 +137,31 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
     }
 
     private MBeanParameterInfo[] fastGetSignature() {
-	if (immutable)
+	if (arrayGettersSafe)
 	    return signature;
 	else
 	    return getSignature();
     }
 
+    public String toString() {
+        return
+            getClass().getName() + "[" +
+            "description=" + getDescription() + ", " +
+            "name=" + getName() + ", " +
+            "signature=" + Arrays.asList(fastGetSignature()) + ", " +
+            "descriptor=" + getDescriptor() +
+            "]";
+    }
+    
     /**
      * Compare this MBeanConstructorInfo to another.
      *
      * @param o the object to compare to.
      *
-     * @return true iff <code>o</code> is an MBeanConstructorInfo such
-     * that its {@link #getName()}, {@link #getDescription()}, and
-     * {@link #getSignature()} values are equal (not necessarily
+     * @return true if and only if <code>o</code> is an MBeanConstructorInfo such
+     * that its {@link #getName()}, {@link #getDescription()},
+     * {@link #getSignature()}, and {@link #getDescriptor()}
+     * values are equal (not necessarily
      * identical) to those of this MBeanConstructorInfo.  Two
      * signature arrays are equal if their elements are pairwise
      * equal.
@@ -138,14 +174,16 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
 	MBeanConstructorInfo p = (MBeanConstructorInfo) o;
 	return (p.getName().equals(getName()) &&
 		p.getDescription().equals(getDescription()) &&
-		Arrays.equals(p.fastGetSignature(), fastGetSignature()));
+		Arrays.equals(p.fastGetSignature(), fastGetSignature()) &&
+                p.getDescriptor().equals(getDescriptor()));
     }
 
     /* Unlike attributes and operations, it's quite likely we'll have
        more than one constructor with the same name and even
        description, so we include the parameter array in the hashcode.
        We don't include the description, though, because it could be
-       quite long and yet the same between constructors.  */
+       quite long and yet the same between constructors.  Likewise for
+       the descriptor.  */
     public int hashCode() {
 	int hash = getName().hashCode();
 	MBeanParameterInfo[] sig = fastGetSignature();
@@ -156,14 +194,7 @@ public class MBeanConstructorInfo extends MBeanFeatureInfo implements java.io.Se
 
     private static MBeanParameterInfo[] constructorSignature(Constructor cn) {
 	final Class[] classes = cn.getParameterTypes();
-	final MBeanParameterInfo[] params =
-	    new MBeanParameterInfo[classes.length];
-
-	for (int i = 0; i < classes.length; i++) {
-	    final String pn = "p" + (i + 1);
-	    params[i] = new MBeanParameterInfo(pn, classes[i].getName(), "");
-	}
-
-	return params;
+        final Annotation[][] annots = cn.getParameterAnnotations();
+        return MBeanOperationInfo.parameters(classes, annots);
     }
 }

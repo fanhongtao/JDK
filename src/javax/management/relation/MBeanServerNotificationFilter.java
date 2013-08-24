@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanServerNotificationFilter.java	1.33 04/02/10
+ * @(#)MBeanServerNotificationFilter.java	1.37 05/12/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,6 +32,8 @@ import com.sun.jmx.trace.Trace;
  * unregistration, both) of interest (corresponding to notification
  * types).
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>2605900539589789736L</code>.
+ * 
  * @since 1.5
  */
 public class MBeanServerNotificationFilter extends NotificationFilterSupport {
@@ -82,8 +84,8 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -111,7 +113,7 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      *         <li>Empty vector means that no {@link ObjectName} is explicitly selected</li>
      *         </ul>
      */
-    private List selectedNames = new Vector();
+    private List<ObjectName> selectedNames = new Vector<ObjectName>();
 
     /**
      * @serial List of {@link ObjectName}s with no interest
@@ -121,7 +123,7 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      *         <li>Empty vector means that no {@link ObjectName} is explicitly deselected</li>
      *         </ul>
      */
-    private List deselectedNames = null;
+    private List<ObjectName> deselectedNames = null;
   
     //
     // Constructor
@@ -159,7 +161,7 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
         if (isTraceOn())
             trace("disableAllObjectNames: entering", null);
 
-	selectedNames = new Vector();
+	selectedNames = new Vector<ObjectName>();
 	deselectedNames = null;
 
         if (isTraceOn())
@@ -170,35 +172,34 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
     /**
      * Disables MBeanServerNotifications concerning given ObjectName.
      *
-     * @param theObjName  ObjectName no longer of interest
+     * @param objectName  ObjectName no longer of interest
      *
      * @exception IllegalArgumentException  if the given ObjectName is null
      */
-    public synchronized void disableObjectName(ObjectName theObjName)
+    public synchronized void disableObjectName(ObjectName objectName)
 	throws IllegalArgumentException {
 
-	if (theObjName == null) {
-	    // Revisit [cebro] Localize message
+	if (objectName == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isTraceOn())
-            trace("disableObjectName: entering", theObjName.toString());
+            trace("disableObjectName: entering", objectName.toString());
 
 	// Removes from selected ObjectNames, if present
 	if (selectedNames != null) {
 	    if (selectedNames.size() != 0) {
-		selectedNames.remove(theObjName);
+		selectedNames.remove(objectName);
 	    }
 	}
 
 	// Adds it in deselected ObjectNames
 	if (deselectedNames != null) {
 	    // If all are deselected, no need to do anything :)
-	    if (!(deselectedNames.contains(theObjName))) {
+	    if (!(deselectedNames.contains(objectName))) {
 		// ObjectName was not already deselected
-		deselectedNames.add(theObjName);
+		deselectedNames.add(objectName);
 	    }
 	}
 
@@ -216,7 +217,7 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
             trace("enableAllObjectNames: entering", null);
 
     	selectedNames = null;
-	deselectedNames = new Vector();
+	deselectedNames = new Vector<ObjectName>();
 
         if (isTraceOn())
             trace("enableAllObjectNames: exiting", null);
@@ -226,35 +227,34 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
     /**
      * Enables MBeanServerNotifications concerning given ObjectName.
      *
-     * @param theObjName  ObjectName of interest
+     * @param objectName  ObjectName of interest
      *
      * @exception IllegalArgumentException  if the given ObjectName is null
      */
-    public synchronized void enableObjectName(ObjectName theObjName)
+    public synchronized void enableObjectName(ObjectName objectName)
 	throws IllegalArgumentException {
 
-	if (theObjName == null) {
-	    // Revisit [cebro] Localize message
+	if (objectName == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isTraceOn())
-            trace("enableObjectName: entering", theObjName.toString());
+            trace("enableObjectName: entering", objectName.toString());
 
 	// Removes from deselected ObjectNames, if present
 	if (deselectedNames != null) {
 	    if (deselectedNames.size() != 0) {
-		deselectedNames.remove(theObjName);
+		deselectedNames.remove(objectName);
 	    }
 	}
 
 	// Adds it in selected ObjectNames
 	if (selectedNames != null) {
 	    // If all are selected, no need to do anything :)
-	    if (!(selectedNames.contains(theObjName))) {
+	    if (!(selectedNames.contains(objectName))) {
 		// ObjectName was not already selected
-		selectedNames.add(theObjName);
+		selectedNames.add(objectName);
 	    }
 	}
 
@@ -272,9 +272,9 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * <P>- empty means all ObjectNames are deselected, i.e. no ObjectName
      * selected.
      */
-    public synchronized Vector getEnabledObjectNames() {
+    public synchronized Vector<ObjectName> getEnabledObjectNames() {
 	if (selectedNames != null) {
-	    return (Vector)((Vector)selectedNames).clone();
+	    return new Vector<ObjectName>(selectedNames);
 	} else {
 	    return null;
 	}
@@ -289,9 +289,9 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * <P>- empty means all ObjectNames are selected, i.e. no ObjectName
      * deselected.
      */
-    public synchronized Vector getDisabledObjectNames() {
+    public synchronized Vector<ObjectName> getDisabledObjectNames() {
 	if (deselectedNames != null) {
-	    return (Vector)((Vector)deselectedNames).clone();
+	    return new Vector<ObjectName>(deselectedNames);
 	} else {
 	    return null;
 	}
@@ -311,27 +311,26 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * selected
      * <P>then the notification is sent to the listener.
      *
-     * @param theNtf  The notification to be sent.
+     * @param notif  The notification to be sent.
      *
      * @return true if the notification has to be sent to the listener, false
      * otherwise.
      *
      * @exception IllegalArgumentException  if null parameter
      */
-    public synchronized boolean isNotificationEnabled(Notification theNtf)
+    public synchronized boolean isNotificationEnabled(Notification notif)
 	throws IllegalArgumentException {
 
-	if (theNtf == null) {
-	    // Revisit [cebro] Localize message
+	if (notif == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isTraceOn())
-            trace("isNotificationEnabled: entering", theNtf.toString());
+            trace("isNotificationEnabled: entering", notif.toString());
 
 	// Checks the type first
-	String ntfType = theNtf.getType();
+	String ntfType = notif.getType();
 	Vector enabledTypes = getEnabledTypes();
 	if (!(enabledTypes.contains(ntfType))) {
 
@@ -341,7 +340,7 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
 	}
 
 	// We have a MBeanServerNotification: downcasts it
-	MBeanServerNotification mbsNtf = (MBeanServerNotification)theNtf;
+	MBeanServerNotification mbsNtf = (MBeanServerNotification)notif;
 
 	// Checks the ObjectName
 	ObjectName objName = mbsNtf.getMBeanName();
@@ -447,12 +446,14 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
         // Read an object serialized in the old serial form
         //
         ObjectInputStream.GetField fields = in.readFields();
-	selectedNames = (List) fields.get("mySelectObjNameList", null);
+	selectedNames =
+	    (List<ObjectName>) fields.get("mySelectObjNameList", null);
 	if (fields.defaulted("mySelectObjNameList"))
         {
           throw new NullPointerException("mySelectObjNameList");
         }
-	deselectedNames = (List) fields.get("myDeselectObjNameList", null);
+	deselectedNames =
+	    (List<ObjectName>) fields.get("myDeselectObjNameList", null);
 	if (fields.defaulted("myDeselectObjNameList"))
         {
           throw new NullPointerException("myDeselectObjNameList");

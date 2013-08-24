@@ -1,7 +1,7 @@
 /*
  * @(#)JPEGImageWriter.java	1.33 03/10/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -330,9 +330,30 @@ public class JPEGImageWriter extends ImageWriter {
         } else {
             rimage = image.getRenderedImage();
             if (rimage instanceof BufferedImage) {
+                // Use the Raster directly.
                 srcRas = ((BufferedImage)rimage).getRaster();
+            } else if (rimage.getNumXTiles() == 1 &&
+                       rimage.getNumYTiles() == 1)
+            {
+                // Get the unique tile.
+                srcRas = rimage.getTile(rimage.getMinTileX(),
+                                        rimage.getMinTileY());
+
+                // Ensure the Raster has dimensions of the image,
+                // as the tile dimensions might differ.
+                if (srcRas.getWidth() != rimage.getWidth() ||
+                    srcRas.getHeight() != rimage.getHeight())
+                {
+                    srcRas = srcRas.createChild(srcRas.getMinX(),
+                                                srcRas.getMinY(),
+                                                rimage.getWidth(),
+                                                rimage.getHeight(),
+                                                srcRas.getMinX(),
+                                                srcRas.getMinY(),
+                                                null);
+                }
             } else {
-                // XXX - this makes a copy, which is memory-inefficient
+                // Image is tiled so get a contiguous raster by copying.
                 srcRas = rimage.getData();
             }
         }
@@ -607,7 +628,11 @@ public class JPEGImageWriter extends ImageWriter {
                         newAdobeTransform = transform;
                     }
                 }
+                // re-create the metadata
+                metadata = new JPEGMetadata(destType, null, this);
             }
+            inCsType = getSrcCSType(destType);
+            outCsType = getDefaultDestCSType(destType);
         } else { // no destination type
             if (metadata == null) {
                 if (fullImage) {  // no dest, no metadata, full image
@@ -1344,10 +1369,17 @@ public class JPEGImageWriter extends ImageWriter {
     /////////// End of metadata handling
 
     ////////////// ColorSpace conversion
-    
+
+    private int getSrcCSType(ImageTypeSpecifier type) {
+         return getSrcCSType(type.getColorModel());
+    }
+
     private int getSrcCSType(RenderedImage rimage) {
+        return getSrcCSType(rimage.getColorModel());
+    }
+    
+    private int getSrcCSType(ColorModel cm) {
         int retval = JPEG.JCS_UNKNOWN;
-        ColorModel cm = rimage.getColorModel();
         if (cm != null) {
             boolean alpha = cm.hasAlpha();
             ColorSpace cs = cm.getColorSpace();
@@ -1423,9 +1455,16 @@ public class JPEGImageWriter extends ImageWriter {
         return retval;
         }
 
+    private int getDefaultDestCSType(ImageTypeSpecifier type) {
+        return getDefaultDestCSType(type.getColorModel());
+    }
+
     private int getDefaultDestCSType(RenderedImage rimage) {
+        return getDefaultDestCSType(rimage.getColorModel());
+    }
+    
+    private int getDefaultDestCSType(ColorModel cm) {
         int retval = JPEG.JCS_UNKNOWN;
-        ColorModel cm = rimage.getColorModel();
         if (cm != null) {
             boolean alpha = cm.hasAlpha();
             ColorSpace cs = cm.getColorSpace();
@@ -1626,7 +1665,7 @@ public class JPEGImageWriter extends ImageWriter {
     /** Releases native structures */
     private static native void disposeWriter(long structPointer);
 
-    private static class JPEGWriterDisposerRecord extends DisposerRecord {
+    private static class JPEGWriterDisposerRecord implements DisposerRecord {
         private long pData;
 
         public JPEGWriterDisposerRecord(long pData) {

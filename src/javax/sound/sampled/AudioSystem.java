@@ -1,7 +1,7 @@
 /*
- * @(#)AudioSystem.java	1.81 04/07/14
+ * @(#)AudioSystem.java	1.83 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -139,7 +139,7 @@ import com.sun.media.sound.JDK13Services;
  * @author Florian Bomers
  * @author Matthias Pfisterer
  * @author Kevin P. Smith
- * @version 1.81, 04/07/14
+ * @version 1.83, 06/04/07
  *
  * @see AudioFormat
  * @see AudioInputStream
@@ -474,7 +474,7 @@ public class AudioSystem {
      * <code>open(AudioInputStream)</code> method.
      *
      * <p>This is a high-level method that uses <code>getMixer</code>
-     * and <getLine</code> internally.
+     * and <code>getLine</code> internally.
      *
      * <p>If the system property
      * <code>javax.sound.sampled.Clip</code>
@@ -513,7 +513,7 @@ public class AudioSystem {
      * <code>open(AudioInputStream)</code> method.
      *
      * <p>This is a high-level method that uses <code>getMixer</code>
-     * and <getLine</code> internally.
+     * and <code>getLine</code> internally.
      *
      * @param mixerInfo a <code>Mixer.Info</code> object representing the
      * desired mixer, or <code>null</code> for the system default mixer
@@ -554,7 +554,7 @@ public class AudioSystem {
      * <code>open(AudioFormat, int)</code> method.
      *
      * <p>This is a high-level method that uses <code>getMixer</code>
-     * and <getLine</code> internally.
+     * and <code>getLine</code> internally.
      *
      * <p>The returned <code>SourceDataLine</code>'s default
      * audio format will be initialized with <code>format</code>.
@@ -599,7 +599,7 @@ public class AudioSystem {
      * <code>open(AudioFormat, int)</code> method.
      *
      * <p>This is a high-level method that uses <code>getMixer</code>
-     * and <getLine</code> internally.
+     * and <code>getLine</code> internally.
      *
      * <p>The returned <code>SourceDataLine</code>'s default
      * audio format will be initialized with <code>format</code>.
@@ -648,7 +648,7 @@ public class AudioSystem {
      * <code>open(AudioFormat, int)</code> method.
      *
      * <p>This is a high-level method that uses <code>getMixer</code>
-     * and <getLine</code> internally.
+     * and <code>getLine</code> internally.
      *
      * <p>The returned <code>TargetDataLine</code>'s default
      * audio format will be initialized with <code>format</code>.
@@ -690,7 +690,7 @@ public class AudioSystem {
      * <code>open(AudioFormat, int)</code> method.
      *
      * <p>This is a high-level method that uses <code>getMixer</code>
-     * and <getLine</code> internally.
+     * and <code>getLine</code> internally.
      *
      * <p>The returned <code>TargetDataLine</code>'s default
      * audio format will be initialized with <code>format</code>.

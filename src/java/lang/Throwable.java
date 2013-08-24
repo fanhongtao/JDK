@@ -1,7 +1,7 @@
 /*
- * @(#)Throwable.java	1.53 03/12/19
+ * @(#)Throwable.java	1.56 06/03/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,13 +15,13 @@ import  java.io.*;
  * can be thrown by the Java <code>throw</code> statement. Similarly, only
  * this class or one of its subclasses can be the argument type in a
  * <code>catch</code> clause.
- * 
- * <p>Instances of two subclasses, {@link java.lang.Error} and 
- * {@link java.lang.Exception}, are conventionally used to indicate 
- * that exceptional situations have occurred. Typically, these instances 
- * are freshly created in the context of the exceptional situation so 
+ *
+ * <p>Instances of two subclasses, {@link java.lang.Error} and
+ * {@link java.lang.Exception}, are conventionally used to indicate
+ * that exceptional situations have occurred. Typically, these instances
+ * are freshly created in the context of the exceptional situation so
  * as to include relevant information (such as stack trace data).
- * 
+ *
  * <p>A throwable contains a snapshot of the execution stack of its thread at
  * the time it was created. It can also contain a message string that gives
  * more information about the error. Finally, it can contain a <i>cause</i>:
@@ -49,7 +49,7 @@ import  java.io.*;
  * permit the method to throw the cause directly.  For example, suppose
  * a persistent collection conforms to the {@link java.util.Collection
  * Collection} interface, and that its persistence is implemented atop
- * <tt>java.io</tt>.  Suppose the internals of the <tt>put</tt> method 
+ * <tt>java.io</tt>.  Suppose the internals of the <tt>add</tt> method
  * can throw an {@link java.io.IOException IOException}.  The implementation
  * can communicate the details of the <tt>IOException</tt> to its caller
  * while conforming to the <tt>Collection</tt> interface by wrapping the
@@ -87,13 +87,13 @@ import  java.io.*;
  * non-standard exception chaining mechanisms (
  * {@link ExceptionInInitializerError}, {@link ClassNotFoundException},
  * {@link java.lang.reflect.UndeclaredThrowableException},
- * {@link java.lang.reflect.InvocationTargetException}, 
+ * {@link java.lang.reflect.InvocationTargetException},
  * {@link java.io.WriteAbortedException},
  * {@link java.security.PrivilegedActionException},
  * {@link java.awt.print.PrinterIOException},
  * {@link java.rmi.RemoteException} and
  * {@link javax.naming.NamingException}).
- * All of these throwables have been retrofitted to 
+ * All of these throwables have been retrofitted to
  * use the standard exception chaining mechanism, while continuing to
  * implement their "legacy" chaining mechanisms for compatibility.
  *
@@ -103,7 +103,7 @@ import  java.io.*;
  * a cause.  This was not strictly necessary, due to the existence of the
  * <tt>initCause</tt> method, but it is more convenient and expressive to
  * delegate to a constructor that takes a cause.
- * 
+ *
  * <p>By convention, class <code>Throwable</code> and its subclasses have two
  * constructors, one that takes no arguments and one that takes a
  * <code>String</code> argument that can be used to produce a detail message.
@@ -124,7 +124,7 @@ import  java.io.*;
  * @author  unascribed
  * @author  Josh Bloch (Added exception chaining and programmatic access to
  *          stack trace in 1.4.)
- * @version 1.53, 12/19/03
+ * @version 1.56, 03/07/06
  * @since JDK1.0
  */
 public class Throwable implements Serializable {
@@ -134,7 +134,7 @@ public class Throwable implements Serializable {
     /**
      * Native code saves some indication of the stack backtrace in this slot.
      */
-    private transient Object backtrace; 
+    private transient Object backtrace;
 
     /**
      * Specific details about the Throwable.  For example, for
@@ -189,7 +189,7 @@ public class Throwable implements Serializable {
      * <p>The {@link #fillInStackTrace()} method is called to initialize
      * the stack trace data in the newly created throwable.
      *
-     * @param   message   the detail message. The detail message is saved for 
+     * @param   message   the detail message. The detail message is saved for
      *          later retrieval by the {@link #getMessage()} method.
      */
     public Throwable(String message) {
@@ -293,9 +293,9 @@ public class Throwable implements Serializable {
 
     /**
      * Initializes the <i>cause</i> of this throwable to the specified value.
-     * (The cause is the throwable that caused this throwable to get thrown.) 
+     * (The cause is the throwable that caused this throwable to get thrown.)
      *
-     * <p>This method can be called at most once.  It is generally called from 
+     * <p>This method can be called at most once.  It is generally called from
      * within the constructor, or immediately after creating the
      * throwable.  If this throwable was created
      * with {@link #Throwable(Throwable)} or
@@ -326,16 +326,15 @@ public class Throwable implements Serializable {
 
     /**
      * Returns a short description of this throwable.
-     * If this <code>Throwable</code> object was created with a non-null detail
-     * message string, then the result is the concatenation of three strings: 
+     * The result is the concatenation of:
      * <ul>
-     * <li>The name of the actual class of this object 
-     * <li>": " (a colon and a space)
-     * <li>The result of the {@link #getMessage} method for this object 
+     * <li> the {@linkplain Class#getName() name} of the class of this object
+     * <li> ": " (a colon and a space)
+     * <li> the result of invoking this object's {@link #getLocalizedMessage}
+     *      method
      * </ul>
-     * If this <code>Throwable</code> object was created with a <tt>null</tt>
-     * detail message string, then the name of the actual class of this object
-     * is returned. 
+     * If <tt>getLocalizedMessage</tt> returns <tt>null</tt>, then just
+     * the class name is returned.
      *
      * @return a string representation of this throwable.
      */
@@ -346,22 +345,22 @@ public class Throwable implements Serializable {
     }
 
     /**
-     * Prints this throwable and its backtrace to the 
-     * standard error stream. This method prints a stack trace for this 
-     * <code>Throwable</code> object on the error output stream that is 
-     * the value of the field <code>System.err</code>. The first line of 
-     * output contains the result of the {@link #toString()} method for 
-     * this object.  Remaining lines represent data previously recorded by 
-     * the method {@link #fillInStackTrace()}. The format of this 
-     * information depends on the implementation, but the following 
-     * example may be regarded as typical: 
+     * Prints this throwable and its backtrace to the
+     * standard error stream. This method prints a stack trace for this
+     * <code>Throwable</code> object on the error output stream that is
+     * the value of the field <code>System.err</code>. The first line of
+     * output contains the result of the {@link #toString()} method for
+     * this object.  Remaining lines represent data previously recorded by
+     * the method {@link #fillInStackTrace()}. The format of this
+     * information depends on the implementation, but the following
+     * example may be regarded as typical:
      * <blockquote><pre>
      * java.lang.NullPointerException
      *         at MyClass.mash(MyClass.java:9)
      *         at MyClass.crunch(MyClass.java:6)
      *         at MyClass.main(MyClass.java:3)
      * </pre></blockquote>
-     * This example was produced by running the program: 
+     * This example was produced by running the program:
      * <pre>
      * class MyClass {
      *     public static void main(String[] args) {
@@ -404,7 +403,7 @@ public class Throwable implements Serializable {
      * example was produced by running the program:
      * <pre>
      * public class Junk {
-     *     public static void main(String args[]) { 
+     *     public static void main(String args[]) {
      *         try {
      *             a();
      *         } catch(HighLevelException e) {
@@ -420,7 +419,7 @@ public class Throwable implements Serializable {
      *     }
      *     static void b() throws MidLevelException {
      *         c();
-     *     }   
+     *     }
      *     static void c() throws MidLevelException {
      *         try {
      *             d();
@@ -428,7 +427,7 @@ public class Throwable implements Serializable {
      *             throw new MidLevelException(e);
      *         }
      *     }
-     *     static void d() throws LowLevelException { 
+     *     static void d() throws LowLevelException {
      *        e();
      *     }
      *     static void e() throws LowLevelException {
@@ -443,12 +442,12 @@ public class Throwable implements Serializable {
      * class MidLevelException extends Exception {
      *     MidLevelException(Throwable cause)  { super(cause); }
      * }
-     * 
+     *
      * class LowLevelException extends Exception {
      * }
      * </pre>
      */
-    public void printStackTrace() { 
+    public void printStackTrace() {
         printStackTrace(System.err);
     }
 
@@ -505,7 +504,7 @@ public class Throwable implements Serializable {
      * @param s <code>PrintWriter</code> to use for output
      * @since   JDK1.1
      */
-    public void printStackTrace(PrintWriter s) { 
+    public void printStackTrace(PrintWriter s) {
         synchronized (s) {
             s.println(this);
             StackTraceElement[] trace = getOurStackTrace();
@@ -547,8 +546,8 @@ public class Throwable implements Serializable {
     }
 
     /**
-     * Fills in the execution stack trace. This method records within this 
-     * <code>Throwable</code> object information about the current state of 
+     * Fills in the execution stack trace. This method records within this
+     * <code>Throwable</code> object information about the current state of
      * the stack frames for the current thread.
      *
      * @return  a reference to this <code>Throwable</code> instance.
@@ -637,7 +636,7 @@ public class Throwable implements Serializable {
      * Returns the specified element of the stack trace.
      *
      * @param index index of the element to return.
-     * @throws IndexOutOfBoundsException if <tt>index %lt; 0 ||
+     * @throws IndexOutOfBoundsException if <tt>index &lt; 0 ||
      *         index &gt;= getStackTraceDepth() </tt>
      */
     private native StackTraceElement getStackTraceElement(int index);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages.java,v 1.24 2004/02/24 17:35:00 igorh Exp $
+ * $Id: ErrorMessages.java,v 1.2.4.1 2005/09/15 09:59:41 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -86,7 +86,13 @@ public class ErrorMessages extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final String[][] m_errorMessages = { 
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] { 
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
         "More than one stylesheet defined in the same file."},
 
@@ -671,7 +677,7 @@ public class ErrorMessages extends ListResourceBundle {
         "SYNOPSIS\n"+
         "   java com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile [-o <output>]\n"+
         "      [-d <directory>] [-j <jarfile>] [-p <package>]\n"+
-        "      [-n] [-x] [-s] [-u] [-v] [-h] { <stylesheet> | -i }\n\n"+
+        "      [-n] [-x] [-u] [-v] [-h] { <stylesheet> | -i }\n\n"+
         "OPTIONS\n"+
         "   -o <output>    assigns the name <output> to the generated\n"+
         "                  translet.  By default the translet name is\n"+
@@ -685,7 +691,6 @@ public class ErrorMessages extends ListResourceBundle {
         "   -n             enables template inlining (default behavior better\n"+
         "                  on average).\n"+
         "   -x             turns on additional debugging message output\n"+
-        "   -s             disables calling System.exit\n"+
         "   -u             interprets <stylesheet> arguments as URLs\n"+
         "   -i             forces compiler to read stylesheet from stdin\n"+
         "   -v             prints the version of the compiler\n"+
@@ -703,7 +708,7 @@ public class ErrorMessages extends ListResourceBundle {
         {ErrorMsg.TRANSFORM_USAGE_STR,
         "SYNOPSIS \n"+
         "   java com.sun.org.apache.xalan.internal.xsltc.cmdline.Transform [-j <jarfile>]\n"+
-        "      [-x] [-s] [-n <iterations>] {-u <document_url> | <document>}\n"+
+        "      [-x] [-n <iterations>] {-u <document_url> | <document>}\n"+
         "      <class> [<param1>=<value1> ...]\n\n"+
         "   uses the translet <class> to transform an XML document \n"+
         "   specified as <document>. The translet <class> is either in\n"+
@@ -711,7 +716,6 @@ public class ErrorMessages extends ListResourceBundle {
         "OPTIONS\n"+
         "   -j <jarfile>    specifies a jarfile from which to load translet\n"+
         "   -x              turns on additional debugging message output\n"+
-        "   -s              disables calling System.exit\n"+
         "   -n <iterations> runs the transformation <iterations> times and\n"+
         "                   displays profiling information\n"+
         "   -u <document_url> specifies XML input document as a URL\n"},
@@ -927,11 +931,17 @@ public class ErrorMessages extends ListResourceBundle {
          * attribute.
          */
         {ErrorMsg.INVALID_METHOD_IN_OUTPUT,
-        "The method attribute of an <xsl:output> element had the value ''{0}''.  The value must be one of 'xml', 'html', 'text', or qname-but-not-ncname"}
+        "The method attribute of an <xsl:output> element had the value ''{0}''.  The value must be one of ''xml'', ''html'', ''text'', or qname-but-not-ncname"},
+        
+        {ErrorMsg.JAXP_GET_FEATURE_NULL_NAME,
+        "The feature name cannot be null in TransformerFactory.getFeature(String name)."},
+        
+        {ErrorMsg.JAXP_SET_FEATURE_NULL_NAME,
+        "The feature name cannot be null in TransformerFactory.setFeature(String name, boolean value)."},
+
+        {ErrorMsg.JAXP_UNSUPPORTED_FEATURE,
+        "Cannot set the feature ''{0}'' on this TransformerFactory."}
+
     };
-
-
-    public Object[][] getContents() {
-        return m_errorMessages;
     }
 }

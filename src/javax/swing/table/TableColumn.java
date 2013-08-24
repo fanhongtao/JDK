@@ -1,7 +1,7 @@
 /*
- * @(#)TableColumn.java	1.60 04/05/18
+ * @(#)TableColumn.java	1.63 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.beans.PropertyChangeListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.60 05/18/04
+ * @version 1.63 11/17/05
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.table.TableColumnModel
@@ -199,24 +199,36 @@ public class TableColumn extends Object implements Serializable {
 
     /**
      *  Creates and initializes an instance of 
-     *  <code>TableColumn</code> with <code>modelIndex</code>.
-     *  All <code>TableColumn</code> constructors delegate to this one.
-     *  The <code>modelIndex</code> is the index of the column 
-     *  in the model which will supply the data for this column in the table. 
-     *  The <code>modelIndex</code> does not change as the columns are reordered
-     *  in the view. The width parameter is used to set both the 
-     *  <code>preferredWidth</code> for this 
-     *  column and the initial width. The renderer and editor are the objects 
-     *  used respectively to render and edit values in this column. When 
-     *  these are <code>null</code>, default values, provided by the
+     *  <code>TableColumn</code> with the specified model index,
+     *  width, cell renderer, and cell editor;
+     *  all <code>TableColumn</code> constructors delegate to this one.
+     *  The value of <code>width</code> is used
+     *  for both the initial and preferred width;
+     *  if <code>width</code> is negative,
+     *  they're set to 0.
+     *  The minimum width is set to 15 unless the initial width is less,
+     *  in which case the minimum width is set to
+     *  the initial width.
+     *
+     *  <p>
+     *  When the <code>cellRenderer</code>
+     *  or <code>cellEditor</code> parameter is <code>null</code>,
+     *  a default value provided by the <code>JTable</code>
      *  <code>getDefaultRenderer</code> 
-     *  and <code>getDefaultEditor</code> methods in the
-     *  <code>JTable</code> class are used to 
+     *  or <code>getDefaultEditor</code> method, respectively,
+     *  is used to 
      *  provide defaults based on the type of the data in this column. 
      *  This column-centric rendering strategy can be circumvented by overriding
-     *  the <code>getCellRenderer</code> methods in the <code>JTable</code>. 
-     *  <p>
+     *  the <code>getCellRenderer</code> methods in <code>JTable</code>. 
      *
+     * @param modelIndex the index of the column 
+     *  in the model that supplies the data for this column in the table;
+     *  the model index remains the same
+     *  even when columns are reordered in the view
+     * @param width this column's preferred width and initial width
+     * @param cellRenderer the object used to render values in this column
+     * @param cellEditor the object used to edit values in this column
+     * @see #getMinWidth()
      * @see JTable#getDefaultRenderer(Class)
      * @see JTable#getDefaultEditor(Class)
      * @see JTable#getCellRenderer(int, int)
@@ -227,14 +239,13 @@ public class TableColumn extends Object implements Serializable {
 				 TableCellEditor cellEditor) {
 	super();
 	this.modelIndex = modelIndex;
-	this.width = width;
-	this.preferredWidth = width;
+	preferredWidth = this.width = Math.max(width, 0);
 
 	this.cellRenderer = cellRenderer;
 	this.cellEditor = cellEditor;
 
 	// Set other instance variables to default values.
-	minWidth = 15;
+	minWidth = Math.min(15, this.width);
 	maxWidth = Integer.MAX_VALUE;
 	isResizable = true;
 	resizedPostingDisableCount = 0;
@@ -358,6 +369,10 @@ public class TableColumn extends Object implements Serializable {
     /**
      * Sets the <code>TableCellRenderer</code> used to draw the 
      * <code>TableColumn</code>'s header to <code>headerRenderer</code>. 
+     * <p>
+     * It is the header renderers responsibility to render the sorting
+     * indicator.  If you are using sorting and specify a renderer your
+     * renderer must render the sorting indication.
      *
      * @param headerRenderer  the new headerRenderer
      *
@@ -466,13 +481,12 @@ public class TableColumn extends Object implements Serializable {
      * This method sets this column's width to <code>width</code>.  
      * If <code>width</code> exceeds the minimum or maximum width, 
      * it is adjusted to the appropriate limiting value.
-     * <p>
      * @param  width  the new width
      * @see	#getWidth
      * @see	#setMinWidth
      * @see	#setMaxWidth
      * @see	#setPreferredWidth
-     * @see     JTable#sizeColumnsToFit(int)
+     * @see     JTable#doLayout()
      * @beaninfo
      *  bound: true
      *  description: The width of the column.     
@@ -530,8 +544,17 @@ public class TableColumn extends Object implements Serializable {
 
     /**
      * Sets the <code>TableColumn</code>'s minimum width to
-     * <code>minWidth</code>; also adjusts the current width
-     * and preferred width if they are less than this value.
+     * <code>minWidth</code>,
+     * adjusting the new minimum width if necessary to ensure that
+     * 0 &lt;= <code>minWidth</code> &lt;= <code>maxWidth</code>.
+     * For example, if the <code>minWidth</code> argument is negative,
+     * this method sets the <code>minWidth</code> property to 0.
+     *
+     * <p>
+     * If the value of the
+     * <code>width</code> or <code>preferredWidth</code> property
+     * is less than the new minimum width,
+     * this method sets that property to the new minimum width.
      *
      * @param minWidth  the new minimum width
      * @see	#getMinWidth
@@ -543,12 +566,12 @@ public class TableColumn extends Object implements Serializable {
      */
     public void setMinWidth(int minWidth) { 
 	int old = this.minWidth;	
-	this.minWidth = Math.max(minWidth, 0);
-	if (width < minWidth) {
-	    setWidth(minWidth);
+	this.minWidth = Math.max(Math.min(minWidth, maxWidth), 0);
+	if (width < this.minWidth) {
+	    setWidth(this.minWidth);
 	}
-	if (preferredWidth < minWidth) {
-	    setPreferredWidth(minWidth);
+	if (preferredWidth < this.minWidth) {
+	    setPreferredWidth(this.minWidth);
 	}
 	firePropertyChange("minWidth", old, this.minWidth);	
     }
@@ -556,10 +579,11 @@ public class TableColumn extends Object implements Serializable {
     /**
      * Returns the minimum width for the <code>TableColumn</code>. The
      * <code>TableColumn</code>'s width can't be made less than this either
-     * by the user or programmatically.  The default minWidth is 15.
+     * by the user or programmatically.
      *
      * @return	the <code>minWidth</code> property
      * @see	#setMinWidth
+     * @see     #TableColumn(int, int, TableCellRenderer, TableCellEditor)
      */
     public int getMinWidth() {
 	return minWidth;
@@ -567,8 +591,15 @@ public class TableColumn extends Object implements Serializable {
 
     /**
      * Sets the <code>TableColumn</code>'s maximum width to
-     * <code>maxWidth</code>; also adjusts the width and preferred
-     * width if they are greater than this value.
+     * <code>maxWidth</code> or,
+     * if <code>maxWidth</code> is less than the minimum width,
+     * to the minimum width.
+     *
+     * <p>
+     * If the value of the
+     * <code>width</code> or <code>preferredWidth</code> property
+     * is more than the new maximum width,
+     * this method sets that property to the new maximum width.
      *
      * @param maxWidth  the new maximum width
      * @see	#getMaxWidth
@@ -581,11 +612,11 @@ public class TableColumn extends Object implements Serializable {
     public void setMaxWidth(int maxWidth) {
 	int old = this.maxWidth;	
 	this.maxWidth = Math.max(minWidth, maxWidth);
-	if (width > maxWidth) {
-	    setWidth(maxWidth);
+	if (width > this.maxWidth) {
+	    setWidth(this.maxWidth);
 	}
-	if (preferredWidth > maxWidth) {
-	    setPreferredWidth(maxWidth);
+	if (preferredWidth > this.maxWidth) {
+	    setPreferredWidth(this.maxWidth);
 	}
 	firePropertyChange("maxWidth", old, this.maxWidth);	
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultSwatchChooserPanel.java	1.26 03/12/19
+ * @(#)DefaultSwatchChooserPanel.java	1.34 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
+import javax.accessibility.*;
 
 
 /**
@@ -30,7 +31,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.26 12/19/03
+ * @version 1.34 11/17/05
  * @author Steve Wilson
  */
 class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
@@ -44,6 +45,7 @@ class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
 
     public DefaultSwatchChooserPanel() {
         super();
+        setInheritsPopupMenu(true);
     }
 
     public String getDisplayName() {
@@ -124,40 +126,55 @@ class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
         JPanel superHolder = new JPanel(gb);
 
         swatchPanel =  new MainSwatchPanel();
-	swatchPanel.getAccessibleContext().setAccessibleName(getDisplayName());
+        swatchPanel.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY,
+                                      getDisplayName());
+        swatchPanel.setInheritsPopupMenu(true);
 
 	recentSwatchPanel = new RecentSwatchPanel();
-	recentSwatchPanel.getAccessibleContext().setAccessibleName(recentStr);
+        recentSwatchPanel.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY,
+                                            recentStr);
 
 	mainSwatchListener = new MainSwatchListener();
 	swatchPanel.addMouseListener(mainSwatchListener);
 	recentSwatchListener = new RecentSwatchListener();
 	recentSwatchPanel.addMouseListener(recentSwatchListener);
 
-
+        JPanel mainHolder = new JPanel(new BorderLayout());
 	Border border = new CompoundBorder( new LineBorder(Color.black),
 					    new LineBorder(Color.white) );
-	swatchPanel.setBorder(border);
-        gbc.weightx = 1.0;
-        gbc.gridwidth = 2;
+        mainHolder.setBorder(border);
+        mainHolder.add(swatchPanel, BorderLayout.CENTER);
+        
+        gbc.anchor = GridBagConstraints.LAST_LINE_START;
+        gbc.gridwidth = 1;
         gbc.gridheight = 2;
-        gbc.weighty = 1.0;
-        superHolder.add( swatchPanel, gbc );
+        Insets oldInsets = gbc.insets;
+        gbc.insets = new Insets(0, 0, 0, 10);
+        superHolder.add(mainHolder, gbc);
+        gbc.insets = oldInsets;
 
 	recentSwatchPanel.addMouseListener(recentSwatchListener);
-	recentSwatchPanel.setBorder(border);
-	JPanel recentLabelHolder = new JPanel(new BorderLayout());
+        recentSwatchPanel.setInheritsPopupMenu(true);
+        JPanel recentHolder = new JPanel( new BorderLayout() );
+        recentHolder.setBorder(border);
+        recentHolder.setInheritsPopupMenu(true);
+        recentHolder.add(recentSwatchPanel, BorderLayout.CENTER);
+
 	JLabel l = new JLabel(recentStr);
 	l.setLabelFor(recentSwatchPanel);
-	recentLabelHolder.add(l, BorderLayout.NORTH);
-        gbc.weighty = 0.0;
+
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.gridheight = 1;
-	superHolder.add( recentLabelHolder, gbc );
-        superHolder.add( recentSwatchPanel, gbc );	
+        gbc.weighty = 1.0;
+	superHolder.add(l, gbc);
+        
+        gbc.weighty = 0;
+        gbc.gridheight = GridBagConstraints.REMAINDER;
+        gbc.insets = new Insets(0, 0, 0, 2);
+        superHolder.add(recentHolder, gbc);
+        superHolder.setInheritsPopupMenu(true);
 
 	add(superHolder);
-	
     }
 
     public void uninstallChooserPanel(JColorChooser enclosingChooser) {
@@ -211,6 +228,7 @@ class SwatchPanel extends JPanel {
 	setOpaque(true);
 	setBackground(Color.white);
 	setRequestFocusEnabled(false);
+        setInheritsPopupMenu(true);
     }
 
     public boolean isFocusTraversable() {
@@ -225,6 +243,7 @@ class SwatchPanel extends JPanel {
          g.setColor(getBackground());
          g.fillRect(0,0,getWidth(), getHeight());
 	 for (int row = 0; row < numSwatches.height; row++) {
+            int y = row * (swatchSize.height + gap.height);
 	    for (int column = 0; column < numSwatches.width; column++) {
 
 	      g.setColor( getColorForCell(column, row) ); 
@@ -235,7 +254,6 @@ class SwatchPanel extends JPanel {
 		} else {
 		    x = column * (swatchSize.width + gap.width);
 		}
-		int y = row * (swatchSize.height + gap.height);
 	        g.fillRect( x, y, swatchSize.width, swatchSize.height);
 		g.setColor(Color.black);
 		g.drawLine( x+swatchSize.width-1, y, x+swatchSize.width-1, y+swatchSize.height-1);
@@ -245,8 +263,8 @@ class SwatchPanel extends JPanel {
     }
 
     public Dimension getPreferredSize() {
-        int x = numSwatches.width * (swatchSize.width + gap.width) -1;
-	int y = numSwatches.height * (swatchSize.height + gap.height) -1;
+        int x = numSwatches.width * (swatchSize.width + gap.width) - 1;
+	int y = numSwatches.height * (swatchSize.height + gap.height) - 1;
         return new Dimension( x, y );
     }
 
@@ -446,7 +464,7 @@ class MainSwatchPanel extends SwatchPanel {
 255, 204, 51,
 255, 255, 51,
 204, 255, 51,
-153, 244, 51,
+153, 255, 51,
 102, 255, 51,
 51, 255, 51,
 51, 255, 51,

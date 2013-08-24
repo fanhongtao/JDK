@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// $Id: XPathImpl.java,v 1.15 2004/07/10 21:39:19 rameshm Exp $
+// $Id: XPathImpl.java,v 1.2 2005/08/16 22:41:08 jeffsuttor Exp $
 
 package com.sun.org.apache.xpath.internal.jaxp;
 
@@ -49,7 +49,7 @@ import java.io.IOException;
  * of an XPath expression.
  *
  *
- * @version $Revision: 1.15 $
+ * @version $Revision: 1.2 $
  * @author  Ramesh Mandava
  */
 public class XPathImpl implements javax.xml.xpath.XPath {

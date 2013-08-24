@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnaryOperation.java,v 1.12 2004/02/17 04:35:12 minchau Exp $
+ * $Id: UnaryOperation.java,v 1.2.4.1 2005/09/14 21:31:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public abstract class UnaryOperation extends Expression implements ExpressionOwner
 {
+    static final long serialVersionUID = 6536083808424286166L;
 
   /** The operand for the operation.
    *  @serial */
@@ -114,7 +115,7 @@ public abstract class UnaryOperation extends Expression implements ExpressionOwn
   }
   
   /**
-   * @see XPathVisitable#callVisitors(XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

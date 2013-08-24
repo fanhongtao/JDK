@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsTabbedPaneUI.java	1.19 06/03/22
+ * @(#)WindowsTabbedPaneUI.java	1.21 06/06/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,8 +13,12 @@ import javax.swing.plaf.basic.*;
 import javax.swing.plaf.*;
 import javax.swing.*;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.HashSet;
 import java.awt.event.*;
+
+import static com.sun.java.swing.plaf.windows.TMSchema.*;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 
 /**
  * Windows rendition of the component.
@@ -47,13 +51,13 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 
         // focus forward traversal key
         if (managingFocusForwardTraversalKeys==null) {
-            managingFocusForwardTraversalKeys = new TreeSet();
+            managingFocusForwardTraversalKeys = new HashSet();
             managingFocusForwardTraversalKeys.add(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0));
         }
         tabPane.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, managingFocusForwardTraversalKeys);
         // focus backward traversal key
         if (managingFocusBackwardTraversalKeys==null) {
-            managingFocusBackwardTraversalKeys = new TreeSet();
+            managingFocusBackwardTraversalKeys = new HashSet();
             managingFocusBackwardTraversalKeys.add( KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK));
         }
         tabPane.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, managingFocusBackwardTraversalKeys);
@@ -78,8 +82,7 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 	    super.setRolloverTab(index);
 	    Rectangle r1 = null;
 	    Rectangle r2 = null;
-	    if ( (oldRolloverTab >= 0) &&
-                 (oldRolloverTab < tabPane.getTabCount()) ) {
+	    if ( (oldRolloverTab >= 0) && (oldRolloverTab < tabPane.getTabCount()) ) {
 		r1 = getTabBounds(tabPane, oldRolloverTab);
 	    }
 	    if (index >= 0) {
@@ -100,7 +103,7 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
     protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null && (contentOpaque || tabPane.isOpaque())) {
-	    XPStyle.Skin skin = xp.getSkin(tabPane, "tab.pane");
+	    Skin skin = xp.getSkin(tabPane, Part.TABP_PANE);
 	    if (skin != null) {
 		Insets insets = tabPane.getInsets();
 		// Note: don't call getTabAreaInsets(), because it causes rotation.
@@ -126,7 +129,7 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 		    h -= (tabHeight - tabAreaInsets.bottom);
 		}
 
-		paintRotatedSkin(g, skin, tabPlacement, x, y, w, h, 0); 
+		paintRotatedSkin(g, skin, tabPlacement, x, y, w, h, null); 
 		return;
 	    }
 	}
@@ -144,14 +147,14 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
                                   int x, int y, int w, int h, boolean isSelected ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    String category;
+	    Part part;
 
 	    int tabCount = tabPane.getTabCount();
 	    int tabRun = getRunForTab(tabCount, tabIndex);
 	    if (tabRuns[tabRun] == tabIndex) {
-		category = "tab.tabitemleftedge";
+		part = Part.TABP_TABITEMLEFTEDGE;
 	    } else if (tabCount > 1 && lastTabInRun(tabCount, tabRun) == tabIndex) {
-		category = "tab.tabitemrightedge";
+		part = Part.TABP_TABITEMRIGHTEDGE;
 		if (isSelected) {
 		    // Align with right edge
 		    if (tabPlacement == TOP || tabPlacement == BOTTOM) {
@@ -161,45 +164,45 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 		    }
 		}
 	    } else {
-		category = "tab.tabitem";
+		part = Part.TABP_TABITEM;
 	    }
 
-	    int index = 0;
+	    State state = State.NORMAL;
 	    if (isSelected) {
-		index = 2;
+		state = State.SELECTED;
 	    } else if (tabIndex == getRolloverTab()) {
-		index = 1;
+		state = State.HOT;
 	    }
 
-	    paintRotatedSkin(g, xp.getSkin(tabPane, category), tabPlacement, x, y, w, h, index);
+	    paintRotatedSkin(g, xp.getSkin(tabPane, part), tabPlacement, x, y, w, h, state);
 	} else {
 	    super.paintTabBorder(g, tabPlacement, tabIndex, x, y, w, h, isSelected);
 	}
     }
 
-    private void paintRotatedSkin(Graphics g, XPStyle.Skin skin, int tabPlacement,
-				  int x, int y, int w, int h, int index) {
+    private void paintRotatedSkin(Graphics g, Skin skin, int tabPlacement,
+				  int x, int y, int w, int h, State state) {
 	Graphics2D g2d = (Graphics2D)g.create();
 	g2d.translate(x, y);
 	switch (tabPlacement) {
 	   case RIGHT:	g2d.translate(w, 0);
 			g2d.rotate(Math.toRadians(90.0));
-			skin.paintSkin(g2d, 0, 0, h, w, index);
+			skin.paintSkin(g2d, 0, 0, h, w, state);
 			break;
 
 	   case LEFT:	g2d.scale(-1.0, 1.0);
 			g2d.rotate(Math.toRadians(90.0));
-			skin.paintSkin(g2d, 0, 0, h, w, index);
+			skin.paintSkin(g2d, 0, 0, h, w, state);
 			break;
 
 	   case BOTTOM:	g2d.translate(0, h);
 			g2d.scale(-1.0, 1.0);
 			g2d.rotate(Math.toRadians(180.0));
-			skin.paintSkin(g2d, 0, 0, w, h, index);
+			skin.paintSkin(g2d, 0, 0, w, h, state);
 			break;
 
 	   case TOP:
-	   default:	skin.paintSkin(g2d, 0, 0, w, h, index);
+	   default:	skin.paintSkin(g2d, 0, 0, w, h, state);
 	}
 	g2d.dispose();
     }

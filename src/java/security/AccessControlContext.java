@@ -1,7 +1,7 @@
 /*
- * @(#)AccessControlContext.java	1.40 03/12/19
+ * @(#)AccessControlContext.java	1.46 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -132,6 +132,7 @@ public final class AccessControlContext {
      *
      * @exception SecurityException if the caller does not have permission
      *		to invoke this constructor.
+     * @since 1.3
      */
     public AccessControlContext(AccessControlContext acc,
 				DomainCombiner combiner) {
@@ -153,6 +154,16 @@ public final class AccessControlContext {
     }
 
     /**
+     * package private for AccessController
+     */
+    AccessControlContext(ProtectionDomain context[], DomainCombiner combiner) {
+	if (context != null) {
+	    this.context = (ProtectionDomain[])context.clone();
+	}
+	this.combiner = combiner;
+    }
+
+    /**
      * package private constructor for AccessController.getContext()
      */
 
@@ -169,7 +180,22 @@ public final class AccessControlContext {
     boolean isPrivileged() 
     {
 	return isPrivileged;
+    }
 
+    /**
+     * get the assigned combiner from the privileged or inherited context
+     */
+    DomainCombiner getAssignedCombiner() {
+	AccessControlContext acc;
+	if (isPrivileged) {
+	    acc = privilegedContext;
+	} else {
+	    acc = AccessController.getInheritedAccessControlContext();
+	}
+	if (acc != null) {
+	    return acc.combiner;
+	}
+	return null;
     }
 
     /**
@@ -185,6 +211,7 @@ public final class AccessControlContext {
      * @exception SecurityException if the caller does not have permission
      *		to get the <code>DomainCombiner</code> associated with this
      *		<code>AccessControlContext</code>.
+     * @since 1.3
      */
     public DomainCombiner getDomainCombiner() {
 
@@ -199,7 +226,10 @@ public final class AccessControlContext {
      * Determines whether the access request indicated by the
      * specified permission should be allowed or denied, based on
      * the security policy currently in effect, and the context in
-     * this object.
+     * this object. The request is allowed only if every ProtectionDomain
+     * in the context implies the permission. Otherwise the request is
+     * denied.
+     * 
      * <p>
      * This method quietly returns if the access request
      * is permitted, or throws a suitable AccessControlException otherwise. 
@@ -214,15 +244,37 @@ public final class AccessControlContext {
     public void checkPermission(Permission perm)
 	throws AccessControlException 
     {
+	boolean dumpDebug = false;
+
 	if (perm == null) {
 	    throw new NullPointerException("permission can't be null");
 	}
 	if (getDebug() != null) {
-	    if (Debug.isOn("stack"))
-			Thread.currentThread().dumpStack();
-	    if (Debug.isOn("domain")) {
+	    // If "codebase" is not specified, we dump the info by default.
+	    dumpDebug = !Debug.isOn("codebase=");
+	    if (!dumpDebug) {
+		// If "codebase" is specified, only dump if the specified code
+		// value is in the stack.
+		for (int i = 0; context != null && i < context.length; i++) {
+		    if (context[i].getCodeSource() != null && 
+			context[i].getCodeSource().getLocation() != null && 
+			Debug.isOn("codebase=" + context[i].getCodeSource().getLocation().toString())) {
+			dumpDebug = true;
+			break;
+		    }
+		}
+	    }
+
+	    dumpDebug &= !Debug.isOn("permission=") ||
+		Debug.isOn("permission=" + perm.getClass().getCanonicalName());
+
+	    if (dumpDebug && Debug.isOn("stack")) {
+		Thread.currentThread().dumpStack();
+	    }
+
+	    if (dumpDebug && Debug.isOn("domain")) {
 		if (context == null) {
-			debug.println("domain (context is null)");
+		    debug.println("domain (context is null)");
 		} else {
 		    for (int i=0; i< context.length; i++) {
 			debug.println("domain "+i+" "+context[i]);
@@ -247,27 +299,35 @@ public final class AccessControlContext {
 
 	for (int i=0; i< context.length; i++) {
 	    if (context[i] != null &&  !context[i].implies(perm)) {
-		if (debug != null) {
-		    debug.println("access denied "+perm);
-		    if (Debug.isOn("failure")) {
-			Thread.currentThread().dumpStack();
-			final ProtectionDomain pd = context[i];
-			final Debug db = debug;
-			AccessController.doPrivileged (new PrivilegedAction() {
-			    public Object run() {
-				db.println("domain that failed "+pd);
-				return null;
-			    }
-			});
+		if (dumpDebug) {
+		    debug.println("access denied " + perm);
+		}
+
+		if (Debug.isOn("failure")) {
+		    // Want to make sure this is always displayed for failure,
+		    // but do not want to display again if already displayed
+		    // above.
+		    if (!dumpDebug) {
+			debug.println("access denied " + perm);
 		    }
+		    Thread.currentThread().dumpStack();
+		    final ProtectionDomain pd = context[i];
+		    final Debug db = debug;
+		    AccessController.doPrivileged (new PrivilegedAction() {
+			public Object run() {
+			    db.println("domain that failed "+pd);
+			    return null;
+			}
+		    });
 		}
 		throw new AccessControlException("access denied "+perm, perm);
 	    }
 	}
 
 	// allow if all of them allowed access
-	if (debug != null)
+	if (dumpDebug) {
 	    debug.println("access allowed "+perm);
+	}
 
 	return;	
     }
@@ -293,15 +353,15 @@ public final class AccessControlContext {
 	// in that case, ignore the assigned context
 	boolean skipAssigned = (acc == null || acc.context == null);
 
-	// optimization: if neither have contexts; return acc if possible
-	// rather than this, because acc might have a combiner
-	if (skipAssigned && skipStack) {
-	    return (acc != null) ? acc : this;
-	}
-
 	if (acc != null && acc.combiner != null) {
 	    // let the assigned acc's combiner do its thing
 	    return goCombiner(context, acc);
+	}
+
+	// optimization: if neither have contexts; return acc if possible
+	// rather than this, because acc might have a combiner
+	if (skipAssigned && skipStack) {
+	    return this;
 	}
 
 	// optimization: if there is no stack context; there is no reason
@@ -446,7 +506,7 @@ public final class AccessControlContext {
 	boolean match = false;
 	//
 	// ProtectionDomains within an ACC currently cannot be null
-	// and this is enforced by the contructor and the various
+	// and this is enforced by the constructor and the various
 	// optimize methods. However, historically this logic made attempts
 	// to support the notion of a null PD and therefore this logic continues
 	// to support that notion.

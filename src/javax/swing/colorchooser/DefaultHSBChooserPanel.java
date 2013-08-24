@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultHSBChooserPanel.java	1.25 03/12/19
+ * @(#)DefaultHSBChooserPanel.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -17,7 +17,7 @@ import java.awt.image.*;
 /**
  * Implements the default HSB Color chooser
  *
- *  @version 1.25 12/19/03
+ *  @version 1.27 11/17/05
  *  @author Tom Santos
  *  @author Steve Wilson
  *  @author Mark Davidson
@@ -224,6 +224,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
     
     public void installChooserPanel(JColorChooser enclosingChooser) {
 	super.installChooserPanel(enclosingChooser);
+        setInheritsPopupMenu(true);
 	addHierarchyListener(this);
     }
     
@@ -255,16 +256,20 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
     protected void buildChooser() {
         setLayout(new BorderLayout());
         JComponent spp = buildSliderPalettePanel();
+        spp.setInheritsPopupMenu(true);
         add(spp, BorderLayout.BEFORE_LINE_BEGINS);
 
         JPanel controlHolder = new JPanel(new SmartGridLayout(1,3));
         JComponent hsbControls = buildHSBControls();
+        hsbControls.setInheritsPopupMenu(true);
         controlHolder.add(hsbControls);
 
         controlHolder.add(new JLabel(" ")); // spacer
 
         JComponent rgbControls = buildRGBControls();
+        rgbControls.setInheritsPopupMenu(true);
         controlHolder.add(rgbControls);
+        controlHolder.setInheritsPopupMenu(true);
 
         controlHolder.setBorder(new EmptyBorder( 10, 5, 10, 5));
         add( controlHolder, BorderLayout.CENTER);
@@ -275,19 +280,23 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
      */
     private JComponent buildRGBControls() {
         JPanel panel = new JPanel(new SmartGridLayout(2,3));
+        panel.setInheritsPopupMenu(true);
 
         Color color = getColorFromModel();
         redField = new JTextField( String.valueOf(color.getRed()), 3 );
         redField.setEditable(false);
         redField.setHorizontalAlignment( JTextField.RIGHT );
+        redField.setInheritsPopupMenu(true);
 
         greenField = new JTextField(String.valueOf(color.getGreen()), 3 );
         greenField.setEditable(false);
         greenField.setHorizontalAlignment( JTextField.RIGHT );
+        greenField.setInheritsPopupMenu(true);
 
         blueField = new JTextField( String.valueOf(color.getBlue()), 3 );
         blueField.setEditable(false);
         blueField.setHorizontalAlignment( JTextField.RIGHT );
+        blueField.setInheritsPopupMenu(true);
 
         String redString = UIManager.getString("ColorChooser.hsbRedText");
         String greenString = UIManager.getString("ColorChooser.hsbGreenText");
@@ -317,12 +326,15 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         hRadio = new JRadioButton(hueString);
         hRadio.addActionListener(handler);
         hRadio.setSelected(true);
+        hRadio.setInheritsPopupMenu(true);
 
         sRadio = new JRadioButton(saturationString);
         sRadio.addActionListener(handler);
+        sRadio.setInheritsPopupMenu(true);
 
         bRadio = new JRadioButton(brightnessString);
         bRadio.addActionListener(handler);
+        bRadio.setInheritsPopupMenu(true);
 
         ButtonGroup group = new ButtonGroup();
         group.add(hRadio);
@@ -339,6 +351,10 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         sField.addChangeListener(this);
         bField.addChangeListener(this);
 
+        hField.setInheritsPopupMenu(true);
+        sField.setInheritsPopupMenu(true);
+        bField.setInheritsPopupMenu(true);
+
         JPanel panel = new JPanel( new SmartGridLayout(2, 3) );
         
         panel.add(hRadio);
@@ -347,6 +363,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         panel.add(sField);
         panel.add(bRadio);
         panel.add(bField);
+        panel.setInheritsPopupMenu(true);
 
         return panel;
     }
@@ -418,6 +435,7 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         slider.setPaintTrack(false);
         slider.setPreferredSize(new Dimension(slider.getPreferredSize().width, PALETTE_DIMENSION + 15));
         slider.addChangeListener(this);
+        slider.setInheritsPopupMenu(true);
 	// We're not painting ticks, but need to ask UI classes to
 	// paint arrow shape anyway, if possible.
 	slider.putClientProperty("Slider.paintThumbArrowShape", Boolean.TRUE);

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicToggleButtonUI.java	1.58 03/12/19
+ * @(#)BasicToggleButtonUI.java	1.59 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import javax.swing.text.View;
  * BasicToggleButton implementation
  * <p>
  *
- * @version 1.58 12/19/03
+ * @version 1.59 11/17/05
  * @author Jeff Dinkins
  */
 public class BasicToggleButtonUI extends BasicButtonUI {

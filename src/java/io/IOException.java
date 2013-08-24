@@ -1,7 +1,7 @@
 /*
- * @(#)IOException.java	1.22 03/12/19
+ * @(#)IOException.java	1.24 06/03/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,15 +13,17 @@ package java.io;
  * interrupted I/O operations.
  *
  * @author  unascribed
- * @version 1.22, 12/19/03
+ * @version 1.24, 03/29/06
  * @see     java.io.InputStream
  * @see     java.io.OutputStream
  * @since   JDK1.0
  */
 public
 class IOException extends Exception {
+    static final long serialVersionUID = 7818375828146090155L;
+
     /**
-     * Constructs an <code>IOException</code> with <code>null</code>
+     * Constructs an {@code IOException} with {@code null}
      * as its error detail message.
      */
     public IOException() {
@@ -29,14 +31,54 @@ class IOException extends Exception {
     }
 
     /**
-     * Constructs an <code>IOException</code> with the specified detail
-     * message. The error message string <code>s</code> can later be
-     * retrieved by the <code>{@link java.lang.Throwable#getMessage}</code>
-     * method of class <code>java.lang.Throwable</code>.
+     * Constructs an {@code IOException} with the specified detail message.
      *
-     * @param   s   the detail message.
+     * @param message
+     *        The detail message (which is saved for later retrieval
+     *        by the {@link #getMessage()} method)
      */
-    public IOException(String s) {
-	super(s);
+    public IOException(String message) {
+	super(message);
+    }
+
+    /**
+     * Constructs an {@code IOException} with the specified detail message
+     * and cause.
+     *
+     * <p> Note that the detail message associated with {@code cause} is
+     * <i>not</i> automatically incorporated into this exception's detail
+     * message.
+     *
+     * @param message
+     *        The detail message (which is saved for later retrieval
+     *        by the {@link #getMessage()} method)
+     *
+     * @param cause
+     *        The cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A null value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     *
+     * @since 1.6
+     */
+    public IOException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * Constructs an {@code IOException} with the specified cause and a
+     * detail message of {@code (cause==null ? null : cause.toString())}
+     * (which typically contains the class and detail message of {@code cause}).
+     * This constructor is useful for IO exceptions that are little more
+     * than wrappers for other throwables.
+     *
+     * @param cause
+     *        The cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A null value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     *
+     * @since 1.6
+     */
+    public IOException(Throwable cause) {
+        super(cause);
     }
 }

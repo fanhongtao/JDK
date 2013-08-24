@@ -64,7 +64,7 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
  * INVOKEINTERFACE - Invoke interface method
  * <PRE>Stack: ..., objectref, [arg1, [arg2 ...]] -&gt; ...</PRE>
  *
- * @version $Id: INVOKEINTERFACE.java,v 1.1.1.1 2001/10/29 20:00:16 jvanzyl Exp $
+ * @version $Id: INVOKEINTERFACE.java,v 1.1.2.1 2005/07/31 23:45:03 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class INVOKEINTERFACE extends InvokeInstruction {

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicFormattedTextFieldUI.java	1.4 03/12/19
+ * @(#)BasicFormattedTextFieldUI.java	1.5 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -13,7 +13,7 @@ import javax.swing.plaf.ComponentUI;
  * Provides the look and feel implementation for
  * <code>JFormattedTextField</code>.
  *
- * @version 1.4 12/19/03
+ * @version 1.5 11/17/05
  * @since 1.4
  */
 public class BasicFormattedTextFieldUI extends BasicTextFieldUI {

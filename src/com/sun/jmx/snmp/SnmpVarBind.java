@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpVarBind.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.12
- * @(#)date      04/09/15
+ * @(#)version   4.14
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -99,7 +99,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * The OID of the <CODE>SnmpVarBind</CODE>.
      * The default value is null.
-     * <p><b>Reserved for internal use:<b><br>
+     * <p><b>Reserved for internal use:</b><br>
      * As of Java Dynamic Management Kit 5.0, use instead <CODE>getOid</CODE> and <CODE>setOid</CODE></p>
      */
     public SnmpOid oid = null ;
@@ -107,7 +107,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * The value of the <CODE>SnmpVarBind</CODE>.
      * The default value is null.
-     * <p><b>Reserved for internal use:<b><br>
+     * <p><b>Reserved for internal use:</b><br>
      * As of Java Dynamic Management Kit 5.0, use instead <CODE>getSnmpValue</CODE> and <CODE>setSnmpValue</CODE></p>
      */
     public SnmpValue value = null ;

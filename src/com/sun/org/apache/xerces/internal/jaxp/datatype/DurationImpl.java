@@ -1,10 +1,17 @@
-// $Id: DurationImpl.java,v 1.8 2004/06/25 10:09:34 nb131165 Exp $
-
 /*
- * @(#)DurationImpl.java	1.6 04/07/26
+ * Copyright 2005 The Apache Software Foundation.
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.jaxp.datatype;
@@ -17,11 +24,12 @@ import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+
 import com.sun.org.apache.xerces.internal.util.DatatypeMessageFormatter;
 
 /**
@@ -86,12 +94,11 @@ import com.sun.org.apache.xerces.internal.util.DatatypeMessageFormatter;
  *  
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author <a href="mailto:Joseph.Fialli@Sun.com">Joseph Fialli</a>
- * @version $Revision: 1.8 $, $Date: 2004/06/25 10:09:34 $    
+ * @version $Revision: 1.3 $, $Date: 2005/09/07 19:41:13 $    
 
  * @see XMLGregorianCalendar#add(Duration)
- * @since 1.5
  */
-public class DurationImpl
+class DurationImpl
 	extends Duration
 	implements Serializable {
     
@@ -123,6 +130,11 @@ public class DurationImpl
 				DatatypeConstants.MINUTES.getId(),
 				DatatypeConstants.SECONDS.getId()
 			};
+    
+    /**
+     * TimeZone for GMT.
+     */
+    private static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
 	/**
 	 * <p>BigDecimal value of 0.</p>
@@ -342,25 +354,14 @@ public class DurationImpl
     /**
      * <p>Constructs a new Duration object by specifying the duration
      * in milliseconds.</p>
-     * 
-     * <p>The DAYS, HOURS, MINUTES and SECONDS fields are used to
-     * represent the specifed duration in a reasonable way.
-     * That is, the constructed object <code>x</code> satisfies
-     * the following conditions:</p>
-     * <ul>
-     *  <li>x.getHours()&lt;24
-     *  <li>x.getMinutes()&lt;60
-     *  <li>x.getSeconds()&lt;60 
-     * </ul>
-     * 
+     *
      * @param durationInMilliSeconds
      *      The length of the duration in milliseconds.
      */
     protected DurationImpl(final long durationInMilliSeconds) {
-        
-        boolean is0x8000000000000000L = false;
+
         long l = durationInMilliSeconds;
-        
+
         if (l > 0) {
             signum = 1;
         } else if (l < 0) {
@@ -368,30 +369,47 @@ public class DurationImpl
             if (l == 0x8000000000000000L) {
                 // negating 0x8000000000000000L causes an overflow
                 l++;
-                is0x8000000000000000L = true;
             }
             l *= -1;
         } else {
             signum = 0;
         }
-        
-        this.years = null;
-        this.months = null;
-        
-        this.seconds =
-            BigDecimal.valueOf((l % 60000L) + (is0x8000000000000000L ? 1 : 0), 3);
-        
-        l /= 60000L;
-        this.minutes = (l == 0) ? null : BigInteger.valueOf(l % 60L);
 
-        l /= 60L;
-        this.hours = (l == 0) ? null : BigInteger.valueOf(l % 24L);
-        
-        l /= 24L;
-        this.days = (l == 0) ? null : BigInteger.valueOf(l);
+        // let GregorianCalendar do the heavy lifting
+        GregorianCalendar gregorianCalendar = new GregorianCalendar(GMT);
+
+        // duration is the offset from the Epoch
+        gregorianCalendar.setTimeInMillis(l);
+
+        // now find out how much each field has changed
+        long int2long = 0L;
+
+        // years
+        int2long = gregorianCalendar.get(Calendar.YEAR) - 1970;
+        this.years = BigInteger.valueOf(int2long);
+
+        // months
+        int2long = gregorianCalendar.get(Calendar.MONTH);
+        this.months = BigInteger.valueOf(int2long);
+
+        // days
+        int2long = gregorianCalendar.get(Calendar.DAY_OF_MONTH) - 1;
+        this.days = BigInteger.valueOf(int2long);
+
+        // hours
+        int2long = gregorianCalendar.get(Calendar.HOUR_OF_DAY);
+        this.hours = BigInteger.valueOf(int2long);
+
+        // minutes
+        int2long = gregorianCalendar.get(Calendar.MINUTE);
+        this.minutes = BigInteger.valueOf(int2long);
+
+        // seconds & milliseconds
+        int2long = (gregorianCalendar.get(Calendar.SECOND) * 1000)
+                    + gregorianCalendar.get(Calendar.MILLISECOND);
+        this.seconds = BigDecimal.valueOf(int2long, 3);
     }
-    
-    
+
     /**
      * Constructs a new Duration object by
      * parsing its string representation
@@ -860,20 +878,85 @@ public class DurationImpl
    		rhsCalendar.add(GregorianCalendar.HOUR_OF_DAY, rhs.getHours() * rhs.getSign());
    		rhsCalendar.add(GregorianCalendar.MINUTE, rhs.getMinutes() * rhs.getSign());
    		rhsCalendar.add(GregorianCalendar.SECOND, rhs.getSeconds() * rhs.getSign());
-   		
-   		if (lhsCalendar.before(rhsCalendar)) {
-   			return DatatypeConstants.LESSER;
-   		}
-    	
-   		if (lhsCalendar.after(rhsCalendar)) {
-   			return DatatypeConstants.GREATER;
-   		}
+   	
    		
    		if (lhsCalendar.equals(rhsCalendar)) {
    			return DatatypeConstants.EQUAL;
    		}
 
-   		return DatatypeConstants.INDETERMINATE;
+   		return compareDates(this, rhs);
+    }
+    
+    /**
+     * Compares 2 given durations. (refer to W3C Schema Datatypes "3.2.6 duration")
+     *
+     * @param duration1  Unnormalized duration
+     * @param duration2  Unnormalized duration
+     * @return INDETERMINATE if the order relationship between date1 and date2 is indeterminate.
+     * EQUAL if the order relation between date1 and date2 is EQUAL.
+     * If the strict parameter is true, return LESS_THAN if date1 is less than date2 and
+     * return GREATER_THAN if date1 is greater than date2.
+     * If the strict parameter is false, return LESS_THAN if date1 is less than OR equal to date2 and
+     * return GREATER_THAN if date1 is greater than OR equal to date2
+     */
+    private int compareDates(Duration duration1, Duration duration2) {
+        
+        int resultA = DatatypeConstants.INDETERMINATE; 
+        int resultB = DatatypeConstants.INDETERMINATE;
+        
+        XMLGregorianCalendar tempA = (XMLGregorianCalendar)TEST_POINTS[0].clone();
+        XMLGregorianCalendar tempB = (XMLGregorianCalendar)TEST_POINTS[0].clone();
+        
+        //long comparison algorithm is required
+        tempA.add(duration1);
+        tempB.add(duration2);
+        resultA =  tempA.compare(tempB);
+        if ( resultA == DatatypeConstants.INDETERMINATE ) {
+            return DatatypeConstants.INDETERMINATE;
+        }
+
+        tempA = (XMLGregorianCalendar)TEST_POINTS[1].clone();
+        tempB = (XMLGregorianCalendar)TEST_POINTS[1].clone();
+        
+        tempA.add(duration1);
+        tempB.add(duration2);
+        resultB = tempA.compare(tempB);
+        resultA = compareResults(resultA, resultB);
+        if (resultA == DatatypeConstants.INDETERMINATE) {
+            return DatatypeConstants.INDETERMINATE;
+        }
+
+        tempA = (XMLGregorianCalendar)TEST_POINTS[2].clone();
+        tempB = (XMLGregorianCalendar)TEST_POINTS[2].clone();
+        
+        tempA.add(duration1);
+        tempB.add(duration2);
+        resultB = tempA.compare(tempB);
+        resultA = compareResults(resultA, resultB);
+        if (resultA == DatatypeConstants.INDETERMINATE) {
+            return DatatypeConstants.INDETERMINATE;
+        }
+
+        tempA = (XMLGregorianCalendar)TEST_POINTS[3].clone();
+        tempB = (XMLGregorianCalendar)TEST_POINTS[3].clone();
+        
+        tempA.add(duration1);
+        tempB.add(duration2);
+        resultB = tempA.compare(tempB);
+        resultA = compareResults(resultA, resultB);
+
+        return resultA;
+    }
+
+    private int compareResults(int resultA, int resultB){
+
+      if ( resultB == DatatypeConstants.INDETERMINATE ) {
+            return DatatypeConstants.INDETERMINATE;
+        }
+        else if ( resultA!=resultB) {
+            return DatatypeConstants.INDETERMINATE;
+        }
+        return resultA;
     }
     
     /**

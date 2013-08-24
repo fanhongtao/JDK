@@ -1,7 +1,7 @@
 /*
- * @(#)Java2Demo.java	1.44 04/07/26
+ * @(#)Java2Demo.java	1.50 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Java2Demo.java	1.44 04/07/26
+ * @(#)Java2Demo.java	1.50 06/08/29
  */
 
 
@@ -47,6 +47,8 @@ import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import javax.swing.*;
 import javax.swing.border.*;
+
+import static java2d.CustomControlsContext.State.*;
 
 
 /**
@@ -222,6 +224,15 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
     }
 
 
+    public void startRunWindow() {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                runwindow.doRunAction();
+            }
+        });
+    }
+
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(fileMI)) {
             System.exit(0);
@@ -265,18 +276,10 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
 
     public void itemStateChanged(ItemEvent e) {
         if (e.getSource().equals(controlsCB)) {
-            if (controls.isVisible()) {
-                controls.setVisible(false);
-                Component cmps[] = controls.texturechooser.getComponents();
-                for (int i = 0; i < cmps.length; i++) {
-                    cmps[i].setVisible(false);
-                }
-            } else {
-                controls.setVisible(true);
-                Component cmps[] = controls.texturechooser.getComponents();
-                for (int i = 0; i < cmps.length; i++) {
-                    cmps[i].setVisible(true);
-                }
+            boolean newVisibility = !controls.isVisible();
+            controls.setVisible(newVisibility);
+            for (Component cmp : controls.texturechooser.getComponents()) {
+                cmp.setVisible(newVisibility);
             }
         } else if (e.getSource().equals(memoryCB)) {
             if (memorymonitor.isVisible()) {
@@ -299,7 +302,8 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
                 performancemonitor.surf.start();
             }
         } else if (e.getSource().equals(ccthreadCB)) {
-            int state = ccthreadCB.isSelected() ? 0 : 1;
+            CustomControlsContext.State state =
+                ccthreadCB.isSelected() ? START : STOP;
             if (tabbedPane.getSelectedIndex() != 0) {
                 JPanel p = group[tabbedPane.getSelectedIndex()-1].getPanel();
                 for (int i = 0; i < p.getComponentCount(); i++) {
@@ -310,7 +314,7 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
                 } 
             }
         }
-        validate();
+        revalidate();
     }
 
 
@@ -363,8 +367,8 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
      */
     static class J2DIcon implements Icon {
 
-        private static Color blue = new Color(94, 105, 176); 
-        private static Color black = new Color(20, 20, 20); 
+        private static Color myBlue  = new Color(94, 105, 176); 
+        private static Color myBlack = new Color(20,  20,  20); 
         private static Font font = new Font("serif", Font.BOLD, 12);
         private FontRenderContext frc = new FontRenderContext(null,true,true);
         private TextLayout tl = new TextLayout("Java2D", font, frc);
@@ -375,9 +379,9 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
                                 RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setFont(font);
             if (tabbedPane.getSelectedIndex() == 0) {
-                g2.setColor(blue);
+                g2.setColor(myBlue);
             } else {
-                g2.setColor(black);
+                g2.setColor(myBlack);
             }
             tl.draw(g2, x, y + 15);
         }
@@ -487,42 +491,43 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
         frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
         for (int i = 0; i < args.length; i++) {
-            String s = args[i].substring(args[i].indexOf('=')+1);
-            if (args[i].startsWith("-runs=")) {
+            String arg = args[i];
+            String s = arg.substring(arg.indexOf('=')+1);
+            if (arg.startsWith("-runs=")) {
                 RunWindow.numRuns = Integer.parseInt(s);
                 RunWindow.exit = true;
                 demo.createRunWindow();
-            } else if (args[i].startsWith("-screen=")) {
+            } else if (arg.startsWith("-screen=")) {
                 demo.controls.screenCombo.setSelectedIndex(Integer.parseInt(s));
-            } else if (args[i].startsWith("-antialias=")) {
+            } else if (arg.startsWith("-antialias=")) {
                 demo.controls.aliasCB.setSelected(s.endsWith("true"));
-            } else if (args[i].startsWith("-rendering=")) {
+            } else if (arg.startsWith("-rendering=")) {
                 demo.controls.renderCB.setSelected(s.endsWith("true"));
-            } else if (args[i].startsWith("-texture=")) {
+            } else if (arg.startsWith("-texture=")) {
                 demo.controls.textureCB.setSelected(s.endsWith("true"));
-            } else if (args[i].startsWith("-composite=")) {
+            } else if (arg.startsWith("-composite=")) {
                 demo.controls.compositeCB.setSelected(s.endsWith("true"));
-            } else if (args[i].startsWith("-verbose")) {
+            } else if (arg.startsWith("-verbose")) {
                 demo.verboseCB.setSelected(true);
-            } else if (args[i].startsWith("-print")) {
+            } else if (arg.startsWith("-print")) {
                 demo.printCB.setSelected(true);
                 RunWindow.printCB.setSelected(true);
-            } else if (args[i].startsWith("-columns=")) {
+            } else if (arg.startsWith("-columns=")) {
                 DemoGroup.columns = Integer.parseInt(s);
-            } else if (args[i].startsWith("-buffers=")) {
+            } else if (arg.startsWith("-buffers=")) {
                 // usage -buffers=3,10
                 RunWindow.buffersFlag = true;
-                int i1 = args[i].indexOf('=')+1;
-                int i2 = args[i].indexOf(',');
-                String s1 = args[i].substring(i1, i2);
+                int i1 = arg.indexOf('=')+1;
+                int i2 = arg.indexOf(',');
+                String s1 = arg.substring(i1, i2);
                 RunWindow.bufBeg = Integer.parseInt(s1);
-                s1 = args[i].substring(i2+1, args[i].length());
+                s1 = arg.substring(i2+1, arg.length());
                 RunWindow.bufEnd = Integer.parseInt(s1);
-            } else if (args[i].startsWith("-ccthread")) {
+            } else if (arg.startsWith("-ccthread")) {
                 demo.ccthreadCB.setSelected(true);
-            } else if (args[i].startsWith("-zoom")) {
+            } else if (arg.startsWith("-zoom")) {
                 RunWindow.zoomCB.setSelected(true);
-            } else if (args[i].startsWith("-maxscreen")) {
+            } else if (arg.startsWith("-maxscreen")) {
                 frame.setLocation(0, 0);
                 frame.setSize(d.width, d.height);
             }
@@ -530,11 +535,13 @@ public class Java2Demo extends JPanel implements ItemListener, ActionListener
 
         frame.validate();
         frame.repaint();
-        demo.requestDefaultFocus();
+        frame.getFocusTraversalPolicy()
+             .getDefaultComponent(frame)
+             .requestFocus();
         demo.start();
 
         if (RunWindow.exit) {
-            RunWindow.runB.doClick();
+            demo.startRunWindow();
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamClass_1_3_1.java	1.6 04/01/12
+ * @(#)ObjectStreamClass_1_3_1.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*

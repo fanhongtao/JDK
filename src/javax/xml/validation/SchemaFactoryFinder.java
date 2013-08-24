@@ -1,19 +1,39 @@
-
-// $Id: SchemaFactoryFinder.java,v 1.14 2004/11/24 23:32:37 jsuttor Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)SchemaFactoryFinder.java	1.12 05/01/04
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)SchemaFactoryFinder.java	1.18 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.validation;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -25,7 +45,7 @@ import java.util.Properties;
  * Implementation of {@link SchemaFactory#newInstance(String)}.
  * 
  * @author <a href="Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.14 $, $Date: 2004/11/24 23:32:37 $
+ * @version $Revision: 1.5 $, $Date: 2005/10/06 05:39:24 $
  * @since 1.5
  */
 class SchemaFactoryFinder  {
@@ -118,7 +138,7 @@ class SchemaFactoryFinder  {
      * @return <code>null</code> if the callee fails to create one.
      * 
      * @throws NullPointerException
-     *      If the <tt>schemaLanguage</tt> parameter is null.
+     *      If the <code>schemaLanguage</code> parameter is null.
      */
     public SchemaFactory newFactory(String schemaLanguage) {
         if(schemaLanguage==null)        throw new NullPointerException();
@@ -223,8 +243,8 @@ class SchemaFactoryFinder  {
             URL resource = (URL)sitr.next();
             debugPrintln("looking into " + resource);
             try {
-                //sf = loadFromProperty(schemaLanguage,resource.toExternalForm(),resource.openStream());
-                sf = loadFromProperty(schemaLanguage,resource.toExternalForm(),ss.getURLInputStream(resource));
+                sf = loadFromService(schemaLanguage,resource.toExternalForm(),
+						ss.getURLInputStream(resource));
                 if(sf!=null)    return sf;
             } catch(IOException e) {
                 if( debug ) {
@@ -237,11 +257,34 @@ class SchemaFactoryFinder  {
         // platform default
         if(schemaLanguage.equals("http://www.w3.org/2001/XMLSchema")) {
             debugPrintln("attempting to use the platform default XML Schema validator");
-            return createInstance("com.sun.org.apache.xerces.internal.jaxp.validation.xs.SchemaFactoryImpl");
+            return createInstance("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory");
         }
         
         debugPrintln("all things were tried, but none was found. bailing out.");
         return null;
+    }
+    
+    /** <p>Create class using appropriate ClassLoader.</p>
+     * 
+     * @param className Name of class to create.
+     * @return Created class or <code>null</code>.
+     */
+    private Class createClass(String className) {
+            Class clazz;
+
+            // use approprite ClassLoader
+            try {
+                    if (classLoader != null) {
+                            clazz = classLoader.loadClass(className);
+                    } else {
+                            clazz = Class.forName(className);
+                    }
+            } catch (Throwable t) {
+                if(debug)   t.printStackTrace();
+                    return null;
+            }
+
+            return clazz;
     }
     
     /**
@@ -253,26 +296,43 @@ class SchemaFactoryFinder  {
      * @return null
      *      if it fails. Error messages will be printed by this method. 
      */
-    private SchemaFactory createInstance( String className ) {
-        try {
-            debugPrintln("instanciating "+className);
-            Class clazz;
-            if( classLoader!=null )
-                clazz = classLoader.loadClass(className);
-            else
-                clazz = Class.forName(className);
-            if(debug)       debugPrintln("loaded it from "+which(clazz));
-            Object o = clazz.newInstance();
-            
-            if( o instanceof SchemaFactory )
-                return (SchemaFactory)o;
-            
-            debugPrintln(className+" is not assignable to "+SERVICE_CLASS.getName());
-        } catch( Throwable t ) {
-            debugPrintln("failed to instanciate "+className);
-            if(debug)   t.printStackTrace();
+    SchemaFactory createInstance( String className ) {
+        SchemaFactory schemaFactory = null;
+		
+        debugPrintln("createInstance(" + className + ")");
+
+        // get Class from className		
+        Class clazz = createClass(className);
+        if (clazz == null) {
+                debugPrintln("failed to getClass(" + className + ")");
+                return null;	
         }
-        return null;
+        debugPrintln("loaded " + className + " from " + which(clazz));
+
+        // instantiate Class as a SchemaFactory
+        try {
+                schemaFactory = (SchemaFactory) clazz.newInstance();
+        } catch (ClassCastException classCastException) {
+                debugPrintln("could not instantiate " + clazz.getName());
+                if (debug) {
+                        classCastException.printStackTrace();
+                }
+                return null;
+        } catch (IllegalAccessException illegalAccessException) {
+                debugPrintln("could not instantiate " + clazz.getName());
+                if (debug) {
+                        illegalAccessException.printStackTrace();
+                }
+                return null;
+        } catch (InstantiationException instantiationException) {
+                debugPrintln("could not instantiate " + clazz.getName());
+                if (debug) {
+                        instantiationException.printStackTrace();
+                }
+                return null;
+        }
+
+        return schemaFactory;
     }
     
     /** Iterator that lazily computes one value and returns it. */
@@ -314,6 +374,96 @@ class SchemaFactoryFinder  {
         }
     }
     
+    /**
+     * <p>Look up a value in a property file.</p>
+     * 
+     * <p>Set <code>debug</code> to <code>true</code> to trace property evaluation.</p>
+     *
+     * @param schemaLanguage Schema Language to support.
+     * @param inputName Name of <code>InputStream</code>.
+     * @param in <code>InputStream</code> of properties.
+     * 
+     * @return <code>SchemaFactory</code> as determined by <code>keyName</code> value or <code>null</code> if there was an error.
+     * 
+     * @throws IOException If IO error reading from <code>in</code>.
+     */
+    private SchemaFactory loadFromService(
+            String schemaLanguage,
+            String inputName,
+            InputStream in)
+            throws IOException {
+
+            SchemaFactory schemaFactory = null;
+            final Class[] stringClassArray = {"".getClass()};
+            final Object[] schemaLanguageObjectArray = {schemaLanguage};
+            final String isSchemaLanguageSupportedMethod = "isSchemaLanguageSupported";
+
+            debugPrintln("Reading " + inputName);
+
+            // read from InputStream until a match is found
+            BufferedReader configFile = new BufferedReader(new InputStreamReader(in));
+            String line = null;
+            while ((line = configFile.readLine()) != null) {
+                    // '#' is comment char
+                    int comment = line.indexOf("#");
+                    switch (comment) {
+                            case -1: break; // no comment
+                            case 0: line = ""; break; // entire line is a comment
+                            default: line = line.substring(0, comment); break; // trim comment
+                    }
+
+                    // trim whitespace
+                    line = line.trim();
+
+                    // any content left on line?
+                    if (line.length() == 0) {
+                            continue;
+                    }
+
+                    // line content is now the name of the class
+                    Class clazz = createClass(line);
+                    if (clazz == null) {
+                            continue;
+                    } 
+
+                    // create an instance of the Class
+                    try {
+                            schemaFactory = (SchemaFactory) clazz.newInstance();
+                    } catch (ClassCastException classCastExcpetion) {
+                            schemaFactory = null;
+                            continue;
+                    } catch (InstantiationException instantiationException) {
+                            schemaFactory = null;
+                            continue;
+                    } catch (IllegalAccessException illegalAccessException) {
+                            schemaFactory = null;
+                            continue;
+                    }
+                    
+                    // does this Class support desired Schema?
+                    try {
+                            Method isSchemaLanguageSupported = clazz.getMethod(isSchemaLanguageSupportedMethod, stringClassArray);
+                            Boolean supported = (Boolean) isSchemaLanguageSupported.invoke(schemaFactory, schemaLanguageObjectArray);
+                            if (supported.booleanValue()) {
+                                    break;
+                            }
+                    } catch (NoSuchMethodException noSuchMethodException) {
+                           
+                    } catch (IllegalAccessException illegalAccessException) {
+                            
+                    } catch (InvocationTargetException invocationTargetException) {
+                            
+                    }
+                    schemaFactory = null;						
+            }
+
+            // clean up
+            configFile.close();
+
+            // return new instance of SchemaFactory or null
+            return schemaFactory;
+    }
+
     /**
      * Returns an {@link Iterator} that enumerates all 
      * the META-INF/services files that we care.

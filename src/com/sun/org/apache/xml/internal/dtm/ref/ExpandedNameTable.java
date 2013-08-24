@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ExpandedNameTable.java,v 1.13 2004/02/16 23:06:11 minchau Exp $
+ * $Id: ExpandedNameTable.java,v 1.2.4.1 2005/09/15 08:15:06 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -270,9 +270,6 @@ public class ExpandedNameTable
   /**
    * Given a type, return an expanded name ID.Any additional nodes that are
    * created that have this expanded name will use this ID.
-   *
-   * @param namespace
-   * @param localName
    *
    * @return the expanded-name id of the node.
    */

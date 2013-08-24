@@ -1,13 +1,13 @@
 /*
- * @(#)BasicStroke.java	1.42 05/01/04
+ * @(#)BasicStroke.java	1.43 06/03/09
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
 
-import java.awt.geom.GeneralPath;
+import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import sun.dc.path.FastPathProducer;
 import sun.dc.path.PathConsumer;
@@ -96,7 +96,7 @@ import sun.dc.pr.Rasterizer;
  * For more information on the user space coordinate system and the 
  * rendering process, see the <code>Graphics2D</code> class comments.
  * @see Graphics2D
- * @version 1.42, 01/04/05
+ * @version 1.43, 03/09/06
  * @author Jim Graham
  */
 public class BasicStroke implements Stroke {
@@ -519,10 +519,12 @@ public class BasicStroke implements Stroke {
 
     private class FillAdapter implements PathConsumer {
 	boolean closed;
-	GeneralPath path;
+	Path2D.Float path;
 
 	public FillAdapter() {
-	    path = new GeneralPath(GeneralPath.WIND_NON_ZERO);
+            // Ductus only supplies float coordinates so
+            // Path2D.Double is not necessary here.
+	    path = new Path2D.Float(Path2D.WIND_NON_ZERO);
 	}
 
 	public Shape getShape() {

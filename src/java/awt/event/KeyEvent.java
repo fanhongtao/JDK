@@ -1,7 +1,7 @@
 /*
- * @(#)KeyEvent.java	1.75 04/05/18
+ * @(#)KeyEvent.java	1.79 06/10/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -70,6 +70,18 @@ import java.io.ObjectInputStream;
  * value of 'A' is generated.
  *
  * <p>
+ * Pressing and releasing a key on the keyboard results in the generating
+ * the following key events (in order):
+ * <PRE>
+ *    {@code KEY_PRESSED}
+ *    {@code KEY_TYPED} (is only generated if a valid Unicode character could be generated.)
+ *    {@code KEY_RELEASED}
+ * </PRE>
+ *
+ * But in some cases (e.g. auto-repeat or input method is activated) the order
+ * could be different (and platform dependent).
+ *
+ * <p>
  * Notes:
  * <ul>
  * <li>Key combinations which do not result in Unicode characters, such as action 
@@ -89,23 +101,24 @@ import java.io.ObjectInputStream;
  * that would otherwise have to be recognized by interpreting virtual key codes
  * and modifiers. For example, for Japanese Windows keyboards, VK_ALL_CANDIDATES
  * is returned instead of VK_CONVERT with the ALT modifier.
+ * <li>As specified in <a href="../doc-files/FocusSpec.html">Focus Specification</a>
+ * key events are dispatched to the focus owner by default.
  * </ul>
  *
  * <p>
  * WARNING: Aside from those keys that are defined by the Java language
  * (VK_ENTER, VK_BACK_SPACE, and VK_TAB), do not rely on the values of the VK_
  * constants.  Sun reserves the right to change these values as needed
- * to accomodate a wider range of keyboards in the future.  
+ * to accomodate a wider range of keyboards in the future.
  *
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.75 05/18/04
+ * @version 1.79 10/19/06
  *
  * @see KeyAdapter
  * @see KeyListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/keylistener.html">Tutorial: Writing a Key Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @since 1.1
  */

@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2004 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001-2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.opti;
@@ -85,23 +44,25 @@ import org.w3c.dom.Document;
 
 
 /**
+ * @xerces.internal  
+ * 
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: SchemaParsingConfig.java,v 1.5 2004/01/26 17:28:11 mrglavas Exp $
+ * @version $Id: SchemaParsingConfig.java,v 1.2.6.1 2005/09/08 11:08:58 sunithareddy Exp $
  */
 public class SchemaParsingConfig extends BasicParserConfiguration 
-                                 implements XMLPullParserConfiguration {
-
+implements XMLPullParserConfiguration {
+    
     //
     // Constants
     //
-
+    
     // feature identifiers
-
+    
     /** Feature identifier: warn on duplicate attribute definition. */
     protected static final String WARN_ON_DUPLICATE_ATTDEF =
         Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_DUPLICATE_ATTDEF_FEATURE;
-
+    
     /** Feature identifier: warn on duplicate entity definition. */
     //  protected static final String WARN_ON_DUPLICATE_ENTITYDEF = Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_DUPLICATE_ENTITYDEF_FEATURE;
     
@@ -116,11 +77,11 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     /** Feature identifier: continue after fatal error. */
     protected static final String CONTINUE_AFTER_FATAL_ERROR = 
         Constants.XERCES_FEATURE_PREFIX + Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE;
-
+    
     /** Feature identifier: load external DTD. */
     protected static final String LOAD_EXTERNAL_DTD =
         Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE;
-
+    
     /** Feature identifier: notify built-in refereces. */
     protected static final String NOTIFY_BUILTIN_REFS =
         Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_BUILTIN_REFS_FEATURE;
@@ -129,23 +90,27 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     protected static final String NOTIFY_CHAR_REFS =
         Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_CHAR_REFS_FEATURE;
     
-
+    
     /** Feature identifier: expose schema normalized value */
     protected static final String NORMALIZE_DATA =
-    Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_NORMALIZED_VALUE;
-
-
+        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_NORMALIZED_VALUE;
+    
+    
     /** Feature identifier: send element default value via characters() */
     protected static final String SCHEMA_ELEMENT_DEFAULT =
-    Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_ELEMENT_DEFAULT;
-        
-
+        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_ELEMENT_DEFAULT;
+    
+    /** Feature identifier: generate synthetic annotations. */
+    protected static final String GENERATE_SYNTHETIC_ANNOTATION = 
+        Constants.XERCES_FEATURE_PREFIX + Constants.GENERATE_SYNTHETIC_ANNOTATIONS_FEATURE;
+    
+    
     // property identifiers
-
+    
     /** Property identifier: error reporter. */
     protected static final String ERROR_REPORTER = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY;
-
+    
     /** Property identifier: entity manager. */
     protected static final String ENTITY_MANAGER = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_MANAGER_PROPERTY;
@@ -153,11 +118,11 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     /** Property identifier document scanner: */
     protected static final String DOCUMENT_SCANNER = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.DOCUMENT_SCANNER_PROPERTY;
-
+    
     /** Property identifier: DTD scanner. */
     protected static final String DTD_SCANNER = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.DTD_SCANNER_PROPERTY;
-
+    
     /** Property identifier: grammar pool. */
     protected static final String XMLGRAMMAR_POOL = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.XMLGRAMMAR_POOL_PROPERTY;
@@ -165,82 +130,82 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     /** Property identifier: DTD validator. */
     protected static final String DTD_VALIDATOR = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.DTD_VALIDATOR_PROPERTY;
-
+    
     /** Property identifier: namespace binder. */
     protected static final String NAMESPACE_BINDER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.NAMESPACE_BINDER_PROPERTY;
-
+    
     /** Property identifier: datatype validator factory. */
     protected static final String DATATYPE_VALIDATOR_FACTORY = 
         Constants.XERCES_PROPERTY_PREFIX + Constants.DATATYPE_VALIDATOR_FACTORY_PROPERTY;
-
+    
     protected static final String VALIDATION_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.VALIDATION_MANAGER_PROPERTY;
-
+    
     /** Property identifier: XML Schema validator. */
     protected static final String SCHEMA_VALIDATOR =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_VALIDATOR_PROPERTY;
-
-
+    
+    
     // debugging
-
+    
     /** Set to true and recompile to print exception stack trace. */
     private static final boolean PRINT_EXCEPTION_STACK_TRACE = false;
-
+    
     //
     // Data
     //
-
+    
     // components (non-configurable)
-
+    
     /** Grammar pool. */
     protected XMLGrammarPool fGrammarPool;
-
+    
     /** Datatype validator factory. */
     protected DTDDVFactory fDatatypeValidatorFactory;
-
+    
     // components (configurable)
-
+    
     /** Error reporter. */
     protected XMLErrorReporter fErrorReporter;
-
+    
     /** Entity manager. */
     protected XMLEntityManager fEntityManager;
-
+    
     /** Document scanner. */
     protected XMLDocumentScanner fScanner;
-
+    
     /** Input Source */
     protected XMLInputSource fInputSource;
-
+    
     /** DTD scanner. */
     protected XMLDTDScanner fDTDScanner;
-
+    
     
     protected SchemaDOMParser fSchemaDOMParser;
-
+    
     protected ValidationManager fValidationManager;
     // state
-
+    
     /** Locator */
     protected XMLLocator fLocator;
-
+    
     /** 
      * True if a parse is in progress. This state is needed because
      * some features/properties cannot be set while parsing (e.g.
      * validation and namespaces).
      */
     protected boolean fParseInProgress = false;
-
+    
     //
     // Constructors
     //
-
+    
     /** Default constructor. */
     public SchemaParsingConfig() {
         this(null, null, null);
     } // <init>()
-
+    
     /** 
      * Constructs a parser configuration using the specified symbol table. 
      *
@@ -249,7 +214,7 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     public SchemaParsingConfig(SymbolTable symbolTable) {
         this(symbolTable, null, null);
     } // <init>(SymbolTable)
-
+    
     /**
      * Constructs a parser configuration using the specified symbol table and
      * grammar pool.
@@ -262,10 +227,10 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      * @param grammarPool The grammar pool to use.
      */
     public SchemaParsingConfig(SymbolTable symbolTable,
-                                       XMLGrammarPool grammarPool) {
+            XMLGrammarPool grammarPool) {
         this(symbolTable, grammarPool, null);
     } // <init>(SymbolTable,XMLGrammarPool)
-
+    
     /**
      * Constructs a parser configuration using the specified symbol table,
      * grammar pool, and parent settings.
@@ -279,16 +244,16 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      * @param parentSettings The parent settings.
      */
     public SchemaParsingConfig(SymbolTable symbolTable,
-                                       XMLGrammarPool grammarPool,
-                                       XMLComponentManager parentSettings) {
+            XMLGrammarPool grammarPool,
+            XMLComponentManager parentSettings) {
         super(symbolTable, parentSettings);
-
+        
         // add default recognized features
         final String[] recognizedFeatures = {
             PARSER_SETTINGS, WARN_ON_DUPLICATE_ATTDEF,   WARN_ON_UNDECLARED_ELEMDEF,
             ALLOW_JAVA_ENCODINGS,       CONTINUE_AFTER_FATAL_ERROR,
             LOAD_EXTERNAL_DTD,          NOTIFY_BUILTIN_REFS,
-            NOTIFY_CHAR_REFS
+            NOTIFY_CHAR_REFS, GENERATE_SYNTHETIC_ANNOTATION
         };
         addRecognizedFeatures(recognizedFeatures);
         fFeatures.put(PARSER_SETTINGS, Boolean.TRUE);
@@ -301,7 +266,8 @@ public class SchemaParsingConfig extends BasicParserConfiguration
         fFeatures.put(LOAD_EXTERNAL_DTD, Boolean.TRUE);
         fFeatures.put(NOTIFY_BUILTIN_REFS, Boolean.FALSE);
         fFeatures.put(NOTIFY_CHAR_REFS, Boolean.FALSE);
-
+        fFeatures.put(GENERATE_SYNTHETIC_ANNOTATION, Boolean.FALSE);
+        
         // add default recognized properties
         final String[] recognizedProperties = {
             ERROR_REPORTER,             
@@ -312,40 +278,41 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             NAMESPACE_BINDER,
             XMLGRAMMAR_POOL,   
             DATATYPE_VALIDATOR_FACTORY,
-            VALIDATION_MANAGER
+            VALIDATION_MANAGER,
+            GENERATE_SYNTHETIC_ANNOTATION
         };
         addRecognizedProperties(recognizedProperties);
-    
+        
         fGrammarPool = grammarPool;
         if(fGrammarPool != null){
             setProperty(XMLGRAMMAR_POOL, fGrammarPool);
         }
-
+        
         fEntityManager = new XMLEntityManager();
         fProperties.put(ENTITY_MANAGER, fEntityManager);
         addComponent(fEntityManager);
-
+        
         fErrorReporter = new XMLErrorReporter();
         fErrorReporter.setDocumentLocator(fEntityManager.getEntityScanner());
         fProperties.put(ERROR_REPORTER, fErrorReporter);
         addComponent(fErrorReporter);
-
+        
         fScanner = new XMLNSDocumentScannerImpl();
         fProperties.put(DOCUMENT_SCANNER, fScanner);
         addComponent((XMLComponent)fScanner);
-
+        
         fDTDScanner = new XMLDTDScannerImpl();
         fProperties.put(DTD_SCANNER, fDTDScanner);
         addComponent((XMLComponent)fDTDScanner);
-
+        
         
         fDatatypeValidatorFactory = DTDDVFactory.getInstance();;
         fProperties.put(DATATYPE_VALIDATOR_FACTORY,
-                        fDatatypeValidatorFactory);
+                fDatatypeValidatorFactory);
         
         fValidationManager = new ValidationManager();
         fProperties.put(VALIDATION_MANAGER, fValidationManager);
-
+        
         // add message formatters
         if (fErrorReporter.getMessageFormatter(XMLMessageFormatter.XML_DOMAIN) == null) {
             XMLMessageFormatter xmft = new XMLMessageFormatter();
@@ -357,7 +324,7 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             XSMessageFormatter xmft = new XSMessageFormatter();
             fErrorReporter.putMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN, xmft);
         }
-
+        
         // set locale
         try {
             setLocale(Locale.getDefault()); 
@@ -366,13 +333,13 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             // do nothing
             // REVISIT: What is the right thing to do? -Ac
         }
-
+        
     } // <init>(SymbolTable,XMLGrammarPool)
-
+    
     //
     // Public methods
     //
-
+    
     /**
      * Set the locale to use for messages.
      *
@@ -385,13 +352,13 @@ public class SchemaParsingConfig extends BasicParserConfiguration
         super.setLocale(locale);
         fErrorReporter.setLocale(locale);
     } // setLocale(Locale)
-
+    
     //
     // XMLPullParserConfiguration methods
     //
-
+    
     // parsing
-
+    
     /**
      * Sets the input source for the document to parse.
      *
@@ -405,24 +372,24 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      * @see #parse(boolean)
      */
     public void setInputSource(XMLInputSource inputSource)
-        throws XMLConfigurationException, IOException {
+    throws XMLConfigurationException, IOException {
         
         // REVISIT: this method used to reset all the components and
         //          construct the pipeline. Now reset() is called
         //          in parse (boolean) just before we parse the document
         //          Should this method still throw exceptions..?
-
+        
         fInputSource = inputSource;
         
     } // setInputSource(XMLInputSource)
-
+    
     /**
      * Parses the document in a pull parsing fashion.
      *
      * @param complete True if the pull parser should parse the
      *                 remaining document completely.
      *
-     * @returns True if there is more document to parse.
+     * @return True if there is more document to parse.
      *
      * @exception XNIException Any XNI exception, possibly wrapping 
      *                         another exception.
@@ -463,7 +430,7 @@ public class SchemaParsingConfig extends BasicParserConfiguration
                 throw new XNIException(ex);
             }
         }
-
+        
         try {
             return fScanner.scanDocument(complete);
         } 
@@ -487,9 +454,9 @@ public class SchemaParsingConfig extends BasicParserConfiguration
                 ex.printStackTrace();
             throw new XNIException(ex);
         }
-
+        
     } // parse(boolean):boolean
-
+    
     /**
      * If the application decides to terminate parsing before the xml document
      * is fully parsed, the application should call this method to free any
@@ -502,7 +469,7 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     //
     // XMLParserConfiguration methods
     //
-
+    
     /**
      * Parses the specified input source.
      *
@@ -512,13 +479,13 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      * @exception java.io.IOException Throws exception on i/o error.
      */
     public void parse(XMLInputSource source) throws XNIException, IOException {
-
+        
         if (fParseInProgress) {
             // REVISIT - need to add new error message
             throw new XNIException("FWK005 parse may not be called while parsing.");
         }
         fParseInProgress = true;
-
+        
         try {
             setInputSource(source);
             parse(true);
@@ -548,9 +515,9 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             // close all streams opened by xerces
             this.cleanup();
         }
-
+        
     } // parse(InputSource)
-
+    
     //
     // Protected methods
     //
@@ -561,39 +528,39 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      * @throws XNIException Thrown if an error occurs during initialization.
      */
     public void reset() throws XNIException {
-
+        
         // set handlers
         if (fSchemaDOMParser == null)
-            fSchemaDOMParser = new SchemaDOMParser(fErrorReporter);
+            fSchemaDOMParser = new SchemaDOMParser(this);
         fDocumentHandler = fSchemaDOMParser;
         fDTDHandler = fSchemaDOMParser;
         fDTDContentModelHandler = fSchemaDOMParser;
-
+        
         // configure the pipeline and initialize the components
         configurePipeline();
         super.reset();
-
+        
     } // reset()
-
+    
     /** Configures the pipeline. */
     protected void configurePipeline() {
-
+        
         // setup document pipeline
         fScanner.setDocumentHandler(fDocumentHandler);
         fDocumentHandler.setDocumentSource(fScanner);
         fLastComponent = fScanner;
-
+        
         // setup dtd pipeline
         if (fDTDScanner != null) {
-                fDTDScanner.setDTDHandler(fDTDHandler);
-                fDTDScanner.setDTDContentModelHandler(fDTDContentModelHandler);
+            fDTDScanner.setDTDHandler(fDTDHandler);
+            fDTDScanner.setDTDContentModelHandler(fDTDContentModelHandler);
         }
-
-
+        
+        
     } // configurePipeline()
-
+    
     // features and properties
-
+    
     /**
      * Check a feature. If feature is know and supported, this method simply
      * returns. Otherwise, the appropriate exception is thrown.
@@ -607,12 +574,12 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      *                                   a critical error.
      */
     protected void checkFeature(String featureId)
-        throws XMLConfigurationException {
-
+    throws XMLConfigurationException {
+        
         //
         // Xerces Features
         //
-
+        
         if (featureId.startsWith(Constants.XERCES_FEATURE_PREFIX)) {
             final int suffixLength = featureId.length() - Constants.XERCES_FEATURE_PREFIX.length();
             
@@ -623,14 +590,14 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             //   on each document instance, automatically.
             //
             if (suffixLength == Constants.DYNAMIC_VALIDATION_FEATURE.length() && 
-                featureId.endsWith(Constants.DYNAMIC_VALIDATION_FEATURE)) {
+                    featureId.endsWith(Constants.DYNAMIC_VALIDATION_FEATURE)) {
                 return;
             }
             //
             // http://apache.org/xml/features/validation/default-attribute-values
             //
             if (suffixLength == Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE.length() && 
-                featureId.endsWith(Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE)) {
+                    featureId.endsWith(Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE)) {
                 // REVISIT
                 short type = XMLConfigurationException.NOT_SUPPORTED;
                 throw new XMLConfigurationException(type, featureId);
@@ -639,7 +606,7 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             // http://apache.org/xml/features/validation/default-attribute-values
             //
             if (suffixLength == Constants.VALIDATE_CONTENT_MODELS_FEATURE.length() && 
-                featureId.endsWith(Constants.VALIDATE_CONTENT_MODELS_FEATURE)) {
+                    featureId.endsWith(Constants.VALIDATE_CONTENT_MODELS_FEATURE)) {
                 // REVISIT
                 short type = XMLConfigurationException.NOT_SUPPORTED;
                 throw new XMLConfigurationException(type, featureId);
@@ -648,35 +615,35 @@ public class SchemaParsingConfig extends BasicParserConfiguration
             // http://apache.org/xml/features/validation/nonvalidating/load-dtd-grammar
             //
             if (suffixLength == Constants.LOAD_DTD_GRAMMAR_FEATURE.length() && 
-                featureId.endsWith(Constants.LOAD_DTD_GRAMMAR_FEATURE)) {
+                    featureId.endsWith(Constants.LOAD_DTD_GRAMMAR_FEATURE)) {
                 return;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-external-dtd
             //
             if (suffixLength == Constants.LOAD_EXTERNAL_DTD_FEATURE.length() && 
-                featureId.endsWith(Constants.LOAD_EXTERNAL_DTD_FEATURE)) {
+                    featureId.endsWith(Constants.LOAD_EXTERNAL_DTD_FEATURE)) {
                 return;
             }
-
+            
             //
             // http://apache.org/xml/features/validation/default-attribute-values
             //
             if (suffixLength == Constants.VALIDATE_DATATYPES_FEATURE.length() &&
-                featureId.endsWith(Constants.VALIDATE_DATATYPES_FEATURE)) {
+                    featureId.endsWith(Constants.VALIDATE_DATATYPES_FEATURE)) {
                 short type = XMLConfigurationException.NOT_SUPPORTED;
                 throw new XMLConfigurationException(type, featureId);
             }
         }
-
+        
         //
         // Not recognized
         //
-
+        
         super.checkFeature(featureId);
-
+        
     } // checkFeature(String)
-
+    
     /**
      * Check a property. If the property is know and supported, this method
      * simply returns. Otherwise, the appropriate exception is thrown.
@@ -691,38 +658,38 @@ public class SchemaParsingConfig extends BasicParserConfiguration
      *                                   a critical error.
      */
     protected void checkProperty(String propertyId)
-        throws XMLConfigurationException {
-
+    throws XMLConfigurationException {
+        
         //
         // Xerces Properties
         //
-
+        
         if (propertyId.startsWith(Constants.XERCES_PROPERTY_PREFIX)) {
             final int suffixLength = propertyId.length() - Constants.XERCES_PROPERTY_PREFIX.length();
-        	
+            
             if (suffixLength == Constants.DTD_SCANNER_PROPERTY.length() && 
-                propertyId.endsWith(Constants.DTD_SCANNER_PROPERTY)) {
+                    propertyId.endsWith(Constants.DTD_SCANNER_PROPERTY)) {
                 return;
             }
         }
-
+        
         if (propertyId.startsWith(Constants.JAXP_PROPERTY_PREFIX)) {
             final int suffixLength = propertyId.length() - Constants.JAXP_PROPERTY_PREFIX.length();
-        	
+            
             if (suffixLength == Constants.SCHEMA_SOURCE.length() && 
-                propertyId.endsWith(Constants.SCHEMA_SOURCE)) {
+                    propertyId.endsWith(Constants.SCHEMA_SOURCE)) {
                 return;
             }
         }
-
+        
         //
         // Not recognized
         //
-
+        
         super.checkProperty(propertyId);
-
+        
     } // checkProperty(String)
-
+    
     
     
     //
@@ -733,11 +700,10 @@ public class SchemaParsingConfig extends BasicParserConfiguration
     public Document getDocument() {
         return fSchemaDOMParser.getDocument();
     }
-
+    
     /** */
     public void resetNodePool() {
         // REVISIT: to implement: introduce a node pool to reuse DTM nodes.
         //          reset this pool here.
     }
-    
 }

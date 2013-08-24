@@ -1,7 +1,7 @@
 /*
- * @(#)Logging.java	1.5 04/04/18
+ * @(#)Logging.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,6 @@ package java.util.logging;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.ArrayList;
-import sun.management.MXBeanSupport;
 
 /** 
  * Logging is the implementation class of LoggingMXBean.
@@ -21,22 +20,21 @@ import sun.management.MXBeanSupport;
  * 
  * @author Ron Mann
  * @author Mandy Chung
- * @version 1.5, 04/18/04
+ * @version 1.9, 11/17/05
  * @since 1.5
  *
  * @see javax.management
  * @see java.util.Logger
  * @see java.util.LogManager
  */
-class Logging extends MXBeanSupport implements LoggingMXBean {
+class Logging implements LoggingMXBean {
 
     private static LogManager logManager = LogManager.getLogManager();
 
-    /** Contructor of Logging which is the implementation class
+    /** Constructor of Logging which is the implementation class
      *  of LoggingMXBean.
      */
     Logging() { 
-        super(LoggingMXBean.class);
     }
  
     public List<String> getLoggerNames() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XNull.java,v 1.13 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XNull.java,v 1.2.4.1 2005/09/14 20:34:46 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.XPathContext;
  */
 public class XNull extends XNodeSet
 {
+    static final long serialVersionUID = -6841683711458983005L;
 
   /**
    * Create an XObject.

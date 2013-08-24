@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsButtonListener.java	1.16 06/08/25
+ * @(#)WindowsButtonListener.java	1.17 06/04/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -23,7 +23,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version @(#)WindowsButtonListener.java	1.16 06/08/25
+ * @version 1.17 04/04/06
  * @author Rich Schiavi
  */
 public class WindowsButtonListener extends BasicButtonListener {
@@ -31,9 +31,9 @@ public class WindowsButtonListener extends BasicButtonListener {
 	super(b);
     }
     /*
-      This class is currently not used, but exists in case customers 
-      were subclassing it.
-    */
+     This class is currently not used, but exists in case customers 
+     were subclassing it.
+     */
 }
 
 

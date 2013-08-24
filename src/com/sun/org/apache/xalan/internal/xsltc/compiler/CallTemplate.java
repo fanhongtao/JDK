@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CallTemplate.java,v 1.18 2004/02/24 02:57:28 zongaro Exp $
+ * $Id: CallTemplate.java,v 1.2.4.1 2005/09/12 10:02:41 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -31,7 +31,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 import java.util.Vector;
 
@@ -73,7 +73,7 @@ final class CallTemplate extends Instruction {
     public void parseContents(Parser parser) {
         final String name = getAttribute("name");
         if (name.length() > 0) {
-            if (!XMLChar.isValidQName(name)) {
+            if (!XML11Char.isXML11ValidQName(name)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
                 parser.reportError(Constants.ERROR, err);           
             }                
@@ -184,17 +184,10 @@ final class CallTemplate extends Instruction {
      * template is not a simple named template.
      */
     public Template getCalleeTemplate() {
-    	Stylesheet stylesheet = getXSLTC().getStylesheet();
-    	Vector templates = stylesheet.getAllValidTemplates();
-        
-    	int size = templates.size();
-    	for (int i = 0; i < size; i++) {
-    	    Template t = (Template)templates.elementAt(i);
-    	    if (t.getName() == _name && t.isSimpleNamedTemplate()) {
-    	    	return t;
-    	    }
-    	}
-    	return null;
+    	Template foundTemplate
+            = getXSLTC().getParser().getSymbolTable().lookupTemplate(_name);
+
+        return foundTemplate.isSimpleNamedTemplate() ? foundTemplate : null;
     }
     
     /**

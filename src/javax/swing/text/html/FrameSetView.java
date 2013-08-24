@@ -1,7 +1,7 @@
 /*
- * @(#)FrameSetView.java	1.20 03/12/19
+ * @(#)FrameSetView.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -23,7 +23,7 @@ import javax.swing.event.*;
  *          conform to the HTML 4.0 standard and also be netscape
  *          compatible.
  *
- * @version 1.20 12/19/03
+ * @version 1.21 11/17/05
  */
 
 class FrameSetView extends javax.swing.text.BoxView {

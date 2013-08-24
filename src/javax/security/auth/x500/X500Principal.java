@@ -1,7 +1,7 @@
 /*
- * @(#)X500Principal.java	1.21 03/12/19
+ * @(#)X500Principal.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,8 @@ package javax.security.auth.x500;
 
 import java.io.*;
 import java.security.Principal;
+import java.util.Collections;
+import java.util.Map;
 import sun.security.x509.X500Name;
 import sun.security.util.*;
 
@@ -36,7 +38,7 @@ import sun.security.util.*;
  * <code>X509Certificate</code> return X500Principals representing the
  * issuer and subject fields of the certificate.
  *
- * @version 1.21, 12/19/03
+ * @version 1.25, 11/17/05
  * @see java.security.cert.X509Certificate
  * @since 1.4
  */
@@ -63,7 +65,7 @@ public final class X500Principal implements Principal, java.io.Serializable {
      * NOTE: this field is reflectively accessed from within X500Name.
      */
     private transient X500Name thisX500Name;
-    
+
     /**
      * Creates an X500Principal by wrapping an X500Name.
      *
@@ -97,21 +99,59 @@ public final class X500Principal implements Principal, java.io.Serializable {
      *			is improperly specified
      */
     public X500Principal(String name) {
+	this(name, (Map<String, String>) Collections.EMPTY_MAP);
+    }
+
+    /**
+     * Creates an <code>X500Principal</code> from a string representation of
+     * an X.500 distinguished name (ex:
+     * "CN=Duke, OU=JavaSoft, O=Sun Microsystems, C=US").
+     * The distinguished name must be specified using the grammar defined in
+     * RFC 1779 or RFC 2253 (either format is acceptable).
+     *
+     * <p> This constructor recognizes the attribute type keywords specified
+     * in {@link #X500Principal(String)} and also recognizes additional
+     * keywords that have entries in the <code>keywordMap</code> parameter.
+     * Keyword entries in the keywordMap take precedence over the default
+     * keywords recognized by <code>X500Principal(String)</code>. Keywords
+     * MUST be specified in all upper-case, otherwise they will be ignored.
+     * Improperly specified keywords are ignored; however if a keyword in the
+     * name maps to an improperly specified OID, an
+     * <code>IllegalArgumentException</code> is thrown. It is permissible to
+     * have 2 different keywords that map to the same OID.
+     *
+     * @param name an X.500 distinguished name in RFC 1779 or RFC 2253 format
+     * @param keywordMap an attribute type keyword map, where each key is a
+     *   keyword String that maps to a corresponding object identifier in String
+     *   form (a sequence of nonnegative integers separated by periods). The map
+     *   may be empty but never <code>null</code>.
+     * @exception NullPointerException if <code>name</code> or
+     *   <code>keywordMap</code> is <code>null</code>
+     * @exception IllegalArgumentException if the <code>name</code> is
+     *   improperly specified or a keyword in the <code>name</code> maps to an 
+     *   OID that is not in the correct form
+     * @since 1.6
+     */
+    public X500Principal(String name, Map<String, String> keywordMap) {
 	if (name == null) {
 	    throw new NullPointerException
 		(sun.security.util.ResourcesMgr.getString
 		("provided null name"));
 	}
+	if (keywordMap == null) {
+	    throw new NullPointerException
+		(sun.security.util.ResourcesMgr.getString
+		("provided null keyword map"));
+	}
 
 	try {
-	    thisX500Name = new X500Name(name);
+	    thisX500Name = new X500Name(name, keywordMap);
 	} catch (Exception e) {
 	    IllegalArgumentException iae = new IllegalArgumentException
 			("improperly specified input name: " + name);
 	    iae.initCause(e);
 	    throw iae;
 	}
-
     }
 
     /**
@@ -279,6 +319,7 @@ public final class X500Principal implements Principal, java.io.Serializable {
      * @return a string representation of this <code>X500Principal</code>
      *		using the specified format
      * @throws IllegalArgumentException if the specified format is invalid
+     *          or null
      */
     public String getName(String format) {
 	if (format != null) {
@@ -288,6 +329,56 @@ public final class X500Principal implements Principal, java.io.Serializable {
 		return thisX500Name.getRFC2253Name();
 	    } else if (format.equalsIgnoreCase(CANONICAL)) {
 		return thisX500Name.getRFC2253CanonicalName();
+	    }
+	}
+        throw new IllegalArgumentException("invalid format specified");
+    }
+
+    /**
+     * Returns a string representation of the X.500 distinguished name
+     * using the specified format. Valid values for the format are
+     * "RFC1779" and "RFC2253" (case insensitive). "CANONICAL" is not
+     * permitted and an <code>IllegalArgumentException</code> will be thrown.
+     *
+     * <p>This method returns Strings in the format as specified in
+     * {@link #getName(String)} and also emits additional attribute type
+     * keywords for OIDs that have entries in the <code>oidMap</code>
+     * parameter. OID entries in the oidMap take precedence over the default
+     * OIDs recognized by <code>getName(String)</code>.
+     * Improperly specified OIDs are ignored; however if an OID
+     * in the name maps to an improperly specified keyword, an
+     * <code>IllegalArgumentException</code> is thrown.
+     *
+     * <p> Additional standard formats may be introduced in the future.
+     *
+     * <p> Warning: additional attribute type keywords may not be recognized
+     * by other implementations; therefore do not use this method if
+     * you are unsure if these keywords will be recognized by other
+     * implementations.
+     *
+     * @param format the format to use
+     * @param oidMap an OID map, where each key is an object identifier in
+     *  String form (a sequence of nonnegative integers separated by periods)
+     *  that maps to a corresponding attribute type keyword String.
+     *  The map may be empty but never <code>null</code>.
+     * @return a string representation of this <code>X500Principal</code>
+     *          using the specified format
+     * @throws IllegalArgumentException if the specified format is invalid, 
+     *  null, or an OID in the name maps to an improperly specified keyword
+     * @throws NullPointerException if <code>oidMap</code> is <code>null</code>
+     * @since 1.6
+     */
+    public String getName(String format, Map<String, String> oidMap) {
+	if (oidMap == null) {
+	    throw new NullPointerException
+		(sun.security.util.ResourcesMgr.getString
+		("provided null OID map"));
+	}
+	if (format != null) {
+	    if (format.equalsIgnoreCase(RFC1779)) {
+		return thisX500Name.getRFC1779Name(oidMap);
+	    } else if (format.equalsIgnoreCase(RFC2253)) {
+		return thisX500Name.getRFC2253Name(oidMap);
 	    }
 	}
         throw new IllegalArgumentException("invalid format specified");

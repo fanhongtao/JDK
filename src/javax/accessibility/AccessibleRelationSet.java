@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRelationSet.java	1.13 04/05/05
+ * @(#)AccessibleRelationSet.java	1.15 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,8 +19,9 @@ import java.util.ResourceBundle;
  *
  * @see AccessibleRelation
  *
- * @version     1.13 05/05/04
+ * @version     1.15 04/07/06
  * @author      Lynn Monsanto
+ * @since 1.3
  */
 public class AccessibleRelationSet {
 

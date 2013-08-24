@@ -1,7 +1,7 @@
 /*
- * @(#)SynthStyle.java	1.23 03/12/19
+ * @(#)SynthStyle.java	1.38 06/03/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -10,6 +10,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
+import javax.swing.plaf.basic.BasicLookAndFeel;
 import javax.swing.text.DefaultEditorKit;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ import sun.swing.plaf.synth.SynthUI;
  * @see SynthLookAndFeel
  * @see SynthStyleFactory
  *
- * @version 1.23, 12/19/03
+ * @version 1.38, 03/29/06
  * @since 1.5
  * @author Scott Violet
  */
@@ -49,13 +50,17 @@ public abstract class SynthStyle {
     private static void populateDefaultValues() {
         Object buttonMap = new UIDefaults.LazyInputMap(new Object[] {
                           "SPACE", "pressed",
-                 "released SPACE", "released"
+                 "released SPACE", "released"  
         });
         DEFAULT_VALUES.put("Button.focusInputMap", buttonMap);
-        DEFAULT_VALUES.put("JCheckBox.focusInputMap", buttonMap);
-        DEFAULT_VALUES.put("JRadioButton.focusInputMap", buttonMap);
-        DEFAULT_VALUES.put("JToggleButton.focusInputMap", buttonMap);
+        DEFAULT_VALUES.put("CheckBox.focusInputMap", buttonMap);
+        DEFAULT_VALUES.put("RadioButton.focusInputMap", buttonMap);
+        DEFAULT_VALUES.put("ToggleButton.focusInputMap", buttonMap);
         DEFAULT_VALUES.put("SynthArrowButton.focusInputMap", buttonMap);
+        DEFAULT_VALUES.put("List.dropLineColor", Color.BLACK);
+        DEFAULT_VALUES.put("Tree.dropLineColor", Color.BLACK);
+        DEFAULT_VALUES.put("Table.dropLineColor", Color.BLACK);
+        DEFAULT_VALUES.put("Table.dropLineShortColor", Color.RED);
 
 	Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
 			   "ctrl C", DefaultEditorKit.copyAction,
@@ -64,6 +69,9 @@ public abstract class SynthStyle {
 			     "COPY", DefaultEditorKit.copyAction,
 			    "PASTE", DefaultEditorKit.pasteAction,
 			      "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
 		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
 		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -98,8 +106,11 @@ public abstract class SynthStyle {
 		    "shift KP_DOWN", DefaultEditorKit.selectionDownAction,
 			    "ENTER", DefaultEditorKit.insertBreakAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction, 
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -126,6 +137,9 @@ public abstract class SynthStyle {
 			     "COPY", DefaultEditorKit.copyAction,
 			    "PASTE", DefaultEditorKit.pasteAction,
 			      "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
 		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
 		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -144,8 +158,11 @@ public abstract class SynthStyle {
 		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 		        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -216,7 +233,8 @@ public abstract class SynthStyle {
 		     "F2", "editFileName",
 		     "F5", "refresh",
 		     "BACK_SPACE", "Go Up",
-		     "ENTER", "approveSelection"
+		     "ENTER", "approveSelection",
+		"ctrl ENTER", "approveSelection"
                }));
 
         DEFAULT_VALUES.put("FormattedTextField.focusInputMap",
@@ -227,6 +245,9 @@ public abstract class SynthStyle {
 			     "COPY", DefaultEditorKit.copyAction,
 			    "PASTE", DefaultEditorKit.pasteAction,
 			      "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
 		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
 		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -245,8 +266,11 @@ public abstract class SynthStyle {
 		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 		        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -260,6 +284,10 @@ public abstract class SynthStyle {
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
               }));
+
+        DEFAULT_VALUES.put("InternalFrame.icon",  
+                           LookAndFeel.makeIcon(BasicLookAndFeel.class,
+                                                    "icons/JavaCup16.png"));
 
         DEFAULT_VALUES.put("InternalFrame.windowBindings",
             new Object[] {
@@ -275,6 +303,9 @@ public abstract class SynthStyle {
                              "COPY", "copy",
                             "PASTE", "paste",
                               "CUT", "cut",
+                   "control INSERT", "copy",
+                     "shift INSERT", "paste",
+                     "shift DELETE", "cut",
 		               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
@@ -366,6 +397,11 @@ public abstract class SynthStyle {
 	       "ctrl released ENTER", "release"
                  });
 
+        DEFAULT_VALUES.put("RootPane.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                    "shift F10", "postPopup"
+               }));
+
         DEFAULT_VALUES.put("ScrollBar.anecstorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		       "RIGHT", "positiveUnitIncrement",
@@ -431,6 +467,14 @@ public abstract class SynthStyle {
  	    "ctrl shift TAB", "focusOutBackward"
                }));
 
+        DEFAULT_VALUES.put("Spinner.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                          "UP", "increment",
+                       "KP_UP", "increment",
+                        "DOWN", "decrement",
+                     "KP_DOWN", "decrement"
+               }));
+
         DEFAULT_VALUES.put("Slider.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		       "RIGHT", "positiveUnitIncrement",
@@ -487,6 +531,9 @@ public abstract class SynthStyle {
                                  "COPY", "copy",
                                 "PASTE", "paste",
                                   "CUT", "cut",
+                       "control INSERT", "copy",
+                         "shift INSERT", "paste",
+                         "shift DELETE", "cut",
 		                "RIGHT", "selectNextColumn",
 		             "KP_RIGHT", "selectNextColumn",
                           "shift RIGHT", "selectNextColumnExtendSelection",
@@ -547,9 +594,28 @@ public abstract class SynthStyle {
                                 "SPACE", "addToSelection",
                            "ctrl SPACE", "toggleAndAnchor",
                           "shift SPACE", "extendTo",
-                     "ctrl shift SPACE", "moveSelectionTo"
+                     "ctrl shift SPACE", "moveSelectionTo",
+                                   "F8", "focusHeader"
                }));
-
+               
+       DEFAULT_VALUES.put("TableHeader.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                                "SPACE", "toggleSortOrder",
+                                 "LEFT", "selectColumnToLeft",
+                              "KP_LEFT", "selectColumnToLeft",
+                                "RIGHT", "selectColumnToRight",
+                             "KP_RIGHT", "selectColumnToRight",
+                             "alt LEFT", "moveColumnLeft",
+                          "alt KP_LEFT", "moveColumnLeft",
+                            "alt RIGHT", "moveColumnRight",
+                         "alt KP_RIGHT", "moveColumnRight",
+                       "alt shift LEFT", "resizeLeft",
+                    "alt shift KP_LEFT", "resizeLeft",
+                      "alt shift RIGHT", "resizeRight",
+                   "alt shift KP_RIGHT", "resizeRight",
+                               "ESCAPE", "focusTable",
+               }));
+               
         DEFAULT_VALUES.put("Tree.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		     "ESCAPE", "cancel"
@@ -564,6 +630,9 @@ public abstract class SynthStyle {
                                    "COPY", "copy",
                                   "PASTE", "paste",
                                     "CUT", "cut",
+                         "control INSERT", "copy",
+                           "shift INSERT", "paste",
+                           "shift DELETE", "cut",
 		                     "UP", "selectPrevious",
 		                  "KP_UP", "selectPrevious",
 		               "shift UP", "selectPreviousExtendSelection",

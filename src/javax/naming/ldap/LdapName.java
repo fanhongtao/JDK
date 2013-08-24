@@ -1,7 +1,7 @@
 /*
- * @(#)LdapName.java	1.7 04/06/21
+ * @(#)LdapName.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -81,7 +81,7 @@ import java.io.IOException;
  * NullPointerException to be thrown.
  *
  * @author Scott Seligman
- * @version 1.7 04/06/21
+ * @version 1.8 05/11/17
  * @since 1.5
  */
 

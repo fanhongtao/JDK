@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DecimalFormatting.java,v 1.14 2004/02/24 03:55:47 zongaro Exp $
+ * $Id: DecimalFormatting.java,v 1.2.4.1 2005/09/12 10:14:32 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -31,7 +31,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -59,7 +59,7 @@ final class DecimalFormatting extends TopLevelElement {
 	// Get the name of these decimal formatting symbols
         final String name = getAttribute("name");
         if (name.length() > 0) {
-            if (!XMLChar.isValidQName(name)){
+            if (!XML11Char.isXML11ValidQName(name)){
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
                 parser.reportError(Constants.ERROR, err);           
             }

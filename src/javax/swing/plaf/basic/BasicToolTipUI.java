@@ -1,13 +1,13 @@
 /*
- * @(#)BasicToolTipUI.java	1.41 03/12/19
+ * @(#)BasicToolTipUI.java	1.44 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -25,7 +25,7 @@ import javax.swing.text.View;
  * Standard tool tip L&F.
  * <p>
  *
- * @version 1.41 12/19/03
+ * @version 1.44 11/30/05
  * @author Dave Moore
  */
 public class BasicToolTipUI extends ToolTipUI
@@ -109,12 +109,8 @@ public class BasicToolTipUI extends ToolTipUI
         Font font = c.getFont();
         FontMetrics metrics = SwingUtilities2.getFontMetrics(c, g, font);
         Dimension size = c.getSize();
-        if (c.isOpaque()) {
-            g.setColor(c.getBackground());
-            g.fillRect(0, 0, size.width, size.height);
-        }
+
         g.setColor(c.getForeground());
-        g.setFont(font);
 	// fix for bug 4153892
 	String tipText = ((JToolTip)c).getTipText();
 	if (tipText == null) {
@@ -123,15 +119,16 @@ public class BasicToolTipUI extends ToolTipUI
 
         Insets insets = c.getInsets();
         Rectangle paintTextR = new Rectangle(
-            insets.left,
+            insets.left + 3,
             insets.top,
-            size.width - (insets.left + insets.right),
+            size.width - (insets.left + insets.right) - 6,
             size.height - (insets.top + insets.bottom));
 	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
 	if (v != null) {
 	    v.paint(g, paintTextR);
 	} else {
-	    SwingUtilities2.drawString(c, g, tipText, paintTextR.x + 3,
+            g.setFont(font);
+	    SwingUtilities2.drawString(c, g, tipText, paintTextR.x,
                                   paintTextR.y + metrics.getAscent());
 	}
     }
@@ -151,7 +148,7 @@ public class BasicToolTipUI extends ToolTipUI
         else {
 	    View v = (c != null) ? (View) c.getClientProperty("html") : null;
 	    if (v != null) {
-		prefSize.width += (int) v.getPreferredSpan(View.X_AXIS);
+		prefSize.width += (int) v.getPreferredSpan(View.X_AXIS) + 6;
 		prefSize.height += (int) v.getPreferredSpan(View.Y_AXIS);
 	    } else {
 		prefSize.width += SwingUtilities2.stringWidth(c,fm,text) + 6;

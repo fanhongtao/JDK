@@ -1,7 +1,7 @@
 /*
- * @(#)BezierAnimationPanel.java	1.14 04/07/26
+ * @(#)BezierAnimationPanel.java	1.16 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)BezierAnimationPanel.java	1.14 04/07/26
+ * @(#)BezierAnimationPanel.java	1.16 05/11/17
  */
 
 
@@ -56,12 +56,12 @@ import java.awt.event.*;
 /**
  * BezierAnimationPanel
  *
- * @version 1.14 07/26/04
+ * @version 1.16 11/17/05
  * @author Jim Graham
  * @author Jeff Dinkins (removed dynamic setting changes, made swing friendly)
  */
 class BezierAnimationPanel extends JPanel implements Runnable {
-
+    
     Color backgroundColor =  new Color(0,     0, 153);
     Color outerColor      =  new Color(255, 255, 255);
     Color gradientColorA  =  new Color(255,   0, 101);
@@ -93,12 +93,14 @@ class BezierAnimationPanel extends JPanel implements Runnable {
     Rectangle bounds = null;
 
     Thread anim;
+    
+    private final Object lock = new Object();
 
     /**
      * BezierAnimationPanel Constructor
      */
     public BezierAnimationPanel() {
-	addHierarchyListener(
+        addHierarchyListener(
 	    new HierarchyListener() {
 	       public void hierarchyChanged(HierarchyEvent e) {
 		   if(isShowing()) {
@@ -237,7 +239,7 @@ class BezierAnimationPanel extends JPanel implements Runnable {
 		img = (BufferedImage) createImage(size.width, size.height);
 	    }
 
-	    if (BufferG2D == null) {
+        if (BufferG2D == null) {
 		BufferG2D = img.createGraphics();
 		BufferG2D.setRenderingHint(RenderingHints.KEY_RENDERING,
 					   RenderingHints.VALUE_RENDER_DEFAULT);
@@ -281,7 +283,8 @@ class BezierAnimationPanel extends JPanel implements Runnable {
 	    }
 	    gp.closePath();
 
-	    g2d.setComposite(set);
+	    synchronized(lock) {
+        g2d.setComposite(set);
 	    g2d.setBackground(backgroundColor);
 	    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				 RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -290,7 +293,8 @@ class BezierAnimationPanel extends JPanel implements Runnable {
 		bounds = new Rectangle(0, 0, getWidth(), getHeight());
 		bgChanged = false;
 	    }
-	    // g2d.clearRect(bounds.x-5, bounds.y-5, bounds.x + bounds.width + 5, bounds.y + bounds.height + 5);
+	    
+        // g2d.clearRect(bounds.x-5, bounds.y-5, bounds.x + bounds.width + 5, bounds.y + bounds.height + 5);
 	    g2d.clearRect(0, 0, getWidth(), getHeight());
 
 	    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -312,7 +316,7 @@ class BezierAnimationPanel extends JPanel implements Runnable {
 					 gradientColorB, true);
 	    g2d.setComposite(blend);
 	    g2d.fill(gp);
-
+        }
 	    if (g2d == BufferG2D) {
 		repaint();
 	    }
@@ -325,7 +329,7 @@ class BezierAnimationPanel extends JPanel implements Runnable {
     }
 
     public void paint(Graphics g) {
-	synchronized (this) {
+	synchronized (lock) {
 	   Graphics2D g2d = (Graphics2D) g;
 	   if (img != null) {
 	       int imgw = img.getWidth();

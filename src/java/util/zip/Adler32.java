@@ -1,7 +1,7 @@
 /*
- * @(#)Adler32.java	1.29 05/08/09
+ * @(#)Adler32.java	1.29 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.util.zip;
  * can be computed much faster.
  *
  * @see		Checksum
- * @version 	1.29, 08/09/05
+ * @version 	1.29, 11/17/05
  * @author 	David Connelly
  */
 public

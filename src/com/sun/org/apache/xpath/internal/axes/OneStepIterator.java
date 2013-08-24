@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: OneStepIterator.java,v 1.15 2004/02/17 04:32:08 minchau Exp $
+ * $Id: OneStepIterator.java,v 1.2.4.2 2005/09/14 19:45:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -34,6 +34,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public class OneStepIterator extends ChildTestIterator
 {
+    static final long serialVersionUID = 4623710779664998283L;
   /** The traversal axis from where the nodes will be filtered. */
   protected int m_axis = -1;
 
@@ -83,7 +84,7 @@ public class OneStepIterator extends ChildTestIterator
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)

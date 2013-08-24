@@ -1,7 +1,7 @@
 /*
- * @(#)TOAImpl.java	1.51 04/03/01
+ * @(#)TOAImpl.java	1.52 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

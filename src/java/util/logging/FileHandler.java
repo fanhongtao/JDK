@@ -1,7 +1,7 @@
 /*
- * @(#)FileHandler.java	1.34 04/04/05
+ * @(#)FileHandler.java	1.36 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import java.security.*;
  * 	  specifies the name of a <tt>Filter</tt> class to use
  *	  (defaults to no <tt>Filter</tt>).
  * <li>   java.util.logging.FileHandler.formatter 
- *	  specifies the name of a </tt>Formatter</tt> class to use
+ *	  specifies the name of a <tt>Formatter</tt> class to use
  *        (defaults to <tt>java.util.logging.XMLFormatter</tt>)
  * <li>   java.util.logging.FileHandler.encoding 
  *	  the name of the character set encoding to use (defaults to
@@ -96,7 +96,7 @@ import java.security.*;
  * Note that the use of unique ids to avoid conflicts is only guaranteed
  * to work reliably when using a local disk file system.
  *
- * @version 1.34, 04/05/04
+ * @version 1.36, 04/07/06
  * @since 1.4
  */
 

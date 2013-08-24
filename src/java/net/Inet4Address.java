@@ -1,7 +1,7 @@
 /*
- * @(#)Inet4Address.java	1.28 04/02/12
+ * @(#)Inet4Address.java	1.30 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,6 +63,7 @@ import sun.security.action.*;
  * 255 are global. However, the administrative scoping is preferred.
  * Please refer to <a href="http://www.ietf.org/rfc/rfc2365.txt">
  * <i>RFC&nbsp;2365: Administratively Scoped IP Multicast</i></a>
+ * @since 1.4
  */
 
 public final

@@ -2,7 +2,7 @@
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +18,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +26,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -66,145 +66,162 @@ import com.sun.org.apache.xerces.internal.xni.XMLString;
  * expecting an XMLString object. This is a safe operation because
  * it is assumed that any callee will <strong>not</strong> modify
  * the contents of the XMLString structure.
- * <p> 
+ * <p>
  * The contents of the string are managed by the string buffer. As
  * characters are appended, the string buffer will grow as needed.
  * <p>
- * <strong>Note:</strong> Never set the <code>ch</code>, 
+ * <strong>Note:</strong> Never set the <code>ch</code>,
  * <code>offset</code>, and <code>length</code> fields directly.
  * These fields are managed by the string buffer. In order to reset
  * the buffer, call <code>clear()</code>.
- * 
+ *
  * @author Andy Clark, IBM
  * @author Eric Ye, IBM
  *
- * @version $Id: XMLStringBuffer.java,v 1.5 2003/07/28 23:27:36 elena Exp $
+ * @version $Id: XMLStringBuffer.java,v 1.1.2.1 2005/08/01 03:35:44 jeffsuttor Exp $
  */
 public class XMLStringBuffer
-    extends XMLString {
-
+extends XMLString {
+    
     //
     // Constants
     //
-
+    
+    
     /** Default buffer size (32). */
     public static final int DEFAULT_SIZE = 32;
-
+    
+    //
+    // Data
+    //
+    
     //
     // Constructors
     //
-
+    
     /**
-     * 
+     *
      */
     public XMLStringBuffer() {
         this(DEFAULT_SIZE);
     } // <init>()
-
+    
     /**
-     * 
-     * 
-     * @param size 
+     *
+     *
+     * @param size
      */
     public XMLStringBuffer(int size) {
         ch = new char[size];
     } // <init>(int)
-
+    
     /** Constructs a string buffer from a char. */
     public XMLStringBuffer(char c) {
         this(1);
         append(c);
     } // <init>(char)
-
+    
     /** Constructs a string buffer from a String. */
     public XMLStringBuffer(String s) {
         this(s.length());
         append(s);
     } // <init>(String)
-
+    
     /** Constructs a string buffer from the specified character array. */
     public XMLStringBuffer(char[] ch, int offset, int length) {
         this(length);
         append(ch, offset, length);
     } // <init>(char[],int,int)
-
+    
     /** Constructs a string buffer from the specified XMLString. */
     public XMLStringBuffer(XMLString s) {
         this(s.length);
         append(s);
     } // <init>(XMLString)
-
+    
     //
     // Public methods
     //
-
+    
     /** Clears the string buffer. */
     public void clear() {
         offset = 0;
         length = 0;
     }
-
+    
     /**
      * append
-     * 
-     * @param c 
+     *
+     * @param c
      */
     public void append(char c) {
-        if (this.length + 1 > this.ch.length) {
-                    int newLength = this.ch.length*2;
-                    if (newLength < this.ch.length + DEFAULT_SIZE)
-                        newLength = this.ch.length + DEFAULT_SIZE;
-                    char[] newch = new char[newLength];
-                    System.arraycopy(this.ch, 0, newch, 0, this.length);
-                    this.ch = newch;
+        if(this.length + 1 > this.ch.length){
+            int newLength = this.ch.length * 2 ;
+            if(newLength < this.ch.length + DEFAULT_SIZE){
+                newLength = this.ch.length + DEFAULT_SIZE;
+            }
+            char [] tmp = new char[newLength];
+            System.arraycopy(this.ch, 0, tmp, 0, this.length);
+            this.ch = tmp;
         }
-        this.ch[this.length] = c;
+        this.ch[this.length] = c ;
         this.length++;
     } // append(char)
-
+    
     /**
      * append
-     * 
-     * @param s 
+     *
+     * @param s
      */
     public void append(String s) {
         int length = s.length();
         if (this.length + length > this.ch.length) {
-            int newLength = this.ch.length*2;
-            if (newLength < this.length + length + DEFAULT_SIZE)
-                newLength = this.ch.length + length + DEFAULT_SIZE;
-            char[] newch = new char[newLength];            
+            int newLength = this.ch.length * 2 ;
+            if(newLength < this.ch.length + length + DEFAULT_SIZE){
+                newLength = this.ch.length + length+ DEFAULT_SIZE;
+            }
+            
+            char[] newch = new char[newLength];
             System.arraycopy(this.ch, 0, newch, 0, this.length);
             this.ch = newch;
         }
         s.getChars(0, length, this.ch, this.length);
         this.length += length;
     } // append(String)
-
+    
     /**
      * append
-     * 
-     * @param ch 
-     * @param offset 
-     * @param length 
+     *
+     * @param ch
+     * @param offset
+     * @param length
      */
     public void append(char[] ch, int offset, int length) {
         if (this.length + length > this.ch.length) {
-            char[] newch = new char[this.ch.length + length + DEFAULT_SIZE];
+            int newLength = this.ch.length * 2 ;
+            if(newLength < this.ch.length + length + DEFAULT_SIZE){
+                newLength = this.ch.length + length + DEFAULT_SIZE;
+            }
+            char[] newch = new char[newLength];
             System.arraycopy(this.ch, 0, newch, 0, this.length);
             this.ch = newch;
         }
-        System.arraycopy(ch, offset, this.ch, this.length, length);
-        this.length += length;
+        //making the code more robust as it would handle null or 0 length data,
+        //add the data only when it contains some thing
+        if(ch != null && length > 0){
+            System.arraycopy(ch, offset, this.ch, this.length, length);
+            this.length += length;
+        }
     } // append(char[],int,int)
-
+    
     /**
      * append
-     * 
-     * @param s 
+     *
+     * @param s
      */
     public void append(XMLString s) {
         append(s.ch, s.offset, s.length);
     } // append(XMLString)
-
+    
+    
 } // class XMLStringBuffer

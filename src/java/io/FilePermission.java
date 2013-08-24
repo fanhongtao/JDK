@@ -1,7 +1,7 @@
 /*
- * @(#)FilePermission.java	1.76 04/01/12
+ * @(#)FilePermission.java	1.80 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -70,7 +70,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.76 04/01/12
+ * @version 1.80 05/11/17
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -179,16 +179,27 @@ public final class FilePermission extends Permission implements Serializable {
 	    return;
 	}
 
+	// store only the canonical cpath if possible
+	cpath = AccessController.doPrivileged(new PrivilegedAction<String>() {
+	    public String run() {
+		try {
+		    return sun.security.provider.PolicyFile.canonPath(cpath);
+		} catch (IOException ioe) {
+		    return cpath;
+		}
+	    }
+	});
+
 	int len = cpath.length();
 	char last = ((len > 0) ? cpath.charAt(len - 1) : 0);
 
 	if (last == RECURSIVE_CHAR &&
-	    (len == 1 || cpath.charAt(len - 2) == File.separatorChar)) {
+	    cpath.charAt(len - 2) == File.separatorChar) {
 	    directory = true;
 	    recursive = true;
 	    cpath = cpath.substring(0, --len);
 	} else if (last == WILD_CHAR &&
-	    (len == 1 || cpath.charAt(len - 2) == File.separatorChar)) {
+	    cpath.charAt(len - 2) == File.separatorChar) {
 	    directory = true;
 	    //recursive = false;
 	    cpath = cpath.substring(0, --len);
@@ -199,63 +210,37 @@ public final class FilePermission extends Permission implements Serializable {
 	    //recursive = false;
 	}
 
-	if (len == 0) {
-	    cpath = (String) java.security.AccessController.doPrivileged(
-		       new sun.security.action.GetPropertyAction("user.dir"));
-	}
-
-	// store only the canonical cpath if possible
-
-	// need a doPrivileged block as getCanonicalPath
-	// might attempt to access user.dir to turn a relative
-	// path into an absolute path.
-	cpath = (String) 
-	    AccessController.doPrivileged(
-			new java.security.PrivilegedAction() {
-	    public Object run() {
-		try {
-		    File file = new File(cpath);
-		    String canonical_path = file.getCanonicalPath();
-		    int ln;
-		    if (directory && 
-	  		((ln=canonical_path.length()) == 0 ||
-			canonical_path.charAt(ln - 1) != File.separatorChar)) {
-			return canonical_path + File.separator;
-		    } else {
-			return canonical_path;
-		    }
-		} catch (IOException ioe) {
-		    // ignore if we can't canonicalize path?
-		}
-		return cpath;
-	    }
-	});
-
 	// XXX: at this point the path should be absolute. die if it isn't?
     }
 
     /**
      * Creates a new FilePermission object with the specified actions.
-     * <i>path</i> is the pathname of a
-     * file or directory, and <i>actions</i> contains a comma-separated list of the
-     * desired actions granted on the file or directory. Possible actions are
+     * <i>path</i> is the pathname of a file or directory, and <i>actions</i>
+     * contains a comma-separated list of the desired actions granted on the
+     * file or directory. Possible actions are
      * "read", "write", "execute", and "delete". 
      * 
      * <p>A pathname that ends in "/*" (where "/" is
-     * the file separator character, <code>File.separatorChar</code>) indicates
-     * a directory and all the files contained in that directory. A pathname
-     * that ends with "/-" indicates a directory and (recursively) all files
-     * and subdirectories contained in that directory. The special pathname
-     * "&lt;&lt;ALL FILES&gt;&gt;" matches all files.
+     * the file separator character, <code>File.separatorChar</code>) 
+     * indicates all the files and directories contained in that directory.
+     * A pathname that ends with "/-" indicates (recursively) all files and
+     * subdirectories contained in that directory. The special pathname
+     * "&lt;&lt;ALL FILES&gt;&gt;" matches any file.
      * 
      * <p>A pathname consisting of a single "*" indicates all the files
      * in the current directory, while a pathname consisting of a single "-" 
      * indicates all the files in the current directory and
      * (recursively) all files and subdirectories contained in the current 
      * directory.
+     *
+     * <p>A pathname containing an empty string represents an empty path.
      * 
      * @param path the pathname of the file/directory.
      * @param actions the action string.
+     *
+     * @throws IllegalArgumentException
+     *		If actions is <code>null</code>, empty or contains an action
+     *		other than the specified possible actions.
      */
 
     public FilePermission(String path, String actions) 
@@ -292,13 +277,15 @@ public final class FilePermission extends Permission implements Serializable {
      * object's actions, and <p>
      * <li> <i>p</i>'s pathname is implied by this object's
      *      pathname. For example, "/tmp/*" implies "/tmp/foo", since
-     *      "/tmp/*" encompasses the "/tmp" directory and all files in that
-     *      directory, including the one named "foo".
+     *      "/tmp/*" encompasses all files in the "/tmp" directory,
+     *      including the one named "foo".
      * </ul>
+     *
      * @param p the permission to check against.
      *
-     * @return true if the specified permission is implied by this object,
-     * false if not.  
+     * @return <code>true</code> if the specified permission is not
+     * 			<code>null</code> and is implied by this object,
+     *			<code>false</code> otherwise.  
      */
     public boolean implies(Permission p) {
 	if (!(p instanceof FilePermission))
@@ -350,12 +337,15 @@ public final class FilePermission extends Permission implements Serializable {
 		    else {
 			// this.cpath.equals(that.cpath.substring(0, last+1));
 			// Use regionMatches to avoid creating new string
-
 			return (this.cpath.length() == (last + 1)) &&
 			    this.cpath.regionMatches(0, that.cpath, 0, last+1);
 		    }
 		}
 	    }
+	} else if (that.directory) {
+	    // if this is NOT recursive/wildcarded,
+	    // do not let it imply a recursive/wildcarded permission
+	    return false;
 	} else {
 	    return (this.cpath.equals(that.cpath));
 	}
@@ -366,8 +356,9 @@ public final class FilePermission extends Permission implements Serializable {
      * a FilePermission, and has the same pathname and actions as this object.
      * <P>
      * @param obj the object we are testing for equality with this object.
-     * @return true if obj is a FilePermission, and has the same pathname and
-     * actions as this FilePermission object.
+     * @return <code>true</code> if obj is a FilePermission, and has the same
+     * 		pathname and actions as this FilePermission object,
+     *		<code>false</code> otherwise.
      */
     public boolean equals(Object obj) {
 	if (obj == this)
@@ -658,7 +649,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.76 01/12/04
+ * @version 1.80 11/17/05
  *
  * @author Marianne Mueller
  * @author Roland Schemers

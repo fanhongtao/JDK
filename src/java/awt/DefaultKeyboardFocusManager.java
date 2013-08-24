@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.35 06/07/19
+ * @(#)DefaultKeyboardFocusManager.java	1.40 06/07/11
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -21,6 +21,7 @@ import java.util.logging.*;
 
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
+import sun.awt.CausedFocusEvent;
 
 /**
  * The default KeyboardFocusManager for AWT applications. Focus traversal is
@@ -35,7 +36,7 @@ import sun.awt.SunToolkit;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.35, 07/19/06
+ * @version 1.40, 07/11/06
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -84,13 +85,14 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
     private void restoreFocus(FocusEvent fe, Window newFocusedWindow) {
         Component realOppositeComponent = this.realOppositeComponent;
         Component vetoedComponent = fe.getComponent();
+
         if (newFocusedWindow != null && restoreFocus(newFocusedWindow, 
                                                      vetoedComponent, false))
         {
         } else if (realOppositeComponent != null &&
-                   restoreFocus(realOppositeComponent, false)) {
+                   doRestoreFocus(realOppositeComponent, vetoedComponent, false)) {
         } else if (fe.getOppositeComponent() != null &&
-                   restoreFocus(fe.getOppositeComponent(), false)) {
+                   doRestoreFocus(fe.getOppositeComponent(), vetoedComponent, false)) {
         } else {
             clearGlobalFocusOwner();
         }
@@ -109,7 +111,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                                  boolean clearOnFailure) {
         Component toFocus =
             KeyboardFocusManager.getMostRecentFocusOwner(aWindow);
-        if (toFocus != null && toFocus != vetoedComponent && restoreFocus(toFocus, false)) {
+
+        if (toFocus != null && toFocus != vetoedComponent && doRestoreFocus(toFocus, vetoedComponent, false)) {
             return true;
         } else if (clearOnFailure) {
             clearGlobalFocusOwner();
@@ -119,16 +122,24 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
         }
     }
     private boolean restoreFocus(Component toFocus, boolean clearOnFailure) {
+        return doRestoreFocus(toFocus, null, clearOnFailure);
+    }
+    private boolean doRestoreFocus(Component toFocus, Component vetoedComponent,
+				   boolean clearOnFailure)
+    {
         if (toFocus.isShowing() && toFocus.isFocusable() &&
-            toFocus.requestFocus(false)) {
+            toFocus.requestFocus(false, CausedFocusEvent.Cause.ROLLBACK)) {
             return true;
-        } else if (toFocus.nextFocusHelper()) {
-            return true;
-        } else if (clearOnFailure) {
-            clearGlobalFocusOwner();
-            return true;
-        } else {
-            return false;
+	} else {
+            Component nextFocus = toFocus.preNextFocusHelper();
+            if (nextFocus != vetoedComponent && Component.postNextFocusHelper(nextFocus)) {
+                return true;
+            } else if (clearOnFailure) {
+                clearGlobalFocusOwner();
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -140,6 +151,11 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
     private static class DefaultKeyboardFocusManagerSentEvent
         extends SentEvent
     {
+        /*
+         * serialVersionUID
+         */
+        private static final long serialVersionUID = -2924743257508701758L;
+
         public DefaultKeyboardFocusManagerSentEvent(AWTEvent nested,
                                                     AppContext toNotify) {
             super(nested, toNotify);
@@ -329,17 +345,15 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         focusLog.log(Level.FINER, "tempLost {0}, toFocus {1}", 
                                      new Object[]{tempLost, toFocus});
                     }
-                    setInActivation(true);
                     if (tempLost != null) {
-                        tempLost.requestFocusInWindow();
+                        tempLost.requestFocusInWindow(CausedFocusEvent.Cause.ACTIVATION);
                     }
 
                     if (toFocus != null && toFocus != tempLost) {
                         // If there is a component which requested focus when this window
                         // was inactive it expects to receive focus after activation.
-                        toFocus.requestFocusInWindow();
+                        toFocus.requestFocusInWindow(CausedFocusEvent.Cause.ACTIVATION);
                     }
-                    setInActivation(false);
                 }
 
                 Window realOppositeWindow = this.realOppositeWindow;
@@ -391,6 +405,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 
             case FocusEvent.FOCUS_GAINED: {
                 FocusEvent fe = (FocusEvent)e;
+                CausedFocusEvent.Cause cause = (fe instanceof CausedFocusEvent) ? 
+                    ((CausedFocusEvent)fe).getCause() : CausedFocusEvent.Cause.UNKNOWN;
                 Component oldFocusOwner = getGlobalFocusOwner();
                 Component newFocusOwner = fe.getComponent();
                 if (oldFocusOwner == newFocusOwner) {
@@ -407,10 +423,10 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                 if (oldFocusOwner != null) {
                     boolean isEventDispatched =
                         sendMessage(oldFocusOwner,
-                                    new FocusEvent(oldFocusOwner,
+                                    new CausedFocusEvent(oldFocusOwner,
                                                    FocusEvent.FOCUS_LOST,
                                                    fe.isTemporary(),
-                                                   newFocusOwner));
+                                                   newFocusOwner, cause));
                     // Failed to dispatch, clear by ourselfves
                     if (!isEventDispatched) {
                         setGlobalFocusOwner(null);
@@ -476,10 +492,10 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                 Component realOppositeComponent = this.realOppositeComponent;
                 if (realOppositeComponent != null &&
                     realOppositeComponent != fe.getOppositeComponent()) {
-                    fe = new FocusEvent(newFocusOwner,
+                    fe = new CausedFocusEvent(newFocusOwner,
                                         FocusEvent.FOCUS_GAINED,
                                         fe.isTemporary(),
-                                        realOppositeComponent);
+                                        realOppositeComponent, cause);
                     ((AWTEvent) fe).isPosted = true;
                 }
                 return typeAheadAssertions(newFocusOwner, fe);
@@ -598,10 +614,10 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         oppositeComp = oppositeWindow;
                     }
                     sendMessage(currentFocusOwner,
-                                new FocusEvent(currentFocusOwner,
+                                new CausedFocusEvent(currentFocusOwner,
                                                FocusEvent.FOCUS_LOST,
                                                true,
-                                               oppositeComp));
+                                               oppositeComp, CausedFocusEvent.Cause.ACTIVATION));
                 }
 
                 setGlobalFocusedWindow(null);
@@ -744,6 +760,10 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     if (typeAheadMarkers.size() != 0) {
                         TypeAheadMarker marker = (TypeAheadMarker)
                             typeAheadMarkers.getFirst();
+                        // Fixed 5064013: may appears that the events have the same time
+                        // if (ke.getWhen() >= marker.after) {
+                        // The fix is rolled out.
+
                         if (ke.getWhen() > marker.after) {
                             ke = null;
                         }
@@ -794,6 +814,10 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     if (e.isPosted && typeAheadMarkers.size() != 0) {
                         TypeAheadMarker marker = (TypeAheadMarker)
                             typeAheadMarkers.getFirst();
+                        // Fixed 5064013: may appears that the events have the same time
+                        // if (ke.getWhen() >= marker.after) {
+                        // The fix is rolled out.
+
                         if (ke.getWhen() > marker.after) {
                             focusLog.log(Level.FINER, "Storing event {0} because of marker {1}", new Object[] {ke, marker});
                             enqueuedKeyEvents.addLast(ke);
@@ -932,6 +956,14 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
              }
         }
         return dispatchKeyEvent(ke);
+    }
+
+    /* 
+     * @param e is a KEY_PRESSED event that can be used
+     *          to track the next KEY_TYPED related.
+     */ 
+    private void consumeNextKeyTyped(KeyEvent e) {
+        consumeNextKeyTyped = true;
     }
 
     private void consumeTraversalKey(KeyEvent e) {

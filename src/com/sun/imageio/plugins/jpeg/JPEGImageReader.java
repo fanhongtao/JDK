@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageReader.java	1.49 04/03/29
+ * @(#)JPEGImageReader.java	1.55 06/04/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -92,7 +92,13 @@ public class JPEGImageReader extends ImageReader {
      */
     protected static final int WARNING_NO_JFIF_IN_THUMB = 1;
 
-    private static final int MAX_WARNING = WARNING_NO_JFIF_IN_THUMB;
+    /**
+     * Warning code to be passed to warningOccurred to indicate
+     * that embedded ICC profile is invalid and will be ignored.
+     */ 
+    protected static final int WARNING_IGNORE_INVALID_ICC = 2;
+
+    private static final int MAX_WARNING = WARNING_IGNORE_INVALID_ICC;
 
     /**
      * Image index of image for which header information 
@@ -591,10 +597,50 @@ public class JPEGImageReader extends ImageReader {
         this.colorSpaceCode = colorSpaceCode;
         this.outColorSpaceCode = outColorSpaceCode;
         this.numComponents = numComponents;
-        iccCS = null;
-        if (iccData != null) {
-            iccCS = new ICC_ColorSpace(ICC_Profile.getInstance(iccData));
+        
+        if (iccData == null) {
+            iccCS = null;
+            return;
         }
+
+        ICC_Profile newProfile = null;
+        try {
+            newProfile = ICC_Profile.getInstance(iccData);
+        } catch (IllegalArgumentException e) {
+            /*
+             * Color profile data seems to be invalid.
+             * Ignore this profile.
+             */
+            iccCS = null;
+            warningOccurred(WARNING_IGNORE_INVALID_ICC);
+
+            return;
+        }
+        byte[] newData = newProfile.getData();
+
+        ICC_Profile oldProfile = null;
+        if (iccCS instanceof ICC_ColorSpace) {
+            oldProfile = ((ICC_ColorSpace)iccCS).getProfile();
+        }
+        byte[] oldData = null;
+        if (oldProfile != null) {
+            oldData = oldProfile.getData();
+        }
+            
+        /*
+         * At the moment we can't rely on the ColorSpace.equals()
+         * and ICC_Profile.equals() because they do not detect 
+         * the case when two profiles are created from same data.
+         * 
+         * So, we have to do data comparison in order to avoid 
+         * creation of different ColorSpace instances for the same
+         * embedded data.
+         */
+        if (oldData == null ||
+            !java.util.Arrays.equals(oldData, newData))
+        {
+            iccCS = new ICC_ColorSpace(newProfile);               
+        }       
     }
 
     public int getWidth(int imageIndex) throws IOException {
@@ -690,7 +736,11 @@ public class JPEGImageReader extends ImageReader {
         case JPEG.JCS_YCbCr:
             // As there is no YCbCr ColorSpace, we can't support
             // the raw type.
-            // If there is an ICC Profile, use that as the default
+
+            // due to 4705399, use RGB as default in order to avoid
+            // slowing down of drawing operations with result image.
+            list.add(getImageType(JPEG.JCS_RGB));
+
             if (iccCS != null) {
                 list.add(ImageTypeSpecifier.createInterleaved
                          (iccCS,
@@ -700,7 +750,7 @@ public class JPEGImageReader extends ImageReader {
                           false));
 
             }
-            list.add(getImageType(JPEG.JCS_RGB));
+
             list.add(getImageType(JPEG.JCS_GRAYSCALE));
             if (JPEG.YCC != null) { // Might be null if PYCC.pf not installed
                 list.add(getImageType(JPEG.JCS_YCC));
@@ -780,7 +830,8 @@ public class JPEGImageReader extends ImageReader {
                 // image.  So convert from the profile cs to the target cs
                 convert = new ColorConvertOp(iccCS, cs, null);
                 // Leave IJG conversion in place; we still need it
-            } else if ((!cs.isCS_sRGB()) &&
+            } else if ((iccCS == null) &&
+                       (!cs.isCS_sRGB()) &&
                        (cm.getNumComponents() == numComponents)) {
                 // Target isn't sRGB, so convert from sRGB to the target
                 convert = new ColorConvertOp(JPEG.sRGB, cs, null);
@@ -1340,7 +1391,7 @@ public class JPEGImageReader extends ImageReader {
 
     private static native void disposeReader(long structPointer);
 
-    private static class JPEGReaderDisposerRecord extends DisposerRecord {
+    private static class JPEGReaderDisposerRecord implements DisposerRecord {
         private long pData;
 
         public JPEGReaderDisposerRecord(long pData) {

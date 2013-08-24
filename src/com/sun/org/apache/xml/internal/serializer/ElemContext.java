@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ElemContext.java,v 1.2 2004/02/17 04:18:19 minchau Exp $
+ * $Id: ElemContext.java,v 1.2.4.1 2005/09/15 08:15:15 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -46,8 +46,9 @@ package com.sun.org.apache.xml.internal.serializer;
  * child element is done.  Previously there was some redundant and error-prone
  * calculations going on to retore information.
  * 
+ * @xsl.usage internal
  */
-class ElemContext
+final class ElemContext
 {
     // Fields that form the context of the element
 

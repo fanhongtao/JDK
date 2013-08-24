@@ -1,7 +1,7 @@
 /*
- * @(#)ReplicateScaleFilter.java	1.20 04/07/16
+ * @(#)ReplicateScaleFilter.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.20 07/16/04
+ * @version	1.21 11/17/05
  * @author 	Jim Graham
  */
 public class ReplicateScaleFilter extends ImageFilter {

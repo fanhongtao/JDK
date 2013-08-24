@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleKeyBinding.java	1.4 03/12/19
+ * @(#)AccessibleKeyBinding.java	1.6 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,8 +25,9 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleKeyBinding
  *
- * @version     1.4 12/19/03
+ * @version     1.6 04/07/06
  * @author	Lynn Monsanto
+ * @since 1.4
  */
 public interface AccessibleKeyBinding {
 

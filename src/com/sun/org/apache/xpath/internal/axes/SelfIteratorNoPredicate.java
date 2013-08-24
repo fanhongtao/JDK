@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SelfIteratorNoPredicate.java,v 1.12 2004/02/17 04:32:08 minchau Exp $
+ * $Id: SelfIteratorNoPredicate.java,v 1.2.4.2 2005/09/14 19:45:21 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -30,6 +30,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public class SelfIteratorNoPredicate extends LocPathIterator
 {
+    static final long serialVersionUID = -4226887905279814201L;
 
   /**
    * Create a SelfIteratorNoPredicate object.
@@ -49,11 +50,6 @@ public class SelfIteratorNoPredicate extends LocPathIterator
   
   /**
    * Create a SelfIteratorNoPredicate object.
-   *
-   * @param compiler A reference to the Compiler that contains the op map.
-   * @param opPos The position within the op map, which contains the
-   * location path expression for this itterator.
-   * @param analysis Analysis bits.
    *
    * @throws javax.xml.transform.TransformerException
    */

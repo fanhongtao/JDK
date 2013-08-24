@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPermission.java	1.40 03/12/19
+ * @(#)BasicPermission.java	1.44 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.40 03/12/19
+ * @version 1.44 05/11/17
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -70,6 +70,9 @@ implements java.io.Serializable
 
     // the name without the wildcard on the end
     private transient String path;
+
+    // is this permission the old-style exitVM permission (pre JDK 1.6)?
+    private transient boolean exitVM;
 
     /**
      * initialize a BasicPermission object. Common to all constructors.
@@ -98,7 +101,13 @@ implements java.io.Serializable
 		path = name.substring(0, len - 1);
 	    }
 	} else {
-	    path = name;
+	    if (name.equals("exitVM")) {
+		wildcard = true;
+		path = "exitVM.";
+		exitVM = true;
+	    } else {
+		path = name;
+	    }
 	}
     }
 
@@ -162,13 +171,14 @@ implements java.io.Serializable
 	BasicPermission that = (BasicPermission) p;
 
 	if (this.wildcard) {
-	    if (that.wildcard)
+	    if (that.wildcard) {
 		// one wildcard can imply another
 		return that.path.startsWith(path);
-	    else
+	    } else {
 		// make sure ap.path is longer so a.b.* doesn't imply a.b
 		return (that.path.length() > this.path.length()) &&
 		    that.path.startsWith(this.path);
+	    }
 	} else {
 	    if (that.wildcard) {
 		// a non-wildcard can't imply a wildcard
@@ -198,7 +208,7 @@ implements java.io.Serializable
 
 	BasicPermission bp = (BasicPermission) obj;
 
-	return getName().equals(bp.getName());
+	return getCanonicalName().equals(bp.getCanonicalName());
     }
 
 
@@ -212,7 +222,7 @@ implements java.io.Serializable
      */
 
     public int hashCode() {
-	return this.getName().hashCode();
+	return this.getCanonicalName().hashCode();
     }
 
     /**
@@ -256,7 +266,19 @@ implements java.io.Serializable
     {
 	s.defaultReadObject();
 	// init is called to initialize the rest of the values.
-	init(getName());
+	init(getCanonicalName());
+    }
+
+    /**
+     * Returns the canonical name of this BasicPermission. 
+     * All internal invocations of getName should invoke this method, so 
+     * that the pre-JDK 1.6 "exitVM" and current "exitVM.*" permission are 
+     * equivalent in equals/hashCode methods.
+     *
+     * @return the canonical name of this BasicPermission.
+     */
+    final String getCanonicalName() {
+	return exitVM ? "exitVM.*" : getName();
     }
 }
 
@@ -274,7 +296,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.40 12/19/03
+ * @version 1.44 11/17/05
  *
  * @author Roland Schemers
  *
@@ -358,12 +380,12 @@ implements java.io.Serializable
 	}
 
 	synchronized (this) {
-	    perms.put(bp.getName(), permission);
+	    perms.put(bp.getCanonicalName(), permission);
 	}
 
 	// No sync on all_allowed; staleness OK
 	if (!all_allowed) {
-	    if (bp.getName().equals("*"))
+	    if (bp.getCanonicalName().equals("*"))
 		all_allowed = true;
 	}
     }
@@ -397,7 +419,7 @@ implements java.io.Serializable
 	// Check for full match first. Then work our way up the
 	// path looking for matches on a.b..*
 
-	String path = bp.getName();
+	String path = bp.getCanonicalName();
 	//System.out.println("check "+path);
 
 	Permission x;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: PrefixResolverDefault.java,v 1.9 2004/02/20 20:32:51 jycli Exp $
+ * $Id: PrefixResolverDefault.java,v 1.2.4.1 2005/09/15 08:15:51 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -42,9 +42,6 @@ public class PrefixResolverDefault implements PrefixResolver
    * which XPath expression prefixes will be resolved.
    * Warning: This will not work correctly if xpathExpressionContext
    * is an attribute node.
-   * @param xpathExpressionContext Node from which to start searching for a
-   * xmlns attribute that binds a prefix to a namespace (when the namespace
-   * context is not specified in the getNamespaceForPrefix call).
    */
   public PrefixResolverDefault(Node xpathExpressionContext)
   {

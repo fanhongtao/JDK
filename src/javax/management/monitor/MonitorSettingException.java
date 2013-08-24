@@ -1,7 +1,7 @@
 /*
- * @(#)MonitorSettingException.java	4.16 03/12/19
+ * @(#)MonitorSettingException.java	4.17 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package javax.management.monitor;
  * As the monitor attributes may change at runtime, a check is performed before each observation.
  * If a monitor attribute has become invalid, a monitor setting exception is thrown.
  *
- * @version     4.16     12/19/03
+ * @version     4.17     11/17/05
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

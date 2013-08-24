@@ -1,7 +1,7 @@
 /*
- * @(#)Label.java	1.57 04/03/16
+ * @(#)Label.java	1.59 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -30,7 +30,7 @@ import javax.accessibility.*;
  * <img src="doc-files/Label-1.gif" alt="Two labels: 'Hi There!' and 'Another label'"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.57, 03/16/04
+ * @version	1.59, 04/07/06
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -283,6 +283,7 @@ public class Label extends Component implements Accessible {
      *
      * @return an AccessibleAWTLabel that serves as the 
      *         AccessibleContext of this Label
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -295,6 +296,7 @@ public class Label extends Component implements Accessible {
      * This class implements accessibility support for the 
      * <code>Label</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to label user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTLabel extends AccessibleAWTComponent
     {

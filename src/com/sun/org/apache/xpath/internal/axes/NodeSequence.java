@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeSequence.java,v 1.11 2004/02/17 04:32:08 minchau Exp $
+ * $Id: NodeSequence.java,v 1.2.4.2 2005/09/14 19:45:19 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -36,6 +36,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
 public class NodeSequence extends XObject
   implements DTMIterator, Cloneable, PathComponent
 {
+    static final long serialVersionUID = 3866261934726581044L;
   /** The index of the last node in the iteration. */
   protected int m_last = -1;
   
@@ -123,7 +124,7 @@ public class NodeSequence extends XObject
   /**
    * Create a new NodeSequence from a (already cloned) iterator.
    * 
-   * @param iter Cloned (not static) DTMIterator.
+   * @param nodeVector
    */
   public NodeSequence(Object nodeVector)
   {
@@ -538,7 +539,9 @@ public class NodeSequence extends XObject
    */
   public Object clone() throws CloneNotSupportedException
   {
-  	return super.clone();
+          NodeSequence clone = (NodeSequence) super.clone();
+          if (null != m_iter) clone.m_iter = (DTMIterator) m_iter.clone();
+          return clone;
   }
 
 
@@ -589,12 +592,7 @@ public class NodeSequence extends XObject
   /**
    * Add the node into a vector of nodes where it should occur in
    * document order.
-   * @param v Vector of nodes, presumably containing Nodes
-   * @param obj Node object.
-   *
    * @param node The node to be added.
-   * @param test true if we should test for doc order
-   * @param support The XPath runtime context.
    * @return insertIndex.
    * @throws RuntimeException thrown if this NodeSetDTM is not of 
    * a mutable type.

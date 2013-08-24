@@ -1,7 +1,7 @@
 /*
- * @(#)MotifTabbedPaneUI.java	1.49 03/12/19
+ * @(#)MotifTabbedPaneUI.java	1.50 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.49 12/19/03
+ * @version 1.50 11/17/05
  * @author Amy Fowler
  * @author Philip Milne
  */

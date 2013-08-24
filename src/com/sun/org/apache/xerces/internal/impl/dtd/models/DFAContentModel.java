@@ -61,8 +61,8 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
 
 /**
- * @version $Id: DFAContentModel.java,v 1.4 2002/05/29 17:59:37 neilg Exp $
- *
+
+ * @version $Id: DFAContentModel.java,v 1.1.2.1 2005/08/01 03:34:24 jeffsuttor Exp $
  * DFAContentModel is the derivative of ContentModel that does
  * all of the non-trivial element content validation. This class does 
  * the conversion from the regular expression to the DFA that 
@@ -73,7 +73,10 @@ import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
  * and is handled via the MixedContentModel class since mixed models 
  * are very constrained in form and easily handled via a special case. 
  * This also makes implementation of this class much easier.
- *
+ * 
+ * @xerces.internal
+ * 
+ * @version $Id: DFAContentModel.java,v 1.1.2.1 2005/08/01 03:34:24 jeffsuttor Exp $
  */
 public class DFAContentModel
     implements ContentModelValidator {
@@ -228,10 +231,9 @@ public class DFAContentModel
      *
      * @param syntaxTree    The syntax tree of the content model.
      * @param leafCount     The number of leaves.
-     * @param dtd           if it is created for a DTDGrammar.
+     * @param mixed
      *
      */
-
     public DFAContentModel(CMNode syntaxTree, int leafCount, boolean mixed) {
         // Store away our index and pools in members
         //fStringPool = stringPool;

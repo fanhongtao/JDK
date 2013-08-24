@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XResourceBundleBase.java,v 1.7 2004/02/17 04:22:15 minchau Exp $
+ * $Id: XResourceBundleBase.java,v 1.2.4.1 2005/09/15 08:16:05 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils.res;
 

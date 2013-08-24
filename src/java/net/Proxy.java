@@ -1,7 +1,7 @@
 /*
  * @(#)Proxy.java	1.3 03/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -103,7 +103,8 @@ public class Proxy {
     /**
      * Constructs a string representation of this Proxy.
      * This String is constructed by calling toString() on its type
-     * and concatenating the toString() result from its address if any.
+     * and concatenating " @ " and the toString() result from its address
+     * if its type is not <code>DIRECT</code>.
      *
      * @return  a string representation of this object.
      */

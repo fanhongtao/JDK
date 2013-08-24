@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTErrorResources_en.java,v 1.7 2004/02/16 19:14:07 minchau Exp $
+ * $Id: XSLTErrorResources_en.java,v 1.2.4.1 2005/09/13 10:18:30 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.res;
 

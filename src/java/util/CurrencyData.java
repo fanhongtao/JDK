@@ -2,6 +2,8 @@ package java.util;
 
 class CurrencyData {
 
+    static final String version = "130";
+
     static final String mainTable = "\u007f\u007f\u007f\u0081CM\u0082\u007f\u0082\u007f\u007fKCF@\u007f\u0080R\u0083\u0081C\u007fF\u0081\u007f\u0084" +
                                     "LC\u007fS\u0081\u0085Mc\u0005\u0085\u007f\u007fCCA\u007f\u007fKCM\u007f\u0086O\u007f\u0011C" +
                                     "C\u007f\u0087E\u007f\u0088\u0088E\u0085\u007f\u0089\u000f\u0088XO\u007f\u007fBC\u007fOD\u007f\u0087OJ" +

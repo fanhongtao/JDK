@@ -1,7 +1,7 @@
 /*
- * @(#)ImageInputStreamImpl.java	1.53 03/12/19
+ * @(#)ImageInputStreamImpl.java	1.57 06/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,8 +38,14 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
     // Length of the buffer used for readFully(type[], int, int)
     private static final int BYTE_BUF_LENGTH = 8192;
 
-    // Byte buffer used for readFully(type[], int, int)
-    private byte[] byteBuf = new byte[BYTE_BUF_LENGTH];
+    /**
+     * Byte buffer used for readFully(type[], int, int).  Note that this
+     * array is also used for bulk reads in readShort(), readInt(), etc, so
+     * it should be large enough to hold a primitive value (i.e. >= 8 bytes).
+     * Also note that this array is package protected, so that it can be
+     * used by ImageOutputStreamImpl in a similar manner.
+     */
+    byte[] byteBuf = new byte[BYTE_BUF_LENGTH];
 
     /**
      * The byte order of the stream as an instance of the enumeration
@@ -99,7 +105,7 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
         return byteOrder;
     }
 
-    /*
+    /**
      * Reads a single byte from the stream and returns it as an
      * <code>int</code> between 0 and 255.  If EOF is reached, 
      * <code>-1</code> is returned.
@@ -205,16 +211,16 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
     }
 
     public short readShort() throws IOException {
-	int ch1 = this.read();
-	int ch2 = this.read();
-	if ((ch1 | ch2) < 0) {
+        if (read(byteBuf, 0, 2) < 0) {
 	    throw new EOFException();
         }
 
         if (byteOrder == ByteOrder.BIG_ENDIAN) {
-            return (short)((ch1 << 8) + (ch2 << 0));
+            return (short)
+                (((byteBuf[0] & 0xff) << 8) | ((byteBuf[1] & 0xff) << 0));
         } else {
-            return (short)((ch2 << 8) + (ch1 << 0));
+            return (short)
+                (((byteBuf[1] & 0xff) << 8) | ((byteBuf[0] & 0xff) << 0));
         }
     }
 
@@ -227,18 +233,18 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
     }
 
     public int readInt() throws IOException {
-	int ch1 = this.read();
-	int ch2 = this.read();
-	int ch3 = this.read();
-	int ch4 = this.read();
-	if ((ch1 | ch2 | ch3 | ch4) < 0) {
+        if (read(byteBuf, 0, 4) < 0) {
 	    throw new EOFException();
         }
 
         if (byteOrder == ByteOrder.BIG_ENDIAN) {
-            return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+            return
+                (((byteBuf[0] & 0xff) << 24) | ((byteBuf[1] & 0xff) << 16) |
+                 ((byteBuf[2] & 0xff) <<  8) | ((byteBuf[3] & 0xff) <<  0));
         } else {
-            return ((ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0));
+            return
+                (((byteBuf[3] & 0xff) << 24) | ((byteBuf[2] & 0xff) << 16) |
+                 ((byteBuf[1] & 0xff) <<  8) | ((byteBuf[0] & 0xff) <<  0));
         }
     }
 
@@ -247,6 +253,9 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
     }
 
     public long readLong() throws IOException {
+        // REMIND: Once 6277756 is fixed, we should do a bulk read of all 8
+        // bytes here as we do in readShort() and readInt() for even better
+        // performance (see 6347575 for details).
         int i1 = readInt();
         int i2 = readInt();
 
@@ -787,6 +796,7 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
     }
 
     public void flushBefore(long pos) throws IOException {
+        checkClosed();
         if (pos < flushedPos) {
             throw new IndexOutOfBoundsException("pos < flushedPos!");
         }

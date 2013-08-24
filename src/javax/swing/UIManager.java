@@ -1,20 +1,20 @@
 /*
- * @(#)UIManager.java	1.115 03/12/19
+ * @(#)UIManager.java	1.126 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Window;
-import java.awt.Font;
-import java.awt.Color;
-import java.awt.Insets;
-import java.awt.Dimension;
-import java.awt.KeyboardFocusManager;
-import java.awt.KeyEventPostProcessor;
+import java.awt.Component; 
+import java.awt.Container; 
+import java.awt.Window; 
+import java.awt.Font; 
+import java.awt.Color; 
+import java.awt.Insets; 
+import java.awt.Dimension; 
+import java.awt.KeyboardFocusManager; 
+import java.awt.KeyEventPostProcessor; 
 import java.awt.Toolkit;
 
 import java.awt.event.KeyEvent;
@@ -37,42 +37,116 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.ArrayList; 
+import java.util.Enumeration; 
+import java.util.Hashtable; 
+import java.util.Properties; 
+import java.util.StringTokenizer; 
+import java.util.Vector; 
 import java.util.Locale;
 
 import sun.security.action.GetPropertyAction;
+import sun.swing.SwingUtilities2;
+import java.lang.reflect.Method;
+
 
 /**
- * This class keeps track of the current look and feel and its
- * defaults.
- * The default look and feel class is chosen in the following manner:
+ * {@code UIManager} manages the current look and feel, the set of
+ * available look and feels, {@code PropertyChangeListeners} that
+ * are notified when the look and feel changes, look and feel defaults, and
+ * convenience methods for obtaining various default values.
+ *
+ * <h3>Specifying the look and feel</h3>
+ *
+ * The look and feel can be specified in two distinct ways: by
+ * specifying the fully qualified name of the class for the look and
+ * feel, or by creating an instance of {@code LookAndFeel} and passing
+ * it to {@code setLookAndFeel}. The following example illustrates
+ * setting the look and feel to the system look and feel:
+ * <pre>
+ *   UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+ * </pre>
+ * The following example illustrates setting the look and feel based on
+ * class name:
+ * <pre>
+ *   UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+ * </pre>
+ * Once the look and feel has been changed it is imperative to invoke
+ * {@code updateUI} on all {@code JComponents}. The method {@link
+ * SwingUtilities#updateComponentTreeUI} makes it easy to apply {@code
+ * updateUI} to a containment hierarchy. Refer to it for
+ * details. The exact behavior of not invoking {@code
+ * updateUI} after changing the look and feel is
+ * unspecified. It is very possible to receive unexpected exceptions,
+ * painting problems, or worse.
+ *
+ * <h3>Default look and feel</h3>
+ *
+ * The class used for the default look and feel is chosen in the following
+ * manner:
  * <ol>  
  *   <li>If the system property <code>swing.defaultlaf</code> is
- *       non-null, use it as the default look and feel class name.
+ *       {@code non-null}, use its value as the default look and feel class
+ *       name.
  *   <li>If the {@link java.util.Properties} file <code>swing.properties</code>
  *       exists and contains the key <code>swing.defaultlaf</code>,
- *       use its value as default look and feel class name. The location of
- *       <code>swing.properties</code> may vary depending upon the
- *       implementation of the Java platform. In Sun's implementation
- *       this will reside in
- *       <code>&amp;java.home>/lib/swing.properties</code>. Refer to
- *       the release notes of the implementation you are using for
+ *       use its value as the default look and feel class name. The location
+ *       that is checked for <code>swing.properties</code> may vary depending
+ *       upon the implementation of the Java platform. In Sun's implementation
+ *       the location is <code>${java.home}/lib/swing.properties</code>.
+ *       Refer to the release notes of the implementation being used for
  *       further details.
- *   <li>Otherwise use the Java look and feel.
- * </ol> 
+ *   <li>Otherwise use the cross platform look and feel.
+ * </ol>
+ *
+ * <h3>Defaults</h3>
+ * 
+ * {@code UIManager} manages three sets of {@code UIDefaults}. In order, they
+ * are:
+ * <ol>
+ *   <li>Developer defaults. With few exceptions Swing does not
+ *       alter the developer defaults; these are intended to be modified
+ *       and used by the developer.
+ *   <li>Look and feel defaults. The look and feel defaults are
+ *       supplied by the look and feel at the time it is installed as the
+ *       current look and feel ({@code setLookAndFeel()} is invoked). The
+ *       look and feel defaults can be obtained using the {@code
+ *       getLookAndFeelDefaults()} method.
+ *   <li>Sytem defaults. The system defaults are provided by Swing.
+ * </ol>
+ * Invoking any of the various {@code get} methods
+ * results in checking each of the defaults, in order, returning
+ * the first {@code non-null} value. For example, invoking
+ * {@code UIManager.getString("Table.foreground")} results in first
+ * checking developer defaults. If the developer defaults contain
+ * a value for {@code "Table.foreground"} it is returned, otherwise 
+ * the look and feel defaults are checked, followed by the system defaults.
  * <p>
- * We manage three levels of defaults: user defaults, look
- * and feel defaults, system defaults.  A call to <code>UIManager.get</code>
- * checks all three levels in order and returns the first non-<code>null</code> 
- * value for a key, if any.  A call to <code>UIManager.put</code> just
- * affects the user defaults.  Note that a call to 
- * <code>setLookAndFeel</code> doesn't affect the user defaults, it just
- * replaces the middle defaults "level".
+ * It's important to note that {@code getDefaults} returns a custom
+ * instance of {@code UIDefaults} with this resolution logic built into it.
+ * For example, {@code UIManager.getDefaults().getString("Table.foreground")}
+ * is equivalent to {@code UIManager.getString("Table.foreground")}. Both
+ * resolve using the algorithm just described. In many places the
+ * documentation uses the word defaults to refer to the custom instance
+ * of {@code UIDefaults} with the resolution logic as previously described.
+ * <p>
+ * When the look and feel is changed, {@code UIManager} alters only the
+ * look and feel defaults; the developer and system defaults are not
+ * altered by the {@code UIManager} in any way.
+ * <p>
+ * The set of defaults a particular look and feel supports is defined
+ * and documented by that look and feel. In addition, each look and
+ * feel, or {@code ComponentUI} provided by a look and feel, may
+ * access the defaults at different times in their life cycle. Some
+ * look and feels may agressively look up defaults, so that changing a
+ * default may not have an effect after installing the look and feel.
+ * Other look and feels may lazily access defaults so that a change to
+ * the defaults may effect an existing look and feel. Finally, other look
+ * and feels might not configure themselves from the defaults table in
+ * any way. None-the-less it is usually the case that a look and feel
+ * expects certain defaults, so that in general 
+ * a {@code ComponentUI} provided by one look and feel will not
+ * work with another look and feel.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -83,9 +157,7 @@ import sun.security.action.GetPropertyAction;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @see javax.swing.plaf.metal
- *
- * @version 1.115 12/19/03
+ * @version 1.126 07/10/06
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -137,10 +209,6 @@ public class UIManager implements Serializable
     }
 
 
-    /**
-     * The <code>AppContext</code> key for our one <code>LAFState</code> instance.
-     */
-    private static final Object lafStateACKey = new StringBuffer("LookAndFeel State");
 
 
     /* Lock object used in place of class object for synchronization. (4187686)
@@ -175,13 +243,16 @@ public class UIManager implements Serializable
 	    return currentLAFState;
 	}
 
-        LAFState rv = (LAFState)SwingUtilities.appContextGet(lafStateACKey);
+        LAFState rv = (LAFState)SwingUtilities.appContextGet(
+                SwingUtilities2.LAF_STATE_KEY);
         if (rv == null) {
 	    synchronized (classLock) {
-		rv = (LAFState)SwingUtilities.appContextGet(lafStateACKey);
+                rv = (LAFState)SwingUtilities.appContextGet(
+                        SwingUtilities2.LAF_STATE_KEY);
 		if (rv == null) {
-		    SwingUtilities.appContextPut(lafStateACKey, 
-						 (rv = new LAFState()));
+                    SwingUtilities.appContextPut(
+                            SwingUtilities2.LAF_STATE_KEY, 
+                            (rv = new LAFState()));
 		}
 	    }
         }
@@ -327,21 +398,23 @@ public class UIManager implements Serializable
 
 
     /** 
-     * Returns an array of objects that provide some information about the
-     * <code>LookAndFeel</code> implementations that have been installed with this 
-     * software development kit.  The <code>LookAndFeel</code> info objects can
-     * used by an application to construct a menu of look and feel options for 
-     * the user or to set the look and feel at start up time.  Note that 
-     * we do not return the <code>LookAndFeel</code> classes themselves here to
-     * avoid the cost of unnecessarily loading them.
+     * Returns an array of {@code LookAndFeelInfo}s representing the
+     * {@code LookAndFeel} implementations currently available. The
+     * <code>LookAndFeelInfo</code> objects can be used by an
+     * application to construct a menu of look and feel options for
+     * the user, or to determine which look and feel to set at startup
+     * time. To avoid the penalty of creating numerous {@code
+     * LookAndFeel} objects, {@code LookAndFeelInfo} maintains the
+     * class name of the {@code LookAndFeel} class, not the actual
+     * {@code LookAndFeel} instance.
      * <p>
-     * Given a <code>LookAndFeelInfo</code> object one can set the current
-     * look and feel like this:
+     * The following example illustrates setting the current look and feel
+     * from an instance of {@code LookAndFeelInfo}:
      * <pre>
-     * UIManager.setLookAndFeel(info.getClassName());
+     *   UIManager.setLookAndFeel(info.getClassName());
      * </pre>
+     *
      * @return an array of <code>LookAndFeelInfo</code> objects
-     * 
      * @see #setLookAndFeel
      */
     public static LookAndFeelInfo[] getInstalledLookAndFeels() {
@@ -354,10 +427,16 @@ public class UIManager implements Serializable
 
 
     /**
-     * Replaces the current array of installed <code>LookAndFeelInfos</code>.
-     * @param infos  new array of <code>LookAndFeelInfo</code> objects
+     * Sets the set of available look and feels. While this method does
+     * not check to ensure all of the {@code LookAndFeelInfos} are
+     * {@code non-null}, it is strongly recommended that only {@code non-null}
+     * values are supplied in the {@code infos} array.
+     *
+     * @param infos set of <code>LookAndFeelInfo</code> objects specifying
+     *        the available look and feels
      * 
      * @see #getInstalledLookAndFeels
+     * @throws NullPointerException if {@code infos} is {@code null}
      */
     public static void setInstalledLookAndFeels(LookAndFeelInfo[] infos)
         throws SecurityException
@@ -369,10 +448,13 @@ public class UIManager implements Serializable
 
 
     /**
-     * Adds the specified look and feel to the current array and
-     * then calls {@link #setInstalledLookAndFeels}.
+     * Adds the specified look and feel to the set of available look
+     * and feels. While this method allows a {@code null} {@code info},
+     * it is strongly recommended that a {@code non-null} value be used.
+     *
      * @param info a <code>LookAndFeelInfo</code> object that names the
-     *		look and feel and identifies that class that implements it
+     *		look and feel and identifies the class that implements it
+     * @see #setInstalledLookAndFeels
      */
     public static void installLookAndFeel(LookAndFeelInfo info) {
         LookAndFeelInfo[] infos = getInstalledLookAndFeels();
@@ -384,13 +466,14 @@ public class UIManager implements Serializable
 
 
     /**
-     * Creates a new look and feel and adds it to the current array.
-     * Then calls {@link #setInstalledLookAndFeels}.
+     * Adds the specified look and feel to the set of available look
+     * and feels. While this method does not check the
+     * arguments in any way, it is strongly recommended that {@code
+     * non-null} values be supplied.
      *
-     * @param name      a <code>String</code> specifying the name of the
-     *			look and feel
-     * @param className a <code>String</code> specifying the class name
-     *			that implements the look and feel
+     * @param name descriptive name of the look and feel
+     * @param className name of the class that implements the look and feel
+     * @see #setInstalledLookAndFeels
      */
     public static void installLookAndFeel(String name, String className) {
         installLookAndFeel(new LookAndFeelInfo(name, className));
@@ -398,9 +481,9 @@ public class UIManager implements Serializable
 
 
     /**
-     * Returns the current default look and feel or <code>null</code>.
+     * Returns the current look and feel or <code>null</code>.
      *
-     * @return the current default look and feel, or <code>null</code>
+     * @return current look and feel, or <code>null</code>
      * @see #setLookAndFeel
      */
     public static LookAndFeel getLookAndFeel() {
@@ -410,14 +493,27 @@ public class UIManager implements Serializable
     
 
     /**
-     * Sets the current default look and feel using a
-     * <code>LookAndFeel</code> object.  
+     * Sets the current look and feel to {@code newLookAndFeel}. 
+     * If the current look and feel is {@code non-null} {@code
+     * uninitialize} is invoked on it. If {@code newLookAndFeel} is
+     * {@code non-null}, {@code initialize} is invoked on it followed
+     * by {@code getDefaults}. The defaults returned from {@code
+     * newLookAndFeel.getDefaults()} replace those of the defaults
+     * from the previous look and feel. If the {@code newLookAndFeel} is
+     * {@code null}, the look and feel defaults are set to {@code null}.
+     * <p>
+     * A value of {@code null} can be used to set the look and feel
+     * to {@code null}. As the {@code LookAndFeel} is required for
+     * most of Swing to function, setting the {@code LookAndFeel} to
+     * {@code null} is strongly discouraged.
      * <p>
      * This is a JavaBeans bound property.
      *
-     * @param newLookAndFeel the <code>LookAndFeel</code> object
-     * @exception UnsupportedLookAndFeelException if
-     *		<code>lnf.isSupportedLookAndFeel()</code> is false
+     * @param newLookAndFeel {@code LookAndFeel} to install
+     * @throws UnsupportedLookAndFeelException if
+     *          {@code newLookAndFeel} is {@code non-null} and
+     *          {@code newLookAndFeel.isSupportedLookAndFeel()} returns
+     *          {@code false}
      * @see #getLookAndFeel
      */
     public static void setLookAndFeel(LookAndFeel newLookAndFeel) 
@@ -454,7 +550,9 @@ public class UIManager implements Serializable
 
     
     /**
-     * Sets the current default look and feel using a class name.
+     * Loads the {@code LookAndFeel} specified by the given class
+     * name, using the current thread's context class loader, and
+     * passes it to {@code setLookAndFeel(LookAndFeel)}.
      *
      * @param className  a string specifying the name of the class that implements
      *        the look and feel
@@ -465,6 +563,8 @@ public class UIManager implements Serializable
      * @exception IllegalAccessException if the class or initializer isn't accessible
      * @exception UnsupportedLookAndFeelException if
      *		<code>lnf.isSupportedLookAndFeel()</code> is false
+     * @throws ClassCastException if {@code className} does not identify
+     *         a class that extends {@code LookAndFeel}
      */
     public static void setLookAndFeel(String className) 
         throws ClassNotFoundException, 
@@ -485,10 +585,10 @@ public class UIManager implements Serializable
 
     /**
      * Returns the name of the <code>LookAndFeel</code> class that implements
-     * the native systems look and feel if there is one, otherwise
+     * the native system look and feel if there is one, otherwise
      * the name of the default cross platform <code>LookAndFeel</code>
-     * class. If the system property <code>swing.systemlaf</code> has been
-     * defined, its value will be returned.
+     * class. This value can be overriden by setting the
+     * <code>swing.systemlaf</code> system property.
      * 
      * @return the <code>String</code> of the <code>LookAndFeel</code>
      *		class
@@ -529,9 +629,8 @@ public class UIManager implements Serializable
     /**
      * Returns the name of the <code>LookAndFeel</code> class that implements
      * the default cross platform look and feel -- the Java
-     * Look and Feel (JLF).  If the system property
-     * <code>swing.crossplatformlaf</code> has been
-     * defined, its value will be returned.
+     * Look and Feel (JLF).  This value can be overriden by setting the
+     * <code>swing.crossplatformlaf</code> system property.
      * 
      * @return  a string with the JLF implementation-class
      * @see #setLookAndFeel
@@ -548,7 +647,8 @@ public class UIManager implements Serializable
 
 
     /**
-     * Returns the default values for this look and feel.
+     * Returns the defaults. The returned defaults resolve using the
+     * logic specified in the class documentation.
      *
      * @return a <code>UIDefaults</code> object containing the default values
      */
@@ -558,22 +658,28 @@ public class UIManager implements Serializable
     }
     
     /**
-     * Returns a drawing font from the defaults table.
+     * Returns a font from the defaults. If the value for {@code key} is
+     * not a {@code Font}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the font
      * @return the <code>Font</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Font getFont(Object key) { 
         return getDefaults().getFont(key); 
     }
 
     /**
-     * Returns a drawing font from the defaults table that is appropriate
-     * for the given locale.
+     * Returns a font from the defaults that is appropriate
+     * for the given locale. If the value for {@code key} is
+     * not a {@code Font}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the font
-     * @param l the <code>Locale</code> for which the font is desired
+     * @param l the <code>Locale</code> for which the font is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Font</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static Font getFont(Object key, Locale l) { 
@@ -581,22 +687,28 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns a drawing color from the defaults table.
+     * Returns a color from the defaults. If the value for {@code key} is
+     * not a {@code Color}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the color
      * @return the <code>Color</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Color getColor(Object key) { 
         return getDefaults().getColor(key); 
     }
 
     /**
-     * Returns a drawing color from the defaults table that is appropriate
-     * for the given locale.
+     * Returns a color from the defaults that is appropriate
+     * for the given locale. If the value for {@code key} is
+     * not a {@code Color}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the color
-     * @param l the <code>Locale</code> for which the color is desired
+     * @param l the <code>Locale</code> for which the color is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Color</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static Color getColor(Object key, Locale l) { 
@@ -604,22 +716,28 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an <code>Icon</code> from the defaults table.
+     * Returns an <code>Icon</code> from the defaults. If the value for
+     * {@code key} is not an {@code Icon}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the icon
      * @return the <code>Icon</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Icon getIcon(Object key) { 
         return getDefaults().getIcon(key); 
     }
 
     /**
-     * Returns an <code>Icon</code> from the defaults table that is appropriate
-     * for the given locale.
+     * Returns an <code>Icon</code> from the defaults that is appropriate
+     * for the given locale. If the value for
+     * {@code key} is not an {@code Icon}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the icon
-     * @param l the <code>Locale</code> for which the icon is desired
+     * @param l the <code>Locale</code> for which the icon is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Icon</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static Icon getIcon(Object key, Locale l) { 
@@ -627,22 +745,28 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns a border from the defaults table.
+     * Returns a border from the defaults. If the value for
+     * {@code key} is not a {@code Border}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the border
      * @return the <code>Border</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Border getBorder(Object key) { 
         return getDefaults().getBorder(key); 
     }
 
     /**
-     * Returns a border from the defaults table that is appropriate
-     * for the given locale.
+     * Returns a border from the defaults that is appropriate
+     * for the given locale.  If the value for
+     * {@code key} is not a {@code Border}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the border
-     * @param l the <code>Locale</code> for which the border is desired
+     * @param l the <code>Locale</code> for which the border is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Border</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static Border getBorder(Object key, Locale l) { 
@@ -650,35 +774,45 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns a string from the defaults table.
+     * Returns a string from the defaults. If the value for
+     * {@code key} is not a {@code String}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the string
      * @return the <code>String</code>
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static String getString(Object key) { 
         return getDefaults().getString(key); 
     }
 
     /**
-     * Returns a string from the defaults table that is appropriate for the
-     * given locale.
+     * Returns a string from the defaults that is appropriate for the
+     * given locale.  If the value for
+     * {@code key} is not a {@code String}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the string
-     * @param l the <code>Locale</code> for which the string is desired
+     * @param l the <code>Locale</code> for which the string is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>String</code>
+     * @since 1.4
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static String getString(Object key, Locale l) { 
         return getDefaults().getString(key,l); 
     }
 
     /**
-     * Returns a string from the defaults table that is appropriate for the
-     * given locale.
+     * Returns a string from the defaults that is appropriate for the
+     * given locale.  If the value for
+     * {@code key} is not a {@code String}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the string
-     * @param c Component used to determine Locale, null implies use the
-     *          default Locale.
+     * @param c {@code Component} used to determine the locale;
+     *          {@code null} implies the default locale as
+     *          returned by {@code Locale.getDefault()}
      * @return the <code>String</code>
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     static String getString(Object key, Component c) { 
         Locale l = (c == null) ? Locale.getDefault() : c.getLocale();
@@ -686,22 +820,30 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an integer from the defaults table.
+     * Returns an integer from the defaults. If the value for
+     * {@code key} is not an {@code Integer}, or does not exist,
+     * {@code 0} is returned.
      *
      * @param key  an <code>Object</code> specifying the int
      * @return the int
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static int getInt(Object key) {
         return getDefaults().getInt(key);
     }
 
     /**
-     * Returns an integer from the defaults table that is appropriate
-     * for the given locale.
+     * Returns an integer from the defaults that is appropriate
+     * for the given locale. If the value for
+     * {@code key} is not an {@code Integer}, or does not exist,
+     * {@code 0} is returned.
      *
      * @param key  an <code>Object</code> specifying the int
-     * @param l the <code>Locale</code> for which the int is desired
+     * @param l the <code>Locale</code> for which the int is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the int
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static int getInt(Object key, Locale l) {
@@ -709,37 +851,13 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an integer from the defaults table. If <code>key</code> does
-     * not map to a valid <code>Integer</code>, or can not be convered from
-     * a <code>String</code> to an integer, <code>default</code> is
-     * returned.
-     *
-     * @param key  an <code>Object</code> specifying the int
-     * @param defaultValue Returned value if <code>key</code> is not available,
-     *                     or is not an Integer
-     * @return the int
-     */
-    static int getInt(Object key, int defaultValue) {
-        Object value = UIManager.get(key);
-
-        if (value instanceof Integer) {
-            return ((Integer)value).intValue();
-        }
-        if (value instanceof String) {
-            try {
-                return Integer.parseInt((String)value);
-            } catch (NumberFormatException nfe) {}
-        }
-        return defaultValue;
-    }
-
-    /**
-     * Returns a boolean from the defaults table which is associated with
+     * Returns a boolean from the defaults which is associated with
      * the key value. If the key is not found or the key doesn't represent
-     * a boolean value then false will be returned.
+     * a boolean value then {@code false} is returned.
      *
      * @param key  an <code>Object</code> specifying the key for the desired boolean value
      * @return the boolean value corresponding to the key
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static boolean getBoolean(Object key) {
@@ -747,15 +865,18 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns a boolean from the defaults table which is associated with
+     * Returns a boolean from the defaults which is associated with
      * the key value and the given <code>Locale</code>. If the key is not
      * found or the key doesn't represent
-     * a boolean value then false will be returned.
+     * a boolean value then {@code false} will be returned.
      *
      * @param key  an <code>Object</code> specifying the key for the desired 
      *             boolean value
-     * @param l the <code>Locale</code> for which the boolean is desired
+     * @param l the <code>Locale</code> for which the boolean is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the boolean value corresponding to the key
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static boolean getBoolean(Object key, Locale l) {
@@ -763,22 +884,28 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an <code>Insets</code> object from the defaults table.
+     * Returns an <code>Insets</code> object from the defaults. If the value
+     * for {@code key} is not an {@code Insets}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the <code>Insets</code> object
      * @return the <code>Insets</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Insets getInsets(Object key) {
         return getDefaults().getInsets(key);
     }
 
     /**
-     * Returns an <code>Insets</code> object from the defaults table that is 
-     * appropriate for the given locale.
+     * Returns an <code>Insets</code> object from the defaults that is 
+     * appropriate for the given locale. If the value
+     * for {@code key} is not an {@code Insets}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the <code>Insets</code> object
-     * @param l the <code>Locale</code> for which the object is desired
+     * @param l the <code>Locale</code> for which the object is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Insets</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static Insets getInsets(Object key, Locale l) {
@@ -786,22 +913,28 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns a dimension from the defaults table.
+     * Returns a dimension from the defaults. If the value
+     * for {@code key} is not a {@code Dimension}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the dimension object
      * @return the <code>Dimension</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Dimension getDimension(Object key) {
         return getDefaults().getDimension(key);
     }
 
     /**
-     * Returns a dimension from the defaults table that is appropriate
-     * for the given locale.
+     * Returns a dimension from the defaults that is appropriate
+     * for the given locale. If the value
+     * for {@code key} is not a {@code Dimension}, {@code null} is returned.
      *
      * @param key  an <code>Object</code> specifying the dimension object
-     * @param l the <code>Locale</code> for which the object is desired
+     * @param l the <code>Locale</code> for which the object is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Dimension</code> object
+     * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
     public static Dimension getDimension(Object key, Locale l) {
@@ -809,43 +942,62 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an object from the defaults table.
+     * Returns an object from the defaults.
      *
      * @param key  an <code>Object</code> specifying the desired object
      * @return the <code>Object</code>
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     public static Object get(Object key) { 
         return getDefaults().get(key); 
     }
 
     /**
-     * Returns an object from the defaults table that is appropriate for
+     * Returns an object from the defaults that is appropriate for
      * the given locale.
      *
      * @param key  an <code>Object</code> specifying the desired object
-     * @param l the <code>Locale</code> for which the object is desired
+     * @param l the <code>Locale</code> for which the object is desired; refer
+     *        to {@code UIDefaults} for details on how a {@code null}
+     *        {@code Locale} is handled
      * @return the <code>Object</code>
+     * @throws NullPointerException if {@code key} is {@code null}
+     * @since 1.4
      */
     public static Object get(Object key, Locale l) { 
         return getDefaults().get(key,l); 
     }
 
     /**
-     * Stores an object in the defaults table.
+     * Stores an object in the developer defaults. This is a cover method
+     * for {@code getDefaults().put(key, value)}. This only effects the
+     * developer defaults, not the system or look and feel defaults.
      *
      * @param key    an <code>Object</code> specifying the retrieval key
-     * @param value  the <code>Object</code> to store
+     * @param value  the <code>Object</code> to store; refer to
+     *               {@code UIDefaults} for details on how {@code null} is
+     *               handled
      * @return the <code>Object</code> returned by {@link UIDefaults#put}
+     * @throws NullPointerException if {@code key} is {@code null}
+     * @see UIDefaults#put
      */
     public static Object put(Object key, Object value) { 
         return getDefaults().put(key, value); 
     }
 
     /**
-     * Returns the L&F object that renders the target component.
+     * Returns the appropriate {@code ComponentUI} implementation for 
+     * {@code target}. Typically, this is a cover for
+     * {@code getDefaults().getUI(target)}. However, if an auxiliary
+     * look and feel has been installed, this first invokes
+     * {@code getUI(target)} on the multiplexing look and feel's
+     * defaults, and returns that value if it is {@code non-null}.
      *
-     * @param target  the <code>JComponent</code> to render
-     * @return the <code>ComponentUI</code> object that renders the target component
+     * @param target the <code>JComponent</code> to return the
+     *        {@code ComponentUI} for
+     * @return the <code>ComponentUI</code> object for {@code target}
+     * @throws NullPointerException if {@code target} is {@code null}
+     * @see UIDefaults#getUI
      */
     public static ComponentUI getUI(JComponent target) {
         maybeInitialize();
@@ -864,9 +1016,18 @@ public class UIManager implements Serializable
 
 
     /**
-     * Returns the default values for this look and feel.
+     * Returns the {@code UIDefaults} from the current look and feel,
+     * that were obtained at the time the look and feel was installed.
+     * <p>
+     * In general, developers should use the {@code UIDefaults} returned from
+     * {@code getDefaults()}. As the current look and feel may expect
+     * certain values to exist, altering the {@code UIDefaults} returned
+     * from this method could have unexpected results.
      *
-     * @return an <code>UIDefaults</code> object containing the default values
+     * @return <code>UIDefaults</code> from the current look and feel
+     * @see #getDefaults
+     * @see #setLookAndFeel(LookAndFeel)
+     * @see LookAndFeel#getDefaults
      */
     public static UIDefaults getLookAndFeelDefaults() {
         maybeInitialize();
@@ -1268,6 +1429,12 @@ public class UIManager implements Serializable
                         new LayoutFocusTraversalPolicy());
             }
         }
+
+        // Install Swing's PaintEventDispatcher
+        if (RepaintManager.HANDLE_TOP_LEVEL_PAINT) {
+            sun.awt.PaintEventDispatcher.setPaintEventDispatcher(
+                                        new SwingPaintEventDispatcher());
+        }
         // Install a hook that will be invoked if no one consumes the
         // KeyEvent.  If the source isn't a JComponent this will process
         // key bindings, if the source is a JComponent it implies that
@@ -1290,6 +1457,22 @@ public class UIManager implements Serializable
                         return false;
                     }
                 });
+        try {
+            Method setRequestFocusControllerM = java.security.AccessController.doPrivileged(
+                    new java.security.PrivilegedExceptionAction<Method>() {
+                        public Method run() throws Exception {
+                            Method method =
+                            Component.class.getDeclaredMethod("setRequestFocusController",
+                                                              sun.awt.RequestFocusController.class);
+                            method.setAccessible(true);
+                            return method;
+                        }
+                    });
+            setRequestFocusControllerM.invoke(null, JComponent.focusController);
+        } catch (Exception e) {
+            // perhaps we should log this
+            assert false;
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)GradAnim.java	1.18 04/07/26
+ * @(#)GradAnim.java	1.21 06/04/14
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,31 +35,45 @@
  */
 
 /*
- * @(#)GradAnim.java	1.18 04/07/26
+ * @(#)GradAnim.java	1.21 06/04/14
  */
 
 package java2d.demos.Paint;
 
 import java.awt.*;
-import java2d.AnimatingSurface;
+import java.awt.MultipleGradientPaint.CycleMethod;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
+import javax.swing.JComboBox;
+import java2d.AnimatingControlsSurface;
+import java2d.CustomControls;
 
 
 /**
  * GradientPaint animation.
  */
-public class GradAnim extends AnimatingSurface {
+public class GradAnim extends AnimatingControlsSurface {
+
+    private static final int BASIC_GRADIENT  = 0;
+    private static final int LINEAR_GRADIENT = 1;
+    private static final int RADIAL_GRADIENT = 2;
+    private static final int FOCUS_GRADIENT  = 3;
 
     private static final int MAX_HUE = 256 * 6;
     private animval x1, y1, x2, y2;
     private int hue = (int) (Math.random() * MAX_HUE);
+    private int gradientType;
 
 
     public GradAnim() {
         setBackground(Color.white);
+        setControls(new Component[] { new DemoControls(this) });
         x1 = new animval(0, 300, 2, 10);
         y1 = new animval(0, 300, 2, 10);
         x2 = new animval(0, 300, 2, 10);
         y2 = new animval(0, 300, 2, 10);
+        gradientType = BASIC_GRADIENT;
     }
 
 
@@ -113,11 +127,75 @@ public class GradAnim extends AnimatingSurface {
 
 
     public void render(int w, int h, Graphics2D g2) {
+        float fx1 = x1.getFlt();
+        float fy1 = y1.getFlt();
+        float fx2 = x2.getFlt();
+        float fy2 = y2.getFlt();
+
+        if ((fx1 == fx2) && (fy1 == fy2)) {
+            // just to prevent the points from being coincident
+            fx2++;
+            fy2++;
+        }
+
         Color c1 = getColor(hue);
         Color c2 = getColor(hue + 256 * 3);
-        GradientPaint gp = new GradientPaint(x1.getFlt(), y1.getFlt(), c1,
-                                         x2.getFlt(), y2.getFlt(), c2,
-                                         true);
+        Paint gp;
+
+        switch (gradientType) {
+        case BASIC_GRADIENT:
+        default:
+            gp = new GradientPaint(fx1, fy1, c1,
+                                   fx2, fy2, c2,
+                                   true);
+            break;
+        case LINEAR_GRADIENT:
+            {
+                float[] fractions = new float[] {0.0f, 0.2f, 1.0f};
+                Color c3 = getColor(hue + 256 * 2);
+                Color[] colors = new Color[] {c1, c2, c3};
+                gp = new LinearGradientPaint(fx1, fy1,
+                                             fx2, fy2,
+                                             fractions, colors,
+                                             CycleMethod.REFLECT);
+            }
+            break;
+            
+        case RADIAL_GRADIENT:
+            {
+                float[] fractions = {0.0f, 0.2f, 0.8f, 1.0f};
+                Color c3 = getColor(hue + 256 * 2);
+                Color c4 = getColor(hue + 256 * 4);
+                Color[] colors = new Color[] {c1, c2, c3, c4};
+                float radius = (float)Point2D.distance(fx1, fy1, fx2, fy2);
+                gp = new RadialGradientPaint(fx1, fy1, radius,
+                                             fractions, colors,
+                                             CycleMethod.REFLECT);
+            }
+            break;
+
+        case FOCUS_GRADIENT:
+            {
+                float[] fractions = {0.0f, 0.2f, 0.8f, 1.0f};
+                Color c3 = getColor(hue + 256 * 4);
+                Color c4 = getColor(hue + 256 * 2);
+                Color[] colors = new Color[] {c1, c2, c3, c4};
+                float radius = (float)Point2D.distance(fx1, fy1, fx2, fy2);
+                float max = Math.max(w, h);
+                // This function will map the smallest radius to
+                // max/10 when the points are next to each other,
+                // max when the points are max distance apart,
+                // and >max when they are further apart (in which
+                // case the focus clipping code in RGP will clip
+                // the focus to be inside the radius).
+                radius = max * (((radius / max) * 0.9f) + 0.1f);
+                gp = new RadialGradientPaint(fx2, fy2, radius,
+                                             fx1, fy1,
+                                             fractions, colors,
+                                             CycleMethod.REPEAT);
+            }
+            break;
+        }
         g2.setPaint(gp);
         g2.fillRect(0, 0, w, h);
         g2.setColor(Color.yellow);
@@ -186,5 +264,54 @@ public class GradAnim extends AnimatingSurface {
 
     public static void main(String argv[]) {
         createDemoFrame(new GradAnim());
+    }
+
+
+    class DemoControls extends CustomControls implements ActionListener {
+
+        GradAnim demo;
+        JComboBox combo;
+
+        public DemoControls(GradAnim demo) {
+            super(demo.name);
+            this.demo = demo;
+            combo = new JComboBox();
+            combo.addActionListener(this);
+            combo.addItem("2-color GradientPaint");
+            combo.addItem("3-color LinearGradientPaint");
+            combo.addItem("4-color RadialGradientPaint");
+            combo.addItem("4-color RadialGradientPaint with focus");
+            combo.setSelectedIndex(0);
+            add(combo);
+        }
+
+
+        public void actionPerformed(ActionEvent e) {
+            int index = combo.getSelectedIndex();
+            if (index >= 0) {
+                demo.gradientType = index;
+            }
+            if (demo.animating.thread == null) {
+                demo.repaint();
+            }
+        }
+
+        public Dimension getPreferredSize() {
+            return new Dimension(200,41);
+        }
+
+
+        public void run() {
+            Thread me = Thread.currentThread();
+            while (thread == me) {
+                for (int i = 0; i < combo.getItemCount(); i++) {
+                    combo.setSelectedIndex(i);
+                    try {
+                        thread.sleep(4444);
+                    } catch (InterruptedException e) { return; }
+                }
+            }
+            thread = null;
+        }
     }
 }

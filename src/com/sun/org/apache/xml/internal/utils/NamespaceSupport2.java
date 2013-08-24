@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NamespaceSupport2.java,v 1.9 2004/02/17 04:21:14 minchau Exp $
+ * $Id: NamespaceSupport2.java,v 1.3 2005/09/28 13:49:20 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -507,7 +507,7 @@ final class Context2 {
      * This is separate from the c'tor because it's re-applied
      * when a Context2 is reused by push-after-pop.
      *
-     * @param context The parent Namespace context object.
+     * @param parent The parent Namespace context object.
      */
     void setParent (Context2 parent)
     {

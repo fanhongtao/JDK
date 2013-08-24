@@ -1,7 +1,7 @@
 /*
- * @(#)BreakIterator.java	1.35 03/12/19
+ * @(#)BreakIterator.java	1.43 06/06/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,21 +22,22 @@
 
 package java.text;
 
-import java.util.Vector;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.MissingResourceException;
-import sun.text.resources.LocaleData;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
-
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.io.InputStream;
 import java.io.IOException;
-
-import java.lang.ref.SoftReference;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
+import java.text.spi.BreakIteratorProvider;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import java.util.spi.LocaleServiceProvider;
+import sun.util.LocaleServiceProviderPool;
+import sun.util.resources.LocaleData;
+
 
 /**
  * The <code>BreakIterator</code> class implements methods for finding
@@ -59,17 +60,19 @@ import java.security.PrivilegedAction;
  * (word, line, sentence, and so on). You must use a different iterator
  * for each unit boundary analysis you wish to perform.
  *
- * <p>
+ * <p><a name="line"></a>
  * Line boundary analysis determines where a text string can be
  * broken when line-wrapping. The mechanism correctly handles
- * punctuation and hyphenated words.
+ * punctuation and hyphenated words. Actual line breaking needs
+ * to also consider the available line width and is handled by
+ * higher-level software.
  *
- * <p>
+ * <p><a name="sentence"></a>
  * Sentence boundary analysis allows selection with correct interpretation
  * of periods within numbers and abbreviations, and trailing punctuation
  * marks such as quotation marks and parentheses.
  *
- * <p>
+ * <p><a name="word"></a>
  * Word boundary analysis is used by search and replace functions, as
  * well as within text editing applications that allow the user to
  * select words with a double click. Word selection provides correct
@@ -77,22 +80,26 @@ import java.security.PrivilegedAction;
  * words. Characters that are not part of a word, such as symbols
  * or punctuation marks, have word-breaks on both sides.
  *
- * <p>
+ * <p><a name="character"></a>
  * Character boundary analysis allows users to interact with characters
  * as they expect to, for example, when moving the cursor through a text
- * string. Character boundary analysis provides correct navigation of
+ * string. Character boundary analysis provides correct navigation
  * through character strings, regardless of how the character is stored.
+ * The boundaries returned may be those of supplementary characters,
+ * combining character sequences, or ligature clusters.
  * For example, an accented character might be stored as a base character
  * and a diacritical mark. What users consider to be a character can
  * differ between languages.
  *
  * <p>
- * <code>BreakIterator</code> is intended for use with natural
- * languages only. Do not use this class to tokenize a programming language.
+ * The <code>BreakIterator</code> instances returned by the factory methods
+ * of this class are intended for use with natural languages only, not for
+ * programming language text. It is however possible to define subclasses
+ * that tokenize a programming language.
  *
  * <P>
  * <strong>Examples</strong>:<P>
- * Creating and using text boundaries
+ * Creating and using text boundaries:
  * <blockquote>
  * <pre>
  * public static void main(String args[]) {
@@ -113,7 +120,7 @@ import java.security.PrivilegedAction;
  * </pre>
  * </blockquote>
  *
- * Print each element in order
+ * Print each element in order:
  * <blockquote>
  * <pre>
  * public static void printEachForward(BreakIterator boundary, String source) {
@@ -127,7 +134,7 @@ import java.security.PrivilegedAction;
  * </pre>
  * </blockquote>
  *
- * Print each element in reverse order
+ * Print each element in reverse order:
  * <blockquote>
  * <pre>
  * public static void printEachBackward(BreakIterator boundary, String source) {
@@ -141,7 +148,7 @@ import java.security.PrivilegedAction;
  * </pre>
  * </blockquote>
  *
- * Print first element
+ * Print first element:
  * <blockquote>
  * <pre>
  * public static void printFirst(BreakIterator boundary, String source) {
@@ -152,7 +159,7 @@ import java.security.PrivilegedAction;
  * </pre>
  * </blockquote>
  *
- * Print last element
+ * Print last element:
  * <blockquote>
  * <pre>
  * public static void printLast(BreakIterator boundary, String source) {
@@ -163,7 +170,7 @@ import java.security.PrivilegedAction;
  * </pre>
  * </blockquote>
  *
- * Print the element at a specified position
+ * Print the element at a specified position:
  * <blockquote>
  * <pre>
  * public static void printAt(BreakIterator boundary, int pos, String source) {
@@ -174,7 +181,7 @@ import java.security.PrivilegedAction;
  * </pre>
  * </blockquote>
  *
- * Find the next word
+ * Find the next word:
  * <blockquote>
  * <pre>
  * public static int nextWordStartAfter(int pos, String text) {
@@ -184,7 +191,7 @@ import java.security.PrivilegedAction;
  *     int current = wb.next();
  *     while (current != BreakIterator.DONE) {
  *         for (int p = last; p < current; p++) {
- *             if (Character.isLetter(text.codePointAt(p))
+ *             if (Character.isLetter(text.codePointAt(p)))
  *                 return last;
  *         }
  *         last = current;
@@ -234,68 +241,100 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * DONE is returned by previous() and next() after all valid
-     * boundaries have been returned.
+     * DONE is returned by previous(), next(), next(int), preceding(int) 
+     * and following(int) when either the first or last text boundary has been 
+     * reached.
      */
     public static final int DONE = -1;
 
     /**
-     * Return the first boundary. The iterator's current position is set
-     * to the first boundary.
+     * Returns the first boundary. The iterator's current position is set
+     * to the first text boundary.
      * @return The character index of the first text boundary.
      */
     public abstract int first();
 
     /**
-     * Return the last boundary. The iterator's current position is set
-     * to the last boundary.
+     * Returns the last boundary. The iterator's current position is set
+     * to the last text boundary.
      * @return The character index of the last text boundary.
      */
     public abstract int last();
 
     /**
-     * Return the nth boundary from the current boundary
+     * Returns the nth boundary from the current boundary. If either
+     * the first or last text boundary has been reached, it returns
+     * <code>BreakIterator.DONE</code> and the current position is set to either 
+     * the first or last text boundary depending on which one is reached. Otherwise, 
+     * the iterator's current position is set to the new boundary.
+     * For example, if the iterator's current position is the mth text boundary  
+     * and three more boundaries exist from the current boundary to the last text 
+     * boundary, the next(2) call will return m + 2. The new text position is set 
+     * to the (m + 2)th text boundary. A next(4) call would return 
+     * <code>BreakIterator.DONE</code> and the last text boundary would become the 
+     * new text position.
      * @param n which boundary to return.  A value of 0
      * does nothing.  Negative values move to previous boundaries
      * and positive values move to later boundaries.
-     * @return The index of the nth boundary from the current position.
+     * @return The character index of the nth boundary from the current position
+     * or <code>BreakIterator.DONE</code> if either first or last text boundary 
+     * has been reached.
      */
     public abstract int next(int n);
 
     /**
-     * Return the boundary following the current boundary.
-     * @return The character index of the next text boundary or DONE if all
-     * boundaries have been returned.  Equivalent to next(1).
+     * Returns the boundary following the current boundary. If the current boundary
+     * is the last text boundary, it returns <code>BreakIterator.DONE</code> and 
+     * the iterator's current position is unchanged. Otherwise, the iterator's 
+     * current position is set to the boundary following the current boundary. 
+     * @return The character index of the next text boundary or 
+     * <code>BreakIterator.DONE</code> if the current boundary is the last text 
+     * boundary.  
+     * Equivalent to next(1).
+     * @see #next(int)
      */
     public abstract int next();
 
     /**
-     * Return the boundary preceding the current boundary.
-     * @return The character index of the previous text boundary or DONE if all
-     * boundaries have been returned.
+     * Returns the boundary preceding the current boundary. If the current boundary
+     * is the first text boundary, it returns <code>BreakIterator.DONE</code> and 
+     * the iterator's current position is unchanged. Otherwise, the iterator's 
+     * current position is set to the boundary preceding the current boundary.
+     * @return The character index of the previous text boundary or 
+     * <code>BreakIterator.DONE</code> if the current boundary is the first text 
+     * boundary.
      */
     public abstract int previous();
 
     /**
-     * Return the first boundary following the specified offset.
-     * The value returned is always greater than the offset or
-     * the value BreakIterator.DONE
-     * @param offset the offset to begin scanning. Valid values
-     * are determined by the CharacterIterator passed to
-     * setText().  Invalid values cause
-     * an IllegalArgumentException to be thrown.
-     * @return The first boundary after the specified offset.
+     * Returns the first boundary following the specified character offset. If the 
+     * specified offset equals to the last text boundary, it returns 
+     * <code>BreakIterator.DONE</code> and the iterator's current position is unchanged. 
+     * Otherwise, the iterator's current position is set to the returned boundary. 
+     * The value returned is always greater than the offset or the value 
+     * <code>BreakIterator.DONE</code>.
+     * @param offset the character offset to begin scanning.
+     * @return The first boundary after the specified offset or 
+     * <code>BreakIterator.DONE</code> if the last text boundary is passed in 
+     * as the offset.
+     * @exception  IllegalArgumentException if the specified offset is less than
+     * the first text boundary or greater than the last text boundary.
      */
     public abstract int following(int offset);
 
     /**
-     * Return the last boundary preceding the specfied offset.
-     * The value returned is always less than the offset or the value
-     * BreakIterator.DONE.
-     * @param offset the offset to begin scanning.  Valid values are
-     * determined by the CharacterIterator passed to setText().
-     * Invalid values cause an IllegalArgumentException to be thrown.
-     * @return The last boundary before the specified offset.
+     * Returns the last boundary preceding the specified character offset. If the 
+     * specified offset equals to the first text boundary, it returns 
+     * <code>BreakIterator.DONE</code> and the iterator's current position is unchanged. 
+     * Otherwise, the iterator's current position is set to the returned boundary. 
+     * The value returned is always less than the offset or the value 
+     * <code>BreakIterator.DONE</code>.
+     * @param offset the characater offset to begin scanning.  
+     * @return The last boundary before the specified offset or 
+     * <code>BreakIterator.DONE</code> if the first text boundary is passed in 
+     * as the offset.
+     * @exception   IllegalArgumentException if the specified offset is less than
+     * the first text boundary or greater than the last text boundary.
      * @since 1.2
      */
     public int preceding(int offset) {
@@ -309,9 +348,10 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Return true if the specified position is a boundary position.
-     * @param offset the offset to check.
-     * @return True if "offset" is a boundary position.
+     * Returns true if the specified character offset is a text boundary.
+     * @param offset the character offset to check.
+     * @return <code>true</code> if "offset" is a boundary position, 
+     * <code>false</code> otherwise.
      * @since 1.2
      */
     public boolean isBoundary(int offset) {
@@ -330,9 +370,21 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Return character index of the text boundary that was most recently
-     * returned by next(), previous(), first(), or last()
-     * @return The boundary most recently returned.
+     * Returns character index of the text boundary that was most 
+     * recently returned by next(), next(int), previous(), first(), last(), 
+     * following(int) or preceding(int). If any of these methods returns 
+     * <code>BreakIterator.DONE</code> because either first or last text boundary 
+     * has been reached, it returns the first or last text boundary depending on 
+     * which one is reached. 
+     * @return The text boundary returned from the above methods, first or last
+     * text boundary.
+     * @see #next()
+     * @see #next(int)
+     * @see #previous()
+     * @see #first() 
+     * @see #last()
+     * @see #following(int)
+     * @see #preceding(int)
      */
     public abstract int current();
 
@@ -366,11 +418,10 @@ public abstract class BreakIterator implements Cloneable
     private static final SoftReference[] iterCache = new SoftReference[4];
 
     /**
-     * Create BreakIterator for word-breaks using default locale.
-     * Returns an instance of a BreakIterator implementing word breaks.
-     * WordBreak  is usefull for word selection (ex. double click)
-     * @return A BreakIterator for word-breaks
-     * @see java.util.Locale#getDefault
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#word">word breaks</a>
+     * for the {@linkplain Locale#getDefault() default locale}.
+     * @return A break iterator for word breaks
      */
     public static BreakIterator getWordInstance()
     {
@@ -378,29 +429,26 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Create BreakIterator for word-breaks using specified locale.
-     * Returns an instance of a BreakIterator implementing word breaks.
-     * WordBreak is usefull for word selection (ex. double click)
-     * @param where the local.  If a specific WordBreak is not
-     * avaliable for the specified locale, a default WordBreak is returned.
-     * @return A BreakIterator for word-breaks
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#word">word breaks</a>
+     * for the given locale.
+     * @param locale the desired locale
+     * @return A break iterator for word breaks
+     * @exception NullPointerException if <code>locale</code> is null
      */
-    public static BreakIterator getWordInstance(Locale where)
+    public static BreakIterator getWordInstance(Locale locale)
     {
-        return getBreakInstance(where,
+        return getBreakInstance(locale,
                                 WORD_INDEX,
                                 "WordData",
                                 "WordDictionary");
     }
 
     /**
-     * Create BreakIterator for line-breaks using default locale.
-     * Returns an instance of a BreakIterator implementing line breaks. Line
-     * breaks are logically possible line breaks, actual line breaks are
-     * usually determined based on display width.
-     * LineBreak is useful for word wrapping text.
-     * @return A BreakIterator for line-breaks
-     * @see java.util.Locale#getDefault
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#line">line breaks</a>
+     * for the {@linkplain Locale#getDefault() default locale}.
+     * @return A break iterator for line breaks
      */
     public static BreakIterator getLineInstance()
     {
@@ -408,29 +456,26 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Create BreakIterator for line-breaks using specified locale.
-     * Returns an instance of a BreakIterator implementing line breaks. Line
-     * breaks are logically possible line breaks, actual line breaks are
-     * usually determined based on display width.
-     * LineBreak is useful for word wrapping text.
-     * @param where the local.  If a specific LineBreak is not
-     * avaliable for the specified locale, a default LineBreak is returned.
-     * @return A BreakIterator for line-breaks
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#line">line breaks</a>
+     * for the given locale.
+     * @param locale the desired locale
+     * @return A break iterator for line breaks
+     * @exception NullPointerException if <code>locale</code> is null
      */
-    public static BreakIterator getLineInstance(Locale where)
+    public static BreakIterator getLineInstance(Locale locale)
     {
-        return getBreakInstance(where,
+        return getBreakInstance(locale,
                                 LINE_INDEX,
                                 "LineData",
                                 "LineDictionary");
     }
 
     /**
-     * Create BreakIterator for character-breaks using default locale
-     * Returns an instance of a BreakIterator implementing character breaks.
-     * Character breaks are boundaries of combining character sequences.
-     * @return A BreakIterator for character-breaks
-     * @see Locale#getDefault
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#character">character breaks</a>
+     * for the {@linkplain Locale#getDefault() default locale}.
+     * @return A break iterator for character breaks
      */
     public static BreakIterator getCharacterInstance()
     {
@@ -438,26 +483,26 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Create BreakIterator for character-breaks using specified locale
-     * Returns an instance of a BreakIterator implementing character breaks.
-     * Character breaks are boundaries of combining character sequences.
-     * @param where the local.  If a specific character break is not
-     * avaliable for the specified local, a default character break is returned.
-     * @return A BreakIterator for character-breaks
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#character">character breaks</a>
+     * for the given locale.
+     * @param locale the desired locale
+     * @return A break iterator for character breaks
+     * @exception NullPointerException if <code>locale</code> is null
      */
-    public static BreakIterator getCharacterInstance(Locale where)
+    public static BreakIterator getCharacterInstance(Locale locale)
     {
-        return getBreakInstance(where,
+        return getBreakInstance(locale,
                                 CHARACTER_INDEX,
                                 "CharacterData",
                                 "CharacterDictionary");
     }
 
     /**
-     * Create BreakIterator for sentence-breaks using default locale
-     * Returns an instance of a BreakIterator implementing sentence breaks.
-     * @return A BreakIterator for sentence-breaks
-     * @see java.util.Locale#getDefault
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#sentence">sentence breaks</a>
+     * for the {@linkplain Locale#getDefault() default locale}.
+     * @return A break iterator for sentence breaks
      */
     public static BreakIterator getSentenceInstance()
     {
@@ -465,38 +510,39 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Create BreakIterator for sentence-breaks using specified locale
-     * Returns an instance of a BreakIterator implementing sentence breaks.
-     * @param where the local.  If a specific SentenceBreak is not
-     * avaliable for the specified local, a default SentenceBreak is returned.
-     * @return A BreakIterator for sentence-breaks
+     * Returns a new <code>BreakIterator</code> instance
+     * for <a href="#sentence">sentence breaks</a>
+     * for the given locale.
+     * @param locale the desired locale
+     * @return A break iterator for sentence breaks
+     * @exception NullPointerException if <code>locale</code> is null
      */
-    public static BreakIterator getSentenceInstance(Locale where)
+    public static BreakIterator getSentenceInstance(Locale locale)
     {
-        return getBreakInstance(where,
+        return getBreakInstance(locale,
                                 SENTENCE_INDEX,
                                 "SentenceData",
                                 "SentenceDictionary");
     }
 
-    private static BreakIterator getBreakInstance(Locale where,
+    private static BreakIterator getBreakInstance(Locale locale,
                                                   int type,
                                                   String dataName,
                                                   String dictionaryName) {
         if (iterCache[type] != null) {
             BreakIteratorCache cache = (BreakIteratorCache) iterCache[type].get();
             if (cache != null) {
-                if (cache.getLocale().equals(where)) {
+                if (cache.getLocale().equals(locale)) {
                     return cache.createBreakInstance();
                 }
             }
         }
 
-        BreakIterator result = createBreakInstance(where,
+        BreakIterator result = createBreakInstance(locale,
                                                    type,
                                                    dataName,
                                                    dictionaryName);
-        BreakIteratorCache cache = new BreakIteratorCache(where, result);
+        BreakIteratorCache cache = new BreakIteratorCache(locale, result);
         iterCache[type] = new SoftReference(cache);
         return result;
     }
@@ -509,15 +555,28 @@ public abstract class BreakIterator implements Cloneable
         });
     }
 
-    private static BreakIterator createBreakInstance(Locale where,
+    private static BreakIterator createBreakInstance(Locale locale,
                                                      int type,
                                                      String dataName,
                                                      String dictionaryName) {
 
-        ResourceBundle bundle = getBundle(
-                        "sun.text.resources.BreakIteratorInfo", where);
-        String[] classNames = bundle.getStringArray("BreakIteratorClasses");
+        // Check whether a provider can provide an implementation that's closer 
+        // to the requested locale than what the Java runtime itself can provide.
+        LocaleServiceProviderPool pool =
+            LocaleServiceProviderPool.getPool(BreakIteratorProvider.class);
+        if (pool.hasProviders()) {
+            BreakIterator providersInstance = pool.getLocalizedObject(
+                                                    BreakIteratorGetter.INSTANCE, 
+                                                    locale, type);
+            if (providersInstance != null) {
+                return providersInstance;
+            }
+        }
 
+        ResourceBundle bundle = getBundle(
+                        "sun.text.resources.BreakIteratorInfo", locale);
+        String[] classNames = bundle.getStringArray("BreakIteratorClasses");
+        
         String dataFile = bundle.getString(dataName);
 
         try {
@@ -542,7 +601,10 @@ public abstract class BreakIterator implements Cloneable
      * Returns an array of all locales for which the
      * <code>get*Instance</code> methods of this class can return
      * localized instances.
-     * The array returned must contain at least a <code>Locale</code>
+     * The returned array represents the union of locales supported by the Java 
+     * runtime and by installed 
+     * {@link java.text.spi.BreakIteratorProvider BreakIteratorProvider} implementations.  
+     * It must contain at least a <code>Locale</code>
      * instance equal to {@link java.util.Locale#US Locale.US}.
      *
      * @return An array of locales for which localized
@@ -550,23 +612,23 @@ public abstract class BreakIterator implements Cloneable
      */
     public static synchronized Locale[] getAvailableLocales()
     {
-        //FIX ME - this is a known bug.  It should return
-        //all locales.
-        return LocaleData.getAvailableLocales("NumberPatterns");
+        LocaleServiceProviderPool pool =
+            LocaleServiceProviderPool.getPool(BreakIteratorProvider.class);
+        return pool.getAvailableLocales();
     }
 
     private static final class BreakIteratorCache {
 
         private BreakIterator iter;
-        private Locale where;
+        private Locale locale;
 
-        BreakIteratorCache(Locale where, BreakIterator iter) {
-            this.where = where;
+        BreakIteratorCache(Locale locale, BreakIterator iter) {
+            this.locale = locale;
             this.iter = (BreakIterator) iter.clone();
         }
 
         Locale getLocale() {
-            return where;
+            return locale;
         }
 
         BreakIterator createBreakInstance() {
@@ -574,7 +636,7 @@ public abstract class BreakIterator implements Cloneable
         }
     }
 
-    protected static long getLong(byte[] buf, int offset) {
+    static long getLong(byte[] buf, int offset) {
         long num = buf[offset]&0xFF;
         for (int i = 1; i < 8; i++) {
             num = num<<8 | (buf[offset+i]&0xFF);
@@ -582,7 +644,7 @@ public abstract class BreakIterator implements Cloneable
         return num;
     }
 
-    protected static int getInt(byte[] buf, int offset) {
+    static int getInt(byte[] buf, int offset) {
         int num = buf[offset]&0xFF;
         for (int i = 1; i < 4; i++) {
             num = num<<8 | (buf[offset+i]&0xFF);
@@ -590,9 +652,40 @@ public abstract class BreakIterator implements Cloneable
         return num;
     }
 
-    protected static short getShort(byte[] buf, int offset) {
+    static short getShort(byte[] buf, int offset) {
         short num = (short)(buf[offset]&0xFF);
         num = (short)(num<<8 | (buf[offset+1]&0xFF));
         return num;
+    }
+
+    /**
+     * Obtains a BreakIterator instance from a BreakIteratorProvider 
+     * implementation.
+     */
+    private static class BreakIteratorGetter 
+        implements LocaleServiceProviderPool.LocalizedObjectGetter<BreakIteratorProvider, BreakIterator> {
+        private static final BreakIteratorGetter INSTANCE = 
+            new BreakIteratorGetter();
+
+        public BreakIterator getObject(BreakIteratorProvider breakIteratorProvider, 
+                                Locale locale, 
+                                String key,
+                                Object... params) {
+            assert params.length == 1;
+
+	    switch ((Integer)params[0]) {
+	    case CHARACTER_INDEX:
+		return breakIteratorProvider.getCharacterInstance(locale);
+	    case WORD_INDEX:
+		return breakIteratorProvider.getWordInstance(locale);
+	    case LINE_INDEX:
+		return breakIteratorProvider.getLineInstance(locale);
+            case SENTENCE_INDEX:
+                return breakIteratorProvider.getSentenceInstance(locale);
+            default:
+		assert false : "should not happen";
+	    }
+            return null;
+        }
     }
 }

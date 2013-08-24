@@ -269,7 +269,8 @@ public interface Node {
      * this node is a <code>Document</code> or a <code>DocumentType</code> 
      * which is not used with any <code>Document</code> yet, this is 
      * <code>null</code>.
-     * @version DOM Level 2
+     * 
+     * @since DOM Level 2
      */
     public Document getOwnerDocument();
 
@@ -304,7 +305,8 @@ public interface Node {
      *   this exception might be raised if the DOM implementation doesn't 
      *   support the insertion of a <code>DocumentType</code> or 
      *   <code>Element</code> node.
-     * @version DOM Level 3
+     * 
+     * @since DOM Level 3
      */
     public Node insertBefore(Node newChild, 
                              Node refChild)
@@ -341,7 +343,8 @@ public interface Node {
      *   this exception might be raised if the DOM implementation doesn't 
      *   support the replacement of the <code>DocumentType</code> child or 
      *   <code>Element</code> child.
-     * @version DOM Level 3
+     * 
+     * @since DOM Level 3
      */
     public Node replaceChild(Node newChild, 
                              Node oldChild)
@@ -360,7 +363,8 @@ public interface Node {
      *   this exception might be raised if the DOM implementation doesn't 
      *   support the removal of the <code>DocumentType</code> child or the 
      *   <code>Element</code> child.
-     * @version DOM Level 3
+     * 
+     * @since DOM Level 3
      */
     public Node removeChild(Node oldChild)
                             throws DOMException;
@@ -388,7 +392,8 @@ public interface Node {
      *   of the <code>Document</code> node, this exception might be raised 
      *   if the DOM implementation doesn't support the removal of the 
      *   <code>DocumentType</code> child or <code>Element</code> child.
-     * @version DOM Level 3
+     *
+     * @since DOM Level 3
      */
     public Node appendChild(Node newChild)
                             throws DOMException;
@@ -456,7 +461,8 @@ public interface Node {
      * <code>CDATASections</code>, the normalize operation alone may not be 
      * sufficient, since XPointers do not differentiate between 
      * <code>Text</code> nodes and <code>CDATASection</code> nodes.
-     * @version DOM Level 3
+     * 
+     * @since DOM Level 3
      */
     public void normalize();
 
@@ -467,6 +473,7 @@ public interface Node {
      * @param version  This is the version number of the feature to test. 
      * @return Returns <code>true</code> if the specified feature is 
      *   supported on this node, <code>false</code> otherwise.
+     *
      * @since DOM Level 2
      */
     public boolean isSupported(String feature, 
@@ -486,6 +493,7 @@ public interface Node {
      *  an attribute does not inherit its namespace from the element it is 
      * attached to. If an attribute is not explicitly given a namespace, it 
      * simply has no namespace.
+     *
      * @since DOM Level 2
      */
     public String getNamespaceURI();
@@ -509,6 +517,7 @@ public interface Node {
      * <code>ATTRIBUTE_NODE</code> and nodes created with a DOM Level 1 
      * method, such as <code>createElement</code> from the 
      * <code>Document</code> interface, this is always <code>null</code>.
+     *
      * @since DOM Level 2
      */
     public String getPrefix();
@@ -545,6 +554,7 @@ public interface Node {
      *   the <code>namespaceURI</code> of this node is different from "<a href='http://www.w3.org/2000/xmlns/'>http://www.w3.org/2000/xmlns/</a>", or if this node is an attribute and the <code>qualifiedName</code> of 
      *   this node is "xmlns" [<a href='http://www.w3.org/TR/1999/REC-xml-names-19990114/'>XML Namespaces</a>]
      *   .
+     *
      * @since DOM Level 2
      */
     public void setPrefix(String prefix)
@@ -556,6 +566,7 @@ public interface Node {
      * <code>ATTRIBUTE_NODE</code> and nodes created with a DOM Level 1 
      * method, such as <code>Document.createElement()</code>, this is always 
      * <code>null</code>.
+     *
      * @since DOM Level 2
      */
     public String getLocalName();
@@ -564,6 +575,7 @@ public interface Node {
      * Returns whether this node (if it is an element) has any attributes.
      * @return Returns <code>true</code> if this node has any attributes, 
      *   <code>false</code> otherwise.
+     *
      * @since DOM Level 2
      */
     public boolean hasAttributes();
@@ -577,6 +589,7 @@ public interface Node {
      * attribute of the HTML BASE element if any, and the value of the 
      * <code>documentURI</code> attribute from the <code>Document</code> 
      * interface otherwise.
+     *
      * @since DOM Level 3
      */
     public String getBaseURI();
@@ -623,6 +636,7 @@ public interface Node {
      *   NOT_SUPPORTED_ERR: when the compared nodes are from different DOM 
      *   implementations that do not coordinate to return consistent 
      *   implementation-specific results.
+     *
      * @since DOM Level 3
      */
     public short compareDocumentPosition(Node other)
@@ -673,6 +687,7 @@ public interface Node {
      *   DOMSTRING_SIZE_ERR: Raised when it would return more characters than 
      *   fit in a <code>DOMString</code> variable on the implementation 
      *   platform.
+     *
      * @since DOM Level 3
      */
     public String getTextContent()
@@ -720,6 +735,7 @@ public interface Node {
      * </table>
      * @exception DOMException
      *   NO_MODIFICATION_ALLOWED_ERR: Raised when the node is readonly.
+     *
      * @since DOM Level 3
      */
     public void setTextContent(String textContent)
@@ -737,6 +753,7 @@ public interface Node {
      * @param other The node to test against.
      * @return Returns <code>true</code> if the nodes are the same, 
      *   <code>false</code> otherwise.
+     *
      * @since DOM Level 3
      */
     public boolean isSameNode(Node other);
@@ -751,6 +768,7 @@ public interface Node {
      *   <code>null</code> if none is found. If more than one prefix are 
      *   associated to the namespace prefix, the returned namespace prefix 
      *   is implementation dependent.
+     *
      * @since DOM Level 3
      */
     public String lookupPrefix(String namespaceURI);
@@ -761,7 +779,8 @@ public interface Node {
      * @param namespaceURI The namespace URI to look for.
      * @return Returns <code>true</code> if the specified 
      *   <code>namespaceURI</code> is the default namespace, 
-     *   <code>false</code> otherwise. 
+     *   <code>false</code> otherwise.
+     * 
      * @since DOM Level 3
      */
     public boolean isDefaultNamespace(String namespaceURI);
@@ -775,6 +794,7 @@ public interface Node {
      *   if any.
      * @return Returns the associated namespace URI or <code>null</code> if 
      *   none is found.
+     *
      * @since DOM Level 3
      */
     public String lookupNamespaceURI(String prefix);
@@ -840,6 +860,7 @@ public interface Node {
      * @param arg The node to compare equality with.
      * @return Returns <code>true</code> if the nodes are equal, 
      *   <code>false</code> otherwise.
+     *
      * @since DOM Level 3
      */
     public boolean isEqualNode(Node arg);
@@ -863,7 +884,8 @@ public interface Node {
      *   implements the <code>Node</code> interface, it must delegate to the 
      *   primary core <code>Node</code> and not return results inconsistent 
      *   with the primary core <code>Node</code> such as attributes, 
-     *   childNodes, etc. 
+     *   childNodes, etc.
+     *
      * @since DOM Level 3
      */
     public Object getFeature(String feature, 
@@ -880,6 +902,7 @@ public interface Node {
      *   <code>null</code>.
      * @return Returns the <code>DOMUserData</code> previously associated to 
      *   the given key on this node, or <code>null</code> if there was none.
+     *
      * @since DOM Level 3
      */
     public Object setUserData(String key, 
@@ -893,6 +916,7 @@ public interface Node {
      * @param key The key the object is associated to.
      * @return Returns the <code>DOMUserData</code> associated to the given 
      *   key on this node, or <code>null</code> if there was none.
+     *
      * @since DOM Level 3
      */
     public Object getUserData(String key);

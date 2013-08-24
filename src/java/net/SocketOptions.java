@@ -1,7 +1,7 @@
 /*
- * @(#)SocketOptions.java	1.32 04/01/28
+ * @(#)SocketOptions.java	1.33 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.net;
  * type-safe methods to get/set each of these options in Socket, ServerSocket,
  * DatagramSocket and MulticastSocket.
  * <P>
- * @version 1.32, 01/28/04
+ * @version 1.33, 11/17/05
  * @author David Brown
  */
 

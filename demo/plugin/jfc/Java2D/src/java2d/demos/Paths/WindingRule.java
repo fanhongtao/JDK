@@ -1,7 +1,7 @@
 /*
- * @(#)WindingRule.java	1.24 04/07/26
+ * @(#)WindingRule.java	1.26 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)WindingRule.java	1.24 04/07/26
+ * @(#)WindingRule.java	1.26 06/08/29
  */
 
 package java2d.demos.Paths;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java2d.Surface;
@@ -52,7 +53,7 @@ import java2d.Surface;
 public class WindingRule extends Surface {
 
     public WindingRule() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -73,18 +74,18 @@ public class WindingRule extends Surface {
         p.lineTo(w*.05f, h*.25f);
         p.closePath();
 
-        g2.setColor(Color.lightGray);
+        g2.setColor(LIGHT_GRAY);
         g2.fill(p);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(p);
         g2.drawString("NON_ZERO rule", 0, -5);
 
         g2.translate(0.0f, h*.45);
 
         p.setWindingRule(GeneralPath.WIND_EVEN_ODD);
-        g2.setColor(Color.lightGray);
+        g2.setColor(LIGHT_GRAY);
         g2.fill(p);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(p);
         g2.drawString("EVEN_ODD rule", 0, -5);
     }

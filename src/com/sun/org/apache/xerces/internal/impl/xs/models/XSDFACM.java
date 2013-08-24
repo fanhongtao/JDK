@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.models;
@@ -76,8 +35,10 @@ import java.util.Vector;
  * the conversion from the regular expression to the DFA that
  * it then uses in its validation algorithm.
  *
+ * @xerces.internal 
+ *
  * @author Neil Graham, IBM
- * @version $Id: XSDFACM.java,v 1.10 2003/04/30 20:24:49 sandygao Exp $
+ * @version $Id: XSDFACM.java,v 1.4 2006/07/19 22:39:36 spericas Exp $
  */
 public class XSDFACM
     implements XSCMValidator {
@@ -177,6 +138,10 @@ public class XSDFACM
      * related tables such as fFinalStateFlags.
      */
     private int fTransTableSize = 0;
+    
+    private int fOneTransitionCounter = 0;
+    
+    private Object fUserData;
 
     // temp variables
 
@@ -187,7 +152,6 @@ public class XSDFACM
     /**
      * Constructs a DFA content model.
      *
-     * @param symbolTable    The symbol table.
      * @param syntaxTree    The syntax tree of the content model.
      * @param leafCount     The number of leaves.
      *
@@ -198,6 +162,8 @@ public class XSDFACM
    
         // Store away our index and pools in members
         fLeafCount = leafCount;
+        
+        fUserData = syntaxTree.getUserData();
 
         //
         //  Create some string pool indexes that represent the names of some
@@ -232,6 +198,24 @@ public class XSDFACM
     //
     // XSCMValidator methods
     //
+    
+    /**
+     * Return the number of times the <code>oneTransition()</code> method 
+     * was called, resulting on the DFA to move into a non-error state. 
+     * This is used to check the minOccurs and maxOccurs bounds using a 
+     * constant space algorithm.
+     */ 
+    public int getOneTransitionCounter() {
+        return fOneTransitionCounter;
+    }
+    
+    /**
+     * Allows the user to get arbitrary data originally set on the content 
+     * model node used to create this DFA.
+     */
+    public Object getUserData() {
+        return fUserData;
+    }
 
     /**
      * check whether the given state is one of the final states
@@ -248,9 +232,9 @@ public class XSDFACM
     /**
      * one transition only
      *
-     * @param curElem     The current element's QName
-     * @param stateStack  stack to store the previous state
-     * @param curPos      the current position of the stack
+     * @param curElem The current element's QName
+     * @param state stack to store the previous state
+     * @param subGroupHandler the substitution group handler
      *
      * @return  null if transition is invalid; otherwise the Object corresponding to the
      *      XSElementDecl or XSWildcardDecl identified.  Also, the
@@ -302,6 +286,7 @@ public class XSDFACM
             return findMatchingDecl(curElem, subGroupHandler);
         }
 
+        fOneTransitionCounter++;
         state[0] = nextState;
         return matchingDecl;
     } // oneTransition(QName, int[], SubstitutionGroupHandler):  Object
@@ -330,6 +315,7 @@ public class XSDFACM
     public int[] startContentModel() {
         int[] val = new int[2];
         val[0] = 0;
+        fOneTransitionCounter = 0;      // reset transition counter
         return val;
     } // startContentModel():int[]
 
@@ -903,7 +889,7 @@ public class XSDFACM
     /**
      * check whether this content violates UPA constraint.
      *
-     * @param errors to hold the UPA errors
+     * @param subGroupHandler the substitution group handler
      * @return true if this content model contains other or list wildcard
      */
     public boolean checkUniqueParticleAttribution(SubstitutionGroupHandler subGroupHandler) throws XMLSchemaException {

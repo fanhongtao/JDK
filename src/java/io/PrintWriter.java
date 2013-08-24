@@ -1,7 +1,7 @@
-/*
- * @(#)PrintWriter.java	1.37 04/07/16
+/**
+ * @(#)PrintWriter.java	1.43 06/08/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ import java.util.Formatter;
 import java.util.Locale;
 
 /**
- * Print formatted representations of objects to a text-output stream.  This
+ * Prints formatted representations of objects to a text-output stream.  This
  * class implements all of the <tt>print</tt> methods found in {@link
  * PrintStream}.  It does not contain methods for writing raw bytes, for which
  * a program should use unencoded byte streams.
@@ -26,7 +26,7 @@ import java.util.Locale;
  * constructors may.  The client may inquire as to whether any errors have
  * occurred by invoking {@link #checkError checkError()}.
  *
- * @version 	1.37, 07/16/04
+ * @version 	1.43, 08/07/06
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1
@@ -45,6 +45,7 @@ public class PrintWriter extends Writer {
     private boolean autoFlush = false;
     private boolean trouble = false;
     private Formatter formatter;
+    private PrintStream psOut = null;
 
     /**
      * Line separator string.  This is the value of the line.separator
@@ -53,7 +54,7 @@ public class PrintWriter extends Writer {
     private String lineSeparator;
 
     /**
-     * Create a new PrintWriter, without automatic line flushing.
+     * Creates a new PrintWriter, without automatic line flushing.
      *
      * @param  out        A character-output stream
      */
@@ -62,7 +63,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Create a new PrintWriter.
+     * Creates a new PrintWriter.
      *
      * @param  out        A character-output stream
      * @param  autoFlush  A boolean; if true, the <tt>println</tt>,
@@ -79,7 +80,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Create a new PrintWriter, without automatic line flushing, from an
+     * Creates a new PrintWriter, without automatic line flushing, from an
      * existing OutputStream.  This convenience constructor creates the
      * necessary intermediate OutputStreamWriter, which will convert characters
      * into bytes using the default character encoding.
@@ -93,7 +94,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Create a new PrintWriter from an existing OutputStream.  This
+     * Creates a new PrintWriter from an existing OutputStream.  This
      * convenience constructor creates the necessary intermediate
      * OutputStreamWriter, which will convert characters into bytes using the
      * default character encoding.
@@ -107,6 +108,11 @@ public class PrintWriter extends Writer {
      */
     public PrintWriter(OutputStream out, boolean autoFlush) {
 	this(new BufferedWriter(new OutputStreamWriter(out)), autoFlush);
+
+	// save print stream for error propagation
+	if (out instanceof java.io.PrintStream) { 
+	    psOut = (PrintStream) out;
+	}
     }
 
     /**
@@ -114,7 +120,7 @@ public class PrintWriter extends Writer {
      * specified file name.  This convenience constructor creates the necessary
      * intermediate {@link java.io.OutputStreamWriter OutputStreamWriter},
      * which will encode characters using the {@linkplain
-     * java.nio.charset.Charset#defaultCharset default charset} for this
+     * java.nio.charset.Charset#defaultCharset() default charset} for this
      * instance of the Java virtual machine.
      *
      * @param  fileName
@@ -186,7 +192,7 @@ public class PrintWriter extends Writer {
      * specified file.  This convenience constructor creates the necessary
      * intermediate {@link java.io.OutputStreamWriter OutputStreamWriter},
      * which will encode characters using the {@linkplain
-     * java.nio.charset.Charset#defaultCharset default charset} for this
+     * java.nio.charset.Charset#defaultCharset() default charset} for this
      * instance of the Java virtual machine.
      *
      * @param  file
@@ -253,14 +259,14 @@ public class PrintWriter extends Writer {
 	     false);
     }
 
-    /** Check to make sure that the stream has not been closed */
+    /** Checks to make sure that the stream has not been closed */
     private void ensureOpen() throws IOException {
 	if (out == null)
 	    throw new IOException("Stream closed");
     }
 
     /**
-     * Flush the stream.
+     * Flushes the stream.
      * @see #checkError()
      */
     public void flush() {
@@ -276,7 +282,9 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Close the stream.
+     * Closes the stream and releases any system resources associated
+     * with it. Closing a previously closed stream has no effect.
+     *
      * @see #checkError()
      */
     public void close() {
@@ -294,36 +302,56 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Flush the stream if it's not closed and check its error state.
-     * Errors are cumulative; once the stream encounters an error, this
-     * routine will return true on all successive calls.
+     * Flushes the stream if it's not closed and checks its error state.
      *
-     * @return True if the print stream has encountered an error, either on the
-     * underlying output stream or during a format conversion.
+     * @return <code>true</code> if the print stream has encountered an error,
+     * 		either on the underlying output stream or during a format
+     *		conversion.
      */
     public boolean checkError() {
-	if (out != null)
+	if (out != null) {
 	    flush();
+	}
+	if (out instanceof java.io.PrintWriter) {
+	    PrintWriter pw = (PrintWriter) out; 
+	    return pw.checkError();
+	} else if (psOut != null) {
+	    return psOut.checkError();
+	}
 	return trouble;
     }
 
-    /** Indicate that an error has occurred. */
+    /**
+     * Indicates that an error has occurred.
+     *
+     * <p> This method will cause subsequent invocations of {@link
+     * #checkError()} to return <tt>true</tt> until {@link
+     * #clearError()} is invoked.
+     */
     protected void setError() {
 	trouble = true;
-	try {
-	    throw new IOException();
-	} catch (IOException x) {
-	}
     }
 
-
+    /**
+     * Clears the error state of this stream.
+     *
+     * <p> This method will cause subsequent invocations of {@link
+     * #checkError()} to return <tt>false</tt> until another write
+     * operation fails and invokes {@link #setError()}.
+     *
+     * @since 1.6
+     */
+    protected void clearError() {
+        trouble = false;
+    }
+ 
     /*
      * Exception-catching, synchronized output operations,
      * which also implement the write() methods of Writer
      */
 
     /**
-     * Write a single character.
+     * Writes a single character.
      * @param c int specifying a character to be written.
      */
     public void write(int c) {
@@ -342,7 +370,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Write A Portion of an array of characters.
+     * Writes A Portion of an array of characters.
      * @param buf Array of characters
      * @param off Offset from which to start writing characters
      * @param len Number of characters to write
@@ -363,7 +391,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Write an array of characters.  This method cannot be inherited from the
+     * Writes an array of characters.  This method cannot be inherited from the
      * Writer class because it must suppress I/O exceptions.
      * @param buf Array of characters to be written
      */
@@ -372,7 +400,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Write a portion of a string.
+     * Writes a portion of a string.
      * @param s A String
      * @param off Offset from which to start writing characters
      * @param len Number of characters to write
@@ -393,7 +421,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Write a string.  This method cannot be inherited from the Writer class
+     * Writes a string.  This method cannot be inherited from the Writer class
      * because it must suppress I/O exceptions.
      * @param s String to be written
      */
@@ -418,11 +446,10 @@ public class PrintWriter extends Writer {
 	}
     }
 
-
     /* Methods that do not terminate lines */
 
     /**
-     * Print a boolean value.  The string produced by <code>{@link
+     * Prints a boolean value.  The string produced by <code>{@link
      * java.lang.String#valueOf(boolean)}</code> is translated into bytes
      * according to the platform's default character encoding, and these bytes
      * are written in exactly the manner of the <code>{@link
@@ -435,7 +462,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a character.  The character is translated into one or more bytes
+     * Prints a character.  The character is translated into one or more bytes
      * according to the platform's default character encoding, and these bytes
      * are written in exactly the manner of the <code>{@link
      * #write(int)}</code> method.
@@ -447,7 +474,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print an integer.  The string produced by <code>{@link
+     * Prints an integer.  The string produced by <code>{@link
      * java.lang.String#valueOf(int)}</code> is translated into bytes according
      * to the platform's default character encoding, and these bytes are
      * written in exactly the manner of the <code>{@link #write(int)}</code>
@@ -461,7 +488,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a long integer.  The string produced by <code>{@link
+     * Prints a long integer.  The string produced by <code>{@link
      * java.lang.String#valueOf(long)}</code> is translated into bytes
      * according to the platform's default character encoding, and these bytes
      * are written in exactly the manner of the <code>{@link #write(int)}</code>
@@ -475,7 +502,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a floating-point number.  The string produced by <code>{@link
+     * Prints a floating-point number.  The string produced by <code>{@link
      * java.lang.String#valueOf(float)}</code> is translated into bytes
      * according to the platform's default character encoding, and these bytes
      * are written in exactly the manner of the <code>{@link #write(int)}</code>
@@ -489,7 +516,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a double-precision floating-point number.  The string produced by
+     * Prints a double-precision floating-point number.  The string produced by
      * <code>{@link java.lang.String#valueOf(double)}</code> is translated into
      * bytes according to the platform's default character encoding, and these
      * bytes are written in exactly the manner of the <code>{@link
@@ -503,7 +530,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print an array of characters.  The characters are converted into bytes
+     * Prints an array of characters.  The characters are converted into bytes
      * according to the platform's default character encoding, and these bytes
      * are written in exactly the manner of the <code>{@link #write(int)}</code>
      * method.
@@ -517,7 +544,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a string.  If the argument is <code>null</code> then the string
+     * Prints a string.  If the argument is <code>null</code> then the string
      * <code>"null"</code> is printed.  Otherwise, the string's characters are
      * converted into bytes according to the platform's default character
      * encoding, and these bytes are written in exactly the manner of the
@@ -533,7 +560,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print an object.  The string produced by the <code>{@link
+     * Prints an object.  The string produced by the <code>{@link
      * java.lang.String#valueOf(Object)}</code> method is translated into bytes
      * according to the platform's default character encoding, and these bytes
      * are written in exactly the manner of the <code>{@link #write(int)}</code>
@@ -546,11 +573,10 @@ public class PrintWriter extends Writer {
 	write(String.valueOf(obj));
     }
 
-
     /* Methods that do terminate lines */
 
     /**
-     * Terminate the current line by writing the line separator string.  The
+     * Terminates the current line by writing the line separator string.  The
      * line separator string is defined by the system property
      * <code>line.separator</code>, and is not necessarily a single newline
      * character (<code>'\n'</code>).
@@ -560,7 +586,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a boolean value and then terminate the line.  This method behaves
+     * Prints a boolean value and then terminates the line.  This method behaves
      * as though it invokes <code>{@link #print(boolean)}</code> and then
      * <code>{@link #println()}</code>.
      *
@@ -574,7 +600,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a character and then terminate the line.  This method behaves as
+     * Prints a character and then terminates the line.  This method behaves as
      * though it invokes <code>{@link #print(char)}</code> and then <code>{@link
      * #println()}</code>.
      *
@@ -588,7 +614,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print an integer and then terminate the line.  This method behaves as
+     * Prints an integer and then terminates the line.  This method behaves as
      * though it invokes <code>{@link #print(int)}</code> and then <code>{@link
      * #println()}</code>.
      *
@@ -602,7 +628,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a long integer and then terminate the line.  This method behaves
+     * Prints a long integer and then terminates the line.  This method behaves
      * as though it invokes <code>{@link #print(long)}</code> and then
      * <code>{@link #println()}</code>.
      *
@@ -616,7 +642,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a floating-point number and then terminate the line.  This method
+     * Prints a floating-point number and then terminates the line.  This method
      * behaves as though it invokes <code>{@link #print(float)}</code> and then
      * <code>{@link #println()}</code>.
      *
@@ -630,7 +656,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a double-precision floating-point number and then terminate the
+     * Prints a double-precision floating-point number and then terminates the
      * line.  This method behaves as though it invokes <code>{@link
      * #print(double)}</code> and then <code>{@link #println()}</code>.
      *
@@ -644,7 +670,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print an array of characters and then terminate the line.  This method
+     * Prints an array of characters and then terminates the line.  This method
      * behaves as though it invokes <code>{@link #print(char[])}</code> and then
      * <code>{@link #println()}</code>.
      *
@@ -658,7 +684,7 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print a String and then terminate the line.  This method behaves as
+     * Prints a String and then terminates the line.  This method behaves as
      * though it invokes <code>{@link #print(String)}</code> and then
      * <code>{@link #println()}</code>.
      *
@@ -672,15 +698,18 @@ public class PrintWriter extends Writer {
     }
 
     /**
-     * Print an Object and then terminate the line.  This method behaves as
-     * though it invokes <code>{@link #print(Object)}</code> and then
+     * Prints an Object and then terminates the line.  This method calls
+     * at first String.valueOf(x) to get the printed object's string value,
+     * then behaves as
+     * though it invokes <code>{@link #print(String)}</code> and then
      * <code>{@link #println()}</code>.
      *
-     * @param x the <code>Object</code> value to be printed
+     * @param x  The <code>Object</code> to be printed.
      */
     public void println(Object x) {
+	String s = String.valueOf(x);
 	synchronized (lock) {
-	    print(x);
+	    print(s);
 	    println();
 	}
     }

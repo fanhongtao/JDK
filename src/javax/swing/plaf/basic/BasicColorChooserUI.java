@@ -1,7 +1,7 @@
 /*
- * @(#)BasicColorChooserUI.java	1.46 03/12/19
+ * @(#)BasicColorChooserUI.java	1.48 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import sun.swing.UIAction;
 /**
  * Provides the basic look and feel for a JColorChooser.
  * <p>
- * @version 1.46 12/19/03
+ * @version 1.48 11/17/05
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -80,8 +80,10 @@ public class BasicColorChooserUI extends ColorChooserUI
 
 	tabbedPane = new JTabbedPane();
         tabbedPane.setName("ColorChooser.tabPane");
+        tabbedPane.setInheritsPopupMenu(true);
 	singlePanel = new JPanel(new CenterLayout());
         singlePanel.setName("ColorChooser.panel");
+        singlePanel.setInheritsPopupMenu(true);
 
 	chooser.setLayout( new BorderLayout() );
 
@@ -97,6 +99,7 @@ public class BasicColorChooserUI extends ColorChooserUI
                 "ColorChooser.previewText", chooser.getLocale());
             previewPanelHolder.setBorder(new TitledBorder(previewString));
         }
+        previewPanelHolder.setInheritsPopupMenu(true);
 	chooser.add(previewPanelHolder, BorderLayout.SOUTH);
 
 	installPreviewPanel();
@@ -149,6 +152,7 @@ public class BasicColorChooserUI extends ColorChooserUI
 	previewPanel.setForeground(chooser.getColor());
 	previewPanelHolder.add(previewPanel);
 	previewPanel.addMouseListener(getHandler());
+        previewPanel.setInheritsPopupMenu(true);
     }
 
     protected void installDefaults() {
@@ -251,6 +255,7 @@ public class BasicColorChooserUI extends ColorChooserUI
                 else if (numNewPanels == 1) {  // one panel case
                     chooser.remove(tabbedPane);
                     JPanel centerWrapper = new JPanel( new CenterLayout() );
+                    centerWrapper.setInheritsPopupMenu(true);
                     centerWrapper.add(newPanels[0]);
                     singlePanel.add(centerWrapper, BorderLayout.CENTER);
                     chooser.add(singlePanel);
@@ -263,6 +268,7 @@ public class BasicColorChooserUI extends ColorChooserUI
 
                     for (int i = 0; i < newPanels.length; i++) {            
                         JPanel centerWrapper = new JPanel( new CenterLayout() );
+                        centerWrapper.setInheritsPopupMenu(true);
                         String name = newPanels[i].getDisplayName();
                         int mnemonic = newPanels[i].getMnemonic();
                         centerWrapper.add(newPanels[i]);

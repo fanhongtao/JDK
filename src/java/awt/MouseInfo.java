@@ -1,7 +1,7 @@
 /*
- * @(#)MouseInfo.java	1.2 03/12/19
+ * @(#)MouseInfo.java	1.3 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import sun.security.util.SecurityConstants;
  * <code>MouseInfo</code>  provides methods for getting information about the mouse,
  * such as mouse pointer location and the number of mouse buttons.
  *
- * @version    1.2, 12/19/03
+ * @version    1.3, 11/17/05
  * @author     Roman Poborchiy
  * @since 1.5
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)Refreshable.java	1.9 03/12/19
+ * @(#)Refreshable.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package javax.security.auth;
  * may implement this interface to allow callers to refresh the time period
  * for which it is valid.
  *
- * @version 1.9, 12/19/03
+ * @version 1.10, 11/17/05
  * @see javax.security.auth.Subject
  */
 public interface Refreshable {

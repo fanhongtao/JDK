@@ -1,8 +1,8 @@
 /*
  * @(#)file      ModelMBeanInfo.java
  * @(#)author    IBM Corp.
- * @(#)version   1.24
- * @(#)lastedit      04/02/10
+ * @(#)version   1.26
+ * @(#)lastedit      05/11/17
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -159,7 +159,7 @@ public interface ModelMBeanInfo
      * name           : MBean name  
      * descriptorType : must be "mbean"   
      * displayName    : name of attribute to be used in displays 
-     * persistPolicy  : OnUpdate|OnTimer|NoMoreOftenThan|Always|Never  
+     * persistPolicy  : OnUpdate|OnTimer|NoMoreOftenThan|OnUnregister|Always|Never  
      * persistLocation : The fully qualified directory name where the MBean should be persisted (if appropriate)
      * persistFile    : File name into which the MBean should be persisted
      * persistPeriod  : seconds - frequency of persist cycle for OnTime and NoMoreOftenThan PersistPolicy 

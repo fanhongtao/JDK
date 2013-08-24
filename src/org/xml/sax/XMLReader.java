@@ -2,7 +2,7 @@
 // http://www.saxproject.org
 // Written by David Megginson
 // NO WARRANTY!  This class is in the Public Domain.
-// $Id: XMLReader.java,v 1.2.22.1 2004/05/01 08:34:40 jsuttor Exp $
+// $Id: XMLReader.java,v 1.3 2004/11/03 22:55:32 jsuttor Exp $
 
 package org.xml.sax;
 

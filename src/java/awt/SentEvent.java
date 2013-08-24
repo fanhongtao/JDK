@@ -1,7 +1,7 @@
 /*
- * @(#)SentEvent.java	1.6 03/12/19
+ * @(#)SentEvent.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,10 +18,15 @@ import sun.awt.SunToolkit;
  * event even if it is currently blocked waiting for a SequencedEvent or
  * another SentEvent to be handled.
  *
- * @version 1.6, 12/19/03
+ * @version 1.8, 11/17/05
  * @author David Mendenhall
  */
 class SentEvent extends AWTEvent implements ActiveEvent {
+    /*
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = -383615247028828931L;
+
     static final int ID =
 	java.awt.event.FocusEvent.FOCUS_LAST + 2;
 

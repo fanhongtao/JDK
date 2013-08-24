@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanServerAccessController.java	1.8 06/06/29
+ * @(#)MBeanServerAccessController.java	1.10 06/06/21
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.

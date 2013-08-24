@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOMBuilder.java,v 1.19 2004/02/25 13:07:51 aruny Exp $
+ * $Id: DOMBuilder.java,v 1.2.4.1 2005/09/15 08:15:39 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -49,6 +49,12 @@ public class DOMBuilder
 
   /** Current node           */
   protected Node m_currentNode = null;
+  
+  /** The root node          */
+  protected Node m_root = null;
+  
+  /** The next sibling node  */
+  protected Node m_nextSibling = null;
 
   /** First node of document fragment or null if not a DocumentFragment     */
   public DocumentFragment m_docFrag = null;
@@ -66,7 +72,10 @@ public class DOMBuilder
   public DOMBuilder(Document doc, Node node)
   {
     m_doc = doc;
-    m_currentNode = node;
+    m_currentNode = m_root = node;
+    
+    if (node instanceof Element)
+      m_elemStack.push(node);
   }
 
   /**
@@ -94,16 +103,23 @@ public class DOMBuilder
   }
 
   /**
-   * Get the root node of the DOM being created.  This
-   * is either a Document or a DocumentFragment.
+   * Get the root document or DocumentFragment of the DOM being created.
    *
    * @return The root document or document fragment if not null
    */
-  public Node getRootNode()
+  public Node getRootDocument()
   {
     return (null != m_docFrag) ? (Node) m_docFrag : (Node) m_doc;
   }
-
+  
+  /**
+   * Get the root node of the DOM tree.
+   */
+  public Node getRootNode()
+  {
+    return m_root;
+  }
+  
   /**
    * Get the node currently being processed.
    *
@@ -112,6 +128,27 @@ public class DOMBuilder
   public Node getCurrentNode()
   {
     return m_currentNode;
+  }
+  
+  /**
+   * Set the next sibling node, which is where the result nodes 
+   * should be inserted before.
+   * 
+   * @param nextSibling the next sibling node.
+   */
+  public void setNextSibling(Node nextSibling)
+  {
+    m_nextSibling = nextSibling;
+  }
+  
+  /**
+   * Return the next sibling node.
+   * 
+   * @return the next sibling node.
+   */
+  public Node getNextSibling()
+  {
+    return m_nextSibling;
   }
 
   /**
@@ -136,13 +173,19 @@ public class DOMBuilder
 
     if (null != currentNode)
     {
-      currentNode.appendChild(newNode);
+      if (currentNode == m_root && m_nextSibling != null)
+        currentNode.insertBefore(newNode, m_nextSibling);
+      else
+        currentNode.appendChild(newNode);
 
       // System.out.println(newNode.getNodeName());
     }
     else if (null != m_docFrag)
     {
-      m_docFrag.appendChild(newNode);
+      if (m_nextSibling != null)
+        m_docFrag.insertBefore(newNode, m_nextSibling);
+      else
+        m_docFrag.appendChild(newNode);
     }
     else
     {
@@ -166,6 +209,8 @@ public class DOMBuilder
       {
         if (m_doc.getDocumentElement() != null)
         {
+          ok = false;
+          
           throw new org.xml.sax.SAXException(
             XMLMessages.createXMLMessage(
               XMLErrorResources.ER_CANT_HAVE_MORE_THAN_ONE_ROOT, null));  //"Can't have more than one root on a DOM!");
@@ -173,7 +218,12 @@ public class DOMBuilder
       }
 
       if (ok)
-        m_doc.appendChild(newNode);
+      {
+        if (m_nextSibling != null)
+          m_doc.insertBefore(newNode, m_nextSibling);
+        else
+          m_doc.appendChild(newNode);
+      }
     }
   }
 
@@ -299,7 +349,7 @@ public class DOMBuilder
           // Crimson won't let us set an xmlns: attribute on the DOM.
           String attrQName = atts.getQName(i);
 
-          // In SAX, xmlns: attributes have an empty namespace, while in DOM they 
+          // In SAX, xmlns[:] attributes have an empty namespace, while in DOM they 
           // should have the xmlns namespace
           if (attrQName.startsWith("xmlns:") || attrQName.equals("xmlns")) {
             attrNS = "http://www.w3.org/2000/xmlns/";

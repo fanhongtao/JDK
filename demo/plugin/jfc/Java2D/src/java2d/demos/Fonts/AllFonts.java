@@ -1,7 +1,7 @@
 /*
- * @(#)AllFonts.java	1.33 04/07/26
+ * @(#)AllFonts.java	1.36 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)AllFonts.java	1.33 04/07/26
+ * @(#)AllFonts.java	1.36 06/08/29
  */
 
 package java2d.demos.Fonts;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
@@ -58,14 +59,13 @@ import java2d.CustomControls;
  */
 public class AllFonts extends AnimatingControlsSurface {
 
-    private static Vector fonts = new Vector();
+    private static Vector<Font> fonts = new Vector<Font>();
     static {
         GraphicsEnvironment ge = 
             GraphicsEnvironment.getLocalGraphicsEnvironment();
-        Font allfonts[] = ge.getAllFonts();
-        for (int i = 0; i < allfonts.length; i++) {
-            if (allfonts[i].canDisplayUpTo(allfonts[i].getName()) != 0) {
-                fonts.addElement(allfonts[i]);
+        for (Font font : ge.getAllFonts()) {
+            if (font.canDisplayUpTo(font.getName()) != 0) {
+                fonts.addElement(font);
             }
         }
     }
@@ -73,11 +73,11 @@ public class AllFonts extends AnimatingControlsSurface {
     private int strH;
     private int fi;
     protected int fsize = 14;
-    protected Vector v = new Vector();
+    protected Vector<Font> v = new Vector<Font>();
 
 
     public AllFonts() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         setSleepAmount(500);
         setControls(new Component[] { new DemoControls(this) });
     }
@@ -88,9 +88,9 @@ public class AllFonts extends AnimatingControlsSurface {
 
     public void reset(int w, int h) {
         v.clear();
-        Font f = ((Font) fonts.get(0)).deriveFont(Font.PLAIN,fsize);
+        Font f = fonts.get(0).deriveFont(Font.PLAIN,fsize);
         FontMetrics fm = getFontMetrics(f);
-        strH = (int) (fm.getAscent()+fm.getDescent());
+        strH = (int) (fm.getAscent() + fm.getDescent());
         nStrs = h/strH + 1;
         fi = 0;
     }
@@ -98,7 +98,7 @@ public class AllFonts extends AnimatingControlsSurface {
 
     public void step(int w, int h) {
         if (fi < fonts.size()) {
-            v.addElement(((Font) fonts.get(fi)).deriveFont(Font.PLAIN,fsize));
+            v.addElement(fonts.get(fi).deriveFont(Font.PLAIN,fsize));
         }
         if (v.size() == nStrs && v.size() != 0 || fi > fonts.size()) {
             v.removeElementAt(0);
@@ -109,12 +109,12 @@ public class AllFonts extends AnimatingControlsSurface {
 
     public void render(int w, int h, Graphics2D g2) {
 
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
 
         int yy = (fi >= fonts.size()) ? 0 : h - v.size() * strH - strH/2;
 
         for (int i = 0; i < v.size(); i++) {
-            Font f = (Font) v.get(i);
+            Font f = v.get(i);
             int sw = getFontMetrics(f).stringWidth(f.getName());
             g2.setFont(f);
             g2.drawString(f.getName(), (int) (w/2-sw/2),yy += strH);
@@ -138,7 +138,7 @@ public class AllFonts extends AnimatingControlsSurface {
 
         public DemoControls(AllFonts demo) {
             this.demo = demo;
-            setBackground(Color.gray);
+            setBackground(GRAY);
 
             int sleepAmount = (int) demo.getSleepAmount();
             slider = new JSlider(JSlider.HORIZONTAL, 0, 999, sleepAmount);

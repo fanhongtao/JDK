@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryCacheImageInputStream.java	1.23 03/12/19
+ * @(#)MemoryCacheImageInputStream.java	1.26 06/01/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,8 +10,10 @@ package javax.imageio.stream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-
 import java.util.ArrayList;
+import com.sun.imageio.stream.StreamFinalizer;
+import sun.java2d.Disposer;
+import sun.java2d.DisposerRecord;
 
 /**
  * An implementation of <code>ImageInputStream</code> that gets its
@@ -32,6 +34,12 @@ public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
 
     private MemoryCache cache = new MemoryCache();
 
+    /** The referent to be registered with the Disposer. */
+    private final Object disposerReferent;
+
+    /** The DisposerRecord that resets the underlying MemoryCache. */
+    private final DisposerRecord disposerRecord;
+
     /**
      * Constructs a <code>MemoryCacheImageInputStream</code> that will read
      * from a given <code>InputStream</code>.
@@ -46,12 +54,19 @@ public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
             throw new IllegalArgumentException("stream == null!");
         }        
         this.stream = stream;
+
+        disposerRecord = new StreamDisposerRecord(cache);
+        if (getClass() == MemoryCacheImageInputStream.class) {
+            disposerReferent = new Object();
+            Disposer.addRecord(disposerReferent, disposerRecord);
+        } else {
+            disposerReferent = new StreamFinalizer(this);
+        }
     }
 
     public int read() throws IOException {
         checkClosed();
         bitOffset = 0;
-        long thisByte = streamPos;
         long pos = cache.loadFromStream(stream, streamPos+1);
         if (pos >= streamPos+1) {
             return cache.read(streamPos++);
@@ -62,10 +77,13 @@ public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
 
     public int read(byte[] b, int off, int len) throws IOException {
         checkClosed();
-        // Will throw NullPointerException
+
+        if (b == null) {
+            throw new NullPointerException("b == null!");
+        }
         if (off < 0 || len < 0 || off + len > b.length || off + len < 0) {
             throw new IndexOutOfBoundsException
-                ("off < 0 || len < 0 || off + len > b.length!");
+                ("off < 0 || len < 0 || off+len > b.length || off+len < 0!");
         }
 
         bitOffset = 0;
@@ -88,7 +106,7 @@ public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
     }
 
     public void flushBefore(long pos) throws IOException {
-        super.flushBefore(pos);
+        super.flushBefore(pos); // this will call checkClosed() for us
         cache.disposeBefore(pos);
     }
 
@@ -138,8 +156,32 @@ public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
      */
     public void close() throws IOException {
         super.close();
-        cache.reset();
+        disposerRecord.dispose(); // this resets the MemoryCache
         stream = null;
+        cache = null;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void finalize() throws Throwable {
+        // Empty finalizer: for performance reasons we instead use the
+        // Disposer mechanism for ensuring that the underlying
+        // MemoryCache is reset prior to garbage collection
+    }
+
+    private static class StreamDisposerRecord implements DisposerRecord {
+        private MemoryCache cache;
+
+        public StreamDisposerRecord(MemoryCache cache) {
+            this.cache = cache;
+        }
+
+        public synchronized void dispose() {
+            if (cache != null) {
+                cache.reset();
+                cache = null;
+            }
+        }
+    }
 }

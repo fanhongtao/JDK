@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: RTFIterator.java,v 1.6 2004/02/17 04:32:08 minchau Exp $
+ * $Id: RTFIterator.java,v 1.2.4.1 2005/09/14 19:45:16 jeffsuttor Exp $
  */
 
 /**
@@ -29,6 +29,7 @@ import com.sun.org.apache.xml.internal.dtm.DTMManager;
 import com.sun.org.apache.xpath.internal.NodeSetDTM;
 
 public class RTFIterator extends NodeSetDTM {
+    static final long serialVersionUID = 7658117366258528996L;
 
 	/**
 	 * Constructor for RTFIterator

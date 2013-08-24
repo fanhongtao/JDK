@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ProcessingInstruction.java,v 1.11 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: ProcessingInstruction.java,v 1.2.4.1 2005/09/12 11:03:05 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -34,7 +34,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -51,7 +51,7 @@ final class ProcessingInstruction extends Instruction {
         if (name.length() > 0) {
             _isLiteral = Util.isLiteral(name);
             if (_isLiteral) {
-                if (!XMLChar.isValidNCName(name)) {
+                if (!XML11Char.isXML11ValidNCName(name)) {
                     ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_NCNAME_ERR, name, this);
                     parser.reportError(Constants.ERROR, err);           
                 }

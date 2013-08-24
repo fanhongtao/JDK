@@ -1,7 +1,7 @@
 /*
- * @(#)X509Extension.java	1.22 03/12/19
+ * @(#)X509Extension.java	1.23 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.util.Set;
  * be handled by a <em>Class</em> that understands the extension.
  *
  * @author Hemma Prafullchandra
- * @version 1.22 03/12/19
+ * @version 1.23 05/11/17
  */
 
 public interface X509Extension {

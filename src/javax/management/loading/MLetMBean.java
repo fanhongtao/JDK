@@ -1,7 +1,7 @@
 /*
- * @(#)MLetMBean.java	4.19 04/04/20
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MLetMBean.java	4.23 06/06/15
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,15 +23,15 @@ import javax.management.*;
  *
  * @since 1.5
  */
-public interface MLetMBean   { 
+public interface MLetMBean   {
 
-    
+
     /**
      * Loads a text file containing MLET tags that define the MBeans
-     * to be added to the agent. The location of the text file is
+     * to be added to the MBean server. The location of the text file is
      * specified by a URL. The text file is read using the UTF-8
      * encoding. The MBeans specified in the MLET file will be
-     * instantiated and registered by the MBeanServer.
+     * instantiated and registered in the MBean server.
      *
      * @param url The URL of the text file to be loaded as String object.
      *
@@ -46,14 +46,15 @@ public interface MLetMBean   {
      * the m-let text file is not found, a mandatory attribute of the
      * MLET tag is not specified, the value of url is malformed.
      */
-    public Set getMBeansFromURL(String url) throws ServiceNotFoundException ; 
+    public Set<Object> getMBeansFromURL(String url)
+	    throws ServiceNotFoundException;
 
     /**
      * Loads a text file containing MLET tags that define the MBeans
-     * to be added to the agent. The location of the text file is
+     * to be added to the MBean server. The location of the text file is
      * specified by a URL. The text file is read using the UTF-8
      * encoding. The MBeans specified in the MLET file will be
-     * instantiated and registered by the MBeanServer.
+     * instantiated and registered in the MBean server.
      *
      * @param url The URL of the text file to be loaded as URL object.
      *
@@ -68,7 +69,8 @@ public interface MLetMBean   {
      * the m-let text file is not found, a mandatory attribute of the
      * MLET tag is not specified, the value of url is null.
      */
-    public Set getMBeansFromURL(URL url) throws ServiceNotFoundException ; 
+    public Set<Object> getMBeansFromURL(URL url)
+	    throws ServiceNotFoundException;
 
     /**
      * Appends the specified URL to the list of URLs to search for classes and
@@ -76,7 +78,7 @@ public interface MLetMBean   {
      *
      * @param url the URL to add.
      */
-    public void addURL(URL url) ; 
+    public void addURL(URL url) ;
 
     /**
      * Appends the specified URL to the list of URLs to search for classes and
@@ -89,15 +91,15 @@ public interface MLetMBean   {
     public void addURL(String url) throws ServiceNotFoundException;
 
     /**
-     * Returns the search path of URLs for loading classes and resources. 
-     * This includes the original list of URLs specified to the constructor, 
+     * Returns the search path of URLs for loading classes and resources.
+     * This includes the original list of URLs specified to the constructor,
      * along with any URLs subsequently appended by the addURL() method.
      *
      * @return the list of URLs.
      */
     public URL[] getURLs();
-    
-    /** Finds the resource with the given name. 
+
+    /** Finds the resource with the given name.
      * A resource is some data (images, audio, text, etc) that can be accessed by class code in a way that is
      *   independent of the location of the code.
      *   The name of a resource is a "/"-separated path name that identifies the resource.
@@ -113,7 +115,7 @@ public interface MLetMBean   {
      *  getResource(String).
      *
      * @param name  The resource name
-     * 
+     *
      * @return An input stream for reading the resource, or null if the resource could not be found
      *
      */
@@ -135,7 +137,7 @@ public interface MLetMBean   {
      * @exception IOException if an I/O exception occurs when
      * searching for resources.
      */
-    public  Enumeration getResources(String name) throws IOException;
+    public Enumeration<URL> getResources(String name) throws IOException;
 
     /**
      * Gets the current directory used by the library loader for
@@ -144,9 +146,12 @@ public interface MLetMBean   {
      * @return The current directory used by the library loader.
      *
      * @see #setLibraryDirectory
+     *
+     * @throws UnsupportedOperationException if this implementation
+     * does not support storing native libraries in this way.
      */
     public String getLibraryDirectory();
-    
+
     /**
      * Sets the directory used by the library loader for storing
      * native libraries before they are loaded into memory.
@@ -154,6 +159,9 @@ public interface MLetMBean   {
      * @param libdir The directory used by the library loader.
      *
      * @see #getLibraryDirectory
+     *
+     * @throws UnsupportedOperationException if this implementation
+     * does not support storing native libraries in this way.
      */
     public void setLibraryDirectory(String libdir);
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOM2DTM.java,v 1.34 2004/02/16 23:06:53 minchau Exp $
+ * $Id: DOM2DTM.java,v 1.2.4.1 2005/09/15 08:15:10 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref.dom2dtm;
 
@@ -1297,8 +1297,6 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * no external subset or if it has no public identifier, this property
    * has no value.
    *
-   * @param the document type declaration handle
-   *
    * @return the public identifier String object, or null if there is none.
    */
   public String getDocumentTypeDeclarationPublicIdentifier()
@@ -1465,9 +1463,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    *        specified in the start-tag of its element, or was defaulted from the
    *        DTD.
    *
-   * @param the attribute handle
-   *
-   * NEEDSDOC @param attributeHandle
+   * @param attributeHandle the attribute handle
    * @return <code>true</code> if the attribute was specified;
    *         <code>false</code> if it was defaulted.
    */
@@ -1652,8 +1648,6 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    *
    * @param node Node whose subtree is to be walked, gathering the
    * contents of all Text or CDATASection nodes.
-   * @param buf FastStringBuffer into which the contents of the text
-   * nodes are to be concatenated.
    */
   protected static void dispatchNodeData(Node node, 
                                          org.xml.sax.ContentHandler ch, 

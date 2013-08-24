@@ -2,7 +2,7 @@
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +18,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +26,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -69,66 +69,63 @@ package com.sun.org.apache.xerces.internal.xni;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: QName.java,v 1.5 2002/01/29 01:15:19 lehors Exp $
+ * @version $Id: QName.java,v 1.2 2005/08/16 22:55:28 jeffsuttor Exp $
  */
-public class QName 
-    implements Cloneable {
-
-    //
-    // Data
-    //
-
-    /** 
+public class QName
+implements Cloneable {
+    
+        
+    /**
      * The qname prefix. For example, the prefix for the qname "a:foo"
      * is "a".
      */
     public String prefix;
-
-    /** 
+    
+    /**
      * The qname localpart. For example, the localpart for the qname "a:foo"
      * is "foo".
      */
     public String localpart;
-
-    /** 
+    
+    /**
      * The qname rawname. For example, the rawname for the qname "a:foo"
      * is "a:foo".
      */
     public String rawname;
-
-    /** 
+    
+    /**
      * The URI to which the qname prefix is bound. This binding must be
      * performed by a XML Namespaces aware processor.
      */
     public String uri;
-
+    
     //
     // Constructors
     //
-
+    
     /** Default constructor. */
     public QName() {
         clear();
     } // <init>()
-
+    
     /** Constructs a QName with the specified values. */
     public QName(String prefix, String localpart, String rawname, String uri) {
         setValues(prefix, localpart, rawname, uri);
     } // <init>(String,String,String,String)
-
+    
     /** Constructs a copy of the specified QName. */
     public QName(QName qname) {
         setValues(qname);
     } // <init>(QName)
-
+    
     //
     // Public methods
     //
-
+    
     /**
      * Convenience method to set the values of the qname components.
-     * 
-     * @param QName The qualified name to be copied. 
+     *
+     * @param QName The qualified name to be copied.
      */
     public void setValues(QName qname) {
         prefix = qname.prefix;
@@ -136,23 +133,23 @@ public class QName
         rawname = qname.rawname;
         uri = qname.uri;
     } // setValues(QName)
-
+    
     /**
      * Convenience method to set the values of the qname components.
-     * 
+     *
      * @param prefix    The qname prefix. (e.g. "a")
      * @param localpart The qname localpart. (e.g. "foo")
      * @param rawname   The qname rawname. (e.g. "a:foo")
      * @param uri       The URI binding. (e.g. "http://foo.com/mybinding")
      */
-    public void setValues(String prefix, String localpart, String rawname, 
-                          String uri) {
+    public void setValues(String prefix, String localpart, String rawname,
+    String uri) {
         this.prefix = prefix;
         this.localpart = localpart;
         this.rawname = rawname;
         this.uri = uri;
     } // setValues(String,String,String,String)
-
+    
     /** Clears the values of the qname components. */
     public void clear() {
         prefix = null;
@@ -177,9 +174,10 @@ public class QName
     /** Returns the hashcode for this object. */
     public int hashCode() {
         if (uri != null) {
-            return uri.hashCode() + localpart.hashCode();
+            return uri.hashCode() + 
+                ((localpart != null) ? localpart.hashCode() : 0);
         }
-        return rawname.hashCode();
+        return (rawname != null) ? rawname.hashCode() : 0;
     } // hashCode():int
 
     /** Returns true if the two objects are equal. */

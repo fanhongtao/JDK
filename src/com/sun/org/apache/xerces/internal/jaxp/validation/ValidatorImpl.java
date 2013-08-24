@@ -1,291 +1,259 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.sun.org.apache.xerces.internal.jaxp.validation;
 
 import java.io.IOException;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.SAXParserFactory;
+import java.util.Locale;
+
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stax.StAXResult;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
-import javax.xml.validation.ValidatorHandler;
-import org.w3c.dom.ls.LSInput;
+
+import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
+import com.sun.org.apache.xerces.internal.xs.AttributePSVI;
+import com.sun.org.apache.xerces.internal.xs.ElementPSVI;
+import com.sun.org.apache.xerces.internal.xs.PSVIProvider;
 import org.w3c.dom.ls.LSResourceResolver;
-import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.XMLReader;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 /**
- * <b>(For Implementors)</b> Default implementation of {@link Validator}.
- *
- * <p>
- * This class is intended to be used in conjunction with
- * {@link AbstractSchemaImpl} to promote consistent
- * behaviors among {@link Schema} implementations.
- *
- * <p>
- * This class wraps a {@link javax.xml.validation.ValidatorHandler}
- * object and implements the {@link Validator} semantics.
+ * <p>Implementation of Validator for W3C XML Schemas.</p>
  *
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.5 $, $Date: 2004/07/12 20:38:39 $
- * @since 1.5
+ * @author Michael Glavassevich, IBM
+ * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
+ * @version $Id: ValidatorImpl.java,v 1.3 2005/09/26 13:02:52 sunithareddy Exp $
  */
-class ValidatorImpl extends Validator {
+final class ValidatorImpl extends Validator implements PSVIProvider {
     
-    /**
-     * The actual validation will be done by this object.
-     */
-    private final ValidatorHandlerImpl handler;
+    //
+    // Data
+    //
     
-    /**
-     * Lazily created identity transformer.
-     */
-    private Transformer identityTransformer1 = null;
-    private TransformerHandler identityTransformer2 = null;
+    /** Component manager. **/
+    private XMLSchemaValidatorComponentManager fComponentManager;
     
-    ValidatorImpl( ValidatorHandlerImpl _handler ) {
-        this.handler = _handler;
+    /** SAX validator helper. **/
+    private ValidatorHandlerImpl fSAXValidatorHelper;
+    
+    /** DOM validator helper. **/
+    private DOMValidatorHelper fDOMValidatorHelper;
+    
+    /** Stream validator helper. **/
+    private StreamValidatorHelper fStreamValidatorHelper;
+    
+    /** StAX validator helper. **/
+    private StAXValidatorHelper fStaxValidatorHelper;
+    
+    /** Flag for tracking whether features/properties changed since last reset. */
+    private boolean fConfigurationChanged = false;
+    
+    /** Flag for tracking whether the error handler changed since last reset. */
+    private boolean fErrorHandlerChanged = false;
+    
+    /** Flag for tracking whether the resource resolver changed since last reset. */
+    private boolean fResourceResolverChanged = false;
+    
+    public ValidatorImpl(XSGrammarPoolContainer grammarContainer) {
+        fComponentManager = new XMLSchemaValidatorComponentManager(grammarContainer);
+        setErrorHandler(null);
+        setResourceResolver(null);
     }
-    
-    public LSResourceResolver getResourceResolver() {
-        return handler.getResourceResolver();
-    }
-    
-    
-    public ErrorHandler getErrorHandler() {
-        return handler.getErrorHandler();
-    }
-    
-    public void setResourceResolver(LSResourceResolver resolver) {
-        handler.setResourceResolver(resolver);
-    }
-    
-    public void setErrorHandler(ErrorHandler errorHandler) {
-        handler.setErrorHandler(errorHandler);
-    }
-    
-    public void validate(Source source, Result result) throws SAXException, IOException {
-        if( source instanceof DOMSource ) {
-            if( result!=null && !(result instanceof DOMResult) )
-                throw new IllegalArgumentException(result.getClass().getName());
-            process( (DOMSource)source, (DOMResult)result );
-            return;
-        }
-        if( source instanceof SAXSource ) {
-            if( result!=null && !(result instanceof SAXResult) )
-                throw new IllegalArgumentException(result.getClass().getName());
-            process( (SAXSource)source, (SAXResult)result );
-            return;
-        }
-        if( source instanceof StreamSource ) {
-            if( result!=null )
-                throw new IllegalArgumentException(result.getClass().getName());
-            StreamSource ss = (StreamSource)source;
-            InputSource is = new InputSource();
-            is.setByteStream(ss.getInputStream());
-            is.setCharacterStream(ss.getReader());
-            is.setPublicId(ss.getPublicId());
-            is.setSystemId(ss.getSystemId());
-            process( new SAXSource(is), null );
-            return;
-        }
-        throw new IllegalArgumentException(source.getClass().getName());
-    }
-    
-    /**
-     * Parses a {@link SAXSource} potentially to a {@link SAXResult}.
-     */
-    private void process(SAXSource source, SAXResult result) throws IOException, SAXException {
-        if( result!=null ) {
-            handler.setContentHandler(result.getHandler());
-        }
-        
-        try {
-            XMLReader reader = source.getXMLReader();
-            if( reader==null ) {
-                // create one now
-                SAXParserFactory spf = SAXParserFactory.newInstance();
-                spf.setNamespaceAware(true);
-                try {
-                    reader = spf.newSAXParser().getXMLReader();
-                } catch( Exception e ) {
-                    // this is impossible, but better safe than sorry
-                    throw new FactoryConfigurationError(e);
-                }
-            }
-            
-            reader.setErrorHandler(errorForwarder);
-            reader.setEntityResolver(resolutionForwarder);
-            reader.setContentHandler(handler);
-            
-            InputSource is = source.getInputSource();
-            reader.parse(is);
-        } finally {
-            // release the reference to user's handler ASAP
-            handler.setContentHandler(null);
-        }
-    }
-    
-    /**
-     * Parses a {@link DOMSource} potentially to a {@link DOMResult}.
-     */
-    private void process( DOMSource source, DOMResult result ) throws SAXException {
-        if( identityTransformer1==null ) {
-            try {
-                SAXTransformerFactory tf = (SAXTransformerFactory)SAXTransformerFactory.newInstance();
-                identityTransformer1 = tf.newTransformer();
-                identityTransformer2 = tf.newTransformerHandler();
-            } catch (TransformerConfigurationException e) {
-                // this is impossible, but again better safe than sorry
-                throw new TransformerFactoryConfigurationError(e);
-            }
-        }
 
-        if( result!=null ) {
-            handler.setContentHandler(identityTransformer2);
-            identityTransformer2.setResult(result);
+    public void validate(Source source, Result result)
+        throws SAXException, IOException {
+        if (source instanceof SAXSource) {
+            // Hand off to SAX validator helper.
+            if (fSAXValidatorHelper == null) {
+                fSAXValidatorHelper = new ValidatorHandlerImpl(fComponentManager);
+            }
+            fSAXValidatorHelper.validate(source, result);
         }
-        
+        else if (source instanceof DOMSource) {
+            // Hand off to DOM validator helper.
+            if (fDOMValidatorHelper == null) {
+                fDOMValidatorHelper = new DOMValidatorHelper(fComponentManager);
+            }
+            fDOMValidatorHelper.validate(source, result);
+        }
+        else if (source instanceof StreamSource) {
+            // Hand off to stream validator helper.
+            if (fStreamValidatorHelper == null) {
+                fStreamValidatorHelper = new StreamValidatorHelper(fComponentManager);
+            }
+            fStreamValidatorHelper.validate(source, result);
+        }
+        else if (source instanceof StAXSource) {
+            // Hand off to stax validator helper.
+            if (fStaxValidatorHelper == null) {
+                fStaxValidatorHelper = new StAXValidatorHelper(fComponentManager);
+            }
+            fStaxValidatorHelper.validate(source, result);
+        }
+        // Source parameter cannot be null.
+        else if (source == null) {
+            throw new NullPointerException(JAXPValidationMessageFormatter.formatMessage(Locale.getDefault(), 
+                    "SourceParameterNull", null));
+        }
+        // Source parameter must be a SAXSource, DOMSource or StreamSource
+        else {
+            throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(Locale.getDefault(), 
+                    "SourceNotAccepted", new Object [] {source.getClass().getName()}));
+        }
+    }
+
+    public void setErrorHandler(ErrorHandler errorHandler) {
+        fErrorHandlerChanged = (errorHandler != null);
+        fComponentManager.setErrorHandler(errorHandler);
+    }
+
+    public ErrorHandler getErrorHandler() {
+        return fComponentManager.getErrorHandler();
+    }
+
+    public void setResourceResolver(LSResourceResolver resourceResolver) {
+        fResourceResolverChanged = (resourceResolver != null);
+        fComponentManager.setResourceResolver(resourceResolver);
+    }
+
+    public LSResourceResolver getResourceResolver() {
+        return fComponentManager.getResourceResolver();
+    }
+    
+    public boolean getFeature(String name) 
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        if (name == null) {
+            throw new NullPointerException();
+        }
         try {
-            identityTransformer1.transform( source, new SAXResult(handler) );
-        } catch (TransformerException e) {
-            if( e.getException() instanceof SAXException )
-                throw (SAXException)e.getException();
-            throw new SAXException(e);
-        } finally {
-            handler.setContentHandler(null);
+            return fComponentManager.getFeature(name);
+        }
+        catch (XMLConfigurationException e) {
+            final String identifier = e.getIdentifier();
+            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+                    "feature-not-recognized" : "feature-not-supported";
+            throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    key, new Object [] {identifier}));
         }
     }
     
-    /**
-     * Forwards the error to the {@link ValidatorHandler}.
-     * If the {@link ValidatorHandler} doesn't have its own
-     * {@link ErrorHandler}, behave draconian.
-     */
-    private final ErrorHandler errorForwarder = new ErrorHandler() {
-        public void warning(SAXParseException exception) throws SAXException {
-            ErrorHandler realHandler = handler.getErrorHandler();
-            if( realHandler!=null )
-                realHandler.warning(exception);
+    public void setFeature(String name, boolean value)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        if (name == null) {
+            throw new NullPointerException();
         }
-        
-        public void error(SAXParseException exception) throws SAXException {
-            ErrorHandler realHandler = handler.getErrorHandler();
-            if( realHandler!=null )
-                realHandler.error(exception);
-            else
-                throw exception;
+        try {
+            fComponentManager.setFeature(name, value);
         }
-        
-        public void fatalError(SAXParseException exception) throws SAXException {
-            ErrorHandler realHandler = handler.getErrorHandler();
-            if( realHandler!=null )
-                realHandler.fatalError(exception);
-            else
-                throw exception;
+        catch (XMLConfigurationException e) {
+            final String identifier = e.getIdentifier();
+            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+                    "feature-not-recognized" : "feature-not-supported";
+            throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    key, new Object [] {identifier}));
         }
-    };
+        fConfigurationChanged = true;
+    }
     
-    /**
-     * Forwards the entity resolution to the {@link ValidatorHandler}.
-     * If the {@link ValidatorHandler} doesn't have its own
-     * {@link DOMResourceResolver}, let the parser do the resolution.
-     */
-    private final EntityResolver resolutionForwarder = new EntityResolver() {
-        public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-            LSResourceResolver resolver = handler.getResourceResolver();
-            if( resolver==null )    return null;
-            
-            LSInput di = resolver.resolveResource(null,null,publicId,systemId,null);
-            if(di==null)    return null;
-            
-            InputSource r = new InputSource();
-            r.setByteStream(di.getByteStream());
-            r.setCharacterStream(di.getCharacterStream());
-            r.setEncoding(di.getEncoding());
-            r.setPublicId(di.getPublicId());
-            r.setSystemId(di.getSystemId());
-            return r;
+    public Object getProperty(String name)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        if (name == null) {
+            throw new NullPointerException();
         }
-    };
+        try {
+            return fComponentManager.getProperty(name);
+        }
+        catch (XMLConfigurationException e) {
+            final String identifier = e.getIdentifier();
+            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+                    "property-not-recognized" : "property-not-supported";
+            throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    key, new Object [] {identifier}));
+        }
+    }
+    
+    public void setProperty(String name, Object object)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        if (name == null) {
+            throw new NullPointerException();
+        }
+        try {
+            fComponentManager.setProperty(name, object);
+        }
+        catch (XMLConfigurationException e) {
+            final String identifier = e.getIdentifier();
+            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+                    "property-not-recognized" : "property-not-supported";
+            throw new SAXNotRecognizedException(
+                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    key, new Object [] {identifier}));
+        }
+        fConfigurationChanged = true;
+    }
     
     public void reset() {
-        handler.reset();
-        
-        // I don't think this is necessary, but I don't think it hurts either.
-        // so reset just for the kick.
-        if(identityTransformer1!=null) {
-            identityTransformer1.reset();
+        // avoid resetting features and properties if the state the validator
+        // is currently in, is the same as it will be after reset.
+        if (fConfigurationChanged) {
+            fComponentManager.restoreInitialState();
+            setErrorHandler(null);
+            setResourceResolver(null);
+            fConfigurationChanged = false;
+            fErrorHandlerChanged = false;
+            fResourceResolverChanged = false;
+        }
+        else {
+            if (fErrorHandlerChanged) {
+                setErrorHandler(null);
+                fErrorHandlerChanged = false;
+            }
+            if (fResourceResolverChanged) {
+                setResourceResolver(null);
+                fResourceResolverChanged = false;
+            }
         }
     }
-}
+    
+    /*
+     * PSVIProvider methods
+     */
+    
+    public ElementPSVI getElementPSVI() {
+        return (fSAXValidatorHelper != null) ? fSAXValidatorHelper.getElementPSVI() : null;
+    }
+    
+    public AttributePSVI getAttributePSVI(int index) {
+        return (fSAXValidatorHelper != null) ? fSAXValidatorHelper.getAttributePSVI(index) : null;
+    }
+    
+    public AttributePSVI getAttributePSVIByName(String uri, String localname) {
+        return (fSAXValidatorHelper != null) ? fSAXValidatorHelper.getAttributePSVIByName(uri, localname) : null;
+    }
+    
+} // ValidatorImpl

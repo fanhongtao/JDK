@@ -1,12 +1,18 @@
 /*
- * @(#)SpringLayout.java	1.19 03/12/19
+ * @(#)SpringLayout.java	1.26 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Insets;
+import java.awt.LayoutManager2;
+import java.awt.Rectangle;
 import java.util.*;
 
 /**
@@ -155,8 +161,9 @@ import java.util.*;
  * @see Spring
  * @see SpringLayout.Constraints
  *
- * @version  1.19 12/19/03
+ * @version  1.26 04/07/06
  * @author 	Philip Milne
+ * @author 	Scott Violet
  * @author 	Joe Winchester
  * @since       1.4
  */
@@ -188,6 +195,44 @@ public class SpringLayout implements LayoutManager2 {
      */
     public static final String WEST   = "West";
 
+    /**
+     * Specifies the horizontal center of a component's bounding rectangle.
+     *
+     * @since 1.6
+     */
+    public static final String HORIZONTAL_CENTER   = "HorizontalCenter";
+    
+    /**
+     * Specifies the vertical center of a component's bounding rectangle.
+     *
+     * @since 1.6
+     */
+    public static final String VERTICAL_CENTER   = "VerticalCenter";
+    
+    /**
+     * Specifies the baseline of a component.
+     *
+     * @since 1.6
+     */
+    public static final String BASELINE   = "Baseline";
+
+    /**
+     * Specifies the width of a component's bounding rectangle.
+     *
+     * @since 1.6
+     */
+    public static final String WIDTH = "Width"; 
+    
+    /**
+     * Specifies the height of a component's bounding rectangle.
+     *
+     * @since 1.6
+     */
+    public static final String HEIGHT = "Height"; 
+
+    private static String[] ALL_HORIZONTAL = {WEST, WIDTH, EAST, HORIZONTAL_CENTER}; 
+
+    private static String[] ALL_VERTICAL = {NORTH, HEIGHT, SOUTH, VERTICAL_CENTER, BASELINE}; 
 
     /**
      * A <code>Constraints</code> object holds the
@@ -205,112 +250,75 @@ public class SpringLayout implements LayoutManager2 {
      * can be manipulated as four edges
      * -- north, south, east, and west --
      * using the <code>constraint</code> property.
-     * 
+     *
      * <p>
      * The following formulas are always true
-     * for a <code>Constraints</code> object:
+     * for a <code>Constraints</code> object (here WEST and <code>x</code> are synonyms, as are and NORTH and <code>y</code>):
      *
      * <pre>
-     *       west = x
-     *      north = y
-     *       east = x + width
-     *      south = y + height</pre>
-     *
+     *               EAST = WEST + WIDTH
+     *              SOUTH = NORTH + HEIGHT
+     *  HORIZONTAL_CENTER = WEST + WIDTH/2
+     *    VERTICAL_CENTER = NORTH + HEIGHT/2
+     *  ABSOLUTE_BASELINE = NORTH + RELATIVE_BASELINE*
+     * </pre>
+     * <p>
+     * For example, if you have specified the WIDTH and WEST (X) location
+     * the EAST is calculated as WEST + WIDTH.  If you instead specified
+     * the WIDTH and EAST locations the WEST (X) location is then calculated
+     * as EAST - WIDTH.
+     * <p>
+     * [RELATIVE_BASELINE is a private constraint that is set automatically when
+     * the SpringLayout.Constraints(Component) constuctor is called or when
+     * a constraints object is registered with a SpringLayout object.]
+     * <p>
      * <b>Note</b>: In this document,
-     * operators represent methods 
+     * operators represent methods
      * in the <code>Spring</code> class.
      * For example, "a + b" is equal to
      * <code>Spring.sum(a, b)</code>,
      * and "a - b" is equal to
      * <code>Spring.sum(a, Spring.minus(b))</code>.
-     * See the 
-     * {@link Spring Spring</code> API documentation<code>}
+     * See the
+     * {@link Spring <code>Spring</code> API documentation}
      * for further details
      * of spring arithmetic.
      *
      * <p>
-     * 
+     *
      * Because a <code>Constraints</code> object's properties --
      * representing its edges, size, and location -- can all be set
      * independently and yet are interrelated,
-     * the object can become <em>over-constrained</em>.
-     * For example,
-     * if both the <code>x</code> and <code>width</code>
-     * properties are set
-     * and then the east edge is set,
-     * the object is over-constrained horizontally.
-     * When this happens, one of the values 
-     * (in this case, the <code>x</code> property)
-     * automatically changes so
-     * that the formulas still hold. 
-     *
-     * <p>
-     * The following table shows which value changes
-     * when a <code>Constraints</code> object
-     * is over-constrained horizontally.
-     *
-     * <p>
-     *
-     * <table border=1 summary="Shows which value changes when a Constraints object is over-constrained horizontally">
-     *   <tr>
-     *     <th valign=top>Value Being Set<br>(method used)</th>
-     *     <th valign=top>Result When Over-Constrained Horizontally<br>
-     *      (<code>x</code>, <code>width</code>, and the east edge are all non-<code>null</code>)</th>
-     *   </tr>
-     *   <tr>
-     *     <td><code>x</code> or the west edge <br>(<code>setX</code> or <code>setConstraint</code>)</td>
-     *     <td><code>width</code> value is automatically set to <code>east - x</code>.</td>
-     *   </tr>
-     *   <tr>
-     *     <td><code>width</code><br>(<code>setWidth</code>)</td>
-     *     <td>east edge's value is automatically set to <code>x + width</code>.</td>
-     *   </tr>
-     *   <tr>
-     *     <td>east edge<br>(<code>setConstraint</code>)</td>
-     *     <td><code>x</code> value is automatically set to <code>east - width</code>.</td>
-     *   </tr>
-     *   </table>
-     *
-     * <p>
-     * The rules for the vertical properties are similar:
-     * <p>
-     *
-     * <table border=1 summary="Shows which value changes when a Constraints object is over-constrained vertically">
-     * <tr>
-     *  <th valign=top>Value Being Set<br>(method used)</th>
-     *  <th valign=top>Result When Over-Constrained Vertically<br>(<code>y</code>, <code>height</code>, and the south edge are all non-<code>null</code>)</th>
-     * </tr>
-     * <tr>
-     *   <td><code>y</code> or the north edge<br>(<code>setY</code> or <code>setConstraint</code>)</td>
-     *   <td><code>height</code> value is automatically set to <code>south - y</code>.</td>
-     * </tr>
-     * <tr>
-     *   <td><code>height</code><br>(<code>setHeight</code>)</td>
-     *   <td>south edge's value is automatically set to <code>y + height</code>.</td>
-     * </tr>
-     * <tr>
-     *   <td>south edge<br>(<code>setConstraint</code>)</td>
-     *   <td><code>y</code> value is automatically set to <code>south - height</code>.</td>
-     * </tr>
-     * </table>
-     *
+     * a <code>Constraints</code> object can become <em>over-constrained</em>.
+     * For example, if the <code>WEST</code>, <code>WIDTH</code> and
+     * <code>EAST</code> edges are all set, steps must be taken to ensure that
+     * the first of the formulas above holds.  To do this, the
+     * <code>Constraints</code>
+     * object throws away the <em>least recently set</em>
+     * constraint so as to make the formulas hold.
+     * @since 1.4
      */
-   public static class Constraints {
+    public static class Constraints {
        private Spring x;
        private Spring y;
        private Spring width;
        private Spring height;
        private Spring east;
        private Spring south;
+        private Spring horizontalCenter;
+        private Spring verticalCenter;
+        private Spring baseline; 
 
-       private Spring verticalDerived = null; 
-       private Spring horizontalDerived = null; 
+        private List<String> horizontalHistory = new ArrayList<String>(2);
+        private List<String> verticalHistory = new ArrayList<String>(2); 
+
+        // Used for baseline calculations
+        private Component c;
        
        /**
         * Creates an empty <code>Constraints</code> object.
         */
        public Constraints() {
-           this(null, null, null, null);
        }
 
        /**
@@ -324,7 +332,8 @@ public class SpringLayout implements LayoutManager2 {
         * @param y  the spring controlling the component's <em>y</em> value
         */
        public Constraints(Spring x, Spring y) {
-           this(x, y, null, null);
+           setX(x);
+           setY(y);
        }
 
        /**
@@ -343,10 +352,10 @@ public class SpringLayout implements LayoutManager2 {
         * @param height  the spring value for the <code>height</code> property
         */
        public Constraints(Spring x, Spring y, Spring width, Spring height) {
-           this.x = x;
-           this.y = y;
-           this.width = width;
-           this.height = height;
+           setX(x);
+           setY(y);
+           setWidth(width);
+           setHeight(height);
        }
 
         /**
@@ -366,19 +375,37 @@ public class SpringLayout implements LayoutManager2 {
          * @since 1.5
          */
         public Constraints(Component c) {
-            this.x = Spring.constant(c.getX());
-            this.y = Spring.constant(c.getY());
-            this.width = Spring.width(c);
-            this.height = Spring.height(c);
+            this.c = c; 
+            setX(Spring.constant(c.getX()));
+            setY(Spring.constant(c.getY()));
+            setWidth(Spring.width(c));
+            setHeight(Spring.height(c));
         }
 
-       private boolean overConstrainedHorizontally() { 
-           return (x != null) && (width != null) && (east != null); 
-       }
-       
-       private boolean overConstrainedVertically() { 
-           return (y != null) && (height != null) && (south != null); 
-       }
+        private void pushConstraint(String name, Spring value, boolean horizontal) {
+            boolean valid = true; 
+            List<String> history = horizontal ? horizontalHistory :
+                                                verticalHistory; 
+            if (history.contains(name)) {
+                history.remove(name); 
+                valid = false; 
+            } else if (history.size() == 2 && value != null) {
+                history.remove(0); 
+                valid = false; 
+            }
+            if (value != null) { 
+                history.add(name); 
+            } 
+            if (!valid) {
+                String[] all = horizontal ? ALL_HORIZONTAL : ALL_VERTICAL; 
+                for (int i = 0; i < all.length; i++) {
+                    String s = all[i];
+                    if (!history.contains(s)) { 
+                        setConstraint(s, null);
+                    }
+                }
+            }
+        }
        
        private Spring sum(Spring s1, Spring s2) { 
            return (s1 == null || s2 == null) ? null : Spring.sum(s1, s2); 
@@ -388,6 +415,73 @@ public class SpringLayout implements LayoutManager2 {
            return (s1 == null || s2 == null) ? null : Spring.difference(s1, s2); 
        }
         
+        private Spring scale(Spring s, float factor) { 
+            return (s == null) ? null : Spring.scale(s, factor); 
+        }
+
+        private int getBaselineFromHeight(int height) {
+            if (height < 0) {
+                // Bad Scott, Bad Scott!
+                return -c.getBaseline(c.getPreferredSize().width,
+                                      -height);
+            }
+            return c.getBaseline(c.getPreferredSize().width, height);
+        }
+        
+        private int getHeightFromBaseLine(int baseline) {
+            Dimension prefSize = c.getPreferredSize();
+            int prefHeight = prefSize.height;
+            int prefBaseline = c.getBaseline(prefSize.width, prefHeight);
+            if (prefBaseline == baseline) {
+                // If prefBaseline < 0, then no baseline, assume preferred
+                // height.
+                // If prefBaseline == baseline, then specified baseline
+                // matches preferred baseline, return preferred height
+                return prefHeight;
+            }
+            // Valid baseline
+            switch(c.getBaselineResizeBehavior()) {
+            case CONSTANT_DESCENT:
+                return prefHeight + (baseline - prefBaseline);
+            case CENTER_OFFSET:
+                return prefHeight + 2 * (baseline - prefBaseline);
+            case CONSTANT_ASCENT:
+                // Component baseline and specified baseline will NEVER
+                // match, fall through to default
+            default: // OTHER
+                // No way to map from baseline to height.
+            }
+            return Integer.MIN_VALUE;
+        }
+
+         private Spring heightToRelativeBaseline(Spring s) {
+            return new Spring.SpringMap(s) {
+                 protected int map(int i) {
+                    return getBaselineFromHeight(i);
+                 }
+
+                 protected int inv(int i) {
+                     return getHeightFromBaseLine(i);
+                 }
+            }; 
+        }
+        
+        private Spring relativeBaselineToHeight(Spring s) { 
+            return new Spring.SpringMap(s) {
+                protected int map(int i) {
+                    return getHeightFromBaseLine(i);  
+                 }
+        
+                 protected int inv(int i) {
+                    return getBaselineFromHeight(i);  
+                 }      
+            }; 
+        }
+
+        private boolean defined(List history, String s1, String s2) {
+            return history.contains(s1) && history.contains(s2); 
+        }
+
        /**
         * Sets the <code>x</code> property,
 	* which controls the <code>x</code> value
@@ -401,10 +495,7 @@ public class SpringLayout implements LayoutManager2 {
         */
        public void setX(Spring x) {
            this.x = x;
-           horizontalDerived = null; 
-           if (overConstrainedHorizontally()) { 
-               width = null; 
-           }
+           pushConstraint(WEST, x, true);
        }
 
        /**
@@ -417,13 +508,16 @@ public class SpringLayout implements LayoutManager2 {
         * @see SpringLayout.Constraints
         */
        public Spring getX() {
-           if (x != null) { 
-               return x; 
+           if (x == null) {
+               if (defined(horizontalHistory, EAST, WIDTH)) {
+                   x = difference(east, width);
+               } else if (defined(horizontalHistory, HORIZONTAL_CENTER, WIDTH)) {
+                   x = difference(horizontalCenter, scale(width, 0.5f));
+               } else if (defined(horizontalHistory, HORIZONTAL_CENTER, EAST)) {
+                   x = difference(scale(horizontalCenter, 2f), east);
+               }
            }
-           if (horizontalDerived == null) { 
-               horizontalDerived = difference(east, width); 
-           } 
-           return horizontalDerived; 
+           return x;
        }
 
        /**
@@ -439,10 +533,7 @@ public class SpringLayout implements LayoutManager2 {
         */
        public void setY(Spring y) {
            this.y = y;
-           verticalDerived = null; 
-           if (overConstrainedVertically()) { 
-               height = null; 
-           }
+           pushConstraint(NORTH, y, false);
        }
 
        /**
@@ -455,13 +546,24 @@ public class SpringLayout implements LayoutManager2 {
         * @see SpringLayout.Constraints
         */
        public Spring getY() {
-           if (y != null) { 
-               return y; 
+           if (y == null) {
+               if (defined(verticalHistory, SOUTH, HEIGHT)) {
+                   y = difference(south, height);
+               } else if (defined(verticalHistory, VERTICAL_CENTER, HEIGHT)) {
+                   y = difference(verticalCenter, scale(height, 0.5f));
+               } else if (defined(verticalHistory, VERTICAL_CENTER, SOUTH)) {
+                   y = difference(scale(verticalCenter, 2f), south);
+               } else if (defined(verticalHistory, BASELINE, HEIGHT)) {
+                   y = difference(baseline, heightToRelativeBaseline(height));
+               } else if (defined(verticalHistory, BASELINE, SOUTH)) {
+                   y = scale(difference(baseline, heightToRelativeBaseline(south)), 2f);
+/*
+               } else if (defined(verticalHistory, BASELINE, VERTICAL_CENTER)) {
+                   y = scale(difference(baseline, heightToRelativeBaseline(scale(verticalCenter, 2))), 1f/(1-2*0.5f)); 
+*/
+               }
            }
-           if (verticalDerived == null) { 
-               verticalDerived = difference(south, height); 
-           } 
-           return verticalDerived; 
+           return y;
        }
 
        /**
@@ -476,10 +578,7 @@ public class SpringLayout implements LayoutManager2 {
         */
        public void setWidth(Spring width) {
            this.width = width;
-           horizontalDerived = null; 
-           if (overConstrainedHorizontally()) { 
-               east = null; 
-           }
+           pushConstraint(WIDTH, width, true);
        }
 
        /**
@@ -491,13 +590,14 @@ public class SpringLayout implements LayoutManager2 {
         * @see SpringLayout.Constraints
         */
        public Spring getWidth() {
-           if (width != null) { 
-               return width; 
+           if (width == null) {
+               if (horizontalHistory.contains(EAST)) {
+                   width = difference(east, getX());
+               } else if (horizontalHistory.contains(HORIZONTAL_CENTER)) {
+                   width = scale(difference(horizontalCenter, getX()), 2f);
+               }
            }
-           if (horizontalDerived == null) { 
-               horizontalDerived = difference(east, x); 
-           } 
-           return horizontalDerived; 
+           return width;
        }
 
        /**
@@ -512,10 +612,7 @@ public class SpringLayout implements LayoutManager2 {
         */
        public void setHeight(Spring height) {
            this.height = height;
-           verticalDerived = null; 
-           if (overConstrainedVertically()) { 
-               south = null; 
-           }
+           pushConstraint(HEIGHT, height, false);
        }
 
        /**
@@ -527,119 +624,193 @@ public class SpringLayout implements LayoutManager2 {
         * @see SpringLayout.Constraints
         */
        public Spring getHeight() {
-           if (height != null) { 
-               return height; 
+           if (height == null) {
+               if (verticalHistory.contains(SOUTH)) {
+                   height = difference(south, getY());
+               } else if (verticalHistory.contains(VERTICAL_CENTER)) {
+                   height = scale(difference(verticalCenter, getY()), 2f);
+               } else if (verticalHistory.contains(BASELINE)) {
+                   height = relativeBaselineToHeight(difference(baseline, getY()));
+               }
            }
-           if (verticalDerived == null) { 
-               verticalDerived = difference(south, y); 
-           } 
-           return verticalDerived; 
+           return height; 
        }
 
        private void setEast(Spring east) {
            this.east = east;
-           horizontalDerived = null; 
-           if (overConstrainedHorizontally()) { 
-               x = null; 
-           }
+           pushConstraint(EAST, east, true);
        }
 
        private Spring getEast() {
-           if (east != null) { 
-               return east; 
+           if (east == null) {
+               east = sum(getX(), getWidth());
            }
-           if (horizontalDerived == null) { 
-               horizontalDerived = sum(x, width); 
-           } 
-           return horizontalDerived; 
+           return east; 
        }
 
        private void setSouth(Spring south) {
            this.south = south;
-           verticalDerived = null; 
-           if (overConstrainedVertically()) { 
-               y = null; 
-           }
+           pushConstraint(SOUTH, south, false);
        }
 
        private Spring getSouth() {
-           if (south != null) { 
-               return south; 
+           if (south == null) { 
+               south = sum(getY(), getHeight()); 
            }
-           if (verticalDerived == null) { 
-               verticalDerived = sum(y, height); 
-           } 
-           return verticalDerived; 
+           return south; 
        }
+
+        private Spring getHorizontalCenter() {
+            if (horizontalCenter == null) { 
+                horizontalCenter = sum(getX(), scale(getWidth(), 0.5f)); 
+            }
+            return horizontalCenter; 
+        }
+        
+        private void setHorizontalCenter(Spring horizontalCenter) {
+            this.horizontalCenter = horizontalCenter;
+            pushConstraint(HORIZONTAL_CENTER, horizontalCenter, true);
+        }
+
+        private Spring getVerticalCenter() {
+            if (verticalCenter == null) { 
+                verticalCenter = sum(getY(), scale(getHeight(), 0.5f)); 
+            }
+            return verticalCenter; 
+        }
+        
+        private void setVerticalCenter(Spring verticalCenter) {
+            this.verticalCenter = verticalCenter;
+            pushConstraint(VERTICAL_CENTER, verticalCenter, false);
+        }
+
+        private Spring getBaseline() {
+            if (baseline == null) { 
+                baseline = sum(getY(), heightToRelativeBaseline(getHeight())); 
+            }
+            return baseline; 
+        }
+        
+        private void setBaseline(Spring baseline) {
+            this.baseline = baseline;
+            pushConstraint(BASELINE, baseline, false);
+        }
 
        /**
         * Sets the spring controlling the specified edge.
         * The edge must have one of the following values:
-        * <code>SpringLayout.NORTH</code>, <code>SpringLayout.SOUTH</code>,
-	* <code>SpringLayout.EAST</code>, <code>SpringLayout.WEST</code>.
+        * <code>SpringLayout.NORTH</code>, 
+        * <code>SpringLayout.SOUTH</code>,
+        * <code>SpringLayout.EAST</code>, 
+        * <code>SpringLayout.WEST</code>, 
+        * <code>SpringLayout.HORIZONTAL_CENTER</code>,
+        * <code>SpringLayout.VERTICAL_CENTER</code>, 
+        * <code>SpringLayout.BASELINE</code>, 
+        * <code>SpringLayout.WIDTH</code> or
+        * <code>SpringLayout.HEIGHT</code>. 
+        * For any other <code>String</code> value passed as the edge,
+        * no action is taken. For a <code>null</code> edge, a
+        * <code>NullPointerException</code> is thrown.
         *
         * @param edgeName the edge to be set
         * @param s the spring controlling the specified edge
+        *
+        * @throws NullPointerException if <code>edgeName</code> is <code>null</code>
         *
         * @see #getConstraint
 	* @see #NORTH
 	* @see #SOUTH
 	* @see #EAST
 	* @see #WEST
+        * @see #HORIZONTAL_CENTER
+        * @see #VERTICAL_CENTER
+        * @see #BASELINE
+        * @see #WIDTH
+        * @see #HEIGHT
         * @see SpringLayout.Constraints
         */
        public void setConstraint(String edgeName, Spring s) {
            edgeName = edgeName.intern();
-           if (edgeName == "West") {
+           if (edgeName == WEST) {
                setX(s);
-           }
-           else if (edgeName == "North") {
+           } else if (edgeName == NORTH) {
                setY(s);
-           }
-           else if (edgeName == "East") {
+           } else if (edgeName == EAST) {
                setEast(s);
-           }
-           else if (edgeName == "South") {
+           } else if (edgeName == SOUTH) {
                setSouth(s);
+           } else if (edgeName == HORIZONTAL_CENTER) {
+               setHorizontalCenter(s);
+           } else if (edgeName == WIDTH) {
+               setWidth(s);
+           } else if (edgeName == HEIGHT) {
+               setHeight(s);
+           } else if (edgeName == VERTICAL_CENTER) {
+               setVerticalCenter(s);
+           } else if (edgeName == BASELINE) {
+               setBaseline(s);
            }
        }
 
        /**
-        * Returns the value of the specified edge.
+        * Returns the value of the specified edge, which may be
+        * a derived value, or even <code>null</code>.
         * The edge must have one of the following values:
-        * <code>SpringLayout.NORTH</code>, <code>SpringLayout.SOUTH</code>,
-	* <code>SpringLayout.EAST</code>, <code>SpringLayout.WEST</code>.
+        * <code>SpringLayout.NORTH</code>, 
+        * <code>SpringLayout.SOUTH</code>,
+        * <code>SpringLayout.EAST</code>, 
+        * <code>SpringLayout.WEST</code>, 
+        * <code>SpringLayout.HORIZONTAL_CENTER</code>,
+        * <code>SpringLayout.VERTICAL_CENTER</code>, 
+        * <code>SpringLayout.BASELINE</code>, 
+        * <code>SpringLayout.WIDTH</code> or
+        * <code>SpringLayout.HEIGHT</code>. 
+        * For any other <code>String</code> value passed as the edge,
+        * <code>null</code> will be returned. Throws
+        * <code>NullPointerException</code> for a <code>null</code> edge.
         *
         * @param edgeName the edge whose value
 	*                 is to be returned
         *
-        * @return the spring controlling the specified edge
+        * @return the spring controlling the specified edge, may be <code>null</code>
+        *
+        * @throws NullPointerException if <code>edgeName</code> is <code>null</code>
         *
         * @see #setConstraint
 	* @see #NORTH
 	* @see #SOUTH
 	* @see #EAST
 	* @see #WEST
+        * @see #HORIZONTAL_CENTER
+        * @see #VERTICAL_CENTER
+        * @see #BASELINE
+        * @see #WIDTH
+        * @see #HEIGHT
         * @see SpringLayout.Constraints
         */
        public Spring getConstraint(String edgeName) {
            edgeName = edgeName.intern();
-           return (edgeName == "West")  ? getX() :
-                  (edgeName == "North") ? getY() :
-                  (edgeName == "East")  ? getEast() :
-                  (edgeName == "South") ? getSouth() :
+           return (edgeName == WEST)  ? getX() :
+                   (edgeName == NORTH) ? getY() :
+                   (edgeName == EAST)  ? getEast() :
+                   (edgeName == SOUTH) ? getSouth() :
+                   (edgeName == WIDTH)  ? getWidth() :
+                   (edgeName == HEIGHT) ? getHeight() :
+                   (edgeName == HORIZONTAL_CENTER) ? getHorizontalCenter() :
+                   (edgeName == VERTICAL_CENTER)  ? getVerticalCenter() :
+                   (edgeName == BASELINE) ? getBaseline() :
                   null;
        }
 
        /*pp*/ void reset() {
-           if (x != null) x.setValue(Spring.UNSET);
-           if (y != null) y.setValue(Spring.UNSET);
-           if (width != null) width.setValue(Spring.UNSET);
-           if (height != null) height.setValue(Spring.UNSET);
-           if (east != null) east.setValue(Spring.UNSET);
-           if (south != null) south.setValue(Spring.UNSET);
-           if (horizontalDerived != null) horizontalDerived.setValue(Spring.UNSET);
-           if (verticalDerived != null) verticalDerived.setValue(Spring.UNSET);
+           Spring[] allSprings = {x, y, width, height, east, south, 
+               horizontalCenter, verticalCenter, baseline}; 
+           for (int i = 0; i < allSprings.length; i++) {
+               Spring s = allSprings[i];
+               if (s != null) { 
+                   s.setValue(Spring.UNSET); 
+               }
+           }
        }
    }
 
@@ -857,9 +1028,15 @@ public class SpringLayout implements LayoutManager2 {
      * edge <code>e2</code> of component <code>c2</code>. As edge
      * <code>(e2, c2)</code> changes value, edge <code>(e1, c1)</code> will
      * be calculated by taking the (spring) sum of <code>(e2, c2)</code>
-     * and <code>s</code>. Each edge must have one of the following values:
-     * <code>SpringLayout.NORTH</code>, <code>SpringLayout.SOUTH</code>,
-     * <code>SpringLayout.EAST</code>, <code>SpringLayout.WEST</code>.
+     * and <code>s</code>.
+     * Each edge must have one of the following values:
+     * <code>SpringLayout.NORTH</code>, 
+     * <code>SpringLayout.SOUTH</code>,
+     * <code>SpringLayout.EAST</code>, 
+     * <code>SpringLayout.WEST</code>,
+     * <code>SpringLayout.VERTICAL_CENTER</code>, 
+     * <code>SpringLayout.HORIZONTAL_CENTER</code> or
+     * <code>SpringLayout.BASELINE</code>.
      * <p>
      * @param   e1 the edge of the dependent
      * @param   c1 the component of the dependent
@@ -872,6 +1049,9 @@ public class SpringLayout implements LayoutManager2 {
      * @see #SOUTH
      * @see #EAST
      * @see #WEST
+     * @see #VERTICAL_CENTER
+     * @see #HORIZONTAL_CENTER
+     * @see #BASELINE
      */
     public void putConstraint(String e1, Component c1, Spring s, String e2, Component c2) {
         putConstraint(e1, c1, Spring.sum(s, getConstraint(e2, c2)));
@@ -885,21 +1065,40 @@ public class SpringLayout implements LayoutManager2 {
 
     private Constraints applyDefaults(Component c, Constraints constraints) {
         if (constraints == null) {
-           constraints = new Constraints();
+            constraints = new Constraints();
         }
-        if (constraints.getWidth() == null) {
-            constraints.setWidth(new Spring.WidthSpring(c));
+        if (constraints.c == null) {
+            constraints.c = c;
         }
-        if (constraints.getHeight() == null) {
-            constraints.setHeight(new Spring.HeightSpring(c));
-        }
-        if (constraints.getX() == null) {
-            constraints.setX(Spring.constant(0));
-        }
-        if (constraints.getY() == null) {
-            constraints.setY(Spring.constant(0));
+        if (constraints.horizontalHistory.size() < 2) { 
+            applyDefaults(constraints, WEST, Spring.constant(0), WIDTH,
+                          Spring.width(c), constraints.horizontalHistory);
+        } 
+        if (constraints.verticalHistory.size() < 2) { 
+            applyDefaults(constraints, NORTH, Spring.constant(0), HEIGHT,
+                          Spring.height(c), constraints.verticalHistory);
         }
         return constraints;
+    }
+
+    private void applyDefaults(Constraints constraints, String name1,
+                               Spring spring1, String name2, Spring spring2,
+                               List<String> history) {
+        if (history.size() == 0) { 
+            constraints.setConstraint(name1, spring1);
+            constraints.setConstraint(name2, spring2);
+        } else {  
+            // At this point there must be exactly one constraint defined already.
+            // Check width/height first. 
+            if (constraints.getConstraint(name2) == null) {               
+                constraints.setConstraint(name2, spring2);
+            } else {
+                // If width/height is already defined, install a default for x/y.
+                constraints.setConstraint(name1, spring1);
+            }
+            // Either way, leave the user's constraint topmost on the stack. 
+            Collections.rotate(history, 1);
+        }
     }
 
     private void putConstraints(Component component, Constraints constraints) {
@@ -958,11 +1157,14 @@ public class SpringLayout implements LayoutManager2 {
      * internally by <code>SpringLayout</code> so that
      * the layout operation always terminates.
      *
-     * @param edgeName must be 
-     *                 <code>SpringLayout.NORTH</code>,
-     *                 <code>SpringLayout.SOUTH</code>,
-     *                 <code>SpringLayout.EAST</code>, or
-     *                 <code>SpringLayout.WEST</code>
+     * @param edgeName must be one of
+     * <code>SpringLayout.NORTH</code>, 
+     * <code>SpringLayout.SOUTH</code>,
+     * <code>SpringLayout.EAST</code>, 
+     * <code>SpringLayout.WEST</code>,
+     * <code>SpringLayout.VERTICAL_CENTER</code>, 
+     * <code>SpringLayout.HORIZONTAL_CENTER</code> or
+     * <code>SpringLayout.BASELINE</code>
      * @param c the component whose edge spring is desired
      *
      * @return a proxy for the spring controlling the distance between the
@@ -972,6 +1174,9 @@ public class SpringLayout implements LayoutManager2 {
      * @see #SOUTH
      * @see #EAST
      * @see #WEST
+     * @see #VERTICAL_CENTER
+     * @see #HORIZONTAL_CENTER
+     * @see #BASELINE
      */
     public Spring getConstraint(String edgeName, Component c) {
         // The interning here is unnecessary; it was added for efficiency.

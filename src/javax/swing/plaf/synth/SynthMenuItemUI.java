@@ -1,7 +1,7 @@
 /*
- * @(#)SynthMenuItemUI.java	1.21 04/06/24
+ * @(#)SynthMenuItemUI.java	1.25 05/01/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -19,13 +19,13 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.text.View;
 import sun.swing.plaf.synth.*;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 
 /**
  * Synth's MenuItemUI.
  *
- * @version 1.21, 06/24/04
+ * @version 1.25, 01/25/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -312,6 +312,15 @@ class SynthMenuItemUI extends BasicMenuItemUI implements
         int menuItemGap, boolean useCheckAndArrow
         )
     {
+        // If parent is JPopupMenu, get and store it's UI
+        SynthPopupMenuUI popupUI = null;
+        JComponent b = context.getComponent();
+        Container parent = b.getParent();
+        if(parent instanceof JPopupMenu) {
+            popupUI = (SynthPopupMenuUI)SynthLookAndFeel.
+                             getUIOfType(((JPopupMenu)parent).getUI(),
+                                         SynthPopupMenuUI.class);
+        }
 
         context.getStyle().getGraphicsUtils(context).layoutText(
                 context, fm, text, icon,horizontalAlignment, verticalAlignment,
@@ -378,6 +387,29 @@ class SynthMenuItemUI extends BasicMenuItemUI implements
                 arrowIconRect.x = viewRect.x + viewRect.width - menuItemGap
                                   - arrowIconRect.width;
             }
+            /* Align icons and text horizontally */
+            if(popupUI != null) {
+                int thisTextOffset = popupUI.adjustTextOffset(textRect.x
+                                                              - viewRect.x);
+                textRect.x = thisTextOffset + viewRect.x;
+
+                if(icon != null) {
+                    if(horizontalTextPosition == SwingConstants.TRAILING ||
+                       horizontalTextPosition == SwingConstants.RIGHT) {
+                        int thisIconOffset =
+                            popupUI.adjustIconOffset(iconRect.x - viewRect.x);
+                        iconRect.x = thisIconOffset + viewRect.x;
+                    } else if(horizontalTextPosition
+                                  == SwingConstants.LEADING ||
+                              horizontalTextPosition == SwingConstants.LEFT) {
+                        iconRect.x = textRect.x + textRect.width + menuItemGap;
+                    } else {
+                        int maxIconValue = popupUI.adjustIconOffset(0);
+                        iconRect.x = Math.max(textRect.x + textRect.width/2
+                            - iconRect.width/2, maxIconValue + viewRect.x);
+                    }
+                }
+            }
         } else {
             textRect.x -= menuItemGap;
             iconRect.x -= menuItemGap;
@@ -392,6 +424,39 @@ class SynthMenuItemUI extends BasicMenuItemUI implements
                 textRect.x -= menuItemGap + checkIconRect.width;
                 iconRect.x -= menuItemGap + checkIconRect.width;      
                 arrowIconRect.x = viewRect.x + menuItemGap;
+            }
+            /* Align icons and text horizontally */
+            if(popupUI != null) {
+                int thisTextOffset = viewRect.x + viewRect.width
+                                     - textRect.x - textRect.width;
+                thisTextOffset = popupUI.adjustTextOffset(thisTextOffset);
+                textRect.x = viewRect.x + viewRect.width
+                             - thisTextOffset - textRect.width;
+                if(icon != null) {
+                    if(horizontalTextPosition == SwingConstants.TRAILING ||
+                       horizontalTextPosition == SwingConstants.LEFT) {
+                        int thisIconOffset = viewRect.x + viewRect.width
+                                             - iconRect.x - iconRect.width;
+                        thisIconOffset =
+                            popupUI.adjustIconOffset(thisIconOffset);
+                        iconRect.x = viewRect.x + viewRect.width
+                                     - thisIconOffset - iconRect.width;
+
+                    } else if(horizontalTextPosition
+                                  == SwingConstants.LEADING ||
+                              horizontalTextPosition == SwingConstants.RIGHT) {
+                        iconRect.x = textRect.x - menuItemGap - iconRect.width;
+                    } else {
+                        int maxIconValue = popupUI.adjustIconOffset(0);
+                        iconRect.x = textRect.x + textRect.width/2
+                                     - iconRect.width/2;
+                        if(iconRect.x + iconRect.width >
+                               viewRect.x + viewRect.width - maxIconValue  ) {
+                            iconRect.x = iconRect.x = viewRect.x +
+                                viewRect.width - maxIconValue - iconRect.width;
+                        }
+                    }
+                }
             }
         }
 
@@ -443,8 +508,13 @@ class SynthMenuItemUI extends BasicMenuItemUI implements
         style = SynthLookAndFeel.updateStyle(context, this);
         if (oldStyle != style) {
             String prefix = getPropertyPrefix();
-            defaultTextIconGap = style.getInt(
-                           context, prefix + ".textIconGap", 4);
+ 
+            Object value = style.get(context, prefix + ".textIconGap"); 
+            if (value != null) { 
+                LookAndFeel.installProperty(mi, "iconTextGap", value); 
+            } 
+            defaultTextIconGap = mi.getIconTextGap(); 
+  
             if (menuItem.getMargin() == null || 
                          (menuItem.getMargin() instanceof UIResource)) {
                 Insets insets = (Insets)style.get(context, prefix + ".margin");
@@ -521,9 +591,9 @@ class SynthMenuItemUI extends BasicMenuItemUI implements
         int state;
 
         if (!c.isEnabled()) {
-            return DISABLED;
+            state = DISABLED;
         }
-        if (menuItem.isArmed()) {
+        else if (menuItem.isArmed()) {
             state = MOUSE_OVER;
         }
         else {

@@ -1,7 +1,7 @@
 /*
- * @(#)Notification.java	4.40 03/12/19
+ * @(#)Notification.java	4.43 05/12/01
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,6 +34,8 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * object name rather than a reference to the MBean object as the
  * source.</p>
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-7516092053498031989L</code>.
+ * 
  * @since 1.5
  */
 public class Notification extends EventObject { 
@@ -94,8 +96,8 @@ public class Notification extends EventObject {
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: exception means no compat with 1.0, too bad

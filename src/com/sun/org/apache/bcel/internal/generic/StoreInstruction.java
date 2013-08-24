@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * Denotes an unparameterized instruction to store a value into a local variable,
  * e.g. ISTORE.
  *
- * @version $Id: StoreInstruction.java,v 1.1.1.1 2001/10/29 20:00:27 jvanzyl Exp $
+ * @version $Id: StoreInstruction.java,v 1.1.2.1 2005/07/31 23:45:20 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class StoreInstruction extends LocalVariableInstruction
@@ -93,7 +93,6 @@ public abstract class StoreInstruction extends LocalVariableInstruction
   public void accept(Visitor v) {
     v.visitStackConsumer(this);
     v.visitPopInstruction(this);
-    v.visitStoreInstruction(this);
     v.visitTypedInstruction(this);
     v.visitLocalVariableInstruction(this);
     v.visitStoreInstruction(this);

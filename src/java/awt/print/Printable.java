@@ -1,7 +1,7 @@
 /*
- * @(#)Printable.java	1.17 04/01/28
+ * @(#)Printable.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,10 @@ import java.awt.Graphics;
  *  
  * <li>When called by the printing system the <code>Printable</code> must
  * inspect and honour the supplied PageFormat parameter as well as the
- * page index.
+ * page index.  The format of the page to be drawn is specified by the 
+ * supplied PageFormat. The size, orientation and imageable area of the page 
+ * is therefore already determined and rendering must be within this 
+ * imageable area.
  * This is key to correct printing behaviour, and it has the
  * implication that the client has the responsibility of tracking
  * what content belongs on the specified page.

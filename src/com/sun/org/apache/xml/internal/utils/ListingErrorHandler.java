@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ListingErrorHandler.java,v 1.7 2004/02/17 04:21:14 minchau Exp $
+ * $Id: ListingErrorHandler.java,v 1.2.4.1 2005/09/15 08:15:46 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.utils;
@@ -46,7 +46,7 @@ import org.xml.sax.SAXParseException;
  * when we re-throw errors, etc.</p>
  *
  * @author shane_curcuru@us.ibm.com
- * @version $Id: ListingErrorHandler.java,v 1.7 2004/02/17 04:21:14 minchau Exp $
+ * @version $Id: ListingErrorHandler.java,v 1.2.4.1 2005/09/15 08:15:46 suresh_emailid Exp $
  * @xsl.usage general
  */
 public class ListingErrorHandler implements ErrorHandler, ErrorListener
@@ -352,7 +352,6 @@ public class ListingErrorHandler implements ErrorHandler, ErrorListener
      * Print out the specific source line that caused the exception, 
      * if possible to load it.  
      *
-     * @author shane_curcuru@us.ibm.com
      * @param pw PrintWriter to send output to
      * @param locator Xalan wrapper for either a JAXP or a SAX 
      * source location object
@@ -477,7 +476,7 @@ public class ListingErrorHandler implements ErrorHandler, ErrorListener
      * an exception when we're called for various warning / 
      * error / fatalErrors, or simply log them and continue.</p>
      *
-     * @param t if we should throw an exception on warnings
+     * @param b if we should throw an exception on warnings
      */
     public void setThrowOnWarning(boolean b)
     {
@@ -509,7 +508,7 @@ public class ListingErrorHandler implements ErrorHandler, ErrorListener
      * <p>Note that the behavior of many parsers/transformers 
      * after an error is not necessarily defined!</p>
      *
-     * @param t if we should throw an exception on errors
+     * @param b if we should throw an exception on errors
      */
     public void setThrowOnError(boolean b)
     {
@@ -542,7 +541,7 @@ public class ListingErrorHandler implements ErrorHandler, ErrorListener
      * after a fatalError is not necessarily defined, most 
      * products will probably barf if you continue.</p>
      *
-     * @param t if we should throw an exception on fatalErrors
+     * @param b if we should throw an exception on fatalErrors
      */
     public void setThrowOnFatalError(boolean b)
     {

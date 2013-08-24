@@ -1,7 +1,7 @@
 /*
- * @(#)CharsetProvider.java	1.15 04/05/05
+ * @(#)CharsetProvider.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,7 +46,7 @@ import java.util.Iterator;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.15, 04/05/05
+ * @version 1.16, 05/11/17
  * @since 1.4
  *
  * @see java.nio.charset.Charset

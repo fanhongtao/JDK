@@ -1,7 +1,7 @@
 /*
- * @(#)DataInput.java	1.23 04/06/03
+ * @(#)DataInput.java	1.25 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -168,7 +168,7 @@ package java.io;
  *     are represented in the form of surrogate pairs.
  * </ul>
  * @author  Frank Yellin
- * @version 1.23, 06/03/04
+ * @version 1.25, 04/10/06
  * @see     java.io.DataInputStream
  * @see     java.io.DataOutput
  * @since   JDK1.0
@@ -382,8 +382,7 @@ interface DataInput {
     int readUnsignedShort() throws IOException;
 
     /**
-     * Reads an input <code>char</code> and returns the <code>char</code> value.
-     * A Unicode <code>char</code> is made up of two bytes.
+     * Reads two input bytes and returns a <code>char</code> value.
      * Let <code>a</code>
      * be the first byte read and <code>b</code>
      * be the second byte. The value
@@ -395,7 +394,7 @@ interface DataInput {
      * the <code>writeChar</code> method of interface
      * <code>DataOutput</code>.
      *
-     * @return     the Unicode <code>char</code> read.
+     * @return     the <code>char</code> value read.
      * @exception  EOFException  if this stream reaches the end before reading
      *               all the bytes.
      * @exception  IOException   if an I/O error occurs.
@@ -404,12 +403,8 @@ interface DataInput {
 
     /**
      * Reads four input bytes and returns an
-     * <code>int</code> value. Let <code>a</code>
-     * be the first byte read, <code>b</code> be
-     * the second byte, <code>c</code> be the third
-     * byte,
-     * and <code>d</code> be the fourth
-     * byte. The value returned is:
+     * <code>int</code> value. Let <code>a-d</code>
+     * be the first through fourth bytes read. The value returned is:
      * <p><pre>
      * <code>
      * (((a &amp; 0xff) &lt;&lt; 24) | ((b &amp; 0xff) &lt;&lt; 16) |
@@ -428,16 +423,9 @@ interface DataInput {
 
     /**
      * Reads eight input bytes and returns
-     * a <code>long</code> value. Let <code>a</code>
-     * be the first byte read, <code>b</code> be
-     * the second byte, <code>c</code> be the third
-     * byte, <code>d</code>
-     * be the fourth byte,
-     * <code>e</code> be the fifth byte, <code>f</code>
-     * be the sixth byte, <code>g</code> be the
-     * seventh byte,
-     * and <code>h</code> be the
-     * eighth byte. The value returned is:
+     * a <code>long</code> value. Let <code>a-h</code>
+     * be the first through eighth bytes read.
+     * The value returned is:
      * <p><pre> <code>
      * (((long)(a &amp; 0xff) &lt;&lt; 56) |
      *  ((long)(b &amp; 0xff) &lt;&lt; 48) |

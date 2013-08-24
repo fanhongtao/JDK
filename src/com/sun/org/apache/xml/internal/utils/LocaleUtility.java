@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /*
- * $Id: LocaleUtility.java,v 1.1.1.1 2004/02/26 11:40:13 vk112360 Exp $
+ * $Id: LocaleUtility.java,v 1.2.4.1 2005/09/15 08:15:47 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.utils;

@@ -1,7 +1,7 @@
 /*
- * @(#)Manifest.java	1.45 04/05/05
+ * @(#)Manifest.java	1.50 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,11 +21,11 @@ import java.util.Iterator;
  * associated Attributes. There are main Manifest Attributes as well as
  * per-entry Attributes. For information on the Manifest format, please
  * see the 
- * <a href="../../../../guide/jar/jar.html">
+ * <a href="../../../../technotes/guides/jar/jar.html">
  * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.45, 05/05/04
+ * @version 1.50, 04/21/06
  * @see	    Attributes
  * @since   1.2
  */
@@ -73,6 +73,9 @@ public class Manifest implements Cloneable {
     /**
      * Returns a Map of the entries contained in this Manifest. Each entry
      * is represented by a String name (key) and associated Attributes (value).
+     * The Map permits the {@code null} key, but no entry with a null key is
+     * created by {@link #read}, nor is such an entry written by using {@link
+     * #write}.
      *
      * @return a Map of the entries contained in this Manifest
      */
@@ -86,6 +89,18 @@ public class Manifest implements Cloneable {
      * <pre>
      *	    return (Attributes)getEntries().get(name)
      * </pre>
+     * Though {@code null} is a valid {@code name}, when
+     * {@code getAttributes(null)} is invoked on a {@code Manifest}
+     * obtained from a jar file, {@code null} will be returned.  While jar
+     * files themselves do not allow {@code null}-named attributes, it is
+     * possible to invoke {@link #getEntries} on a {@code Manifest}, and
+     * on that result, invoke {@code put} with a null key and an
+     * arbitrary value.  Subsequent invocations of
+     * {@code getAttributes(null)} will return the just-{@code put}
+     * value.
+     * <p>
+     * Note that this method does not return the manifest's main attributes;
+     * see {@link #getMainAttributes}.
      *
      * @param name entry name
      * @return the Attributes for the specified entry name

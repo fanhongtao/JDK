@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPATHErrorResources_zh_TW.java,v 1.8 2004/02/17 04:36:46 minchau Exp $
+ * $Id: XPATHErrorResources_zh_TW.java,v 1.2.4.1 2005/09/15 00:39:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.res;
 
@@ -351,7 +351,14 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
 
   // Error messages...
 
-  public static final Object[][] contents = {
+  /**
+   * Get the association list.
+   *
+   * @return The association list.
+   */
+  public Object[][] getContents()
+  {
+    return new Object[][]{
 
   /** Field ERROR0000          */
 
@@ -1222,9 +1229,9 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
   { "three", "3" }
 
   };
+  }
 
 
-  // ================= INFRASTRUCTURE ======================
 
   /** Field BAD_CODE          */
   public static final String BAD_CODE = "BAD_CODE";
@@ -1254,29 +1261,10 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
   /** Field QUERY_HEADER          */
   public static final String QUERY_HEADER = "PATTERN ";
 
-  /**
-   * Get the association list.
-   *
-   * @return The association list.
-   */
-  protected Object[][] getContents() {
-      // return a copy of contents; in theory we want a deep clone
-      // of contents, but since it only contains (immutable) Strings,
-      // this shallow copy is sufficient
-      Object[][] msgCopy = new Object[contents.length][2];
-      for (int i = 0; i < contents.length; i++) {
-          msgCopy[i][0] = contents[i][0];
-          msgCopy[i][1] = contents[i][1];
-      }
-      return msgCopy;
-  }
 
   /**
    * Return a named ResourceBundle for a particular locale.  This method mimics the behavior
    * of ResourceBundle.getBundle().
-   *
-   * @param res the name of the resource to load.
-   * @param locale the locale to prefer when searching for the bundle
    *
    * @param className Name of local-specific subclass.
    * @return the ResourceBundle

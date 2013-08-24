@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanServerDelegate.java	1.56 04/04/13
+ * @(#)MBeanServerDelegate.java	1.59 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -187,6 +187,21 @@ public class MBeanServerDelegate implements MBeanServerDelegateMBean,
 	    }
 	}
         broadcaster.sendNotification(notification);
+    }
+
+    /**
+     * Defines the default ObjectName of the MBeanServerDelegate.
+     *
+     * @since 1.6
+     */
+    public static final ObjectName DELEGATE_NAME;
+    static {
+        try {
+            DELEGATE_NAME =
+                new ObjectName("JMImplementation:type=MBeanServerDelegate");
+        } catch (MalformedObjectNameException e) {
+            throw new Error("Can't initialize delegate name", e);
+        }
     }
 
     /* Return a timestamp that is monotonically increasing even if

@@ -1,7 +1,7 @@
 /*
- * @(#)Pack200.java	1.4 03/12/08
+ * @(#)Pack200.java	1.16 06/10/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.util.jar;
@@ -21,8 +21,8 @@ import java.security.PrivilegedAction;
 
 /**
  * Transforms a JAR file to or from a packed stream in Pack200 format.
- * Please refer to Network Trasfer Format JSR 200 Specification at 
- * http://jcp.org/aboutJava/communityprocess/review/jsr200/index.html
+ * Please refer to Network Transfer Format JSR 200 Specification at 
+ * <a href=http://jcp.org/aboutJava/communityprocess/review/jsr200/index.html>http://jcp.org/aboutJava/communityprocess/review/jsr200/index.html</a>
  * <p>
  * Typically the packer engine is used by application developers
  * to deploy or host JAR files on a website.
@@ -81,14 +81,15 @@ import java.security.PrivilegedAction;
  * The deployment applications can use "Accept-Encoding=pack200-gzip". This 
  * indicates to the server that the client application desires a version of
  * the file encoded with Pack200 and further compressed with gzip. Please 
- * refer to Java Deployment Guide <TBD> for more details and techniques.
+ * refer to  <a href="{@docRoot}/../technotes/guides/deployment/deployment-guide/pack200.html">Java Deployment Guide</a> for more details and 
+ * techniques.
  * <p>
  * Unless otherwise noted, passing a <tt>null</tt> argument to a constructor or
  * method in this class will cause a {@link NullPointerException} to be thrown.
  *
  * @author John Rose
  * @author Kumar Srinivasan
- * @version 1.4, 12/08/03
+ * @version 1.16, 10/23/06
  * @since 1.5
  */
 public abstract class Pack200 {
@@ -193,6 +194,13 @@ public abstract class Pack200 {
      * Also, the unpacker is guaranteed by the JSR 200 specification
      * to produce a specific bytewise image for any given transmission
      * ordering of archive elements.)
+     * <p>
+     * In order to maintain backward compatibility, if the input JAR-files are 
+     * solely comprised of 1.5 (or  lesser) classfiles, a 1.5 compatible 
+     * pack file is  produced.  Otherwise a 1.6 compatible pack200 file is 
+     * produced.
+     * <p>     
+     * @since 1.5
      */
     public interface Packer {
 	/**
@@ -334,7 +342,7 @@ public abstract class Pack200 {
 	 * {@link #STRIP}, and {@link #PASS}.
 	 * <p>
 	 * The string {@link #ERROR} means that the pack operation
-	 * as a whole will fail, with a suitable explanation.
+	 * as a whole will fail, with an exception of type <code>IOException</code>.
 	 * The string
 	 * {@link #STRIP} means that the attribute will be dropped.
 	 * The string
@@ -565,6 +573,8 @@ public abstract class Pack200 {
      * "<tt>PACK200</tt>" as a zip file comment.
      * This allows a deployer to detect if a JAR archive was packed and unpacked.
      * <p>
+     * This version of the unpacker is compatible with all previous versions.
+     * @since 1.5
      */
     public interface Unpacker {
 

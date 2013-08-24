@@ -1,13 +1,13 @@
 /*
- * @(#)MetalInternalFrameTitlePane.java	1.57 04/03/17
+ * @(#)MetalInternalFrameTitlePane.java	1.59 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -21,7 +21,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 /**
  * Class that manages a JLF title bar
- * @version 1.57 03/17/04
+ * @version 1.59 11/30/05
  * @author Steve Wilson
  * @author Brian Beck
  * @since 1.3

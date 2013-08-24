@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPathAPI.java,v 1.17 2004/02/17 04:30:02 minchau Exp $
+ * $Id: XPathAPI.java,v 1.2.4.1 2005/09/10 18:18:23 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -173,7 +173,6 @@ public class XPathAPI
    *  XPath namespace prefixes will be resolved from the namespaceNode.
    *  @param contextNode The node to start searching from.
    *  @param str A valid XPath string.
-   *  @param namespaceNode The node from which prefixes in the XPath will be resolved to namespaces.
    *  @return An XObject, which can be used to obtain a string, number, nodelist, etc, should never be null.
    *  @see com.sun.org.apache.xpath.internal.objects.XObject
    *  @see com.sun.org.apache.xpath.internal.objects.XNull
@@ -248,7 +247,6 @@ public class XPathAPI
    *
    *   @param contextNode The node to start searching from.
    *   @param str A valid XPath string.
-   *   @param namespaceNode The node from which prefixes in the XPath will be resolved to namespaces.
    *   @param prefixResolver Will be called if the parser encounters namespace
    *                         prefixes, to resolve the prefixes to URLs.
    *   @return An XObject, which can be used to obtain a string, number, nodelist, etc, should never be null.

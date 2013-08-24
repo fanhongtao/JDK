@@ -1,7 +1,7 @@
 /*
- * @(#)ExtendedRequest.java	1.9 03/12/19
+ * @(#)ExtendedRequest.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import javax.naming.NamingException;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.9 03/12/19
+  * @version 1.10 05/11/17
   *
   * @see ExtendedResponse
   * @see LdapContext#extendedOperation

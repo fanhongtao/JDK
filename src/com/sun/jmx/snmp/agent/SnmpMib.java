@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpMib.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.29
- * @(#)date      04/09/15
+ * @(#)version   4.30
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -346,7 +346,7 @@ class AcmChecker {
  *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     4.29     02/25/04
+ * @version     4.30     11/17/05
  * @author      Sun Microsystems, Inc
  */
 public abstract class SnmpMib extends SnmpMibAgent implements Serializable {

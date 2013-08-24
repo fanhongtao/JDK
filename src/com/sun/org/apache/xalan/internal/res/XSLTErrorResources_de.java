@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTErrorResources_de.java,v 1.8 2004/02/16 19:14:07 minchau Exp $
+ * $Id: XSLTErrorResources_de.java,v 1.2.4.1 2005/09/13 10:08:18 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.res;
 
@@ -452,8 +452,13 @@ public class XSLTErrorResources_de extends ListResourceBundle
 
   // Error messages...
 
-  /** The lookup table for error messages.   */
-  public static final Object[][] contents = {
+  /** Get the lookup table for error messages.   
+   *
+   * @return The int to message lookup table.
+   */
+  public Object[][] getContents()
+  {
+    return new Object[][] {
 
   /** Error message ID that has a null message, but takes in a single object.    */
   {"ER0000" , "{0}" },
@@ -2372,8 +2377,8 @@ public class XSLTErrorResources_de extends ListResourceBundle
   { "matchPatternIs", "Das Suchmuster ist" }
 
   };
+  }
 
-  // ================= INFRASTRUCTURE ======================
 
   /** String for use when a bad error code was encountered.    */
   public static final String BAD_CODE = "FEHLERHAFTER_CODE";
@@ -2400,22 +2405,6 @@ public class XSLTErrorResources_de extends ListResourceBundle
    * @deprecated  */
   public static final String QUERY_HEADER = "MUSTER ";
 
-  /**
-   * Get the lookup table.
-   *
-   * @return The int to message lookup table.
-   */
-  protected Object[][] getContents() {
-      // return a copy of contents; in theory we want a deep clone
-      // of contents, but since it only contains (immutable) Strings,
-      // this shallow copy is sufficient
-      Object[][] commonCopy = new Object[contents.length][2];
-      for (int i = 0; i < contents.length; i++) {
-          commonCopy[i][0] = contents[i][0];
-          commonCopy[i][1] = contents[i][1];
-      }
-      return commonCopy;
-  }
 
   /**
    *   Return a named ResourceBundle for a particular locale.  This method mimics the behavior

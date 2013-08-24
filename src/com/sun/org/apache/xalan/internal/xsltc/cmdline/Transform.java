@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Transform.java,v 1.32 2004/02/23 10:29:35 aruny Exp $
+ * $Id: Transform.java,v 1.2.4.1 2005/09/12 09:07:33 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.cmdline;
@@ -63,8 +63,6 @@ final public class Transform {
     private Vector  _params = null;
     private boolean _uri, _debug;
     private int     _iterations;
-
-    private static boolean _allowExit = true;
 
     public Transform(String className, String fileName,
 		     boolean uri, boolean debug, int iterations) {
@@ -170,42 +168,36 @@ final public class Transform {
 	catch (TransletException e) {
 	    if (_debug) e.printStackTrace();
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
-			       e.getMessage());
-	    if (_allowExit) System.exit(-1);	    
+                   e.getMessage());	    
 	}
 	catch (RuntimeException e) {
 	    if (_debug) e.printStackTrace();
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
 			       e.getMessage());
-	    if (_allowExit) System.exit(-1);
 	}
 	catch (FileNotFoundException e) {
 	    if (_debug) e.printStackTrace();
 	    ErrorMsg err = new ErrorMsg(ErrorMsg.FILE_NOT_FOUND_ERR, _fileName);
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
 			       err.toString());
-	    if (_allowExit) System.exit(-1);
 	}
 	catch (MalformedURLException e) {
 	    if (_debug) e.printStackTrace();
 	    ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_URI_ERR, _fileName);
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
 			       err.toString());
-	    if (_allowExit) System.exit(-1);
 	}
 	catch (ClassNotFoundException e) {
 	    if (_debug) e.printStackTrace();
 	    ErrorMsg err= new ErrorMsg(ErrorMsg.CLASS_NOT_FOUND_ERR,_className);
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
 			       err.toString());
-	    if (_allowExit) System.exit(-1);
 	}
         catch (UnknownHostException e) {
 	    if (_debug) e.printStackTrace();
 	    ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_URI_ERR, _fileName);
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
 			       err.toString());
-	    if (_allowExit) System.exit(-1);
         }
 	catch (SAXException e) {
 	    Exception ex = e.getException();
@@ -218,22 +210,19 @@ final public class Transform {
 		System.err.println(ex.getMessage());
 	    else
 		System.err.println(e.getMessage());
-	    if (_allowExit) System.exit(-1);
 	}
 	catch (Exception e) {
 	    if (_debug) e.printStackTrace();
 	    System.err.println(new ErrorMsg(ErrorMsg.RUNTIME_ERROR_KEY)+
 			       e.getMessage());
-	    if (_allowExit) System.exit(-1);
 	}
     }
 
     public static void printUsage() {
 	System.err.println(new ErrorMsg(ErrorMsg.TRANSFORM_USAGE_STR));
-	if (_allowExit) System.exit(-1);
     }
 
-    public static void _main(String[] args) {
+    public static void main(String[] args) {
 	try {
 	    if (args.length > 0) {
 		int i;
@@ -249,9 +238,6 @@ final public class Transform {
 		    }
 		    else if (args[i].equals("-x")) {
 			debug = true;
-		    }
-		    else if (args[i].equals("-s")) {
-			_allowExit = false;
 		    }
 		    else if (args[i].equals("-j")) {
 			isJarFileSpecified = true;	
@@ -295,7 +281,6 @@ final public class Transform {
 		if (i == args.length) {
 		    handler.setParameters(params);
 		    handler.doTransform();
-		    if (_allowExit) System.exit(0);
 		}
 	    } else {
 		printUsage();

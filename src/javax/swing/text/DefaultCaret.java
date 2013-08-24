@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCaret.java	1.141 06/04/18
+ * @(#)DefaultCaret.java	1.147 06/04/14
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,7 +17,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import java.util.EventListener; 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * A default implementation of Caret.  The caret is rendered as
@@ -85,7 +85,7 @@ import com.sun.java.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.141 04/18/06
+ * @version 1.147 04/14/06
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -220,8 +220,8 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">
-     * Threads and Swing</A> for more information.
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.
      */
     protected final synchronized void repaint() {
 	if (component != null) {
@@ -1000,7 +1000,7 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
     /**
      * Fetches the current position of the caret.
      *
-     * @return the position >= 0
+     * @return the position &gt;= 0
      * @see Caret#getDot
      */
     public int getDot() {
@@ -1011,7 +1011,7 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * Fetches the current position of the mark.  If there is a selection,
      * the dot and mark will not be the same.
      *
-     * @return the position >= 0
+     * @return the position &gt;= 0
      * @see Caret#getMark
      */
     public int getMark() {
@@ -1019,10 +1019,12 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
     }
 
     /**
-     * Sets the caret position and mark to some position.  This
-     * implicitly sets the selection range to zero.
+     * Sets the caret position and mark to the specified position,
+     * with a forward bias. This implicitly sets the
+     * selection range to zero.
      *
-     * @param dot the position >= 0
+     * @param dot the position &gt;= 0
+     * @see #setDot(int, Position.Bias)
      * @see Caret#setDot
      */
     public void setDot(int dot) {
@@ -1030,9 +1032,11 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
     }
 
     /**
-     * Moves the caret position to some other position.
+     * Moves the caret position to the specified position,
+     * with a forward bias.
      *
-     * @param dot the position >= 0
+     * @param dot the position &gt;= 0
+     * @see #moveDot(int, javax.swing.text.Position.Bias)
      * @see Caret#moveDot
      */
     public void moveDot(int dot) {
@@ -1040,8 +1044,22 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
     }
 
     // ---- Bidi methods (we could put these in a subclass)
-    
-    void moveDot(int dot, Position.Bias dotBias) {
+
+    /**
+     * Moves the caret position to the specified position, with the
+     * specified bias.
+     *
+     * @param dot the position &gt;= 0
+     * @param dotBias the bias for this position, not <code>null</code>
+     * @throws IllegalArgumentException if the bias is <code>null</code>
+     * @see Caret#moveDot
+     * @since 1.6
+     */
+    public void moveDot(int dot, Position.Bias dotBias) {
+        if (dotBias == null) {
+            throw new IllegalArgumentException("null bias");
+        }
+
 	if (! component.isEnabled()) {
 	    // don't allow selection on disabled components.
 	    setDot(dot, dotBias);
@@ -1091,7 +1109,22 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
         }
     }
 
-    void setDot(int dot, Position.Bias dotBias) {
+    /**
+     * Sets the caret position and mark to the specified position, with the
+     * specified bias. This implicitly sets the selection range
+     * to zero.
+     *
+     * @param dot the position &gt;= 0
+     * @param dotBias the bias for this position, not <code>null</code>
+     * @throws IllegalArgumentException if the bias is <code>null</code>
+     * @see Caret#setDot
+     * @since 1.6
+     */
+    public void setDot(int dot, Position.Bias dotBias) {
+        if (dotBias == null) {
+            throw new IllegalArgumentException("null bias");
+        }
+
         NavigationFilter filter = component.getNavigationFilter();
 
         if (filter != null) {
@@ -1128,11 +1161,23 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 	}
     }
 
-    Position.Bias getDotBias() {
+    /**
+     * Returns the bias of the caret position.
+     *
+     * @return the bias of the caret position
+     * @since 1.6
+     */
+    public Position.Bias getDotBias() {
 	return dotBias;
     }
 
-    Position.Bias getMarkBias() {
+    /**
+     * Returns the bias of the mark.
+     *
+     * @return the bias of the mark
+     * @since 1.6
+     */
+    public Position.Bias getMarkBias() {
 	return markBias;
     }
 

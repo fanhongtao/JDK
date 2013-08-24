@@ -1,64 +1,24 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2004 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.dom;
 
 import com.sun.org.apache.xerces.internal.impl.dv.xs.XSSimpleTypeDecl;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
+import com.sun.org.apache.xerces.internal.xs.XSSimpleTypeDefinition;
 import org.w3c.dom.DOMException;
 
 /**
@@ -67,10 +27,13 @@ import org.w3c.dom.DOMException;
  * The qualified name is the node name, and we store localName which is also
  * used in all queries. On the other hand we recompute the prefix when
  * necessary.
+ * 
+ * @xerces.internal
+ * 
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: AttrNSImpl.java,v 1.43 2004/02/16 05:34:38 mrglavas Exp $
+ * @version $Id: AttrNSImpl.java,v 1.2.6.1 2005/08/30 11:29:03 sunithareddy Exp $
  */
 public class AttrNSImpl
     extends AttrImpl {
@@ -112,42 +75,42 @@ public class AttrNSImpl
     }
 
     private void setName(String namespaceURI, String qname){
-        
+        CoreDocumentImpl ownerDocument = ownerDocument();
         String prefix;
-		// DOM Level 3: namespace URI is never empty string.
+        // DOM Level 3: namespace URI is never empty string.
         this.namespaceURI = namespaceURI;
         if (namespaceURI !=null) {
-  	        this.namespaceURI = (namespaceURI.length() == 0)? null
-                                 : namespaceURI;
-
-		}
-		int colon1 = qname.indexOf(':');
-		int colon2 = qname.lastIndexOf(':');
-		ownerDocument().checkNamespaceWF(qname, colon1, colon2);
-		if (colon1 < 0) {
-			// there is no prefix
-			localName = qname;
-			ownerDocument().checkQName(null, localName);
-			if (ownerDocument().errorChecking) {
-				if (qname.equals("xmlns")
-					&& (namespaceURI == null
-						|| !namespaceURI.equals(NamespaceContext.XMLNS_URI))
-					|| (namespaceURI!=null && namespaceURI.equals(NamespaceContext.XMLNS_URI)
-						&& !qname.equals("xmlns"))) {
-					String msg =
-						DOMMessageFormatter.formatMessage(
-							DOMMessageFormatter.DOM_DOMAIN,
-							"NAMESPACE_ERR",
-							null);
-					throw new DOMException(DOMException.NAMESPACE_ERR, msg);
-				}
-			}
-		}
-		else {
-			prefix = qname.substring(0, colon1);
-			localName = qname.substring(colon2+1);
-			ownerDocument().checkQName(prefix, localName);
-            ownerDocument().checkDOMNSErr(prefix, namespaceURI);
+            this.namespaceURI = (namespaceURI.length() == 0)? null
+                    : namespaceURI;
+            
+        }
+        int colon1 = qname.indexOf(':');
+        int colon2 = qname.lastIndexOf(':');
+        ownerDocument.checkNamespaceWF(qname, colon1, colon2);
+        if (colon1 < 0) {
+            // there is no prefix
+            localName = qname;
+            if (ownerDocument.errorChecking) {
+                ownerDocument.checkQName(null, localName);
+                
+                if (qname.equals("xmlns") && (namespaceURI == null
+                    || !namespaceURI.equals(NamespaceContext.XMLNS_URI))
+                    || (namespaceURI!=null && namespaceURI.equals(NamespaceContext.XMLNS_URI)
+                    && !qname.equals("xmlns"))) {
+                    String msg =
+                        DOMMessageFormatter.formatMessage(
+                                DOMMessageFormatter.DOM_DOMAIN,
+                                "NAMESPACE_ERR",
+                                null);
+                    throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+                }
+            }
+        }
+        else {
+            prefix = qname.substring(0, colon1);
+            localName = qname.substring(colon2+1);
+            ownerDocument.checkQName(prefix, localName);
+            ownerDocument.checkDOMNSErr(prefix, namespaceURI);
         }
     } 
 
@@ -176,7 +139,7 @@ public class AttrNSImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-	this.name = qualifiedName;
+		this.name = qualifiedName;
         setName(namespaceURI, qualifiedName);
     }
 
@@ -327,23 +290,45 @@ public class AttrNSImpl
         }
         return localName;
     }
+    
+    
+    /**
+     * @see org.w3c.dom.TypeInfo#getTypeName()
+     */
+    public String getTypeName() {
+        if (type !=null){
+            if (type instanceof XSSimpleTypeDecl){
+                return ((XSSimpleTypeDecl)type).getName();
+            }
+            return (String)type;
+        }
+        return null;
+    }
 
     /**
-     * DOM Level 3 Experimental 
-     *
-     * @see org.w3c.dom.TypeInfo#isDerivedFrom()
+     * Introduced in DOM Level 3. <p>
+     * Checks if a type is derived from another by restriction. See:
+     * http://www.w3.org/TR/DOM-Level-3-Core/core.html#TypeInfo-isDerivedFrom
+     * 
+     * @param ancestorNS 
+     *        The namspace of the ancestor type declaration
+     * @param ancestorName
+     *        The name of the ancestor type declaration
+     * @param type
+     *        The reference type definition
+     * 
+     * @return boolean True if the type is derived by restriciton for the
+     *         reference type
      */
     public boolean isDerivedFrom(String typeNamespaceArg, 
                                  String typeNameArg, 
                                  int derivationMethod) {
-        
-        //REVISIT: XSSimpleTypeDecl.derivedFrom and 
-        //derivationMethod constants in DOM vs Xerces
-        if (type !=null){
-            if (type instanceof XSSimpleTypeDecl){
-                return ((XSSimpleTypeDecl)type).derivedFrom(typeNamespaceArg,typeNameArg,(short)derivationMethod);
-            }
-        }                                	
+        if (type != null) {
+            if (type instanceof XSSimpleTypeDefinition) {
+                return ((XSSimpleTypeDecl) type).isDOMDerivedFrom(
+                        typeNamespaceArg, typeNameArg, derivationMethod);
+            }    
+        } 
         return false;
     }
 

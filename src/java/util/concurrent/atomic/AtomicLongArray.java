@@ -1,7 +1,7 @@
 /*
- * @(#)AtomicLongArray.java	1.6 04/01/24
+ * @(#)AtomicLongArray.java	1.12 06/06/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,17 +10,17 @@ import sun.misc.Unsafe;
 import java.util.*;
 
 /**
- * A <tt>long</tt> array in which elements may be updated atomically.
+ * A {@code long} array in which elements may be updated atomically.
  * See the {@link java.util.concurrent.atomic} package specification
  * for description of the properties of atomic variables.
  * @since 1.5
  * @author Doug Lea
  */
-public class AtomicLongArray implements java.io.Serializable { 
+public class AtomicLongArray implements java.io.Serializable {
     private static final long serialVersionUID = -2308431214976778248L;
 
     // setup to use Unsafe.compareAndSwapInt for updates
-    private static final Unsafe unsafe =  Unsafe.getUnsafe();
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
     private static final int base = unsafe.arrayBaseOffset(long[].class);
     private static final int scale = unsafe.arrayIndexScale(long[].class);
     private final long[] array;
@@ -32,25 +32,26 @@ public class AtomicLongArray implements java.io.Serializable {
     }
 
     /**
-     * Create a new AtomicLongArray of given length.
+     * Creates a new AtomicLongArray of given length.
+     *
      * @param length the length of the array
      */
     public AtomicLongArray(int length) {
         array = new long[length];
         // must perform at least one volatile write to conform to JMM
-        if (length > 0) 
+        if (length > 0)
             unsafe.putLongVolatile(array, rawIndex(0), 0);
     }
 
     /**
-     * Create a new AtomicLongArray with the same length as, and
+     * Creates a new AtomicLongArray with the same length as, and
      * all elements copied from, the given array.
      *
      * @param array the array to copy elements from
      * @throws NullPointerException if array is null
      */
     public AtomicLongArray(long[] array) {
-        if (array == null) 
+        if (array == null)
             throw new NullPointerException();
         int length = array.length;
         this.array = new long[length];
@@ -73,7 +74,7 @@ public class AtomicLongArray implements java.io.Serializable {
     }
 
     /**
-     * Get the current value at position <tt>i</tt>.
+     * Gets the current value at position {@code i}.
      *
      * @param i the index
      * @return the current value
@@ -81,9 +82,9 @@ public class AtomicLongArray implements java.io.Serializable {
     public final long get(int i) {
         return unsafe.getLongVolatile(array, rawIndex(i));
     }
- 
+
     /**
-     * Set the element at position <tt>i</tt> to the given value.
+     * Sets the element at position {@code i} to the given value.
      *
      * @param i the index
      * @param newValue the new value
@@ -91,10 +92,22 @@ public class AtomicLongArray implements java.io.Serializable {
     public final void set(int i, long newValue) {
         unsafe.putLongVolatile(array, rawIndex(i), newValue);
     }
-  
+
     /**
-     * Set the element at position <tt>i</tt> to the given value and return the
-     * old value.
+     * Eventually sets the element at position {@code i} to the given value.
+     *
+     * @param i the index
+     * @param newValue the new value
+     * @since 1.6
+     */
+    public final void lazySet(int i, long newValue) {
+        unsafe.putOrderedLong(array, rawIndex(i), newValue);
+    }
+
+
+    /**
+     * Atomically sets the element at position {@code i} to the given value
+     * and returns the old value.
      *
      * @param i the index
      * @param newValue the new value
@@ -107,10 +120,11 @@ public class AtomicLongArray implements java.io.Serializable {
                 return current;
         }
     }
-  
+
     /**
-     * Atomically set the value to the given updated value
-     * if the current value <tt>==</tt> the expected value.
+     * Atomically sets the value to the given updated value
+     * if the current value {@code ==} the expected value.
+     *
      * @param i the index
      * @param expect the expected value
      * @param update the new value
@@ -118,14 +132,18 @@ public class AtomicLongArray implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(int i, long expect, long update) {
-        return unsafe.compareAndSwapLong(array, rawIndex(i), 
+        return unsafe.compareAndSwapLong(array, rawIndex(i),
                                          expect, update);
     }
 
     /**
-     * Atomically set the value to the given updated value
-     * if the current value <tt>==</tt> the expected value.
-     * May fail spuriously.
+     * Atomically sets the value to the given updated value
+     * if the current value {@code ==} the expected value.
+     *
+     * <p>May <a href="package-summary.html#Spurious">fail spuriously</a>
+     * and does not provide ordering guarantees, so is only rarely an
+     * appropriate alternative to {@code compareAndSet}.
+     *
      * @param i the index
      * @param expect the expected value
      * @param update the new value
@@ -136,10 +154,10 @@ public class AtomicLongArray implements java.io.Serializable {
     }
 
     /**
-     * Atomically increment by one the element at index <tt>i</tt>.
+     * Atomically increments by one the element at index {@code i}.
      *
      * @param i the index
-     * @return the previous value;
+     * @return the previous value
      */
     public final long getAndIncrement(int i) {
         while (true) {
@@ -149,12 +167,12 @@ public class AtomicLongArray implements java.io.Serializable {
                 return current;
         }
     }
-  
+
     /**
-     * Atomically decrement by one the element at index <tt>i</tt>.
+     * Atomically decrements by one the element at index {@code i}.
      *
      * @param i the index
-     * @return the previous value;
+     * @return the previous value
      */
     public final long getAndDecrement(int i) {
         while (true) {
@@ -164,13 +182,13 @@ public class AtomicLongArray implements java.io.Serializable {
                 return current;
         }
     }
-  
+
     /**
-     * Atomically add the given value to element at index <tt>i</tt>.
+     * Atomically adds the given value to the element at index {@code i}.
      *
      * @param i the index
      * @param delta the value to add
-     * @return the previous value;
+     * @return the previous value
      */
     public final long getAndAdd(int i, long delta) {
         while (true) {
@@ -180,13 +198,12 @@ public class AtomicLongArray implements java.io.Serializable {
                 return current;
         }
     }
-  
 
     /**
-     * Atomically increment the element at index <tt>i</tt>.
+     * Atomically increments by one the element at index {@code i}.
      *
      * @param i the index
-     * @return the updated value;
+     * @return the updated value
      */
     public final long incrementAndGet(int i) {
         while (true) {
@@ -196,12 +213,12 @@ public class AtomicLongArray implements java.io.Serializable {
                 return next;
         }
     }
-  
+
     /**
-     * Atomically decrement the element at index <tt>i</tt>.
+     * Atomically decrements by one the element at index {@code i}.
      *
      * @param i the index
-     * @return the updated value;
+     * @return the updated value
      */
     public final long decrementAndGet(int i) {
         while (true) {
@@ -211,13 +228,13 @@ public class AtomicLongArray implements java.io.Serializable {
                 return next;
         }
     }
-  
+
     /**
-     * Atomically add the given value to element at index <tt>i</tt>.
+     * Atomically adds the given value to the element at index {@code i}.
      *
      * @param i the index
      * @param delta the value to add
-     * @return the updated value;
+     * @return the updated value
      */
     public long addAndGet(int i, long delta) {
         while (true) {
@@ -237,5 +254,5 @@ public class AtomicLongArray implements java.io.Serializable {
             get(0);
         return Arrays.toString(array);
     }
-  
+
 }

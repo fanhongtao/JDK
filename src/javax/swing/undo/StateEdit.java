@@ -1,7 +1,7 @@
 /*
- * @(#)StateEdit.java	1.14 04/05/05
+ * @(#)StateEdit.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.util.Vector;
  *
  * @see StateEditable
  *
- * @version 1.14 05/05/04
+ * @version 1.15 11/17/05
  * @author Ray Ryan
  */
 

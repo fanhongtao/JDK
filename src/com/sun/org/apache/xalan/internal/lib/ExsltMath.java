@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ExsltMath.java,v 1.12 2004/02/11 17:56:36 minchau Exp $
+ * $Id: ExsltMath.java,v 1.1.2.1 2005/08/01 02:08:50 jeffsuttor Exp $
  */
 package com.sun.org.apache.xalan.internal.lib;
 

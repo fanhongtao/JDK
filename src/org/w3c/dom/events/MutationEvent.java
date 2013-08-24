@@ -50,14 +50,14 @@ public interface MutationEvent extends Event {
     /**
      *  <code>prevValue</code> indicates the previous value of the 
      * <code>Attr</code> node in DOMAttrModified events, and of the 
-     * <code>CharacterData</code> node in DOMCharDataModified events. 
+     * <code>CharacterData</code> node in DOMCharacterDataModified events. 
      */
     public String getPrevValue();
 
     /**
      *  <code>newValue</code> indicates the new value of the <code>Attr</code> 
      * node in DOMAttrModified events, and of the <code>CharacterData</code> 
-     * node in DOMCharDataModified events. 
+     * node in DOMCharacterDataModified events. 
      */
     public String getNewValue();
 
@@ -82,18 +82,18 @@ public interface MutationEvent extends Event {
      * <code>dispatchEvent</code> method, though it may be called multiple 
      * times during that phase if necessary. If called multiple times, the 
      * final invocation takes precedence.
-     * @param typeArgSpecifies the event type.
-     * @param canBubbleArgSpecifies whether or not the event can bubble.
-     * @param cancelableArgSpecifies whether or not the event's default 
+     * @param typeArg Specifies the event type.
+     * @param canBubbleArg Specifies whether or not the event can bubble.
+     * @param cancelableArg Specifies whether or not the event's default 
      *   action can be prevented.
-     * @param relatedNodeArgSpecifies the <code>Event</code>'s related Node.
-     * @param prevValueArgSpecifies the <code>Event</code>'s 
+     * @param relatedNodeArg Specifies the <code>Event</code>'s related Node.
+     * @param prevValueArg Specifies the <code>Event</code>'s 
      *   <code>prevValue</code> attribute. This value may be null.
-     * @param newValueArgSpecifies the <code>Event</code>'s 
+     * @param newValueArg Specifies the <code>Event</code>'s 
      *   <code>newValue</code> attribute. This value may be null.
-     * @param attrNameArgSpecifies the <code>Event</code>'s 
+     * @param attrNameArg Specifies the <code>Event</code>'s 
      *   <code>attrName</code> attribute. This value may be null.
-     * @param attrChangeArgSpecifies the <code>Event</code>'s 
+     * @param attrChangeArg Specifies the <code>Event</code>'s 
      *   <code>attrChange</code> attribute
      */
     public void initMutationEvent(String typeArg, 

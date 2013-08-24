@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2002,2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.dv.util;
@@ -69,13 +28,15 @@ package com.sun.org.apache.xerces.internal.impl.dv.util;
  * data. You need the data that you will encode/decode
  * already on a byte arrray.
  *
+ * @xerces.internal 
+ *
  * @author Jeffrey Rodriguez
  * @author Sandy Gao
- * @version $Id: Base64.java,v 1.8 2003/05/08 20:11:55 elena Exp $
+ * @version $Id: Base64.java,v 1.2.6.1 2005/09/06 11:44:40 neerajbj Exp $
  */
 public final class  Base64 {
 
-    static private final int  BASELENGTH         = 255;
+    static private final int  BASELENGTH         = 128;
     static private final int  LOOKUPLENGTH       = 64;
     static private final int  TWENTYFOURBITGROUP = 24;
     static private final int  EIGHTBIT           = 8;
@@ -90,7 +51,7 @@ public final class  Base64 {
 
     static {
 
-        for (int i = 0; i<BASELENGTH; i++) {
+        for (int i = 0; i < BASELENGTH; ++i) {
             base64Alphabet[i] = -1;
         }
         for (int i = 'Z'; i >= 'A'; i--) {
@@ -129,7 +90,7 @@ public final class  Base64 {
     }
 
     protected static boolean isData(char octect) {
-        return (base64Alphabet[octect] != -1);
+        return (octect < BASELENGTH && base64Alphabet[octect] != -1);
     }
 
     protected static boolean isBase64(char octect) {
@@ -155,55 +116,19 @@ public final class  Base64 {
         int      fewerThan24bits   = lengthDataBits%TWENTYFOURBITGROUP;
         int      numberTriplets    = lengthDataBits/TWENTYFOURBITGROUP;
         int      numberQuartet     = fewerThan24bits != 0 ? numberTriplets+1 : numberTriplets;
-        int      numberLines       = (numberQuartet-1)/19+1;
         char     encodedData[]     = null;
 
-        encodedData = new char[numberQuartet*4+numberLines];
+        encodedData = new char[numberQuartet*4];
 
         byte k=0, l=0, b1=0,b2=0,b3=0;
 
         int encodedIndex = 0;
         int dataIndex   = 0;
-        int i           = 0;
         if (fDebug) {
             System.out.println("number of triplets = " + numberTriplets );
         }
 
-        for (int line = 0; line < numberLines-1; line++) {
-            for (int quartet = 0; quartet < 19; quartet++) {
-                b1 = binaryData[dataIndex++];
-                b2 = binaryData[dataIndex++];
-                b3 = binaryData[dataIndex++];
-
-                if (fDebug) {
-                    System.out.println( "b1= " + b1 +", b2= " + b2 + ", b3= " + b3 );
-                }
-
-                l  = (byte)(b2 & 0x0f);
-                k  = (byte)(b1 & 0x03);
-
-                byte val1 = ((b1 & SIGN)==0)?(byte)(b1>>2):(byte)((b1)>>2^0xc0);
-
-                byte val2 = ((b2 & SIGN)==0)?(byte)(b2>>4):(byte)((b2)>>4^0xf0);
-                byte val3 = ((b3 & SIGN)==0)?(byte)(b3>>6):(byte)((b3)>>6^0xfc);
-
-                if (fDebug) {
-                    System.out.println( "val2 = " + val2 );
-                    System.out.println( "k4   = " + (k<<4));
-                    System.out.println( "vak  = " + (val2 | (k<<4)));
-                }
-
-                encodedData[encodedIndex++] = lookUpBase64Alphabet[ val1 ];
-                encodedData[encodedIndex++] = lookUpBase64Alphabet[ val2 | ( k<<4 )];
-                encodedData[encodedIndex++] = lookUpBase64Alphabet[ (l <<2 ) | val3 ];
-                encodedData[encodedIndex++] = lookUpBase64Alphabet[ b3 & 0x3f ];
-
-                i++;
-            }
-            encodedData[encodedIndex++] = 0xa;
-        }
-
-        for (; i<numberTriplets; i++) {
+        for (int i=0; i<numberTriplets; i++) {
             b1 = binaryData[dataIndex++];
             b2 = binaryData[dataIndex++];
             b3 = binaryData[dataIndex++];
@@ -260,15 +185,13 @@ public final class  Base64 {
             encodedData[encodedIndex++] = PAD;
         }
 
-        encodedData[encodedIndex] = 0xa;
-        
         return new String(encodedData);
     }
 
     /**
      * Decodes Base64 data into octects
      *
-     * @param binaryData Byte array containing Base64 data
+     * @param encoded string containing Base64 data
      * @return Array containind decoded data.
      */
     public static byte[] decode(String encoded) {
@@ -290,7 +213,7 @@ public final class  Base64 {
             return new byte[0];
 
         byte     decodedData[]      = null;
-        byte     b1=0,b2=0,b3=0, b4=0, marker0=0, marker1=0;
+        byte     b1=0,b2=0,b3=0,b4=0;
         char     d1=0,d2=0,d3=0,d4=0;
 
         int i = 0;

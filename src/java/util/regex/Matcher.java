@@ -1,7 +1,7 @@
 /*
- * @(#)Matcher.java	1.58 04/06/28
+ * @(#)Matcher.java	1.64 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -79,7 +79,7 @@ package java.util.regex;
  * @author      Mike McCloskey
  * @author	Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.58, 04/06/28
+ * @version 	1.64, 06/04/07
  * @since	1.4
  * @spec        JSR-51
  */
@@ -103,6 +103,12 @@ public final class Matcher implements MatchResult {
      * changes these values.
      */
     int from, to;
+
+    /**
+     * Lookbehind uses this value to ensure that the subexpression
+     * match ends at the point where the lookbehind was encountered.
+     */
+    int lookbehindTo;
 
     /**
      * The original string being matched.
@@ -220,6 +226,7 @@ public final class Matcher implements MatchResult {
      * matcher.
      *
      * @return  a <code>MatchResult</code> with the state of this matcher
+     * @since 1.5
      */
     public MatchResult toMatchResult() {
         Matcher result = new Matcher(this.parentPattern, text.toString());
@@ -577,7 +584,7 @@ public final class Matcher implements MatchResult {
      * <code>String</code>.
      *
      * This method produces a <code>String</code> that will work
-     * use as a literal replacement <code>s</code> in the
+     * as a literal replacement <code>s</code> in the
      * <code>appendReplacement</code> method of the {@link Matcher} class.
      * The <code>String</code> produced will match the sequence of characters
      * in <code>s</code> treated as a literal sequence. Slashes ('\') and
@@ -823,6 +830,13 @@ public final class Matcher implements MatchResult {
      * string may contain references to captured subsequences as in the {@link
      * #appendReplacement appendReplacement} method.
      *
+     * <p>Note that backslashes (<tt>\</tt>) and dollar signs (<tt>$</tt>) in
+     * the replacement string may cause the results to be different than if it
+     * were being treated as a literal replacement string. Dollar signs may be
+     * treated as references to captured subsequences as described above, and
+     * backslashes are used to escape literal characters in the replacement
+     * string.
+     *
      * <p> Given the regular expression <tt>dog</tt>, the input
      * <tt>"zzzdogzzzdogzzz"</tt>, and the replacement string
      * <tt>"cat"</tt>, an invocation of this method on a matcher for that
@@ -836,7 +850,6 @@ public final class Matcher implements MatchResult {
      *         The replacement string
      * @return  The string constructed by replacing the first matching
      *          subsequence by the replacement string, substituting captured
-     * @throws  NullPointerException  if <code>replacement</code> is null.
      *          subsequences as needed
      */
     public String replaceFirst(String replacement) {

@@ -1,7 +1,7 @@
 /*
- * @(#)SaslClientFactory.java	1.15 04/05/05
+ * @(#)SaslClientFactory.java	1.18 06/08/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,8 @@ public abstract interface SaslClientFactory {
      * mechanism and to configure the authentication exchange of the selected
      * mechanism. See the <tt>Sasl</tt> class for a list of standard properties. 
      * Other, possibly mechanism-specific, properties can be included.
-     * Properties not relevant to the selected mechanism are ignored.
+     * Properties not relevant to the selected mechanism are ignored,
+     * including any map entries with non-String keys.
      * 
      * @param cbh The possibly null callback handler to used by the SASL
      * mechanisms to get further information from the application/library
@@ -85,7 +86,8 @@ public abstract interface SaslClientFactory {
      * <tt>"true"</tt>, then the factory must not return any SASL mechanisms
      * that are susceptible to simple plain passive attacks.
      * See the <tt>Sasl</tt> class for a complete list of policy properties.
-     * Non-policy related properties, if present in <tt>props</tt>, are ignored.
+     * Non-policy related properties, if present in <tt>props</tt>, are ignored,
+     * including any map entries with non-String keys.
      * @return A non-null array containing a IANA-registered SASL mechanism names.
      */
     public abstract String[] getMechanismNames(Map<String,?> props);

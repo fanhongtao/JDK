@@ -1,7 +1,7 @@
 /*
- * @(#)TableModel.java	1.26 04/05/05
+ * @(#)TableModel.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import javax.swing.event.*;
  * For further documentation, see <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/table.html#data">Creating a Table Model</a>
  * in <em>The Java Tutorial</em>.
  * <p>
- * @version 1.26 05/05/04
+ * @version 1.27 11/17/05
  * @author Philip Milne
  * @see JTable
  */

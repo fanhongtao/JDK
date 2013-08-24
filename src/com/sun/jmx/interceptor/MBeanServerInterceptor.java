@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanServerInterceptor.java	1.16 03/12/19
+ * @(#)MBeanServerInterceptor.java	1.22 05/12/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,9 +49,9 @@ import javax.management.loading.ClassLoaderRepository;
  * method.</p>
  *
  * <p>The initial default interceptor provides the standard MBean
- * Server behaviour.  It handles a collection of named MBeans, each
+ * Server behavior.  It handles a collection of named MBeans, each
  * represented by a Java object.  A replacement default interceptor
- * may build on this behaviour, for instance by adding logging or
+ * may build on this behavior, for instance by adding logging or
  * security checks, before forwarding requests to the initial default
  * interceptor.  Or, it may route each request to one of a number of
  * sub-interceptors, for instance based on the {@link ObjectName} in
@@ -256,7 +256,7 @@ public interface MBeanServerInterceptor extends MBeanServerConnection {
      * objects for the selected MBeans.  If no MBean satisfies the
      * query an empty list is returned.
      */
-    public Set queryMBeans(ObjectName name, QueryExp query);
+    public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query);
 
     /**
      * Gets the names of MBeans controlled by the MBean server. This
@@ -280,7 +280,7 @@ public interface MBeanServerInterceptor extends MBeanServerConnection {
      * selected.  If no MBean satisfies the query, an empty list is
      * returned.
      */
-    public Set queryNames(ObjectName name, QueryExp query);
+    public Set<ObjectName> queryNames(ObjectName name, QueryExp query);
 
     /**
      * Checks whether an MBean, identified by its object name, is
@@ -360,8 +360,6 @@ public interface MBeanServerInterceptor extends MBeanServerConnection {
      * to be set.
      * @param attribute The identification of the attribute to be set
      * and the value it is to be set to.
-     *
-     * @return The value of the attribute that has been set.
      *
      * @exception InstanceNotFoundException The MBean specified is not
      * registered in the MBean server.
@@ -635,7 +633,7 @@ public interface MBeanServerInterceptor extends MBeanServerConnection {
      * @return An instance of <CODE>MBeanInfo</CODE> allowing the
      * retrieval of all attributes and operations of this MBean.
      *
-     * @exception IntrospectionException An exception occured during
+     * @exception IntrospectionException An exception occurred during
      * introspection.
      * @exception InstanceNotFoundException The MBean specified was
      * not found.

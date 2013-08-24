@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2000-2002 The Apache Software Foundation.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2000-2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xpath;
@@ -67,9 +26,12 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 
 /**
  * Bare minimum XPath parser.
+ * 
+ * @xerces.internal
  *
  * @author Andy Clark, IBM
- * @version $Id: XPath.java,v 1.13 2004/02/09 22:50:01 kohsuke Exp $
+ * @author Sunitha Reddy, Sun Microsystems
+ * @version $Id: XPath.java,v 1.3 2005/09/26 13:02:31 sunithareddy Exp $
  */
 public class XPath {
 
@@ -192,14 +154,16 @@ public class XPath {
                 throws XPathException {
                 if (
                     token == XPath.Tokens.EXPRTOKEN_ATSIGN ||
+                    token == XPath.Tokens.EXPRTOKEN_AXISNAME_ATTRIBUTE ||
                     token == XPath.Tokens.EXPRTOKEN_NAMETEST_QNAME ||
                     token == XPath.Tokens.EXPRTOKEN_OPERATOR_SLASH ||
                     token == XPath.Tokens.EXPRTOKEN_PERIOD ||
                     token == XPath.Tokens.EXPRTOKEN_NAMETEST_ANY ||
                     token == XPath.Tokens.EXPRTOKEN_NAMETEST_NAMESPACE ||
                     token == XPath.Tokens.EXPRTOKEN_OPERATOR_DOUBLE_SLASH ||
-                    token == XPath.Tokens.EXPRTOKEN_OPERATOR_UNION
-                    //
+                    token == XPath.Tokens.EXPRTOKEN_OPERATOR_UNION ||
+                    token == XPath.Tokens.EXPRTOKEN_AXISNAME_CHILD ||
+                    token == XPath.Tokens.EXPRTOKEN_DOUBLE_COLON
                     ) {
                     super.addToken(tokens, token);
                     return;
@@ -226,6 +190,7 @@ public class XPath {
         // this is to make sure we can detect a token list like
         // 'abc' '/' '/' 'def' 'ghi'
         boolean expectingStep = true;
+        boolean expectingDoubleColon = false;
 
         while(xtokens.hasMore()) {
             final int token = xtokens.nextToken();
@@ -302,10 +267,35 @@ public class XPath {
                     expectingStep=true;
                     break;
                 }
+                case XPath.Tokens.EXPRTOKEN_AXISNAME_ATTRIBUTE: {
+                     check(expectingStep);
+                     expectingDoubleColon = true;
+                    
+                     if (xtokens.nextToken() == XPath.Tokens.EXPRTOKEN_DOUBLE_COLON){
+                         Step step = new Step(
+                         new Axis(Axis.ATTRIBUTE),
+                                 parseNodeTest(xtokens.nextToken(),xtokens,context));
+                         stepsVector.addElement(step);
+                         expectingStep=false;
+                         expectingDoubleColon = false;
+                     }
+                     break;
+                }
+                case XPath.Tokens.EXPRTOKEN_AXISNAME_CHILD:{
+                    check(expectingStep);
+                    expectingDoubleColon = true;
+                    break;
+                }
+                case XPath.Tokens.EXPRTOKEN_DOUBLE_COLON :{
+                    check(expectingStep);
+                    check(expectingDoubleColon);
+                    expectingDoubleColon = false;
+                    break;
+                }
                 default:
                     // we should have covered all the tokens that we can possibly see. 
-                    throw new InternalError();
-            }
+                    throw new XPathException("c-general-xpath");
+           }
         }
         
         check(!expectingStep);
@@ -357,7 +347,8 @@ public class XPath {
         
         default:
             // assertion error
-            throw new InternalError();
+            throw new XPathException("c-general-xpath");
+            
         }
     }
     
@@ -370,6 +361,8 @@ public class XPath {
 
     /**
      * A location path representation for an XPath expression.
+     * 
+     * @xerces.internal
      *
      * @author Andy Clark, IBM
      */
@@ -435,6 +428,8 @@ public class XPath {
 
     /**
      * A location path step comprised of an axis and node test.
+     * 
+     * @xerces.internal
      *
      * @author Andy Clark, IBM
      */
@@ -497,6 +492,8 @@ public class XPath {
 
     /**
      * Axis.
+     * 
+     * @xerces.internal
      *
      * @author Andy Clark, IBM
      */
@@ -564,6 +561,8 @@ public class XPath {
 
     /**
      * Node test.
+     * 
+     * @xerces.internal
      *
      * @author Andy Clark, IBM
      */
@@ -677,10 +676,12 @@ public class XPath {
     /**
      * List of tokens.
      * 
+     * @xerces.internal
+     * 
      * @author Glenn Marcy, IBM
      * @author Andy Clark, IBM
      *
-     * @version $Id: XPath.java,v 1.13 2004/02/09 22:50:01 kohsuke Exp $
+     * @version $Id: XPath.java,v 1.3 2005/09/26 13:02:31 sunithareddy Exp $
      */
     private static final class Tokens {
 
@@ -1208,10 +1209,12 @@ public class XPath {
     } // class Tokens
 
     /**
+     * @xerces.internal
+     * 
      * @author Glenn Marcy, IBM
      * @author Andy Clark, IBM
      *
-     * @version $Id: XPath.java,v 1.13 2004/02/09 22:50:01 kohsuke Exp $
+     * @version $Id: XPath.java,v 1.3 2005/09/26 13:02:31 sunithareddy Exp $
      */
     private static class Scanner {
 
@@ -1948,7 +1951,7 @@ public class XPath {
             }
             if (ch == '.') {
                 if (++currentOffset < endOffset) {
-                    int start = currentOffset;
+                    /** int start = currentOffset; **/
                     ch = data.charAt(currentOffset);
                     while (ch >= '0' && ch <= '9') {
                         part = (part * 10) + (ch - '0');

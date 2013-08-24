@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ElementAvailableCall.java,v 1.10 2004/02/16 22:24:28 minchau Exp $
+ * $Id: ElementAvailableCall.java,v 1.2.4.1 2005/09/01 14:13:01 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

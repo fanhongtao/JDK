@@ -1,7 +1,7 @@
 /*
- * @(#)Arrays.java	1.59 04/04/01
+ * @(#)Arrays.java	1.71 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ import java.lang.reflect.*;
 
 /**
  * This class contains various methods for manipulating arrays (such as
- * sorting and searching).  This class also contains a static factory 
+ * sorting and searching).  This class also contains a static factory
  * that allows arrays to be viewed as lists.
  *
  * <p>The methods in this class all throw a <tt>NullPointerException</tt> if
@@ -25,15 +25,14 @@ import java.lang.reflect.*;
  * example, the algorithm used by <tt>sort(Object[])</tt> does not have to be
  * a mergesort, but it does have to be <i>stable</i>.)
  *
- * <p>This class is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <p>This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.59, 04/01/04
- * @see     Comparable
- * @see     Comparator
+ * @author  John Rose
+ * @version 1.71, 04/21/06
  * @since   1.2
  */
 
@@ -52,7 +51,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(long[] a) {
 	sort1(a, 0, a.length);
@@ -70,10 +69,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      * <tt>toIndex &gt; a.length</tt>
@@ -91,7 +90,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(int[] a) {
 	sort1(a, 0, a.length);
@@ -109,10 +108,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -130,7 +129,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(short[] a) {
 	sort1(a, 0, a.length);
@@ -148,10 +147,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -169,7 +168,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(char[] a) {
 	sort1(a, 0, a.length);
@@ -187,10 +186,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -208,7 +207,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(byte[] a) {
 	sort1(a, 0, a.length);
@@ -226,10 +225,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -262,7 +261,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(double[] a) {
 	sort2(a, 0, a.length);
@@ -294,10 +293,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -330,7 +329,7 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      */
     public static void sort(float[] a) {
 	sort2(a, 0, a.length);
@@ -362,10 +361,10 @@ public class Arrays {
      * 1993).  This algorithm offers n*log(n) performance on many data sets
      * that cause other quicksorts to degrade to quadratic performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -384,7 +383,7 @@ public class Arrays {
 
         /*
          * Preprocessing phase:  Move any NaN's to end of array, count the
-         * number of -0.0's, and turn them into 0.0's. 
+         * number of -0.0's, and turn them into 0.0's.
          */
         int numNegZeros = 0;
         int i = fromIndex, n = toIndex;
@@ -407,7 +406,7 @@ public class Arrays {
 
         // Postprocessing phase: change 0.0's to -0.0's as required
         if (numNegZeros != 0) {
-            int j = binarySearch(a, 0.0d, fromIndex, n-1); // posn of ANY zero
+            int j = binarySearch0(a, fromIndex, n, 0.0d); // posn of ANY zero
             do {
                 j--;
             } while (j>=0 && a[j]==0.0d);
@@ -428,7 +427,7 @@ public class Arrays {
 
         /*
          * Preprocessing phase:  Move any NaN's to end of array, count the
-         * number of -0.0's, and turn them into 0.0's. 
+         * number of -0.0's, and turn them into 0.0's.
          */
         int numNegZeros = 0;
         int i = fromIndex, n = toIndex;
@@ -451,7 +450,7 @@ public class Arrays {
 
         // Postprocessing phase: change 0.0's to -0.0's as required
         if (numNegZeros != 0) {
-            int j = binarySearch(a, 0.0f, fromIndex, n-1); // posn of ANY zero
+            int j = binarySearch0(a, fromIndex, n, 0.0f); // posn of ANY zero
             do {
                 j--;
             } while (j>=0 && a[j]==0.0f);
@@ -1056,8 +1055,9 @@ public class Arrays {
 
     /**
      * Sorts the specified array of objects into ascending order, according to
-     * the <i>natural ordering</i> of its elements.  All elements in the array
-     * must implement the <tt>Comparable</tt> interface.  Furthermore, all
+     * the {@linkplain Comparable natural ordering}
+     * of its elements.  All elements in the array
+     * must implement the {@link Comparable} interface.  Furthermore, all
      * elements in the array must be <i>mutually comparable</i> (that is,
      * <tt>e1.compareTo(e2)</tt> must not throw a <tt>ClassCastException</tt>
      * for any elements <tt>e1</tt> and <tt>e2</tt> in the array).<p>
@@ -1069,11 +1069,10 @@ public class Arrays {
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
      * n*log(n) performance.
-     * 
-     * @param a the array to be sorted.
+     *
+     * @param a the array to be sorted
      * @throws  ClassCastException if the array contains elements that are not
      *		<i>mutually comparable</i> (for example, strings and integers).
-     * @see Comparable
      */
     public static void sort(Object[] a) {
         Object[] aux = (Object[])a.clone();
@@ -1082,11 +1081,12 @@ public class Arrays {
 
     /**
      * Sorts the specified range of the specified array of objects into
-     * ascending order, according to the <i>natural ordering</i> of its
+     * ascending order, according to the
+     * {@linkplain Comparable natural ordering} of its
      * elements.  The range to be sorted extends from index
      * <tt>fromIndex</tt>, inclusive, to index <tt>toIndex</tt>, exclusive.
      * (If <tt>fromIndex==toIndex</tt>, the range to be sorted is empty.)  All
-     * elements in this range must implement the <tt>Comparable</tt>
+     * elements in this range must implement the {@link Comparable}
      * interface.  Furthermore, all elements in this range must be <i>mutually
      * comparable</i> (that is, <tt>e1.compareTo(e2)</tt> must not throw a
      * <tt>ClassCastException</tt> for any elements <tt>e1</tt> and
@@ -1099,22 +1099,21 @@ public class Arrays {
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
      * n*log(n) performance.
-     * 
-     * @param a the array to be sorted.
+     *
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
      * @throws    ClassCastException if the array contains elements that are
      *		  not <i>mutually comparable</i> (for example, strings and
      *		  integers).
-     * @see Comparable
      */
     public static void sort(Object[] a, int fromIndex, int toIndex) {
         rangeCheck(a.length, fromIndex, toIndex);
-	Object[] aux = cloneSubarray(a, fromIndex, toIndex);
+	Object[] aux = copyOfRange(a, fromIndex, toIndex);
         mergeSort(aux, a, fromIndex, toIndex, -fromIndex);
     }
 
@@ -1123,17 +1122,6 @@ public class Arrays {
      * used in preference to mergesort or quicksort.
      */
     private static final int INSERTIONSORT_THRESHOLD = 7;
-
-    /**
-     * Clones an array within the specified bounds.
-     * This method assumes that a is an array.
-     */
-    private static <T> T[] cloneSubarray(T[] a, int from, int to) {
-        int n = to - from;
-	T[] result = (T[])Array.newInstance(a.getClass().getComponentType(), n);
-        System.arraycopy(a, from, result, 0, n);
-        return result;
-    }
 
     /**
      * Src is the source array that starts at index 0
@@ -1163,7 +1151,7 @@ public class Arrays {
         int destHigh = high;
         low  += off;
         high += off;
-        int mid = (low + high) >> 1;
+        int mid = (low + high) >>> 1;
         mergeSort(dest, src, low, mid, -off);
         mergeSort(dest, src, mid, high, -off);
 
@@ -1205,15 +1193,14 @@ public class Arrays {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n*log(n) performance. 
+     * n*log(n) performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param c the comparator to determine the order of the array.  A
-     *        <tt>null</tt> value indicates that the elements' <i>natural
-     *        ordering</i> should be used.
+     *        <tt>null</tt> value indicates that the elements'
+     *        {@linkplain Comparable natural ordering} should be used.
      * @throws  ClassCastException if the array contains elements that are
      *		not <i>mutually comparable</i> using the specified comparator.
-     * @see Comparator
      */
     public static <T> void sort(T[] a, Comparator<? super T> c) {
 	T[] aux = (T[])a.clone();
@@ -1239,26 +1226,25 @@ public class Arrays {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n*log(n) performance. 
+     * n*log(n) performance.
      *
-     * @param a the array to be sorted.
+     * @param a the array to be sorted
      * @param fromIndex the index of the first element (inclusive) to be
-     *        sorted.
-     * @param toIndex the index of the last element (exclusive) to be sorted.
+     *        sorted
+     * @param toIndex the index of the last element (exclusive) to be sorted
      * @param c the comparator to determine the order of the array.  A
-     *        <tt>null</tt> value indicates that the elements' <i>natural
-     *        ordering</i> should be used.
+     *        <tt>null</tt> value indicates that the elements'
+     *        {@linkplain Comparable natural ordering} should be used.
      * @throws ClassCastException if the array contains elements that are not
      *	       <i>mutually comparable</i> using the specified comparator.
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
-     * @see Comparator
      */
     public static <T> void sort(T[] a, int fromIndex, int toIndex,
 				Comparator<? super T> c) {
         rangeCheck(a.length, fromIndex, toIndex);
-	T[] aux = (T[])cloneSubarray(a, fromIndex, toIndex);
+	T[] aux = (T[])copyOfRange(a, fromIndex, toIndex);
         if (c==null)
             mergeSort(aux, a, fromIndex, toIndex, -fromIndex);
         else
@@ -1291,7 +1277,7 @@ public class Arrays {
         int destHigh = high;
         low  += off;
         high += off;
-        int mid = (low + high) >> 1;
+        int mid = (low + high) >>> 1;
         mergeSort(dest, src, low, mid, -off, c);
         mergeSort(dest, src, mid, high, -off, c);
 
@@ -1329,30 +1315,73 @@ public class Arrays {
 
     /**
      * Searches the specified array of longs for the specified value using the
-     * binary search algorithm.  The array <strong>must</strong> be sorted (as
-     * by the <tt>sort</tt> method, above) prior to making this call.  If it
+     * binary search algorithm.  The array must be sorted (as
+     * by the {@link #sort(long[])} method) prior to making this call.  If it
      * is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
      * one will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(long[])
      */
     public static int binarySearch(long[] a, long key) {
-	int low = 0;
-	int high = a.length-1;
+	return binarySearch0(a, 0, a.length, key);
+    }
+
+    /**
+     * Searches a range of
+     * the specified array of longs for the specified value using the
+     * binary search algorithm.
+     * The range must be sorted (as
+     * by the {@link #sort(long[], int, int)} method)
+     * prior to making this call.  If it
+     * is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(long[] a, int fromIndex, int toIndex,
+				   long key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(long[] a, int fromIndex, int toIndex,
+				     long key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    long midVal = a[mid];
 
 	    if (midVal < key)
@@ -1365,33 +1394,75 @@ public class Arrays {
 	return -(low + 1);  // key not found.
     }
 
-
     /**
      * Searches the specified array of ints for the specified value using the
-     * binary search algorithm.  The array <strong>must</strong> be sorted (as
-     * by the <tt>sort</tt> method, above) prior to making this call.  If it
+     * binary search algorithm.  The array must be sorted (as
+     * by the {@link #sort(int[])} method) prior to making this call.  If it
      * is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
      * one will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(int[])
      */
     public static int binarySearch(int[] a, int key) {
-	int low = 0;
-	int high = a.length-1;
+	return binarySearch0(a, 0, a.length, key);
+    }
+
+    /**
+     * Searches a range of
+     * the specified array of ints for the specified value using the
+     * binary search algorithm.
+     * The range must be sorted (as
+     * by the {@link #sort(int[], int, int)} method)
+     * prior to making this call.  If it
+     * is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(int[] a, int fromIndex, int toIndex,
+				   int key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(int[] a, int fromIndex, int toIndex,
+				     int key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    int midVal = a[mid];
 
 	    if (midVal < key)
@@ -1406,30 +1477,73 @@ public class Arrays {
 
     /**
      * Searches the specified array of shorts for the specified value using
-     * the binary search algorithm.  The array <strong>must</strong> be sorted
-     * (as by the <tt>sort</tt> method, above) prior to making this call.  If
+     * the binary search algorithm.  The array must be sorted
+     * (as by the {@link #sort(short[])} method) prior to making this call.  If
      * it is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
      * one will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(short[])
      */
     public static int binarySearch(short[] a, short key) {
-	int low = 0;
-	int high = a.length-1;
+	return binarySearch0(a, 0, a.length, key);
+    }
+
+    /**
+     * Searches a range of
+     * the specified array of shorts for the specified value using
+     * the binary search algorithm.
+     * The range must be sorted
+     * (as by the {@link #sort(short[], int, int)} method)
+     * prior to making this call.  If
+     * it is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(short[] a, int fromIndex, int toIndex,
+				   short key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(short[] a, int fromIndex, int toIndex,
+				     short key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    short midVal = a[mid];
 
 	    if (midVal < key)
@@ -1444,30 +1558,73 @@ public class Arrays {
 
     /**
      * Searches the specified array of chars for the specified value using the
-     * binary search algorithm.  The array <strong>must</strong> be sorted (as
-     * by the <tt>sort</tt> method, above) prior to making this call.  If it
+     * binary search algorithm.  The array must be sorted (as
+     * by the {@link #sort(char[])} method) prior to making this call.  If it
      * is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
      * one will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(char[])
      */
     public static int binarySearch(char[] a, char key) {
-	int low = 0;
-	int high = a.length-1;
+	return binarySearch0(a, 0, a.length, key);
+    }
+
+    /**
+     * Searches a range of
+     * the specified array of chars for the specified value using the
+     * binary search algorithm.
+     * The range must be sorted (as
+     * by the {@link #sort(char[], int, int)} method)
+     * prior to making this call.  If it
+     * is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(char[] a, int fromIndex, int toIndex,
+				   char key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(char[] a, int fromIndex, int toIndex,
+				     char key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    char midVal = a[mid];
 
 	    if (midVal < key)
@@ -1482,30 +1639,73 @@ public class Arrays {
 
     /**
      * Searches the specified array of bytes for the specified value using the
-     * binary search algorithm.  The array <strong>must</strong> be sorted (as
-     * by the <tt>sort</tt> method, above) prior to making this call.  If it
+     * binary search algorithm.  The array must be sorted (as
+     * by the {@link #sort(byte[])} method) prior to making this call.  If it
      * is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
      * one will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(byte[])
      */
     public static int binarySearch(byte[] a, byte key) {
-	int low = 0;
-	int high = a.length-1;
+	return binarySearch0(a, 0, a.length, key);
+    }
+
+    /**
+     * Searches a range of
+     * the specified array of bytes for the specified value using the
+     * binary search algorithm.
+     * The range must be sorted (as
+     * by the {@link #sort(byte[], int, int)} method)
+     * prior to making this call.  If it
+     * is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(byte[] a, int fromIndex, int toIndex,
+				   byte key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(byte[] a, int fromIndex, int toIndex,
+				     byte key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    byte midVal = a[mid];
 
 	    if (midVal < key)
@@ -1520,32 +1720,75 @@ public class Arrays {
 
     /**
      * Searches the specified array of doubles for the specified value using
-     * the binary search algorithm.  The array <strong>must</strong> be sorted
-     * (as by the <tt>sort</tt> method, above) prior to making this call.  If
-     * it is not sorted, the results are undefined.  If the array contains
+     * the binary search algorithm.  The array must be sorted
+     * (as by the {@link #sort(double[])} method) prior to making this call.
+     * If it is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
-     * one will be found.  This method considers all NaN values to be 
+     * one will be found.  This method considers all NaN values to be
      * equivalent and equal.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(double[])
      */
     public static int binarySearch(double[] a, double key) {
-        return binarySearch(a, key, 0, a.length-1);
+	return binarySearch0(a, 0, a.length, key);
     }
 
-    private static int binarySearch(double[] a, double key, int low,int high) {
+    /**
+     * Searches a range of
+     * the specified array of doubles for the specified value using
+     * the binary search algorithm.
+     * The range must be sorted
+     * (as by the {@link #sort(double[], int, int)} method)
+     * prior to making this call.
+     * If it is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.  This method considers all NaN values to be
+     * equivalent and equal.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(double[] a, int fromIndex, int toIndex,
+				   double key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(double[] a, int fromIndex, int toIndex,
+				     double key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
+
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    double midVal = a[mid];
 
             int cmp;
@@ -1573,32 +1816,75 @@ public class Arrays {
 
     /**
      * Searches the specified array of floats for the specified value using
-     * the binary search algorithm.  The array <strong>must</strong> be sorted
-     * (as by the <tt>sort</tt> method, above) prior to making this call.  If
+     * the binary search algorithm.  The array must be sorted
+     * (as by the {@link #sort(float[])} method) prior to making this call.  If
      * it is not sorted, the results are undefined.  If the array contains
      * multiple elements with the specified value, there is no guarantee which
-     * one will be found.  This method considers all NaN values to be 
+     * one will be found.  This method considers all NaN values to be
      * equivalent and equal.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @see #sort(float[])
      */
     public static int binarySearch(float[] a, float key) {
-        return binarySearch(a, key, 0, a.length-1);
+	return binarySearch0(a, 0, a.length, key);
     }
 
-    private static int binarySearch(float[] a, float key, int low,int high) {
+    /**
+     * Searches a range of
+     * the specified array of floats for the specified value using
+     * the binary search algorithm.
+     * The range must be sorted
+     * (as by the {@link #sort(float[], int, int)} method)
+     * prior to making this call.  If
+     * it is not sorted, the results are undefined.  If the range contains
+     * multiple elements with the specified value, there is no guarantee which
+     * one will be found.  This method considers all NaN values to be
+     * equivalent and equal.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(float[] a, int fromIndex, int toIndex,
+				   float key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(float[] a, int fromIndex, int toIndex,
+				     float key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
+
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    float midVal = a[mid];
 
             int cmp;
@@ -1628,37 +1914,89 @@ public class Arrays {
     /**
      * Searches the specified array for the specified object using the binary
      * search algorithm.  The array must be sorted into ascending order
-     * according to the <i>natural ordering</i> of its elements (as by
-     * <tt>Sort(Object[]</tt>), above) prior to making this call.  If it is
-     * not sorted, the results are undefined.
-     * (If the array contains elements that are not  mutually comparable (for
-     * example,strings and integers), it <i>cannot</i> be sorted according 
-     * to the natural order of its elements, hence results are undefined.)
-     *  If the array contains multiple
+     * according to the
+     * {@linkplain Comparable natural ordering}
+     * of its elements (as by the
+     * {@link #sort(Object[])} method) prior to making this call.
+     * If it is not sorted, the results are undefined.
+     * (If the array contains elements that are not mutually comparable (for
+     * example, strings and integers), it <i>cannot</i> be sorted according
+     * to the natural ordering of its elements, hence results are undefined.)
+     * If the array contains multiple
      * elements equal to the specified object, there is no guarantee which
      * one will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search key, if it is contained in the list;
+     * @param a the array to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
-     * @throws ClassCastException if the search key in not comparable to the
+     * @throws ClassCastException if the search key is not comparable to the
      *         elements of the array.
-     * @see Comparable
-     * @see #sort(Object[])
      */
     public static int binarySearch(Object[] a, Object key) {
-	int low = 0;
-	int high = a.length-1;
+	return binarySearch0(a, 0, a.length, key);
+    }
+
+    /**
+     * Searches a range of
+     * the specified array for the specified object using the binary
+     * search algorithm.
+     * The range must be sorted into ascending order
+     * according to the
+     * {@linkplain Comparable natural ordering}
+     * of its elements (as by the
+     * {@link #sort(Object[], int, int)} method) prior to making this
+     * call.  If it is not sorted, the results are undefined.
+     * (If the range contains elements that are not mutually comparable (for
+     * example, strings and integers), it <i>cannot</i> be sorted according
+     * to the natural ordering of its elements, hence results are undefined.)
+     * If the range contains multiple
+     * elements equal to the specified object, there is no guarantee which
+     * one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws ClassCastException if the search key is not comparable to the
+     *         elements of the array within the specified range.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static int binarySearch(Object[] a, int fromIndex, int toIndex,
+				   Object key) {
+	rangeCheck(a.length, fromIndex, toIndex);
+	return binarySearch0(a, fromIndex, toIndex, key);
+    }
+
+    // Like public version, but without range checks.
+    private static int binarySearch0(Object[] a, int fromIndex, int toIndex,
+				     Object key) {
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    Comparable midVal = (Comparable)a[mid];
 	    int cmp = midVal.compareTo(key);
 
@@ -1675,43 +2013,94 @@ public class Arrays {
     /**
      * Searches the specified array for the specified object using the binary
      * search algorithm.  The array must be sorted into ascending order
-     * according to the specified comparator (as by the <tt>Sort(Object[],
-     * Comparator)</tt> method, above), prior to making this call.  If it is
-     * not sorted, the results are undefined. 
+     * according to the specified comparator (as by the
+     * {@link #sort(Object[], Comparator) sort(T[], Comparator)}
+     * method) prior to making this call.  If it is
+     * not sorted, the results are undefined.
      * If the array contains multiple
      * elements equal to the specified object, there is no guarantee which one
      * will be found.
      *
-     * @param a the array to be searched.
-     * @param key the value to be searched for.
+     * @param a the array to be searched
+     * @param key the value to be searched for
      * @param c the comparator by which the array is ordered.  A
-     *        <tt>null</tt> value indicates that the elements' <i>natural
-     *        ordering</i> should be used.
-     * @return index of the search key, if it is contained in the list;
+     *        <tt>null</tt> value indicates that the elements'
+     *	      {@linkplain Comparable natural ordering} should be used.
+     * @return index of the search key, if it is contained in the array;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>list.size()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       key would be inserted into the array: the index of the first
+     *	       element greater than the key, or <tt>a.length</tt> if all
+     *	       elements in the array are less than the specified key.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
      * @throws ClassCastException if the array contains elements that are not
      *	       <i>mutually comparable</i> using the specified comparator,
-     *	       or the search key in not mutually comparable with the
+     *	       or the search key is not comparable to the
      *	       elements of the array using this comparator.
-     * @see Comparable
-     * @see #sort(Object[], Comparator)
      */
     public static <T> int binarySearch(T[] a, T key, Comparator<? super T> c) {
-        if (c==null) {
-            return binarySearch(a, key);
-	}
+        return binarySearch0(a, 0, a.length, key, c);
+    }
 
-	int low = 0;
-	int high = a.length-1;
+    /**
+     * Searches a range of
+     * the specified array for the specified object using the binary
+     * search algorithm.
+     * The range must be sorted into ascending order
+     * according to the specified comparator (as by the
+     * {@link #sort(Object[], int, int, Comparator)
+     * sort(T[], int, int, Comparator)}
+     * method) prior to making this call.
+     * If it is not sorted, the results are undefined.
+     * If the range contains multiple elements equal to the specified object,
+     * there is no guarantee which one will be found.
+     *
+     * @param a the array to be searched
+     * @param fromIndex the index of the first element (inclusive) to be
+     *		searched
+     * @param toIndex the index of the last element (exclusive) to be searched
+     * @param key the value to be searched for
+     * @param c the comparator by which the array is ordered.  A
+     *        <tt>null</tt> value indicates that the elements'
+     *        {@linkplain Comparable natural ordering} should be used.
+     * @return index of the search key, if it is contained in the array
+     *	       within the specified range;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the array: the index of the first
+     *	       element in the range greater than the key,
+     *	       or <tt>toIndex</tt> if all
+     *	       elements in the range are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     * @throws ClassCastException if the range contains elements that are not
+     *	       <i>mutually comparable</i> using the specified comparator,
+     *	       or the search key is not comparable to the
+     *	       elements in the range using this comparator.
+     * @throws IllegalArgumentException
+     *	       if {@code fromIndex > toIndex}
+     * @throws ArrayIndexOutOfBoundsException
+     *	       if {@code fromIndex < 0 or toIndex > a.length}
+     * @since 1.6
+     */
+    public static <T> int binarySearch(T[] a, int fromIndex, int toIndex,
+				       T key, Comparator<? super T> c) {
+	rangeCheck(a.length, fromIndex, toIndex);
+        return binarySearch0(a, fromIndex, toIndex, key, c);
+    }
+
+    // Like public version, but without range checks.
+    private static <T> int binarySearch0(T[] a, int fromIndex, int toIndex,
+					 T key, Comparator<? super T> c) {
+        if (c == null) {
+            return binarySearch0(a, fromIndex, toIndex, key);
+	}
+	int low = fromIndex;
+	int high = toIndex - 1;
 
 	while (low <= high) {
-	    int mid = (low + high) >> 1;
+	    int mid = (low + high) >>> 1;
 	    T midVal = a[mid];
 	    int cmp = c.compare(midVal, key);
 
@@ -1736,9 +2125,9 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(long[] a, long[] a2) {
         if (a==a2)
@@ -1765,9 +2154,9 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(int[] a, int[] a2) {
         if (a==a2)
@@ -1794,9 +2183,9 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(short[] a, short a2[]) {
         if (a==a2)
@@ -1823,9 +2212,9 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(char[] a, char[] a2) {
         if (a==a2)
@@ -1852,9 +2241,9 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(byte[] a, byte[] a2) {
         if (a==a2)
@@ -1881,9 +2270,9 @@ public class Arrays {
      * are equal if they contain the same elements in the same order.  Also,
      * two array references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(boolean[] a, boolean[] a2) {
         if (a==a2)
@@ -1915,9 +2304,9 @@ public class Arrays {
      * (Unlike the <tt>==</tt> operator, this method considers
      * <tt>NaN</tt> equals to itself, and 0.0d unequal to -0.0d.)
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      * @see Double#equals(Object)
      */
     public static boolean equals(double[] a, double[] a2) {
@@ -1950,9 +2339,9 @@ public class Arrays {
      * (Unlike the <tt>==</tt> operator, this method considers
      * <tt>NaN</tt> equals to itself, and 0.0f unequal to -0.0f.)
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      * @see Float#equals(Object)
      */
     public static boolean equals(float[] a, float[] a2) {
@@ -1983,9 +2372,9 @@ public class Arrays {
      * they contain the same elements in the same order.  Also, two array
      * references are considered equal if both are <tt>null</tt>.<p>
      *
-     * @param a one array to be tested for equality.
-     * @param a2 the other array to be tested for equality.
-     * @return <tt>true</tt> if the two arrays are equal.
+     * @param a one array to be tested for equality
+     * @param a2 the other array to be tested for equality
+     * @return <tt>true</tt> if the two arrays are equal
      */
     public static boolean equals(Object[] a, Object[] a2) {
         if (a==a2)
@@ -2014,26 +2403,26 @@ public class Arrays {
      * Assigns the specified long value to each element of the specified array
      * of longs.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(long[] a, long val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified long value to each element of the specified 
+     * Assigns the specified long value to each element of the specified
      * range of the specified array of longs.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2048,26 +2437,26 @@ public class Arrays {
      * Assigns the specified int value to each element of the specified array
      * of ints.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(int[] a, int val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified int value to each element of the specified 
+     * Assigns the specified int value to each element of the specified
      * range of the specified array of ints.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2082,26 +2471,26 @@ public class Arrays {
      * Assigns the specified short value to each element of the specified array
      * of shorts.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(short[] a, short val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified short value to each element of the specified 
+     * Assigns the specified short value to each element of the specified
      * range of the specified array of shorts.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2116,26 +2505,26 @@ public class Arrays {
      * Assigns the specified char value to each element of the specified array
      * of chars.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(char[] a, char val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified char value to each element of the specified 
+     * Assigns the specified char value to each element of the specified
      * range of the specified array of chars.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2150,26 +2539,26 @@ public class Arrays {
      * Assigns the specified byte value to each element of the specified array
      * of bytes.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(byte[] a, byte val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified byte value to each element of the specified 
+     * Assigns the specified byte value to each element of the specified
      * range of the specified array of bytes.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2184,26 +2573,26 @@ public class Arrays {
      * Assigns the specified boolean value to each element of the specified
      * array of booleans.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(boolean[] a, boolean val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified boolean value to each element of the specified 
+     * Assigns the specified boolean value to each element of the specified
      * range of the specified array of booleans.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2219,26 +2608,26 @@ public class Arrays {
      * Assigns the specified double value to each element of the specified
      * array of doubles.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(double[] a, double val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified double value to each element of the specified 
+     * Assigns the specified double value to each element of the specified
      * range of the specified array of doubles.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2253,26 +2642,26 @@ public class Arrays {
      * Assigns the specified float value to each element of the specified array
      * of floats.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
      */
     public static void fill(float[] a, float val) {
         fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified float value to each element of the specified 
+     * Assigns the specified float value to each element of the specified
      * range of the specified array of floats.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
@@ -2287,34 +2676,648 @@ public class Arrays {
      * Assigns the specified Object reference to each element of the specified
      * array of Objects.
      *
-     * @param a the array to be filled.
-     * @param val the value to be stored in all elements of the array.
+     * @param a the array to be filled
+     * @param val the value to be stored in all elements of the array
+     * @throws ArrayStoreException if the specified value is not of a
+     *         runtime type that can be stored in the specified array
      */
     public static void fill(Object[] a, Object val) {
-        Arrays.fill(a, 0, a.length, val);
+        fill(a, 0, a.length, val);
     }
 
     /**
-     * Assigns the specified Object reference to each element of the specified 
+     * Assigns the specified Object reference to each element of the specified
      * range of the specified array of Objects.  The range to be filled
      * extends from index <tt>fromIndex</tt>, inclusive, to index
-     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the 
+     * <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
      * range to be filled is empty.)
      *
-     * @param a the array to be filled.
+     * @param a the array to be filled
      * @param fromIndex the index of the first element (inclusive) to be
-     *        filled with the specified value.
+     *        filled with the specified value
      * @param toIndex the index of the last element (exclusive) to be
-     *        filled with the specified value.
-     * @param val the value to be stored in all elements of the array.
+     *        filled with the specified value
+     * @param val the value to be stored in all elements of the array
      * @throws IllegalArgumentException if <tt>fromIndex &gt; toIndex</tt>
      * @throws ArrayIndexOutOfBoundsException if <tt>fromIndex &lt; 0</tt> or
      *	       <tt>toIndex &gt; a.length</tt>
+     * @throws ArrayStoreException if the specified value is not of a
+     *         runtime type that can be stored in the specified array
      */
     public static void fill(Object[] a, int fromIndex, int toIndex, Object val) {
         rangeCheck(a.length, fromIndex, toIndex);
         for (int i=fromIndex; i<toIndex; i++)
             a[i] = val;
+    }
+
+
+    // Cloning
+    /**
+     * Copies the specified array, truncating or padding with nulls (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>null</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     * The resulting array is of exactly the same class as the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with nulls
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static <T> T[] copyOf(T[] original, int newLength) {
+        return (T[]) copyOf(original, newLength, original.getClass());
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with nulls (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>null</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     * The resulting array is of the class <tt>newType</tt>.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @param newType the class of the copy to be returned
+     * @return a copy of the original array, truncated or padded with nulls
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @throws ArrayStoreException if an element copied from
+     *     <tt>original</tt> is not of a runtime type that can be stored in
+     *     an array of class <tt>newType</tt>
+     * @since 1.6
+     */
+    public static <T,U> T[] copyOf(U[] original, int newLength, Class<? extends T[]> newType) {
+        T[] copy = ((Object)newType == (Object)Object[].class)
+            ? (T[]) new Object[newLength]
+            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with zeros (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>(byte)0</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with zeros
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static byte[] copyOf(byte[] original, int newLength) {
+        byte[] copy = new byte[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with zeros (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>(short)0</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with zeros
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static short[] copyOf(short[] original, int newLength) {
+        short[] copy = new short[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with zeros (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>0</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with zeros
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static int[] copyOf(int[] original, int newLength) {
+        int[] copy = new int[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with zeros (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>0L</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with zeros
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static long[] copyOf(long[] original, int newLength) {
+        long[] copy = new long[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with null characters (if necessary)
+     * so the copy has the specified length.  For all indices that are valid
+     * in both the original array and the copy, the two arrays will contain
+     * identical values.  For any indices that are valid in the copy but not
+     * the original, the copy will contain <tt>'\\u000'</tt>.  Such indices
+     * will exist if and only if the specified length is greater than that of
+     * the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with null characters
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static char[] copyOf(char[] original, int newLength) {
+        char[] copy = new char[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with zeros (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>0f</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with zeros
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static float[] copyOf(float[] original, int newLength) {
+        float[] copy = new float[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with zeros (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>0d</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with zeros
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static double[] copyOf(double[] original, int newLength) {
+        double[] copy = new double[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified array, truncating or padding with <tt>false</tt> (if necessary)
+     * so the copy has the specified length.  For all indices that are
+     * valid in both the original array and the copy, the two arrays will
+     * contain identical values.  For any indices that are valid in the
+     * copy but not the original, the copy will contain <tt>false</tt>.
+     * Such indices will exist if and only if the specified length
+     * is greater than that of the original array.
+     *
+     * @param original the array to be copied
+     * @param newLength the length of the copy to be returned
+     * @return a copy of the original array, truncated or padded with false elements
+     *     to obtain the specified length
+     * @throws NegativeArraySizeException if <tt>newLength</tt> is negative
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static boolean[] copyOf(boolean[] original, int newLength) {
+        boolean[] copy = new boolean[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>null</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     * <p>
+     * The resulting array is of exactly the same class as the original array.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with nulls to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static <T> T[] copyOfRange(T[] original, int from, int to) {
+        return copyOfRange(original, from, to, (Class<T[]>) original.getClass());
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>null</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     * The resulting array is of the class <tt>newType</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @param newType the class of the copy to be returned
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with nulls to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @throws ArrayStoreException if an element copied from
+     *     <tt>original</tt> is not of a runtime type that can be stored in
+     *     an array of class <tt>newType</tt>.
+     * @since 1.6
+     */
+    public static <T,U> T[] copyOfRange(U[] original, int from, int to, Class<? extends T[]> newType) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        T[] copy = ((Object)newType == (Object)Object[].class)
+            ? (T[]) new Object[newLength]
+            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>(byte)0</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with zeros to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static byte[] copyOfRange(byte[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        byte[] copy = new byte[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>(short)0</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with zeros to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static short[] copyOfRange(short[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        short[] copy = new short[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>0</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with zeros to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static int[] copyOfRange(int[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        int[] copy = new int[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>0L</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with zeros to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static long[] copyOfRange(long[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        long[] copy = new long[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>'\\u000'</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with null characters to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static char[] copyOfRange(char[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        char[] copy = new char[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>0f</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with zeros to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static float[] copyOfRange(float[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        float[] copy = new float[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>0d</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with zeros to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static double[] copyOfRange(double[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        double[] copy = new double[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
+    }
+
+    /**
+     * Copies the specified range of the specified array into a new array.
+     * The initial index of the range (<tt>from</tt>) must lie between zero
+     * and <tt>original.length</tt>, inclusive.  The value at
+     * <tt>original[from]</tt> is placed into the initial element of the copy
+     * (unless <tt>from == original.length</tt> or <tt>from == to</tt>).
+     * Values from subsequent elements in the original array are placed into
+     * subsequent elements in the copy.  The final index of the range
+     * (<tt>to</tt>), which must be greater than or equal to <tt>from</tt>,
+     * may be greater than <tt>original.length</tt>, in which case
+     * <tt>false</tt> is placed in all elements of the copy whose index is
+     * greater than or equal to <tt>original.length - from</tt>.  The length
+     * of the returned array will be <tt>to - from</tt>.
+     *
+     * @param original the array from which a range is to be copied
+     * @param from the initial index of the range to be copied, inclusive
+     * @param to the final index of the range to be copied, exclusive.
+     *     (This index may lie outside the array.)
+     * @return a new array containing the specified range from the original array,
+     *     truncated or padded with false elements to obtain the required length
+     * @throws ArrayIndexOutOfBoundsException if <tt>from &lt; 0</tt>
+     *     or <tt>from &gt; original.length()</tt>
+     * @throws IllegalArgumentException if <tt>from &gt; to</tt>
+     * @throws NullPointerException if <tt>original</tt> is null
+     * @since 1.6
+     */
+    public static boolean[] copyOfRange(boolean[] original, int from, int to) {
+        int newLength = to - from;
+        if (newLength < 0)
+            throw new IllegalArgumentException(from + " > " + to);
+        boolean[] copy = new boolean[newLength];
+        System.arraycopy(original, from, copy, 0,
+                         Math.min(original.length - from, newLength));
+        return copy;
     }
 
 
@@ -2324,18 +3327,17 @@ public class Arrays {
      * Returns a fixed-size list backed by the specified array.  (Changes to
      * the returned list "write through" to the array.)  This method acts
      * as bridge between array-based and collection-based APIs, in
-     * combination with <tt>Collection.toArray</tt>.  The returned list is
+     * combination with {@link Collection#toArray}.  The returned list is
      * serializable and implements {@link RandomAccess}.
      *
      * <p>This method also provides a convenient way to create a fixed-size
      * list initialized to contain several elements:
      * <pre>
-     *     List<String> stooges = Arrays.asList("Larry", "Moe", "Curly");
+     *     List&lt;String&gt; stooges = Arrays.asList("Larry", "Moe", "Curly");
      * </pre>
      *
-     * @param a the array by which the list will be backed.
-     * @return a list view of the specified array.
-     * @see Collection#toArray()
+     * @param a the array by which the list will be backed
+     * @return a list view of the specified array
      */
     public static <T> List<T> asList(T... a) {
 	return new ArrayList<T>(a);
@@ -2348,7 +3350,7 @@ public class Arrays {
 	implements RandomAccess, java.io.Serializable
     {
         private static final long serialVersionUID = -2764017481108945198L;
-	private Object[] a;
+	private final E[] a;
 
 	ArrayList(E[] array) {
             if (array==null)
@@ -2361,17 +3363,28 @@ public class Arrays {
 	}
 
 	public Object[] toArray() {
-	    return (Object[])a.clone();
+	    return a.clone();
+	}
+
+	public <T> T[] toArray(T[] a) {
+	    int size = size();
+	    if (a.length < size)
+		return Arrays.copyOf(this.a, size,
+				     (Class<? extends T[]>) a.getClass());
+	    System.arraycopy(this.a, 0, a, 0, size);
+	    if (a.length > size)
+		a[size] = null;
+	    return a;
 	}
 
 	public E get(int index) {
-	    return (E)a[index];
+	    return a[index];
 	}
 
 	public E set(int index, E element) {
-	    Object oldValue = a[index];
+	    E oldValue = a[index];
 	    a[index] = element;
-	    return (E)oldValue;
+	    return oldValue;
 	}
 
         public int indexOf(Object o) {
@@ -2411,16 +3424,16 @@ public class Arrays {
     public static int hashCode(long a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (long element : a) {
             int elementHash = (int)(element ^ (element >>> 32));
             result = 31 * result + elementHash;
         }
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two non-null <tt>int</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2440,14 +3453,14 @@ public class Arrays {
     public static int hashCode(int a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (int element : a)
             result = 31 * result + element;
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two <tt>short</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2467,14 +3480,14 @@ public class Arrays {
     public static int hashCode(short a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (short element : a)
             result = 31 * result + element;
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two <tt>char</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2494,14 +3507,14 @@ public class Arrays {
     public static int hashCode(char a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (char element : a)
             result = 31 * result + element;
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two <tt>byte</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2521,14 +3534,14 @@ public class Arrays {
     public static int hashCode(byte a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (byte element : a)
             result = 31 * result + element;
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two <tt>boolean</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2548,14 +3561,14 @@ public class Arrays {
     public static int hashCode(boolean a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (boolean element : a)
             result = 31 * result + (element ? 1231 : 1237);
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two <tt>float</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2575,14 +3588,14 @@ public class Arrays {
     public static int hashCode(float a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (float element : a)
             result = 31 * result + Float.floatToIntBits(element);
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.
      * For any two <tt>double</tt> arrays <tt>a</tt> and <tt>b</tt>
@@ -2602,7 +3615,7 @@ public class Arrays {
     public static int hashCode(double a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
         for (double element : a) {
             long bits = Double.doubleToLongBits(element);
@@ -2610,7 +3623,7 @@ public class Arrays {
         }
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the contents of the specified array.  If
      * the array contains other arrays as elements, the hash code is based on
@@ -2635,15 +3648,15 @@ public class Arrays {
     public static int hashCode(Object a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
- 
+
         for (Object element : a)
             result = 31 * result + (element == null ? 0 : element.hashCode());
- 
+
         return result;
     }
- 
+
     /**
      * Returns a hash code based on the "deep contents" of the specified
      * array.  If the array contains other arrays as elements, the
@@ -2676,9 +3689,9 @@ public class Arrays {
     public static int deepHashCode(Object a[]) {
         if (a == null)
             return 0;
- 
+
         int result = 1;
- 
+
         for (Object element : a) {
             int elementHash = 0;
             if (element instanceof Object[])
@@ -2701,16 +3714,16 @@ public class Arrays {
                 elementHash = hashCode((boolean[]) element);
             else if (element != null)
                 elementHash = element.hashCode();
- 
+
             result = 31 * result + elementHash;
         }
- 
+
         return result;
     }
- 
+
     /**
      * Returns <tt>true</tt> if the two specified arrays are <i>deeply
-     * equal</i> to one another.  Unlike the @link{#equals{Object[],Object[])
+     * equal</i> to one another.  Unlike the {@link #equals(Object[],Object[])}
      * method, this method is appropriate for use with nested arrays of
      * arbitrary depth.
      *
@@ -2750,16 +3763,16 @@ public class Arrays {
         int length = a1.length;
         if (a2.length != length)
             return false;
- 
+
         for (int i = 0; i < length; i++) {
             Object e1 = a1[i];
             Object e2 = a2[i];
- 
+
             if (e1 == e2)
                 continue;
             if (e1 == null)
                 return false;
- 
+
             // Figure out whether the two elements are equal
             boolean eq;
             if (e1 instanceof Object[] && e2 instanceof Object[])
@@ -2782,13 +3795,13 @@ public class Arrays {
                 eq = equals((boolean[]) e1, (boolean[]) e2);
             else
                 eq = e1.equals(e2);
- 
+
             if (!eq)
                 return false;
         }
         return true;
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2805,22 +3818,20 @@ public class Arrays {
     public static String toString(long[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2837,22 +3848,20 @@ public class Arrays {
     public static String toString(int[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2869,22 +3878,20 @@ public class Arrays {
     public static String toString(short[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2901,22 +3908,20 @@ public class Arrays {
     public static String toString(char[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2933,22 +3938,20 @@ public class Arrays {
     public static String toString(byte[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2965,22 +3968,20 @@ public class Arrays {
     public static String toString(boolean[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -2997,22 +3998,20 @@ public class Arrays {
     public static String toString(float[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * The string representation consists of a list of the array's elements,
@@ -3029,22 +4028,20 @@ public class Arrays {
     public static String toString(double[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+	if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
-        buf.append('[');
-        buf.append(a[0]);
- 
-        for (int i = 1; i < a.length; i++) {
-            buf.append(", ");
-            buf.append(a[i]);
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(a[i]);
+	    if (i == iMax)
+		return b.append(']').toString();
+            b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the contents of the specified array.
      * If the array contains other arrays as elements, they are converted to
@@ -3060,28 +4057,24 @@ public class Arrays {
      * @return a string representation of <tt>a</tt>
      * @see #deepToString(Object[])
      * @since 1.5
-    */
+     */
     public static String toString(Object[] a) {
         if (a == null)
             return "null";
-        if (a.length == 0)
+	int iMax = a.length - 1;
+        if (iMax == -1)
             return "[]";
- 
-        StringBuilder buf = new StringBuilder();
- 
-        for (int i = 0; i < a.length; i++) {
-            if (i == 0)
-                buf.append('[');
-            else
-                buf.append(", ");
- 
-            buf.append(String.valueOf(a[i]));
+
+        StringBuilder b = new StringBuilder();
+	b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(String.valueOf(a[i]));
+            if (i == iMax)
+		return b.append(']').toString();
+	    b.append(", ");
         }
- 
-        buf.append("]");
-        return buf.toString();
     }
- 
+
     /**
      * Returns a string representation of the "deep contents" of the specified
      * array.  If the array contains other arrays as elements, the string
@@ -3091,7 +4084,7 @@ public class Arrays {
      * <p>The string representation consists of a list of the array's
      * elements, enclosed in square brackets (<tt>"[]"</tt>).  Adjacent
      * elements are separated by the characters <tt>", "</tt> (a comma
-     * followed  by a space).  Elements are converted to strings as by
+     * followed by a space).  Elements are converted to strings as by
      * <tt>String.valueOf(Object)</tt>, unless they are themselves
      * arrays.
      *
@@ -3173,7 +4166,7 @@ public class Arrays {
                 }
             }
         }
-        buf.append("]");
+        buf.append(']');
         dejaVu.remove(a);
     }
 }

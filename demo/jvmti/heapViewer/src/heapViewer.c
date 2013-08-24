@@ -1,7 +1,7 @@
 /*
- * @(#)heapViewer.c	1.5 04/07/27
+ * @(#)heapViewer.c	1.11 06/02/16
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,12 +42,13 @@
 #include "jni.h"
 #include "jvmti.h"
 
+#include "agent_util.h"
+
 /* Global static data */
 typedef struct {
     jboolean      vmDeathCalled;
     jboolean      dumpInProgress;
     jrawMonitorID lock;
-    int           totalCount;
 } GlobalData;
 static GlobalData globalData, *gdata = &globalData;
 
@@ -58,90 +59,40 @@ typedef struct {
     int   space;
 } ClassDetails;
 
-/* Check for NULL pointer error */
-#define CHECK_FOR_NULL(ptr) \
-	checkForNull(ptr, __FILE__, __LINE__)
-static void
-checkForNull(void *ptr, char *file, int line)
-{
-    if ( ptr == NULL ) {
-	fprintf(stderr, "ERROR: NULL pointer error in %s:%d\n", file, line);
-	abort();
-    }
-}
-
-/* Deallocate JVMTI memory */
-static void
-deallocate(jvmtiEnv *jvmti, void *p)
-{
-    jvmtiError err;
-    
-    err = (*jvmti)->Deallocate(jvmti, (unsigned char *)p);
-    if ( err != JVMTI_ERROR_NONE ) {
-	fprintf(stderr, "ERROR: JVMTI Deallocate error err=%d\n", err);
-	abort();
-    }
-}
-
-/* Get name for JVMTI error code */
-static char *
-getErrorName(jvmtiEnv *jvmti, jvmtiError errnum)
-{
-    jvmtiError err;
-    char      *name;
-
-    err = (*jvmti)->GetErrorName(jvmti, errnum, &name);
-    if ( err != JVMTI_ERROR_NONE ) {
-	fprintf(stderr, "ERROR: JVMTI GetErrorName error err=%d\n", err);
-	abort();
-    }
-    return name;
-}
-
-/* Check for JVMTI error */
-#define CHECK_JVMTI_ERROR(jvmti, err) \
-	checkJvmtiError(jvmti, err, __FILE__, __LINE__)
-static void
-checkJvmtiError(jvmtiEnv *jvmti, jvmtiError err, char *file, int line)
-{
-    if ( err != JVMTI_ERROR_NONE ) {
-	char *name;
-
-	name = getErrorName(jvmti, err);
-	fprintf(stderr, "ERROR: JVMTI error err=%d(%s) in %s:%d\n", 
-		err, name, file, line);
-	deallocate(jvmti, name);
-	abort();
-    }
-}
-
 /* Enter agent monitor protected section */
 static void
 enterAgentMonitor(jvmtiEnv *jvmti)
 {
-    CHECK_JVMTI_ERROR(jvmti, (*jvmti)->RawMonitorEnter(jvmti, gdata->lock));
+    jvmtiError err;
+    
+    err = (*jvmti)->RawMonitorEnter(jvmti, gdata->lock);
+    check_jvmti_error(jvmti, err, "raw monitor enter");
 }
 
 /* Exit agent monitor protected section */
 static void
 exitAgentMonitor(jvmtiEnv *jvmti)
 {
-    CHECK_JVMTI_ERROR(jvmti, (*jvmti)->RawMonitorExit(jvmti, gdata->lock));
+    jvmtiError err;
+    
+    err = (*jvmti)->RawMonitorExit(jvmti, gdata->lock);
+    check_jvmti_error(jvmti, err, "raw monitor exit");
 }
 
 /* Heap object callback */
-static jvmtiIterationControl JNICALL 
-heapObject(jlong class_tag, jlong size, jlong* tag_ptr, void* user_data)
+static jint JNICALL 
+cbHeapObject(jlong class_tag, jlong size, jlong* tag_ptr, jint length,
+           void* user_data)
 {
     if ( class_tag != (jlong)0 ) {
-	ClassDetails *d;
-	
-	d = (ClassDetails*)(void*)(ptrdiff_t)class_tag;
-	gdata->totalCount++;
-	d->count++;
-	d->space += size;
+        ClassDetails *d;
+        
+        d = (ClassDetails*)(void*)(ptrdiff_t)class_tag;
+        (*((jint*)(user_data)))++;
+        d->count++;
+        d->space += (int)size;
     }
-    return JVMTI_ITERATION_CONTINUE;
+    return JVMTI_VISIT_OBJECTS;
 }
 
 /* Compare two ClassDetails */
@@ -156,83 +107,90 @@ static void JNICALL
 dataDumpRequest(jvmtiEnv *jvmti)
 {
     enterAgentMonitor(jvmti); {
-	if ( !gdata->vmDeathCalled && !gdata->dumpInProgress ) {
-	    jvmtiError    err;
-	    void         *user_data;
-	    jclass       *classes;
-	    jint          count;
-	    jint          i;
-	    ClassDetails *details;
+        if ( !gdata->vmDeathCalled && !gdata->dumpInProgress ) {
+            jvmtiHeapCallbacks heapCallbacks;
+            ClassDetails      *details;
+            jvmtiError         err;
+            jclass            *classes;
+            jint               totalCount;
+            jint               count;
+            jint               i;
 
-	    gdata->dumpInProgress = JNI_TRUE;
-	    gdata->totalCount = 0;
-	   
-	    /* Get all the loaded classes */
-	    err = (*jvmti)->GetLoadedClasses(jvmti, &count, &classes);
-	    CHECK_JVMTI_ERROR(jvmti, err);
+            gdata->dumpInProgress = JNI_TRUE;
+           
+            /* Get all the loaded classes */
+            err = (*jvmti)->GetLoadedClasses(jvmti, &count, &classes);
+            check_jvmti_error(jvmti, err, "get loaded classes");
 
-	    /* Setup an area to hold details about these classes */
-	    details = (ClassDetails*)calloc(sizeof(ClassDetails), count);
-            CHECK_FOR_NULL(details);
-	    for ( i = 0 ; i < count ; i++ ) {
-		char *sig;
+            /* Setup an area to hold details about these classes */
+            details = (ClassDetails*)calloc(sizeof(ClassDetails), count);
+            if ( details == NULL ) {
+                fatal_error("ERROR: Ran out of malloc space\n");
+            }
+            for ( i = 0 ; i < count ; i++ ) {
+                char *sig;
 
-		/* Get and save the class signature */
-		err = (*jvmti)->GetClassSignature(jvmti, classes[i], &sig, NULL);
-	        CHECK_JVMTI_ERROR(jvmti, err);
-                CHECK_FOR_NULL(sig);
-		details[i].signature = strdup(sig);
-		deallocate(jvmti, sig);
+                /* Get and save the class signature */
+                err = (*jvmti)->GetClassSignature(jvmti, classes[i], &sig, NULL);
+                check_jvmti_error(jvmti, err, "get class signature");
+                if ( sig == NULL ) {
+                    fatal_error("ERROR: No class signature found\n");
+                }
+                details[i].signature = strdup(sig);
+                deallocate(jvmti, sig);
 
-		/* Tag this jclass */
-		err = (*jvmti)->SetTag(jvmti, classes[i], 
-				    (jlong)(ptrdiff_t)(void*)(&details[i]));
-	        CHECK_JVMTI_ERROR(jvmti, err);
-	    }
-	    
-	    /* Iterate over the heap and count up uses of jclass */
-	    err = (*jvmti)->IterateOverHeap(jvmti, JVMTI_HEAP_OBJECT_EITHER, 
-					    &heapObject, NULL);
-	    CHECK_JVMTI_ERROR(jvmti, err);
+                /* Tag this jclass */
+                err = (*jvmti)->SetTag(jvmti, classes[i], 
+                                    (jlong)(ptrdiff_t)(void*)(&details[i]));
+                check_jvmti_error(jvmti, err, "set object tag");
+            }
+            
+            /* Iterate through the heap and count up uses of jclass */
+            (void)memset(&heapCallbacks, 0, sizeof(heapCallbacks));
+            heapCallbacks.heap_iteration_callback = &cbHeapObject;
+            totalCount = 0;
+            err = (*jvmti)->IterateThroughHeap(jvmti, 
+                       JVMTI_HEAP_FILTER_CLASS_UNTAGGED, NULL,
+                       &heapCallbacks, (const void *)&totalCount);
+            check_jvmti_error(jvmti, err, "iterate through heap");
 
-	    /* Remove tags */
-	    for ( i = 0 ; i < count ; i++ ) {
-		/* Un-Tag this jclass */
-		err = (*jvmti)->SetTag(jvmti, classes[i], (jlong)0);
-	        CHECK_JVMTI_ERROR(jvmti, err);
-	    }
-	    
-	    /* Sort details by space used */
-	    qsort(details, count, sizeof(ClassDetails), &compareDetails);
-	   
-	    /* Print out sorted table */
-	    fprintf(stdout, "Heap View, Total of %d objects found.\n\n",
-			 gdata->totalCount);
-	    
-	    fprintf(stdout, "Space      Count      Class Signature\n");
-	    fprintf(stdout, "---------- ---------- ----------------------\n");
-	    
-	    for ( i = 0 ; i < count ; i++ ) {
-		if ( details[i].space == 0 || i > 20 ) {
-		    break;
-		}
-	        fprintf(stdout, "%10d %10d %s\n",
-		    details[i].space, details[i].count, details[i].signature);
-	    }
-	    fprintf(stdout, "---------- ---------- ----------------------\n\n");
-	    fflush(stdout);
+            /* Remove tags */
+            for ( i = 0 ; i < count ; i++ ) {
+                /* Un-Tag this jclass */
+                err = (*jvmti)->SetTag(jvmti, classes[i], (jlong)0);
+                check_jvmti_error(jvmti, err, "set object tag");
+            }
+            
+            /* Sort details by space used */
+            qsort(details, count, sizeof(ClassDetails), &compareDetails);
+           
+            /* Print out sorted table */
+            stdout_message("Heap View, Total of %d objects found.\n\n",
+                         totalCount);
+            
+            stdout_message("Space      Count      Class Signature\n");
+            stdout_message("---------- ---------- ----------------------\n");
+            
+            for ( i = 0 ; i < count ; i++ ) {
+                if ( details[i].space == 0 || i > 20 ) {
+                    break;
+                }
+                stdout_message("%10d %10d %s\n",
+                    details[i].space, details[i].count, details[i].signature);
+            }
+            stdout_message("---------- ---------- ----------------------\n\n");
 
-	    /* Free up all allocated space */
-	    deallocate(jvmti, classes);
-	    for ( i = 0 ; i < count ; i++ ) {
-		if ( details[i].signature != NULL ) {
-		    free(details[i].signature);
-	        }
-	    }
-	    free(details);
-	    
-	    gdata->dumpInProgress = JNI_FALSE;
-	}
+            /* Free up all allocated space */
+            deallocate(jvmti, classes);
+            for ( i = 0 ; i < count ; i++ ) {
+                if ( details[i].signature != NULL ) {
+                    free(details[i].signature);
+                }
+            }
+            free(details);
+            
+            gdata->dumpInProgress = JNI_FALSE;
+        }
     } exitAgentMonitor(jvmti);
 }
 
@@ -242,10 +200,10 @@ vmInit(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 {
     enterAgentMonitor(jvmti); {
         jvmtiError          err;
-	
-	err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
-			    JVMTI_EVENT_DATA_DUMP_REQUEST, NULL);
-	CHECK_JVMTI_ERROR(jvmti, err);
+        
+        err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
+                            JVMTI_EVENT_DATA_DUMP_REQUEST, NULL);
+        check_jvmti_error(jvmti, err, "set event notification");
     } exitAgentMonitor(jvmti);
 }
 
@@ -257,17 +215,17 @@ vmDeath(jvmtiEnv *jvmti, JNIEnv *env)
    
     /* Make sure everything has been garbage collected */
     err = (*jvmti)->ForceGarbageCollection(jvmti);
-    CHECK_JVMTI_ERROR(jvmti, err);
+    check_jvmti_error(jvmti, err, "force garbage collection");
 
     /* Disable events and dump the heap information */
     enterAgentMonitor(jvmti); {
-	err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_DISABLE, 
-			    JVMTI_EVENT_DATA_DUMP_REQUEST, NULL);
-	CHECK_JVMTI_ERROR(jvmti, err);
-	
-	dataDumpRequest(jvmti);
+        err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_DISABLE, 
+                            JVMTI_EVENT_DATA_DUMP_REQUEST, NULL);
+        check_jvmti_error(jvmti, err, "set event notification");
         
-	gdata->vmDeathCalled = JNI_TRUE;
+        dataDumpRequest(jvmti);
+        
+        gdata->vmDeathCalled = JNI_TRUE;
     } exitAgentMonitor(jvmti);
 }
 
@@ -285,22 +243,23 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     jvmti = NULL;
     rc = (*vm)->GetEnv(vm, (void **)&jvmti, JVMTI_VERSION);
     if (rc != JNI_OK) {
-	fprintf(stderr, "ERROR: Unable to create jvmtiEnv, GetEnv failed, error=%d\n", rc);
-	return -1;
+        fatal_error("ERROR: Unable to create jvmtiEnv, error=%d\n", rc);
+        return -1;
     }
-    CHECK_FOR_NULL(jvmti);
+    if ( jvmti == NULL ) {
+        fatal_error("ERROR: No jvmtiEnv* returned from GetEnv\n");
+    }
 
     /* Get/Add JVMTI capabilities */ 
-    err = (*jvmti)->GetCapabilities(jvmti, &capabilities);
-    CHECK_JVMTI_ERROR(jvmti, err);
+    (void)memset(&capabilities, 0, sizeof(capabilities));
     capabilities.can_tag_objects = 1;
     capabilities.can_generate_garbage_collection_events = 1;
     err = (*jvmti)->AddCapabilities(jvmti, &capabilities);
-    CHECK_JVMTI_ERROR(jvmti, err);
+    check_jvmti_error(jvmti, err, "add capabilities");
 
     /* Create the raw monitor */
     err = (*jvmti)->CreateRawMonitor(jvmti, "agent lock", &(gdata->lock));
-    CHECK_JVMTI_ERROR(jvmti, err);
+    check_jvmti_error(jvmti, err, "create raw monitor");
     
     /* Set callbacks and enable event notifications */
     memset(&callbacks, 0, sizeof(callbacks));
@@ -308,13 +267,13 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     callbacks.VMDeath                 = &vmDeath;
     callbacks.DataDumpRequest         = &dataDumpRequest;
     err = (*jvmti)->SetEventCallbacks(jvmti, &callbacks, sizeof(callbacks));
-    CHECK_JVMTI_ERROR(jvmti, err);
+    check_jvmti_error(jvmti, err, "set event callbacks");
     err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
-			JVMTI_EVENT_VM_INIT, NULL);
-    CHECK_JVMTI_ERROR(jvmti, err);
+                        JVMTI_EVENT_VM_INIT, NULL);
+    check_jvmti_error(jvmti, err, "set event notifications");
     err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
-			JVMTI_EVENT_VM_DEATH, NULL);
-    CHECK_JVMTI_ERROR(jvmti, err);
+                        JVMTI_EVENT_VM_DEATH, NULL);
+    check_jvmti_error(jvmti, err, "set event notifications");
     return 0;
 }
 

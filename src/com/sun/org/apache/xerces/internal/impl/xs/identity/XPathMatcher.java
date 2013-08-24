@@ -1,77 +1,40 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001, 2002 The Apache Software Foundation.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001, 2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.identity;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.xpath.XPath;
-import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import com.sun.org.apache.xerces.internal.util.IntStack;
 import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
 import com.sun.org.apache.xerces.internal.xs.AttributePSVI;
+import com.sun.org.apache.xerces.internal.xs.ShortList;
+import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
+import org.xml.sax.SAXException;
 
 
 /**
  * XPath matcher.
  *
+ * @xerces.internal 
+ *
  * @author Andy Clark, IBM
  *
- * @version $Id: XPathMatcher.java,v 1.22 2004/02/10 21:26:03 kohsuke Exp $
+ * @version $Id: XPathMatcher.java,v 1.2.6.1 2005/09/08 09:02:30 sunithareddy Exp $
  */
 public class XPathMatcher {
 
@@ -144,7 +107,7 @@ public class XPathMatcher {
     
     final QName fQName = new QName();
 
-  	XSTypeDefinition fCurrMatchedType = null;	
+
     //
     // Constructors
     //
@@ -190,7 +153,7 @@ public class XPathMatcher {
 
     // a place-holder method; to be overridden by subclasses
     // that care about matching element content.
-    protected void handleContent(XSTypeDefinition type, boolean nillable, Object value) { 
+    protected void handleContent(XSTypeDefinition type, boolean nillable, Object value, short valueType, ShortList itemValueType) { 
     } 
 
     /**
@@ -198,7 +161,7 @@ public class XPathMatcher {
      * XPath expression. Subclasses can override this method to
      * provide default handling upon a match.
      */
-    protected void matched(Object actualValue, boolean isNil) {
+    protected void matched(Object actualValue, short valueType, ShortList itemValueType, boolean isNil) {
         if (DEBUG_METHODS3) {
             System.out.println(toString()+"#matched(\""+actualValue+"\")");
         }
@@ -210,9 +173,6 @@ public class XPathMatcher {
 
     /**
      * The start of the document fragment.
-     *
-     * @param context The namespace scope in effect at the
-     *                start of this document fragment.
      */
     public void startDocumentFragment(){
         if (DEBUG_METHODS) {
@@ -230,7 +190,7 @@ public class XPathMatcher {
         }
 
 
-    } // startDocumentFragment(SymbolTable)
+    } // startDocumentFragment()
 
     /**
      * The start of an element. If the document specifies the start element
@@ -239,7 +199,6 @@ public class XPathMatcher {
      *
      * @param element    The name of the element.
      * @param attributes The element attributes.
-     * @param type: The element's type
      *
      * @throws SAXException Thrown by handler to signal an error.
      */
@@ -369,8 +328,7 @@ public class XPathMatcher {
                                 if(j==i) {
                                     AttributePSVI attrPSVI = (AttributePSVI)attributes.getAugmentations(aIndex).getItem(Constants.ATTRIBUTE_PSVI);
                                     fMatchedString = attrPSVI.getActualNormalizedValue();
-									fCurrMatchedType = attrPSVI.getTypeDefinition();
-                                    matched(fMatchedString, false);
+                                    matched(fMatchedString, attrPSVI.getActualNormalizedValueType(), attrPSVI.getItemValueTypes(), false);
                                 }
                             }
                             break;
@@ -411,7 +369,7 @@ public class XPathMatcher {
        * @param value - actual value
        *        the typed value of the content of this element. 
        */
-    public void endElement(QName element, XSTypeDefinition type, boolean nillable, Object value ) {
+    public void endElement(QName element, XSTypeDefinition type, boolean nillable, Object value, short valueType, ShortList itemValueType) {
         if (DEBUG_METHODS2) {
             System.out.println(toString()+"#endElement("+
                                "element={"+element+"},"+
@@ -438,7 +396,7 @@ public class XPathMatcher {
                 // match element content.  This permits
                 // them a way to override this to do nothing
                 // and hopefully save a few operations.
-                handleContent(type, nillable, value);
+                handleContent(type, nillable, value, valueType, itemValueType);
                 fMatched[i] = 0;
             }
 
@@ -508,10 +466,6 @@ public class XPathMatcher {
         }
         return str.toString();
     } // normalize(String):String
-
-	public XSTypeDefinition getCurrentMatchedType(){
-		return fCurrMatchedType;
-	}
 
     //
     // MAIN

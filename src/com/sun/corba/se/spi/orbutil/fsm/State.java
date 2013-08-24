@@ -1,7 +1,7 @@
 /*
- * @(#)State.java	1.7 03/12/19
+ * @(#)State.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package com.sun.corba.se.spi.orbutil.fsm ;
  * successfully, then after X completes execution, A.postAction is executed,
  * followed by B.preAction.
  *
- * @version @(#)State.java	1.7 03/12/19
+ * @version @(#)State.java	1.8 05/11/17
  * @author Ken Cavanaugh
  */
 public interface State

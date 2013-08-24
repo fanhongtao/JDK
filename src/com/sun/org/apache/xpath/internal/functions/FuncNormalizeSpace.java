@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncNormalizeSpace.java,v 1.12 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncNormalizeSpace.java,v 1.2.4.1 2005/09/14 20:18:46 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -31,6 +31,7 @@ import org.xml.sax.ContentHandler;
  */
 public class FuncNormalizeSpace extends FunctionDef1Arg
 {
+    static final long serialVersionUID = -3377956872032190880L;
 
   /**
    * Execute the function.  The function must return

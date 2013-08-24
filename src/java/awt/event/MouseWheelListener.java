@@ -1,7 +1,7 @@
 /*
- * @(#)MouseWheelListener.java	1.5 03/12/19
+ * @(#)MouseWheelListener.java	1.6 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.util.EventListener;
  * the class description for {@link MouseWheelEvent}.
  *
  * @author Brent Christian
- * @version 1.5 12/19/03
+ * @version 1.6 11/17/05
  * @see MouseWheelEvent
  * @since 1.4
  */

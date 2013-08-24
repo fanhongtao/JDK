@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemPreferences.java	1.20 04/02/16
+ * @(#)FileSystemPreferences.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.security.PrivilegedActionException;
  * (The file lock is obtained only for sync(), flush() and removeNode().)
  *
  * @author  Josh Bloch
- * @version 1.20, 02/16/04
+ * @version 1.21, 11/17/05
  * @see     Preferences
  * @since   1.4
  */

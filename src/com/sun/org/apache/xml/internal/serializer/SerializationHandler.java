@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializationHandler.java,v 1.4 2004/02/17 04:18:18 minchau Exp $
+ * $Id: SerializationHandler.java,v 1.2.4.1 2005/09/15 08:15:22 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Properties;
-import java.util.Vector;
 
 import javax.xml.transform.Transformer;
 
-import com.sun.org.apache.xml.internal.serializer.Serializer;
 import org.w3c.dom.Node;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
@@ -37,6 +32,11 @@ import org.xml.sax.ext.DeclHandler;
  * This interface is the one that a serializer implements. It is a group of
  * other interfaces, such as ExtendedContentHandler, ExtendedLexicalHandler etc.
  * In addition there are other methods, such as reset().
+ * 
+ * This class is public only because it is used in another package,
+ * it is not a public API.
+ * 
+ * @xsl.usage internal
  */
 public interface SerializationHandler
     extends
@@ -44,6 +44,7 @@ public interface SerializationHandler
         ExtendedLexicalHandler,
         XSLOutputAttributes,
         DeclHandler,
+        org.xml.sax.DTDHandler,
         ErrorHandler,
         DOMSerializer,
         Serializer
@@ -52,8 +53,8 @@ public interface SerializationHandler
      * Set the SAX Content handler that the serializer sends its output to. This
      * method only applies to a ToSAXHandler, not to a ToStream serializer.
      * 
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#asContentHandler()
-     * @see com.sun.org.apache.xml.internal.serializer.ToSAXHandler
+     * @see Serializer#asContentHandler()
+     * @see ToSAXHandler
      */
     public void setContentHandler(ContentHandler ch);
     
@@ -74,7 +75,7 @@ public interface SerializationHandler
      * never, even if this option is set to 'true', be escaped within
      * CDATA sections in output XML documents.
      * 
-     * @param true if escaping is to be set on.
+     * @param escape true if escaping is to be set on.
      */
     public boolean setEscaping(boolean escape) throws SAXException;
 
@@ -100,7 +101,7 @@ public interface SerializationHandler
      * Used only by TransformerSnapshotImpl to restore the serialization 
      * to a previous state. 
      * 
-     * @param NamespaceMappings
+     * @param mappings NamespaceMappings
      */
     public void setNamespaceMappings(NamespaceMappings mappings);
 
@@ -110,6 +111,14 @@ public interface SerializationHandler
      * output.
      */
     public void flushPending() throws SAXException;
+    
+    /**
+     * Default behavior is to expand DTD entities,
+     * that is the initall default value is true.
+     * @param expand true if DTD entities are to be expanded,
+     * false if they are to be left as DTD entity references. 
+     */
+    public void setDTDEntityExpansion(boolean expand);
 
 
 }

@@ -1,13 +1,13 @@
 /*
- * @(#)BasicButtonUI.java	1.112 04/01/19
+ * @(#)BasicButtonUI.java	1.118 06/07/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Serializable;
@@ -23,7 +23,7 @@ import javax.swing.text.View;
 /**
  * BasicButton implementation
  *
- * @version 1.112 01/19/04
+ * @version 1.118 07/20/06
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
@@ -91,6 +91,8 @@ public class BasicButtonUI extends ButtonUI{
         if (rollover != null) {
             LookAndFeel.installProperty(b, "rolloverEnabled", rollover);
         }
+
+        LookAndFeel.installProperty(b, "iconTextGap", new Integer(4));
     }
 
     protected void installListeners(AbstractButton b) {
@@ -134,7 +136,6 @@ public class BasicButtonUI extends ButtonUI{
         BasicButtonListener listener = getButtonListener(b);
         if(listener != null) {
             b.removeMouseListener(listener);
-            b.removeMouseListener(listener);
             b.removeMouseMotionListener(listener);
             b.removeFocusListener(listener);
             b.removeChangeListener(listener);
@@ -175,28 +176,8 @@ public class BasicButtonUI extends ButtonUI{
         AbstractButton b = (AbstractButton) c;
         ButtonModel model = b.getModel();
 
-        FontMetrics fm = SwingUtilities2.getFontMetrics(b, g);
-
-        Insets i = c.getInsets();
-
-        viewRect.x = i.left;
-        viewRect.y = i.top;
-        viewRect.width = b.getWidth() - (i.right + viewRect.x);
-        viewRect.height = b.getHeight() - (i.bottom + viewRect.y);
-
-        textRect.x = textRect.y = textRect.width = textRect.height = 0;
-        iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
-
-        Font f = c.getFont();
-        g.setFont(f);
-
-        // layout the text and icon
-        String text = SwingUtilities.layoutCompoundLabel(
-            c, fm, b.getText(), b.getIcon(), 
-            b.getVerticalAlignment(), b.getHorizontalAlignment(),
-            b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
-            viewRect, iconRect, textRect, 
-	    b.getText() == null ? 0 : b.getIconTextGap());
+        String text = layout(b, SwingUtilities2.getFontMetrics(b, g),
+               b.getWidth(), b.getHeight());
 
         clearTextShiftOffset();
 
@@ -235,12 +216,27 @@ public class BasicButtonUI extends ButtonUI{
 	       return;
 	    }
 
+            Icon selectedIcon = null;
+
+            /* the fallback icon should be based on the selected state */
+            if (model.isSelected()) {
+                selectedIcon = (Icon) b.getSelectedIcon();
+                if (selectedIcon != null) {
+                    icon = selectedIcon;
+                }
+            }
+
             if(!model.isEnabled()) {
 		if(model.isSelected()) {
                    tmpIcon = (Icon) b.getDisabledSelectedIcon();
-		} else {
-                   tmpIcon = (Icon) b.getDisabledIcon();
-		}
+                   if (tmpIcon == null) {
+                       tmpIcon = selectedIcon;
+                   }
+                }
+
+                if (tmpIcon == null) {
+                    tmpIcon = (Icon) b.getDisabledIcon();
+                }
             } else if(model.isPressed() && model.isArmed()) {
                 tmpIcon = (Icon) b.getPressedIcon();
                 if(tmpIcon != null) {
@@ -250,12 +246,15 @@ public class BasicButtonUI extends ButtonUI{
             } else if(b.isRolloverEnabled() && model.isRollover()) {
 		if(model.isSelected()) {
                    tmpIcon = (Icon) b.getRolloverSelectedIcon();
-		} else {
-                   tmpIcon = (Icon) b.getRolloverIcon();
-		}
-            } else if(model.isSelected()) {
-                tmpIcon = (Icon) b.getSelectedIcon();
-	    }
+                   if (tmpIcon == null) {
+                       tmpIcon = selectedIcon;
+                   }
+                }
+
+                if (tmpIcon == null) {
+                    tmpIcon = (Icon) b.getRolloverIcon();
+                }
+            }
               
 	    if(tmpIcon != null) {
 	        icon = tmpIcon;
@@ -359,6 +358,72 @@ public class BasicButtonUI extends ButtonUI{
 	    d.width += v.getMaximumSpan(View.X_AXIS) - v.getPreferredSpan(View.X_AXIS);
 	}
 	return d;
+    }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        AbstractButton b = (AbstractButton)c;
+        String text = b.getText();
+        if (text == null || "".equals(text)) {
+            return -1;
+        }
+        FontMetrics fm = b.getFontMetrics(b.getFont());
+        layout(b, fm, width, height);
+        return BasicHTML.getBaseline(b, textRect.y, fm.getAscent(),
+                                     textRect.width, textRect.height);
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        if (c.getClientProperty(BasicHTML.propertyKey) != null) {
+            return Component.BaselineResizeBehavior.OTHER;
+        }
+        switch(((AbstractButton)c).getVerticalAlignment()) {
+        case AbstractButton.TOP:
+            return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
+        case AbstractButton.BOTTOM:
+            return Component.BaselineResizeBehavior.CONSTANT_DESCENT;
+        case AbstractButton.CENTER:
+            return Component.BaselineResizeBehavior.CENTER_OFFSET;
+        }
+        return Component.BaselineResizeBehavior.OTHER;
+    }
+
+    private String layout(AbstractButton b, FontMetrics fm,
+                          int width, int height) {
+        Insets i = b.getInsets();
+        viewRect.x = i.left;
+        viewRect.y = i.top;
+        viewRect.width = width - (i.right + viewRect.x);
+        viewRect.height = height - (i.bottom + viewRect.y);
+
+        textRect.x = textRect.y = textRect.width = textRect.height = 0;
+        iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
+
+        // layout the text and icon
+        return SwingUtilities.layoutCompoundLabel(
+            b, fm, b.getText(), b.getIcon(), 
+            b.getVerticalAlignment(), b.getHorizontalAlignment(),
+            b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
+            viewRect, iconRect, textRect, 
+            b.getText() == null ? 0 : b.getIconTextGap());
     }
 
     /**

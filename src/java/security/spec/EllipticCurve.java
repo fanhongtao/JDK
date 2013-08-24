@@ -1,7 +1,7 @@
 /*
- * @(#)EllipticCurve.java	1.3 03/12/19
+ * @(#)EllipticCurve.java	1.5 06/03/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.Arrays;
  * @see ECFieldF2m
  *
  * @author Valerie Peng
- * @version 1.3, 12/19/03
+ * @version 1.5, 03/28/06
  *
  * @since 1.5
  */
@@ -38,7 +38,7 @@ public class EllipticCurve {
 	    BigInteger p = ((ECFieldFp)field).getP();
 	    if (p.compareTo(c) != 1) {
 		throw new IllegalArgumentException(cName + " is too large");
-	    } else if (c.signum() != 1) {
+	    } else if (c.signum() < 0) {
 		throw new IllegalArgumentException(cName + " is negative");
 	    }
 	} else if (field instanceof ECFieldF2m) {

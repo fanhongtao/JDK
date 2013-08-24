@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages.java,v 1.10 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: ErrorMessages.java,v 1.2.4.1 2005/09/14 05:06:42 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
@@ -77,7 +77,13 @@ public class ErrorMessages extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final Object[][] m_errorMessages = {
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] {
 
         /*
          * Note to translators:  the substitution text in the following message
@@ -265,10 +271,13 @@ public class ErrorMessages extends ListResourceBundle {
          */
         {BasisLibrary.INVALID_NCNAME_ERR,
         "An attribute whose value must be an NCName had the value ''{0}''"},
-    };
+        
+        {BasisLibrary.UNALLOWED_EXTENSION_FUNCTION_ERR,
+        "Use of the extension function ''{0}'' is not allowed when the secure processing feature is set to true."},
 
-    public Object[][] getContents() {
-        return m_errorMessages;
+        {BasisLibrary.UNALLOWED_EXTENSION_ELEMENT_ERR,
+        "Use of the extension element ''{0}'' is not allowed when the secure processing feature is set to true."},
+    };
     }
 
 }

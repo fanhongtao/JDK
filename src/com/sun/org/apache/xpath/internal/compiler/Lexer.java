@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Lexer.java,v 1.14 2004/02/17 04:32:49 minchau Exp $
+ * $Id: Lexer.java,v 1.2.4.1 2005/09/10 03:55:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.compiler;
 
@@ -467,7 +467,7 @@ class Lexer
 
     try
     {
-      Integer itok = (Integer) Keywords.m_keywords.get(key);
+      Integer itok = (Integer) Keywords.getKeyWord(key);
 
       tok = (null != itok) ? itok.intValue() : 0;
     }
@@ -633,11 +633,16 @@ class Lexer
     }
     else
     {
+        // To older XPath code it doesn't matter if
+        // error() is called or errorForDOM3().
+		m_processor.errorForDOM3(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
+						 new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
 
-      // error("Could not locate namespace for prefix: "+prefix);
-      m_processor.error(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
-                 new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
-
+/** old code commented out 17-Sep-2004
+// error("Could not locate namespace for prefix: "+prefix);
+//		  m_processor.error(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
+//					 new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
+*/
 
       /***  Old code commented out 10-Jan-2001
       addToTokenQueue(prefix);

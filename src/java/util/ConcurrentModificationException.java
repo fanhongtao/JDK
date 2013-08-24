@@ -1,7 +1,7 @@
 /*
- * @(#)ConcurrentModificationException.java	1.18 04/06/22
+ * @(#)ConcurrentModificationException.java	1.20 06/03/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ package java.util;
  * should be used only to detect bugs.</i>
  *
  * @author  Josh Bloch
- * @version 1.18, 06/22/04
+ * @version 1.20, 03/30/06
  * @see	    Collection
  * @see     Iterator
  * @see     ListIterator

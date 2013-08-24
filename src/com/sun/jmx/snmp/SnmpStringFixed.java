@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpStringFixed.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.10
- * @(#)date      04/09/15
+ * @(#)version   4.11
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -13,7 +13,7 @@
 package com.sun.jmx.snmp;
 
 
-// @(#)SnmpStringFixed.java 4.10 03/12/19 SMI
+// @(#)SnmpStringFixed.java 4.11 05/11/17 SMI
 
 // java imports
 //
@@ -26,7 +26,7 @@ import java.lang.Math;
  *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     4.10     12/19/03
+ * @version     4.11     11/17/05
  * @author      Sun Microsystems, Inc
  */
 

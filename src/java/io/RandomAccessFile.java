@@ -1,7 +1,7 @@
 /*
- * @(#)RandomAccessFile.java	1.78 04/05/13
+ * @(#)RandomAccessFile.java	1.81 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.78, 05/13/04
+ * @version 1.81, 04/10/06
  * @since   JDK1.0
  */
 
@@ -304,12 +304,19 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
      * <code>InputStream</code>.
      *
      * @param      b     the buffer into which the data is read.
-     * @param      off   the start offset of the data.
+     * @param      off   the start offset in array <code>b</code>
+     *                   at which the data is written.
      * @param      len   the maximum number of bytes read.
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end of
      *             the file has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException If the first byte cannot be read for any reason
+     * other than end of file, or if the random access file has been closed, or if
+     * some other I/O error occurs.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      */
     public int read(byte b[], int off, int len) throws IOException {
 	return readBytes(b, off, len);
@@ -329,7 +336,10 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end of
      *             this file has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException If the first byte cannot be read for any reason
+     * other than end of file, or if the random access file has been closed, or if
+     * some other I/O error occurs.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
      */
     public int read(byte b[]) throws IOException {
 	return readBytes(b, 0, b.length);
@@ -529,9 +539,10 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
     public void close() throws IOException {
         if (channel != null)
             channel.close();
+
         close0();
     }
-
+    
     //
     //  Some "reading/writing Java data types" methods stolen from
     //  DataInputStream and DataOutputStream.
@@ -658,7 +669,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
     }
 
     /**
-     * Reads a Unicode character from this file. This method reads two
+     * Reads a character from this file. This method reads two
      * bytes from the file, starting at the current file pointer. 
      * If the bytes read, in order, are 
      * <code>b1</code> and <code>b2</code>, where 
@@ -671,7 +682,8 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
      * This method blocks until the two bytes are read, the end of the 
      * stream is detected, or an exception is thrown. 
      *
-     * @return     the next two bytes of this file as a Unicode character.
+     * @return     the next two bytes of this file, interpreted as a
+     *		   <code>char</code>.
      * @exception  EOFException  if this file reaches the end before reading
      *               two bytes.
      * @exception  IOException   if an I/O error occurs.

@@ -1,7 +1,7 @@
 /*
- * @(#)JFormattedTextField.java	1.22 03/12/19
+ * @(#)JFormattedTextField.java	1.25 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -143,6 +143,11 @@ import javax.swing.text.*;
  * you are likely to see odd behavior in that the editing policy of the
  * <code>AbstractFormatter</code> will not be enforced.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -152,7 +157,7 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.22 12/19/03
+ * @version 1.25 08/08/06
  * @since 1.4
  */
 public class JFormattedTextField extends JTextField {
@@ -836,6 +841,7 @@ public class JFormattedTextField extends JTextField {
      * <code>AbstractFormatter</code>s when the
      * <code>JFormattedTextField</code> has focus vs when it
      * doesn't have focus.
+     * @since 1.4
      */
     public static abstract class AbstractFormatterFactory {
         /**
@@ -878,6 +884,7 @@ public class JFormattedTextField extends JTextField {
      * Subclasses that allow the <code>JFormattedTextField</code> to be in
      * a temporarily invalid state should invoke <code>setEditValid</code>
      * at the appropriate times.
+     * @since 1.4
      */
     public static abstract class AbstractFormatter implements Serializable {
         private JFormattedTextField ftf;

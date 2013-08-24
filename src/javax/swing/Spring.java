@@ -1,13 +1,12 @@
 /*
- * @(#)Spring.java	1.9 03/12/19
+ * @(#)Spring.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
 import java.awt.Component;
-import java.util.*;
 
 /**
  *  An instance of the <code>Spring</code> class holds three properties that
@@ -107,7 +106,7 @@ import java.util.*;
  * @see SpringLayout
  * @see SpringLayout.Constraints
  *
- * @version 1.9 12/19/03
+ * @version 1.13 11/17/05
  * @author 	Philip Milne
  * @since       1.4
  */
@@ -194,16 +193,23 @@ public abstract class Spring {
             return size != UNSET ? size : getPreferredValue();
         }
 
-        public void setValue(int size) {
+        public final void setValue(int size) {
+            if (this.size == size) {
+                return; 
+            }
             if (size == UNSET) {
                 clear();
-                return;
+            } else {
+                setNonClearValue(size);
             }
-            this.size = size;
         }
 
         protected void clear() {
             size = UNSET;
+        }
+        
+        protected void setNonClearValue(int size) {
+            this.size = size;
         }
     }
 
@@ -211,8 +217,6 @@ public abstract class Spring {
         protected int min;
         protected int pref;
         protected int max;
-
-        public StaticSpring() {}
 
         public StaticSpring(int pref) {
             this(pref, pref, pref);
@@ -222,7 +226,6 @@ public abstract class Spring {
             this.min = min;
             this.pref = pref;
             this.max = max;
-            this.size = pref;
         }
 
          public String toString() {
@@ -360,6 +363,46 @@ public abstract class Spring {
         }
     }
 
+   /*pp*/ static abstract class SpringMap extends Spring {
+       private Spring s;
+       
+       public SpringMap(Spring s) {
+           this.s = s; 
+       }
+
+       protected abstract int map(int i); 
+       
+       protected abstract int inv(int i); 
+       
+       public int getMinimumValue() {
+           return map(s.getMinimumValue());
+       }
+
+       public int getPreferredValue() {
+           return map(s.getPreferredValue());
+       }
+
+       public int getMaximumValue() {
+           return Math.min(Short.MAX_VALUE, map(s.getMaximumValue()));
+       }
+
+       public int getValue() {
+           return map(s.getValue());
+       }
+
+       public void setValue(int value) {
+           if (value == UNSET) {
+               s.setValue(UNSET);
+           } else {
+               s.setValue(inv(value));
+           }
+       }
+
+       /*pp*/ boolean isCyclic(SpringLayout l) {
+           return s.isCyclic(l);
+       }
+   }
+
 // Use the instance variables of the StaticSpring superclass to
 // cache values that have already been calculated.
     /*pp*/ static abstract class CompoundSpring extends StaticSpring {
@@ -367,7 +410,7 @@ public abstract class Spring {
         protected Spring s2;
 
         public CompoundSpring(Spring s1, Spring s2) {
-            clear();
+            super(UNSET);
             this.s1 = s1;
             this.s2 = s2;
         }
@@ -377,19 +420,10 @@ public abstract class Spring {
         }
 
         protected void clear() {
-            min = pref = max = size = UNSET;
-        }
-
-        public void setValue(int size) {
-            if (size == UNSET) {
-                if (this.size != UNSET) {
-                    super.setValue(size);
-                    s1.setValue(UNSET);
-                    s2.setValue(UNSET);
-                    return;
-                }
-            }
-            super.setValue(size);
+            super.clear();
+            min = pref = max = UNSET; 
+            s1.setValue(UNSET);
+            s2.setValue(UNSET);
         }
 
         protected abstract int op(int x, int y);
@@ -436,11 +470,8 @@ public abstract class Spring {
              return x + y;
          }
 
-         public void setValue(int size) {
-             super.setValue(size);
-             if (size == UNSET) {
-                 return;
-             }
+         protected void setNonClearValue(int size) {
+             super.setNonClearValue(size);
              s1.setStrain(this.getStrain());
              s2.setValue(size - s1.getValue());
          }
@@ -456,20 +487,10 @@ public abstract class Spring {
             return Math.max(x, y);
         }
 
-        public void setValue(int size) {
-            super.setValue(size);
-            if (size == UNSET) {
-                return;
-            }
-            // Pending should also check max bounds here.
-            if (s1.getPreferredValue() < s2.getPreferredValue()) {
-                s1.setValue(Math.min(size, s1.getPreferredValue()));
-                s2.setValue(size);
-            }
-            else {
-                s1.setValue(size);
-                s2.setValue(Math.min(size, s2.getPreferredValue()));
-            }
+        protected void setNonClearValue(int size) {
+            super.setNonClearValue(size);
+            s1.setValue(size);
+            s2.setValue(size);
         }
     }
 

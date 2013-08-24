@@ -57,9 +57,9 @@ package com.sun.org.apache.bcel.internal.generic;
 /** 
  * ICONST - Push value between -1, ..., 5, other values cause an exception
  *
- * <PRE>Stack: ... -&gt; ..., <i></PRE>
+ * <PRE>Stack: ... -&gt; ..., </PRE>
  *
- * @version $Id: ICONST.java,v 1.1.1.1 2001/10/29 20:00:14 jvanzyl Exp $
+ * @version $Id: ICONST.java,v 1.1.2.1 2005/07/31 23:45:56 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ICONST extends Instruction
@@ -90,7 +90,6 @@ public class ICONST extends Instruction
   public Type getType(ConstantPoolGen cp) {
     return Type.INT;
   }
-
 
   /**
    * Call corresponding visitor method(s). The order is:

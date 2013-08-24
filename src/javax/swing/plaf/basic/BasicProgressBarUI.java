@@ -1,13 +1,13 @@
 /*
- * @(#)BasicProgressBarUI.java	1.68 04/03/11
+ * @(#)BasicProgressBarUI.java	1.73 06/04/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.event.*;
@@ -22,7 +22,7 @@ import sun.swing.DefaultLookup;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.68 03/11/04
+ * @version 1.73 04/17/06
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
@@ -222,6 +222,48 @@ public class BasicProgressBarUI extends ProgressBarUI {
     }
 
     
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        if (progressBar.isStringPainted() &&
+                progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+            FontMetrics metrics = progressBar.
+                    getFontMetrics(progressBar.getFont());
+            Insets insets = progressBar.getInsets();
+            int y = insets.top;
+            height = height - insets.top - insets.bottom;
+            return y + (height + metrics.getAscent() -
+                        metrics.getLeading() -
+                        metrics.getDescent()) / 2;
+        }
+        return -1;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        if (progressBar.isStringPainted() &&
+                progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+            return Component.BaselineResizeBehavior.CENTER_OFFSET;
+        }
+        return Component.BaselineResizeBehavior.OTHER;
+    }
+
     // Many of the Basic*UI components have the following methods.
     // This component does not have these methods because *ProgressBarUI
     //  is not a compound component and does not accept input.
@@ -529,6 +571,10 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	Insets b = progressBar.getInsets(); // area for border
 	int barRectWidth = progressBar.getWidth() - (b.right + b.left);
 	int barRectHeight = progressBar.getHeight() - (b.top + b.bottom);
+        
+        if (barRectWidth <= 0 || barRectHeight <= 0) {
+            return;
+        }
 
         Graphics2D g2 = (Graphics2D)g;
 
@@ -576,6 +622,10 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	Insets b = progressBar.getInsets(); // area for border
 	int barRectWidth = progressBar.getWidth() - (b.right + b.left);
 	int barRectHeight = progressBar.getHeight() - (b.top + b.bottom);
+        
+        if (barRectWidth <= 0 || barRectHeight <= 0) {
+            return;
+        }
 
         int cellLength = getCellLength();
         int cellSpacing = getCellSpacing();
@@ -830,6 +880,19 @@ public class BasicProgressBarUI extends ProgressBarUI {
      */
     protected int getAnimationIndex() {
 	return animationIndex;
+    }
+
+    /**
+     * Returns the number of frames for the complete animation loop
+     * used by an indeterminate JProgessBar. The progress chunk will go
+     * from one end to the other and back during the entire loop. This
+     * visual behavior may be changed by subclasses in other Look and Feels.
+     * 
+     * @return the number of frames
+     * @since 1.6
+     */
+    protected final int getFrameCount() {
+        return numFrames;
     }
 
     /**

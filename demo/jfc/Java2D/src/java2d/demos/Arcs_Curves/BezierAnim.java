@@ -1,7 +1,7 @@
 /*
- * @(#)BezierAnim.java	1.22 04/07/26
+ * @(#)BezierAnim.java	1.25 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)BezierAnim.java	1.19 03/01/23
+ * @(#)BezierAnim.java	1.25 06/08/29
  */
 
 package java2d.demos.Arcs_Curves;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -60,7 +61,7 @@ public class BezierAnim extends AnimatingControlsSurface {
     protected BasicStroke dashed = new BasicStroke(10.0f, 
        BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10, new float[] {5}, 0);
     private float animpts[] = new float[NUMPTS * 2];
-    private float deltas[] = new float[NUMPTS * 2];
+    private float  deltas[] = new float[NUMPTS * 2];
     protected Paint fillPaint, drawPaint;
     protected boolean doFill = true;
     protected boolean doDraw = true;
@@ -69,10 +70,10 @@ public class BezierAnim extends AnimatingControlsSurface {
 
 
     public BezierAnim() {
-        setBackground(Color.white);
-        gradient = new GradientPaint(0,0,Color.red,200,200,Color.yellow);
+        setBackground(WHITE);
+        gradient = new GradientPaint(0,0,RED,200,200,YELLOW);
         fillPaint = gradient;
-        drawPaint = Color.blue;
+        drawPaint = BLUE;
         stroke = solid;
         setControls(new Component[] { new DemoControls(this) });
     }
@@ -82,7 +83,7 @@ public class BezierAnim extends AnimatingControlsSurface {
         float newpt = pts[index] + deltas[index];
         if (newpt <= 0) {
             newpt = -newpt;
-            deltas[index] = (float) (Math.random() * 4.0 + 2.0);
+            deltas[index] =   (float) (Math.random() * 4.0 + 2.0);
         } else if (newpt >= (float) limit) {
             newpt = 2.0f * limit - newpt;
             deltas[index] = - (float) (Math.random() * 4.0 + 2.0);
@@ -95,8 +96,8 @@ public class BezierAnim extends AnimatingControlsSurface {
         for (int i = 0; i < animpts.length; i += 2) {
             animpts[i + 0] = (float) (Math.random() * w);
             animpts[i + 1] = (float) (Math.random() * h);
-            deltas[i + 0] = (float) (Math.random() * 6.0 + 4.0);
-            deltas[i + 1] = (float) (Math.random() * 6.0 + 4.0);
+             deltas[i + 0] = (float) (Math.random() * 6.0 + 4.0);
+             deltas[i + 1] = (float) (Math.random() * 6.0 + 4.0);
             if (animpts[i + 0] > w / 2.0f) {
                 deltas[i + 0] = -deltas[i + 0];
             }
@@ -104,7 +105,7 @@ public class BezierAnim extends AnimatingControlsSurface {
                 deltas[i + 1] = -deltas[i + 1];
             }
         }
-        gradient = new GradientPaint(0,0,Color.red,w*.7f,h*.7f,Color.yellow);
+        gradient = new GradientPaint(0,0,RED,w*.7f,h*.7f,YELLOW);
     }
 
 
@@ -121,10 +122,10 @@ public class BezierAnim extends AnimatingControlsSurface {
         int len = ctrlpts.length;
         float prevx = ctrlpts[len - 2];
         float prevy = ctrlpts[len - 1];
-        float curx = ctrlpts[0];
-        float cury = ctrlpts[1];
-        float midx = (curx + prevx) / 2.0f;
-        float midy = (cury + prevy) / 2.0f;
+        float  curx = ctrlpts[0];
+        float  cury = ctrlpts[1];
+        float  midx = (curx + prevx) / 2.0f;
+        float  midy = (cury + prevy) / 2.0f;
         GeneralPath gp = new GeneralPath(GeneralPath.WIND_NON_ZERO);
         gp.moveTo(midx, midy);
         for (int i = 2; i <= ctrlpts.length; i += 2) {
@@ -179,13 +180,13 @@ public class BezierAnim extends AnimatingControlsSurface {
 
         BezierAnim demo;
         static Paint drawPaints[] = 
-                {new Color(0,0,0,0), Color.blue, new Color(0, 0, 255, 126), 
-                  Color.blue, tp2 };
+                {new Color(0,0,0,0), BLUE, new Color(0, 0, 255, 126), 
+                  BLUE, tp2 };
         static String drawName[] =
                 {"No Draw", "Blue", "Blue w/ Alpha", "Blue Dash", "Texture" }; 
         static Paint fillPaints[] = 
-                {new Color(0,0,0,0), Color.green, new Color(0, 255, 0, 126), 
-                  tp1, new GradientPaint(0,0,Color.red,30,30,Color.yellow) };
+                {new Color(0,0,0,0), GREEN, new Color(0, 255, 0, 126), 
+                  tp1, new GradientPaint(0,0,RED,30,30,YELLOW) };
         String fillName[] =
                 {"No Fill", "Green", "Green w/ Alpha", "Texture", "Gradient"}; 
         
@@ -274,10 +275,10 @@ public class BezierAnim extends AnimatingControlsSurface {
         public void run() {
             Thread me = Thread.currentThread();
             while (thread == me) {
-                for (int i = 1; i < drawMI.length; i++) {
-                    drawMI[i].doClick();
-                    for (int j = 0; j < fillMI.length; j++) {
-                        fillMI[j].doClick();
+                for (JMenuItem dmi : drawMI) {
+                    dmi.doClick();
+                    for (JMenuItem fmi : fillMI) {
+                        fmi.doClick();
                         try {
                             thread.sleep(3000 + (long) (Math.random() * 3000));
                         } catch (InterruptedException e) { break; }
@@ -298,10 +299,10 @@ public class BezierAnim extends AnimatingControlsSurface {
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setPaint(paint);
                 g2.fillRect(x,y,getIconWidth(), getIconHeight());
-                g2.setColor(Color.gray);
+                g2.setColor(GRAY);
                 g2.draw3DRect(x, y, getIconWidth()-1, getIconHeight()-1, true);
             }
-            public int getIconWidth() { return 12; }
+            public int getIconWidth()  { return 12; }
             public int getIconHeight() { return 12; }
         } // End PaintedIcon class
     } // End DemoControls class

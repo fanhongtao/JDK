@@ -1,7 +1,7 @@
 /*
- * @(#)Thread.cpp	1.2 04/07/27
+ * @(#)Thread.cpp	1.4 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,21 +40,27 @@
 
 #include "jni.h"
 #include "jvmti.h"
+
+#include "agent_util.h"
+
 #include "Thread.hpp"
 
 /* Implementation of the Thread class */
 
-Thread::Thread(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) {
+Thread::Thread(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) 
+{
+    jvmtiError      err;
     jvmtiThreadInfo info;
     
     /* Get and save the name of the thread */
     info.name = NULL;
     (void)strcpy(name, "Unknown");
-    jvmti->GetThreadInfo(thread, &info);
+    err = jvmti->GetThreadInfo(thread, &info);
+    check_jvmti_error(jvmti, err, "get thread info");
     if ( info.name != NULL ) {
         (void)strncpy(name, info.name, (int)sizeof(name)-1);
 	name[(int)sizeof(name)-1] = 0;
-	jvmti->Deallocate((unsigned char*)info.name);
+	deallocate(jvmti, info.name);
     }
 
     /* Clear thread counters */
@@ -63,24 +69,28 @@ Thread::Thread(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) {
     timeouts = 0;
 }
 
-Thread::~Thread() {
+Thread::~Thread() 
+{
     /* Send out summary message */
-    fprintf(stdout, "Thread %s summary: %d waits plus %d contended\n",
+    stdout_message("Thread %s summary: %d waits plus %d contended\n",
 	name, waits, contends);
 }
 
 void Thread::monitor_contended_enter(jvmtiEnv* jvmti, JNIEnv *env, 
-	     jthread thread, jobject object) {
+	     jthread thread, jobject object) 
+{
     contends++;
 }
 
 void Thread::monitor_wait(jvmtiEnv* jvmti, JNIEnv *env,
-	       jthread thread, jobject object, jlong timeout) {
+	       jthread thread, jobject object, jlong timeout) 
+{
     waits++;
 }
 
 void Thread::monitor_waited(jvmtiEnv* jvmti, JNIEnv *env,
-	       jthread thread, jobject object, jboolean timed_out) {
+	       jthread thread, jobject object, jboolean timed_out) 
+{
     if ( timed_out ) {
 	timeouts++;
     }

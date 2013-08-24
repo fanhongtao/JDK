@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemPreferencesFactory.java	1.5 03/12/19
+ * @(#)FileSystemPreferencesFactory.java	1.6 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.util.prefs;
  * java.util.prefs.PreferencesFactory system property.
  *
  * @author  Josh Bloch
- * @version 1.5, 12/19/03
+ * @version 1.6, 11/17/05
  * @see     FileSystemPreferences
  * @see     Preferences
  * @since   1.4

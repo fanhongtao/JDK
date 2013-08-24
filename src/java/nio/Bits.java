@@ -1,7 +1,7 @@
 /*
- * @(#)Bits.java	1.18 04/05/24
+ * @(#)Bits.java	1.20 06/01/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -589,7 +589,8 @@ class Bits {				// package-private
         PrivilegedAction pa
 	    = new sun.security.action.GetPropertyAction("os.arch");
         String arch = (String)AccessController.doPrivileged(pa);
-	unaligned = arch.equals("i386") || arch.equals("x86");
+	unaligned = arch.equals("i386") || arch.equals("x86")
+	    || arch.equals("amd64");
 	unalignedKnown = true;
 	return unaligned;
     }

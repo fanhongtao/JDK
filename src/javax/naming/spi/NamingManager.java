@@ -1,7 +1,7 @@
 /*
- * @(#)NamingManager.java	1.21 04/07/16
+ * @(#)NamingManager.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import com.sun.naming.internal.FactoryEnumeration;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.21 04/07/16
+ * @version 1.22 05/11/17
  * @since 1.3
  */
 

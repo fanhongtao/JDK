@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriteParam.java	1.18 03/12/19
+ * @(#)JPEGImageWriteParam.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -79,10 +79,11 @@ public class JPEGImageWriteParam extends ImageWriteParam {
     private JPEGHuffmanTable[] ACHuffmanTables = null;
     private boolean optimizeHuffman = false;
     private String[] compressionNames = {"JPEG"};
-    private float[] qualityVals = { 0.05F, 0.75F, 0.95F };
-    private String[] qualityDescs = { "Minimum useful",    // .05
-                                      "Visually lossless", // .75
-                                      "Maximum useful"     // .95
+    private float[] qualityVals = { 0.00F, 0.30F, 0.75F, 1.00F };
+    private String[] qualityDescs = {
+        "Low quality",       // 0.00 -> 0.30
+        "Medium quality",    // 0.30 -> 0.75
+        "Visually lossless"  // 0.75 -> 1.00
     };
 
     /**

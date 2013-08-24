@@ -1,7 +1,7 @@
 /*
- * @(#)NameGenerator.java	1.9 03/12/19
+ * @(#)NameGenerator.java	1.11 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -9,6 +9,8 @@ package java.beans;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+
+import static java.util.Locale.ENGLISH;
 
 /**
  * A utility class which generates unique names for object instances.
@@ -19,7 +21,7 @@ import java.util.Map;
  * is passed into <code>instanceName</code> then the returned
  * string identifier will be &quot;JButton0&quot;.
  * 
- * @version 1.9 12/19/03
+ * @version 1.11 11/30/05
  * @author Philip Milne
  */
 class NameGenerator { 
@@ -59,7 +61,7 @@ class NameGenerator {
 	if (name == null || name.length() == 0) { 
 	    return name; 
         }
-	return name.substring(0, 1).toUpperCase() + name.substring(1);
+	return name.substring(0, 1).toUpperCase(ENGLISH) + name.substring(1);
     }
     
     /**

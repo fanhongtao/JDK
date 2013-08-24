@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphView.java	1.41 06/06/29
+ * @(#)GlyphView.java	1.43 06/05/12
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,7 +11,7 @@ import java.text.BreakIterator;
 import javax.swing.event.*;
 import java.util.BitSet;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * A GlyphView is a styled chunk of text that represents a view
@@ -40,7 +40,7 @@ import com.sun.java.swing.SwingUtilities2;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.41 06/29/06
+ * @version 1.43 05/12/06
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -481,7 +481,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	    if ((parent != null) && (parent.getEndOffset() == p1)) {
 		// strip whitespace on end
 		Segment s = getText(p0, p1);
-		while ((s.count > 0) && (Character.isWhitespace(s.array[s.count-1]))) {
+		while (Character.isWhitespace(s.last())) {
 		    p1 -= 1;
 		    s.count -= 1;
 		}
@@ -495,17 +495,14 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	    int x1 = x0 + (int) painter.getSpan(this, p0, p1, getTabExpander(), x0);
 
 	    // calculate y coordinate
-	    int d = (int) painter.getDescent(this);
 	    int y = alloc.y + alloc.height - (int) painter.getDescent(this);
 	    if (underline) {
-		int yTmp = y;
-		yTmp += 1;
+		int yTmp = y + 1;
 		g.drawLine(x0, yTmp, x1, yTmp);
 	    } 
 	    if (strike) {
-		int yTmp = y;
-		// move y coordinate above baseline
-		yTmp -= (int) (painter.getAscent(this) * 0.3f);
+                // move y coordinate above baseline
+		int yTmp = y - (int) (painter.getAscent(this) * 0.3f);
 		g.drawLine(x0, yTmp, x1, yTmp);
 	    }
 
@@ -534,7 +531,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	    if (skipWidth) {
 		return 0;
 	    }
-	    return painter.getSpan(this, p0, p1, expander, this.x);
+            return painter.getSpan(this, p0, p1, expander, this.x); 
 	case View.Y_AXIS:
 	    float h = painter.getHeight(this);
 	    if (isSuperscript()) {
@@ -799,7 +796,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
         }
         else if (p1 + 1 == parent1) {
             // assert(s.count > 1)
-            breakPoint = breaker.next(s.offset + s.count - 2);
+            breakPoint = breaker.following(s.offset + s.count - 2);
             if (breakPoint >= s.count + s.offset) {
                 breakPoint = breaker.preceding(s.offset + s.count - 1);
             }

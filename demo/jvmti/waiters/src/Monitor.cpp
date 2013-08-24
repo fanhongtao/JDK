@@ -1,7 +1,7 @@
 /*
- * @(#)Monitor.cpp	1.2 04/07/27
+ * @(#)Monitor.cpp	1.4 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,13 +40,18 @@
 
 #include "jni.h"
 #include "jvmti.h"
+
+#include "agent_util.h"
+
 #include "Monitor.hpp"
 
 /* Implementation of the Monitor class */
 
-Monitor::Monitor(jvmtiEnv *jvmti, JNIEnv *env, jobject object) {
-    jclass klass;
-    char  *signature;
+Monitor::Monitor(jvmtiEnv *jvmti, JNIEnv *env, jobject object) 
+{
+    jvmtiError err;
+    jclass     klass;
+    char      *signature;
 
     /* Clear counters */
     contends  = 0;
@@ -56,27 +61,35 @@ Monitor::Monitor(jvmtiEnv *jvmti, JNIEnv *env, jobject object) {
     /* Get the class name for this monitor object */
     (void)strcpy(name, "Unknown");
     klass = env->GetObjectClass(object);
-    jvmti->GetClassSignature(klass, &signature, NULL);
+    if ( klass == NULL ) {
+	fatal_error("ERROR: Cannot find jclass from jobject\n");
+    }
+    err = jvmti->GetClassSignature(klass, &signature, NULL);
+    check_jvmti_error(jvmti, err, "get class signature");
     if ( signature != NULL ) {
 	(void)strncpy(name, signature, (int)sizeof(name)-1);
-        jvmti->Deallocate((unsigned char*)signature);
+        deallocate(jvmti, signature);
     }
 }
 
-Monitor::~Monitor() {
-    fprintf(stdout, "Monitor %s summary: %d contends, %d waits, %d timeouts\n",
+Monitor::~Monitor() 
+{
+    stdout_message("Monitor %s summary: %d contends, %d waits, %d timeouts\n",
 	name, contends, waits, timeouts);
 }
 
-void Monitor::contended() {
+void Monitor::contended() 
+{
     contends++;
 }
 
-void Monitor::waited() {
+void Monitor::waited() 
+{
     waits++;
 }
 
-void Monitor::timeout() {
+void Monitor::timeout() 
+{
     timeouts++;
 }
 

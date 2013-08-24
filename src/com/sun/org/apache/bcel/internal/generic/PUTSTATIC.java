@@ -59,11 +59,11 @@ import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
 /** 
  * PUTSTATIC - Put static field in class
- * <PRE>Stack: ..., objectref, value -&gt; ...</PRE>
+ * <PRE>Stack: ..., value -&gt; ...</PRE>
  * OR
- * <PRE>Stack: ..., objectref, value.word1, value.word2 -&gt; ...</PRE>
+ * <PRE>Stack: ..., value.word1, value.word2 -&gt; ...</PRE>
  *
- * @version $Id: PUTSTATIC.java,v 1.1.1.1 2001/10/29 20:00:25 jvanzyl Exp $
+ * @version $Id: PUTSTATIC.java,v 1.1.2.1 2005/07/31 23:44:43 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class PUTSTATIC extends FieldInstruction

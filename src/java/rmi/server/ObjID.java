@@ -1,21 +1,21 @@
 /*
- * @(#)ObjID.java	1.29 03/12/19
+ * @(#)ObjID.java	1.31 06/02/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
 
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.OutputStream;
+import java.io.Serializable;
+import java.security.AccessController;
 import java.security.SecureRandom;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
+import sun.security.action.GetPropertyAction;
 
 /**
  * An <code>ObjID</code> is used to identify a remote object exported
@@ -47,10 +47,10 @@ import java.util.Random;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.29, 03/12/19
+ * @version	1.31, 06/02/23
  * @since	JDK1.1
  */
-public final class ObjID implements java.io.Serializable {
+public final class ObjID implements Serializable {
 
     /** Object number for well-known <code>ObjID</code> of the registry. */
     public static final int REGISTRY_ID = 0;
@@ -67,8 +67,9 @@ public final class ObjID implements java.io.Serializable {
     /** indicate compatibility with JDK 1.1.x version of class */
     private static final long serialVersionUID = -6386392263968365220L;
 
-    private static final UID mySpace;
-    private static final Random generator;
+    private static final AtomicLong nextObjNum = new AtomicLong(0);
+    private static final UID mySpace = new UID();
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     /**
      * @serial object number
@@ -92,13 +93,17 @@ public final class ObjID implements java.io.Serializable {
      */
     public ObjID() {
 	/*
-	 * Create a new UID if the SecureRandom generator is used (mySpace
-	 * will be null in this case).  Using a different UID for each ObjID
-	 * ensures that ObjIDs will be unique in this VM incarnation when
-	 * paired with the result of the secure random number generator.
+	 * If generating random object numbers, create a new UID to
+	 * ensure uniqueness; otherwise, use a shared UID because
+	 * sequential object numbers already ensure uniqueness.
 	 */
-	space = (mySpace != null) ? mySpace : new UID();
-	objNum = generator.nextLong();
+	if (useRandomIDs()) {
+	    space = new UID();
+	    objNum = secureRandom.nextLong();
+	} else {
+	    space = mySpace;
+	    objNum = nextObjNum.getAndIncrement();
+	}
     }
 
     /**
@@ -196,7 +201,7 @@ public final class ObjID implements java.io.Serializable {
      */
     public boolean equals(Object obj) {
 	if (obj instanceof ObjID) {
-	    ObjID id = (ObjID)obj;
+	    ObjID id = (ObjID) obj;
 	    return objNum == id.objNum && space.equals(id.space);
 	} else {
 	    return false;
@@ -218,35 +223,9 @@ public final class ObjID implements java.io.Serializable {
 	    objNum + "]";
     }
 
-    private static final class InsecureRandom extends Random {
-
-	/** unnecessary serialVersionUID to keep watchdog tools happy */
-	private static final long serialVersionUID = -698228687531590145L;
-
-	private long nextNum;
-
-	public synchronized long nextLong() {
-	    return nextNum++;
-	}
-    }
-
-    static {
-	boolean randomIDs =
-	    ((Boolean) java.security.AccessController.doPrivileged(
-	        new sun.security.action.GetBooleanAction(
-		    "java.rmi.server.randomIDs"))).booleanValue();
-
-	if (randomIDs) {
-	    generator = new SecureRandom();
-	    mySpace = null;
-	} else {
-	    generator = new InsecureRandom();
-	    /*
-	     * The InsecureRandom implementation guarantees that object
-	     * numbers will not repeat, so the same UID value can be used
-	     * for all instances of ObjID.
-	     */
-	    mySpace = new UID();
-	}
+    private static boolean useRandomIDs() {
+	String value = AccessController.doPrivileged(
+	    new GetPropertyAction("java.rmi.server.randomIDs"));
+	return value == null ? true : Boolean.parseBoolean(value);
     }
 }

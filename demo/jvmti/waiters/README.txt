@@ -1,14 +1,22 @@
-waiters: @(#)README.txt	1.4 04/06/23
+#
+# @(#)README.txt	1.5 06/01/28
+#
+# Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+# SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+#
 
-This agent library can be used to track threads that wait on 
-monitors.
+waiters: @(#)README.txt	1.5 06/01/28
+
+This agent library can be used to track threads that wait on monitors.
+This agent is written in C++.
 
 You can use this agent library as follows:
 
     java -agentlib:waiters ...
 
-If the Virtual Machine complains that it can't find the library, 
-you may need to add the directory containing the library into the 
-LD_LIBRARY_PATH environment variable (Unix), or the PATH environment 
-variable (Windows).
+To get help on the available options try:
+
+    java -agentlib:waiters=help
+
+See ${JAVA_HOME}/demo/jvmti/index.html for help running and building agents.
 

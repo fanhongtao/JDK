@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLOutputAttributes.java,v 1.2 2004/02/17 04:18:18 minchau Exp $
+ * $Id: XSLOutputAttributes.java,v 1.2.4.1 2005/09/15 08:15:32 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -44,8 +44,12 @@ import java.util.Vector;
  * The one attribute not covered in this interface is <code>method</code> as
  * this value is implicitly chosen by the serializer that is created, for
  * example ToXMLStream vs. ToHTMLStream or another one.
+ * 
+ * This interface is only used internally within Xalan.
+ * 
+ * @xsl.usage internal
  */
-public interface XSLOutputAttributes
+interface XSLOutputAttributes
 {
     /**
      * Returns the previously set value of the value to be used as the public

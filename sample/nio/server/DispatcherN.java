@@ -1,7 +1,7 @@
 /*
- * @(#)DispatcherN.java	1.2 04/07/26
+ * @(#)DispatcherN.java	1.3 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -46,7 +46,7 @@ import java.util.*;
  *
  * @author Mark Reinhold
  * @author Brad R. Wetmore
- * @version 1.2, 04/07/26
+ * @version 1.3, 05/11/17
  */
 class DispatcherN implements Dispatcher {
 

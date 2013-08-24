@@ -1,7 +1,7 @@
 /*
- * @(#)FormView.java	1.28 05/05/27
+ * @(#)FormView.java	1.29 06/07/25
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -85,7 +85,7 @@ import javax.swing.text.*;
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.28 05/27/05
+ * @version 1.29 07/25/06
  */
 public class FormView extends ComponentView implements ActionListener {
 
@@ -107,6 +107,12 @@ public class FormView extends ComponentView implements ActionListener {
      */
     @Deprecated
     public static final String RESET = new String("Reset");
+
+    /**
+     * Document attribute name for storing POST data. JEditorPane.getPostData()
+     * uses the same name, should be kept in sync.
+     */
+    final static String PostDataProperty = "javax.swing.JEditorPane.postdata";
 
     /**
      * Used to indicate if the maximum span should be the same as the
@@ -366,196 +372,99 @@ public class FormView extends ComponentView implements ActionListener {
      * A thread is forked to undertake the submission.
      */
     protected void submitData(String data) {
-	//System.err.println("data ->"+data+"<-");
-	SubmitThread dataThread = new SubmitThread(getElement(), data);
-	dataThread.start();
-    }
+        Element form = getFormElement();
+        AttributeSet attrs = form.getAttributes();
+        HTMLDocument doc = (HTMLDocument) form.getDocument();
+        URL base = doc.getBase();
 
-
-    /**
-     * The SubmitThread is responsible for submitting the form.
-     * It performs a POST or GET based on the value of method
-     * attribute associated with  HTML.Tag.FORM.  In addition to
-     * submitting, it is also responsible for display the 
-     * results of the form submission.
-     */
-    class SubmitThread extends Thread {
-
-	String data;
-	HTMLDocument hdoc;
-	AttributeSet formAttr;
-	URL url;
-	String method;
-	String target;
-	URL actionURL;
-
-	public SubmitThread(Element elem, String data) {
-	    this.data = data;
-	    hdoc = (HTMLDocument)elem.getDocument();
-            Element formE = getFormElement();
-            if (formE != null) {
-                formAttr = formE.getAttributes();
-            }
-
-	    method = getMethod();
-
-	    try {
-		
-		String action = getAction();
-		method = getMethod();
-		target = getTarget();		
-		
-		/* if action is null use the base url and ensure that
-		   the file name excludes any parameters that may be attached */
-		URL baseURL = hdoc.getBase();
-		if (action == null) {
-		    
-		    String file = baseURL.getFile();
-		    actionURL = new URL(baseURL.getProtocol(), 
-					baseURL.getHost(), 
-					baseURL.getPort(), 
-					file);
-		} else {
-			actionURL = new URL(baseURL, action);
-		}
-	    } catch (MalformedURLException m) {
-		actionURL = null;
-	    }
-	}
-
-
-	/**
-	 * This method is responsible for extracting the
-	 * method and action attributes associated with the
-	 * &lt;FORM&gt; and using those to determine how (POST or GET)
-	 * and where (URL) to submit the form.  If action is
-	 * not specified, the base url of the existing document is
-	 * used.  Also, if method is not specified, the default is
-	 * GET.  Once form submission is done, run uses the
-	 * SwingUtilities.invokeLater() method, to load the results
-	 * of the form submission into the current JEditorPane.
-	 */
-	public void run() {
-
-	    if (data.length() > 0) {
-
-		try {
-
-		    URLConnection connection;
-
-		    // safe assumption since we are in an html document
-                    JEditorPane c = (JEditorPane)getContainer();
-                    HTMLEditorKit kit = (HTMLEditorKit)c.getEditorKit();
-                    if (kit.isAutoFormSubmission()) {
-                        if ("post".equals(method)) {
-                            url = actionURL;
-                            connection = url.openConnection();
-                            postData(connection, data);
-                        } else {
-                            /* the default, GET */
-                            url = new URL(actionURL+"?"+data);
-                        }
+        String target = (String) attrs.getAttribute(HTML.Attribute.TARGET);
+        if (target == null) {
+            target = "_self";
+        }
         
-                        Runnable callLoadDocument = new Runnable() {
-                            public void run() {
-				JEditorPane c = (JEditorPane)getContainer();
-                                if (hdoc.isFrameDocument()) {
-                                    c.fireHyperlinkUpdate(createFormSubmitEvent());
-                                } else {
-                                    try {
-                                        c.setPage(url);
-                                    } catch (IOException e) {
-                                    }
-                                }
-                            }
-                        };
-                        SwingUtilities.invokeLater(callLoadDocument);
-                    } else {
-                        c.fireHyperlinkUpdate(createFormSubmitEvent());
+        String method = (String) attrs.getAttribute(HTML.Attribute.METHOD);
+        if (method == null) {
+            method = "GET";
+        }
+        method = method.toLowerCase();
+        boolean isPostMethod = method.equals("post");
+        if (isPostMethod) {
+            storePostData(doc, target, data);
+        }
+        
+        String action = (String) attrs.getAttribute(HTML.Attribute.ACTION);
+        URL actionURL;
+        try { 
+            actionURL = (action == null)
+                ? new URL(base.getProtocol(), base.getHost(),
+                                        base.getPort(), base.getFile())
+                : new URL(base, action);
+            if (!isPostMethod) {
+                String query = data.toString();
+                actionURL = new URL(actionURL + "?" + query);
+            }
+        } catch (MalformedURLException e) {
+            actionURL = null;
+        }
+        final JEditorPane c = (JEditorPane) getContainer();
+        HTMLEditorKit kit = (HTMLEditorKit) c.getEditorKit();
+        
+        FormSubmitEvent formEvent = null;
+        if (!kit.isAutoFormSubmission() || doc.isFrameDocument()) {
+            FormSubmitEvent.MethodType methodType = isPostMethod
+                    ? FormSubmitEvent.MethodType.POST
+                    : FormSubmitEvent.MethodType.GET;
+            formEvent = new FormSubmitEvent(
+                    FormView.this, HyperlinkEvent.EventType.ACTIVATED,
+                    actionURL, form, target, methodType, data);
+            
+        }
+        // setPage() may take significant time so schedule it to run later.
+        final FormSubmitEvent fse = formEvent;
+        final URL url = actionURL;
+        SwingUtilities.invokeLater(new Runnable() {            
+            public void run() {
+                if (fse != null) {
+                    c.fireHyperlinkUpdate(fse);
+                } else {
+                    try {
+                        c.setPage(url);
+                    } catch (IOException e) {
+                        UIManager.getLookAndFeel().provideErrorFeedback(c);
                     }
-                } catch (MalformedURLException m) {
-                    // REMIND how do we deal with exceptions ??
-                } catch (IOException e) {
-                    // REMIND how do we deal with exceptions ??
                 }
-	    }
-	}
-
-	/**
-	 * Create an event that notifies about form submission
-	 */
-	private FormSubmitEvent createFormSubmitEvent() {
-	    FormSubmitEvent.MethodType formMethod = 
-		"post".equals(method) ? FormSubmitEvent.MethodType.POST : 
-                                        FormSubmitEvent.MethodType.GET;
-	    return new FormSubmitEvent(FormView.this, 
-				       HyperlinkEvent.EventType.ACTIVATED, 
-				       actionURL, 
-				       getElement(),
-				       target, 
-				       formMethod, 
-				       data);	    
-	}
-
-	/**
-	 * Get the value of the target attribute.
-	 */
-	private String getTarget() {
-	    if (formAttr != null) {
-		String target = (String)formAttr.getAttribute(HTML.Attribute.TARGET);
-		if (target != null) {
-		    return target.toLowerCase();
-		}
-	    }
-	    return "_self";
-	}
-	
-	/**
-	 * Get the value of the action attribute.
-	 */
-	public String getAction() {
-	    if (formAttr == null) { 
-		return null;
-	    }
-	    return (String)formAttr.getAttribute(HTML.Attribute.ACTION);
-	}
-	
-	/**
-	 * Get the form's method parameter.
-	 */
-	String getMethod() {
-	    if (formAttr != null) {
-		String method = (String)formAttr.getAttribute(HTML.Attribute.METHOD);
-		if (method != null) {
-		    return method.toLowerCase();
-		}
-	    }
-	    return null;
-	} 
-
-
-	/**
-	 * This method is responsible for writing out the form submission
-	 * data when the method is POST.
-	 * 
-	 * @param connection to use.
-	 * @param data to write.
-	 */
-	public void postData(URLConnection connection, String data) {
-	    connection.setDoOutput(true);
- 	    PrintWriter out = null;
-	    try {
-		out = new PrintWriter(new OutputStreamWriter(connection.getOutputStream()));
-		out.print(data);
-		out.flush();
-	    } catch (IOException e) {
-		// REMIND: should do something reasonable!
-	    } finally {
-		if (out != null) {
-		    out.close();
-		}
-	    }
-	}
+            }
+        });
+    }
+        
+    private void storePostData(HTMLDocument doc, String target, String data) {
+        
+        /* POST data is stored into the document property named by constant
+         * PostDataProperty from where it is later retrieved by method
+         * JEditorPane.getPostData().  If the current document is in a frame,
+         * the data is initially put into the toplevel (frameset) document
+         * property (named <PostDataProperty>.<Target frame name>).  It is the
+         * responsibility of FrameView which updates the target frame
+         * to move data from the frameset document property into the frame
+         * document property.
+         */
+        
+        Document propDoc = doc;
+        String propName = PostDataProperty;
+        
+        if (doc.isFrameDocument()) {
+            // find the top-most JEditorPane holding the frameset view.
+            FrameView.FrameEditorPane p =
+                    (FrameView.FrameEditorPane) getContainer();
+            FrameView v = p.getFrameView();
+            JEditorPane c = v.getOutermostJEditorPane();
+            if (c != null) {
+                propDoc = c.getDocument();
+                propName += ("." + target);
+            }
+        }
+        
+        propDoc.putProperty(propName, data);
     }
 
     /**

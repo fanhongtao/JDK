@@ -1,7 +1,7 @@
 /*
- * @(#)Highlighting.java	1.29 04/07/26
+ * @(#)Highlighting.java	1.31 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,12 +35,13 @@
  */
 
 /*
- * @(#)Highlighting.java	1.29 04/07/26
+ * @(#)Highlighting.java	1.31 06/08/29
  */
 
 package java2d.demos.Fonts;
 
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextLayout;
@@ -58,7 +59,7 @@ import java2d.AnimatingSurface;
 public class Highlighting extends AnimatingSurface {
 
     private static String text[] = { "HILIGHTING", "Java2D" };
-    private static Color colors[] = { Color.cyan, Color.lightGray };
+    private static Color colors[] = { CYAN, LIGHT_GRAY };
     private static Font smallF = new Font("Monospaced", Font.PLAIN, 8);
     private int[] curPos;
     private TextLayout[] layouts;
@@ -66,7 +67,7 @@ public class Highlighting extends AnimatingSurface {
 
 
     public Highlighting() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         fonts = new Font[2];
         layouts = new TextLayout[fonts.length];
         curPos = new int[fonts.length];
@@ -117,7 +118,7 @@ public class Highlighting extends AnimatingSurface {
             Shape[] shapes = layouts[i].getCaretShapes(curPos[i]);
             Shape caret = at.createTransformedShape(shapes[0]);
 
-            g2.setColor(Color.black);
+            g2.setColor(BLACK);
             layouts[i].draw(g2, rx, ry);
             g2.draw(caret);
             g2.draw(new Rectangle2D.Float(rx,hy,rw,hh));

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncCeiling.java,v 1.8 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncCeiling.java,v 1.2.4.1 2005/09/14 19:53:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncCeiling extends FunctionOneArg
 {
+    static final long serialVersionUID = -1275988936390464739L;
 
   /**
    * Execute the function.  The function must return

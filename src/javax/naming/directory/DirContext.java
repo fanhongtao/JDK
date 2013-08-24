@@ -1,7 +1,7 @@
 /*
- * @(#)DirContext.java	1.11 04/05/05
+ * @(#)DirContext.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -141,7 +141,7 @@ import javax.naming.*;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.11 04/05/05
+ * @version 1.13 05/11/17
  *
  * @see javax.naming.Context
  * @since 1.3
@@ -320,7 +320,7 @@ public interface DirContext extends Context {
      *			<code>REPLACE_ATTRIBUTE</code>,
      *			<code>REMOVE_ATTRIBUTE</code>.
      * @param attrs
-     *		the attributes to be used for the modification; map not be null
+     *		the attributes to be used for the modification; may not be null
      *
      * @throws	AttributeModificationException if the modification cannot
      *		be completed successfully

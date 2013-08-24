@@ -1,7 +1,7 @@
 /*
- * @(#)SocketChannel.java	1.33 03/12/19
+ * @(#)SocketChannel.java	1.34 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -72,7 +72,7 @@ import java.nio.channels.spi.*;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.33, 03/12/19
+ * @version 1.34, 05/11/17
  * @since 1.4
  */
 

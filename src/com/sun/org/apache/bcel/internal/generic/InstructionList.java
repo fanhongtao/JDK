@@ -75,7 +75,7 @@ import java.util.ArrayList;
  * A list is finally dumped to a byte code array with <a
  * href="#getByteCode()">getByteCode</a>.
  *
- * @version $Id: InstructionList.java,v 1.1.1.1 2001/10/29 20:00:20 jvanzyl Exp $
+ * @version $Id: InstructionList.java,v 1.1.2.1 2005/07/31 23:45:45 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Instruction
  * @see     InstructionHandle
@@ -1213,10 +1213,10 @@ public class InstructionList implements Serializable {
   /**
    * Redirect all references of local variables from old_target to new_target.
    *
-   * @@param lg array of local variables
-   * @@param old_target the old target instruction handle
-   * @@param new_target the new target instruction handle
-   * @@see MethodGen
+   * @param lg array of local variables
+   * @param old_target the old target instruction handle
+   * @param new_target the new target instruction handle
+   * @see MethodGen
    */
   public void redirectLocalVariables(LocalVariableGen[] lg,
 				     InstructionHandle old_target, 
@@ -1236,10 +1236,10 @@ public class InstructionList implements Serializable {
   /**
    * Redirect all references of exception handlers from old_target to new_target.
    *
-   * @@param exceptions array of exception handlers
-   * @@param old_target the old target instruction handle
-   * @@param new_target the new target instruction handle
-   * @@see MethodGen
+   * @param exceptions array of exception handlers
+   * @param old_target the old target instruction handle
+   * @param new_target the new target instruction handle
+   * @see MethodGen
    */
   public void redirectExceptionHandlers(CodeExceptionGen[] exceptions,
 					InstructionHandle old_target, 

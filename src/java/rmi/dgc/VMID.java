@@ -1,7 +1,7 @@
 /*
- * @(#)VMID.java	1.20 04/05/18
+ * @(#)VMID.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.security.*;
  * machines.  VMIDs are used by the distributed garbage collector
  * to identify client VMs.
  *
- * @version	1.20, 05/18/04
+ * @version	1.21, 11/17/05
  * @author	Ann Wollrath
  * @author	Peter Jones
  */

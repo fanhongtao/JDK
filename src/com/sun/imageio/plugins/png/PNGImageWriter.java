@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageWriter.java	1.34 03/12/19
+ * @(#)PNGImageWriter.java	1.36 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -75,7 +75,7 @@ class CRC {
 }
 
 
-class ChunkStream extends ImageOutputStreamImpl {
+final class ChunkStream extends ImageOutputStreamImpl {
     
     private ImageOutputStream stream;
     private long startPos;
@@ -120,11 +120,16 @@ class ChunkStream extends ImageOutputStreamImpl {
         stream.seek(pos);
         stream.flushBefore(pos);
     }
+
+    protected void finalize() throws Throwable {
+        // Empty finalizer (for improved performance; no need to call
+        // super.finalize() in this case)
+    }
 }
 
 // Compress output and write as a series of 'IDAT' chunks of
 // fixed length.
-class IDATOutputStream extends ImageOutputStreamImpl {
+final class IDATOutputStream extends ImageOutputStreamImpl {
     
     private static byte[] chunkType = {
         (byte)'I', (byte)'D', (byte)'A', (byte)'T'
@@ -227,6 +232,11 @@ class IDATOutputStream extends ImageOutputStreamImpl {
 	    }
 	}
         finishChunk();
+    }
+
+    protected void finalize() throws Throwable {
+        // Empty finalizer (for improved performance; no need to call
+        // super.finalize() in this case)
     }
 }
 
@@ -716,12 +726,21 @@ public class PNGImageWriter extends ImageWriter {
 
         while (typeIter.hasNext() && dataIter.hasNext()) {
             String type = (String)typeIter.next();
-            ChunkStream cs = new ChunkStream(PNGImageReader.chunkType(type),
-                                             stream);
+            ChunkStream cs = new ChunkStream(chunkType(type), stream);
             byte[] data = (byte[])dataIter.next();
             cs.write(data);
             cs.finish();
         }
+    }
+
+    private static int chunkType(String typeString) {
+        char c0 = typeString.charAt(0);
+        char c1 = typeString.charAt(1);
+        char c2 = typeString.charAt(2);
+        char c3 = typeString.charAt(3);
+
+        int type = (c0 << 24) | (c1 << 16) | (c2 << 8) | c3;
+        return type;
     }
 
     private void encodePass(ImageOutputStream os,

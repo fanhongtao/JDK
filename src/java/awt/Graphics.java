@@ -1,7 +1,7 @@
 /*
- * @(#)Graphics.java	1.69 04/05/18
+ * @(#)Graphics.java	1.74 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -73,7 +73,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.69, 05/18/04
+ * @version 	1.74, 02/14/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -219,7 +219,7 @@ public abstract class Graphics {
     /**
      * Sets this graphics context's font to the specified font. 
      * All subsequent text operations using this graphics context 
-     * use this font. 
+     * use this font. A null argument is silently ignored.
      * @param  font   the font.
      * @see     java.awt.Graphics#getFont
      * @see     java.awt.Graphics#drawString(java.lang.String, int, int)
@@ -759,20 +759,24 @@ public abstract class Graphics {
      * @param       str      the string to be drawn.
      * @param       x        the <i>x</i> coordinate.
      * @param       y        the <i>y</i> coordinate.
+     * @throws NullPointerException if <code>str</code> is <code>null</code>.
      * @see         java.awt.Graphics#drawBytes
      * @see         java.awt.Graphics#drawChars
      */
     public abstract void drawString(String str, int x, int y);
 
     /** 
-     * Draws the text given by the specified iterator, using this 
-     * graphics context's current color. The iterator has to specify a font
-     * for each character. The baseline of the 
-     * leftmost character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
-     * graphics context's coordinate system. 
+     * Renders the text of the specified iterator applying its attributes
+     * in accordance with the specification of the 
+     * {@link java.awt.font.TextAttribute TextAttribute} class.
+     * <p>
+     * The baseline of the leftmost character is at position
+     * (<i>x</i>,&nbsp;<i>y</i>) in this graphics context's coordinate system. 
      * @param       iterator the iterator whose text is to be drawn
      * @param       x        the <i>x</i> coordinate.
      * @param       y        the <i>y</i> coordinate.
+     * @throws NullPointerException if <code>iterator</code> is
+     * <code>null</code>.
      * @see         java.awt.Graphics#drawBytes
      * @see         java.awt.Graphics#drawChars
      */
@@ -789,6 +793,11 @@ public abstract class Graphics {
      * @param length the number of characters to be drawn
      * @param x the <i>x</i> coordinate of the baseline of the text
      * @param y the <i>y</i> coordinate of the baseline of the text
+     * @throws NullPointerException if <code>data</code> is <code>null</code>.
+     * @throws IndexOutOfBoundsException if <code>offset</code> or
+     * <code>length</code>is less than zero, or 
+     * <code>offset+length</code> is greater than the length of the
+     * <code>data</code> array.
      * @see         java.awt.Graphics#drawBytes
      * @see         java.awt.Graphics#drawString
      */
@@ -801,11 +810,19 @@ public abstract class Graphics {
      * graphics context's current font and color. The baseline of the 
      * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in this 
      * graphics context's coordinate system.
+     * <p>
+     * Use of this method is not recommended as each byte is interpreted
+     * as a Unicode code point in the range 0 to 255, and so can only be
+     * used to draw Latin characters in that range.
      * @param data the data to be drawn
      * @param offset the start offset in the data
      * @param length the number of bytes that are drawn
      * @param x the <i>x</i> coordinate of the baseline of the text
      * @param y the <i>y</i> coordinate of the baseline of the text
+     * @throws NullPointerException if <code>data</code> is <code>null</code>.
+     * @throws IndexOutOfBoundsException if <code>offset</code> or
+     * <code>length</code>is less than zero, or <code>offset+length</code> 
+     * is greater than the length of the <code>data</code> array.
      * @see         java.awt.Graphics#drawChars
      * @see         java.awt.Graphics#drawString
      */

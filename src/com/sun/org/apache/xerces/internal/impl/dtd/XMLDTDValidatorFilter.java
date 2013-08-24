@@ -63,9 +63,11 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentFilter;
  * Defines a DTD Validator filter to allow
  * components to query the DTD validator.
  * 
+ * @xerces.internal
+ * 
  * @author Elena Litani, IBM
  *
- * @version $Id: XMLDTDValidatorFilter.java,v 1.2 2002/11/20 00:49:47 twl Exp $
+ * @version $Id: XMLDTDValidatorFilter.java,v 1.1.2.1 2005/08/01 03:36:38 jeffsuttor Exp $
  */
 public interface XMLDTDValidatorFilter 
     extends XMLDocumentFilter {

@@ -1,7 +1,7 @@
 /*
- * @(#)Applet.java	1.77 04/06/22
+ * @(#)Applet.java	1.83 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.applet;
@@ -27,13 +27,19 @@ import javax.accessibility.*;
  *
  * @author      Arthur van Hoff
  * @author      Chris Warth
- * @version     1.77, 06/22/04
+ * @version     1.83, 04/07/06
  * @since       JDK1.0
  */
 public class Applet extends Panel {
     
     /**
-     * Creates a new Applet object
+     * Constructs a new Applet. 
+     * <p>
+     * Note: Many methods in <code>java.applet.Applet</code> 
+     * may be invoked by the applet only after the applet is 
+     * fully constructed; applet should avoid calling methods 
+     * in <code>java.applet.Applet</code> in the constructor. 
+     *
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true.
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -328,14 +334,14 @@ public class Applet extends Panel {
     }
 
     /**
-     * Gets the Locale for the applet, if it has been set.
-     * If no Locale has been set, then the default Locale
-     * is returned.
+     * Gets the locale of the applet. It allows the applet 
+     * to maintain its own locale separated from the locale
+     * of the browser or appletviewer.
      *
-     * @return  the Locale for the applet
+     * @return  the locale of the applet; if no locale has
+     *          been set, the default locale is returned.
      * @since   JDK1.1
      */
-
     public Locale getLocale() {
       Locale locale = super.getLocale();
       if (locale == null) {
@@ -509,6 +515,7 @@ public class Applet extends Panel {
      *
      * @return an AccessibleApplet that serves as the 
      *         AccessibleContext of this Applet
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -521,6 +528,7 @@ public class Applet extends Panel {
      * This class implements accessibility support for the 
      * <code>Applet</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to applet user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleApplet extends AccessibleAWTPanel {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Dash.java	1.27 04/07/26
+ * @(#)Dash.java	1.29 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)Dash.java	1.27 04/07/26
+ * @(#)Dash.java	1.29 06/08/29
  */
 
 package java2d.demos.Lines;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.TextLayout;
@@ -53,7 +54,7 @@ import java2d.Surface;
 public class Dash extends Surface {
 
     public Dash() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -63,7 +64,7 @@ public class Dash extends Surface {
         TextLayout tl = new TextLayout("Dashes", font, frc);
         float sw = (float) tl.getBounds().getWidth();
         float sh = (float) tl.getAscent() + tl.getDescent();
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         tl.draw(g2, (float) (w/2-sw/2), sh+5);
 
         BasicStroke dotted = new BasicStroke(3, BasicStroke.CAP_ROUND, 

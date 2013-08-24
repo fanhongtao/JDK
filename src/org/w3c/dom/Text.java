@@ -74,6 +74,24 @@ public interface Text extends CharacterData {
      * <br>For instance, in the example below <code>wholeText</code> on the 
      * <code>Text</code> node that contains "bar" returns "barfoo", while on 
      * the <code>Text</code> node that contains "foo" it returns "barfoo". 
+     *
+     * <pre>
+     *                     +-----+
+     *                     | &lt;p&gt; |
+     *                     +-----+
+     *                       /\
+     *                      /  \
+     *               /-----\    +-------+
+     *               | bar |    | &amp;ent; |
+     *               \-----/    +-------+
+     *                              |
+     *                              |
+     *                           /-----\
+     *                           | foo |
+     *                           \-----/
+     * </pre>
+     * <em>Figure: barTextNode.wholeText value is "barfoo"</em>
+     *
      * @since DOM Level 3
      */
     public String getWholeText();
@@ -83,8 +101,8 @@ public interface Text extends CharacterData {
      * nodes with the specified text. All logically-adjacent text nodes are 
      * removed including the current node unless it was the recipient of the 
      * replacement text.
-     * <br>This method returns the node which received the replacement text. 
-     * The returned node is: 
+     * <p>This method returns the node which received the replacement text. 
+     * The returned node is:</p>
      * <ul>
      * <li><code>null</code>, when the replacement text is 
      * the empty string;
@@ -97,10 +115,24 @@ public interface Text extends CharacterData {
      * inserted at the location of the replacement.
      * </li>
      * </ul>
-     * <br>For instance, in the above example calling 
+     * <p>For instance, in the above example calling 
      * <code>replaceWholeText</code> on the <code>Text</code> node that 
-     * contains "bar" with "yo" in argument results in the following: 
-     * <br>Where the nodes to be removed are read-only descendants of an 
+     * contains "bar" with "yo" in argument results in the following:</p>
+     *
+     * <pre>
+     *                     +-----+
+     *                     | &lt;p&gt; |
+     *                     +-----+
+     *                        |
+     *                        |
+     *                     /-----\
+     *                     | yo  |
+     *                     \-----/
+     * </pre>
+     * <em>Figure: barTextNode.replaceWholeText("yo") modifies the
+     * textual content of barTextNode with "yo"</em>
+     *
+     * <p>Where the nodes to be removed are read-only descendants of an 
      * <code>EntityReference</code>, the <code>EntityReference</code> must 
      * be removed instead of the read-only nodes. If any 
      * <code>EntityReference</code> to be removed has descendants that are 
@@ -108,11 +140,11 @@ public interface Text extends CharacterData {
      * <code>CDATASection</code> nodes, the <code>replaceWholeText</code> 
      * method must fail before performing any modification of the document, 
      * raising a <code>DOMException</code> with the code 
-     * <code>NO_MODIFICATION_ALLOWED_ERR</code>.
-     * <br>For instance, in the example below calling 
+     * <code>NO_MODIFICATION_ALLOWED_ERR</code>.</p>
+     * <p>For instance, in the example below calling 
      * <code>replaceWholeText</code> on the <code>Text</code> node that 
      * contains "bar" fails, because the <code>EntityReference</code> node 
-     * "ent" contains an <code>Element</code> node which cannot be removed.
+     * "ent" contains an <code>Element</code> node which cannot be removed.</p>
      * @param content The content of the replacing <code>Text</code> node.
      * @return The <code>Text</code> node created with the specified content.
      * @exception DOMException

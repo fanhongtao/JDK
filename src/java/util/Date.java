@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.80 04/05/18
+ * @(#)Date.java	1.83 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -103,7 +103,7 @@ import sun.util.calendar.ZoneInfo;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.80, 05/18/04
+ * @version 1.83, 11/17/05
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -1252,8 +1252,13 @@ public class Date
 	return getJulianCalendar();
     }
 
-    private static final BaseCalendar getCalendarSystem(long t) {
-	if (t >= GregorianCalendar.DEFAULT_GREGORIAN_CUTOVER) {
+    private static final BaseCalendar getCalendarSystem(long utc) {
+	// Quickly check if the time stamp given by `utc' is the Epoch
+	// or later. If it's before 1970, we convert the cutover to
+	// local time to compare.
+	if (utc >= 0
+	    || utc >= GregorianCalendar.DEFAULT_GREGORIAN_CUTOVER
+			- TimeZone.getDefaultRef().getOffset(utc)) {
 	    return gcal;
 	}
 	return getJulianCalendar();

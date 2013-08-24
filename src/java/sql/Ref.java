@@ -1,7 +1,7 @@
 /*
- * @(#)Ref.java	1.27 04/05/05
+ * @(#)Ref.java	1.31 06/05/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,6 +26,9 @@ package java.sql;
  * <P>
  * A <code>Ref</code> object can be stored in the database using the 
  * <code>PreparedStatement.setRef</code> method.
+  * <p>
+ * All methods on the <code>Ref</code> interface must be fully implemented if the 
+ * JDBC driver supports the data type.
  * 
  * @see Struct
  * @since 1.2
@@ -38,6 +41,8 @@ public interface Ref {
      * 
      * @return the fully-qualified SQL name of the referenced SQL structured type 
      * @exception SQLException if a database access error occurs
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.2
      */
     String getBaseTypeName() throws SQLException;
@@ -55,6 +60,8 @@ public interface Ref {
      *          the SQL structured type to which this <code>Ref</code>
      *          object refers
      * @exception SQLException if a database access error occurs
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.4
      * @see #setObject
      */
@@ -72,6 +79,8 @@ public interface Ref {
      *          the SQL structured type to which this <code>Ref</code>
      *          object refers
      * @exception SQLException if a database access error occurs
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.4
      * @see #setObject
      */   
@@ -87,6 +96,8 @@ public interface Ref {
      *        structured type instance that this
      *        <code>Ref</code> object will reference
      * @exception SQLException if a database access error occurs
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      * @since 1.4
      * @see #getObject()
      * @see #getObject(Map)

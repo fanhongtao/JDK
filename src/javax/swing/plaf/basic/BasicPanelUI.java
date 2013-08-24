@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPanelUI.java	1.11 03/12/19
+ * @(#)BasicPanelUI.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.awt.event.*;
 /**
  * BasicPanel implementation
  *
- * @version 1.11 12/19/03
+ * @version 1.13 11/17/05
  * @author Steve Wilson
  */
 public class BasicPanelUI extends PanelUI {
@@ -56,5 +56,41 @@ public class BasicPanelUI extends PanelUI {
 
     protected void uninstallDefaults(JPanel p) {
         LookAndFeel.uninstallBorder(p);
+    }
+
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        Border border = c.getBorder();
+        if (border instanceof AbstractBorder) {
+            return ((AbstractBorder)border).getBaseline(c, width, height);
+        }
+        return -1;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        Border border = c.getBorder();
+        if (border instanceof AbstractBorder) {
+            return ((AbstractBorder)border).getBaselineResizeBehavior(c);
+        }
+        return Component.BaselineResizeBehavior.OTHER;
     }
 }

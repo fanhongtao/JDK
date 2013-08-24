@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// $Id: XPathExpressionImpl.java,v 1.8 2004/07/10 21:39:19 rameshm Exp $
+// $Id: XPathExpressionImpl.java,v 1.3 2005/09/27 09:40:43 sunithareddy Exp $
 
 package com.sun.org.apache.xpath.internal.jaxp;
 
@@ -21,6 +21,7 @@ import com.sun.org.apache.xpath.internal.*;
 import javax.xml.transform.TransformerException;
 
 import com.sun.org.apache.xpath.internal.objects.XObject;
+import com.sun.org.apache.xml.internal.dtm.DTM;
 import com.sun.org.apache.xml.internal.utils.PrefixResolver;
 import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
 import com.sun.org.apache.xalan.internal.res.XSLMessages;
@@ -45,7 +46,7 @@ import org.xml.sax.InputSource;
 /**
  * The XPathExpression interface encapsulates a (compiled) XPath expression.
  *
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.3 $
  * @author  Ramesh Mandava
  */
 public class XPathExpressionImpl  implements javax.xml.xpath.XPathExpression{
@@ -116,11 +117,12 @@ public class XPathExpressionImpl  implements javax.xml.xpath.XPathExpression{
         // We always need to have a ContextNode with Xalan XPath implementation
         // To allow simple expression evaluation like 1+1 we are setting 
         // dummy Document as Context Node
-        if ( contextNode == null ) {
-              contextNode = getDummyDocument();
-        } 
-
-        xobj = xpath.execute(xpathSupport, contextNode, prefixResolver );
+        
+        if ( contextNode == null ) 
+            xobj = xpath.execute(xpathSupport, DTM.NULL, prefixResolver);
+        else
+            xobj = xpath.execute(xpathSupport, contextNode, prefixResolver); 
+        
         return xobj;
     }
 
@@ -364,27 +366,4 @@ public class XPathExpressionImpl  implements javax.xml.xpath.XPathExpression{
         throw new IllegalArgumentException ( fmsg );
     }
 
-
-    private static Document getDummyDocument( ) {
-        try {
-            if ( dbf == null ) {
-                dbf = DocumentBuilderFactory.newInstance();
-                dbf.setNamespaceAware( true );
-                dbf.setValidating( false );
-            }
-            db = dbf.newDocumentBuilder();
-
-            DOMImplementation dim = db.getDOMImplementation();
-            d = dim.createDocument("http://java.sun.com/jaxp/xpath",
-                "dummyroot", null);
-            return d;
-        } catch ( Exception e ) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-
-
-}
+ }

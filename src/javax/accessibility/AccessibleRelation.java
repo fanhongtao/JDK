@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRelation.java	1.14 04/04/15
+ * @(#)AccessibleRelation.java	1.16 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,8 +26,9 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.14 04/15/04
+ * @version     1.16 04/07/06
  * @author      Lynn Monsanto
+ * @since 1.3
  */
 public class AccessibleRelation extends AccessibleBundle {
 

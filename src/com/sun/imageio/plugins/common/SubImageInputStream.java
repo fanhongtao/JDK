@@ -1,7 +1,7 @@
 /*
- * @(#)SubImageInputStream.java	1.13 03/12/19
+ * @(#)SubImageInputStream.java	1.15 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import javax.imageio.stream.ImageInputStream;
 /**
  * @version 0.5 
  */
-public class SubImageInputStream extends ImageInputStreamImpl {
+public final class SubImageInputStream extends ImageInputStreamImpl {
 
     ImageInputStream stream;
     long startingPos;
@@ -55,5 +55,10 @@ public class SubImageInputStream extends ImageInputStreamImpl {
     public void seek(long pos) throws IOException {
         stream.seek(pos - startingPos);
         streamPos = pos;
+    }
+
+    protected void finalize() throws Throwable {
+        // Empty finalizer (for improved performance; no need to call
+        // super.finalize() in this case)
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)ClipAnim.java	1.26 04/07/26
+ * @(#)ClipAnim.java	1.30 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ClipAnim.java	1.23 03/10/26
+ * @(#)ClipAnim.java	1.30 06/08/29
  */
 
 package java2d.demos.Clipping;
@@ -48,6 +48,9 @@ import javax.swing.*;
 import java2d.AnimatingControlsSurface;
 import java2d.CustomControls;
 
+import static java.lang.Math.random;
+import static java.awt.Color.*;
+
 
 /**
  * Animated clipping of an image & composited shapes.
@@ -55,16 +58,16 @@ import java2d.CustomControls;
 public class ClipAnim extends AnimatingControlsSurface {
 
     private static Image dimg, cimg;
-    private static Color redBlend = new Color(255, 0, 0, 120);
-    private static Color greenBlend = new Color(0, 255, 0, 120);
+    private static Color   redBlend = new Color(255,   0, 0, 120);
+    private static Color greenBlend = new Color(  0, 255, 0, 120);
     private static BasicStroke bs = new BasicStroke(20.0f);
     static TexturePaint texture;
     static {
         BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
         Graphics2D big = bi.createGraphics();
-        big.setBackground(Color.yellow);
+        big.setBackground(YELLOW);
         big.clearRect(0,0,5,5);
-        big.setColor(Color.red);
+        big.setColor(RED);
         big.fillRect(0,0,3,3);
         texture = new TexturePaint(bi,new Rectangle(0,0,5,5));
     }
@@ -80,7 +83,7 @@ public class ClipAnim extends AnimatingControlsSurface {
     public ClipAnim() {
         cimg = getImage("clouds.jpg");
         dimg = getImage("duke.gif");
-        setBackground(Color.white);
+        setBackground(WHITE);
         animval[0] = new AnimVal(true);
         animval[1] = new AnimVal(false);
         animval[2] = new AnimVal(false);
@@ -89,15 +92,15 @@ public class ClipAnim extends AnimatingControlsSurface {
 
 
     public void reset(int w, int h) {
-        for (int i = 0; i < animval.length; i++) {
-            animval[i].reset(w, h);
+        for (AnimVal a : animval) {
+            a.reset(w, h);
         }
-        gradient = new GradientPaint(0,h/2,Color.red,w*.4f,h*.9f,Color.yellow);
-        dukeX = (int) (w*.25-dimg.getWidth(this)/2);
-        dukeY = (int) (h*.25-dimg.getHeight(this)/2);
+        gradient = new GradientPaint(0,h/2,RED,w*.4f,h*.9f,YELLOW);
+        dukeX = (int) (w*.25 - dimg.getWidth (this)/2);
+        dukeY = (int) (h*.25 - dimg.getHeight(this)/2);
         FontMetrics fm = getFontMetrics(originalFont);
         double sw = fm.stringWidth("CLIPPING");
-        double sh = fm.getAscent()+fm.getDescent();
+        double sh = fm.getAscent() + fm.getDescent();
         double sx = (w/2-30)/sw;
         double sy = (h/2-30)/sh;
         AffineTransform Tx = AffineTransform.getScaleInstance(sx, sy);
@@ -109,9 +112,9 @@ public class ClipAnim extends AnimatingControlsSurface {
 
 
     public void step(int w, int h) {
-        for (int i = 0; i < animval.length; i++) {
-            if (animval[i].isSelected) {
-                animval[i].step(w, h);
+        for (AnimVal a : animval) {
+            if (a.isSelected) {
+                a.step(w, h);
             }
         }
     }
@@ -122,15 +125,18 @@ public class ClipAnim extends AnimatingControlsSurface {
         GeneralPath p1 = new GeneralPath();
         GeneralPath p2 = new GeneralPath();
 
-        for (int i = 0; i < animval.length; i++) {
-            if (animval[i].isSelected) {
-                double x = animval[i].x; double y = animval[i].y;
-                double ew = animval[i].ew; double eh = animval[i].eh;
-                p1.append(new Ellipse2D.Double(x, y, ew, eh), false);
-                p2.append(new Rectangle2D.Double(x+5, y+5, ew-10, eh-10),false);
+        for (AnimVal a : animval) {
+            if (a.isSelected) {
+                double x  = a.x;
+                double y  = a.y;
+                double ew = a.ew;
+                double eh = a.eh;
+                p1.append(new   Ellipse2D.Double(x,  y,  ew,   eh   ), false);
+                p2.append(new Rectangle2D.Double(x+5,y+5,ew-10,eh-10), false);
             }
         }
-        if (animval[0].isSelected || animval[1].isSelected || 
+        if (animval[0].isSelected ||
+            animval[1].isSelected || 
             animval[2].isSelected) 
         {
             g2.setClip(p1);
@@ -149,14 +155,14 @@ public class ClipAnim extends AnimatingControlsSurface {
             g2.setPaint(gradient);
             g2.fillRect(0, h2, w2, h2);
 
-            g2.setColor(Color.lightGray);
+            g2.setColor(LIGHT_GRAY);
             g2.fillRect(w2, h2, w2, h2);
-            g2.setColor(Color.red);
+            g2.setColor(RED);
             g2.drawOval(w2, h2, w2-1, h2-1);
             g2.setFont(font);
             g2.drawString("CLIPPING", strX, strY);
         } else {
-            g2.setColor(Color.lightGray);
+            g2.setColor(LIGHT_GRAY);
             g2.fillRect(0, 0, w, h);
         }
     }
@@ -182,50 +188,28 @@ public class ClipAnim extends AnimatingControlsSurface {
 
 
         public void step(int w, int h) {
-            x += ix;
-            y += iy;
+            x  += ix;
+            y  += iy;
             ew += iw;
             eh += ih;
-            if (ew > w/2) {
-                ew = w/2;
-                iw = Math.random() * -w/16 - 1;
-            }
-            if (ew < w/8) {
-                ew = w/8;
-                iw = Math.random() * w/16 + 1;
-            }
-            if (eh > h/2) {
-                eh = h/2;
-                ih = Math.random() * -h/16 - 1;
-            }
-            if (eh < h/8) {
-                eh = h/8;
-                ih = Math.random() * h/16 + 1;
-            }
-            if ((x+ew) > w) {
-                x = (w - ew)-1;
-                ix = Math.random() * -w/32 - 1;
-            }
-            if (x < 0) {
-                x = 2;
-                ix = Math.random() * w/32 + 1;
-            }
-            if ((y+eh) > h) {
-                y = (h - eh)-2;
-                iy = Math.random() * -h/32 - 1;
-            }
-            if (y < 0) {
-                y = 2;
-                iy = Math.random() * h/32 + 1;
-            }
+
+            if (    ew > w/2) { ew = w/2;       iw = random() * -w/16 - 1; }
+            if (    ew < w/8) { ew = w/8;       iw = random() *  w/16 + 1; }
+            if (    eh > h/2) { eh = h/2;       ih = random() * -h/16 - 1; }
+            if (    eh < h/8) { eh = h/8;       ih = random() *  h/16 + 1; }
+
+            if ((x+ew) > w  ) { x = (w - ew)-1; ix = random() * -w/32 - 1; }
+            if ((y+eh) > h  ) { y = (h - eh)-2; iy = random() * -h/32 - 1; }
+            if (     x < 0  ) { x = 2;          ix = random() *  w/32 + 1; }
+            if (     y < 0  ) { y = 2;          iy = random() *  h/32 + 1; }
         }
 
 
         public void reset(int w, int h) {
-            x = Math.random()*w;
-            y = Math.random()*h;
-            ew = (Math.random()*w)/2;
-            eh = (Math.random()*h)/2;
+            x  =  random()*w;
+            y  =  random()*h;
+            ew = (random()*w)/2;
+            eh = (random()*h)/2;
         }
     }
 
@@ -240,15 +224,16 @@ public class ClipAnim extends AnimatingControlsSurface {
             this.demo = demo;
             add(toolbar = new JToolBar());
             toolbar.setFloatable(false);
-            addTool("Objects", true);
-            addTool("Clip1", true);
-            addTool("Clip2", false);
-            addTool("Clip3", false);
+            addTool("Objects", true );
+            addTool("Clip1",   true );
+            addTool("Clip2",   false);
+            addTool("Clip3",   false);
         }
 
 
         public void addTool(String str, boolean state) {
-            JToggleButton b = (JToggleButton) toolbar.add(new JToggleButton(str));
+            JToggleButton b =
+                    (JToggleButton) toolbar.add(new JToggleButton(str));
             b.setFocusPainted(false);
             b.setSelected(state);
             b.addActionListener(this);

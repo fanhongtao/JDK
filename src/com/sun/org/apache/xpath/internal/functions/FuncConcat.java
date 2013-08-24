@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncConcat.java,v 1.11 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncConcat.java,v 1.2.4.1 2005/09/14 19:53:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.objects.XString;
  */
 public class FuncConcat extends FunctionMultiArgs
 {
+    static final long serialVersionUID = 1737228885202314413L;
 
   /**
    * Execute the function.  The function must return

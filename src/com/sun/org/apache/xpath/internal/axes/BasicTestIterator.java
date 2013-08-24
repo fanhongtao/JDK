@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: BasicTestIterator.java,v 1.6 2004/02/17 04:32:08 minchau Exp $
+ * $Id: BasicTestIterator.java,v 1.2.4.1 2005/09/14 19:45:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -31,6 +31,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public abstract class BasicTestIterator extends LocPathIterator
 {
+    static final long serialVersionUID = 3505378079378096623L;
   /**
    * Create a LocPathIterator object.
    *

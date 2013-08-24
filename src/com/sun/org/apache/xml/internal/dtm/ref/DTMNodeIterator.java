@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMNodeIterator.java,v 1.9 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMNodeIterator.java,v 1.2.4.1 2005/09/15 08:15:03 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 

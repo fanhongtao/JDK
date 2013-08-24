@@ -1,7 +1,7 @@
 /*
- * @(#)debug_malloc.c	1.11 04/07/27
+ * @(#)debug_malloc.c	1.13 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -400,7 +400,7 @@ setup_space_and_issue_warrant(void *mptr, size_t size, const char *file, int lin
 	len = strlen(file);
 	if ( len >  WARRANT_NAME_MAX )  {
             /*LINTED*/
-	    start_pos = len - WARRANT_NAME_MAX;
+	    start_pos = (int)len - WARRANT_NAME_MAX;
 	}
 	p2 = ((char*)file) + start_pos;
 	/*LINTED*/

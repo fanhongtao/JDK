@@ -1,7 +1,7 @@
 /*
- * @(#)LinkedHashSet.java	1.14 04/02/19
+ * @(#)LinkedHashSet.java	1.18 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,8 +25,8 @@ package java.util;
  * produce a copy of a set that has the same order as the original, regardless
  * of the original set's implementation:
  * <pre>
- *     void foo(Set m) {
- *         Set copy = new LinkedHashSet(m);
+ *     void foo(Set s) {
+ *         Set copy = new LinkedHashSet(s);
  *         ...
  *     }
  * </pre>
@@ -45,47 +45,50 @@ package java.util;
  * requires time proportional to the <i>size</i> of the set, regardless of
  * its capacity.  Iteration over a <tt>HashSet</tt> is likely to be more
  * expensive, requiring time proportional to its <i>capacity</i>.
- * 
+ *
  * <p>A linked hash set has two parameters that affect its performance:
  * <i>initial capacity</i> and <i>load factor</i>.  They are defined precisely
  * as for <tt>HashSet</tt>.  Note, however, that the penalty for choosing an
  * excessively high value for initial capacity is less severe for this class
  * than for <tt>HashSet</tt>, as iteration times for this class are unaffected
  * by capacity.
- * 
- * <p><strong>Note that this implementation is not synchronized.</strong> If
- * multiple threads access a linked hash set concurrently, and at least one of
- * the threads modifies the set, it <em>must</em> be synchronized externally.
- * This is typically accomplished by synchronizing on some object that
- * naturally encapsulates the set.  If no such object exists, the set should
- * be "wrapped" using the <tt>Collections.synchronizedSet</tt>method.  This is
- * best done at creation time, to prevent accidental unsynchronized access:
- * <pre>
- *     Set s = Collections.synchronizedSet(new LinkedHashSet(...));
- * </pre>
  *
- * <p>The iterators returned by the this class's <tt>iterator</tt> method are
+ * <p><strong>Note that this implementation is not synchronized.</strong>
+ * If multiple threads access a linked hash set concurrently, and at least
+ * one of the threads modifies the set, it <em>must</em> be synchronized
+ * externally.  This is typically accomplished by synchronizing on some
+ * object that naturally encapsulates the set.
+ *
+ * If no such object exists, the set should be "wrapped" using the
+ * {@link Collections#synchronizedSet Collections.synchronizedSet}
+ * method.  This is best done at creation time, to prevent accidental
+ * unsynchronized access to the set: <pre>
+ *   Set s = Collections.synchronizedSet(new LinkedHashSet(...));</pre>
+ *
+ * <p>The iterators returned by this class's <tt>iterator</tt> method are
  * <em>fail-fast</em>: if the set is modified at any time after the iterator
- * is created, in any way except through the iterator's own remove method, the
- * iterator will throw a <tt>ConcurrentModificationException</tt>.  Thus, in
- * the face of concurrent modification, the Iterator fails quickly and
- * cleanly, rather than risking arbitrary, non-deterministic behavior at an
- * undetermined time in the future.
+ * is created, in any way except through the iterator's own <tt>remove</tt>
+ * method, the iterator will throw a {@link ConcurrentModificationException}.
+ * Thus, in the face of concurrent modification, the iterator fails quickly
+ * and cleanly, rather than risking arbitrary, non-deterministic behavior at
+ * an undetermined time in the future.
  *
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:   <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * <p>This class is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <p>This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * @param <E> the type of elements maintained by this set
+ *
  * @author  Josh Bloch
- * @version 1.14 04/02/19
+ * @version 1.18 06/04/21
  * @see     Object#hashCode()
  * @see     Collection
  * @see     Set
@@ -103,12 +106,12 @@ public class LinkedHashSet<E>
 
     /**
      * Constructs a new, empty linked hash set with the specified initial
-     * capacity and load factor. 
+     * capacity and load factor.
      *
      * @param      initialCapacity the initial capacity of the linked hash set
-     * @param      loadFactor      the load factor of the linked hash set.
+     * @param      loadFactor      the load factor of the linked hash set
      * @throws     IllegalArgumentException  if the initial capacity is less
-     *               than zero, or if the load factor is nonpositive.
+     *               than zero, or if the load factor is nonpositive
      */
     public LinkedHashSet(int initialCapacity, float loadFactor) {
         super(initialCapacity, loadFactor, true);
@@ -118,9 +121,9 @@ public class LinkedHashSet<E>
      * Constructs a new, empty linked hash set with the specified initial
      * capacity and the default load factor (0.75).
      *
-     * @param   initialCapacity   the initial capacity of the LinkedHashSet.
+     * @param   initialCapacity   the initial capacity of the LinkedHashSet
      * @throws  IllegalArgumentException if the initial capacity is less
-     *              than zero.
+     *              than zero
      */
     public LinkedHashSet(int initialCapacity) {
         super(initialCapacity, .75f, true);
@@ -140,9 +143,9 @@ public class LinkedHashSet<E>
      * capacity sufficient to hold the elements in the specified collection
      * and the default load factor (0.75).
      *
-     * @param c  the collection whose elements are to be placed into 
-     *           this set.
-     * @throws NullPointerException if the specified collection is null.
+     * @param c  the collection whose elements are to be placed into
+     *           this set
+     * @throws NullPointerException if the specified collection is null
      */
     public LinkedHashSet(Collection<? extends E> c) {
         super(Math.max(2*c.size(), 11), .75f, true);

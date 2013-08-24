@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsTreeUI.java	1.24 06/03/22
+ * @(#)WindowsTreeUI.java	1.26 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,6 +19,9 @@ import javax.swing.plaf.*;
 
 import javax.swing.tree.*;
 
+import static com.sun.java.swing.plaf.windows.TMSchema.*;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 
 /**
  * A Windows tree.
@@ -30,7 +33,7 @@ import javax.swing.tree.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 03/22/06
+ * @version 1.26 11/17/05
  * @author Scott Violet
  */
 public class WindowsTreeUI extends BasicTreeUI {
@@ -105,15 +108,15 @@ public class WindowsTreeUI extends BasicTreeUI {
 	    return new ExpandedIcon();
 	}
 
-	XPStyle.Skin getSkin(Component c) {
+	Skin getSkin(Component c) {
 	    XPStyle xp = XPStyle.getXP();
-	    return (xp != null) ? xp.getSkin(c, "treeview.glyph") : null;
+	    return (xp != null) ? xp.getSkin(c, Part.TVP_GLYPH) : null;
 	}
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-	    XPStyle.Skin skin = getSkin(c);
+	    Skin skin = getSkin(c);
 	    if (skin != null) {
-		skin.paintSkin(g, x, y, 1);
+		skin.paintSkin(g, x, y, State.OPENED);
 		return;
 	    }
 
@@ -131,12 +134,12 @@ public class WindowsTreeUI extends BasicTreeUI {
 	}
 
 	public int getIconWidth() {
-	    XPStyle.Skin skin = getSkin(null);
+	    Skin skin = getSkin(null);
 	    return (skin != null) ? skin.getWidth() : SIZE;
 	}
 
 	public int getIconHeight() {
-	    XPStyle.Skin skin = getSkin(null);
+	    Skin skin = getSkin(null);
 	    return (skin != null) ? skin.getHeight() : SIZE;
 	}
     }
@@ -157,9 +160,9 @@ public class WindowsTreeUI extends BasicTreeUI {
 	}
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-	    XPStyle.Skin skin = getSkin(c);
+	    Skin skin = getSkin(c);
 	    if (skin != null) {
-		skin.paintSkin(g, x, y, 0);
+		skin.paintSkin(g, x, y, State.CLOSED);
 	    } else {
 	    super.paintIcon(c, g, x, y);
 	    g.drawLine(x + HALF_SIZE, y + 2, x + HALF_SIZE, y + (SIZE - 3));

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionOneArg.java,v 1.13 2004/02/17 04:34:00 minchau Exp $
+ * $Id: FunctionOneArg.java,v 1.2.4.1 2005/09/14 20:18:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.XPathVisitor;
  */
 public class FunctionOneArg extends Function implements ExpressionOwner
 {
+    static final long serialVersionUID = -5180174180765609758L;
 
   /** The first argument passed to the function (at index 0).
    *  @serial  */
@@ -119,7 +120,7 @@ public class FunctionOneArg extends Function implements ExpressionOwner
   }
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callArgVisitors(XPathVisitor visitor)
   {

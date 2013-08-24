@@ -1,7 +1,7 @@
 /*
- * @(#)PermissionCollection.java	1.35 04/05/05
+ * @(#)PermissionCollection.java	1.36 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -70,7 +70,7 @@ import java.util.*;
  * @see Permission
  * @see Permissions
  *
- * @version 1.35 04/05/05
+ * @version 1.36 05/11/17
  *
  * @author Roland Schemers
  */

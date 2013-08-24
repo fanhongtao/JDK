@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id$
+ * $Id: ObjectStack.java,v 1.2.4.1 2005/09/15 08:15:51 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 

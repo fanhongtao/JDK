@@ -1,7 +1,7 @@
 /*
- * @(#)Graphics2D.java	1.81 04/05/05
+ * @(#)Graphics2D.java	1.84 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -383,7 +383,7 @@ import java.util.Map;
  * </pre>
  * </ol>
  *
- * @version 	1.81, 05/05/04
+ * @version 	1.84, 11/17/05
  * @author Jim Graham
  * @see java.awt.RenderingHints
  */
@@ -660,7 +660,7 @@ public abstract class Graphics2D extends Graphics {
      * such as Hebrew and Arabic, the glyphs can be rendered from right to
      * left, in which case the coordinate supplied is the location of the
      * leftmost character on the baseline.
-     * @param s the <code>String</code> to be rendered
+     * @param str the <code>String</code> to be rendered
      * @param x the x coordinate of the location where the
      * <code>String</code> should be rendered
      * @param y the y coordinate of the location where the
@@ -674,18 +674,14 @@ public abstract class Graphics2D extends Graphics {
      * @see #setComposite
      * @see #setClip
      */
-    public abstract void drawString(String s, float x, float y);
+    public abstract void drawString(String str, float x, float y);
 
     /**
-     * Renders the text of the specified iterator, using the
-     * <code>Graphics2D</code> context's current <code>Paint</code>. The 
-     * iterator has to specify a font
-     * for each character. The baseline of the 
-     * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in the 
-     * User Space. 
-     * The rendering attributes applied include the <code>Clip</code>,
-     * <code>Transform</code>, <code>Paint</code>, and
-     * <code>Composite</code> attributes.
+     * Renders the text of the specified iterator applying its attributes
+     * in accordance with the specification of the {@link TextAttribute} class.
+     * <p>
+     * The baseline of the first character is at position
+     * (<i>x</i>,&nbsp;<i>y</i>) in User Space.
      * For characters in script systems such as Hebrew and Arabic,
      * the glyphs can be rendered from right to left, in which case the 
      * coordinate supplied is the location of the leftmost character
@@ -695,6 +691,8 @@ public abstract class Graphics2D extends Graphics {
      * rendered
      * @param y the y coordinate where the iterator's text is to be
      * rendered
+     * @throws NullPointerException if <code>iterator</code> is
+     *         <code>null</code>
      * @see #setPaint
      * @see java.awt.Graphics#setColor
      * @see #setTransform
@@ -705,15 +703,11 @@ public abstract class Graphics2D extends Graphics {
                                     int x, int y);
 
     /**
-     * Renders the text of the specified iterator, using the 
-     * <code>Graphics2D</code> context's current <code>Paint</code>. The 
-     * iterator must specify a font
-     * for each character. The baseline of the 
-     * first character is at position (<i>x</i>,&nbsp;<i>y</i>) in the 
-     * User Space. 
-     * The rendering attributes applied include the <code>Clip</code>,
-     * <code>Transform</code>, <code>Paint</code>, and
-     * <code>Composite</code> attributes.
+     * Renders the text of the specified iterator applying its attributes
+     * in accordance with the specification of the {@link TextAttribute} class.
+     * <p>
+     * The baseline of the first character is at position
+     * (<i>x</i>,&nbsp;<i>y</i>) in User Space.
      * For characters in script systems such as Hebrew and Arabic,
      * the glyphs can be rendered from right to left, in which case the 
      * coordinate supplied is the location of the leftmost character
@@ -723,6 +717,8 @@ public abstract class Graphics2D extends Graphics {
      * rendered
      * @param y the y coordinate where the iterator's text is to be
      * rendered
+     * @throws NullPointerException if <code>iterator</code> is
+     *         <code>null</code>
      * @see #setPaint
      * @see java.awt.Graphics#setColor
      * @see #setTransform
@@ -748,6 +744,7 @@ public abstract class Graphics2D extends Graphics {
      * be rendered
      * @param y the y position in User Space where the glyphs should
      * be rendered
+     * @throws NullPointerException if <code>g</code> is <code>null</code>.
      *
      * @see java.awt.Font#createGlyphVector
      * @see java.awt.font.GlyphVector

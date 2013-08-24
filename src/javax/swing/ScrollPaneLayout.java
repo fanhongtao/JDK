@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPaneLayout.java	1.60 04/05/18
+ * @(#)ScrollPaneLayout.java	1.63 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.60 05/18/04
+ * @version 1.63 11/17/05
  * @author Hans Muller
  */
 public class ScrollPaneLayout
@@ -116,7 +116,7 @@ public class ScrollPaneLayout
 
     /** 
      * The display policy for the vertical scrollbar.
-     * The default is <code>JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED</code>.  
+     * The default is <code>ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED</code>.  
      * <p>
      * This field is obsolete, please use the <code>JScrollPane</code> field instead.
      * 
@@ -127,7 +127,7 @@ public class ScrollPaneLayout
 
     /**
      * The display policy for the horizontal scrollbar.
-     * The default is <code>JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED</code>.
+     * The default is <code>ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED</code>.
      * <p>
      * This field is obsolete, please use the <code>JScrollPane</code> field instead.
      * 
@@ -192,15 +192,15 @@ public class ScrollPaneLayout
      * Adds the specified component to the layout. The layout is
      * identified using one of:
      * <ul>
-     * <li>JScrollPane.VIEWPORT
-     * <li>JScrollPane.VERTICAL_SCROLLBAR
-     * <li>JScrollPane.HORIZONTAL_SCROLLBAR
-     * <li>JScrollPane.ROW_HEADER
-     * <li>JScrollPane.COLUMN_HEADER
-     * <li>JScrollPane.LOWER_LEFT_CORNER
-     * <li>JScrollPane.LOWER_RIGHT_CORNER
-     * <li>JScrollPane.UPPER_LEFT_CORNER
-     * <li>JScrollPane.UPPER_RIGHT_CORNER
+     * <li>ScrollPaneConstants.VIEWPORT
+     * <li>ScrollPaneConstants.VERTICAL_SCROLLBAR
+     * <li>ScrollPaneConstants.HORIZONTAL_SCROLLBAR
+     * <li>ScrollPaneConstants.ROW_HEADER
+     * <li>ScrollPaneConstants.COLUMN_HEADER
+     * <li>ScrollPaneConstants.LOWER_LEFT_CORNER
+     * <li>ScrollPaneConstants.LOWER_RIGHT_CORNER
+     * <li>ScrollPaneConstants.UPPER_LEFT_CORNER
+     * <li>ScrollPaneConstants.UPPER_RIGHT_CORNER
      * </ul>
      *
      * @param s the component identifier
@@ -294,9 +294,9 @@ public class ScrollPaneLayout
      * Sets the vertical scrollbar-display policy. The options
      * are:
      * <ul>
-     * <li>JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
-     * <li>JScrollPane.VERTICAL_SCROLLBAR_NEVER
-     * <li>JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+     * <li>ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+     * <li>ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+     * <li>ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
      * </ul>
      * Note: Applications should use the <code>JScrollPane</code> version
      * of this method.  It only exists for backwards compatibility
@@ -332,9 +332,9 @@ public class ScrollPaneLayout
     /**
      * Sets the horizontal scrollbar-display policy.
      * The options are:<ul>
-     * <li>JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-     * <li>JScrollPane.HOTRIZONTAL_SCROLLBAR_NEVER
-     * <li>JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+     * <li>ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+     * <li>ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+     * <li>ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
      * </ul>
      * Note: Applications should use the <code>JScrollPane</code> version
      * of this method.  It only exists for backwards compatibility

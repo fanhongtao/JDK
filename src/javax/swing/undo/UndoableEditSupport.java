@@ -1,7 +1,7 @@
 /*
- * @(#)UndoableEditSupport.java	1.20 04/05/05
+ * @(#)UndoableEditSupport.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.util.*;
  * A support class used for managing <code>UndoableEdit</code> listeners.
  *
  * @author Ray Ryan
- * @version 1.20 05/05/04
+ * @version 1.21 11/17/05
  */
 public class UndoableEditSupport {
     protected int updateLevel;

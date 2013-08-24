@@ -1,11 +1,11 @@
 /*
- * @(#)Timer.java	4.58 04/04/13
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Timer.java	4.63 05/12/29
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-package javax.management.timer; 
+package javax.management.timer;
 
 
 
@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -31,12 +32,12 @@ import javax.management.InstanceNotFoundException;
 import com.sun.jmx.trace.Trace;
 
 /**
- * 
+ *
  * Provides the implementation of the timer MBean.
- * The timer MBean sends out an alarm at a specified time 
+ * The timer MBean sends out an alarm at a specified time
  * that wakes up all the listeners registered to receive timer notifications.
  * <P>
- * 
+ *
  * This class manages a list of dated timer notifications.
  * A method allows users to add/remove as many notifications as required.
  * When a timer notification is emitted by the timer and becomes obsolete,
@@ -46,12 +47,10 @@ import com.sun.jmx.trace.Trace;
  *
  * Note:
  * <OL>
- * <LI>All notifications before the time when the <CODE>addNotification</CODE> method is called 
- * are ignored, irrespective of the <CODE>sendPastNotifications</CODE> flag.
  * <LI>When sending timer notifications, the timer updates the notification sequence number
  * irrespective of the notification type.
- * <LI>The timer service relies on the system date of the host where the <CODE>Timer</CODE> class is loaded. 
- * Listeners may receive untimely notifications 
+ * <LI>The timer service relies on the system date of the host where the <CODE>Timer</CODE> class is loaded.
+ * Listeners may receive untimely notifications
  * if their host has a different system date.
  * To avoid such problems, synchronize the system date of all host machines where timing is needed.
  * <LI>The default behavior for periodic notifications is <i>fixed-delay execution</i>, as
@@ -63,7 +62,7 @@ import com.sun.jmx.trace.Trace;
  * executions.  See {@link NotificationBroadcasterSupport}.
  * </OL>
  *
- * @version     4.58     04/13/04
+ * @version     4.63     12/29/05
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -71,8 +70,8 @@ import com.sun.jmx.trace.Trace;
 public class Timer extends NotificationBroadcasterSupport
 	implements TimerMBean, MBeanRegistration {
 
-    
-    /*    
+
+    /*
      * ------------------------------------------
      *  PUBLIC VARIABLES
      * ------------------------------------------
@@ -111,7 +110,7 @@ public class Timer extends NotificationBroadcasterSupport
 
     // TRACES & DEBUG
     //---------------
-    
+
     boolean isTraceOn() {
         return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_TIMER);
     }
@@ -123,7 +122,7 @@ public class Timer extends NotificationBroadcasterSupport
     void trace(String func, String info) {
         trace(dbgTag, func, info);
     }
-    
+
     boolean isDebugOn() {
         return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_TIMER);
     }
@@ -135,7 +134,7 @@ public class Timer extends NotificationBroadcasterSupport
     void debug(String func, String info) {
         debug(dbgTag, func, info);
     }
-    
+
 
     /*
      * ------------------------------------------
@@ -144,32 +143,33 @@ public class Timer extends NotificationBroadcasterSupport
      */
 
     private static final String dbgTag = "Timer";
-    
+
     /**
      * Table containing all the timer notifications of this timer,
      * with the associated date, period and number of occurrences.
      */
-    private Hashtable timerTable = new Hashtable();
-    
+    private Map<Integer,Object[]> timerTable =
+	new Hashtable<Integer,Object[]>();
+
     /**
      * Past notifications sending on/off flag value.
      * This attribute is used to specify if the timer has to send past notifications after start.
      * <BR>The default value is set to <CODE>false</CODE>.
      */
     private boolean sendPastNotifications = false;
-    
+
     /**
      * Timer state.
      * The default value is set to <CODE>false</CODE>.
      */
     private transient boolean isActive = false;
-    
+
     /**
      * Timer sequence number.
      * The default value is set to 0.
      */
     private transient long sequenceNumber = 0;
-    
+
     // Flags needed to keep the indexes of the objects in the array.
     //
     private static final int TIMER_NOTIF_INDEX     = 0;
@@ -198,13 +198,13 @@ public class Timer extends NotificationBroadcasterSupport
      */
     public Timer() {
     }
-  
+
     /*
      * ------------------------------------------
      *  PUBLIC METHODS
      * ------------------------------------------
      */
-    
+
     /**
      * Allows the timer MBean to perform any operations it needs before being registered
      * in the MBean server.
@@ -218,11 +218,11 @@ public class Timer extends NotificationBroadcasterSupport
      *
      * @exception java.lang.Exception
      */
-    public ObjectName preRegister(MBeanServer server, ObjectName name) 
+    public ObjectName preRegister(MBeanServer server, ObjectName name)
         throws java.lang.Exception {
         return name;
-    } 
-            
+    }
+
     /**
      * Allows the timer MBean to perform any operations needed after having been
      * registered in the MBean server or after the registration has failed.
@@ -230,7 +230,7 @@ public class Timer extends NotificationBroadcasterSupport
      * Not used in this context.
      */
     public void postRegister (Boolean registrationDone) {
-    } 
+    }
 
     /**
      * Allows the timer MBean to perform any operations it needs before being unregistered
@@ -241,11 +241,11 @@ public class Timer extends NotificationBroadcasterSupport
      * @exception java.lang.Exception
      */
     public void preDeregister() throws java.lang.Exception {
-        
+
         if (isTraceOn()) {
             trace("preDeregister", "stop the timer");
         }
-        
+
         // Stop the timer.
         //
         stop();
@@ -269,14 +269,14 @@ public class Timer extends NotificationBroadcasterSupport
      * that were given to addNotification.
      */
     public synchronized MBeanNotificationInfo[] getNotificationInfo() {
-	Set/*<String>*/ notifTypes = new TreeSet();
+	Set<String> notifTypes = new TreeSet<String>();
 	for (Iterator it = timerTable.values().iterator(); it.hasNext(); ) {
 	    Object[] entry = (Object[]) it.next();
 	    TimerNotification notif = (TimerNotification)
 		entry[TIMER_NOTIF_INDEX];
 	    notifTypes.add(notif.getType());
 	}
-	String[] notifTypesArray = (String[])
+	String[] notifTypesArray =
 	    notifTypes.toArray(new String[0]);
 	return new MBeanNotificationInfo[] {
 	    new MBeanNotificationInfo(notifTypesArray,
@@ -291,45 +291,41 @@ public class Timer extends NotificationBroadcasterSupport
      * If there is one or more timer notifications before the time in the list of notifications, the notification
      * is sent according to the <CODE>sendPastNotifications</CODE> flag and then, updated
      * according to its period and remaining number of occurrences.
-     * If the timer notification date remains earlier than the current date, this notification is just removed 
+     * If the timer notification date remains earlier than the current date, this notification is just removed
      * from the list of notifications.
      */
     public synchronized void start() {
-        
+
         if (isTraceOn()) {
             trace("start", "starting the timer");
         }
-        
+
         // Start the TimerAlarmClock.
-        //   
+        //
         if (isActive == false) {
-          
+
 	    timer = new java.util.Timer();
 
             TimerAlarmClock alarmClock;
-            Object[] obj;
             Date date;
-        
+
             Date currentDate = new Date();
-           
+
             // Send or not past notifications depending on the flag.
             // Update the date and the number of occurrences of past notifications
             // to make them later than the current date.
             //
             sendPastNotifications(currentDate, sendPastNotifications);
-           
+
             // Update and start all the TimerAlarmClocks.
             // Here, all the notifications in the timer table are later than the current date.
-            //   
-            Enumeration e = timerTable.elements();
-            while (e.hasMoreElements()) {
-                 
-                obj = (Object[])e.nextElement();
-                 
+            //
+	    for (Object[] obj : timerTable.values()) {
+
                 // Retrieve the date notification and the TimerAlarmClock.
                 //
                 date = (Date)obj[TIMER_DATE_INDEX];
-                 
+
                 // Update all the TimerAlarmClock timeouts and start them.
                 //
                 boolean fixedRate = ((Boolean)obj[FIXED_RATE_INDEX]).booleanValue();
@@ -346,11 +342,11 @@ public class Timer extends NotificationBroadcasterSupport
                   timer.schedule(alarmClock, alarmClock.timeout);
                 }
             }
-           
+
             // Set the state to ON.
             //
             isActive = true;
-        
+
             if (isTraceOn()) {
                 trace("start", "timer started");
             }
@@ -365,23 +361,19 @@ public class Timer extends NotificationBroadcasterSupport
      * Stops the timer.
      */
     public synchronized void stop() {
-        
+
         if (isTraceOn()) {
             trace("stop", "stoping the timer");
         }
-        
+
         // Stop the TimerAlarmClock.
         //
         if (isActive == true) {
-          
+
             TimerAlarmClock alarmClock;
-            Object[] obj;
-          
-            Enumeration e = timerTable.elements();
-            while (e.hasMoreElements()) {
-                
-                obj = (Object[])e.nextElement();
-                
+
+	    for (Object[] obj : timerTable.values()) {
+
                 // Stop all the TimerAlarmClock.
                 //
                 alarmClock = (TimerAlarmClock)obj[ALARM_CLOCK_INDEX];
@@ -401,13 +393,13 @@ public class Timer extends NotificationBroadcasterSupport
                     alarmClock = null;
                 }
             }
-          
+
             timer.cancel();
 
             // Set the state to OFF.
             //
             isActive = false;
-            
+
             if (isTraceOn()) {
                 trace("stop", "timer stopped");
             }
@@ -417,17 +409,17 @@ public class Timer extends NotificationBroadcasterSupport
             }
         }
     }
-            
+
     /**
-     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE> 
-     * and <CODE>userData</CODE> and inserts it into the list of notifications with a given date, 
+     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE>
+     * and <CODE>userData</CODE> and inserts it into the list of notifications with a given date,
      * period and number of occurrences.
      * <P>
      * If the timer notification to be inserted has a date that is before the current date,
      * the method behaves as if the specified date were the current date. <BR>
      * For once-off notifications, the notification is delivered immediately. <BR>
      * For periodic notifications, the first notification is delivered immediately and the
-     * subsequent ones are spaced as specified by the period parameter. 
+     * subsequent ones are spaced as specified by the period parameter.
      * <P>
      * Note that once the timer notification has been added into the list of notifications,
      * its associated date, period and number of occurrences cannot be updated.
@@ -449,59 +441,60 @@ public class Timer extends NotificationBroadcasterSupport
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The period or the number of occurrences is negative
+     * @exception java.lang.IllegalArgumentException The date is {@code null} or
+     * the period or the number of occurrences is negative.
      *
      * @see #addNotification(String, String, Object, Date, long, long)
      */
 // NPCTE fix for bugId 4464388, esc 0,  MR, to be added after modification of jmx spec
-//  public synchronized Integer addNotification(String type, String message, Serializable userData, 
-//                                                Date date, long period, long nbOccurences) 
+//  public synchronized Integer addNotification(String type, String message, Serializable userData,
+//                                                Date date, long period, long nbOccurences)
 // end of NPCTE fix for bugId 4464388
 
     public synchronized Integer addNotification(String type, String message, Object userData,
                                                 Date date, long period, long nbOccurences, boolean fixedRate)
         throws java.lang.IllegalArgumentException {
-        
+
         if (date == null) {
             throw new java.lang.IllegalArgumentException("Timer notification date cannot be null.");
         }
-        
+
         // Check that all the timer notification attributes are valid.
-        // 
-        
+        //
+
         // Invalid timer period value exception:
         // Check that the period and the nbOccurences are POSITIVE VALUES.
-        // 
+        //
         if ((period < 0) || (nbOccurences < 0)) {
             throw new java.lang.IllegalArgumentException("Negative values for the periodicity");
         }
-        
+
         Date currentDate = new Date();
-                        
+
         // Update the date if it is before the current date.
-        // 
+        //
         if (currentDate.after(date)) {
-            
+
           date.setTime(currentDate.getTime());
           if (isTraceOn()) {
             trace("addNotification", "update timer notification to add with:" +
                   "\n\tNotification date = " + date);
           }
         }
-          
+
         // Create and add the timer notification into the timer table.
         //
         Integer notifID = null;
         notifID = new Integer(++counterID);
-        
-        // The sequenceNumber and the timeStamp attributes are updated 
+
+        // The sequenceNumber and the timeStamp attributes are updated
         // when the notification is emitted by the timer.
         //
         TimerNotification notif = new TimerNotification(type, this, 0, 0, message, notifID);
         notif.setUserData(userData);
-        
+
         Object[] obj = new Object[6];
-        
+
         TimerAlarmClock alarmClock;
         if (fixedRate)
         {
@@ -516,16 +509,16 @@ public class Timer extends NotificationBroadcasterSupport
         // The date registered into the timer is a clone from the date parameter.
         //
         Date d = new Date(date.getTime());
-                
+
         obj[TIMER_NOTIF_INDEX] = (Object)notif;
         obj[TIMER_DATE_INDEX] = (Object)d;
         obj[TIMER_PERIOD_INDEX] = (Object) new Long(period);
         obj[TIMER_NB_OCCUR_INDEX] = (Object) new Long(nbOccurences);
         obj[ALARM_CLOCK_INDEX] = (Object)alarmClock;
         obj[FIXED_RATE_INDEX] = new Boolean(fixedRate);
-                
+
         if (isTraceOn()) {
-            trace("addNotification", "adding timer notification:" + 
+            trace("addNotification", "adding timer notification:" +
                   "\n\tNotification source = " + notif.getSource() +
                   "\n\tNotification type = " + notif.getType() +
                   "\n\tNotification ID = " + notifID +
@@ -534,9 +527,9 @@ public class Timer extends NotificationBroadcasterSupport
                   "\n\tNotification nb of occurrences = " + nbOccurences +
                   "\n\tNotification executes at fixed rate = " + fixedRate);
         }
-        
+
         timerTable.put(notifID, obj);
-        
+
         // Update and start the TimerAlarmClock.
         //
         if (isActive == true) {
@@ -549,7 +542,7 @@ public class Timer extends NotificationBroadcasterSupport
             timer.schedule(alarmClock, alarmClock.timeout);
           }
         }
-        
+
         if (isTraceOn()) {
             trace("addNotification", "timer notification added");
         }
@@ -557,21 +550,21 @@ public class Timer extends NotificationBroadcasterSupport
     }
 
     /**
-     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE> 
-     * and <CODE>userData</CODE> and inserts it into the list of notifications with a given date, 
+     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE>
+     * and <CODE>userData</CODE> and inserts it into the list of notifications with a given date,
      * period and number of occurrences.
      * <P>
      * If the timer notification to be inserted has a date that is before the current date,
      * the method behaves as if the specified date were the current date. <BR>
      * For once-off notifications, the notification is delivered immediately. <BR>
      * For periodic notifications, the first notification is delivered immediately and the
-     * subsequent ones are spaced as specified by the period parameter. 
+     * subsequent ones are spaced as specified by the period parameter.
      * <P>
      * Note that once the timer notification has been added into the list of notifications,
      * its associated date, period and number of occurrences cannot be updated.
      * <P>
      * In the case of a periodic notification, uses a <i>fixed-delay</i> execution scheme, as specified in
-     * {@link java.util.Timer}. In order to use a <i>fixed-rate</i> execution scheme, use 
+     * {@link java.util.Timer}. In order to use a <i>fixed-rate</i> execution scheme, use
      * {@link #addNotification(String, String, Object, Date, long, long, boolean)} instead.
      *
      * @param type The timer notification type.
@@ -583,37 +576,38 @@ public class Timer extends NotificationBroadcasterSupport
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The period or the number of occurrences is negative
+     * @exception java.lang.IllegalArgumentException The date is {@code null} or
+     * the period or the number of occurrences is negative.
      *
      * @see #addNotification(String, String, Object, Date, long, long, boolean)
      */
-// NPCTE fix for bugId 4464388, esc 0,  MR , to be added after modification of jmx spec 
-//  public synchronized Integer addNotification(String type, String message, Serializable userData, 
-//                                              Date date, long period) 
-// end of NPCTE fix for bugId 4464388 */ 
+// NPCTE fix for bugId 4464388, esc 0,  MR , to be added after modification of jmx spec
+//  public synchronized Integer addNotification(String type, String message, Serializable userData,
+//                                              Date date, long period)
+// end of NPCTE fix for bugId 4464388 */
 
     public synchronized Integer addNotification(String type, String message, Object userData,
-                                                Date date, long period, long nbOccurences) 
+                                                Date date, long period, long nbOccurences)
         throws java.lang.IllegalArgumentException {
-        
+
       return addNotification(type, message, userData, date, period, nbOccurences, false);
-    }   
-        
+    }
+
     /**
-     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE> 
+     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE>
      * and <CODE>userData</CODE> and inserts it into the list of notifications with a given date
      * and period and a null number of occurrences.
      * <P>
      * The timer notification will repeat continuously using the timer period using a <i>fixed-delay</i>
      * execution scheme, as specified in {@link java.util.Timer}. In order to use a <i>fixed-rate</i>
      * execution scheme, use {@link #addNotification(String, String, Object, Date, long, long,
-     * boolean)} instead. 
+     * boolean)} instead.
      * <P>
      * If the timer notification to be inserted has a date that is before the current date,
      * the method behaves as if the specified date were the current date. The
      * first notification is delivered immediately and the subsequent ones are
      * spaced as specified by the period parameter.
-     * 
+     *
      * @param type The timer notification type.
      * @param message The timer notification detailed message.
      * @param userData The timer notification user data object.
@@ -622,23 +616,23 @@ public class Timer extends NotificationBroadcasterSupport
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The period is negative or
-     * the date notification is before the current date.
+     * @exception java.lang.IllegalArgumentException The date is {@code null} or
+     * the period is negative.
      */
-// NPCTE fix for bugId 4464388, esc 0,  MR , to be added after modification of jmx spec 
-//  public synchronized Integer addNotification(String type, String message, Serializable userData, 
-//                                              Date date, long period) 
-// end of NPCTE fix for bugId 4464388 */ 
+// NPCTE fix for bugId 4464388, esc 0,  MR , to be added after modification of jmx spec
+//  public synchronized Integer addNotification(String type, String message, Serializable userData,
+//                                              Date date, long period)
+// end of NPCTE fix for bugId 4464388 */
 
     public synchronized Integer addNotification(String type, String message, Object userData,
                                                 Date date, long period)
         throws java.lang.IllegalArgumentException {
-        
+
         return (addNotification(type, message, userData, date, period, 0));
     }
-  
+
     /**
-     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE> 
+     * Creates a new timer notification with the specified <CODE>type</CODE>, <CODE>message</CODE>
      * and <CODE>userData</CODE> and inserts it into the list of notifications with a given date
      * and a null period and number of occurrences.
      * <P>
@@ -647,7 +641,7 @@ public class Timer extends NotificationBroadcasterSupport
      * If the timer notification to be inserted has a date that is before the current date,
      * the method behaves as if the specified date were the current date and the
      * notification is delivered immediately.
-     * 
+     *
      * @param type The timer notification type.
      * @param message The timer notification detailed message.
      * @param userData The timer notification user data object.
@@ -655,36 +649,36 @@ public class Timer extends NotificationBroadcasterSupport
      *
      * @return The identifier of the new created timer notification.
      *
-     * @exception java.lang.IllegalArgumentException The date notification is before the current date.
+     * @exception java.lang.IllegalArgumentException The date is {@code null}.
      */
 // NPCTE fix for bugId 4464388, esc 0,  MR, to be added after modification of jmx spec
-//  public synchronized Integer addNotification(String type, String message, Serializable userData, Date date) 
+//  public synchronized Integer addNotification(String type, String message, Serializable userData, Date date)
 //      throws java.lang.IllegalArgumentException {
 // end of NPCTE fix for bugId 4464388
- 
+
     public synchronized Integer addNotification(String type, String message, Object userData, Date date)
         throws java.lang.IllegalArgumentException {
 
-        
+
         return (addNotification(type, message, userData, date, 0, 0));
     }
-  
+
     /**
      * Removes the timer notification corresponding to the specified identifier from the list of notifications.
-     * 
+     *
      * @param id The timer notification identifier.
      *
      * @exception InstanceNotFoundException The specified identifier does not correspond to any timer notification
      * in the list of notifications of this timer MBean.
      */
     public synchronized void removeNotification(Integer id) throws InstanceNotFoundException {
-  
+
         // Check that the notification to remove is effectively in the timer table.
         //
         if (timerTable.containsKey(id) == false) {
             throw new InstanceNotFoundException("Timer notification to remove not in the list of notifications");
         }
-                
+
         // Stop the TimerAlarmClock.
         //
         Object[] obj = (Object[])timerTable.get(id);
@@ -703,11 +697,11 @@ public class Timer extends NotificationBroadcasterSupport
 	    alarmClock.cancel();
             alarmClock = null;
         }
-        
+
         // Remove the timer notification from the timer table.
         //
         if (isTraceOn()) {
-            trace("removeNotification", "removing timer notification:" + 
+            trace("removeNotification", "removing timer notification:" +
                   "\n\tNotification source = " + ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getSource() +
                   "\n\tNotification type = " + ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getType() +
                   "\n\tNotification ID = " + ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getNotificationID() +
@@ -716,66 +710,43 @@ public class Timer extends NotificationBroadcasterSupport
                   "\n\tNotification nb of occurrences = " + obj[TIMER_NB_OCCUR_INDEX] +
                   "\n\tNotification executes at fixed rate = " + obj[FIXED_RATE_INDEX]);
         }
-        
+
         timerTable.remove(id);
-        
+
         if (isTraceOn()) {
             trace("removeNotification", "timer notification removed");
         }
     }
-  
+
     /**
      * Removes all the timer notifications corresponding to the specified type from the list of notifications.
-     * 
+     *
      * @param type The timer notification type.
      *
      * @exception InstanceNotFoundException The specified type does not correspond to any timer notification
      * in the list of notifications of this timer MBean.
      */
     public synchronized void removeNotifications(String type) throws InstanceNotFoundException {
-        
-        TimerNotification notif;
-        Integer id;
-	TimerAlarmClock alarmClock;
-	Object[] obj;
-        
-        Vector v = getNotificationIDs(type);
-        
-        // Check that the notification to remove is effectively in the timer table.
-        //
-        if (v.isEmpty()) {
+
+        Vector<Integer> v = getNotificationIDs(type);
+
+        if (v.isEmpty())
             throw new InstanceNotFoundException("Timer notifications to remove not in the list of notifications");
-        }
-        
-        Enumeration e = v.elements();
-        while (e.hasMoreElements()) {
-            notif = (TimerNotification)e.nextElement();
-            id = notif.getNotificationID();
-	    obj = (Object[])timerTable.get(id);
 
-            timerTable.remove(id);
-
-	    alarmClock = (TimerAlarmClock)obj[ALARM_CLOCK_INDEX];
-	    if (alarmClock != null) {
-		alarmClock.cancel();
-	    }
-        }
+        for (Integer i : v)
+            removeNotification(i);
     }
-            
+
     /**
      * Removes all the timer notifications from the list of notifications
      * and resets the counter used to update the timer notification identifiers.
      */
     public synchronized void removeAllNotifications() {
-        
-        Object[] obj;
+
         TimerAlarmClock alarmClock;
 
-	Enumeration e = timerTable.elements();
-        while (e.hasMoreElements()) {
-          
-            obj = (Object[])e.nextElement();
-          
+	for (Object[] obj : timerTable.values()) {
+
             // Stop the TimerAlarmClock.
             //
             alarmClock = (TimerAlarmClock)obj[ALARM_CLOCK_INDEX];
@@ -790,32 +761,32 @@ public class Timer extends NotificationBroadcasterSupport
 //                 }
 	          // Remove the reference on the TimerAlarmClock.
                   //
-// 	       }   
+// 	       }
             alarmClock.cancel();
             alarmClock = null;
         }
-                
+
         // Remove all the timer notifications from the timer table.
         //
         if (isTraceOn()) {
             trace("removeAllNotifications", "removing all timer notifications");
         }
-        
+
         timerTable.clear();
-        
+
         if (isTraceOn()) {
             trace("removeAllNotifications", "all timer notifications removed");
         }
-        
+
         // Reset the counterID.
         //
         counterID = 0;
-        
+
         if (isTraceOn()) {
-            trace("removeAllNotifications", "timer notification counter ID resetted");
+            trace("removeAllNotifications", "timer notification counter ID reset");
         }
     }
-    
+
     // GETTERS AND SETTERS
     //--------------------
 
@@ -827,133 +798,107 @@ public class Timer extends NotificationBroadcasterSupport
     public int getNbNotifications() {
         return timerTable.size();
     }
-    
+
     /**
      * Gets all timer notification identifiers registered into the list of notifications.
      *
      * @return A vector of <CODE>Integer</CODE> objects containing all the timer notification identifiers.
      * <BR>The vector is empty if there is no timer notification registered for this timer MBean.
      */
-    public synchronized Vector getAllNotificationIDs() {
-        
-        Vector v = new Vector();
-        
-        Enumeration e = timerTable.keys();
-        while (e.hasMoreElements()) {
-          
-            v.addElement((Integer)e.nextElement());
-        }
-        return v;
+    public synchronized Vector<Integer> getAllNotificationIDs() {
+	return new Vector<Integer>(timerTable.keySet());
     }
-    
+
     /**
      * Gets all the identifiers of timer notifications corresponding to the specified type.
      *
      * @param type The timer notification type.
      *
-     * @return A vector of <CODE>Integer</CODE> objects containing all the identifiers of 
+     * @return A vector of <CODE>Integer</CODE> objects containing all the identifiers of
      * timer notifications with the specified <CODE>type</CODE>.
-     * <BR>The vector is empty if there is no timer notifications registered for this timer MBean 
+     * <BR>The vector is empty if there is no timer notifications registered for this timer MBean
      * with the specified <CODE>type</CODE>.
      */
-    public synchronized Vector getNotificationIDs(String type) {
-        
-        Object[] obj;
+    public synchronized Vector<Integer> getNotificationIDs(String type) {
+
         String s;
-        
-        Vector v = new Vector();
-        
-        Enumeration e = timerTable.elements();
-        
-        // If the specified type is null, retreive all the timer notificatiosn which type is null.
-        //
-        if (type == null) {
-            while (e.hasMoreElements()) {
-                obj = (Object[])e.nextElement();
-                s = ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getType();
-            
-                if (s == null) {
-                    v.addElement((TimerNotification)obj[TIMER_NOTIF_INDEX]);
-                }
-            }
-        }
-        else {
-            while (e.hasMoreElements()) {
-                obj = (Object[])e.nextElement();
-                s = ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getType();
-            
-                if (type.equals(s)) {
-                    v.addElement((TimerNotification)obj[TIMER_NOTIF_INDEX]);
-                }
-            }
-        }
+
+        Vector<Integer> v = new Vector<Integer>();
+
+	for (Map.Entry<Integer,Object[]> entry : timerTable.entrySet()) {
+	    Object[] obj = entry.getValue();
+	    s = ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getType();
+	    if ((type == null) ? s == null : type.equals(s))
+		v.addElement(entry.getKey());
+	}
         return v;
     }
-    
+    // 5089997: return is Vector<Integer> not Vector<TimerNotification>
+
     /**
      * Gets the timer notification type corresponding to the specified identifier.
      *
      * @param id The timer notification identifier.
      *
-     * @return The timer notification type or null if the identifier is not mapped to any 
+     * @return The timer notification type or null if the identifier is not mapped to any
      * timer notification registered for this timer MBean.
      */
     public String getNotificationType(Integer id) {
-        
+
         Object[] obj = (Object[])timerTable.get(id);
         if (obj != null) {
             return ( (String)((TimerNotification)obj[TIMER_NOTIF_INDEX]).getType() );
         }
         return null;
     }
-    
+
     /**
      * Gets the timer notification detailed message corresponding to the specified identifier.
      *
      * @param id The timer notification identifier.
      *
-     * @return The timer notification detailed message or null if the identifier is not mapped to any 
+     * @return The timer notification detailed message or null if the identifier is not mapped to any
      * timer notification registered for this timer MBean.
      */
     public String getNotificationMessage(Integer id) {
-        
+
         Object[] obj = (Object[])timerTable.get(id);
         if (obj != null) {
             return ( (String)((TimerNotification)obj[TIMER_NOTIF_INDEX]).getMessage() );
         }
         return null;
     }
-    
+
     /**
      * Gets the timer notification user data object corresponding to the specified identifier.
      *
      * @param id The timer notification identifier.
      *
-     * @return The timer notification user data object or null if the identifier is not mapped to any 
+     * @return The timer notification user data object or null if the identifier is not mapped to any
      * timer notification registered for this timer MBean.
      */
     // NPCTE fix for bugId 4464388, esc 0, MR, 03 sept 2001, to be added after modification of jmx spec
     //public Serializable getNotificationUserData(Integer id) {
     // end of NPCTE fix for bugId 4464388
 
-    public Object getNotificationUserData(Integer id) {        
+    public Object getNotificationUserData(Integer id) {
         Object[] obj = (Object[])timerTable.get(id);
         if (obj != null) {
             return ( ((TimerNotification)obj[TIMER_NOTIF_INDEX]).getUserData() );
         }
         return null;
     }
-    
+
     /**
      * Gets a copy of the date associated to a timer notification.
      *
      * @param id The timer notification identifier.
      *
-     * @return A copy of the date or null if the identifier is not mapped to any 
+     * @return A copy of the date or null if the identifier is not mapped to any
      * timer notification registered for this timer MBean.
      */
     public Date getDate(Integer id) {
-        
+
         Object[] obj = (Object[])timerTable.get(id);
         if (obj != null) {
             Date date = (Date)obj[TIMER_DATE_INDEX];
@@ -961,17 +906,17 @@ public class Timer extends NotificationBroadcasterSupport
         }
         return null;
     }
-  
+
     /**
      * Gets a copy of the period (in milliseconds) associated to a timer notification.
      *
      * @param id The timer notification identifier.
      *
-     * @return A copy of the period or null if the identifier is not mapped to any 
+     * @return A copy of the period or null if the identifier is not mapped to any
      * timer notification registered for this timer MBean.
      */
     public Long getPeriod(Integer id) {
-        
+
         Object[] obj = (Object[])timerTable.get(id);
         if (obj != null) {
             Long period = (Long)obj[TIMER_PERIOD_INDEX];
@@ -979,17 +924,17 @@ public class Timer extends NotificationBroadcasterSupport
         }
         return null;
     }
-  
+
     /**
      * Gets a copy of the remaining number of occurrences associated to a timer notification.
      *
      * @param id The timer notification identifier.
      *
-     * @return A copy of the remaining number of occurrences or null if the identifier is not mapped to any 
+     * @return A copy of the remaining number of occurrences or null if the identifier is not mapped to any
      * timer notification registered for this timer MBean.
      */
     public Long getNbOccurences(Integer id) {
-        
+
         Object[] obj = (Object[])timerTable.get(id);
         if (obj != null) {
             Long nbOccurences = (Long)obj[TIMER_NB_OCCUR_INDEX];
@@ -997,7 +942,7 @@ public class Timer extends NotificationBroadcasterSupport
         }
         return null;
     }
-    
+
     /**
      * Gets a copy of the flag indicating whether a periodic notification is
      * executed at <i>fixed-delay</i> or at <i>fixed-rate</i>.
@@ -1028,7 +973,7 @@ public class Timer extends NotificationBroadcasterSupport
     public boolean getSendPastNotifications() {
         return sendPastNotifications;
     }
-  
+
     /**
      * Sets the flag indicating whether the timer sends past notifications or not.
      * <BR>The default value of the past notifications sending on/off flag is <CODE>false</CODE>.
@@ -1040,7 +985,7 @@ public class Timer extends NotificationBroadcasterSupport
     public void setSendPastNotifications(boolean value) {
         sendPastNotifications = value;
     }
-    
+
     /**
      * Tests whether the timer MBean is active.
      * A timer MBean is marked active when the {@link #start start} method is called.
@@ -1051,8 +996,8 @@ public class Timer extends NotificationBroadcasterSupport
      */
     public boolean isActive() {
         return isActive;
-    }  
-    
+    }
+
     /**
      * Tests whether the list of timer notifications is empty.
      *
@@ -1061,13 +1006,13 @@ public class Timer extends NotificationBroadcasterSupport
     public boolean isEmpty() {
         return (timerTable.isEmpty());
     }
-    
+
     /*
      * ------------------------------------------
      *  PRIVATE METHODS
      * ------------------------------------------
      */
-        
+
     /**
      * Sends or not past notifications depending on the specified flag.
      *
@@ -1075,32 +1020,28 @@ public class Timer extends NotificationBroadcasterSupport
      * @param currentFlag The flag indicating if past notifications must be sent or not.
      */
     private synchronized void sendPastNotifications(Date currentDate, boolean currentFlag) {
-        
+
         TimerNotification notif;
         Integer notifID;
         Date date;
-        Object[] obj;
-        
-        Enumeration e = timerTable.elements();
-        while (e.hasMoreElements()) {
-          
-            obj = (Object[])e.nextElement();
-          
+
+	for (Object[] obj : timerTable.values()) {
+
             // Retrieve the timer notification and the date notification.
             //
             notif = (TimerNotification)obj[TIMER_NOTIF_INDEX];
             notifID = notif.getNotificationID();
             date = (Date)obj[TIMER_DATE_INDEX];
-                  
+
             // Update the timer notification while:
             //  - the timer notification date is earlier than the current date
             //  - the timer notification has not been removed from the timer table.
             //
             while ( (currentDate.after(date)) && (timerTable.containsKey(notifID)) ) {
-                                
+
                 if (currentFlag == true) {
                     if (isTraceOn()) {
-                        trace("sendPastNotifications", "sending past timer notification:" + 
+                        trace("sendPastNotifications", "sending past timer notification:" +
                               "\n\tNotification source = " + notif.getSource() +
                               "\n\tNotification type = " + notif.getType() +
                               "\n\tNotification ID = " + notif.getNotificationID() +
@@ -1110,19 +1051,19 @@ public class Timer extends NotificationBroadcasterSupport
                               "\n\tNotification executes at fixed rate = " + obj[FIXED_RATE_INDEX]);
                     }
                     sendNotification(date, notif);
-                    
+
                     if (isTraceOn()) {
                         trace("sendPastNotifications", "past timer notification sent");
                     }
                 }
-                
+
                 // Update the date and the number of occurrences of the timer notification.
                 //
                 updateTimerTable(notif.getNotificationID());
             }
         }
     }
-         
+
     /**
      * If the timer notification is not periodic, it is removed from the list of notifications.
      * <P>
@@ -1130,38 +1071,38 @@ public class Timer extends NotificationBroadcasterSupport
      * the date of the timer notification is updated by adding the periodicity.
      * The associated TimerAlarmClock is updated by setting its timeout to the period value.
      * <P>
-     * If the timer period has a defined number of occurrences, the timer 
+     * If the timer period has a defined number of occurrences, the timer
      * notification is updated if the number of occurrences has not yet been reached.
      * Otherwise it is removed from the list of notifications.
-     * 
+     *
      * @param notifID The timer notification identifier to update.
      */
     private synchronized void updateTimerTable(Integer notifID) {
-        
+
         // Retrieve the timer notification and the TimerAlarmClock.
-        //      
+        //
         Object[] obj = (Object[])timerTable.get(notifID);
         Date date = (Date)obj[TIMER_DATE_INDEX];
         Long period = (Long)obj[TIMER_PERIOD_INDEX];
         Long nbOccurences = (Long)obj[TIMER_NB_OCCUR_INDEX];
         Boolean fixedRate = (Boolean)obj[FIXED_RATE_INDEX];
         TimerAlarmClock alarmClock = (TimerAlarmClock)obj[ALARM_CLOCK_INDEX];
-        
+
         if (period.longValue() != 0) {
-          
-            // Update the date and the number of occurrences of the timer notification 
+
+            // Update the date and the number of occurrences of the timer notification
             // and the TimerAlarmClock time out.
-            // NOTES :      
+            // NOTES :
             //   nbOccurences = 0 notifies an infinite periodicity.
             //   nbOccurences = 1 notifies a finite periodicity that has reached its end.
             //   nbOccurences > 1 notifies a finite periodicity that has not yet reached its end.
             //
             if ((nbOccurences.longValue() == 0) || (nbOccurences.longValue() > 1)) {
-                
+
                 date.setTime(date.getTime() + period.longValue());
                 obj[TIMER_NB_OCCUR_INDEX] = new Long(java.lang.Math.max(0L, (nbOccurences.longValue() - 1)));
                 nbOccurences = (Long)obj[TIMER_NB_OCCUR_INDEX];
-                                
+
                 if (isActive == true) {
                   if (fixedRate.booleanValue())
                   {
@@ -1226,43 +1167,41 @@ public class Timer extends NotificationBroadcasterSupport
             timerTable.remove(notifID);
         }
     }
-    
-    /*    
+
+    /*
      * ------------------------------------------
      *  PACKAGE METHODS
      * ------------------------------------------
      */
-    
+
     /**
-     * This method is called by the timer each time 
+     * This method is called by the timer each time
      * the TimerAlarmClock has exceeded its timeout.
      *
      * @param notification The TimerAlarmClock notification.
      */
+    @SuppressWarnings("deprecation")
     void notifyAlarmClock(TimerAlarmClockNotification notification) {
-                
-        Object[] obj;
+
         TimerNotification timerNotification = null;
         Date timerDate = null;
-        
+
         // Retrieve the timer notification associated to the alarm-clock.
         //
         TimerAlarmClock alarmClock = (TimerAlarmClock)notification.getSource();
-        
-        Enumeration e = timerTable.elements();
-        while (e.hasMoreElements()) {
-            obj = (Object[])e.nextElement();
+
+	for (Object[] obj : timerTable.values()) {
             if (obj[ALARM_CLOCK_INDEX] == alarmClock) {
                 timerNotification = (TimerNotification)obj[TIMER_NOTIF_INDEX];
                 timerDate = (Date)obj[TIMER_DATE_INDEX];
                 break;
             }
         }
-        
+
         // Notify the timer.
         //
         sendNotification(timerDate, timerNotification);
-        
+
         // Update the notification and the TimerAlarmClock timeout.
         //
         updateTimerTable(timerNotification.getNotificationID());
@@ -1276,15 +1215,15 @@ public class Timer extends NotificationBroadcasterSupport
      * @param notification The timer notification to send.
      */
     void sendNotification(Date timeStamp, TimerNotification notification) {
-                
+
         if (isTraceOn()) {
-            trace("sendNotification", "sending timer notification:" + 
+            trace("sendNotification", "sending timer notification:" +
                   "\n\tNotification source = " + notification.getSource() +
                   "\n\tNotification type = " + notification.getType() +
                   "\n\tNotification ID = " + notification.getNotificationID() +
                   "\n\tNotification date = " + timeStamp);
         }
-        long curSeqNumber; 
+        long curSeqNumber;
         synchronized(this) {
             sequenceNumber = sequenceNumber + 1;
 	    curSeqNumber = sequenceNumber;
@@ -1294,7 +1233,7 @@ public class Timer extends NotificationBroadcasterSupport
             notification.setSequenceNumber(curSeqNumber);
             this.sendNotification((TimerNotification)notification.cloneTimerNotification());
         }
-        
+
         if (isTraceOn()) {
             trace("sendNotification", "timer notification sent");
         }
@@ -1308,18 +1247,18 @@ public class Timer extends NotificationBroadcasterSupport
  * or at the specified date (fixed-rate).
  */
 
-class TimerAlarmClock extends java.util.TimerTask { 
+class TimerAlarmClock extends java.util.TimerTask {
 
     Timer listener = null;
     long timeout = 10000;
     Date next = null;
-    
+
     /*
      * ------------------------------------------
      *  CONSTRUCTORS
      * ------------------------------------------
      */
-    
+
     public TimerAlarmClock(Timer listener, long timeout) {
         this.listener = listener;
         this.timeout = Math.max(0L, timeout);
@@ -1340,7 +1279,7 @@ class TimerAlarmClock extends java.util.TimerTask {
      * This method is called by the timer when it is started.
      */
     public void run() {
-        
+
         try {
             //this.sleep(timeout);
             TimerAlarmClockNotification notif = new TimerAlarmClockNotification(this);

@@ -1,7 +1,7 @@
 /*
- * @(#)ExampleFileView.java	1.8 04/07/26
+ * @(#)ExampleFileView.java	1.11 05/11/30
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ExampleFileView.java	1.8 04/07/26
+ * @(#)ExampleFileView.java	1.11 05/11/30
  */
 
 import javax.swing.*;
@@ -64,7 +64,7 @@ import java.util.Hashtable;
  *    fileView.putIcon("gif", new ImageIcon("images/gifIcon.gif"));
  *    chooser.setFileView(fileView);
  *
- * @version 1.8 07/26/04
+ * @version 1.11 11/30/05
  * @author Jeff Dinkins
  */
 public class ExampleFileView extends FileView {
@@ -75,7 +75,6 @@ public class ExampleFileView extends FileView {
     /**
      * The name of the file.  Do nothing special here. Let
      * the system file view handle this.
-     * @see #setName
      * @see FileView#getName
      */
     public String getName(File f) {
@@ -86,7 +85,7 @@ public class ExampleFileView extends FileView {
      * Adds a human readable description of the file.
      */
     public void putDescription(File f, String fileDescription) {
-	fileDescriptions.put(fileDescription, f);
+	fileDescriptions.put(f, fileDescription);
     }
 
     /**
@@ -103,7 +102,7 @@ public class ExampleFileView extends FileView {
      * extension strings, e.g: ".gif". Case is ignored.
      */
     public void putTypeDescription(String extension, String typeDescription) {
-	typeDescriptions.put(typeDescription, extension);
+	typeDescriptions.put(extension, typeDescription);
     }
 
     /**
@@ -125,7 +124,7 @@ public class ExampleFileView extends FileView {
     }
 
     /**
-     * Conveinience method that returnsa the "dot" extension for the
+     * Convenience method that returns the "dot" extension for the
      * given file.
      */
     public String getExtension(File f) {
@@ -165,27 +164,12 @@ public class ExampleFileView extends FileView {
     }
 
     /**
-     * Whether the file is hidden or not. This implementation returns
-     * true if the filename starts with a "."
-     *
-     * @see FileView#isHidden
-     */
-    public Boolean isHidden(File f) {
-	String name = f.getName();
-	if(name != null && !name.equals("") && name.charAt(0) == '.') {
-	    return Boolean.TRUE;
-	} else {
-	    return Boolean.FALSE;
-	}
-    };
-
-    /**
      * Whether the directory is traversable or not. Generic implementation
      * returns true for all directories and special folders.
      *
      * You might want to subtype ExampleFileView to do somethimg more interesting,
      * such as recognize compound documents directories; in such a case you might
-     * return a special icon for the diretory that makes it look like a regular
+     * return a special icon for the directory that makes it look like a regular
      * document, and return false for isTraversable to not allow users to
      * descend into the directory.
      *

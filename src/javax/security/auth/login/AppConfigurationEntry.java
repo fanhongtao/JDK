@@ -1,7 +1,7 @@
 /*
- * @(#)AppConfigurationEntry.java	1.34 04/05/05
+ * @(#)AppConfigurationEntry.java	1.36 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import java.util.Collections;
  * options.  Please refer to the <code>Configuration</code> class for
  * more information on the different control flags and their semantics.
  *
- * @version 1.34, 05/05/04
+ * @version 1.36, 11/17/05
  * @see javax.security.auth.login.Configuration
  */
 public class AppConfigurationEntry {
@@ -141,6 +141,10 @@ public class AppConfigurationEntry {
 
 	/**
 	 * Return a String representation of this controlFlag.
+	 *
+	 * <p> The String has the format, "LoginModuleControlFlag: <i>flag</i>",
+	 * where <i>flag</i> is either <i>required</i>, <i>requisite</i>,
+	 * <i>sufficient</i>, or <i>optional</i>.
 	 *
 	 * @return a String representation of this controlFlag.
 	 */

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DocumentCache.java,v 1.15 2004/02/16 22:54:59 minchau Exp $
+ * $Id: DocumentCache.java,v 1.2.4.1 2005/09/06 06:15:22 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -184,7 +184,6 @@ public final class DocumentCache implements DOMCache {
 	}
 	catch (ParserConfigurationException e) {
 	    BasisLibrary.runTimeError(BasisLibrary.NAMESPACES_SUPPORT_ERR);
-	    System.exit(-1);
 	}
     }
 

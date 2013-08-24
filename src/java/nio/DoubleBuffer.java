@@ -1,7 +1,7 @@
 /*
- * @(#)X-Buffer.java	1.56 04/07/16
+ * @(#)X-Buffer.java	1.62 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ package java.nio;
  *
  * content, by {@link #wrap(double[]) </code><i>wrapping</i><code>} an existing
  * double array  into a buffer, or by creating a
- * <a href="ByteBuffer.html#view"><i>view</i></a> of an existing byte buffer
+ * <a href="ByteBuffer.html#views"><i>view</i></a> of an existing byte buffer.
  *
 
  *
@@ -233,7 +233,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.56, 04/07/16
+ * @version 1.62, 06/07/10
  * @since 1.4
  */
 
@@ -372,6 +372,7 @@ public abstract class DoubleBuffer
     public static DoubleBuffer wrap(double[] array) {
 	return wrap(array, 0, array.length);
     }
+
 
 
 
@@ -1003,8 +1004,6 @@ public abstract class DoubleBuffer
 
 
 
-
-
      *
      * @return  This buffer
      *
@@ -1346,7 +1345,7 @@ public abstract class DoubleBuffer
      * wrapping an existing <tt>double</tt> array is the {@link
      * ByteOrder#nativeOrder </code>native order<code>} of the underlying
      * hardware.  The byte order of a double buffer created as a <a
-     * href="ByteBuffer.html#view">view</a> of a byte buffer is that of the
+     * href="ByteBuffer.html#views">view</a> of a byte buffer is that of the
      * byte buffer at the moment that the view is created.  </p>
      *
      * @return  This buffer's byte order

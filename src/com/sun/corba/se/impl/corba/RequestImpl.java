@@ -1,7 +1,7 @@
 /*
- * @(#)RequestImpl.java	1.90 04/04/07
+ * @(#)RequestImpl.java	1.91 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*

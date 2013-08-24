@@ -1,7 +1,7 @@
 /*
- * @(#)RuntimePermission.java	1.53 04/04/20
+ * @(#)RuntimePermission.java	1.57 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -109,13 +109,14 @@ import java.util.StringTokenizer;
  * </tr>
  *
  * <tr>
- *   <td>exitVM</td>
- *   <td>Halting of the Java Virtual Machine</td>
+ *   <td>exitVM.{exit status}</td>
+ *   <td>Halting of the Java Virtual Machine with the specified exit status</td>
  *   <td>This allows an attacker to mount a denial-of-service attack
  * by automatically forcing the virtual machine to halt.
- * Note: The "exitVM" permission is automatically granted to all code
+ * Note: The "exitVM.*" permission is automatically granted to all code
  * loaded from the application class path, thus enabling applications
- * to terminate themselves.</td>
+ * to terminate themselves. Also, the "exitVM" permission is equivalent to 
+ * "exitVM.*".</td>
  * </tr>
  *
  * <tr>
@@ -183,6 +184,16 @@ import java.util.StringTokenizer;
  * does not compromise the security of the system, it does give
  * attackers additional information, such as local file names for
  * example, to better aim an attack.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>getFileSystemAttributes</td>
+ *   <td>Retrieval of file system attributes</td>
+ *   <td>This allows code to obtain file system information such as disk usage
+ *       or disk space available to the caller.  This is potentially dangerous
+ *       because it discloses information about the system hardware  
+ *       configuration and some information about the caller's privilege to
+ *       write files.</td>
  * </tr>
  *
  * <tr>
@@ -296,7 +307,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.53 04/04/20
+ * @version 1.57 06/04/21
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -314,6 +325,9 @@ public final class RuntimePermission extends BasicPermission {
      * signify a wildcard match.
      *
      * @param name the name of the RuntimePermission.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
 
     public RuntimePermission(String name)
@@ -328,6 +342,9 @@ public final class RuntimePermission extends BasicPermission {
      *
      * @param name the name of the RuntimePermission.
      * @param actions should be null.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
 
     public RuntimePermission(String name, String actions)

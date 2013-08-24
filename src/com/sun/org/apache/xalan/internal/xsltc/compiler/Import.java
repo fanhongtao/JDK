@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Import.java,v 1.24 2004/02/16 22:24:29 minchau Exp $
+ * $Id: Import.java,v 1.2.4.1 2005/09/12 10:32:33 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -105,6 +105,7 @@ final class Import extends TopLevelElement {
 	    _imported.setSystemId(docToLoad);
 	    _imported.setParentStylesheet(context);
 	    _imported.setImportingStylesheet(context);
+        _imported.setTemplateInlining(context.getTemplateInlining());
 
 	    // precedence for the including stylesheet
 	    final int currPrecedence = parser.getCurrentImportPrecedence();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ObjectPool.java,v 1.11 2004/02/17 04:21:14 minchau Exp $
+ * $Id: ObjectPool.java,v 1.2.4.1 2005/09/15 08:15:50 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -30,6 +30,7 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
  */
 public class ObjectPool implements java.io.Serializable
 {
+    static final long serialVersionUID = -8519013691660936643L;
 
   /** Type of objects in this pool.
    *  @serial          */

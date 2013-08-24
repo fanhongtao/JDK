@@ -1,7 +1,7 @@
 /*
- * @(#)Inet6AddressImpl.java	1.7 04/01/13 
+ * @(#)Inet6AddressImpl.java	1.9 05/11/17 
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -20,7 +20,7 @@ import java.io.IOException;
 
 class Inet6AddressImpl implements InetAddressImpl {
     public native String getLocalHostName() throws UnknownHostException;
-    public native byte[][]
+    public native InetAddress[]
         lookupAllHostAddr(String hostname) throws UnknownHostException;
     public native String getHostByAddr(byte[] addr) throws UnknownHostException;
     private native boolean isReachable0(byte[] addr, int scope, int timeout, byte[] inf, int ttl, int if_scope) throws IOException;

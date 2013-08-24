@@ -1,7 +1,7 @@
 /*
- * @(#)SynthToolBarUI.java	1.10 03/12/19
+ * @(#)SynthToolBarUI.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,9 +25,7 @@ import sun.swing.plaf.synth.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.10, 12/19/03
- * @author Georges Saab
- * @author Jeff Shapiro
+ * @version 1.13, 11/17/05
  */
 class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
            SynthUI {
@@ -148,7 +146,8 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
 
         SynthLookAndFeel.update(context, g);
         context.getPainter().paintToolBarBackground(context,
-                          g, 0, 0, c.getWidth(), c.getHeight());
+                          g, 0, 0, c.getWidth(), c.getHeight(),
+                          toolBar.getOrientation());
         paint(context, g);
         context.dispose();
     }
@@ -162,7 +161,8 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
 
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
-        context.getPainter().paintToolBarBorder(context, g, x, y, w, h);
+        context.getPainter().paintToolBarBorder(context, g, x, y, w, h,
+                                                toolBar.getOrientation());
     }
 
     // Overloaded to do nothing so we can share listeners.
@@ -193,9 +193,11 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
             Rectangle bounds) {
         SynthLookAndFeel.updateSubregion(context, g, bounds);
         context.getPainter().paintToolBarContentBackground(context, g,
-                             bounds.x, bounds.y, bounds.width, bounds.height);
+                             bounds.x, bounds.y, bounds.width, bounds.height,
+                             toolBar.getOrientation());
         context.getPainter().paintToolBarContentBorder(context, g,
-                             bounds.x, bounds.y, bounds.width, bounds.height);
+                             bounds.x, bounds.y, bounds.width, bounds.height,
+                             toolBar.getOrientation());
     }
 
     protected void paintDragWindow(Graphics g) {
@@ -205,8 +207,10 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
         SynthLookAndFeel.updateSubregion(context, g, new Rectangle(
                          0, 0, w, h));
         context.getPainter().paintToolBarDragWindowBackground(context,
-                                                           g, 0, 0, w, h);
-        context.getPainter().paintToolBarDragWindowBorder(context, g, 0,0,w,h);
+                                                           g, 0, 0, w, h,
+                                                           dragWindow.getOrientation());
+        context.getPainter().paintToolBarDragWindowBorder(context, g, 0, 0, w, h,
+                                                          dragWindow.getOrientation());
         context.dispose();
     }
 
@@ -232,7 +236,8 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
             SynthContext context = getContext(tb);
 
             if (tb.getOrientation() == JToolBar.HORIZONTAL) {
-                dim.width = SynthIcon.getIconWidth(handleIcon, context);
+                dim.width = tb.isFloatable() ?
+                    SynthIcon.getIconWidth(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     compDim = tb.getComponent(i).getMinimumSize();
@@ -240,8 +245,8 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                     dim.height = Math.max(dim.height, compDim.height);
                 }
             } else {
-                dim.height =
-                    SynthIcon.getIconHeight(handleIcon, context);
+                dim.height = tb.isFloatable() ?
+                    SynthIcon.getIconHeight(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     compDim = tb.getComponent(i).getMinimumSize();
@@ -259,7 +264,8 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
             SynthContext context = getContext(tb);
 
             if (tb.getOrientation() == JToolBar.HORIZONTAL) {
-                dim.width = SynthIcon.getIconWidth(handleIcon, context);
+                dim.width = tb.isFloatable() ?
+                    SynthIcon.getIconWidth(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     compDim = tb.getComponent(i).getPreferredSize();
@@ -267,8 +273,8 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                     dim.height = Math.max(dim.height, compDim.height);
                 }
             } else {
-                dim.height =
-                    SynthIcon.getIconHeight(handleIcon, context);
+                dim.height = tb.isFloatable() ?
+                    SynthIcon.getIconHeight(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     compDim = tb.getComponent(i).getPreferredSize();
@@ -284,36 +290,40 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
             JToolBar tb = (JToolBar)parent;
             boolean ltr = tb.getComponentOrientation().isLeftToRight();
             SynthContext context = getContext(tb);
-            int handleWidth = SynthIcon.getIconWidth(handleIcon, context);
 
             Component c;
             Dimension d;
             if (tb.getOrientation() == JToolBar.HORIZONTAL) {
+                int handleWidth = tb.isFloatable() ?
+                    SynthIcon.getIconWidth(handleIcon, context) : 0;
                 int x = ltr ? handleWidth : tb.getWidth() - handleWidth;
+                contentRect.x = ltr ? handleWidth : 0;
+                contentRect.y = 0;
+                contentRect.width = tb.getWidth() - handleWidth;
+                contentRect.height = tb.getHeight();
+
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     c = tb.getComponent(i);
                     d = c.getPreferredSize();
-                    c.setBounds(ltr ? x : x - d.width, 0, d.width, d.height);
+                    c.setBounds(ltr ? x : x - d.width, 0, d.width,
+                            contentRect.height);
                     x = ltr ? x + d.width : x - d.width;
                 }
-                contentRect.x = ltr ?
-                        SynthIcon.getIconWidth(handleIcon, context) : 0;
-                contentRect.y = 0;
-                contentRect.width = tb.getWidth() - contentRect.x;
-                contentRect.height = tb.getHeight();
             } else {
-                int y = SynthIcon.getIconHeight(handleIcon, context);
+                int handleHeight = tb.isFloatable() ?
+                    SynthIcon.getIconHeight(handleIcon, context) : 0;
+                int y = handleHeight;
+                contentRect.x = 0;
+                contentRect.y = handleHeight;
+                contentRect.width = tb.getWidth();
+                contentRect.height = tb.getHeight() - handleHeight;
+
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     c = tb.getComponent(i);
                     d = c.getPreferredSize();
-                    c.setBounds(0, y, d.width, d.height);
+                    c.setBounds(0, y, contentRect.width, d.height);
                     y += d.height;
                 }
-                contentRect.x = 0;
-                contentRect.y =
-                    SynthIcon.getIconHeight(handleIcon, context);
-                contentRect.width = tb.getWidth();
-                contentRect.height = tb.getHeight() - contentRect.y;
             }
             context.dispose();
         }

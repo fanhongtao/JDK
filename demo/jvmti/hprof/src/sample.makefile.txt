@@ -1,7 +1,7 @@
 #
-# @(#)sample.makefile.txt	1.2 05/01/04
+# @(#)sample.makefile.txt	1.5 05/11/17
 # 
-# Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -39,10 +39,10 @@
 # Sample GNU Makefile for building 
 #
 #  Example uses:    
-#       gnumake J2SDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparc]
-#       gnumake J2SDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparcv9]
-#       gnumake J2SDK=<java_home> OSNAME=linux   [OPT=true]
-#       gnumake J2SDK=<java_home> OSNAME=win32   [OPT=true]
+#       gnumake JDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparc]
+#       gnumake JDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparcv9]
+#       gnumake JDK=<java_home> OSNAME=linux   [OPT=true]
+#       gnumake JDK=<java_home> OSNAME=win32   [OPT=true]
 #
 ########################################################################
 
@@ -83,7 +83,7 @@ JAVA_SOURCES=Tracker.java
 # Solaris Sun C Compiler Version 5.5
 ifeq ($(OSNAME), solaris)
     # Sun Solaris Compiler options needed
-    COMMON_FLAGS=-mt -xregs=no%appl -KPIC
+    COMMON_FLAGS=-mt -KPIC
     # Options that help find errors
     COMMON_FLAGS+= -Xa -v -xstrconst -xc99=%none
     # To make hprof logging code available
@@ -91,10 +91,10 @@ ifeq ($(OSNAME), solaris)
     # Check LIBARCH for any special compiler options
     LIBARCH=$(shell uname -p)
     ifeq ($(LIBARCH), sparc)
-        COMMON_FLAGS+=-xarch=v8
+        COMMON_FLAGS+=-xarch=v8 -xregs=no%appl
     endif
     ifeq ($(LIBARCH), sparcv9)
-        COMMON_FLAGS+=-xarch=v9
+        COMMON_FLAGS+=-xarch=v9 -xregs=no%appl
     endif
     ifeq ($(OPT), true)
         CFLAGS=-xO2 $(COMMON_FLAGS)  -DNDEBUG
@@ -146,7 +146,7 @@ endif
 ifeq ($(OSNAME), win32)
     CC=cl
     # Compiler options needed to build it
-    COMMON_FLAGS=-Gy
+    COMMON_FLAGS=-Gy -DWIN32
     # Options that help find errors
     COMMON_FLAGS+=-W0 -WX
     # To make hprof logging code available
@@ -156,6 +156,8 @@ ifeq ($(OSNAME), win32)
     else
         CFLAGS= -Od -Zi $(COMMON_FLAGS)  -DDEBUG
     endif
+    # Add java_crw_demo source
+    SOURCES += ../java_crw_demo.c
     # Object files needed to create library
     OBJECTS=$(SOURCES:%.c=%.obj)
     # Library name and options needed to build it
@@ -170,7 +172,7 @@ endif
 # Common -I options
 CFLAGS += -I.
 CFLAGS += -I../java_crw_demo
-CFLAGS += -I$(J2SDK)/include -I$(J2SDK)/include/$(OSNAME)
+CFLAGS += -I$(JDK)/include -I$(JDK)/include/$(OSNAME)
 
 # Default rule (build both native library and jar file)
 all: hprof_md.c $(LIBRARY) $(JARFILE)
@@ -188,8 +190,8 @@ $(LIBRARY): $(OBJECTS)
 $(JARFILE): $(JAVA_SOURCES)
 	rm -f -r classes
 	mkdir -p classes
-	$(J2SDK)/bin/javac -d classes $(JAVA_SOURCES)
-	(cd classes; $(J2SDK)/bin/jar cf ../$@ *)
+	$(JDK)/bin/javac -d classes $(JAVA_SOURCES)
+	(cd classes; $(JDK)/bin/jar cf ../$@ *)
 
 # Cleanup the built bits
 clean:
@@ -198,7 +200,7 @@ clean:
 
 # Simple tester
 test: all
-	LD_LIBRARY_PATH=. $(J2SDK)/bin/java -agentlib:$(LIBNAME) -Xbootclasspath/a:./$(JARFILE) -version
+	LD_LIBRARY_PATH=. $(JDK)/bin/java -agentlib:$(LIBNAME) -Xbootclasspath/a:./$(JARFILE) -version
 
 # Compilation rule only needed on Windows
 ifeq ($(OSNAME), win32)

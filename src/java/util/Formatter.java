@@ -1,7 +1,7 @@
 /*
- * @(#)Formatter.java	1.16 05/01/04
+ * @(#)Formatter.java	1.26 06/06/28
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -66,20 +66,20 @@ import sun.misc.FormattedFloatingDecimal;
  *
  *   // Explicit argument indices may be used to re-order output.
  *   formatter.format("%4$2s %3$2s %2$2s %1$2s", "a", "b", "c", "d")
- *   // -> " d  c  b  a"
+ *   // -&gt; " d  c  b  a"
  *
  *   // Optional locale as the first argument can be used to get
  *   // locale-specific formatting of numbers.  The precision and width can be
  *   // given to round and align the value.
  *   formatter.format(Locale.FRANCE, "e = %+10.4f", Math.E);
- *   // -> "e =    +2,7183"
+ *   // -&gt; "e =    +2,7183"
  *
  *   // The '(' numeric flag may be used to format negative numbers with
  *   // parentheses rather than a minus sign.  Group separators are
  *   // automatically inserted.
  *   formatter.format("Amount gained or lost since last statement: $ %(,.2f",
  *                    balanceDelta);
- *   // -> "Amount gained or lost since last statement: $ (6,217.58)"
+ *   // -&gt; "Amount gained or lost since last statement: $ (6,217.58)"
  * </pre></blockquote>
  *
  * <p> Convenience methods for common formatting requests exist as illustrated
@@ -88,12 +88,12 @@ import sun.misc.FormattedFloatingDecimal;
  * <blockquote><pre>
  *   // Writes a formatted string to System.out.
  *   System.out.format("Local time: %tT", Calendar.getInstance());
- *   // -> "Local time: 13:34:18"
+ *   // -&gt; "Local time: 13:34:18"
  *
  *   // Writes formatted output to System.err.
  *   System.err.printf("Unable to open file '%1$s': %2$s",
  *                     fileName, exception.getMessage());
- *   // -> "Unable to open file 'food': No such file or directory"
+ *   // -&gt; "Unable to open file 'food': No such file or directory"
  * </pre></blockquote>
  *
  * <p> Like C's <tt>sprintf(3)</tt>, Strings may be formatted using the static
@@ -107,10 +107,10 @@ import sun.misc.FormattedFloatingDecimal;
  *
  *   Calendar c = new GregorianCalendar(1995, MAY, 23);
  *   String s = String.format("Duke's Birthday: %1$tm %1$te,%1$tY", c);
- *   // -> s == "Duke's Birthday: May 23, 1995"
+ *   // -&gt; s == "Duke's Birthday: May 23, 1995"
  * </pre></blockquote>
  *
- * <a name="org"><h3> Organization </h3></a>
+ * <h3><a name="org">Organization</a></h3>
  *
  * <p> This specification is divided into two sections.  The first section, <a
  * href="#summary">Summary</a>, covers the basic formatting concepts.  This
@@ -120,13 +120,13 @@ import sun.misc.FormattedFloatingDecimal;
  * details.  It is intended for users who want more precise specification of
  * formatting behavior.
  *
- * <a name="summary"><h3> Summary </h3></a>
+ * <h3><a name="summary">Summary</a></h3>
  *
  * <p> This section is intended to provide a brief overview of formatting
  * concepts.  For precise behavioral details, refer to the <a
  * href="#detail">Details</a> section.
  *
- * <a name="syntax"><h4> Format String Syntax </h4></a>
+ * <h4><a name="syntax">Format String Syntax</a></h4>
  *
  * <p> Every method which produces formatted output requires a <i>format
  * string</i> and an <i>argument list</i>.  The format string is a {@link
@@ -147,7 +147,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * The argument list consists of all arguments passed to the method after the
  * format string.  In the above example, the argument list is of size one and
- * consists of the new {@link java.util.Calendar Calendar} object.
+ * consists of the {@link java.util.Calendar Calendar} object <tt>c</tt>.
  *
  * <ul>
  *
@@ -339,7 +339,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <p> Any characters not explicitly defined as conversions are illegal and are
  * reserved for future extensions.
  *
- * <a name="dt"><h4> Date/Time Conversions </h4></a>
+ * <h4><a name="dt">Date/Time Conversions</a></h4>
  *
  * <p> The following date and time conversion suffix characters are defined for
  * the <tt>'t'</tt> and <tt>'T'</tt> conversions.  The types are similar to but
@@ -609,19 +609,19 @@ import sun.misc.FormattedFloatingDecimal;
  * "<tt>1$</tt>", the second by "<tt>2$</tt>", etc.
  *
  * <p> Another way to reference arguments by position is to use the
- * <tt>'<'</tt> (<tt>'&#92;u003c'</tt>) flag, which causes the argument for the
- * previous format specifier to be re-used.  For example, the following two
+ * <tt>'&lt;'</tt> (<tt>'&#92;u003c'</tt>) flag, which causes the argument for
+ * the previous format specifier to be re-used.  For example, the following two
  * statements would produce identical strings:
  *
  * <blockquote><pre>
  *   Calendar c = ...;
  *   String s1 = String.format("Duke's Birthday: %1$tm %1$te,%1$tY", c);
  *
- *   String s2 = String.format("Duke's Birthday: %1$tm %<$te,%<$tY", c);
+ *   String s2 = String.format("Duke's Birthday: %1$tm %&lt;te,%&lt;tY", c);
  * </pre></blockquote>
  *
  * <hr>
- * <a name="detail"><h3> Details </h3></a>
+ * <h3><a name="detail">Details</a></h3>
  *
  * <p> This section is intended to provide behavioral details for formatting,
  * including conditions and exceptions, supported data types, localization, and
@@ -659,7 +659,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <pre>
  *    out.toUpperCase() </pre>
  *
- * <a name="dgen"><h4> General </h4></a>
+ * <h4><a name="dgen">General</a></h4>
  *
  * <p> The following general conversions may be applied to any argument type:
  *
@@ -718,9 +718,9 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * </table>
  *
- * <p> The following flags apply to general conversions:
+ * <p> The following <a name="dFlags">flags</a> apply to general conversions:
  *
- * <a name="dFlags"><table cellpadding=5 summary="dFlags"></a>
+ * <table cellpadding=5 summary="dFlags">
  *
  * <tr><td valign="top"> <tt>'-'</tt>
  *     <td valign="top"> <tt>'&#92;u002d'</tt>
@@ -737,9 +737,8 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * </table>
  *
- * <a name="genWidth"></a>
- *
- * <p> The width is the minimum number of characters to be written to the
+ * <p> The <a name="genWidth">width</a> is the minimum number of characters to
+ * be written to the
  * output.  If the length of the converted value is less than the width then
  * the output will be padded by <tt>'&nbsp;&nbsp;'</tt> (<tt>&#92;u0020'</tt>)
  * until the total number of characters equals the width.  The padding is on
@@ -753,14 +752,14 @@ import sun.misc.FormattedFloatingDecimal;
  * the precision.  If the precision is not specified then there is no explicit
  * limit on the number of characters.
  *
- * <a name="dchar"><h4> Character </h4></a>
+ * <h4><a name="dchar">Character</a></h4>
  *
- * This conversion may be applied to <tt>char</tt>, {@link Character},
- * <tt>byte</tt>, {@link Byte}, <tt>short</tt>, and {@link Short}. This
- * conversion may also be applied to the types <tt>int</tt> and {@link Integer}
- * when {@link Character#isValidCodePoint} returns <tt>true</tt>.  If it
- * returns <tt>false</tt> then an {@link IllegalFormatCodePointException} will
- * be thrown.
+ * This conversion may be applied to <tt>char</tt> and {@link Character}.  It
+ * may also be applied to the types <tt>byte</tt>, {@link Byte},
+ * <tt>short</tt>, and {@link Short}, <tt>int</tt> and {@link Integer} when
+ * {@link Character#isValidCodePoint} returns <tt>true</tt>.  If it returns
+ * <tt>false</tt> then an {@link IllegalFormatCodePointException} will be
+ * thrown.
  *
  * <table cellpadding=5 summary="charConv">
  *
@@ -789,7 +788,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <p> The precision is not applicable.  If the precision is specified then an
  * {@link IllegalFormatPrecisionException} will be thrown.
  *
- * <a name="dnum"><h4> Numeric </h4></a>
+ * <h4><a name="dnum">Numeric</a></h4>
  *
  * <p> Numeric conversions are divided into the following categories:
  *
@@ -807,7 +806,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * <p> Numeric types will be formatted according to the following algorithm:
  *
- * <p><b><a name="l10n algorithm"> Number Localization Algorithm<a></b>
+ * <p><b><a name="l10n algorithm"> Number Localization Algorithm</a></b>
  *
  * <p> After digits are obtained for the integer part, fractional part, and
  * exponent (as appropriate for the data type), the following transformation
@@ -825,8 +824,8 @@ import sun.misc.FormattedFloatingDecimal;
  * java.text.DecimalFormatSymbols#getDecimalSeparator decimal separator} is
  * substituted.
  *
- * <li> <a name="l10n group"></a> If the <tt>','</tt> (<tt>'&#92;u002c'</tt>)
- * flag is given, then the locale-specific {@linkplain
+ * <li> If the <tt>','</tt> (<tt>'&#92;u002c'</tt>)
+ * <a name="l10n group">flag</a> is given, then the locale-specific {@linkplain
  * java.text.DecimalFormatSymbols#getGroupingSeparator grouping separator} is
  * inserted by scanning the integer part of the string from least significant
  * to most significant digits and inserting a separator at intervals defined by
@@ -940,9 +939,10 @@ import sun.misc.FormattedFloatingDecimal;
  * <p> If the <tt>'-'</tt> flag is not given, then the space padding will occur
  * before the sign.
  *
- * <p> The following flags apply to numeric integral conversions:
+ * <p> The following <a name="intFlags">flags</a> apply to numeric integral
+ * conversions:
  *
- * <table cellpadding=5 summary="intFlags"><a name="intFlags"></a>
+ * <table cellpadding=5 summary="intFlags">
  *
  * <tr><td valign="top"> <tt>'+'</tt>
  *     <td valign="top"> <tt>'&#92;u002b'</tt>
@@ -987,7 +987,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * </table>
  *
- * <a name="intdFlags"></a><p> If no flags are given the default formatting is
+ * <p> If no <a name="intdFlags">flags</a> are given the default formatting is
  * as follows:
  *
  * <ul>
@@ -1003,7 +1003,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * </ul>
  *
- * <a name="intWidth"></a><p> The width is the minimum number of characters to
+ * <p> The <a name="intWidth">width</a> is the minimum number of characters to
  * be written to the output.  This includes any signs, digits, grouping
  * separators, radix indicator, and parentheses.  If the length of the
  * converted value is less than the width then the output will be padded by
@@ -1109,7 +1109,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <p> The precision is not applicable.  If precision is specified then an
  * {@link IllegalFormatPrecisionException} will be thrown.
  *
- * <p><a name="dndec"><b> Float and Double</b><a>
+ * <p><a name="dndec"><b> Float and Double</b></a>
  *
  * <p> The following conversions may be applied to <tt>float</tt>, {@link
  * Float}, <tt>double</tt> and {@link Double}.
@@ -1182,7 +1182,7 @@ import sun.misc.FormattedFloatingDecimal;
  *     than 10<sup>precision</sup> then it is represented in <i><a
  *     href="#decimal">decimal format</a></i>.
  *
- *     <p> If <i>m</i> is less than 10<sup>-4<sup> or greater than or equal to
+ *     <p> If <i>m</i> is less than 10<sup>-4</sup> or greater than or equal to
  *     10<sup>precision</sup>, then it is represented in <i><a
  *     href="#scientific">computerized scientific notation</a></i>.
  *
@@ -1292,7 +1292,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <p> If the <tt>'#'</tt> flag is given, then the decimal separator will
  * always be present.
  *
- * <a name="floatdFlags"></a><p> If no flags are given the default formatting
+ * <p> If no <a name="floatdFlags">flags</a> are given the default formatting
  * is as follows:
  *
  * <ul>
@@ -1310,7 +1310,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * </ul>
  *
- * <a name="floatDWidth"></a><p> The width is the minimum number of characters
+ * <p> The <a name="floatDWidth">width</a> is the minimum number of characters
  * to be written to the output.  This includes any signs, digits, grouping
  * separators, decimal separators, exponential symbol, radix indicator,
  * parentheses, and strings representing infinity and NaN as applicable.  If
@@ -1320,7 +1320,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <tt>'-'</tt> flag is given then the padding will be on the right.  If width
  * is not specified then there is no minimum.
  *
- * <a name="floatDPrec"></a><p> If the conversion is <tt>'e'</tt>,
+ * <p> If the <a name="floatDPrec">conversion</a> is <tt>'e'</tt>,
  * <tt>'E'</tt> or <tt>'f'</tt>, then the precision is the number of digits
  * after the decimal separator.  If the precision is not specified, then it is
  * assumed to be <tt>6</tt>.
@@ -1336,7 +1336,7 @@ import sun.misc.FormattedFloatingDecimal;
  * precision is not provided, then all of the digits as returned by {@link
  * Double#toHexString(double)} will be output.
  *
- * <p><a name="dndec"><b> BigDecimal </b><a>
+ * <p><a name="dndec"><b> BigDecimal </b></a>
  *
  * <p> The following conversions may be applied {@link java.math.BigDecimal
  * BigDecimal}.
@@ -1462,7 +1462,7 @@ import sun.misc.FormattedFloatingDecimal;
  * href="#floatDPrec">precision</a> is the same as defined for Float and
  * Double.
  *
- * <a name="ddt"><h4> Date/Time </h4></a>
+ * <h4><a name="ddt">Date/Time</a></h4>
  *
  * <p> This conversion may be applied to <tt>long</tt>, {@link Long}, {@link
  * Calendar}, and {@link Date}.
@@ -1679,7 +1679,7 @@ import sun.misc.FormattedFloatingDecimal;
  * conversions</a> applies.  If the <tt>'#'</tt> flag is given, then a {@link
  * FormatFlagsConversionMismatchException} will be thrown.
  *
- * <a name="dtWidth"></a><p> The width is the minimum number of characters to
+ * <p> The <a name="dtWidth">width</a> is the minimum number of characters to
  * be written to the output.  If the length of the converted value is less than
  * the <tt>width</tt> then the output will be padded by spaces
  * (<tt>'&#92;u0020'</tt>) until the total number of characters equals width.
@@ -1690,7 +1690,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <p> The precision is not applicable.  If the precision is specified then an
  * {@link IllegalFormatPrecisionException} will be thrown.
  *
- * <a name="dper"><h4> Percent </h4></a>
+ * <h4><a name="dper">Percent</a></h4>
  *
  * <p> The conversion does not correspond to any argument.
  *
@@ -1699,7 +1699,7 @@ import sun.misc.FormattedFloatingDecimal;
  * <tr><td valign="top"><tt>'%'</tt>
  *     <td> The result is a literal <tt>'%'</tt> (<tt>'&#92;u0025'</tt>)
  *
- * <a name="dtWidth"></a><p> The width is the minimum number of characters to
+ * <p> The <a name="dtWidth">width</a> is the minimum number of characters to
  * be written to the output including the <tt>'%'</tt>.  If the length of the
  * converted value is less than the <tt>width</tt> then the output will be
  * padded by spaces (<tt>'&#92;u0020'</tt>) until the total number of
@@ -1715,7 +1715,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * </table>
  *
- * <a name="dls"><h4> Line Separator </h4></a>
+ * <h4><a name="dls">Line Separator</a></h4>
  *
  * <p> The conversion does not correspond to any argument.
  *
@@ -1731,7 +1731,7 @@ import sun.misc.FormattedFloatingDecimal;
  * {@link IllegalFormatFlagsException}, {@link IllegalFormatWidthException},
  * and {@link IllegalFormatPrecisionException}, respectively will be thrown.
  *
- * <a name="dpos"><h4> Argument Index </h4></a>
+ * <h4><a name="dpos">Argument Index</a></h4>
  *
  * <p> Format specifiers can reference arguments in three ways:
  *
@@ -1748,29 +1748,29 @@ import sun.misc.FormattedFloatingDecimal;
  * <blockquote><pre>
  *   formatter.format("%4$s %3$s %2$s %1$s %4$s %3$s %2$s %1$s",
  *                    "a", "b", "c", "d")
- *   // -> "d c b a d c b a"
+ *   // -&gt; "d c b a d c b a"
  * </pre></blockquote>
  *
  * <li> <i>Relative indexing</i> is used when the format specifier contains a
- * <tt>'<'</tt> (<tt>'&#92;u003c'</tt>) flag which causes the argument for the
- * previous format specifier to be re-used.  If there is no previous argument,
- * then a {@link MissingFormatArgumentException} is thrown.
+ * <tt>'&lt;'</tt> (<tt>'&#92;u003c'</tt>) flag which causes the argument for
+ * the previous format specifier to be re-used.  If there is no previous
+ * argument, then a {@link MissingFormatArgumentException} is thrown.
  *
  * <blockquote><pre>
  *    formatter.format("%s %s %&lt;s %&lt;s", "a", "b", "c", "d")
- *    // -> "a b b b"
+ *    // -&gt; "a b b b"
  *    // "c" and "d" are ignored because they are not referenced
  * </pre></blockquote>
  *
  * <li> <i>Ordinary indexing</i> is used when the format specifier contains
- * neither an argument index nor a <tt>'<'</tt> flag.  Each format specifier
+ * neither an argument index nor a <tt>'&lt;'</tt> flag.  Each format specifier
  * which uses ordinary indexing is assigned a sequential implicit index into
  * argument list which is independent of the indices used by explicit or
  * relative indexing.
  *
  * <blockquote><pre>
  *   formatter.format("%s %s %s %s", "a", "b", "c", "d")
- *   // -> "a b c d"
+ *   // -&gt; "a b c d"
  * </pre></blockquote>
  *
  * </ul>
@@ -1780,7 +1780,7 @@ import sun.misc.FormattedFloatingDecimal;
  *
  * <blockquote><pre>
  *   formatter.format("%2$s %s %&lt;s %s", "a", "b", "c", "d")
- *   // -> "b a a b"
+ *   // -&gt; "b a a b"
  *   // "c" and "d" are ignored because they are not referenced
  * </pre></blockquote>
  *
@@ -1797,8 +1797,8 @@ import sun.misc.FormattedFloatingDecimal;
  * method or constructor in this class will cause a {@link
  * NullPointerException} to be thrown.
  *
- * @author  Iris Garcia
- * @version 	1.16, 01/04/05
+ * @author  Iris Clark
+ * @version 	1.26, 06/28/06
  * @since 1.5
  */
 public final class Formatter implements Closeable, Flushable {
@@ -1846,6 +1846,8 @@ public final class Formatter implements Closeable, Flushable {
      *         <tt>null</tt> then a {@link StringBuilder} will be created.
      */
     public Formatter(Appendable a) {
+	if (a == null)
+	    a = new StringBuilder();
 	init(a, Locale.getDefault());
     }
 
@@ -1888,7 +1890,7 @@ public final class Formatter implements Closeable, Flushable {
      * Constructs a new formatter with the specified file name.
      *
      * <p> The charset used is the {@linkplain
-     * java.nio.charset.Charset#defaultCharset default charset} for this
+     * java.nio.charset.Charset#defaultCharset() default charset} for this
      * instance of the Java virtual machine.
      *
      * <p> The locale used is the {@linkplain Locale#getDefault() default
@@ -1996,7 +1998,7 @@ public final class Formatter implements Closeable, Flushable {
      * Constructs a new formatter with the specified file.
      *
      * <p> The charset used is the {@linkplain
-     * java.nio.charset.Charset#defaultCharset default charset} for this
+     * java.nio.charset.Charset#defaultCharset() default charset} for this
      * instance of the Java virtual machine.
      *
      * <p> The locale used is the {@linkplain Locale#getDefault() default
@@ -2123,7 +2125,7 @@ public final class Formatter implements Closeable, Flushable {
      * Constructs a new formatter with the specified output stream.
      *
      * <p> The charset used is the {@linkplain
-     * java.nio.charset.Charset#defaultCharset default charset} for this
+     * java.nio.charset.Charset#defaultCharset() default charset} for this
      * instance of the Java virtual machine.
      *
      * <p> The locale used is the {@linkplain Locale#getDefault() default
@@ -2190,7 +2192,7 @@ public final class Formatter implements Closeable, Flushable {
 
     private void setZero() {
 	if ((l != null) && !l.equals(Locale.US)) {
-	    DecimalFormatSymbols dfs = new DecimalFormatSymbols(l);
+	    DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
 	    zero = dfs.getZeroDigit();
 	}
     }
@@ -2236,7 +2238,7 @@ public final class Formatter implements Closeable, Flushable {
      *   Formatter f = new Formatter();
      *   f.format("Last reboot at %tc", lastRebootDate);
      *   String s = f.toString();
-     *   // -> s == "Last reboot at Sat Jan 01 00:00:00 PST 2000"
+     *   // -&gt; s == "Last reboot at Sat Jan 01 00:00:00 PST 2000"
      * </pre></blockquote>
      *
      * <p> An invocation of this method behaves in exactly the same way as the
@@ -2634,7 +2636,7 @@ public final class Formatter implements Closeable, Flushable {
 		checkDateTime();
 	    else if (Conversion.isGeneral(c))
 		checkGeneral();
-	    else if (c == Conversion.CHARACTER)
+	    else if (Conversion.isCharacter(c))
 		checkCharacter();
 	    else if (Conversion.isInteger(c))
 		checkInteger();
@@ -2664,6 +2666,7 @@ public final class Formatter implements Closeable, Flushable {
 		printFloat(arg, l);
 		break;
 	    case Conversion.CHARACTER:
+	    case Conversion.CHARACTER_UPPER:
 		printCharacter(arg);
 		break;
 	    case Conversion.BOOLEAN:
@@ -2865,7 +2868,8 @@ public final class Formatter implements Closeable, Flushable {
 		throw new IllegalFormatPrecisionException(precision);
 	    if (!DateTime.isValid(c))
 		throw new UnknownFormatConversionException("t" + c);
-	    checkBadFlags(Flags.ALTERNATE);
+	    checkBadFlags(Flags.ALTERNATE, Flags.PLUS, Flags.LEADING_SPACE,
+			  Flags.ZERO_PAD, Flags.GROUP, Flags.PARENTHESES);
 	    // '-' requires a width
 	    if (width == -1 && f.contains(Flags.LEFT_JUSTIFY))
 		throw new MissingFormatWidthException(toString());
@@ -2874,7 +2878,8 @@ public final class Formatter implements Closeable, Flushable {
 	private void checkCharacter() {
 	    if (precision != -1)
 		throw new IllegalFormatPrecisionException(precision);
-	    checkBadFlags(Flags.ALTERNATE);
+	    checkBadFlags(Flags.ALTERNATE, Flags.PLUS, Flags.LEADING_SPACE,
+			  Flags.ZERO_PAD, Flags.GROUP, Flags.PARENTHESES);
 	    // '-' requires a width
 	    if (width == -1 && f.contains(Flags.LEFT_JUSTIFY))
 		throw new MissingFormatWidthException(toString());
@@ -3529,15 +3534,9 @@ public final class Formatter implements Closeable, Flushable {
 		// Create a new BigDecimal with the desired precision.
 		int prec = (precision == -1 ? 6 : precision);
 		int scale = value.scale();
-		int origPrec = value.precision();
-		int nzeros = 0;
-		int compPrec;
-		if (scale < prec) {
-		    compPrec = origPrec;
-		    nzeros = prec - scale;
-		} else {
-		    compPrec = origPrec - (scale - prec);
-		}
+  		int compPrec = value.precision();
+ 		if (scale > prec) 
+ 		    compPrec -= (scale - prec);
 		MathContext mc = new MathContext(compPrec);
 		BigDecimal v
 		    = new BigDecimal(value.unscaledValue(), scale, mc);
@@ -3547,14 +3546,15 @@ public final class Formatter implements Closeable, Flushable {
 					   BigDecimalLayoutForm.DECIMAL_FLOAT);
 
 		char mant[] = bdl.mantissa();
+ 		int nzeros = (bdl.scale() < prec ? prec - bdl.scale() : 0);
 
 		// Add a decimal point if necessary.  The mantissa may not
 		// contain a decimal point if the scale is zero (the internal
 		// representation has no fractional part).  Append a decimal
 		// point if '#' is set or we require zero padding to get to the
 		// requested precision.
-		if (scale == 0 && (f.contains(Flags.ALTERNATE) || nzeros > 0))
-		    mant = addDot(bdl.mantissa());
+  		if (bdl.scale() == 0 && (f.contains(Flags.ALTERNATE) || nzeros > 0))
+  		    mant = addDot(bdl.mantissa());
 
 		// Add trailing zeros if the precision is greater than the
 		// number of available digits after the decimal separator.
@@ -3605,6 +3605,7 @@ public final class Formatter implements Closeable, Flushable {
 	    private StringBuilder mant;
 	    private StringBuilder exp;
 	    private boolean dot = false;
+	    private int scale;
 
  	    public BigDecimalLayout(BigInteger intVal, int scale, BigDecimalLayoutForm form) {
  		layout(intVal, scale, form);
@@ -3612,6 +3613,10 @@ public final class Formatter implements Closeable, Flushable {
 
 	    public boolean hasDot() {
 		return dot;
+	    }
+
+	    public int scale() {
+		return scale;
 	    }
 
 	    // char[] with canonical string representation
@@ -3644,6 +3649,7 @@ public final class Formatter implements Closeable, Flushable {
 
  	    private void layout(BigInteger intVal, int scale, BigDecimalLayoutForm form) {
  		char coeff[] = intVal.toString().toCharArray();
+		this.scale = scale;
 
 		// Construct a buffer, with sufficient capacity for all cases.
 		// If E-notation is needed, length will be: +1 if negative, +1
@@ -3686,11 +3692,19 @@ public final class Formatter implements Closeable, Flushable {
 			for (; pad > 0 ; pad--) mant.append('0');
 			mant.append(coeff);
 		    } else {
-			// xx.xx form
-			mant.append(coeff, 0, -pad);
-			mant.append('.');
-			dot = true;
-			mant.append(coeff, -pad, scale);
+ 			if (-pad < coeff.length) {
+			    // xx.xx form
+ 			    mant.append(coeff, 0, -pad);
+ 			    mant.append('.');
+ 			    dot = true;
+ 			    mant.append(coeff, -pad, scale);
+ 			} else {
+ 			    // xx form
+ 			    mant.append(coeff, 0, coeff.length);
+  			    for (int i = 0; i < -scale; i++) 
+  				mant.append('0');
+			    this.scale = 0;
+ 			}
 		    }
 		} else {
 		    // x.xxx form
@@ -3807,7 +3821,7 @@ public final class Formatter implements Closeable, Flushable {
 		// Calendar.AM = 0, Calendar.PM = 1, LocaleElements defines upper
 		String[] ampm = { "AM", "PM" };
 		if (l != null && l != Locale.US) {
-		    DateFormatSymbols dfs = new DateFormatSymbols(l);
+		    DateFormatSymbols dfs = DateFormatSymbols.getInstance(l);
 		    ampm = dfs.getAmPmStrings();
 		}
 		String s = ampm[t.get(Calendar.AM_PM)];
@@ -3853,7 +3867,7 @@ public final class Formatter implements Closeable, Flushable {
 	    case DateTime.NAME_OF_DAY:          { // 'A'
 		int i = t.get(Calendar.DAY_OF_WEEK);
 		Locale lt = ((l == null) ? Locale.US : l);
-		DateFormatSymbols dfs = new DateFormatSymbols(lt);
+		DateFormatSymbols dfs = DateFormatSymbols.getInstance(lt);
 		if (c == DateTime.NAME_OF_DAY)
 		    sb.append(dfs.getWeekdays()[i]);
 		else
@@ -3865,7 +3879,7 @@ public final class Formatter implements Closeable, Flushable {
 	    case DateTime.NAME_OF_MONTH:        { // 'B'
 		int i = t.get(Calendar.MONTH);
 		Locale lt = ((l == null) ? Locale.US : l);
-		DateFormatSymbols dfs = new DateFormatSymbols(lt);
+		DateFormatSymbols dfs = DateFormatSymbols.getInstance(lt);
 		if (c == DateTime.NAME_OF_MONTH)
 		    sb.append(dfs.getMonths()[i]);
 		else
@@ -3980,7 +3994,7 @@ public final class Formatter implements Closeable, Flushable {
 
 	private char getZero(Locale l) {
 	    if ((l != null) &&  !l.equals(locale())) {
-		DecimalFormatSymbols dfs = new DecimalFormatSymbols(l);
+		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
 		return dfs.getZeroDigit();
 	    }
 	    return zero;
@@ -4022,7 +4036,7 @@ public final class Formatter implements Closeable, Flushable {
 		if (l == null || l.equals(Locale.US)) {
 		    decSep  = '.';
 		} else {
-		    DecimalFormatSymbols dfs = new DecimalFormatSymbols(l);
+		    DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
 		    decSep  = dfs.getDecimalSeparator();
 		}
 	    }
@@ -4032,7 +4046,7 @@ public final class Formatter implements Closeable, Flushable {
 		    grpSep = ',';
 		    grpSize = 3;
 		} else {
-		    DecimalFormatSymbols dfs = new DecimalFormatSymbols(l);
+		    DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(l);
 		    grpSep = dfs.getGroupingSeparator();
 		    DecimalFormat df = (DecimalFormat) NumberFormat.getIntegerInstance(l);
 		    grpSize = df.getGroupingSize();
@@ -4202,7 +4216,7 @@ public final class Formatter implements Closeable, Flushable {
 
 	static boolean isValid(char c) {
 	    return (isGeneral(c) || isInteger(c) || isFloat(c) || isText(c)
-		    || c == 't' || c == 'c');
+		    || c == 't' || isCharacter(c));
 	}
 
 	// Returns true iff the Conversion is applicable to all objects.
@@ -4219,6 +4233,17 @@ public final class Formatter implements Closeable, Flushable {
  		return false;
  	    }
  	}
+
+	// Returns true iff the Conversion is applicable to character.
+	static boolean isCharacter(char c) {
+	    switch (c) {
+	    case CHARACTER:
+	    case CHARACTER_UPPER:
+		return true;
+	    default:
+		return false;
+	    }
+	}
 
 	// Returns true iff the Conversion is an integer type.
  	static boolean isInteger(char c) {

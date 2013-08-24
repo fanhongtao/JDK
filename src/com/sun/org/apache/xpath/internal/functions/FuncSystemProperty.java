@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncSystemProperty.java,v 1.18 2004/02/23 10:29:37 aruny Exp $
+ * $Id: FuncSystemProperty.java,v 1.2.4.2 2005/09/14 20:18:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -34,12 +34,14 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class FuncSystemProperty extends FunctionOneArg
 {
+    static final long serialVersionUID = 3694874980992204867L;
   /**
    * The path/filename of the property file: XSLTInfo.properties
    * Maintenance note: see also
    * com.sun.org.apache.xalan.internal.processor.TransformerFactoryImpl.XSLT_PROPERTIES
    */
-  static String XSLT_PROPERTIES = "com/sun/org/apache/xalan/internal/res/XSLTInfo.properties";
+  static final String XSLT_PROPERTIES = 
+            "com/sun/org/apache/xalan/internal/res/XSLTInfo.properties";
 
   /**
    * Execute the function.  The function must return
@@ -139,7 +141,7 @@ public class FuncSystemProperty extends FunctionOneArg
       try
       {
         // Needs to return the version number of the spec we conform to.
-        return new XNumber(1.0);
+        return new XString("1.0");
       }
       catch (Exception ex)
       {

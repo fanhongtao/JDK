@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Quo.java,v 1.7 2004/02/17 04:35:12 minchau Exp $
+ * $Id: Quo.java,v 1.2.4.2 2005/09/14 21:31:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -23,10 +23,11 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
 
 /**
  * The 'quo' operation expression executer. (no longer supported by XPath).
- * @deprecated.
+ * @deprecated
  */
 public class Quo extends Operation
 {
+    static final long serialVersionUID = 693765299196169905L;
 
   // Actually, this is no longer supported by xpath...
 

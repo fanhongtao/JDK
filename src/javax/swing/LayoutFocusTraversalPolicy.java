@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutFocusTraversalPolicy.java	1.10 03/12/19
+ * @(#)LayoutFocusTraversalPolicy.java	1.12 06/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -23,7 +23,7 @@ import java.io.*;
  * <code>ComponentOrientation</code> for more information. All columns in a
  * row are fully traversed before proceeding to the next row.
  *
- * @version 1.10, 12/19/03
+ * @version 1.12, 08/04/06
  * @author David Mendenhall
  *
  * @see java.awt.ComponentOrientation
@@ -62,7 +62,7 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
      * default Component to focus. This behavior can be disabled using the
      * <code>setImplicitDownCycleTraversal</code> method.
      * <p>
-     * If aContainer is <a href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
+     * If aContainer is <a href="../../java/awt/doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
      * traversal policy provider</a>, the focus is always transferred down-cycle.
      *
      * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider
@@ -98,7 +98,7 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
      * default Component to focus. This behavior can be disabled using the
      * <code>setImplicitDownCycleTraversal</code> method.
      * <p>
-     * If aContainer is <a href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
+     * If aContainer is <a href="../../java/awt/doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
      * traversal policy provider</a>, the focus is always transferred down-cycle.
      *
      * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider

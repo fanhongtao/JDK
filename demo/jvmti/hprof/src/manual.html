@@ -1,26 +1,24 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-
-
-<!-- @(#)manual.html	1.10 04/06/16 -->
-
-
 <html>
-
 <head>
+<!-- @(#)manual.html	1.13 05/09/15 -->
   <meta content="deepa viswanathan" name="Author">
   <meta content="Mozilla/4.04 [en] (WinNT; U) [Netscape]"
  name="GENERATOR">
   <title>HPROF Agent</title>
   <meta name="author" content="Kelly O'Hair">
 </head>
-<body alink="#ff0000" vlink="#551a8b" link="#0000ee" bgcolor="#ffffff"
- text="#000000">
+<body alink="#ff0000" bgcolor="#ffffff" link="#0000ee" text="#000000"
+ vlink="#551a8b">
 <h1 style="text-align: center;"><a name="mozTocId137594"
- class="mozTocH1"></a><span style="font-weight: bold;"></span>HPROF Agent</h1>
+ class="mozTocH1"></a><span style="font-weight: bold;"></span>HPROF
+Agent<br>
+</h1>
 <h2><a name="mozTocId558923" class="mozTocH2"></a>Contents</h2>
 <span style="text-decoration: underline;"></span>
 <ol id="mozToc">
-<!--mozToc h1 1 h2 2 h3 3 h4 4 h5 5 h6 6--><li><a href="#mozTocId137594">HPROF Agent</a>
+<!--mozToc h1 1 h2 2 h3 3 h4 4 h5 5 h6 6--><li><a href="#mozTocId137594">HPROF
+Agent</a>
     <ol>
       <li><a href="#mozTocId558923">Contents</a></li>
       <li><a href="#mozTocId550204">Overview</a></li>
@@ -38,6 +36,9 @@ Profiles (cpu=samples) </a></li>
           <li><a href="#mozTocId348369">Socket Connection and
 Communication</a></li>
         </ol>
+        <ol>
+          <li><a href="#mozTocId348360">Handling of Arrays</a></li>
+        </ol>
       </li>
       <li><a href="#mozTocId589424">Source Code </a></li>
     </ol>
@@ -45,38 +46,24 @@ Communication</a></li>
 </ol>
 <span style="text-decoration: underline;"></span>
 <h2><a name="mozTocId550204" class="mozTocH2"></a>Overview</h2>
-<p>This document describes the JVMTI Agent HPROF delivered in
-the Java 2 SDK,
-Standard Edition (J2SE) v1.5. It is intended as demonstration code for
-the JVMTI interface added in v1.5, as a basic command-line tool for
-heap and cpu profiling of Java applications, and as a functional
+<p>This document describes the JVM TI Agent HPROF delivered in
+the Java Development Kit (JDK). It is intended as demonstration code
+for JVM TI, and as a functional
 replacement for the older HPROF JVMPI Agent delivered in past releases.<br>
 </p>
-<p>For more information on JVMTI, refer to <a
- href="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/index.html">http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/index.html.</a><br>
-</p>
-<b>Note:</b> Previous releases of the J2SE contained an HPROF
-agent built on the experimental JVMPI interface. This JVMPI interface
-was an experimental feature in the Java 2 SDK. The newer JVMTI
-interface in v1.5 replaces both the JVMDI and this JVMPI
-interface.&nbsp; In the v.1.5 release, the JVMPI interface is still
-available, and the older HPROF JVMPI Agent from 1.4.2 can be used
-with 1.5.
-
-<p><span style="font-weight: bold;">Note</span>: Some of the JVMPI
-HPROF features did not map well to the new JVMTI implementation, those
-areas and any area where this HPROF implementation differs from the
-original are marked in <span
- style="font-style: italic; color: rgb(255, 0, 0);">RED ITALICS</span>
+Previous 1.4 and earlier releases of the JDK contained an HPROF
+agent built on the experimental JVMPI.&nbsp;
+The newer JVM TI replaces both JVMDI and JVMPI.&nbsp;&nbsp;
+<p><span style="font-weight: bold;">Note</span>: Differences between
+this HPROF implementation and the older JVMPI based HPROF are marked in
+<span style="font-style: italic; color: rgb(255, 0, 0);">RED ITALICS</span>
 throughout this document.<br>
 </p>
-<p>Comments regarding JVMTI or this implementation of HPROF should be
-sent through <a href="http://java.sun.com/mail">http://java.sun.com/mail/</a>
-</p>
+<br>
 <h2><a name="mozTocId634758" class="mozTocH3"></a>Start-up</h2>
-<p>HPROF is a simple profiler agent shipped with the Java 2 SDK. It is
+<p>HPROF is a simple profiler agent shipped with the JDK. It is
 a dynamically-linked
-library that interacts with the JVMTI and
+library that interacts with the JVM TI and
 writes out profiling
 information either to a file or to a socket in ascii or binary format.
 This information can
@@ -90,16 +77,16 @@ of all the monitors and threads in the Java virtual machine.
 </p>
 <pre>java -<span style="font-weight: bold;">agentlib:</span><b>hprof</b> ToBeProfiledClass</pre>
 Depending on the type of profiling requested, HPROF instructs the
-virtual machine to send it the relevant JVMTI events and processes
+virtual machine to send it the relevant JVM TI events and processes
 the event data into profiling information. For example, the following
 command obtains the heap allocation profile:
 <pre>java -agentlib:hprof=heap=sites ToBeProfiledClass</pre>
 Following is the complete list of options that can passed to hprof :
 <blockquote>
-  <pre>java -agentlib:hprof=help<br><br>     HPROF: Heap and CPU Profiling Agent (JVMTI Demonstration Code)<br><br>hprof usage: java -agentlib:hprof=[help]|[&lt;option&gt;=&lt;value&gt;, ...]<br><br>Option Name and Value  Description                    Default<br>---------------------  -----------                    -------<br>heap=dump|sites|all    heap profiling                 all<br>cpu=samples|times|old  CPU usage                      off<br>monitor=y|n            monitor contention             n<br>format=a|b             text(txt) or binary output     a<br>file=&lt;file&gt;            write data to file             java.hprof[.txt]<br>net=&lt;host&gt;:&lt;port&gt;      send data over a socket        off<br>depth=&lt;size&gt;           stack trace depth              4<br>interval=&lt;ms&gt;          sample interval in ms          10<br>cutoff=&lt;value&gt;         output cutoff point            0.0001<br>lineno=y|n             line number in traces?         y<br>thread=y|n             thread in traces?              n<br>doe=y|n                dump on exit?                  y<br>msa=y|n                Solaris micro state accounting n<br>force=y|n              force output to &lt;file&gt;         y<br>verbose=y|n            print messages about dumps     y<br><br>Obsolete Options<br>----------------<br>gc_okay=y|n<br><br>Examples<br>--------<br>  - Get sample cpu information every 20 millisec, with a stack depth of 3:<br>      java -agentlib:hprof=cpu=samples,interval=20,depth=3 classname<br>  - Get heap usage information based on the allocation sites:<br>      java -agentlib:hprof=heap=sites classname<br><br>Notes<br>-----<br>  - The option format=b cannot be used with monitor=y.<br>  - The option format=b cannot be used with cpu=old|times.<br>  - Use of the -Xrunhprof interface can still be used, e.g.<br>       java -Xrunhprof:[help]|[&lt;option&gt;=&lt;value&gt;, ...]<br>    will behave exactly the same as:<br>       java -agentlib:hprof=[help]|[&lt;option&gt;=&lt;value&gt;, ...]<br><br>Warnings<br>--------<br>  - This is demonstration code for the JVMTI interface and use of BCI,<br>    it is not an official product or formal part of the J2SE.<br>  - The -Xrunhprof interface will be removed in a future release.<br>  - The option format=b is considered experimental, this format may change<br>    in a future release.<value><br></value></pre>
+  <pre>java -agentlib:hprof=help<br><br>     HPROF: Heap and CPU Profiling Agent (JVMTI Demonstration Code)<br><br>hprof usage: java -agentlib:hprof=[help]|[&lt;option&gt;=&lt;value&gt;, ...]<br><br>Option Name and Value  Description                    Default<br>---------------------  -----------                    -------<br>heap=dump|sites|all    heap profiling                 all<br>cpu=samples|times|old  CPU usage                      off<br>monitor=y|n            monitor contention             n<br>format=a|b             text(txt) or binary output     a<br>file=&lt;file&gt;            write data to file             java.hprof[{.txt}]<br>net=&lt;host&gt;:&lt;port&gt;      send data over a socket        off<br>depth=&lt;size&gt;           stack trace depth              4<br>interval=&lt;ms&gt;          sample interval in ms          10<br>cutoff=&lt;value&gt;         output cutoff point            0.0001<br>lineno=y|n             line number in traces?         y<br>thread=y|n             thread in traces?              n<br>doe=y|n                dump on exit?                  y<br>msa=y|n                Solaris micro state accounting n<br>force=y|n              force output to &lt;file&gt;         y<br>verbose=y|n            print messages about dumps     y<br><br>Obsolete Options<br>----------------<br>gc_okay=y|n<br><br>Examples<br>--------<br>  - Get sample cpu information every 20 millisec, with a stack depth of 3:<br>      java -agentlib:hprof=cpu=samples,interval=20,depth=3 classname<br>  - Get heap usage information based on the allocation sites:<br>      java -agentlib:hprof=heap=sites classname<br><br>Notes<br>-----<br>  - The option format=b cannot be used with monitor=y.<br>  - The option format=b cannot be used with cpu=old|times.<br>  - Use of the -Xrunhprof interface can still be used, e.g.<br>       java -Xrunhprof:[help]|[&lt;option&gt;=&lt;value&gt;, ...]<br>    will behave exactly the same as:<br>       java -agentlib:hprof=[help]|[&lt;option&gt;=&lt;value&gt;, ...]<br><br>Warnings<br>--------<br>  - This is demonstration code for the JVMTI interface and use of BCI,<br>    it is not an official product or formal part of the JDK.<br>  - The -Xrunhprof interface will be removed in a future release.<br>  - The option format=b is considered experimental, this format may change<br>    in a future release.<br></pre>
 </blockquote>
-<p>
-By default, heap profiling information (sites and dump) is written out
+<p>By default, heap profiling information (sites and dump) is written
+out
 to java.hprof.txt (ascii).&nbsp;
 The monitor=y|n option has proven to be problematic and may be replaced
 with something more useful.<br>
@@ -202,8 +189,8 @@ match the format of past HPROF implementations.<br>
 <br>
 The binary output begins with the information:<br>
 <br>
-<table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%; height: 124px;">
+<table style="text-align: left; width: 100%; height: 124px;" border="1"
+ cellpadding="2" cellspacing="2">
   <tbody>
     <tr>
       <td style="vertical-align: top;">[u1]*<br>
@@ -211,19 +198,16 @@ The binary output begins with the information:<br>
       <td style="vertical-align: top;">An initial NULL terminated
 series of bytes representing the format name and version, in this
 implementation and historically, the string "JAVA PROFILE 1.0.1" (18
-u1 bytes) followed by a NULL byte.<br>
-      </td>
+u1 bytes) followed by a NULL byte. If the TAG "HEAP DUMP SEGMENT" is
+used this string will be "JAVA PROFILE 1.0.2". </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">u4<br>
       </td>
       <td style="vertical-align: top;">size of identifiers. Identifiers
 are used to represent UTF8 strings, objects, stack traces, etc. They
-often have the same size as host pointers, which could be 4 or 8, (<span
- style="font-style: italic;"></span><span
- style="font-style: italic; color: rgb(255, 0, 0);">in this HPROF
-implementation this is always 4 regardless of the
-size of a pointer</span>.)</td>
+can have the same size as host pointers or sizeof(void*), but are not
+required to be.<span style="color: rgb(0, 0, 0);"></span></td>
     </tr>
     <tr>
       <td style="vertical-align: top;">u4<br>
@@ -243,8 +227,8 @@ milliseconds since 0:00 GMT, 1/1/70</td>
 Followed by a se<span style="font-family: monospace;"></span>quence of
 records that look like:<br>
 <br>
-<table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+<table style="text-align: left; width: 100%;" border="1" cellpadding="2"
+ cellspacing="2">
   <tbody>
     <tr>
       <td style="vertical-align: top;">u1<br>
@@ -282,8 +266,8 @@ the above u4 field<br>
 <br>
 The following TAGs are supported:<br>
 <br>
-<table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+<table style="text-align: left; width: 100%;" border="1" cellpadding="2"
+ cellspacing="2">
   <tbody>
     <tr>
       <td style="vertical-align: top;">STRING IN UTF8<br>
@@ -292,7 +276,7 @@ The following TAGs are supported:<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">ID<br>
@@ -319,7 +303,7 @@ The following TAGs are supported:<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -358,7 +342,7 @@ The following TAGs are supported:<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -378,7 +362,7 @@ The following TAGs are supported:<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">ID<br>
@@ -415,7 +399,7 @@ The following TAGs are supported:<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">&gt; 0<br>
@@ -467,7 +451,7 @@ available<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -505,14 +489,14 @@ available<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u2<br>
             </td>
             <td style="vertical-align: top;">Bit mask flags:<br>
             <table style="text-align: left; width: 441px; height: 74px;"
- border="1" cellspacing="2" cellpadding="2">
+ border="1" cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">0x1<br>
@@ -578,7 +562,7 @@ point)<br>
             <td style="vertical-align: top;">number of sites that
 follow:<br>
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">u1<br>
@@ -645,7 +629,7 @@ allocated<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -683,7 +667,7 @@ allocated<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -733,7 +717,7 @@ allocated<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -748,13 +732,17 @@ allocated<br>
     </tr>
     <tr>
       <td style="vertical-align: top;">HEAP DUMP<br>
+      <span style="font-style: italic;">or</span><br>
+HEAP DUMP SEGMENT<br>
       </td>
       <td style="vertical-align: top;">0x0C<br>
+      <span style="font-style: italic;">or</span><br>
+0x1C<br>
       </td>
       <td style="vertical-align: top;">Contains any number of sub-tags,
 each begins a u1 field (no order implied here):<br>
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">ROOT UNKNOWN<br>
@@ -763,7 +751,7 @@ each begins a u1 field (no order implied here):<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -783,7 +771,7 @@ each begins a u1 field (no order implied here):<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -809,7 +797,7 @@ each begins a u1 field (no order implied here):<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -842,7 +830,7 @@ stack trace (-1 for empty)<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -874,7 +862,7 @@ stack trace (-1 for empty)</td>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -900,7 +888,7 @@ stack trace (-1 for empty)</td>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -920,7 +908,7 @@ stack trace (-1 for empty)</td>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -946,7 +934,7 @@ stack trace (-1 for empty)</td>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -966,7 +954,7 @@ stack trace (-1 for empty)</td>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -999,7 +987,7 @@ number<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -1065,7 +1053,7 @@ bytes)<br>
                   <td style="vertical-align: top;">size of constant
 pool and number of records that follow:<br>
                   <table style="text-align: left; width: 100%;"
- border="1" cellspacing="2" cellpadding="2">
+ border="1" cellpadding="2" cellspacing="2">
                     <tbody>
                       <tr>
                         <td style="vertical-align: top;">u2<br>
@@ -1085,9 +1073,8 @@ index<br>
                         <td style="vertical-align: top;">value<br>
                         </td>
                         <td style="vertical-align: top;">value of entry
-(u1, u2, u4, or u8 based on type of entry)<br>
-(<span style="font-style: italic; color: rgb(255, 0, 0);">Does not
-include primitive values</span>)<br>
+(u1, u2, u4, or u8 based on type of entry)<span
+ style="font-style: italic; color: rgb(255, 0, 0);"></span><br>
                         </td>
                       </tr>
                     </tbody>
@@ -1101,7 +1088,7 @@ include primitive values</span>)<br>
                   <td style="vertical-align: top;">Number of static
 fields:<br>
                   <table style="text-align: left; width: 100%;"
- border="1" cellspacing="2" cellpadding="2">
+ border="1" cellpadding="2" cellspacing="2">
                     <tbody>
                       <tr>
                         <td style="vertical-align: top;">ID<br>
@@ -1121,9 +1108,8 @@ name string ID<br>
                         <td style="vertical-align: top;">value<br>
                         </td>
                         <td style="vertical-align: top;">value of entry
-(u1, u2, u4, or u8 based on type of field) <br>
-(<span style="font-style: italic; color: rgb(255, 0, 0);">Does not
-include primitive values</span>)<br>
+(u1, u2, u4, or u8 based on type of field) <span
+ style="font-style: italic; color: rgb(255, 0, 0);"></span><br>
                         </td>
                       </tr>
                     </tbody>
@@ -1137,7 +1123,7 @@ include primitive values</span>)<br>
                   <td style="vertical-align: top;">Number of instance
 fields (not including super class's)<br>
                   <table style="text-align: left; width: 100%;"
- border="1" cellspacing="2" cellpadding="2">
+ border="1" cellpadding="2" cellspacing="2">
                     <tbody>
                       <tr>
                         <td style="vertical-align: top;">ID<br>
@@ -1170,7 +1156,7 @@ string ID<br>
             </td>
             <td style="vertical-align: top;"><br>
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -1202,9 +1188,8 @@ follow<br>
                   <td style="vertical-align: top;">[value]*<br>
                   </td>
                   <td style="vertical-align: top;">instance field
-values (this class, followed by super class, etc)<br>
-(<span style="font-style: italic; color: rgb(255, 0, 0);">Does not
-include primitive values</span>)<br>
+values (this class, followed by super class, etc)<span
+ style="font-style: italic; color: rgb(255, 0, 0);"></span><br>
                   </td>
                 </tr>
               </tbody>
@@ -1219,7 +1204,7 @@ include primitive values</span>)<br>
             </td>
             <td style="vertical-align: top;"><br>
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -1243,7 +1228,7 @@ number<br>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
                   </td>
-                  <td style="vertical-align: top;">element class object
+                  <td style="vertical-align: top;">array class object
 ID<br>
                   </td>
                 </tr>
@@ -1265,7 +1250,7 @@ ID<br>
             </td>
             <td style="vertical-align: top;">
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">ID<br>
@@ -1296,10 +1281,8 @@ number<br>
                 <tr>
                   <td style="vertical-align: top;">[u1]*<br>
                   </td>
-                  <td style="vertical-align: top;">elements (<span
- style="font-style: italic; color: rgb(255, 0, 0);">Since we don't
-include primitive values these values will be 0 or the element count
-will always be 0</span>) </td>
+                  <td style="vertical-align: top;">elements (packed
+array) </td>
                 </tr>
               </tbody>
             </table>
@@ -1312,13 +1295,22 @@ will always be 0</span>) </td>
       </td>
     </tr>
     <tr>
+      <td style="vertical-align: top;">HEAP DUMP END<br>
+      </td>
+      <td style="vertical-align: top;">0x2C<br>
+      </td>
+      <td style="vertical-align: top;">Terminates a series of HEAP DUMP
+SEGMENTS.&nbsp; Concatenation of HEAP DUMP SEGMENTS equals a HEAP DUMP.<br>
+      </td>
+    </tr>
+    <tr>
       <td style="vertical-align: top;">CPU SAMPLES<br>
       </td>
       <td style="vertical-align: top;">0x0D<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
@@ -1332,7 +1324,7 @@ will always be 0</span>) </td>
             <td style="vertical-align: top;">number of traces that
 follow:<br>
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">u4<br>
@@ -1364,14 +1356,14 @@ number<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">u4<br>
             </td>
             <td style="vertical-align: top;">Bit mask flags:<br>
             <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">0x1<br>
@@ -1405,8 +1397,8 @@ number<br>
 </table>
 <span style="font-weight: bold;"><br>
 </span><a name="Basic_Type"></a>Basic Type
-<table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 296px; height: 221px;">
+<table style="text-align: left; width: 296px; height: 221px;" border="1"
+ cellpadding="2" cellspacing="2">
   <tbody>
     <tr>
       <td style="vertical-align: top;">2<br>
@@ -1464,6 +1456,16 @@ number<br>
     </tr>
   </tbody>
 </table>
+<h3><a name="mozTocId348360" class="mozTocH3"></a>Handling of Arrays</h3>
+<br>
+There will be a "LOAD CLASS" tag for type type of each array
+in the dump. In the LOAD CLASS record, the class name string ID
+will refer to a string with a human-readable name of the array
+type that is formatted as the type name would be in Java source
+code. Thus, the LOAD CLASS record for the type char[] will
+be "char[]", for short[][][] will be "short[][][]" and for
+MyType[] will be "MyType[]".
+<br>
 <h3><a name="mozTocId348369" class="mozTocH3"></a>Socket Connection and
 Communication</h3>
 <br>
@@ -1476,8 +1478,8 @@ match the format of past HPROF implementations.<br>
 Commands can be sent to HPROF via the socket connection, the accepted
 COMMAND TAGS are:<br>
 <br>
-<table style="text-align: left; width: 100%;" border="1" cellspacing="2"
- cellpadding="2">
+<table style="text-align: left; width: 100%;" border="1" cellpadding="2"
+ cellspacing="2">
   <tbody>
     <tr>
       <td style="vertical-align: top;">FORCE GC (<span
@@ -1540,8 +1542,8 @@ connection)<br>
 <br>
 The commands take the form:<br>
 <br>
-<table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+<table style="text-align: left; width: 100%;" border="1" cellpadding="2"
+ cellspacing="2">
   <tbody>
     <tr>
       <td style="vertical-align: top;">u1<br>
@@ -1566,14 +1568,14 @@ The commands take the form:<br>
       </td>
       <td style="vertical-align: top;">
       <table style="text-align: left; width: 100%;" border="1"
- cellspacing="2" cellpadding="2">
+ cellpadding="2" cellspacing="2">
         <tbody>
           <tr>
             <td style="vertical-align: top;">ALLOC SITES<br>
             </td>
             <td style="vertical-align: top;">
-            <table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+            <table style="text-align: left; width: 100%;" border="1"
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">u2<br>
@@ -1597,8 +1599,8 @@ The commands take the form:<br>
             <td style="vertical-align: top;">CPU SAMPLES<br>
             </td>
             <td style="vertical-align: top;">
-            <table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+            <table style="text-align: left; width: 100%;" border="1"
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">u2<br>
@@ -1622,15 +1624,15 @@ The commands take the form:<br>
             <td style="vertical-align: top;">CONTROL<br>
             </td>
             <td style="vertical-align: top;">
-            <table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+            <table style="text-align: left; width: 100%;" border="1"
+ cellpadding="2" cellspacing="2">
               <tbody>
                 <tr>
                   <td style="vertical-align: top;">u2<br>
                   </td>
                   <td style="vertical-align: top;">Sub option:<br>
-                  <table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
+                  <table style="text-align: left; width: 100%;"
+ border="1" cellpadding="2" cellspacing="2">
                     <tbody>
                       <tr>
                         <td style="vertical-align: top;">0x1<br>
@@ -1651,8 +1653,8 @@ traces off<br>
                         </td>
                         <td style="vertical-align: top;">Turn CPU
 sampling on:<br>
-                        <table cellpadding="2" cellspacing="2"
- border="1" style="text-align: left; width: 100%;">
+                        <table style="text-align: left; width: 100%;"
+ border="1" cellpadding="2" cellspacing="2">
                           <tbody>
                             <tr>
                               <td style="vertical-align: top;">ID<br>
@@ -1671,8 +1673,8 @@ object ID (0 for all threads)<br>
                         </td>
                         <td style="vertical-align: top;">Turn CPU
 sampling off:<br>
-                        <table cellpadding="2" cellspacing="2"
- border="1" style="text-align: left; width: 100%;">
+                        <table style="text-align: left; width: 100%;"
+ border="1" cellpadding="2" cellspacing="2">
                           <tbody>
                             <tr>
                               <td style="vertical-align: top;">ID<br>
@@ -1697,8 +1699,8 @@ sampling<br>
                         </td>
                         <td style="vertical-align: top;">Set max stack
 depth:<br>
-                        <table cellpadding="2" cellspacing="2"
- border="1" style="text-align: left; width: 100%;">
+                        <table style="text-align: left; width: 100%;"
+ border="1" cellpadding="2" cellspacing="2">
                           <tbody>
                             <tr>
                               <td style="vertical-align: top;">u2<br>
@@ -1732,16 +1734,13 @@ stack depth<br>
 <p></p>
 <h2><a name="mozTocId589424" class="mozTocH4"></a>Source Code<br>
 </h2>
-The <a href="src.zip">src.zip</a> file contains the implementation
-of this HPROF profiling agent plus other JVMTI example
-programs for the Java 2 SDK. Both Solaris,
-Linux,&nbsp; and
-Microsoft Windows versions are included.
+The source to HPROF is available in the JDK download in the
+demo/jvmti/hprof directory.
 <p><font size="-1"><b>*As used on this web site, the terms "Java
 Virtual Machine" or "JVM" mean a virtual machine for the Java platform.</b></font>
 </p>
 <p></p>
 <hr><!-- hhmts start -->
-Last modified: 06/16/04<!-- hhmts end -->
+Last modified: 09/15/05<!-- hhmts end -->
 </body>
 </html>

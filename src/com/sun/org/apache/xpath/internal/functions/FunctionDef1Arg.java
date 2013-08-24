@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionDef1Arg.java,v 1.12 2004/02/17 04:34:00 minchau Exp $
+ * $Id: FunctionDef1Arg.java,v 1.2.4.1 2005/09/14 20:18:42 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -32,6 +32,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class FunctionDef1Arg extends FunctionOneArg
 {
+    static final long serialVersionUID = 2325189412814149264L;
 
   /**
    * Execute the first argument expression that is expected to return a

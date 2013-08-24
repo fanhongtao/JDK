@@ -1,7 +1,7 @@
 /*
- * @(#)JRadioButton.java	1.74 03/12/19
+ * @(#)JRadioButton.java	1.78 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -33,9 +33,23 @@ import java.io.IOException;
  * components.
  * </blockquote>
  * <p>
+ * Buttons can be configured, and to some degree controlled, by 
+ * <code><a href="Action.html">Action</a></code>s.  Using an
+ * <code>Action</code> with a button has many benefits beyond directly
+ * configuring a button.  Refer to <a href="Action.html#buttonActions">
+ * Swing Components Supporting <code>Action</code></a> for more
+ * details, and you can find more information in <a
+ * href="http://java.sun.com/docs/books/tutorial/uiswing/misc/action.html">How
+ * to Use Actions</a>, a section in <em>The Java Tutorial</em>.
+ * <p>
  * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>
  * in <em>The Java Tutorial</em>
  * for further documentation.
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -52,7 +66,7 @@ import java.io.IOException;
  *
  * @see ButtonGroup
  * @see JCheckBox
- * @version 1.74 12/19/03
+ * @version 1.78 08/08/06
  * @author Jeff Dinkins
  */
 public class JRadioButton extends JToggleButton implements Accessible {
@@ -178,67 +192,10 @@ public class JRadioButton extends JToggleButton implements Accessible {
 
 
     /**
-     * Factory method which sets the <code>ActionEvent</code> source's
-     * properties according to values from the Action instance. The
-     * properties which are set may differ for subclasses.
-     * By default, the properties which get set are <code>Text, Mnemonic,
-     * Enabled, ActionCommand</code>, and <code>ToolTipText</code>.
-     *
-     * @param a the Action from which to get the properties, or null
-     * @since 1.3
-     * @see Action
-     * @see #setAction
+     * The icon for radio buttons comes from the look and feel,
+     * not the Action.
      */
-    protected void configurePropertiesFromAction(Action a) {
-        String[] types = { Action.MNEMONIC_KEY, Action.NAME,
-                           Action.SHORT_DESCRIPTION,
-                           Action.ACTION_COMMAND_KEY, "enabled" };
-        configurePropertiesFromAction(a, types);
-    }
-
-    /**
-     * Factory method which creates the PropertyChangeListener
-     * used to update the ActionEvent source as properties change on
-     * its Action instance.  Subclasses may override this in order 
-     * to provide their own PropertyChangeListener if the set of
-     * properties which should be kept up to date differs from the
-     * default properties (Text, Icon, Enabled, ToolTipText).
-     *
-     * Note that PropertyChangeListeners should avoid holding
-     * strong references to the ActionEvent source, as this may hinder
-     * garbage collection of the ActionEvent source and all components
-     * in its containment hierarchy.  
-     *
-     * @since 1.3
-     * @see Action
-     * @see #setAction
-     */
-    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
-        return new AbstractActionPropertyChangeListener(this, a) {
-	    public void propertyChange(PropertyChangeEvent e) {	    
-		String propertyName = e.getPropertyName();
-		AbstractButton button = (AbstractButton)getTarget();
-		if (button == null) {   //WeakRef GC'ed in 1.2
-		    Action action = (Action)e.getSource();
-		    action.removePropertyChangeListener(this);
-		} else {
-		    if (propertyName.equals(Action.NAME)) {
-			String text = (String) e.getNewValue();
-			button.setText(text);
-			button.repaint();
-		    } else if (propertyName.equals(Action.SHORT_DESCRIPTION)) {
-			String text = (String) e.getNewValue();
-			button.setToolTipText(text);
-		    } else if (propertyName.equals("enabled")) {
-			Boolean enabledState = (Boolean) e.getNewValue();
-			button.setEnabled(enabledState.booleanValue());
-			button.repaint();
-                    } else if (propertyName.equals(Action.ACTION_COMMAND_KEY)) {
-                        button.setActionCommand((String)e.getNewValue());
-		    } 
-		}
-	    }
-	};
+    void setIconFromAction(Action a) {
     }
 
     /** 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SystemIDResolver.java,v 1.24 2004/02/17 04:21:14 minchau Exp $
+ * $Id: SystemIDResolver.java,v 1.2.4.1 2005/09/15 08:15:58 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 

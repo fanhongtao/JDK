@@ -1,65 +1,25 @@
- /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+/*
+ * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.dom;
 
-import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import com.sun.org.apache.xerces.internal.util.URI;
 
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.UserDataHandler;
@@ -105,12 +65,14 @@ import org.w3c.dom.ls.LSSerializer;
  * <p>
  * <b>Note:</b> When any node in the document is serialized, the
  * entire document is serialized along with it.
+ * 
+ * @xerces.internal 
  *
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: CoreDocumentImpl.java,v 1.71 2004/04/26 14:44:56 venu Exp $
+ * @version $Id: CoreDocumentImpl.java,v 1.3 2005/09/26 13:02:11 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 
@@ -171,9 +133,9 @@ extends ParentNode implements Document  {
 
     // DOM Level 3: normalizeDocument
     transient DOMNormalizer domNormalizer = null;
-    transient DOMConfigurationImpl fConfiguration= null;
-
-    // support of XPath API
+    transient DOMConfigurationImpl fConfiguration = null;
+    
+    // support of XPath API   
     transient Object fXPathEvaluator = null;
 
     /** Table for quick check of child insertion. */
@@ -477,20 +439,21 @@ extends ParentNode implements Document  {
         newChild instanceof DocumentTypeImpl) {
             ((DocumentTypeImpl) newChild).ownerDocument = this;
         }
-        int type = oldChild.getNodeType();
-		int newType = newChild.getNodeType();
-		if (errorChecking &&((docType != null &&
-			oldChild.getNodeType() != Node.DOCUMENT_TYPE_NODE && 
-			newChild.getNodeType() == Node.DOCUMENT_TYPE_NODE)
-			|| (docElement != null && 
-			oldChild.getNodeType() != Node.ELEMENT_NODE && 
-			newChild.getNodeType() == Node.ELEMENT_NODE))) { 
-				throw new DOMException(
+
+        if (errorChecking &&((docType != null &&
+            oldChild.getNodeType() != Node.DOCUMENT_TYPE_NODE && 
+            newChild.getNodeType() == Node.DOCUMENT_TYPE_NODE) 
+            || (docElement != null && 
+            oldChild.getNodeType() != Node.ELEMENT_NODE && 
+            newChild.getNodeType() == Node.ELEMENT_NODE))) {
+            	
+            throw new DOMException(
                 DOMException.HIERARCHY_REQUEST_ERR,
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
         }
-		super.replaceChild(newChild, oldChild);
+        super.replaceChild(newChild, oldChild);
 
+        int type = oldChild.getNodeType();
         if(type == Node.ELEMENT_NODE) {
             docElement = (ElementImpl)newChild;
         }
@@ -524,20 +487,39 @@ extends ParentNode implements Document  {
         
         boolean anyVersion = version == null || version.length() == 0;
         
-        if ((feature.equalsIgnoreCase("XPath")
-            || feature.equalsIgnoreCase("+XPath")) && 
-            (anyVersion || version.equals("3.0"))) {
-
-            try {
-                Class xpathClass = ObjectFactory.findProviderClass(
-                "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl",
-                ObjectFactory.findClassLoader(), true);
-                fXPathEvaluator = xpathClass.newInstance();
-                java.lang.reflect.Method setDocument = xpathClass.getMethod("setDoc", new Class[]{Document.class});
-                setDocument.invoke(fXPathEvaluator, new Object[]{this});
+        // if a plus sign "+" is prepended to any feature name, implementations
+        // are considered in which the specified feature may not be directly
+        // castable DOMImplementation.getFeature(feature, version). Without a
+        // plus, only features whose interfaces are directly castable are
+        // considered.
+        if ((feature.equalsIgnoreCase("+XPath"))
+            && (anyVersion || version.equals("3.0"))) {
+            
+            // If an XPathEvaluator was created previously 
+            // return it otherwise create a new one.
+            if (fXPathEvaluator != null) {
                 return fXPathEvaluator;
             }
-            catch (Exception e){
+            
+            try {
+                Class xpathClass = ObjectFactory.findProviderClass(
+                    "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl",
+                    ObjectFactory.findClassLoader(), true);
+                Constructor xpathClassConstr = 
+                    xpathClass.getConstructor(new Class[] { Document.class });
+                
+                // Check if the DOM XPath implementation implements
+                // the interface org.w3c.dom.XPathEvaluator
+                Class interfaces[] = xpathClass.getInterfaces();
+                for (int i = 0; i < interfaces.length; i++) {
+                    if (interfaces[i].getName().equals(
+                    "org.w3c.dom.xpath.XPathEvaluator")) {
+                        fXPathEvaluator = xpathClassConstr.newInstance(new Object[] { this });
+                        return fXPathEvaluator;
+                    }
+                }
+                return null;
+            } catch (Exception e) {
                 return null;
             }
         }
@@ -547,22 +529,22 @@ extends ParentNode implements Document  {
     //
     // Document methods
     //
-
+    
     // factory methods
-
+    
     /**
      * Factory method; creates an Attribute having this Document as its
      * OwnerDoc.
-     *
-     * @param name The name of the attribute. Note that the attribute's value
-     * is _not_ established at the factory; remember to set it!
-     *
-     * @throws DOMException(INVALID_NAME_ERR) if the attribute name is not
-     * acceptable.
+     * 
+     * @param name The name of the attribute. Note that the attribute's value is
+     * _not_ established at the factory; remember to set it!
+     * 
+     * @throws DOMException(INVALID_NAME_ERR)
+     * if the attribute name is not acceptable.
      */
     public Attr createAttribute(String name)
-    throws DOMException {
-
+        throws DOMException {
+        
         if (errorChecking && !isXMLName(name,xml11Version)) {
             String msg =
                 DOMMessageFormatter.formatMessage(
@@ -572,7 +554,7 @@ extends ParentNode implements Document  {
             throw new DOMException(DOMException.INVALID_CHARACTER_ERR, msg);
         }
         return new AttrImpl(this, name);
-
+        
     } // createAttribute(String):Attr
 
     /**
@@ -768,7 +750,6 @@ extends ParentNode implements Document  {
 
     public void setErrorChecking(boolean check) {
         errorChecking = check;
-
     }
 
     /*
@@ -829,6 +810,15 @@ extends ParentNode implements Document  {
     public void setXmlEncoding(String value) {
         encoding = value;
     }
+    
+    /**
+     * @deprecated This method is internal and only exists for
+     * compatibility with older applications. New applications
+     * should never call this method.
+     */
+    public void setEncoding(String value) {
+        setXmlEncoding(value);
+    }
 
     /**
      * DOM Level 3 WD - Experimental.
@@ -836,6 +826,15 @@ extends ParentNode implements Document  {
      */
     public String getXmlEncoding() {
         return encoding;
+    }
+    
+    /**
+     * @deprecated This method is internal and only exists for
+     * compatibility with older applications. New applications
+     * should never call this method.
+     */
+    public String getEncoding() {
+        return getXmlEncoding();
     }
 
     /**
@@ -869,6 +868,15 @@ extends ParentNode implements Document  {
             xml11Version = false;
         }
     }
+    
+    /**
+     * @deprecated This method is internal and only exists for
+     * compatibility with older applications. New applications
+     * should never call this method.
+     */
+    public void setVersion(String value) {
+        setXmlVersion(value);
+    }
 
     /**
      * DOM Level 3 WD - Experimental.
@@ -876,6 +884,15 @@ extends ParentNode implements Document  {
      */
     public String getXmlVersion() {
         return (version == null)?"1.0":version;
+    }
+    
+    /**
+     * @deprecated This method is internal and only exists for
+     * compatibility with older applications. New applications
+     * should never call this method.
+     */
+    public String getVersion() {
+        return getXmlVersion();
     }
 
     /**
@@ -892,6 +909,15 @@ extends ParentNode implements Document  {
                                   throws DOMException {
             standalone = value;
     }
+    
+    /**
+     * @deprecated This method is internal and only exists for
+     * compatibility with older applications. New applications
+     * should never call this method.
+     */
+    public void setStandalone(boolean value) {
+        setXmlStandalone(value);
+    }
 
     /**
      * DOM Level 3 WD - Experimental.
@@ -901,7 +927,15 @@ extends ParentNode implements Document  {
     public boolean getXmlStandalone() {
         return standalone;
     }
-
+    
+    /**
+     * @deprecated This method is internal and only exists for
+     * compatibility with older applications. New applications
+     * should never call this method.
+     */
+    public boolean getStandalone() {
+        return getXmlStandalone();
+    }
 
     /**
      * DOM Level 3 WD - Experimental.
@@ -922,10 +956,10 @@ extends ParentNode implements Document  {
      */
     public Node renameNode(Node n,String namespaceURI,String name)
     throws DOMException{
-
-        if (n.getOwnerDocument() != this && n != this) {
+        
+        if (errorChecking && n.getOwnerDocument() != this && n != this) {
             String msg = DOMMessageFormatter.formatMessage(
-            DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null);
+                    DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null);
             throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
         }
         switch (n.getNodeType()) {
@@ -935,44 +969,45 @@ extends ParentNode implements Document  {
                     ((ElementNSImpl) el).rename(namespaceURI, name);
                     
                     // fire user data NODE_RENAMED event
-                    callUserDataHandlers(el, null,
-                    UserDataHandler.NODE_RENAMED);
+                    callUserDataHandlers(el, null, UserDataHandler.NODE_RENAMED);
                 }
                 else {
                     if (namespaceURI == null) {
-                        int colon1 = name.indexOf(':');
-                        if(colon1 != -1){
-                            String msg =
-                            DOMMessageFormatter.formatMessage(
-                            DOMMessageFormatter.DOM_DOMAIN,
-                            "NAMESPACE_ERR",
-                            null);
-                            throw new DOMException(DOMException.NAMESPACE_ERR, msg);
-                        }
-                        if (errorChecking && !isXMLName(name,xml11Version)) {
-                            String msg = DOMMessageFormatter.formatMessage(
-                            DOMMessageFormatter.DOM_DOMAIN,
-                            "INVALID_CHARACTER_ERR", null);
-                            throw new DOMException(DOMException.INVALID_CHARACTER_ERR,
-                            msg);
+                        if (errorChecking) {
+                            int colon1 = name.indexOf(':');
+                            if(colon1 != -1){
+                                String msg =
+                                    DOMMessageFormatter.formatMessage(
+                                            DOMMessageFormatter.DOM_DOMAIN,
+                                            "NAMESPACE_ERR",
+                                            null);
+                                throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+                            }
+                            if (!isXMLName(name,xml11Version)) {
+                                String msg = DOMMessageFormatter.formatMessage(
+                                        DOMMessageFormatter.DOM_DOMAIN,
+                                        "INVALID_CHARACTER_ERR", null);
+                                throw new DOMException(DOMException.INVALID_CHARACTER_ERR,
+                                        msg);
+                            }
                         }
                         el.rename(name);
                         
                         // fire user data NODE_RENAMED event
                         callUserDataHandlers(el, null,
-                        UserDataHandler.NODE_RENAMED);
+                                UserDataHandler.NODE_RENAMED);
                     }
                     else {
                         // we need to create a new object
                         ElementNSImpl nel =
-                        new ElementNSImpl(this, namespaceURI, name);
-
+                            new ElementNSImpl(this, namespaceURI, name);
+                        
                         // register event listeners on new node
                         copyEventListeners(el, nel);
-
+                        
                         // remove user data from old node
                         Hashtable data = removeUserDataTable(el);
-
+                        
                         // remove old node from parent if any
                         Node parent = el.getParentNode();
                         Node nextSib = el.getNextSibling();
@@ -988,14 +1023,14 @@ extends ParentNode implements Document  {
                         }
                         // move specified attributes to new node
                         nel.moveSpecifiedAttributes(el);
-
+                        
                         // attach user data to new node
                         setUserDataTable(nel, data);
-
+                        
                         // and fire user data NODE_RENAMED event
                         callUserDataHandlers(el, nel,
-                        UserDataHandler.NODE_RENAMED);
-
+                                UserDataHandler.NODE_RENAMED);
+                        
                         // insert new node where old one was
                         if (parent != null) {
                             parent.insertBefore(nel, nextSib);
@@ -1009,7 +1044,7 @@ extends ParentNode implements Document  {
             }
             case ATTRIBUTE_NODE: {
                 AttrImpl at = (AttrImpl) n;
-
+                
                 // dettach attr from element
                 Element el = at.getOwnerElement();
                 if (el != null) {
@@ -1023,8 +1058,7 @@ extends ParentNode implements Document  {
                     }
                     
                     // fire user data NODE_RENAMED event
-                    callUserDataHandlers(at, null,
-                    UserDataHandler.NODE_RENAMED);
+                    callUserDataHandlers(at, null, UserDataHandler.NODE_RENAMED);
                 }
                 else {
                     if (namespaceURI == null) {
@@ -1035,20 +1069,18 @@ extends ParentNode implements Document  {
                         }
                         
                         // fire user data NODE_RENAMED event
-                        callUserDataHandlers(at, null,
-                        UserDataHandler.NODE_RENAMED);
+                        callUserDataHandlers(at, null, UserDataHandler.NODE_RENAMED);
                     }
                     else {
                         // we need to create a new object
-                        AttrNSImpl nat =
-                        new AttrNSImpl(this, namespaceURI, name);
-
+                        AttrNSImpl nat = new AttrNSImpl(this, namespaceURI, name);
+                        
                         // register event listeners on new node
                         copyEventListeners(at, nat);
-
+                        
                         // remove user data from old node
                         Hashtable data = removeUserDataTable(at);
-
+                        
                         // move children to new node
                         Node child = at.getFirstChild();
                         while (child != null) {
@@ -1056,14 +1088,13 @@ extends ParentNode implements Document  {
                             nat.appendChild(child);
                             child = at.getFirstChild();
                         }
-
+                        
                         // attach user data to new node
                         setUserDataTable(nat, data);
-
+                        
                         // and fire user data NODE_RENAMED event
-                        callUserDataHandlers(at, nat,
-                        UserDataHandler.NODE_RENAMED);
-
+                        callUserDataHandlers(at, nat, UserDataHandler.NODE_RENAMED);
+                        
                         // reattach attr to element
                         if (el != null) {
                             el.setAttributeNode(nat);
@@ -1073,7 +1104,7 @@ extends ParentNode implements Document  {
                 }
                 // fire AttributeNameChanged event
                 renamedAttrNode((Attr) n, at);
-
+                
                 return at;
             }
             default: {
@@ -1081,7 +1112,7 @@ extends ParentNode implements Document  {
                 throw new DOMException(DOMException.NOT_SUPPORTED_ERR, msg);
             }
         }
-
+        
     }
 
 
@@ -1133,10 +1164,23 @@ extends ParentNode implements Document  {
 
 
     /**
-     * DOM Level 3 WD - Experimental.
-     * Retrieve baseURI
+     * Returns the absolute base URI of this node or null if the implementation
+     * wasn't able to obtain an absolute URI. Note: If the URI is malformed, a
+     * null is returned.
+     * 
+     * @return The absolute base URI of this node or null.
+     * @since DOM Level 3
      */
     public String getBaseURI() {
+        if (fDocumentURI != null && fDocumentURI.length() != 0 ) {// attribute value is always empty string
+            try {
+                return new URI(fDocumentURI).toString();
+            }
+            catch (com.sun.org.apache.xerces.internal.util.URI.MalformedURIException e){
+                // REVISIT: what should happen in this case?
+                return null;
+            }
+        }            
         return fDocumentURI;
     }
 
@@ -1271,8 +1315,8 @@ extends ParentNode implements Document  {
      */
     public String saveXML(Node node)
     throws DOMException {
-        if ( node != null &&
-        this != node.getOwnerDocument() ) {
+        if ( errorChecking && node != null &&
+            this != node.getOwnerDocument() ) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null);
             throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
         }
@@ -1283,7 +1327,6 @@ extends ParentNode implements Document  {
         }
         return xmlWriter.writeToString(node);
     }
-
 
     /**
      * Sets whether the DOM implementation generates mutation events
@@ -1712,6 +1755,34 @@ extends ParentNode implements Document  {
             // source node comes from a different DOMImplementation
             return null;
         }
+        
+        // Return null if the source is null
+        
+        if (source == null ) {
+        	return null;
+        } else if (source != null && source.getOwnerDocument() != null) {
+
+            DOMImplementation thisImpl = this.getImplementation();
+            DOMImplementation otherImpl = source.getOwnerDocument().getImplementation();
+            
+            // when the source node comes from a different implementation.
+            if (thisImpl != otherImpl) {
+            
+                // Adopting from a DefferedDOM to DOM
+                if (thisImpl instanceof com.sun.org.apache.xerces.internal.dom.DOMImplementationImpl &&
+                        otherImpl instanceof com.sun.org.apache.xerces.internal.dom.DeferredDOMImplementationImpl) {
+                    // traverse the DOM and expand deffered nodes and then allow adoption
+                    undeferChildren (node);
+                } else if ( thisImpl instanceof com.sun.org.apache.xerces.internal.dom.DeferredDOMImplementationImpl
+                        && otherImpl instanceof com.sun.org.apache.xerces.internal.dom.DOMImplementationImpl) {
+                    // Adopting from a DOM into a DefferedDOM, this should be okay
+                } else {
+                    // Adopting between two dissimilar DOM's is not allowed
+                    return null;  
+                }
+        	}
+        }
+        
         switch (node.getNodeType()) {
             case ATTRIBUTE_NODE: {
                 AttrImpl attr = (AttrImpl) node;
@@ -1722,7 +1793,6 @@ extends ParentNode implements Document  {
                 }
                 //2. specified flag is set to true
                 attr.isSpecified(true);
-
 				userData = node.getUserDataRecord();
 
                 //3. change ownership
@@ -1748,6 +1818,7 @@ extends ParentNode implements Document  {
             }
             case ENTITY_REFERENCE_NODE: {
 				userData = node.getUserDataRecord();
+                // remove node from wherever it is
                 Node parent = node.getParentNode();
                 if (parent != null) {
                     parent.removeChild(source);
@@ -1770,7 +1841,6 @@ extends ParentNode implements Document  {
                 if (entityNode == null) {
                     break;
                 }
-                EntityImpl entity = (EntityImpl) entityNode;
                 for (child = entityNode.getFirstChild();
                 child != null; child = child.getNextSibling()) {
                     Node childClone = child.cloneNode(true);
@@ -1786,22 +1856,20 @@ extends ParentNode implements Document  {
                     parent.removeChild(source);
                 }
                 // change ownership
+                node.setOwnerDocument(this);
 				if(userData != null)
 					setUserDataTable(node,userData);
-                node.setOwnerDocument(this);
                 // reconcile default attributes
                 ((ElementImpl)node).reconcileDefaultAttributes();
                 break;
             }
             default: {
-                // remove node from wherever it is
 				userData = node.getUserDataRecord();
+                // remove node from wherever it is
                 Node parent = node.getParentNode();
                 if (parent != null) {
                     parent.removeChild(source);
                 }
-				if(userData != null)
-					setUserDataTable(node,userData);
                 // change ownership
                 node.setOwnerDocument(this);
 				if(userData != null)
@@ -1817,6 +1885,53 @@ extends ParentNode implements Document  {
         return node;
     }
 
+    /**
+     * Traverses the DOM Tree and expands deferred nodes and their
+     * children.
+     * 
+     */
+    protected void undeferChildren(Node node) {
+        
+        Node top = node;
+        
+        while (null != node) {
+            
+            if (((NodeImpl)node).needsSyncData()) {
+                ((NodeImpl)node).synchronizeData();
+            }
+            
+            NamedNodeMap attributes = node.getAttributes();
+            if (attributes != null) {
+                int length = attributes.getLength();
+                for (int i = 0; i < length; ++i) {
+                    undeferChildren(attributes.item(i));
+                }
+            }
+            
+            Node nextNode = null;
+            nextNode = node.getFirstChild();
+            
+            while (null == nextNode) {
+                
+                if (top.equals(node))
+                    break;
+                
+                nextNode = node.getNextSibling();
+                
+                if (null == nextNode) {
+                    node = node.getParentNode();
+                    
+                    if ((null == node) || (top.equals(node))) {
+                        nextNode = null;
+                        break;
+                    }
+                }
+            }
+            
+            node = nextNode;
+        }
+    }
+    
     // identifier maintenence
     /**
      * Introduced in DOM Level 2
@@ -2543,15 +2658,15 @@ extends ParentNode implements Document  {
     }
 
     /**
-     * A method to be called when a character data node has been modified
+     * A method to be called when a character data node is about to be modified
      */
-    void modifyingCharacterData(NodeImpl node) {
+    void modifyingCharacterData(NodeImpl node, boolean replace) {
     }
 
     /**
      * A method to be called when a character data node has been modified
      */
-    void modifiedCharacterData(NodeImpl node, String oldvalue, String value) {
+    void modifiedCharacterData(NodeImpl node, String oldvalue, String value, boolean replace) {
     }
 
     /**
@@ -2590,6 +2705,19 @@ extends ParentNode implements Document  {
     void replacedNode(NodeImpl node) {
     }
 
+    /**
+     * A method to be called when a character data node is about to be replaced
+     */
+    void replacingData(NodeImpl node) {
+    }
+
+    /**
+     *  method to be called when a character data node has been replaced.
+     */
+    void replacedCharacterData(NodeImpl node, String oldvalue, String value) {
+    }
+
+    
     /**
      * A method to be called when an attribute value has been modified
      */

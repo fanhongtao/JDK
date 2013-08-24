@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ObjectFactory.java,v 1.3 2004/06/03 11:43:32 ay131335 Exp $
+ * $Id: ObjectFactory.java,v 1.2.4.1 2005/09/12 10:51:22 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -35,15 +35,15 @@ import java.io.InputStreamReader;
  * <p>
  * This code is designed to implement the JAXP 1.1 spec pluggability
  * feature and is designed to run on JDK version 1.1 and
- * later, and to compile on JDK 1.2 and onward.
+ * later, and to compile on JDK 1.2 and onward.  
  * The code also runs both as part of an unbundled jar file and
  * when bundled as part of the JDK.
  * <p>
  * This class was moved from the <code>javax.xml.parsers.ObjectFactory</code>
- * class and modified to be used as a general utility for creating objects
+ * class and modified to be used as a general utility for creating objects 
  * dynamically.
  *
- * @version $Id: ObjectFactory.java,v 1.3 2004/06/03 11:43:32 ay131335 Exp $
+ * @version $Id: ObjectFactory.java,v 1.4 2005/08/30 10:12:05 neerajbj Exp $
  */
 class ObjectFactory {
 
@@ -123,7 +123,7 @@ class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Object createObject(String factoryId,
+    static Object createObject(String factoryId, 
                                       String propertiesFilename,
                                       String fallbackClassName)
         throws ConfigurationError
@@ -170,7 +170,7 @@ class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Class lookUpFactoryClass(String factoryId)
+    static Class lookUpFactoryClass(String factoryId) 
         throws ConfigurationError
     {
         return lookUpFactoryClass(factoryId, null, null);
@@ -291,6 +291,7 @@ class ObjectFactory {
 
             synchronized (ObjectFactory.class) {
                 boolean loadProperties = false;
+                FileInputStream fis = null;
                 try {
                     // file existed last time
                     if(fLastModified >= 0) {
@@ -315,35 +316,52 @@ class ObjectFactory {
                         // must never have attempted to read xalan.properties
                         // before (or it's outdeated)
                         fXalanProperties = new Properties();
-                        FileInputStream fis =
-                                         ss.getFileInputStream(propertiesFile);
+                        fis = ss.getFileInputStream(propertiesFile);
                         fXalanProperties.load(fis);
-                        fis.close();
                     }
-	            } catch (Exception x) {
-	                fXalanProperties = null;
-	                fLastModified = -1;
-                        // assert(x instanceof FileNotFoundException
-	                //        || x instanceof SecurityException)
-	                // In both cases, ignore and continue w/ next location
-	            }
+	        } catch (Exception x) {
+	            fXalanProperties = null;
+	            fLastModified = -1;
+                    // assert(x instanceof FileNotFoundException
+	            //        || x instanceof SecurityException)
+	            // In both cases, ignore and continue w/ next location
+	        }
+                finally {
+                    // try to close the input stream if one was opened.
+                    if (fis != null) {
+                        try {
+                            fis.close();
+                        }
+                        // Ignore the exception.
+                        catch (IOException exc) {}
+                    }
+                }	            
             }
             if(fXalanProperties != null) {
                 factoryClassName = fXalanProperties.getProperty(factoryId);
             }
         } else {
+            FileInputStream fis = null;
             try {
-                FileInputStream fis =
-                           ss.getFileInputStream(new File(propertiesFilename));
+                fis = ss.getFileInputStream(new File(propertiesFilename));
                 Properties props = new Properties();
                 props.load(fis);
-                fis.close();
                 factoryClassName = props.getProperty(factoryId);
             } catch (Exception x) {
                 // assert(x instanceof FileNotFoundException
                 //        || x instanceof SecurityException)
                 // In both cases, ignore and continue w/ next location
             }
+            finally {
+                // try to close the input stream if one was opened.
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    }
+                    // Ignore the exception.
+                    catch (IOException exc) {}
+                }
+            }               
         }
         if (factoryClassName != null) {
             debugPrintln("found in " + propertiesFilename + ", value="
@@ -372,7 +390,7 @@ class ObjectFactory {
      */
     static ClassLoader findClassLoader()
         throws ConfigurationError
-    {
+    { 
         SecuritySupport ss = SecuritySupport.getInstance();
 
         // Figure out which ClassLoader to use for loading the provider
@@ -428,7 +446,7 @@ class ObjectFactory {
 
     /**
      * Create an instance of a class using the specified ClassLoader
-     */
+     */ 
     static Object newInstance(String className, ClassLoader cl,
                                       boolean doFallback)
         throws ConfigurationError
@@ -452,22 +470,25 @@ class ObjectFactory {
 
     /**
      * Find a Class using the specified ClassLoader
-     */
+     */ 
     static Class findProviderClass(String className, ClassLoader cl,
                                            boolean doFallback)
         throws ClassNotFoundException, ConfigurationError
-    {
+    {   
         //throw security exception if the calling thread is not allowed to access the
         //class. Restrict the access to the package classes as specified in java.security policy.
         SecurityManager security = System.getSecurityManager();
-        if (security != null){
-            final int lastDot = className.lastIndexOf(".");
-            String packageName = className;
-            if (lastDot != -1)
-                packageName = className.substring(0, lastDot);
-            security.checkPackageAccess(packageName);
+        try{
+                if (security != null){
+                    final int lastDot = className.lastIndexOf(".");
+                    String packageName = className;
+                    if (lastDot != -1) packageName = className.substring(0, lastDot);
+                    security.checkPackageAccess(packageName);
+                 }   
+        }catch(SecurityException e){
+            throw e;
         }
-
+        
         Class providerClass;
         if (cl == null) {
             // XXX Use the bootstrap ClassLoader.  There is no way to
@@ -559,17 +580,24 @@ class ObjectFactory {
         } catch (java.io.UnsupportedEncodingException e) {
             rd = new BufferedReader(new InputStreamReader(is));
         }
-
+        
         String factoryClassName = null;
         try {
             // XXX Does not handle all possible input as specified by the
             // Jar Service Provider specification
             factoryClassName = rd.readLine();
-            rd.close();
         } catch (IOException x) {
             // No provider found
             return null;
         }
+        finally {
+            try {
+                // try to close the reader.
+                rd.close();
+            }
+            // Ignore the exception.
+            catch (IOException exc) {}
+        }          
 
         if (factoryClassName != null &&
             ! "".equals(factoryClassName)) {
@@ -594,9 +622,9 @@ class ObjectFactory {
     /**
      * A configuration error.
      */
-    static class ConfigurationError
+    static class ConfigurationError 
         extends Error {
-
+                static final long serialVersionUID = 3326843611085065902L;
         //
         // Data
         //

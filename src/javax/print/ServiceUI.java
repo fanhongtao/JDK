@@ -1,17 +1,20 @@
 /*
- * @(#)ServiceUI.java	1.12 04/01/06
+ * @(#)ServiceUI.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.print;
 
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Dialog;
 import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.KeyboardFocusManager;
 import javax.print.attribute.Attribute;
@@ -165,27 +168,47 @@ public class ServiceUI {
             defaultIndex = 0;
         }
 
-	boolean newFrame = false;
-	Window owner = 
-	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
-	    getActiveWindow();
-
-	if (!(owner instanceof Dialog || owner instanceof Frame)) {
-	    owner = new Frame();
-	    newFrame = true;
-	}
+	// For now we set owner to null. In the future, it may be passed
+	// as an argument. 
+	Window owner = null; 
+	
+	Rectangle gcBounds = (gc == null) ?  GraphicsEnvironment.
+	    getLocalGraphicsEnvironment().getDefaultScreenDevice().
+	    getDefaultConfiguration().getBounds() : gc.getBounds();
 
 	ServiceDialog dialog;
 	if (owner instanceof Frame) {
-	    dialog = new ServiceDialog(gc, x, y, 
+	    dialog = new ServiceDialog(gc, 
+				       x + gcBounds.x, 
+				       y + gcBounds.y, 
 				       services, defaultIndex,
 				       flavor, attributes, 
 				       (Frame)owner);
 	} else {
-	    dialog = new ServiceDialog(gc, x, y, 
+	    dialog = new ServiceDialog(gc, 
+				       x + gcBounds.x, 
+				       y + gcBounds.y, 
 				       services, defaultIndex,
 				       flavor, attributes, 
 				       (Dialog)owner);
+	}
+	Rectangle dlgBounds = dialog.getBounds();
+
+	// get union of all GC bounds
+	GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	GraphicsDevice[] gs = ge.getScreenDevices();
+	for (int j=0; j<gs.length; j++) {
+	    GraphicsDevice gd = gs[j];
+	    GraphicsConfiguration[] gcs = gd.getConfigurations();
+	    for (int i=0; i<gcs.length; i++) {
+		gcBounds = gcBounds.union(gcs[i].getBounds());
+	    }
+	}
+
+	// if portion of dialog is not within the gc boundary
+	if (!gcBounds.contains(dlgBounds)) {
+	    // put in the center relative to parent frame/dialog
+	    dialog.setLocationRelativeTo(owner);
 	}
         dialog.show();
 
@@ -217,10 +240,6 @@ public class ServiceUI {
                 }
             }
         }
-	      
-	if (newFrame) {
-	    owner.dispose();
-	}
 
 	return dialog.getPrintService();
     }

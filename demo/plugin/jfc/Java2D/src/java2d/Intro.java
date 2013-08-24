@@ -1,7 +1,7 @@
 /*
- * @(#)Intro.java	1.23 04/07/26
+ * @(#)Intro.java	1.29 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,25 +51,28 @@ import java.util.Vector;
 import java.util.List;
 import java.util.Arrays;
 
+import static java.awt.Color.*;
+
 
 
 /**
  * Introduction to the Java2Demo.  
  *
- * @version @(#)Intro.java	1.20 03/10/23
+ * @version @(#)Intro.java	1.29 06/08/29
  * @author Brian Lichtenwalter
  */
 public class Intro extends JPanel {
 
-    static Color black = new Color(20, 20, 20); 
-    static Color white = new Color(240, 240, 255); 
-    static Color red = new Color(149, 43, 42);
-    static Color blue = new Color(94, 105, 176); 
-    static Color yellow = new Color(255, 255, 140);
+    private static Color myBlack  = new Color( 20,  20,  20); 
+    private static Color myWhite  = new Color(240, 240, 255); 
+    private static Color myRed    = new Color(149,  43,  42);
+    private static Color myBlue   = new Color( 94, 105, 176); 
+    private static Color myYellow = new Color(255, 255, 140);
 
-    static Surface surface;
     private ScenesTable scenesTable;
     private boolean doTable;
+
+    static Surface surface;
 
 
     public Intro() {
@@ -77,7 +80,7 @@ public class Intro extends JPanel {
         BevelBorder bb = new BevelBorder(BevelBorder.LOWERED);
         setBorder(new CompoundBorder(eb,bb));
         setLayout(new BorderLayout());
-        setBackground(Color.gray);
+        setBackground(GRAY);
         setToolTipText("click for scene table");
         add(surface = new Surface());
         addMouseListener(new MouseAdapter() {
@@ -119,9 +122,9 @@ public class Intro extends JPanel {
     public static void main(String argv[]) {
         final Intro intro = new Intro();
         WindowListener l = new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {System.exit(0);}
-            public void windowDeiconified(WindowEvent e) { intro.start(); }
-            public void windowIconified(WindowEvent e) { intro.stop(); }
+            public void windowClosing    (WindowEvent e) { System.exit(0); }
+            public void windowDeiconified(WindowEvent e) { intro.start();  }
+            public void windowIconified  (WindowEvent e) { intro.stop();   }
         };
         JFrame f = new JFrame("Java2D Demo - Intro");
         f.addWindowListener(l);
@@ -148,7 +151,7 @@ public class Intro extends JPanel {
         private TableModel dataModel;
 
         public ScenesTable() {
-            setBackground(Color.white);
+            setBackground(WHITE);
             setLayout(new BorderLayout());
             final String[] names = { "", "Scenes", "Pause" };
     
@@ -213,8 +216,8 @@ public class Intro extends JPanel {
             tb.setTitle("Anim delay = " + String.valueOf(surface.sleepAmt) + " ms");
             slider.setBorder(tb);
             slider.setPreferredSize(new Dimension(140,40));
-            slider.setMinimumSize(new Dimension(100,40));
-            slider.setMaximumSize(new Dimension(180,40));
+            slider.setMinimumSize  (new Dimension(100,40));
+            slider.setMaximumSize  (new Dimension(180,40));
             panel.add("East", slider);
 
             add("South", panel);
@@ -261,7 +264,7 @@ public class Intro extends JPanel {
 
         public Surface() {
             surf = this;
-            setBackground(black);
+            setBackground(myBlack);
             setLayout(new BorderLayout());
             addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
@@ -284,7 +287,9 @@ public class Intro extends JPanel {
 	    if (d.width <= 0 || d.height <= 0) {
 		return;
 	    }
-            if (bimg == null || bimg.getWidth() != d.width || bimg.getHeight() != d.height) {
+            if (bimg == null ||
+                bimg.getWidth()  != d.width ||
+                bimg.getHeight() != d.height) {
                 bimg = getGraphicsConfiguration().createCompatibleImage(d.width, d.height);  
                 // reset future scenes
                 for (int i = index+1; i < director.size(); i++) {
@@ -339,8 +344,8 @@ public class Intro extends JPanel {
         public void reset() {
             index = 0;
             Dimension d = getSize();
-            for (int i = 0; i < director.size(); i++) {
-                ((Scene) director.get(i)).reset(d.width, d.height);
+            for (Scene scene : director) {
+                scene.reset(d.width, d.height);
             }
         }
 
@@ -385,7 +390,7 @@ public class Intro extends JPanel {
 
         /**
          * Part is a piece of the scene.  Classes must implement Part
-         * inorder to participate in a scene.
+         * in order to participate in a scene.
          */
         interface Part {
             public void reset(int newwidth, int newheight);
@@ -401,25 +406,25 @@ public class Intro extends JPanel {
          * Director is the holder of the scenes, their names & pause amounts
          * between scenes.
          */
-        static class Director extends Vector {
+        static class Director extends Vector<Scene> {
 
-            GradientPaint gp = new GradientPaint(0,40,blue,38,2,black);
+            GradientPaint gp = new GradientPaint(0,40,myBlue,38,2,myBlack);
             Font f1 = new Font("serif", Font.PLAIN, 200);
             Font f2 = new Font("serif", Font.PLAIN, 120);
-            Font f3 = new Font("serif", Font.PLAIN, 72);
-            Object parts[][][] = {
+            Font f3 = new Font("serif", Font.PLAIN,  72);
+            Object partsInfo[][][] = {
                { { "J  -  scale text on gradient", "0" },
-                 { new GpE(GpE.BURI, black, blue, 0, 20),
-                   new TxE("J", f1, TxE.SCI, yellow, 2, 20) } },
+                 { new GpE(GpE.BURI, myBlack, myBlue, 0, 20),
+                   new TxE("J", f1, TxE.SCI, myYellow, 2, 20) } },
                { { "2  -  scale & rotate text on gradient" , "0" },
-                 { new GpE(GpE.BURI, blue, black, 0, 22),
-                   new TxE("2", f1, TxE.RI | TxE.SCI, yellow, 2, 22) } },
+                 { new GpE(GpE.BURI, myBlue, myBlack, 0, 22),
+                   new TxE("2", f1, TxE.RI | TxE.SCI, myYellow, 2, 22) } },
                { { "D  -  scale text on gradient", "0" },
-                 { new GpE(GpE.BURI, black, blue, 0, 20),
-                   new TxE("D", f1, TxE.SCI, yellow, 2, 20) } },
+                 { new GpE(GpE.BURI, myBlack, myBlue, 0, 20),
+                   new TxE("D", f1, TxE.SCI, myYellow, 2, 20) } },
                { { "Java2D  -  scale & rotate text on gradient", "1000" },
-                 { new GpE(GpE.SIH, blue, black, 0, 40),
-                   new TxE("Java2D", f2, TxE.RI | TxE.SCI, yellow, 0, 40) }},
+                 { new GpE(GpE.SIH, myBlue, myBlack, 0, 40),
+                   new TxE("Java2D", f2, TxE.RI | TxE.SCI, myYellow, 0, 40) }},
                { { "Previous scene dither dissolve out", "0"},
                  { new DdE(0, 20, 1) }},
                { { "Graphics Features", "999" },
@@ -428,11 +433,11 @@ public class Intro extends JPanel {
                    new Temp(Temp.RNA | Temp.INA, java_logo, 16, 130),
                    new Features(Features.GRAPHICS, 16, 130) }},
                { { "Java2D  -  texture text on gradient", "1000"},
-                 { new GpE(GpE.WI, blue, black, 0, 20),
-                   new GpE(GpE.WD, blue, black, 21, 40),
-                   new TpE(TpE.OI | TpE.NF, black, yellow, 4, 0, 10),
-                   new TpE(TpE.OD | TpE.NF, black, yellow, 4, 11, 20),
-                   new TpE(TpE.OI | TpE.NF | TpE.HAF, black, yellow,5,21,40),
+                 { new GpE(GpE.WI, myBlue, myBlack, 0, 20),
+                   new GpE(GpE.WD, myBlue, myBlack, 21, 40),
+                   new TpE(TpE.OI | TpE.NF, myBlack, myYellow, 4, 0, 10),
+                   new TpE(TpE.OD | TpE.NF, myBlack, myYellow, 4, 11, 20),
+                   new TpE(TpE.OI | TpE.NF | TpE.HAF, myBlack, myYellow,5,21,40),
                    new TxE("Java2D", f2, 0, null, 0, 40) }},
                { { "Previous scene random close out", "0"},
                  { new CoE(CoE.RAND, 0, 20) } },
@@ -442,10 +447,10 @@ public class Intro extends JPanel {
                    new Temp(Temp.RNA | Temp.INA, java_logo, 16, 130),
                    new Features(Features.TEXT, 16, 130) }},
                { { "Java2D  -  composite text on texture", "1000"},
-                 { new TpE(TpE.RI, black, gp, 40, 0, 20),
-                   new TpE(TpE.RD, black, gp, 40, 21, 40),
-                   new TpE(TpE.RI, black, gp, 40, 41, 60),
-                   new TxE("Java2D", f2, TxE.AC, yellow, 0, 60) }},
+                 { new TpE(TpE.RI, myBlack, gp, 40, 0, 20),
+                   new TpE(TpE.RD, myBlack, gp, 40, 21, 40),
+                   new TpE(TpE.RI, myBlack, gp, 40, 41, 60),
+                   new TxE("Java2D", f2, TxE.AC, myYellow, 0, 60) }},
                { { "Previous scene dither dissolve out", "0"},
                  { new DdE(0, 20, 4) }},
                { { "Imaging Features", "999" },
@@ -454,10 +459,10 @@ public class Intro extends JPanel {
                    new Temp(Temp.RNA | Temp.INA, java_logo, 16, 130),
                    new Features(Features.IMAGES, 16, 130) }},
                { { "Java2D  -  text on gradient", "1000" },
-                 { new GpE(GpE.SDH, blue, black, 0, 20),
-                   new GpE(GpE.SIH, blue, black, 21, 40),
-                   new GpE(GpE.SDH, blue, black, 41, 50),
-                   new GpE(GpE.INC | GpE.NF, red, yellow, 0, 50),
+                 { new GpE(GpE.SDH, myBlue, myBlack, 0, 20),
+                   new GpE(GpE.SIH, myBlue, myBlack, 21, 40),
+                   new GpE(GpE.SDH, myBlue, myBlack, 41, 50),
+                   new GpE(GpE.INC | GpE.NF, myRed, myYellow, 0, 50),
                    new TxE("Java2D", f2, TxE.NOP, null, 0, 50) }},
                { { "Previous scene ellipse close out", "0"},
                  { new CoE(CoE.OVAL, 0, 20) } },
@@ -467,23 +472,23 @@ public class Intro extends JPanel {
                    new Temp(Temp.RNA | Temp.INA, java_logo, 16, 99),
                    new Features(Features.COLOR, 16, 99) }},
                { { "Java2D  -  composite and rotate text on paints", "2000" },
-                 { new GpE(GpE.BURI, black, blue, 0, 20),
-                   new GpE(GpE.BURD, black, blue, 21, 30),
-                   new TpE(TpE.OI | TpE.HAF, black, blue, 10, 31, 40),
-                   new TxE("Java2D", f2, TxE.AC | TxE.RI, yellow, 0, 40) }},
+                 { new GpE(GpE.BURI, myBlack, myBlue, 0, 20),
+                   new GpE(GpE.BURD, myBlack, myBlue, 21, 30),
+                   new TpE(TpE.OI | TpE.HAF, myBlack, myBlue, 10, 31, 40),
+                   new TxE("Java2D", f2, TxE.AC | TxE.RI, myYellow, 0, 40) }},
                { { "Previous scene subimage transform out", "0" },
                  { new SiE(60, 60, 0, 40) }},
                { { "CREDITS  -  transform in", "1000" },
                  { new LnE(LnE.ACI | LnE.ZOOMI | LnE.RI, 0, 60),
-                   new TxE("CREDITS", f3, TxE.AC | TxE.SCI, Color.red,20,30),
-                   new TxE("CREDITS", f3, TxE.SCXD, Color.red, 31, 38),
-                   new TxE("CREDITS", f3, TxE.SCXI, Color.red, 39, 48),
-                   new TxE("CREDITS", f3, TxE.SCXD, Color.red, 49, 54),
-                   new TxE("CREDITS", f3, TxE.SCXI, Color.red, 55, 60) }},
+                   new TxE("CREDITS", f3, TxE.AC | TxE.SCI, RED,20,30),
+                   new TxE("CREDITS", f3, TxE.SCXD, RED, 31, 38),
+                   new TxE("CREDITS", f3, TxE.SCXI, RED, 39, 48),
+                   new TxE("CREDITS", f3, TxE.SCXD, RED, 49, 54),
+                   new TxE("CREDITS", f3, TxE.SCXI, RED, 55, 60) }},
                { { "CREDITS  -  transform out", "0" },
                  { new LnE(LnE.ACD | LnE.ZOOMD | LnE.RD, 0, 45),
-                   new TxE("CREDITS", f3, 0, Color.red, 0, 9),
-                   new TxE("CREDITS", f3, TxE.SCD | TxE.RD, Color.red,10,30)}},
+                   new TxE("CREDITS", f3, 0, RED, 0, 9),
+                   new TxE("CREDITS", f3, TxE.SCD | TxE.RD, RED,10,30)}},
                { { "Contributors", "1000" },
                  { new Temp(Temp.RECT, null, 0, 30),
                    new Temp(Temp.IMG, cupanim, 4, 30),
@@ -493,12 +498,12 @@ public class Intro extends JPanel {
 
 
             public Director() {
-                for (int i = 0; i < parts.length; i++) {
-                    Vector v = new Vector();
-                    for (int j = 0; j < parts[i][1].length; j++) {
-                        v.addElement(parts[i][1][j]);
+                for (Object[][] partInfo : partsInfo ) {
+                    List<Part> parts = new Vector<Part>();
+                    for (Object part : partInfo[1]) {
+                        parts.add((Part)part);
                     }
-                    addElement(new Scene(v, parts[i][0][0], parts[i][0][1]));
+                    addElement(new Scene(parts, partInfo[0][0], partInfo[0][1]));
                 }
             }
         }
@@ -512,17 +517,18 @@ public class Intro extends JPanel {
             public Object name;
             public Object participate = Boolean.TRUE;
             public Object pauseAmt;
-            public Vector parts;
+            public List<Part> parts;
             public int index;
             public int length;
 
-            public Scene(Vector parts, Object name, Object pauseAmt) {
+            public Scene(List<Part> parts, Object name, Object pauseAmt) {
                 this.name = name;
                 this.parts = parts;
                 this.pauseAmt = pauseAmt;
-                for (int i = 0; i < parts.size(); i++) {
-                    if (((Part) parts.get(i)).getEnd() > length) {
-                        length = ((Part) parts.get(i)).getEnd();
+                for (Part part : parts) {
+                    int partLength = part.getEnd();
+                    if (partLength > length) {
+                        length = partLength;
                     }
                 }
             }
@@ -623,7 +629,7 @@ public class Intro extends JPanel {
             public void setIncrements(double numRevolutions) {
                 this.numRev = (int) numRevolutions;
                 rIncr = 360.0 / ((ending - beginning) / numRevolutions);
-                sIncr = 1.0 / (ending - beginning);
+                sIncr =   1.0 /  (ending - beginning);
                 if ((type & SCX) != 0 || (type & SCY) != 0) {
                     sIncr *= 2;
                 }
@@ -667,9 +673,9 @@ public class Intro extends JPanel {
                     shape = at.createTransformedShape(shapes[i]);
                     Rectangle2D b2 = shape.getBounds2D();
       
-                    double xx = (b1.getX()+b1.getWidth()/2)
+                    double xx =   (b1.getX()+b1.getWidth()/2)
                                 - (b2.getX()+b2.getWidth()/2);
-                    double yy = (b1.getY()+b1.getHeight()/2)
+                    double yy =   (b1.getY()+b1.getHeight()/2)
                                 - (b2.getY()+b2.getHeight()/2);
                     AffineTransform toCenterAT = new AffineTransform();
                     toCenterAT.translate(xx, yy);
@@ -737,29 +743,30 @@ public class Intro extends JPanel {
          */
         static class GpE implements Part {
 
-            static final int INC = 1;             // increasing
-            static final int DEC = 2;             // decreasing
-            static final int CNT = 4;             // center
-            static final int WID = 8;             // width 
-            static final int WI  = WID | INC;             
-            static final int WD  = WID | DEC;            
-            static final int HEI = 16;            // height
-            static final int HI  = HEI | INC;            
-            static final int HD  = HEI | DEC;            
-            static final int SPL = 32 | CNT;      // split 
-            static final int SIW = SPL | INC | WID;
-            static final int SDW = SPL | DEC | WID;
-            static final int SIH = SPL | INC | HEI;
-            static final int SDH = SPL | DEC | HEI;
-            static final int BUR = 64 | CNT;     // burst 
+            static final int INC  = 1;               // increasing
+            static final int DEC  = 2;               // decreasing
+            static final int CNT  = 4;               // center
+            static final int WID  = 8;               // width 
+            static final int WI   = WID | INC;             
+            static final int WD   = WID | DEC;            
+            static final int HEI  = 16;              // height
+            static final int HI   = HEI | INC;            
+            static final int HD   = HEI | DEC;            
+            static final int SPL  = 32 | CNT;        // split 
+            static final int SIW  = SPL | INC | WID;
+            static final int SDW  = SPL | DEC | WID;
+            static final int SIH  = SPL | INC | HEI;
+            static final int SDH  = SPL | DEC | HEI;
+            static final int BUR  = 64 | CNT;        // burst 
             static final int BURI = BUR | INC;    
             static final int BURD = BUR | DEC;   
-            static final int NF = 128;           // no fill
+            static final int NF   = 128;             // no fill
+
             private Color c1, c2;
             private int beginning, ending;
             private float incr, index;
-            private Vector rect = new Vector();
-            private Vector grad = new Vector();
+            private List<Rectangle2D>   rect = new Vector<Rectangle2D>();
+            private List<GradientPaint> grad = new Vector<GradientPaint>();
             private int type;
 
 
@@ -803,10 +810,10 @@ public class Intro extends JPanel {
                         w2 = w * index;
                         x1 = x2 = w2;
                     }
-                    rect.addElement(new Rectangle2D.Float(0, 0, w2, h));
-                    rect.addElement(new Rectangle2D.Float(w2, 0, w-w2, h));
-                    grad.addElement(new GradientPaint(0,0,c1,x1,0,c2));
-                    grad.addElement(new GradientPaint(x2,0,c2,w,0,c1));
+                    rect.add(new Rectangle2D.Float( 0, 0,   w2, h));
+                    rect.add(new Rectangle2D.Float(w2, 0, w-w2, h));
+                    grad.add(new GradientPaint( 0,0,c1,x1,0,c2));
+                    grad.add(new GradientPaint(x2,0,c2, w,0,c1));
                 } else if ((type & HEI) != 0) {
                     float h2 = 0, y1 = 0, y2 = 0;
                     if ((type & SPL) != 0) {
@@ -817,33 +824,33 @@ public class Intro extends JPanel {
                         h2 = h * index;
                         y1 = y2 = h2;
                     }
-                    rect.addElement(new Rectangle2D.Float(0, 0, w, h2));
-                    rect.addElement(new Rectangle2D.Float(0, h2, w, h-h2));
-                    grad.addElement(new GradientPaint(0,0,c1,0,y1,c2));
-                    grad.addElement(new GradientPaint(0,y2,c2,0,h,c1));
+                    rect.add(new Rectangle2D.Float(0,  0, w,   h2));
+                    rect.add(new Rectangle2D.Float(0, h2, w, h-h2));
+                    grad.add(new GradientPaint(0, 0,c1,0,y1,c2));
+                    grad.add(new GradientPaint(0,y2,c2,0, h,c1));
                 } else if ((type & BUR) != 0) {
 
                     float w2 = w/2;
                     float h2 = h/2;
 
-                    rect.addElement(new Rectangle2D.Float(0, 0, w2, h2));
-                    rect.addElement(new Rectangle2D.Float(w2, 0, w2, h2));
-                    rect.addElement(new Rectangle2D.Float(0, h2, w2, h2));
-                    rect.addElement(new Rectangle2D.Float(w2, h2, w2, h2));
+                    rect.add(new Rectangle2D.Float( 0,  0, w2, h2));
+                    rect.add(new Rectangle2D.Float(w2,  0, w2, h2));
+                    rect.add(new Rectangle2D.Float( 0, h2, w2, h2));
+                    rect.add(new Rectangle2D.Float(w2, h2, w2, h2));
 
                     float x1 = w * (1.0f - index);
                     float x2 = w * index;
                     float y1 = h * (1.0f - index);
                     float y2 = h * index;
 
-                    grad.addElement(new GradientPaint(0,0,c1,x1,y1,c2));
-                    grad.addElement(new GradientPaint(w,0,c1,x2,y1,c2));
-                    grad.addElement(new GradientPaint(0,h,c1,x1,y2,c2));
-                    grad.addElement(new GradientPaint(w,h,c1,x2,y2,c2));
+                    grad.add(new GradientPaint(0,0,c1,x1,y1,c2));
+                    grad.add(new GradientPaint(w,0,c1,x2,y1,c2));
+                    grad.add(new GradientPaint(0,h,c1,x1,y2,c2));
+                    grad.add(new GradientPaint(w,h,c1,x2,y2,c2));
                 } else if ((type & NF) != 0) {
                     float x = w * index;
                     float y = h * index;
-                    grad.addElement(new GradientPaint(0,0,c1,0,y,c2));
+                    grad.add(new GradientPaint(0,0,c1,0,y,c2));
                 }
 
                 if ((type & INC) != 0 || (type & DEC) != 0) {
@@ -881,16 +888,17 @@ public class Intro extends JPanel {
          */
         static class TpE implements Part {
 
-            static final int INC = 1;             // increasing
-            static final int DEC = 2;             // decreasing
-            static final int OVAL = 4;            // oval
-            static final int RECT = 8;            // rectangle 
-            static final int HAF = 16;            // half oval or rect size
-            static final int OI = OVAL | INC; 
-            static final int OD = OVAL | DEC;
-            static final int RI = RECT | INC;
-            static final int RD = RECT | DEC;
-            static final int NF = 32;             // no fill 
+            static final int INC  =  1;             // increasing
+            static final int DEC  =  2;             // decreasing
+            static final int OVAL =  4;             // oval
+            static final int RECT =  8;             // rectangle 
+            static final int HAF  = 16;             // half oval or rect size
+            static final int NF   = 32;             // no fill 
+            static final int OI   = OVAL | INC; 
+            static final int OD   = OVAL | DEC;
+            static final int RI   = RECT | INC;
+            static final int RD   = RECT | DEC;
+
             private Paint p1, p2;
             private int beginning, ending;
             private float incr, index;
@@ -977,10 +985,10 @@ public class Intro extends JPanel {
          */
         static class CoE implements Part {
 
-            static final int WID  = 1;            
-            static final int HEI  = 2;           
-            static final int OVAL = 4;            
-            static final int RECT = 8;           
+            static final int WID  =  1;            
+            static final int HEI  =  2;           
+            static final int OVAL =  4;            
+            static final int RECT =  8;           
             static final int RAND = 16;           
             static final int ARC  = 32;           
             private int type;
@@ -1006,11 +1014,11 @@ public class Intro extends JPanel {
                 if (doRandom) {
                     int num = (int) (Math.random() * 5.0);
                     switch (num) {
-                        case 0 : type = OVAL; break;
-                        case 1 : type = RECT; break;
-                        case 2 : type = RECT | WID; break;
-                        case 3 : type = RECT | HEI; break;
-                        case 4 : type = ARC; break;
+                        case 0  : type = OVAL; break;
+                        case 1  : type = RECT; break;
+                        case 2  : type = RECT | WID; break;
+                        case 3  : type = RECT | HEI; break;
+                        case 4  : type = ARC; break;
                         default : type = OVAL; 
                     }
                 }
@@ -1037,11 +1045,11 @@ public class Intro extends JPanel {
                     extent -= eIncr;
                 } else if ((type & RECT) != 0) {
                     if ((type & WID) != 0) {
-                        shape = new Rectangle2D.Double(w/2-z/2,0,z,h);
+                        shape = new Rectangle2D.Double( w/2-z/2, 0,       z, h);
                     } else if ((type & HEI) != 0) {
-                        shape = new Rectangle2D.Double(0,h/2-z/2,w,z);
+                        shape = new Rectangle2D.Double( 0,       h/2-z/2, w, z);
                     } else {
-                        shape = new Rectangle2D.Double(w/2-z/2,h/2-z/2,z,z);
+                        shape = new Rectangle2D.Double( w/2-z/2, h/2-z/2, z, z);
                     }
                 }
                 zoom += zIncr;
@@ -1093,11 +1101,11 @@ public class Intro extends JPanel {
             }
 
             private void createShuffledLists() {
-                int width = bimg.getWidth();
+                int width  = bimg.getWidth();
                 int height = bimg.getHeight();
                 Integer xarray[] = new Integer[width];
                 Integer yarray[] = new Integer[height];
-                Integer array[] = new Integer[ending - beginning + 1];
+                Integer  array[] = new Integer[ending - beginning + 1];
                 for (int i = 0; i < xarray.length; i++) {
                     xarray[i] = new Integer(i);
                 }
@@ -1109,7 +1117,7 @@ public class Intro extends JPanel {
                 } 
                 java.util.Collections.shuffle(xlist = Arrays.asList(xarray));
                 java.util.Collections.shuffle(ylist = Arrays.asList(yarray));
-                java.util.Collections.shuffle(list = Arrays.asList(array));
+                java.util.Collections.shuffle( list = Arrays.asList( array));
             }
 
             public void reset(int w, int h) {
@@ -1117,6 +1125,9 @@ public class Intro extends JPanel {
             }
 
             public void step(int w, int h) {
+                if(inc > ending) {
+                    bimg = null;
+                }
                 if (bimg == null) {
                     int biw = Surface.bimg.getWidth();
                     int bih = Surface.bimg.getHeight();
@@ -1136,7 +1147,7 @@ public class Intro extends JPanel {
 
 
             public void render(int w, int h, Graphics2D g2) {
-                big.setColor(black); 
+                big.setColor(myBlack); 
 
                 for (int k = 0; k <= (ending - beginning); k++) {
                     if ((xeNum + xcSize) > xlist.size()) {
@@ -1146,8 +1157,8 @@ public class Intro extends JPanel {
                     }
                     yeNum += ycSize;
 
-                    for (int i = xeNum; i < xeNum+xcSize && i < xlist.size(); i++) {
-                        for (int j = yeNum; j < yeNum+ycSize && j < ylist.size(); j++) {   
+                    for     (int i = xeNum; i < xeNum+xcSize && i < xlist.size(); i++) {
+                        for (int j = yeNum; j < yeNum+ycSize && j < ylist.size(); j++) { 
                             int xval = ((Integer)xlist.get(i)).intValue();
                             int yval = ((Integer)ylist.get(j)).intValue();
                             if (((xval % blocksize) == 0) &&
@@ -1182,8 +1193,8 @@ public class Intro extends JPanel {
             private double rIncr, sIncr;
             private double scale, rotate;
             private int siw, sih;
-            private Vector subs = new Vector(20);
-            private Vector pts = new Vector(20);
+            private List<BufferedImage> subs = new Vector<BufferedImage>(20);
+            private List<Point>         pts  = new Vector<Point>(20);
 
 
             public SiE(int siw, int sih, int beg, int end) {
@@ -1216,20 +1227,20 @@ public class Intro extends JPanel {
                         int ww = x+siw < w ? siw : w-x;
                         for (int y = 0; y < h; y+=sih) {
                             int hh = y+sih < h ? sih : h-y;
-                            subs.addElement(bimg.getSubimage(x,y,ww,hh));    
-                            pts.addElement(new Point(x, y));
+                            subs.add(bimg.getSubimage(x,y,ww,hh));    
+                            pts.add(new Point(x, y));
                         }
                     }
                 }
                 
                 rotate += rIncr;
-                scale -= sIncr;
+                scale  -= sIncr;
             }
 
 
             public void render(int w, int h, Graphics2D g2) {
                 AffineTransform saveTx = g2.getTransform();
-                g2.setColor(blue);
+                g2.setColor(myBlue);
                 for (int i = 0; i < subs.size() && scale > 0.0; i++) {
                     BufferedImage bi = (BufferedImage) subs.get(i);
                     Point p = (Point) pts.get(i);
@@ -1275,21 +1286,22 @@ public class Intro extends JPanel {
          */
         static class LnE implements Part {
 
-            static final int INC  = 1;
-            static final int DEC  = 2;
-            static final int R    = 4;              // rotate
-            static final int RI   = R | INC;
-            static final int RD   = R | DEC;
-            static final int ZOOM   = 8;            // zoom
+            static final int INC    =  1;
+            static final int DEC    =  2;
+            static final int R      =  4;             // rotate
+            static final int ZOOM   =  8;             // zoom
+            static final int AC     = 32;             // AlphaComposite
+            static final int RI     = R | INC;
+            static final int RD     = R | DEC;
             static final int ZOOMI  = ZOOM | INC;
             static final int ZOOMD  = ZOOM | DEC;    
-            static final int AC   = 32;             // AlphaComposite
-            static final int ACI   = 32 | INC;
-            static final int ACD   = 32 | DEC; 
+            static final int ACI    = AC | INC;
+            static final int ACD    = AC | DEC; 
+
             private int beginning, ending;
             private double rIncr, rotate;
             private double zIncr, zoom;
-            private Vector pts = new Vector();
+            private List<Point2D.Double> pts = new Vector<Point2D.Double>();
             private float alpha, aIncr;
             private int type;
 
@@ -1298,9 +1310,10 @@ public class Intro extends JPanel {
                 this.type = type;
                 this.beginning = beg;
                 this.ending = end;
-                rIncr = 360.0 / (ending - beginning);
-                aIncr = 0.9f / (ending - beginning);
-                zIncr = 2.0 / (ending - beginning);
+                float range = ending - beginning;
+                rIncr = 360.0f / range;
+                aIncr =   0.9f / range;
+                zIncr =   2.0f / range;
                 if ((type & DEC) != 0) {
                     rIncr = -rIncr;
                     aIncr = -aIncr;
@@ -1319,7 +1332,7 @@ public class Intro extends JPanel {
                     switch ( pi.currentSegment(pt) ) {
                         case FlatteningPathIterator.SEG_MOVETO:
                         case FlatteningPathIterator.SEG_LINETO:
-                            pts.addElement(new Point2D.Double(pt[0], pt[1]));
+                            pts.add(new Point2D.Double(pt[0], pt[1]));
                     }
                     pi.next();
                 }
@@ -1368,9 +1381,9 @@ public class Intro extends JPanel {
                     g2.setTransform(at);
                 }
                 Point2D p1 = new Point2D.Double(w/2, h/2);
-                g2.setColor(Color.yellow);
-                for (int i = 0; i < pts.size()-1; i++) {
-                    g2.draw(new Line2D.Float(p1, (Point2D) pts.get(i)));
+                g2.setColor(YELLOW);
+                for (Point2D pt : pts) {
+                    g2.draw(new Line2D.Float(p1, (Point2D) pt));
                 }
                 if (saveTx != null) {
                    g2.setTransform(saveTx);
@@ -1397,11 +1410,13 @@ public class Intro extends JPanel {
          * opaque.
          */
         static class Temp implements Part {
+
             static final int NOANIM = 1;
             static final int RECT   = 2;
-            static final int RNA    = RECT | NOANIM;
             static final int IMG    = 4;
-            static final int INA    = IMG | NOANIM;
+            static final int RNA    = RECT | NOANIM;
+            static final int INA    = IMG  | NOANIM;
+
             private int beginning, ending;
             private float alpha, aIncr;
             private int type;
@@ -1420,7 +1435,6 @@ public class Intro extends JPanel {
                     alpha = 1.0f;
                 } 
             }
-
 
 
             public void reset(int w, int h) {
@@ -1452,9 +1466,9 @@ public class Intro extends JPanel {
 
             public void render(int w, int h, Graphics2D g2) {
                 if ((type & RECT) != 0) {
-                    g2.setColor(blue);
+                    g2.setColor(myBlue);
                     g2.fill(rect1);
-                    g2.setColor(red);
+                    g2.setColor(myRed);
                     g2.fill(rect2);
                 }
                 if ((type & IMG) != 0) {
@@ -1484,9 +1498,10 @@ public class Intro extends JPanel {
         static class Features implements Part {
 
             static final int GRAPHICS = 0;
-            static final int TEXT = 1;
-            static final int IMAGES = 2;
-            static final int COLOR = 3;
+            static final int TEXT     = 1;
+            static final int IMAGES   = 2;
+            static final int COLOR    = 3;
+
             static Font font1 = new Font("serif", Font.BOLD, 38);
             static Font font2 = new Font("serif", Font.PLAIN, 24);
             static FontMetrics fm1 = Surface.getMetrics(font1);
@@ -1507,7 +1522,7 @@ public class Intro extends JPanel {
             private int beginning, ending;
             private int strH;
             private int endIndex, listIndex;
-            private Vector v = new Vector();
+            private List<String> v = new Vector<String>();
            
 
             public Features(int type, int beg, int end) {
@@ -1522,7 +1537,7 @@ public class Intro extends JPanel {
                 endIndex = 1;
                 listIndex = 0;
                 v.clear();
-                v.addElement(list[listIndex].substring(0,endIndex));
+                v.add(list[listIndex].substring(0,endIndex));
             }
 
 
@@ -1531,7 +1546,7 @@ public class Intro extends JPanel {
                     if (++endIndex > list[listIndex].length()) {
                         if (++listIndex < list.length) {
                             endIndex = 1;
-                            v.addElement(list[listIndex].substring(0,endIndex));
+                            v.add(list[listIndex].substring(0,endIndex));
                         }
                     } else {
                         v.set(listIndex, list[listIndex].substring(0,endIndex));
@@ -1541,7 +1556,7 @@ public class Intro extends JPanel {
 
 
             public void render(int w, int h, Graphics2D g2) {
-                g2.setColor(white);
+                g2.setColor(myWhite);
                 g2.setFont(font1);
                 g2.drawString((String) v.get(0), 90, 85);
                 g2.setFont(font2);
@@ -1586,8 +1601,8 @@ public class Intro extends JPanel {
             static FontMetrics fm = Surface.getMetrics(font);
             private int beginning, ending;
             private int nStrs, strH, index, yh, height;
-            private Vector v = new Vector();
-            private Vector cast = new Vector(members.length+3);
+            private List<String> v    = new Vector<String>();
+            private List<String> cast = new Vector<String>(members.length+3);
             private int counter, cntMod;
             private GradientPaint gp;
 
@@ -1596,12 +1611,13 @@ public class Intro extends JPanel {
                 this.beginning = beg;
                 this.ending = end;
                 java.util.Arrays.sort(members);
-                cast.addElement("CONTRIBUTORS");
-                cast.addElement(" ");
-                for (int i = 0; i < members.length; i++) {
-                    cast.addElement(members[i]);
+                cast.add("CONTRIBUTORS");
+                cast.add(" ");
+                for (String member : members) {
+                    cast.add(member);
                 }
-                cast.addElement(" "); cast.addElement(" ");
+                cast.add(" ");
+                cast.add(" ");
                 cntMod = (ending - beginning) / cast.size() - 1;
             }
 
@@ -1612,7 +1628,7 @@ public class Intro extends JPanel {
                 nStrs = (h-40)/strH + 1;
                 height = strH * (nStrs-1) + 48;
                 index = 0;
-                gp = new GradientPaint(0,h/2,Color.white,0,h+20,Color.black);
+                gp = new GradientPaint(0, h/2, WHITE, 0, h+20, BLACK);
                 counter = 0;
             }
 
@@ -1620,10 +1636,10 @@ public class Intro extends JPanel {
             public void step(int w, int h) {
                 if (counter++%cntMod == 0) {
                     if (index < cast.size()) {
-                        v.addElement(cast.get(index));
+                        v.add(cast.get(index));
                     }
                     if ((v.size() == nStrs || index >= cast.size()) && v.size() != 0) {
-                        v.removeElementAt(0);
+                        v.remove(0);
                     }
                     ++index;
                 }
@@ -1634,7 +1650,7 @@ public class Intro extends JPanel {
                 g2.setPaint(gp);
                 g2.setFont(font);
                 double remainder = counter%cntMod;
-                double incr = 1.0-remainder/cntMod;
+                double incr = 1.0 - remainder/cntMod;
                 incr = incr == 1.0 ? 0 : incr;
                 int y = (int) (incr * strH);
 
@@ -1643,8 +1659,7 @@ public class Intro extends JPanel {
                 } else {
                     y = yh = height - v.size() * strH + y;
                 }
-                for (int i = 0; i < v.size(); i++) {
-                    String s = (String) v.get(i);
+                for (String s : v) {
                     g2.drawString(s, w/2-fm.stringWidth(s)/2, y += strH);
                 }
             }

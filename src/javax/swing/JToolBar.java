@@ -1,7 +1,7 @@
 /*
- * @(#)JToolBar.java	1.108 04/02/26
+ * @(#)JToolBar.java	1.115 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,6 +46,11 @@ import java.util.Hashtable;
  * container whose layout manager is a <code>BorderLayout</code>,
  * and do not add children to any of the other four "sides".
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -59,7 +64,7 @@ import java.util.Hashtable;
  *   attribute: isContainer true
  * description: A component which displays commonly used controls or Actions.
  *
- * @version 1.108 02/26/04
+ * @version 1.115 08/08/06
  * @author Georges Saab
  * @author Jeff Shapiro
  * @see Action
@@ -388,7 +393,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      * an invalid value, an exception will be thrown.
      *
      * @param o  the new orientation -- either <code>HORIZONTAL</code> or
-     *			</code>VERTICAL</code>
+     *			<code>VERTICAL</code>
      * @exception IllegalArgumentException if orientation is neither
      *		<code>HORIZONTAL</code> nor <code>VERTICAL</code>
      * @see #getOrientation
@@ -485,13 +490,6 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
     /**
      * Adds a new <code>JButton</code> which dispatches the action.
      *
-     * <p>
-     * As of 1.3, this is no longer the preferred method for adding
-     * <code>Action</code>s to a container.  Instead it is recommended
-     * to configure a control with an action using
-     * using <code>setAction</code>, and then add that control directly
-     * to the <code>Container</code>.
-     *
      * @param a the <code>Action</code> object to add as a new menu item
      * @return the new button which dispatches the action
      */
@@ -507,24 +505,13 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      * <code>Action</code>s added to the <code>JToolBar</code>.
      * The default name is empty if a <code>null</code> action is passed.
      *
-     * <p>
-     * As of 1.3, this is no longer the preferred method for adding
-     * <code>Action</code>s to a <code>Container</code>.
-     * Instead it is recommended to configure a control with an action
-     * using <code>setAction</code>, and then add that control directly
-     * to the <code>Container</code>.
-     *
      * @param a the <code>Action</code> for the button to be added
      * @return the newly created button
      * @see Action
+     * @since 1.3
      */
     protected JButton createActionComponent(Action a) {
-	String text = a!=null? (String)a.getValue(Action.NAME) : null;
-	Icon icon   = a!=null? (Icon)a.getValue(Action.SMALL_ICON) : null;
-        boolean enabled = a!=null? a.isEnabled() : true;
-        String tooltip = a!=null?
-            (String)a.getValue(Action.SHORT_DESCRIPTION) : null;
-        JButton b = new JButton(text, icon) {
+        JButton b = new JButton() {
 	    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
 		PropertyChangeListener pcl = createActionChangeListener(this);
 		if (pcl==null) {
@@ -533,13 +520,12 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 		return pcl;
 	    }
 	};
-	if (icon !=null) {
-	    b.putClientProperty("hideActionText", Boolean.TRUE);
+        if (a != null && (a.getValue(Action.SMALL_ICON) != null ||
+                          a.getValue(Action.LARGE_ICON_KEY) != null)) {
+            b.setHideActionText(true);
 	}
 	b.setHorizontalTextPosition(JButton.CENTER);
 	b.setVerticalTextPosition(JButton.BOTTOM);
-	b.setEnabled(enabled);
-	b.setToolTipText(tooltip);
 	return b;
     }
 
@@ -549,12 +535,6 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
      * or <code>null</code> if the default
      * property change listener for the control is desired.
      *
-     * <p>
-     * As of 1.3, this is no longer the preferred method for adding
-     * <code>Action</code>s to a <code>Container</code>.
-     * Instead it is recommended to configure a control with an action
-     * using <code>setAction</code>, and then add that control directly
-     * to the <code>Container</code>.
      * @return <code>null</code>
      */
     protected PropertyChangeListener createActionChangeListener(JButton b) {
@@ -746,7 +726,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
     private class DefaultToolBarLayout
 	implements LayoutManager2, Serializable, PropertyChangeListener, UIResource {
 
-	LayoutManager lm;
+        BoxLayout lm;
 
 	DefaultToolBarLayout(int orientation) {
 	    if (orientation == JToolBar.VERTICAL) {
@@ -757,12 +737,15 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 	}
 
 	public void addLayoutComponent(String name, Component comp) {
+            lm.addLayoutComponent(name, comp);
 	}
 
 	public void addLayoutComponent(Component comp, Object constraints) {
+            lm.addLayoutComponent(comp, constraints);
 	}
 
 	public void removeLayoutComponent(Component comp) {
+            lm.removeLayoutComponent(comp);
 	}
 
 	public Dimension preferredLayoutSize(Container target) {
@@ -774,14 +757,7 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 	}
 
 	public Dimension maximumLayoutSize(Container target) {
-	    if (lm instanceof LayoutManager2) {
-		return ((LayoutManager2)lm).maximumLayoutSize(target);
-	    } else {
-		// Code copied from java.awt.Component.getMaximumSize()
-		// to avoid infinite recursion.
-		// See also java.awt.Container.getMaximumSize()
-		return new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
-	    }
+            return lm.maximumLayoutSize(target);
 	}
 
 	public void layoutContainer(Container target) {
@@ -789,31 +765,15 @@ public class JToolBar extends JComponent implements SwingConstants, Accessible
 	}
 
 	public float getLayoutAlignmentX(Container target) {
-	    if (lm instanceof LayoutManager2) {
-		return ((LayoutManager2)lm).getLayoutAlignmentX(target);
-	    } else {
-		// Code copied from java.awt.Component.getAlignmentX()
-		// to avoid infinite recursion.
-		// See also java.awt.Container.getAlignmentX()
-		return CENTER_ALIGNMENT;
-	    }
+            return lm.getLayoutAlignmentX(target);
 	}
 
 	public float getLayoutAlignmentY(Container target) {
-	    if (lm instanceof LayoutManager2) {
-		return ((LayoutManager2)lm).getLayoutAlignmentY(target);
-	    } else {
-		// Code copied from java.awt.Component.getAlignmentY()
-		// to avoid infinite recursion.
-		// See also java.awt.Container.getAlignmentY()
-		return CENTER_ALIGNMENT;
-	    }
+            return lm.getLayoutAlignmentY(target);
 	}
 
 	public void invalidateLayout(Container target) {
-	    if (lm instanceof LayoutManager2) {
-		((LayoutManager2)lm).invalidateLayout(target);
-	    }
+            lm.invalidateLayout(target);
 	}
 
         public void propertyChange(PropertyChangeEvent e) {

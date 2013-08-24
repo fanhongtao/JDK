@@ -1,49 +1,86 @@
 /*
- * @(#)DataTruncation.java	1.22 03/12/19
+ * @(#)DataTruncation.java	1.27 05/12/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.sql;
 
 /**
- * An exception that reports a
- * DataTruncation warning (on reads) or throws a DataTruncation exception
- * (on writes) when JDBC unexpectedly truncates a data value.
+ * An exception  thrown as a <code>DataTruncation</code> exception
+ * (on writes) or reported as a 
+ * <code>DataTruncation</code> warning (on reads)
+ *  when a data values is unexpectedly truncated for reasons other than its having
+ *  execeeded <code>MaxFieldSize</code>.
  *
- * <P>The SQLstate for a <code>DataTruncation</code> is <code>01004</code>.
+ * <P>The SQLstate for a <code>DataTruncation</code> during read is <code>01004</code>.
+ * <P>The SQLstate for a <code>DataTruncation</code> during write is <code>22001</code>.
  */
 
 public class DataTruncation extends SQLWarning {
 
     /**
-     * Creates a <code>DataTruncation</code> object 
-	 * with the SQLState initialized
-     * to 01004, the reason set to "Data truncation", the
-     * vendorCode set to the SQLException default, and
-	 * the other fields set to the given values.
+     * Creates a <code>DataTruncation</code> object
+     * with the SQLState initialized
+     * to 01004 when <code>read</code> is set to <code>true</code> and 22001
+     * when <code>read</code> is set to <code>false</code>, 
+     * the reason set to "Data truncation", the
+     * vendor code set to 0, and
+     * the other fields set to the given values.
+     * The <code>cause</code> is not initialized, and may subsequently be 
+     * initialized by a call to the 
+     * {@link Throwable#initCause(java.lang.Throwable)} method.
+     * <p>
      *
      * @param index The index of the parameter or column value
      * @param parameter true if a parameter value was truncated
      * @param read true if a read was truncated
      * @param dataSize the original size of the data
-     * @param transferSize the size after truncation 
+     * @param transferSize the size after truncation
      */
-    public DataTruncation(int index, boolean parameter, 
-			  boolean read, int dataSize, 
+    public DataTruncation(int index, boolean parameter,
+			  boolean read, int dataSize,
 			  int transferSize) {
-	super("Data truncation", "01004");
+	super("Data truncation", read == true?"01004":"22001");
 	this.index = index;
 	this.parameter = parameter;
 	this.read = read;
 	this.dataSize = dataSize;
 	this.transferSize = transferSize;
-	DriverManager.println("    DataTruncation: index(" + index + 
-			      ") parameter(" + parameter +
-			      ") read(" + read +
-			      ") data size(" + dataSize +
-			      ") transfer size(" + transferSize + ")");
+        
+    }
+
+    /**
+     * Creates a <code>DataTruncation</code> object
+     * with the SQLState initialized
+     * to 01004 when <code>read</code> is set to <code>true</code> and 22001
+     * when <code>read</code> is set to <code>false</code>, 
+     * the reason set to "Data truncation", the
+     * vendor code set to 0, and
+     * the other fields set to the given values.
+     * <p>
+     *
+     * @param index The index of the parameter or column value
+     * @param parameter true if a parameter value was truncated
+     * @param read true if a read was truncated
+     * @param dataSize the original size of the data
+     * @param transferSize the size after truncation
+     * @param cause the underlying reason for this <code>DataTruncation</code> 
+     * (which is saved for later retrieval by the <code>getCause()</code> method);
+     * may be null indicating the cause is non-existent or unknown.
+     *
+     * @since 1.6
+     */
+    public DataTruncation(int index, boolean parameter,
+			  boolean read, int dataSize,
+			  int transferSize, Throwable cause) {
+	super("Data truncation", read == true?"01004":"22001",cause);
+	this.index = index;
+	this.parameter = parameter;
+	this.read = read;
+	this.dataSize = dataSize;
+	this.transferSize = transferSize;
     }
 
     /**
@@ -124,5 +161,10 @@ public class DataTruncation extends SQLWarning {
 	* @serial
 	*/
     private int transferSize;
+
+    /**
+     * @serial
+     */
+    private static final long serialVersionUID = 6464298989504059473L;
 
 }

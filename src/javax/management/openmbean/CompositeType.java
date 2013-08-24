@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeType.java	3.25 03/12/19
+ * @(#)CompositeType.java	3.32 06/05/03
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,6 @@ package javax.management.openmbean;
 
 // java import
 //
-import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Collections;
@@ -25,15 +24,13 @@ import java.util.Iterator;
  * The <code>CompositeType</code> class is the <i>open type</i> class 
  * whose instances describe the types of {@link CompositeData <code>CompositeData</code>} values.
  *
- * @version     3.25  03/12/19
+ * @version     3.32  06/05/03
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
  * @since.unbundled JMX 1.1
  */
-public class CompositeType 
-    extends OpenType
-    implements Serializable {
+public class CompositeType extends OpenType<CompositeData> {
 
     /* Serial version */
     static final long serialVersionUID = -5366242454346948798L;
@@ -41,16 +38,18 @@ public class CompositeType
     /**
      * @serial Sorted mapping of the item names to their descriptions
      */
-    private TreeMap nameToDescription;
+    private TreeMap<String,String> nameToDescription;
     
     /**
      * @serial Sorted mapping of the item names to their open types
      */
-    private TreeMap nameToType;	
+    private TreeMap<String,OpenType<?>> nameToType;	
 
-    private transient Integer myHashCode = null;  // As this instance is immutable, 
-    private transient String  myToString = null;  // these three values
-    private transient Set     myNamesSet = null;  // need only be calculated once.
+    /* As this instance is immutable, following three values need only
+     * be calculated once.  */
+    private transient Integer myHashCode = null;
+    private transient String  myToString = null;
+    private transient Set<String> myNamesSet = null;
 
 
     /* *** Constructor *** */
@@ -101,15 +100,15 @@ public class CompositeType
      * @throws OpenDataException  If <var>itemNames</var> contains duplicate item names
      *				  (case sensitive, but leading and trailing whitespaces removed).
      */
-    public CompositeType(String          typeName,
-			 String          description, 
-			 String[]        itemNames,
-			 String[]        itemDescriptions,
-			 OpenType[]      itemTypes) throws OpenDataException {
+    public CompositeType(String        typeName,
+			 String        description, 
+			 String[]      itemNames,
+			 String[]      itemDescriptions,
+			 OpenType<?>[] itemTypes) throws OpenDataException {
 
 	// Check and construct state defined by parent
 	//
-	super(CompositeData.class.getName(), typeName, description);
+	super(CompositeData.class.getName(), typeName, description, false);
 
 	// Check the 3 arrays are not null or empty (ie length==0) and that there is no null element or empty string in them
 	//
@@ -130,8 +129,8 @@ public class CompositeType
 	// Initialize internal "names to descriptions" and "names to types" sorted maps,
 	// and, by doing so, check there are no duplicate item names
 	//
-	nameToDescription = new TreeMap();
-	nameToType        = new TreeMap();
+	nameToDescription = new TreeMap<String,String>();
+	nameToType        = new TreeMap<String,OpenType<?>>();
 	String key;
 	for (int i=0; i<itemNames.length; i++) {
 	    key = itemNames[i].trim();
@@ -207,12 +206,12 @@ public class CompositeType
      *
      * @return the type.
      */
-    public OpenType getType(String itemName) {
+    public OpenType<?> getType(String itemName) {
 
 	if (itemName == null) {
 	    return null;
 	}
-	return (OpenType) nameToType.get(itemName);
+	return (OpenType<?>) nameToType.get(itemName);
     }
 
     /**
@@ -221,7 +220,7 @@ public class CompositeType
      *
      * @return a {@link Set} of {@link String}.
      */
-    public Set keySet() {
+    public Set<String> keySet() {
 
 	// Initializes myNamesSet on first call
 	if (myNamesSet == null) {
@@ -233,39 +232,102 @@ public class CompositeType
 
 
     /**
-     * Tests whether <var>obj</var> is a value which could be described by this <code>CompositeType</code> instance.
-     * <p>
-     * If <var>obj</var> is null or is not an instance of <code>javax.management.openmbean.CompositeData</code>,
-     * <code>isValue</code> returns <code>false</code>. 
-     * If <var>obj</var> is an instance of <code>javax.management.openmbean.CompositeData</code>,
-     * its composite type is tested for equality with this <code>CompositeType</code> instance, and <code>isValue</code>
-     * returns <code>true</code> if and only if {@link #equals(java.lang.Object) <code>equals</code>} 
-     * returns <code>true</code>.
-     * <br>&nbsp;
-     * @param  obj  the value whose open type is to be tested for equality with this <code>CompositeType</code> instance.
+     * Tests whether <var>obj</var> is a value which could be
+     * described by this <code>CompositeType</code> instance.
      *
-     * @return <code>true</code> if <var>obj</var> is a value for this composite type, <code>false</code> otherwise.
+     * <p>If <var>obj</var> is null or is not an instance of
+     * <code>javax.management.openmbean.CompositeData</code>,
+     * <code>isValue</code> returns <code>false</code>.</p>
+     *
+     * <p>If <var>obj</var> is an instance of
+     * <code>javax.management.openmbean.CompositeData</code>, then let
+     * {@code ct} be its {@code CompositeType} as returned by {@link
+     * CompositeData#getCompositeType()}.  The result is true if
+     * {@code this} is <em>assignable from</em> {@code ct}.  This
+     * means that:</p>
+     *
+     * <ul>
+     * <li>{@link #getTypeName() this.getTypeName()} equals
+     * {@code ct.getTypeName()}, and
+     * <li>there are no item names present in {@code this} that are
+     * not also present in {@code ct}, and
+     * <li>for every item in {@code this}, its type is assignable from
+     * the type of the corresponding item in {@code ct}.
+     * </ul>
+     *
+     * <p>A {@code TabularType} is assignable from another {@code
+     * TabularType} if they have the same {@linkplain
+     * TabularType#getTypeName() typeName} and {@linkplain
+     * TabularType#getIndexNames() index name list}, and the
+     * {@linkplain TabularType#getRowType() row type} of the first is
+     * assignable from the row type of the second.
+     *
+     * <p>An {@code ArrayType} is assignable from another {@code
+     * ArrayType} if they have the same {@linkplain
+     * ArrayType#getDimension() dimension}; and both are {@linkplain
+     * ArrayType#isPrimitiveArray() primitive arrays} or neither is;
+     * and the {@linkplain ArrayType#getElementOpenType() element
+     * type} of the first is assignable from the element type of the
+     * second.
+     *
+     * <p>In every other case, an {@code OpenType} is assignable from
+     * another {@code OpenType} only if they are equal.</p>
+     *
+     * <p>These rules mean that extra items can be added to a {@code
+     * CompositeData} without making it invalid for a {@code CompositeType}
+     * that does not have those items.</p>
+     *
+     * @param  obj  the value whose open type is to be tested for compatibility
+     * with this <code>CompositeType</code> instance.
+     *
+     * @return <code>true</code> if <var>obj</var> is a value for this
+     * composite type, <code>false</code> otherwise.
      */
     public boolean isValue(Object obj) {
 
-	// if obj is null, return false
+	// if obj is null or not CompositeData, return false
 	//
-	if (obj == null) {
+	if (!(obj instanceof CompositeData)) {
 	    return false;
 	}
 
 	// if obj is not a CompositeData, return false
 	//
-	CompositeData value;
-	try {
-	    value = (CompositeData) obj;
-	} catch (ClassCastException e) {
-	    return false;
-	}
+	CompositeData value = (CompositeData) obj;
 
-	// test value's CompositeType for equality with this CompositeType instance
+	// test value's CompositeType is assignable to this CompositeType instance
 	//
-	return this.equals(value.getCompositeType());
+	CompositeType valueType = value.getCompositeType();
+        return this.isAssignableFrom(valueType);
+    }
+    
+    /**
+     * Tests whether values of the given type can be assigned to this
+     * open type.  The result is true if the given type is also a
+     * CompositeType with the same name ({@link #getTypeName()}), and
+     * every item in this type is also present in the given type with
+     * the same name and assignable type.  There can be additional
+     * items in the given type, which are ignored.
+     *
+     * @param ot the type to be tested.
+     *
+     * @return true if {@code ot} is assignable to this open type.
+     */
+    @Override
+    boolean isAssignableFrom(OpenType ot) {
+        if (!(ot instanceof CompositeType))
+            return false;
+        CompositeType ct = (CompositeType) ot;
+        if (!ct.getTypeName().equals(getTypeName()))
+            return false;
+        for (String key : keySet()) {
+            OpenType<?> otItemType = ct.getType(key);
+            OpenType<?> thisItemType = getType(key);
+            if (otItemType == null ||
+                    !thisItemType.isAssignableFrom(otItemType))
+                return false;
+        }
+        return true;
     }
 
 

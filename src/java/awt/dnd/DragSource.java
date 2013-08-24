@@ -1,7 +1,7 @@
 /*
- * @(#)DragSource.java	1.45 04/05/05
+ * @(#)DragSource.java	1.46 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,7 +98,7 @@ import sun.security.action.GetIntegerAction;
  * duration of the operation with respect to the 
  * <code>DragSource</code>. 
  *
- * @version 	1.45, 05/05/04
+ * @version 	1.46, 11/17/05
  * @since 1.2
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Beans.java	1.63 04/06/28
+ * @(#)Beans.java	1.64 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

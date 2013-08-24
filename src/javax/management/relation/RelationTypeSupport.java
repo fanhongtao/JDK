@@ -1,7 +1,7 @@
 /*
- * @(#)RelationTypeSupport.java	1.31 03/12/19
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)RelationTypeSupport.java	1.35 05/12/01
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,8 +17,10 @@ import java.security.PrivilegedAction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.jmx.mbeanserver.GetPropertyAction;
 import com.sun.jmx.trace.Trace;
@@ -28,7 +30,7 @@ import com.sun.jmx.trace.Trace;
  * A RelationTypeSupport object implements the RelationType interface.
  * <P>It represents a relation type, providing role information for each role
  * expected to be supported in every relation of that type.
- * 
+ *
  * <P>A relation type includes a relation type name and a list of
  * role infos (represented by RoleInfo objects).
  *
@@ -39,6 +41,8 @@ import com.sun.jmx.trace.Trace;
  * an object implementing the RelationType interface, and this object will be
  * used as representing a relation type in the Relation Service.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>4611072955724144607L</code>.
+ * 
  * @since 1.5
  */
 public class RelationTypeSupport implements RelationType {
@@ -49,14 +53,14 @@ public class RelationTypeSupport implements RelationType {
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = -8179019472410837190L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = 4611072955724144607L;
     //
     // Serializable fields in old serial form
-    private static final ObjectStreamField[] oldSerialPersistentFields = 
+    private static final ObjectStreamField[] oldSerialPersistentFields =
     {
       new ObjectStreamField("myTypeName", String.class),
       new ObjectStreamField("myRoleName2InfoMap", HashMap.class),
@@ -64,7 +68,7 @@ public class RelationTypeSupport implements RelationType {
     };
     //
     // Serializable fields in new serial form
-    private static final ObjectStreamField[] newSerialPersistentFields = 
+    private static final ObjectStreamField[] newSerialPersistentFields =
     {
       new ObjectStreamField("typeName", String.class),
       new ObjectStreamField("roleName2InfoMap", Map.class),
@@ -75,17 +79,17 @@ public class RelationTypeSupport implements RelationType {
     private static final long serialVersionUID;
     /**
      * @serialField typeName String Relation type name
-     * @serialField roleName2InfoMap Map {@link Map} holding the mapping: 
+     * @serialField roleName2InfoMap Map {@link Map} holding the mapping:
      *              &lt;role name ({@link String})&gt; -&gt; &lt;role info ({@link RoleInfo} object)&gt;
      * @serialField isInRelationService boolean Flag specifying whether the relation type has been declared in the
      *              Relation Service (so can no longer be updated)
      */
     private static final ObjectStreamField[] serialPersistentFields;
-    private static boolean compat = false;  
+    private static boolean compat = false;
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -111,10 +115,11 @@ public class RelationTypeSupport implements RelationType {
     private String typeName = null;
 
     /**
-     * @serial {@link Map} holding the mapping: 
+     * @serial {@link Map} holding the mapping:
      *           &lt;role name ({@link String})&gt; -&gt; &lt;role info ({@link RoleInfo} object)&gt;
      */
-    private Map roleName2InfoMap = new HashMap();
+    private Map<String,RoleInfo> roleName2InfoMap =
+	new HashMap<String,RoleInfo>();
 
     /**
      * @serial Flag specifying whether the relation type has been declared in the
@@ -130,8 +135,8 @@ public class RelationTypeSupport implements RelationType {
      * Constructor where all role definitions are dynamically created and
      * passed as parameter.
      *
-     * @param theRelTypeName  Name of relation type
-     * @param theRoleInfoArray  List of role definitions (RoleInfo objects)
+     * @param relationTypeName  Name of relation type
+     * @param roleInfoArray  List of role definitions (RoleInfo objects)
      *
      * @exception IllegalArgumentException  if null parameter
      * @exception InvalidRelationTypeException  if:
@@ -139,23 +144,22 @@ public class RelationTypeSupport implements RelationType {
      * <P>- no role info provided
      * <P>- one null role info provided
      */
-    public RelationTypeSupport(String theRelTypeName,
-			    RoleInfo[] theRoleInfoArray)
+    public RelationTypeSupport(String relationTypeName,
+			    RoleInfo[] roleInfoArray)
 	throws IllegalArgumentException,
 	       InvalidRelationTypeException {
 
-	if (theRelTypeName == null || theRoleInfoArray == null) {
-	    // Revisit [cebro] Localize message
+	if (relationTypeName == null || roleInfoArray == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isTraceOn())
-	    trace("Constructor: entering", theRelTypeName);
+	    trace("Constructor: entering", relationTypeName);
 
 	// Can throw InvalidRelationTypeException, ClassNotFoundException
 	// and NotCompliantMBeanException
-	initMembers(theRelTypeName, theRoleInfoArray);
+	initMembers(relationTypeName, roleInfoArray);
 
 	if (isTraceOn())
 	    trace("Constructor: exiting", null);
@@ -165,22 +169,21 @@ public class RelationTypeSupport implements RelationType {
     /**
      * Constructor to be used for subclasses.
      *
-     * @param theRelTypeName  Name of relation type.
+     * @param relationTypeName  Name of relation type.
      *
      * @exception IllegalArgumentException  if null parameter.
      */
-    protected RelationTypeSupport(String theRelTypeName)
+    protected RelationTypeSupport(String relationTypeName)
     {
-	if (theRelTypeName == null) {
-	    // Revisit [cebro] Localize message
+	if (relationTypeName == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isTraceOn())
-	    trace("Protected constructor: entering", theRelTypeName);
+	    trace("Protected constructor: entering", relationTypeName);
 
-	typeName = theRelTypeName;
+	typeName = relationTypeName;
 
 	if (isTraceOn())
 	    trace("Protected constructor: exiting", null);
@@ -203,15 +206,15 @@ public class RelationTypeSupport implements RelationType {
     /**
      * Returns the list of role definitions (ArrayList of RoleInfo objects).
      */
-    public List getRoleInfos() {
-	return new ArrayList(roleName2InfoMap.values());
+    public List<RoleInfo> getRoleInfos() {
+	return new ArrayList<RoleInfo>(roleName2InfoMap.values());
     }
 
     /**
      * Returns the role info (RoleInfo object) for the given role info name
      * (null if not found).
      *
-     * @param theRoleInfoName  role info name
+     * @param roleInfoName  role info name
      *
      * @return RoleInfo object providing role definition
      * does not exist
@@ -220,28 +223,26 @@ public class RelationTypeSupport implements RelationType {
      * @exception RoleInfoNotFoundException  if no role info with that name in
      * relation type.
      */
-    public RoleInfo getRoleInfo(String theRoleInfoName)
+    public RoleInfo getRoleInfo(String roleInfoName)
 	throws IllegalArgumentException,
 	       RoleInfoNotFoundException {
 
-	if (theRoleInfoName == null) {
-	    // Revisit [cebro] Localize message
+	if (roleInfoName == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isTraceOn())
-	    trace("getRoleInfo: entering", theRoleInfoName);
+	    trace("getRoleInfo: entering", roleInfoName);
 
 	// No null RoleInfo allowed, so use get()
-	RoleInfo result = (RoleInfo)(roleName2InfoMap.get(theRoleInfoName));
+	RoleInfo result = roleName2InfoMap.get(roleInfoName);
 
 	if (result == null) {
-	    StringBuffer excMsgStrB = new StringBuffer();
-	    // Revisit [cebro] Localize message
+	    StringBuilder excMsgStrB = new StringBuilder();
 	    String excMsg = "No role info for role ";
 	    excMsgStrB.append(excMsg);
-	    excMsgStrB.append(theRoleInfoName);
+	    excMsgStrB.append(roleInfoName);
 	    throw new RoleInfoNotFoundException(excMsgStrB.toString());
 	}
 
@@ -262,46 +263,42 @@ public class RelationTypeSupport implements RelationType {
      * Can throw a RuntimeException if trying to update a relation type
      * declared in the Relation Service.
      *
-     * @param theRoleInfo  role info to be added.
+     * @param roleInfo  role info to be added.
      *
      * @exception IllegalArgumentException  if null parameter.
      * @exception InvalidRelationTypeException  if there is already a role
      *  info in current relation type with the same name.
      */
-    protected void addRoleInfo(RoleInfo theRoleInfo)
+    protected void addRoleInfo(RoleInfo roleInfo)
 	throws IllegalArgumentException,
 	       InvalidRelationTypeException {
 
-	if (theRoleInfo == null) {
-	    // Revisit [cebro] Localize message
+	if (roleInfo == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isDebugOn())
-	    debug("addRoleInfo: entering", theRoleInfo.toString());
+	    debug("addRoleInfo: entering", roleInfo.toString());
 
 	if (isInRelationService) {
 	    // Trying to update a declared relation type
-	    // Revisit [cebro] Localize message
 	    String excMsg = "Relation type cannot be updated as it is declared in the Relation Service.";
 	    throw new RuntimeException(excMsg);
 	}
 
-	String roleName = theRoleInfo.getName();
+	String roleName = roleInfo.getName();
 
 	// Checks if the role info has already been described
 	if (roleName2InfoMap.containsKey(roleName)) {
-	    StringBuffer excMsgStrB = new StringBuffer();
-	    // Revisit [cebro] Localize message
+	    StringBuilder excMsgStrB = new StringBuilder();
 	    String excMsg = "Two role infos provided for role ";
 	    excMsgStrB.append(excMsg);
 	    excMsgStrB.append(roleName);
 	    throw new InvalidRelationTypeException(excMsgStrB.toString());
 	}
 
-	roleName2InfoMap.put(roleName,
-			       new RoleInfo(theRoleInfo));
+	roleName2InfoMap.put(roleName, new RoleInfo(roleInfo));
 
 	if (isDebugOn())
 	    debug("addRoleInfo: exiting", null);
@@ -310,45 +307,44 @@ public class RelationTypeSupport implements RelationType {
 
     // Sets the internal flag to specify that the relation type has been
     // declared in the Relation Service
-    void setRelationServiceFlag(boolean theFlg) {
-	isInRelationService = theFlg;
+    void setRelationServiceFlag(boolean flag) {
+	isInRelationService = flag;
 	return;
     }
 
     // Initializes the members, i.e. type name and role info list.
     //
-    // -param theRelTypeName  Name of relation type
-    // -param theRoleInfoArray  List of role definitions (RoleInfo objects)
+    // -param relationTypeName  Name of relation type
+    // -param roleInfoArray  List of role definitions (RoleInfo objects)
     //
     // -exception IllegalArgumentException  if null parameter
     // -exception InvalidRelationTypeException  If:
     //  - the same name has been used for two different roles
     //  - no role info provided
     //  - one null role info provided
-    private void initMembers(String theRelTypeName,
-			     RoleInfo[] theRoleInfoArray)
+    private void initMembers(String relationTypeName,
+			     RoleInfo[] roleInfoArray)
 	throws IllegalArgumentException,
 	       InvalidRelationTypeException {
 
-	if (theRelTypeName == null || theRoleInfoArray == null) {
-	    // Revisit [cebro] Localize message
+	if (relationTypeName == null || roleInfoArray == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	if (isDebugOn())
-	    debug("initMembers: entering", theRelTypeName);
+	    debug("initMembers: entering", relationTypeName);
 
-	typeName = theRelTypeName;
+	typeName = relationTypeName;
 
 	// Verifies role infos before setting them
 	// Can throw InvalidRelationTypeException
-	checkRoleInfos(theRoleInfoArray);
+	checkRoleInfos(roleInfoArray);
 
-	for (int i = 0; i < theRoleInfoArray.length; i++) {
-	    RoleInfo currRoleInfo = theRoleInfoArray[i];
-	    roleName2InfoMap.put(new String(currRoleInfo.getName()),
-				   new RoleInfo(currRoleInfo));
+	for (int i = 0; i < roleInfoArray.length; i++) {
+	    RoleInfo currRoleInfo = roleInfoArray[i];
+	    roleName2InfoMap.put(currRoleInfo.getName(),
+				 new RoleInfo(currRoleInfo));
 	}
 
 	if (isDebugOn())
@@ -361,38 +357,35 @@ public class RelationTypeSupport implements RelationType {
     // - it does not contain a null element
     // - a given role name is used only for one RoleInfo
     //
-    // -param theRoleInfoArray  array to be checked
+    // -param roleInfoArray  array to be checked
     //
     // -exception IllegalArgumentException
     // -exception InvalidRelationTypeException  If:
     //  - the same name has been used for two different roles
     //  - no role info provided
     //  - one null role info provided
-    static void checkRoleInfos(RoleInfo[] theRoleInfoArray)
+    static void checkRoleInfos(RoleInfo[] roleInfoArray)
 	throws IllegalArgumentException,
 	       InvalidRelationTypeException {
 
-	if (theRoleInfoArray == null) {
-	    // Revisit [cebro] Localize message
+	if (roleInfoArray == null) {
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	if (theRoleInfoArray.length == 0) {
+	if (roleInfoArray.length == 0) {
 	    // No role info provided
-	    // Revisit [cebro] Localize message
 	    String excMsg = "No role info provided.";
 	    throw new InvalidRelationTypeException(excMsg);
 	}
 
 
-	ArrayList roleNameList = new ArrayList();
+	Set<String> roleNames = new HashSet<String>();
 
-	for (int i = 0; i < theRoleInfoArray.length; i++) {
-	    RoleInfo currRoleInfo = theRoleInfoArray[i];
+	for (int i = 0; i < roleInfoArray.length; i++) {
+	    RoleInfo currRoleInfo = roleInfoArray[i];
 
 	    if (currRoleInfo == null) {
-		// Revisit [cebro] Localize message
 		String excMsg = "Null role info provided.";
 		throw new InvalidRelationTypeException(excMsg);
 	    }
@@ -400,15 +393,14 @@ public class RelationTypeSupport implements RelationType {
 	    String roleName = currRoleInfo.getName();
 
 	    // Checks if the role info has already been described
-	    if (roleNameList.contains(roleName)) {
-		StringBuffer excMsgStrB = new StringBuffer();
-		// Revisit [cebro] Localize message
+	    if (roleNames.contains(roleName)) {
+		StringBuilder excMsgStrB = new StringBuilder();
 		String excMsg = "Two role infos provided for role ";
 		excMsgStrB.append(excMsg);
 		excMsgStrB.append(roleName);
 		throw new InvalidRelationTypeException(excMsgStrB.toString());
 	    }
-	    roleNameList.add(roleName);
+	    roleNames.add(roleName);
 	}
 
 	return;
@@ -477,7 +469,8 @@ public class RelationTypeSupport implements RelationType {
         {
           throw new NullPointerException("myTypeName");
         }
-	roleName2InfoMap = (Map) fields.get("myRoleName2InfoMap", null);
+	roleName2InfoMap =
+	    (Map<String,RoleInfo>) fields.get("myRoleName2InfoMap", null);
 	if (fields.defaulted("myRoleName2InfoMap"))
         {
           throw new NullPointerException("myRoleName2InfoMap");
@@ -508,7 +501,7 @@ public class RelationTypeSupport implements RelationType {
         //
         ObjectOutputStream.PutField fields = out.putFields();
 	fields.put("myTypeName", typeName);
-	fields.put("myRoleName2InfoMap", (HashMap)roleName2InfoMap);
+	fields.put("myRoleName2InfoMap", roleName2InfoMap);
 	fields.put("myIsInRelServFlg", isInRelationService);
 	out.writeFields();
       }

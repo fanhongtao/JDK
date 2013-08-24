@@ -1,7 +1,7 @@
 /*
- * @(#)FramePeer.java	1.28 04/06/08
+ * @(#)FramePeer.java	1.31 06/05/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,11 +18,11 @@ import java.awt.*;
  */
 public interface FramePeer extends WindowPeer {
     void setTitle(String title);
-    void setIconImage(Image im);
     void setMenuBar(MenuBar mb);
     void setResizable(boolean resizeable);
     void setState(int state);
     int  getState();
     void setMaximizedBounds(Rectangle bounds); // XXX
     void setBoundsPrivate(int x, int y, int width, int height);
+    Rectangle getBoundsPrivate();
 }

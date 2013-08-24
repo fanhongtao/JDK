@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemView.java	1.46 04/04/27
+ * @(#)FileSystemView.java	1.49 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ import sun.awt.shell.*;
  * Java Licensees may want to provide a different implementation of
  * FileSystemView to better handle a given operating system.
  *
- * @version 1.46 04/27/04
+ * @version 1.49 04/07/06
  * @author Jeff Dinkins
  */
 
@@ -130,6 +130,7 @@ public abstract class FileSystemView {
      * @return <code>true</code> if the file/directory can be traversed, otherwise <code>false</code>
      * @see JFileChooser#isTraversable
      * @see FileView#isTraversable
+     * @since 1.4
      */
     public Boolean isTraversable(File f) {
 	return Boolean.valueOf(f.isDirectory());
@@ -145,6 +146,7 @@ public abstract class FileSystemView {
      * @param f a <code>File</code> object
      * @return the file name as it would be displayed by a native file chooser
      * @see JFileChooser#getName
+     * @since 1.4
      */
     public String getSystemDisplayName(File f) {
 	String name = null;
@@ -177,6 +179,7 @@ public abstract class FileSystemView {
      * @return the file type description as it would be displayed by a native file chooser
      * or null if no native information is available.
      * @see JFileChooser#getTypeDescription
+     * @since 1.4
      */
     public String getSystemTypeDescription(File f) {
 	return null;
@@ -192,6 +195,7 @@ public abstract class FileSystemView {
      * @param f a <code>File</code> object
      * @return an icon as it would be displayed by a native file chooser
      * @see JFileChooser#getIcon
+     * @since 1.4
      */
     public Icon getSystemIcon(File f) {
 	if (f != null) {
@@ -215,6 +219,7 @@ public abstract class FileSystemView {
      * @param folder a <code>File</code> object repesenting a directory or special folder
      * @param file a <code>File</code> object
      * @return <code>true</code> if <code>folder</code> is a directory or special folder and contains <code>file</code>.
+     * @since 1.4
      */
     public boolean isParent(File folder, File file) {
 	if (folder == null || file == null) {
@@ -244,6 +249,7 @@ public abstract class FileSystemView {
      * File(parent, fileName)</code> except when parent and child are both
      * special folders, in which case the <code>File</code> is a wrapper containing
      * a <code>ShellFolder</code> object.
+     * @since 1.4
      */
     public File getChild(File parent, String fileName) {
 	if (parent instanceof ShellFolder) {
@@ -265,6 +271,7 @@ public abstract class FileSystemView {
      *
      * @param f a <code>File</code> object
      * @return <code>true</code> if <code>f</code> is a real file or directory.
+     * @since 1.4
      */
     public boolean isFileSystem(File f) {
 	if (f instanceof ShellFolder) {
@@ -294,9 +301,10 @@ public abstract class FileSystemView {
      * Is dir the root of a tree in the file system, such as a drive
      * or partition. Example: Returns true for "C:\" on Windows 98.
      * 
-     * @param f a <code>File</code> object representing a directory
+     * @param dir a <code>File</code> object representing a directory
      * @return <code>true</code> if <code>f</code> is a root of a filesystem
      * @see #isRoot
+     * @since 1.4
      */
     public boolean isFileSystemRoot(File dir) {
 	return ShellFolder.isFileSystemRoot(dir);
@@ -310,6 +318,7 @@ public abstract class FileSystemView {
      *
      * @param dir a directory
      * @return <code>false</code> always
+     * @since 1.4
      */
     public boolean isDrive(File dir) {
 	return false;
@@ -323,6 +332,7 @@ public abstract class FileSystemView {
      *
      * @param dir a directory
      * @return <code>false</code> always
+     * @since 1.4
      */
     public boolean isFloppyDrive(File dir) {
 	return false;
@@ -336,6 +346,7 @@ public abstract class FileSystemView {
      *
      * @param dir a directory
      * @return <code>false</code> always
+     * @since 1.4
      */
     public boolean isComputerNode(File dir) {
 	return ShellFolder.isComputerNode(dir);
@@ -374,6 +385,7 @@ public abstract class FileSystemView {
      *
      * @return a <code>File</code> object representing the default
      *         starting folder
+     * @since 1.4
      */
     public File getDefaultDirectory() {
 	File f = (File)ShellFolder.get("fileChooserDefaultFolder");
@@ -511,6 +523,7 @@ public abstract class FileSystemView {
      * @param f a <code>File</code> object representing a file system root
      *		directory, for example "/" on Unix or "C:\" on Windows.
      * @return a new <code>File</code> object
+     * @since 1.4
      */
     protected File createFileSystemRoot(File f) {
 	return new FileSystemRoot(f);

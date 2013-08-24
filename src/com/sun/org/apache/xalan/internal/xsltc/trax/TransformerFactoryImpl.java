@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /*
- * $Id: TransformerFactoryImpl.java,v 1.73 2004/02/23 10:29:36 aruny Exp $
+ * $Id: TransformerFactoryImpl.java,v 1.2.4.1 2005/09/15 06:15:38 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -36,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.xml.XMLConstants;
-
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.ParserConfigurationException;
@@ -66,6 +64,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.XSLTC;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import com.sun.org.apache.xalan.internal.xsltc.dom.XSLTCDTMManager;
 
+
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
@@ -73,15 +72,13 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * Implementation of a JAXP1.1 TransformerFactory for Translets.
+ * @author G. Todd Miller 
+ * @author Morten Jorgensen
+ * @author Santiago Pericas-Geertsen
  */
 public class TransformerFactoryImpl
     extends SAXTransformerFactory implements SourceLoader, ErrorListener 
 {
-	/**
-	 * <p>Name of class as a constant to use for debugging.</p>
-	 */
-	private static final String CLASS_NAME = "TransformerFactoryImpl";
-
     // Public constants for attributes supported by the XSLTC TransformerFactory.
     public final static String TRANSLET_NAME = "translet-name";
     public final static String DESTINATION_DIRECTORY = "destination-directory";
@@ -115,7 +112,7 @@ public class TransformerFactoryImpl
      * compared to the rest of his bulk, waved helplessly before his eyes.
      * "What has happened to me?", he thought. It was no dream....
      */
-    protected static String DEFAULT_TRANSLET_NAME = "GregorSamsa";
+    protected final static String DEFAULT_TRANSLET_NAME = "GregorSamsa";
     
     /**
      * The class name of the translet
@@ -142,12 +139,6 @@ public class TransformerFactoryImpl
      * <?xml-stylesheet ...?> processing instructions in XML docs.
      */
     private Hashtable _piParams = null;
-
-
-    /**
-     * Use a thread local variable to store a copy of an XML Reader.
-     */
-    static ThreadLocal _xmlReader = new ThreadLocal();
 
     /**
      * The above hashtable stores objects of this class.
@@ -207,10 +198,10 @@ public class TransformerFactoryImpl
      */
     private Class m_DTMManagerClass;
 
-	/**
-	 * <p>State of secure processing feature.</p>
-	 */
-	private boolean featureSecureProcessing = false;
+    /**
+     * <p>State of secure processing feature.</p>
+     */
+    private boolean _isSecureProcessing = false;
 
     /**
      * javax.xml.transform.sax.TransformerFactory implementation.
@@ -377,53 +368,47 @@ public class TransformerFactoryImpl
 	throw new IllegalArgumentException(err.toString());
     }
 
-	/**
-	 * <p>Set a feature for this <code>TransformerFactory</code> and <code>Transformer</code>s
-	 * or <code>Template</code>s created by this factory.</p>
-	 * 
-	 * <p>
-	 * Feature names are fully qualified {@link java.net.URI}s.
-	 * Implementations may define their own features.
-	 * An {@link TransformerConfigurationException} is thrown if this <code>TransformerFactory</code> or the
-	 * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
-	 * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
-	 * </p>
-	 * 
-	 * <p>See {@link javax.xml.transform.TransformerFactory} for full documentation of specific features.</p>
-	 * 
-	 * @param name Feature name.
-	 * @param value Is feature state <code>true</code> or <code>false</code>.
-	 *  
-	 * @throws TransformerConfigurationException if this <code>TransformerFactory</code>
-	 *   or the <code>Transformer</code>s or <code>Template</code>s it creates cannot support this feature.
-	 * @throws NullPointerException If the <code>name</code> parameter is null.
-	 */
-	public void setFeature(String name, boolean value)
-		throws TransformerConfigurationException {
+    /**
+     * <p>Set a feature for this <code>TransformerFactory</code> and <code>Transformer</code>s
+     * or <code>Template</code>s created by this factory.</p>
+     * 
+     * <p>
+     * Feature names are fully qualified {@link java.net.URI}s.
+     * Implementations may define their own features.
+     * An {@link TransformerConfigurationException} is thrown if this <code>TransformerFactory</code> or the
+     * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
+     * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
+     * </p>
+     * 
+     * <p>See {@link javax.xml.transform.TransformerFactory} for full documentation of specific features.</p>
+     * 
+     * @param name Feature name.
+     * @param value Is feature state <code>true</code> or <code>false</code>.
+     *  
+     * @throws TransformerConfigurationException if this <code>TransformerFactory</code>
+     *   or the <code>Transformer</code>s or <code>Template</code>s it creates cannot support this feature.
+     * @throws NullPointerException If the <code>name</code> parameter is null.
+     */
+    public void setFeature(String name, boolean value)
+        throws TransformerConfigurationException {
 
-			// feature name cannot be null
-			if (name == null) {
-				throw new NullPointerException(
-					"Trying to set a feature with a null name: "
-					+ CLASS_NAME + "#setFeature(null, " + value + ")"
-					);
-			}
-		
-			// secure processing?
-			if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
-				featureSecureProcessing = value;
-						
-				// all done processing feature
-				return;
-			}
-		
-			// unknown feature
-			throw new TransformerConfigurationException(
-				"Trying to set the unknown feature \"" + name + "\": "
-				+ CLASS_NAME + "#setFeature(" + name + ", " + value + ")"
-				);		
-			
-		}
+	// feature name cannot be null
+	if (name == null) {
+            ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_SET_FEATURE_NULL_NAME);
+    	    throw new NullPointerException(err.toString());
+	}		
+	// secure processing?
+	else if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+	    _isSecureProcessing = value;		
+	    // all done processing feature
+	    return;
+	}
+	else {	
+	    // unknown feature
+            ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_UNSUPPORTED_FEATURE, name);
+            throw new TransformerConfigurationException(err.toString());
+        }
+    }
 
     /**
      * javax.xml.transform.sax.TransformerFactory implementation.
@@ -449,10 +434,8 @@ public class TransformerFactoryImpl
 
 	// feature name cannot be null
 	if (name == null) {
-		throw new NullPointerException(
-			"Trying to get a feature with a null name: "
-				+ CLASS_NAME
-				+ "#getFeature(null)");
+    	    ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_GET_FEATURE_NULL_NAME);
+    	    throw new NullPointerException(err.toString());
 	}
 
 	// Inefficient, but array is small
@@ -461,10 +444,9 @@ public class TransformerFactoryImpl
 		return true;
 	    }
 	}
-
 	// secure processing?
 	if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
-		return featureSecureProcessing;
+		return _isSecureProcessing;
 	}
 
 	// Feature not supported
@@ -544,6 +526,14 @@ public class TransformerFactoryImpl
 
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 factory.setNamespaceAware(true);
+                
+                if (_isSecureProcessing) {
+                    try {
+                        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                    }
+                    catch (org.xml.sax.SAXException e) {}
+                }
+                
                 SAXParser jaxpParser = factory.newSAXParser();
 
                 reader = jaxpParser.getXMLReader();
@@ -600,6 +590,10 @@ public class TransformerFactoryImpl
 	if (_uriResolver != null) {
 	    result.setURIResolver(_uriResolver);
 	}
+	
+	if (_isSecureProcessing) {
+	    result.setSecureProcessing(true);
+	}
 	return result;
     }
 
@@ -636,9 +630,14 @@ public class TransformerFactoryImpl
 	// Pass messages to listener, one by one
 	final int count = messages.size();
 	for (int pos = 0; pos < count; pos++) {
-	    String message = messages.elementAt(pos).toString();
-	    _errorListener.error(
-		new TransformerConfigurationException(message));
+	    ErrorMsg msg = (ErrorMsg)messages.elementAt(pos);
+	    // Workaround for the TCK failure ErrorListener.errorTests.error001.
+	    if (msg.isWarningError())
+	        _errorListener.error(
+		    new TransformerConfigurationException(msg.toString()));
+	    else
+	    	_errorListener.warning(
+		    new TransformerConfigurationException(msg.toString()));
 	}
     }
 
@@ -667,7 +666,7 @@ public class TransformerFactoryImpl
      * Process the Source into a Templates object, which is a a compiled
      * representation of the source.
      *
-     * @param stylesheet The input stylesheet - DOMSource not supported!!!
+     * @param source The input stylesheet - DOMSource not supported!!!
      * @return A Templates object that can be used to create Transformers.
      * @throws TransformerConfigurationException
      */
@@ -738,6 +737,7 @@ public class TransformerFactoryImpl
 	final XSLTC xsltc = new XSLTC();
 	if (_debug) xsltc.setDebug(true);
 	if (_enableInlining) xsltc.setTemplateInlining(true);
+	if (_isSecureProcessing) xsltc.setSecureProcessing(true);
 	xsltc.init();
 
 	// Set a document loader (for xsl:include/import) if defined
@@ -943,7 +943,7 @@ public class TransformerFactoryImpl
      * Create an XMLFilter that uses the given source as the
      * transformation instructions.
      *
-     * @param src The source of the transformation instructions.
+     * @param templates The source of the transformation instructions.
      * @return An XMLFilter object, or null if this feature is not supported.
      * @throws TransformerConfigurationException
      */
@@ -973,7 +973,7 @@ public class TransformerFactoryImpl
      * invoking this method. It should still be possible for the application
      * to process the document through to the end.
      *
-     * @param exception The warning information encapsulated in a transformer 
+     * @param e The warning information encapsulated in a transformer 
      * exception.
      * @throws TransformerException if the application chooses to discontinue
      * the transformation (always does in our case).
@@ -1001,7 +1001,7 @@ public class TransformerFactoryImpl
      * Transformers are free to stop reporting events once this method has
      * been invoked.
      *
-     * @param exception The warning information encapsulated in a transformer
+     * @param e warning information encapsulated in a transformer
      * exception.
      * @throws TransformerException if the application chooses to discontinue
      * the transformation (always does in our case).
@@ -1029,7 +1029,7 @@ public class TransformerFactoryImpl
      * transformation. It should still be possible for the application to
      * process the document through to the end.
      *
-     * @param exception The warning information encapsulated in a transformer
+     * @param e The warning information encapsulated in a transformer
      * exception.
      * @throws TransformerException if the application chooses to discontinue
      * the transformation (never does in our case).

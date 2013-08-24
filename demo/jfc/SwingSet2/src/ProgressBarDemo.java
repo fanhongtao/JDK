@@ -1,7 +1,7 @@
 /*
- * @(#)ProgressBarDemo.java	1.10 04/07/26
+ * @(#)ProgressBarDemo.java	1.12 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ProgressBarDemo.java	1.10 04/07/26
+ * @(#)ProgressBarDemo.java	1.12 05/11/17
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * JProgressBar Demo
  *
- * @version 1.10 07/26/04
+ * @version 1.12 11/17/05
  * @author Jeff Dinkins
  # @author Peter Korn (accessibility support)
  */
@@ -83,7 +83,7 @@ public class ProgressBarDemo extends DemoModule {
 	createProgressPanel();
     }
 
-    javax.swing.Timer timer;
+    javax.swing.Timer timer = new javax.swing.Timer(18, createTextLoadAction());
     Action loadAction;
     Action stopAction;
     JProgressBar progressBar;
@@ -125,18 +125,14 @@ public class ProgressBarDemo extends DemoModule {
     public JButton createLoadButton() {
 	loadAction = new AbstractAction(getString("ProgressBarDemo.start_button")) {
 	    public void actionPerformed(ActionEvent e) {
-		if(timer == null) {
-		    loadAction.setEnabled(false);
-		    stopAction.setEnabled(true);
-                    if(progressBar.getValue() == progressBar.getMaximum()) {
-                        // start again from the beginning
-                        progressBar.setValue(0);
-                        progressTextArea.setText("");
-                        textLocation = 0;
-                    }
-		    timer = new javax.swing.Timer(18, createTextLoadAction());
-		    timer.start();
-		}
+		loadAction.setEnabled(false);
+		stopAction.setEnabled(true);
+                if (progressBar.getValue() == progressBar.getMaximum()) {
+                    progressBar.setValue(0);
+                    textLocation = 0;
+                    progressTextArea.setText("");
+                }
+		timer.start();
 	    }
 	};
 	return createButton(loadAction);
@@ -145,10 +141,7 @@ public class ProgressBarDemo extends DemoModule {
     public JButton createStopButton() {
 	stopAction = new AbstractAction(getString("ProgressBarDemo.stop_button")) {
 	    public void actionPerformed(ActionEvent e) {
-		if(timer != null) {
-		    timer.stop();
-		    timer = null;
-		}
+		timer.stop();
 		loadAction.setEnabled(true);
 		stopAction.setEnabled(false);
 	    }
@@ -179,12 +172,9 @@ public class ProgressBarDemo extends DemoModule {
 		    progressTextArea.append(text.substring(textLocation, textLocation+1));
 		    textLocation++;
 		} else {
-		    if(timer != null) {
 			timer.stop();
-			timer = null;
 			loadAction.setEnabled(true);
 			stopAction.setEnabled(false);
-		    }
 		}
 	    }
 	};

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLMessages.java,v 1.15 2004/02/16 19:14:07 minchau Exp $
+ * $Id: XSLMessages.java,v 1.2.4.1 2005/09/09 07:41:10 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.res;
 
@@ -41,7 +41,7 @@ public class XSLMessages extends XPATHMessages
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
    *
-   * @param errorCode The key for the message text.
+   * @param msgKey    The key for the message text.
    * @param args      The arguments to be used as replacement text
    *                  in the message created.
    *

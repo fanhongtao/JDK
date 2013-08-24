@@ -1,7 +1,7 @@
 /*
- * @(#)ToolTipDemo.java	1.8 04/07/26
+ * @(#)ToolTipDemo.java	1.9 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ToolTipDemo.java	1.8 04/07/26
+ * @(#)ToolTipDemo.java	1.9 05/11/17
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * ToolTip Demo
  *
- * @version 1.8 07/26/04
+ * @version 1.9 11/17/05
  * @author Jeff Dinkins
  */
 public class ToolTipDemo extends DemoModule {

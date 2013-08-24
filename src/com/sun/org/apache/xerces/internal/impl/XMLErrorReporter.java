@@ -100,13 +100,15 @@ import org.xml.sax.ErrorHandler;
  * <ul>
  *  <li>http://apache.org/xml/features/continue-after-fatal-error</li>
  * </ul>
+ * 
+ * @xerces.internal
  *
  * @see MessageFormatter
  *
  * @author Eric Ye, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLErrorReporter.java,v 1.13 2004/01/26 17:28:12 mrglavas Exp $
+ * @version $Id: XMLErrorReporter.java,v 1.1.2.1 2005/08/01 03:34:09 jeffsuttor Exp $
  */
 public class XMLErrorReporter
     implements XMLComponent {

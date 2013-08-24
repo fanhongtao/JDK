@@ -1,7 +1,7 @@
 /*
- * @(#)PhantomReference.java	1.19 03/12/19
+ * @(#)PhantomReference.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ package java.lang.ref;
  * object that is reachable via phantom references will remain so until all
  * such references are cleared or themselves become unreachable.
  *
- * @version  1.19, 12/19/03
+ * @version  1.20, 11/17/05
  * @author   Mark Reinhold
  * @since    1.2
  */

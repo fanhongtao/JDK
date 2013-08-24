@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// $Id: XPathFactoryImpl.java,v 1.9 2004/07/10 21:39:19 rameshm Exp $
+// $Id: XPathFactoryImpl.java,v 1.2 2005/08/16 22:41:13 jeffsuttor Exp $
 
 package com.sun.org.apache.xpath.internal.jaxp;
 
@@ -29,7 +29,7 @@ import javax.xml.xpath.XPathVariableResolver;
 /**
  * The XPathFactory builds XPaths.
  *
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.2 $
  * @author  Ramesh Mandava
  */
 public  class XPathFactoryImpl extends XPathFactory {

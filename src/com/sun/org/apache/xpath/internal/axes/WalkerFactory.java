@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WalkerFactory.java,v 1.28 2004/02/17 04:32:08 minchau Exp $
+ * $Id: WalkerFactory.java,v 1.2.4.1 2005/09/10 03:42:19 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -44,9 +44,6 @@ public class WalkerFactory
   /**
    * This method is for building an array of possible levels
    * where the target element(s) could be found for a match.
-   * @param xpath The xpath that is executing.
-   * @param context The current source tree context node.
-   *
    * @param lpi The owning location path iterator.
    * @param compiler non-null reference to compiler object that has processed
    *                 the XPath operations into an opcode map.
@@ -81,9 +78,6 @@ public class WalkerFactory
   /**
    * This method is for building an array of possible levels
    * where the target element(s) could be found for a match.
-   * @param xpath The xpath that is executing.
-   * @param context The current source tree context node.
-   *
    * @param lpi The owning location path iterator object.
    * @param compiler non-null reference to compiler object that has processed
    *                 the XPath operations into an opcode map.
@@ -294,7 +288,6 @@ public class WalkerFactory
    * @param compiler non-null reference to compiler object that has processed
    *                 the XPath operations into an opcode map.
    * @param stepOpCodePos The opcode position for the step.
-   * @param stepIndex The top-level step index withing the iterator.
    *
    * @return 32 bits as an integer that give information about the location
    * path as a whole.
@@ -1103,8 +1096,8 @@ public class WalkerFactory
     if (false || DEBUG_PATTERN_CREATION)
     {
       System.out.print("new step: "+ ai);
-      System.out.print(", axis: " + Axis.names[ai.getAxis()]);
-      System.out.print(", predAxis: " + Axis.names[ai.getAxis()]);
+      System.out.print(", axis: " + Axis.getNames(ai.getAxis()));
+      System.out.print(", predAxis: " + Axis.getNames(ai.getAxis()));
       System.out.print(", what: ");
       System.out.print("    ");
       ai.debugWhatToShow(ai.getWhatToShow());

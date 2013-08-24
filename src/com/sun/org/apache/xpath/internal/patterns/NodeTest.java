@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeTest.java,v 1.27 2004/02/17 04:35:37 minchau Exp $
+ * $Id: NodeTest.java,v 1.2.4.2 2005/09/15 00:21:14 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.patterns;
 
@@ -35,6 +35,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class NodeTest extends Expression
 {
+    static final long serialVersionUID = -5736721866747906182L;
 
   /**
    * The namespace or local name for node tests with a wildcard.
@@ -563,7 +564,7 @@ public class NodeTest extends Expression
     // the prefix expands, regardless of the local part of the name."
     case DTMFilter.SHOW_NAMESPACE :
     {
-      String ns = dtm.getNodeValue(context);
+      String ns = dtm.getLocalName(context);
 
       return (subPartMatch(ns, m_name)) ? m_score : SCORE_NONE;
     }
@@ -636,7 +637,7 @@ public class NodeTest extends Expression
     // the prefix expands, regardless of the local part of the name."
     case DTMFilter.SHOW_NAMESPACE :
     {
-      String ns = dtm.getNodeValue(context);
+      String ns = dtm.getLocalName(context);
 
       return (subPartMatch(ns, m_name)) ? m_score : SCORE_NONE;
     }
@@ -679,7 +680,7 @@ public class NodeTest extends Expression
   }
 
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

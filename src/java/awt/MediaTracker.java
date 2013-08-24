@@ -1,7 +1,7 @@
 /*
- * @(#)MediaTracker.java	1.42 03/12/19
+ * @(#)MediaTracker.java	1.44 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -145,7 +145,7 @@ import java.awt.image.ImageObserver;
  * }
  * </pre></blockquote><hr>
  *
- * @version 	1.42, 12/19/03
+ * @version 	1.44, 11/17/05
  * @author 	Jim Graham
  * @since       JDK1.0
  */
@@ -368,7 +368,7 @@ public class MediaTracker implements java.io.Serializable {
      * @see         java.awt.MediaTracker#waitForAll(long)
      * @see         java.awt.MediaTracker#isErrorAny
      * @see         java.awt.MediaTracker#isErrorID
-     * @exception   InterruptedException  if another thread has 
+     * @exception   InterruptedException  if any thread has 
      *                                     interrupted this thread
      */
     public void waitForAll() throws InterruptedException {
@@ -393,7 +393,7 @@ public class MediaTracker implements java.io.Serializable {
      * @see         java.awt.MediaTracker#waitForAll(long)
      * @see         java.awt.MediaTracker#isErrorAny
      * @see         java.awt.MediaTracker#isErrorID
-     * @exception   InterruptedException  if another thread has 
+     * @exception   InterruptedException  if any thread has 
      *                                     interrupted this thread.
      */
     public synchronized boolean waitForAll(long ms)
@@ -599,7 +599,7 @@ public class MediaTracker implements java.io.Serializable {
      * @see           java.awt.MediaTracker#waitForAll
      * @see           java.awt.MediaTracker#isErrorAny()
      * @see           java.awt.MediaTracker#isErrorID(int)
-     * @exception     InterruptedException  if another thread has 
+     * @exception     InterruptedException  if any thread has 
      *                          interrupted this thread.
      */
     public void waitForID(int id) throws InterruptedException {
@@ -625,7 +625,7 @@ public class MediaTracker implements java.io.Serializable {
      * @see           java.awt.MediaTracker#statusID
      * @see           java.awt.MediaTracker#isErrorAny()
      * @see           java.awt.MediaTracker#isErrorID(int)
-     * @exception     InterruptedException  if another thread has 
+     * @exception     InterruptedException  if any thread has 
      *                          interrupted this thread.
      */
     public synchronized boolean waitForID(int id, long ms)

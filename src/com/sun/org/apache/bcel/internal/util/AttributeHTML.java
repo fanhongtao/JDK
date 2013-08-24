@@ -60,7 +60,7 @@ import java.io.*;
 /**
  * Convert found attributes into HTML file.
  *
- * @version $Id: AttributeHTML.java,v 1.1.1.1 2001/10/29 20:00:28 jvanzyl Exp $
+ * @version $Id: AttributeHTML.java,v 1.1.2.1 2005/07/31 23:47:02 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * 
  */
@@ -118,7 +118,6 @@ final class AttributeHTML implements com.sun.org.apache.bcel.internal.Constants 
     switch(tag) {
     case ATTR_CODE:
       Code        c          = (Code)attribute;
-      Attribute[] attributes = c.getAttributes();
 
       // Some directly printable values
       file.print("<UL><LI>Maximum stack size = " + c.getMaxStack() + 

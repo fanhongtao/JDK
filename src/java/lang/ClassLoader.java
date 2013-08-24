@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoader.java	1.186 04/08/02
+ * @(#)ClassLoader.java	1.189 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.lang;
@@ -135,7 +135,7 @@ import sun.security.util.SecurityConstants;
  *   "java.net.URLClassLoader$3$1"
  * </pre></blockquote>
  *
- * @version  1.186, 08/02/04
+ * @version  1.189, 11/17/05
  * @see      #resolveClass(Class)
  * @since 1.0
  */
@@ -1521,7 +1521,7 @@ public abstract class ClassLoader {
      * the VM when it loads the library, and used by the VM to pass the correct
      * version of JNI to the native methods.  </p>
      *
-     * @version  1.186 08/02/04
+     * @version  1.189 11/17/05
      * @see      ClassLoader
      * @since    1.2
      */
@@ -1844,8 +1844,8 @@ public abstract class ClassLoader {
      * @param  packageName
      *         The name of the package whose package default assertion status
      *         is to be set. A <tt>null</tt> value indicates the unnamed
-     *         package that is "current" (<a *
-     *         href="http://java.sun.com/docs/books/jls/">Java Language
+     *         package that is "current"
+     *         (<a href="http://java.sun.com/docs/books/jls/">Java Language
      *         Specification</a>, section 7.4.2).
      *
      * @param  enabled
@@ -1874,8 +1874,7 @@ public abstract class ClassLoader {
      * initialized, its assertion status cannot change.)
      *
      * <p> If the named class is not a top-level class, this invocation will
-     * have no effect on the actual assertion status of any class, and its
-     * return value is undefined.  </p>
+     * have no effect on the actual assertion status of any class. </p>
      *
      * @param  className
      *         The fully qualified class name of the top-level class whose

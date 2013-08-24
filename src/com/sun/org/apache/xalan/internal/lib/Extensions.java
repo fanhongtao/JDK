@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Extensions.java,v 1.29 2004/02/23 10:29:34 aruny Exp $
+ * $Id: Extensions.java,v 1.2.4.1 2005/09/10 18:53:32 jeffsuttor Exp $
  */
 package com.sun.org.apache.xalan.internal.lib;
 
@@ -213,7 +213,7 @@ public class Extensions
    *
    * @param myContext an <code>ExpressionContext</code> passed in by the
    *                  extension mechanism.  This must be an XPathContext.
-   * @param xpathExtr The XPath expression to be evaluated.
+   * @param xpathExpr The XPath expression to be evaluated.
    * @return the XObject resulting from evaluating the XPath
    *
    * @throws SAXNotSupportedException
@@ -237,8 +237,6 @@ public class Extensions
    *
    * Contributed to XalanJ1 by <a href="mailto:benoit.cerrina@writeme.com">Benoit Cerrina</a>.
    * 
-   * @param myContext an <code>ExpressionContext</code> passed in by the
-   *                  extension mechanism.  This must be an XPathContext.
    * @param toTokenize The string to be split into text tokens.
    * @param delims The delimiters to use.
    * @return a NodeSet as described above.
@@ -273,8 +271,6 @@ public class Extensions
    *
    * Contributed to XalanJ1 by <a href="mailto:benoit.cerrina@writeme.com">Benoit Cerrina</a>.
    * 
-   * @param myContext an <code>ExpressionContext</code> passed in by the
-   *                  extension mechanism.  This must be an XPathContext.
    * @param toTokenize The string to be split into text tokens.
    * @return a NodeSet as described above.
    */

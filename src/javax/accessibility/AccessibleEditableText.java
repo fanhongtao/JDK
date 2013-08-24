@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleEditableText.java	1.4 03/12/19
+ * @(#)AccessibleEditableText.java	1.6 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,8 +29,9 @@ import javax.swing.text.*;
  * @see AccessibleContext#getAccessibleText
  * @see AccessibleContext#getAccessibleEditableText
  *
- * @version	1.4 @(#)AccessibleEditableText.java	1.4
+ * @version	1.6 @(#)AccessibleEditableText.java	1.6
  * @author	Lynn Monsanto
+ * @since 1.4
  */
 
 public interface AccessibleEditableText extends AccessibleText {

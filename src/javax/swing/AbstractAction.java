@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractAction.java	1.51 03/12/19
+ * @(#)AbstractAction.java	1.56 06/03/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -15,7 +15,9 @@ import java.io.Serializable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.AccessController;
 import javax.swing.event.SwingPropertyChangeSupport;
+import sun.security.action.GetPropertyAction;
 
 /**
  * This class provides default implementations for the JFC <code>Action</code> 
@@ -33,12 +35,17 @@ import javax.swing.event.SwingPropertyChangeSupport;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.51 12/19/03
+ * @version 1.56 03/28/06
  * @author Georges Saab
  * @see Action
  */
 public abstract class AbstractAction implements Action, Cloneable, Serializable 
 {
+    /**
+     * Whether or not actions should reconfigure all properties on null.
+     */
+    private static Boolean RECONFIGURE_ON_NULL;
+
     /**
      * Specifies whether action is enabled; the default is true.
      */
@@ -49,6 +56,55 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      * Contains the array of key bindings.
      */
     private transient ArrayTable arrayTable;
+
+    /**
+     * Whether or not to reconfigure all action properties from the
+     * specified event.
+     */
+    static boolean shouldReconfigure(PropertyChangeEvent e) {
+        if (e.getPropertyName() == null) {
+            synchronized(AbstractAction.class) {
+                if (RECONFIGURE_ON_NULL == null) {
+                    RECONFIGURE_ON_NULL = Boolean.valueOf(
+                        AccessController.doPrivileged(new GetPropertyAction(
+                        "swing.actions.reconfigureOnNull", "false")));
+                }
+                return RECONFIGURE_ON_NULL;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Sets the enabled state of a component from an Action.
+     *
+     * @param c the Component to set the enabled state on
+     * @param a the Action to set the enabled state from, may be null
+     */
+    static void setEnabledFromAction(JComponent c, Action a) {
+        c.setEnabled((a != null) ? a.isEnabled() : true);
+    }
+
+    /**
+     * Sets the tooltip text of a component from an Action.
+     *
+     * @param c the Component to set the tooltip text on
+     * @param a the Action to set the tooltip text from, may be null
+     */
+    static void setToolTipTextFromAction(JComponent c, Action a) {
+        c.setToolTipText(a != null ?
+                         (String)a.getValue(Action.SHORT_DESCRIPTION) : null);
+    }
+
+    static boolean hasSelectedKey(Action a) {
+        return (a != null && a.getValue(Action.SELECTED_KEY) != null);
+    }
+
+    static boolean isSelected(Action a) {
+        return Boolean.TRUE.equals(a.getValue(Action.SELECTED_KEY));
+    }
+
+
     
     /**
      * Defines an <code>Action</code> object with a default
@@ -83,6 +139,9 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      * @see Action#getValue
      */
     public Object getValue(String key) {
+        if (key == "enabled") {
+            return enabled;
+        }
 	if (arrayTable == null) {
 	    return null;
 	}
@@ -98,18 +157,35 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
      */
     public void putValue(String key, Object newValue) {
 	Object oldValue = null;
-	if (arrayTable == null) {
-	    arrayTable = new ArrayTable();
-	}
-	if (arrayTable.containsKey(key))
-	    oldValue = arrayTable.get(key);
-	// Remove the entry for key if newValue is null
-	// else put in the newValue for key.
-	if (newValue == null) {
-	    arrayTable.remove(key);
-	} else {
-	    arrayTable.put(key,newValue);
-	}
+        if (key == "enabled") {
+            // Treat putValue("enabled") the same way as a call to setEnabled.
+            // If we don't do this it means the two may get out of sync, and a
+            // bogus property change notification would be sent.
+            // 
+            // To avoid dependencies between putValue & setEnabled this
+            // directly changes enabled. If we instead called setEnabled
+            // to change enabled, it would be possible for stack
+            // overflow in the case where a developer implemented setEnabled
+            // in terms of putValue. 
+            if (newValue == null || !(newValue instanceof Boolean)) {
+                newValue = false;
+            }
+            oldValue = enabled;
+            enabled = (Boolean)newValue;
+        } else {
+            if (arrayTable == null) {
+                arrayTable = new ArrayTable();
+            }
+            if (arrayTable.containsKey(key))
+                oldValue = arrayTable.get(key);
+            // Remove the entry for key if newValue is null
+            // else put in the newValue for key.
+            if (newValue == null) {
+                arrayTable.remove(key);
+            } else {
+                arrayTable.put(key,newValue);
+            }
+        }
 	firePropertyChange(key, oldValue, newValue);
     }
 

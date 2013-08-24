@@ -1,13 +1,14 @@
 /*
- * @(#)AbstractStringBuilder.java	1.14 05/09/26
+ * @(#)AbstractStringBuilder.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
 
 import sun.misc.FloatingDecimal;
+import java.util.Arrays;
 
 /**
  * A mutable sequence of characters.
@@ -17,7 +18,7 @@ import sun.misc.FloatingDecimal;
  * sequence can be changed through certain method calls.
  *
  * @author	Michael McCloskey
- * @version 	1.14, 09/26/05
+ * @version 	1.15, 11/17/05
  * @since	1.5
  */
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
@@ -95,10 +96,8 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
             newCapacity = Integer.MAX_VALUE;
         } else if (minimumCapacity > newCapacity) {
 	    newCapacity = minimumCapacity;
-	}	
-	char newValue[] = new char[newCapacity];
-	System.arraycopy(value, 0, newValue, 0, count);
-	value = newValue;
+	}
+        value = Arrays.copyOf(value, newCapacity);
     }
 
     /**
@@ -110,9 +109,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      */
     public void trimToSize() {
         if (count < value.length) {
-            char[] newValue = new char[count];
-            System.arraycopy(value, 0, newValue, 0, count); 
-            this.value = newValue;
+            value = Arrays.copyOf(value, count);
         }
     }
 
@@ -798,15 +795,13 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     public AbstractStringBuilder replace(int start, int end, String str) {
         if (start < 0)
 	    throw new StringIndexOutOfBoundsException(start);
-        if (start > count)
-            throw new StringIndexOutOfBoundsException("start > length()");
+	if (start > count)
+	    throw new StringIndexOutOfBoundsException("start > length()");
 	if (start > end)
 	    throw new StringIndexOutOfBoundsException("start > end");
-        if (end > count)
-            end = count;
 
-        if (end > count)
-            end = count;
+	if (end > count)
+	    end = count;
 	int len = str.length();
 	int newCount = count + len - (end - start);
 	if (newCount > value.length)

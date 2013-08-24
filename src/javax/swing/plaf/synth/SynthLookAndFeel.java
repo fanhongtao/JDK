@@ -1,24 +1,26 @@
 /*
- * @(#)SynthLookAndFeel.java	1.45 04/05/07
+ * @(#)SynthLookAndFeel.java	1.48 05/05/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
-import sun.swing.DefaultLookup;
 import java.awt.*;
-import java.awt.event.*;
 import java.beans.*;
 import java.io.*;
 import java.lang.ref.*;
+import java.net.*;
+import java.security.*;
 import java.text.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
-import sun.awt.AppContext;
+
+import sun.awt.*;
+import sun.security.action.*;
+import sun.swing.*;
 import sun.swing.plaf.synth.*;
 
 /**
@@ -40,7 +42,7 @@ import sun.swing.plaf.synth.*;
  * result in {@link NotSerializableException}.
  * 
  * @serial exclude 
- * @version 1.45, 05/07/04
+ * @version 1.48, 05/24/05
  * @since 1.5
  * @author Scott Violet
  */
@@ -90,6 +92,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      */
     private Map defaultsMap;
 
+    private Handler _handler;
 
     /**
      * Used by the renderers. For the most part the renderers are implemented
@@ -100,11 +103,19 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      * a way for labels to have a state other than selected.
      */
     static void setSelectedUI(ComponentUI uix, boolean selected,
-                              boolean focused, boolean enabled) {
+                              boolean focused, boolean enabled,
+                              boolean rollover) {
         selectedUI = uix;
         selectedUIState = 0;
         if (selected) {
             selectedUIState = SynthConstants.SELECTED;
+            if (focused) {
+                selectedUIState |= SynthConstants.FOCUSED;
+            }
+        }
+        else if (rollover && enabled) {
+            selectedUIState |=
+                    SynthConstants.MOUSE_OVER | SynthConstants.ENABLED;
             if (focused) {
                 selectedUIState |= SynthConstants.FOCUSED;
             }
@@ -524,6 +535,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      */
     public SynthLookAndFeel() {
         factory = new DefaultSynthStyleFactory();
+        _handler = new Handler();
     }
 
     /**
@@ -536,17 +548,54 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      * for more information.
      *
      * @param input InputStream to load from
-     * @param resourceBase Used to resolve any images or other resources
-     * @throws ParseException If there is an error in parsing
-     * @throws IllegalArgumentException if input or resourceBase is null
+     * @param resourceBase used to resolve any images or other resources
+     * @throws ParseException if there is an error in parsing
+     * @throws IllegalArgumentException if input or resourceBase is <code>null</code>
      */
     public void load(InputStream input, Class<?> resourceBase) throws
-                       ParseException, IllegalArgumentException {
+                       ParseException {
+        if (resourceBase == null) {
+            throw new IllegalArgumentException(
+                "You must supply a valid resource base Class");
+        }
+
         if (defaultsMap == null) {
             defaultsMap = new HashMap();
         }
-        new SynthParser().parse(input, (DefaultSynthStyleFactory)factory,
-                                resourceBase, defaultsMap);
+        
+        new SynthParser().parse(input, (DefaultSynthStyleFactory) factory,
+                                null, resourceBase, defaultsMap);
+    }
+    
+    /**
+     * Loads the set of <code>SynthStyle</code>s that will be used by
+     * this <code>SynthLookAndFeel</code>. Path based resources are resolved
+     * relatively to the specified <code>URL</code> of the style. For example
+     * an <code>Image</code> would be resolved by
+     * <code>new URL(synthFile, path)</code>. Refer to
+     * <a href="doc-files/synthFileFormat.html">Synth File Format</a> for more
+     * information.
+     *
+     * @param url the <code>URL</code> to load the set of
+     *     <code>SynthStyle</code> from
+     * @throws ParseException if there is an error in parsing
+     * @throws IllegalArgumentException if synthSet is <code>null</code>
+     * @throws IOException if synthSet cannot be opened as an <code>InputStream</code>
+     * @since 1.6
+     */
+    public void load(URL url) throws ParseException, IOException {
+        if (url == null) {
+            throw new IllegalArgumentException(
+                "You must supply a valid Synth set URL");
+        }
+
+        if (defaultsMap == null) {
+            defaultsMap = new HashMap();
+        }
+        
+        InputStream input = url.openStream();
+        new SynthParser().parse(input, (DefaultSynthStyleFactory) factory,
+                                url, null, defaultsMap);
     }
 
     /**
@@ -556,12 +605,16 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
         super.initialize();
         DefaultLookup.setDefaultLookup(new SynthDefaultLookup());
         setStyleFactory(factory);
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().
+            addPropertyChangeListener(_handler);
     }
 
     /**
      * Called by UIManager when this look and feel is uninstalled.
      */
     public void uninitialize() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().
+            removePropertyChangeListener(_handler);
         // We should uninstall the StyleFactory here, but unfortunately
         // there are a handful of things that retain references to the
         // LookAndFeel and expect things to work
@@ -571,16 +624,20 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
     /**
      * Returns the defaults for this SynthLookAndFeel.
      *
-     * @return Defaults able.
+     * @return Defaults table.
      */
     public UIDefaults getDefaults() {
-	UIDefaults table = new UIDefaults();
+        UIDefaults table = new UIDefaults(60, 0.75f);
+    
         Region.registerUIs(table);
         table.setDefaultLocale(Locale.getDefault());
         table.addResourceBundle(
               "com.sun.swing.internal.plaf.basic.resources.basic" );
         table.addResourceBundle("com.sun.swing.internal.plaf.synth.resources.synth");
 
+        // SynthTabbedPaneUI supports rollover on tabs, GTK does not
+        table.put("TabbedPane.isTabRollover", Boolean.TRUE);
+        
         // These need to be defined for JColorChooser to work.
         table.put("ColorChooser.swatchesRecentSwatchSize",
                   new Dimension(10, 10));
@@ -608,6 +665,12 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
 		   "RIGHT", "selectParent",
 		"KP_RIGHT", "selectParent",
                   });
+        
+        // enabled antialiasing depending on desktop settings
+        flushUnreferenced();
+        Object aaTextInfo = getAATextInfo();
+        table.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
+        new AATextListener(this);
 
         if (defaultsMap != null) {
             table.putAll(defaultsMap);
@@ -627,7 +690,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
     /**
      * Returns false, SynthLookAndFeel is not a native look and feel.
      *
-     * @return true.
+     * @return false
      */
     public boolean isNativeLookAndFeel() {
         return false;
@@ -676,8 +739,198 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
         return false;
     }
     
+    /**
+     * Returns the antialiasing information as specified by the host desktop.
+     * Antialiasing might be forced off if the desktop is GNOME and the user
+     * has set his locale to Chinese, Japanese or Korean. This is consistent
+     * with what GTK does. See com.sun.java.swing.plaf.gtk.GtkLookAndFeel
+     * for more information about CJK and antialiased fonts.
+     * 
+     * @return the text antialiasing information associated to the desktop 
+     */
+    private static Object getAATextInfo() {
+        String language = Locale.getDefault().getLanguage();
+        String desktop = (String)
+            AccessController.doPrivileged(new GetPropertyAction("sun.desktop"));
+        
+        boolean isCjkLocale = (Locale.CHINESE.getLanguage().equals(language) ||
+                Locale.JAPANESE.getLanguage().equals(language) ||
+                Locale.KOREAN.getLanguage().equals(language));
+        boolean isGnome = "gnome".equals(desktop);
+        boolean isLocal = SwingUtilities2.isLocalDisplay();
+        
+        boolean setAA = isLocal && (!isGnome || !isCjkLocale);
+
+        Object aaTextInfo = SwingUtilities2.AATextInfo.getAATextInfo(setAA);
+        return aaTextInfo;
+    }
+    
+    private static ReferenceQueue queue = new ReferenceQueue();
+
+    private static void flushUnreferenced() {
+        AATextListener aatl;
+        while ((aatl = (AATextListener) queue.poll()) != null) {
+            aatl.dispose();
+        }
+    }
+    
+    private static class AATextListener
+        extends WeakReference implements PropertyChangeListener {
+        private String key = SunToolkit.DESKTOPFONTHINTS;
+    
+        AATextListener(LookAndFeel laf) {
+            super(laf, queue);
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            tk.addPropertyChangeListener(key, this);
+        }
+    
+        public void propertyChange(PropertyChangeEvent pce) {
+            UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+            if (defaults.getBoolean("Synth.doNotSetTextAA")) {
+                dispose();
+                return;
+            }
+            
+            LookAndFeel laf = (LookAndFeel) get();
+            if (laf == null || laf != UIManager.getLookAndFeel()) {
+                dispose();
+                return;
+            }
+
+            Object aaTextInfo = getAATextInfo();
+            defaults.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
+
+            updateUI();
+        }
+    
+        void dispose() {
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            tk.removePropertyChangeListener(key, this);
+        }
+    
+        /**
+         * Updates the UI of the passed in window and all its children.
+         */
+        private static void updateWindowUI(Window window) {
+            updateStyles(window);
+            Window ownedWins[] = window.getOwnedWindows();
+            for (int i = 0; i < ownedWins.length; i++) {
+                updateWindowUI(ownedWins[i]);
+            }
+        }
+    
+        /**
+         * Updates the UIs of all the known Frames.
+         */
+        private static void updateAllUIs() {
+            Frame appFrames[] = Frame.getFrames();
+            for (int i = 0; i < appFrames.length; i++) {
+                updateWindowUI(appFrames[i]);
+            }
+        }
+    
+        /**
+         * Indicates if an updateUI call is pending.
+         */
+        private static boolean updatePending;
+    
+        /**
+         * Sets whether or not an updateUI call is pending.
+         */
+        private static synchronized void setUpdatePending(boolean update) {
+            updatePending = update;
+        }
+    
+        /**
+         * Returns true if a UI update is pending.
+         */
+        private static synchronized boolean isUpdatePending() {
+            return updatePending;
+        }
+    
+        protected void updateUI() {
+            if (!isUpdatePending()) {
+                setUpdatePending(true);
+                Runnable uiUpdater = new Runnable() {
+                    public void run() {
+                        updateAllUIs();
+                        setUpdatePending(false);
+                    }
+                };
+                SwingUtilities.invokeLater(uiUpdater);
+            }
+        }
+    }
+    
     private void writeObject(java.io.ObjectOutputStream out) 
             throws IOException {
         throw new NotSerializableException(this.getClass().getName());
+    }
+
+    private class Handler implements PropertyChangeListener {
+        public void propertyChange(PropertyChangeEvent evt) {
+            String propertyName = evt.getPropertyName();
+            Object newValue = evt.getNewValue();
+            Object oldValue = evt.getOldValue();
+
+            if ("focusOwner" == propertyName) {
+                if (oldValue instanceof JComponent) {
+                    repaintIfBackgroundsDiffer((JComponent)oldValue);
+
+                }
+
+                if (newValue instanceof JComponent) {
+                    repaintIfBackgroundsDiffer((JComponent)newValue);
+                }
+            }
+            else if ("managingFocus" == propertyName) {
+                // De-register listener on old keyboard focus manager and
+                // register it on the new one.
+                KeyboardFocusManager manager =
+                    (KeyboardFocusManager)evt.getSource();
+                if (((Boolean)newValue).equals(Boolean.FALSE)) {
+                    manager.removePropertyChangeListener(_handler);
+                }
+                else {
+                    manager.addPropertyChangeListener(_handler);
+                }
+            }
+        }
+
+        /**
+         * This is a support method that will check if the background colors of
+         * the specified component differ between focused and unfocused states.
+         * If the color differ the component will then repaint itself.
+         *
+         * @comp the component to check
+         */
+        private void repaintIfBackgroundsDiffer(JComponent comp) {
+            ComponentUI ui = (ComponentUI)comp.getClientProperty(
+                    SwingUtilities2.COMPONENT_UI_PROPERTY_KEY);
+            if (ui instanceof SynthUI) {
+                SynthUI synthUI = (SynthUI)ui;
+                SynthContext context = synthUI.getContext(comp);
+                SynthStyle style = context.getStyle();
+                int state = context.getComponentState();
+
+                // Get the current background color.
+                Color currBG = style.getColor(context, ColorType.BACKGROUND);
+
+                // Get the last background color.
+                state ^= SynthConstants.FOCUSED;
+                context.setComponentState(state);
+                Color lastBG = style.getColor(context, ColorType.BACKGROUND);
+
+                // Reset the component state back to original.
+                state ^= SynthConstants.FOCUSED;
+                context.setComponentState(state);
+
+                // Repaint the component if the backgrounds differed.
+                if (currBG != null && !currBG.equals(lastBG)) {
+                    comp.repaint();
+                }
+                context.dispose();
+            }
+        }
     }
 }

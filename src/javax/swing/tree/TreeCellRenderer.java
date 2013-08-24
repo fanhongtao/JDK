@@ -1,7 +1,7 @@
 /*
- * @(#)TreeCellRenderer.java	1.20 03/12/19
+ * @(#)TreeCellRenderer.java	1.24 06/03/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.tree;
@@ -17,7 +17,7 @@ import javax.swing.JTree;
  * for an example of implementing a tree cell renderer
  * that displays custom icons.
  *
- * @version 1.20 12/19/03
+ * @version 1.24 03/08/06
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -28,11 +28,27 @@ public interface TreeCellRenderer {
      * Sets the value of the current tree cell to <code>value</code>.
      * If <code>selected</code> is true, the cell will be drawn as if
      * selected. If <code>expanded</code> is true the node is currently
-     * expanded and if <code>leaf</code> is true the node represets a
+     * expanded and if <code>leaf</code> is true the node represents a
      * leaf and if <code>hasFocus</code> is true the node currently has
      * focus. <code>tree</code> is the <code>JTree</code> the receiver is being
      * configured for.  Returns the <code>Component</code> that the renderer
      * uses to draw the value.
+     * <p>
+     * The <code>TreeCellRenderer</code> is also responsible for rendering the
+     * the cell representing the tree's current DnD drop location if
+     * it has one. If this renderer cares about rendering
+     * the DnD drop location, it should query the tree directly to
+     * see if the given row represents the drop location:
+     * <pre>
+     *     JTree.DropLocation dropLocation = tree.getDropLocation();
+     *     if (dropLocation != null
+     *             && dropLocation.getChildIndex() == -1
+     *             && tree.getRowForPath(dropLocation.getPath()) == row) {
+     *
+     *         // this row represents the current drop location
+     *         // so render it specially, perhaps with a different color
+     *     }
+     * </pre>
      *
      * @return	the <code>Component</code> that the renderer uses to draw the value
      */

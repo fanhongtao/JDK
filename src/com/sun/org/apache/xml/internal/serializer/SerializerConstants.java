@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializerConstants.java,v 1.2 2004/02/17 04:18:19 minchau Exp $
+ * $Id: SerializerConstants.java,v 1.2.4.1 2005/09/15 08:15:23 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
 /**
- * @author minchau
- *
  * Constants used in serialization, such as the string "xmlns"
- * @author Jacek Ambroziak
- * @author Santiago Pericas-Geertsen
+ * @xsl.usage internal
  */
-public interface SerializerConstants
+interface SerializerConstants
 {
 
     /** To insert ]]> in a CDATA section by ending the last CDATA section with
@@ -37,10 +34,6 @@ public interface SerializerConstants
      */
     static final String CDATA_DELIMITER_CLOSE = "]]>";
     static final String CDATA_DELIMITER_OPEN = "<![CDATA[";
-
-    static final char[] CNTCDATA = CDATA_CONTINUE.toCharArray();
-    static final char[] BEGCDATA = CDATA_DELIMITER_OPEN.toCharArray();
-    static final char[] ENDCDATA = CDATA_DELIMITER_CLOSE.toCharArray();
 
     static final String EMPTYSTRING = "";
 
@@ -55,4 +48,10 @@ public interface SerializerConstants
     static final String XMLNS_URI = "http://www.w3.org/2000/xmlns/";
    
     public static final String DEFAULT_SAX_SERIALIZER="com.sun.org.apache.xml.internal.serializer.ToXMLSAXHandler";
+    
+    /**
+     * Define the XML version.
+     */
+    static final String XMLVERSION11 = "1.1";
+    static final String XMLVERSION10 = "1.0";
 }

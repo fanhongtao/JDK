@@ -1,7 +1,7 @@
 /*
- * @(#)WrongTransaction.java	1.24 03/12/19
+ * @(#)WrongTransaction.java	1.26 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package org.omg.CORBA;
  * which the client originally sent the request.
  * See the OMG Transaction Service Specification for details.
  *
- * @see <A href="../../../../guide/idl/jidlExceptions.html">documentation on
+ * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
  */
 

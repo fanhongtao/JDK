@@ -1,7 +1,7 @@
 /*
- * @(#)JmxProperties.java	4.28 03/12/19
+ * @(#)JmxProperties.java	4.29 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package com.sun.jmx.defaults;
  * This contains the property list defined for this
  * JMX implementation.
  *
- * @version     4.28     12/19/03
+ * @version     4.29     11/17/05
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

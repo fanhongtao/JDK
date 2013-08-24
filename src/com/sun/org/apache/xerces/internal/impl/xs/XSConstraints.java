@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright 1999-2004 The Apache Software Foundation.
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Copyright (c) 1999-2004 The Apache Software Foundation.  All rights
- * reserved.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs;
@@ -74,9 +33,11 @@ import java.util.Vector;
 /**
  * Constaints shared by traversers and validator
  *
+ * @xerces.internal 
+ *
  * @author Sandy Gao, IBM
  *
- * @version $Id: XSConstraints.java,v 1.37 2004/02/03 17:27:45 sandygao Exp $
+ * @version $Id: XSConstraints.java,v 1.2.6.1 2005/09/09 07:30:55 sunithareddy Exp $
  */
 public class XSConstraints {
 
@@ -333,7 +294,6 @@ public class XSConstraints {
                                           XMLErrorReporter errorReporter) {
         // get all grammars, and put all substitution group information
         // in the substitution group handler
-		SGHandler.reset();
         SchemaGrammar[] grammars = grammarBucket.getGrammars();
         for (int i = grammars.length-1; i >= 0; i--) {
             SGHandler.addSubstitutionGroup(grammars[i].getSubstitutionGroups());
@@ -358,7 +318,7 @@ public class XSConstraints {
                         reportSchemaError(errorReporter, rgLocators[i/2-1],
                                           "src-redefine.6.2.2",
                                           new Object[]{derivedGrp.fName, "rcase-Recurse.2"});
-                    } 
+                    }
                 } else {
                     fakeDerived.fValue = derivedMG;
                     fakeBase.fValue = baseMG;
@@ -399,7 +359,7 @@ public class XSConstraints {
             types = grammars[i].getUncheckedComplexTypeDecls();
             ctLocators = grammars[i].getUncheckedCTLocators();
             // for each type
-            for (j = types.length-1; j >= 0; j--) {
+            for (j = 0; j < types.length; j++) {
                 // if we've already full-checked this grammar, then
                 // skip the EDC constraint
                 if (!fullChecked) {
@@ -419,39 +379,43 @@ public class XSConstraints {
                 }
 
                 // 2. Particle Derivation
-                
+
                 if (types[j].fBaseType != null &&
                     types[j].fBaseType != SchemaGrammar.fAnyType &&
                     types[j].fDerivedBy == XSConstants.DERIVATION_RESTRICTION &&
-                    (types[j].fBaseType instanceof XSComplexTypeDecl)) {  
+                    (types[j].fBaseType instanceof XSComplexTypeDecl)) {
 
-                  XSParticleDecl derivedParticle=types[j].fParticle;  
-                  XSParticleDecl baseParticle=  
+                  XSParticleDecl derivedParticle=types[j].fParticle;
+                  XSParticleDecl baseParticle=
                     ((XSComplexTypeDecl)(types[j].fBaseType)).fParticle;
-                  if (derivedParticle==null && (!(baseParticle==null ||
-                                               baseParticle.emptiable()))) {
-                    reportSchemaError(errorReporter,ctLocators[j],
-                                      "derivation-ok-restriction.5.3.2",
-                                      new Object[]{types[j].fName, types[j].fBaseType.getName()});
+                  if (derivedParticle==null) {
+                      if (baseParticle!=null && !baseParticle.emptiable()) {
+                          reportSchemaError(errorReporter,ctLocators[j],
+                                  "derivation-ok-restriction.5.3.2",
+                                  new Object[]{types[j].fName, types[j].fBaseType.getName()});
+                      }
                   }
-                  else if (derivedParticle!=null &&
-                           baseParticle!=null) 
-
-                    try {
-                      particleValidRestriction(types[j].fParticle,
-                                               SGHandler,
-                                               ((XSComplexTypeDecl)(types[j].fBaseType)).fParticle,
-                                               SGHandler);
-                    } catch (XMLSchemaException e) {
+                  else if (baseParticle!=null) {
+                      try {
+                          particleValidRestriction(types[j].fParticle,
+                                  SGHandler,
+                                  ((XSComplexTypeDecl)(types[j].fBaseType)).fParticle,
+                                  SGHandler);
+                      } catch (XMLSchemaException e) {
+                          reportSchemaError(errorReporter, ctLocators[j],
+                                  e.getKey(),
+                                  e.getArgs());
+                          reportSchemaError(errorReporter, ctLocators[j],
+                                  "derivation-ok-restriction.5.4.2",
+                                  new Object[]{types[j].fName});
+                      }
+                  }
+                  else {
                       reportSchemaError(errorReporter, ctLocators[j],
-                                        e.getKey(),
-                                        e.getArgs());
-                      reportSchemaError(errorReporter, ctLocators[j],
-                                        "derivation-ok-restriction.5.4.2",
-                                        new Object[]{types[j].fName});
-                    }
+                              "derivation-ok-restriction.5.4.2",
+                              new Object[]{types[j].fName});
+                  }
                 }
-
                 // 3. UPA
                 // get the content model and check UPA
                 XSCMValidator cm = types[j].getContentModel(cmBuilder);
@@ -500,10 +464,10 @@ public class XSConstraints {
     public static void checkElementDeclsConsistent(XSComplexTypeDecl type,
                                      XSParticleDecl particle,
                                      SymbolHash elemDeclHash,
-                                     SubstitutionGroupHandler sgHandler) 
+                                     SubstitutionGroupHandler sgHandler)
                                      throws XMLSchemaException {
 
-       // check for elements in the tree with the same name and namespace           
+       // check for elements in the tree with the same name and namespace
 
        int pType = particle.fType;
 
@@ -515,10 +479,10 @@ public class XSConstraints {
           findElemInTable(type, elem, elemDeclHash);
 
           if (elem.fScope == XSConstants.SCOPE_GLOBAL) {
-             // Check for subsitution groups.  
+             // Check for subsitution groups.
              XSElementDecl[] subGroup = sgHandler.getSubstitutionGroup(elem);
              for (int i = 0; i < subGroup.length; i++) {
-               findElemInTable(type, subGroup[i], elemDeclHash); 
+               findElemInTable(type, subGroup[i], elemDeclHash);
              }
           }
           return;
@@ -529,11 +493,11 @@ public class XSConstraints {
            checkElementDeclsConsistent(type, group.fParticles[i], elemDeclHash, sgHandler);
     }
 
-    public static void findElemInTable(XSComplexTypeDecl type, XSElementDecl elem, 
-                                       SymbolHash elemDeclHash) 
+    public static void findElemInTable(XSComplexTypeDecl type, XSElementDecl elem,
+                                       SymbolHash elemDeclHash)
                                        throws XMLSchemaException {
 
-        // How can we avoid this concat?  LM. 
+        // How can we avoid this concat?  LM.
         String name = elem.fName + "," + elem.fTargetNamespace;
 
         XSElementDecl existingElem = null;
@@ -542,13 +506,13 @@ public class XSConstraints {
           elemDeclHash.put(name, elem);
         }
         else {
-          // If this is the same check element, we're O.K. 
-          if (elem == existingElem) 
+          // If this is the same check element, we're O.K.
+          if (elem == existingElem)
             return;
 
           if (elem.fType != existingElem.fType) {
-            // Types are not the same 
-            throw new XMLSchemaException("cos-element-consistent", 
+            // Types are not the same
+            throw new XMLSchemaException("cos-element-consistent",
                       new Object[] {type.fName, elem.fName});
 
           }

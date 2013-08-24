@@ -1,7 +1,7 @@
 /*
- * @(#)SQLOutputImpl.java	1.5 04/05/05
+ * @(#)SQLOutputImpl.java	1.9 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ public class SQLOutputImpl implements SQLOutput {
      * indicates the <code>SQLData</code> class whose
      * <code>writeSQL</code> method will be called.  This
      * method will in turn call the appropriate 
-     * <code>SQLOutputImpl/code> writer methods.
+     * <code>SQLOutputImpl</code> writer methods.
      */
     private Map map;
 
@@ -75,8 +75,8 @@ public class SQLOutputImpl implements SQLOutput {
      * @throws SQLException if the <code>attributes</code> or the <code>map</code>
      *        is a <code>null</code> value
      */
-    public SQLOutputImpl(Vector<?> attributes, Map<String,?> map)
-	throws SQLException
+    public SQLOutputImpl(Vector<?> attributes, Map<String,?> map) 
+        throws SQLException 
     {
         if ((attributes == null) || (map == null)) {
             throw new SQLException("Cannot instantiate a SQLOutputImpl " +
@@ -180,7 +180,7 @@ public class SQLOutputImpl implements SQLOutput {
 
     /**
      * Writes a <code>float</code> in the Java programming language
-     * to this <code><code>SQLOutputImpl</code></code> object. The driver converts
+     * to this <code>SQLOutputImpl</code> object. The driver converts
      * it to an SQL <code>REAL</code> before returning it to the database.
      *
      * @param x the value to pass to the database
@@ -537,6 +537,66 @@ public class SQLOutputImpl implements SQLOutput {
         attribs.add(new SerialDatalink(url));
         
     }
+
+
+    /**
+   * Writes the next attribute to the stream as a <code>String</code>
+   * in the Java programming language. The driver converts this to a
+   * SQL <code>NCHAR</code> or
+   * <code>NVARCHAR</code> or <code>LONGNVARCHAR</code> value
+   * (depending on the argument's
+   * size relative to the driver's limits on <code>NVARCHAR</code> values)
+   * when it sends it to the stream.
+   *
+   * @param x the value to pass to the database
+   * @exception SQLException if a database access error occurs
+   * @since 1.6
+   */
+   public void writeNString(String x) throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+  
+  /**
+   * Writes an SQL <code>NCLOB</code> value to the stream.
+   *
+   * @param x a <code>NClob</code> object representing data of an SQL
+   * <code>NCLOB</code> value
+   *
+   * @exception SQLException if a database access error occurs
+   * @since 1.6
+   */
+   public void writeNClob(NClob x) throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+  
+  
+  /**
+   * Writes an SQL <code>ROWID</code> value to the stream.
+   *
+   * @param x a <code>RowId</code> object representing data of an SQL
+   * <code>ROWID</code> value
+   *
+   * @exception SQLException if a database access error occurs
+   * @since 1.6
+   */
+   public void writeRowId(RowId x) throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+
+
+  /**
+   * Writes an SQL <code>XML</code> value to the stream.
+   *
+   * @param x a <code>SQLXML</code> object representing data of an SQL
+   * <code>XML</code> value
+   *
+   * @exception SQLException if a database access error occurs
+   * @since 1.6
+   */
+   public void writeSQLXML(SQLXML x) throws SQLException {
+        throw new UnsupportedOperationException("Operation not supported");    
+    }
+
 }
 
 

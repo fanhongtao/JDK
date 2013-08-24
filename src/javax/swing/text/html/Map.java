@@ -1,13 +1,13 @@
 /*
- * @(#)Map.java	1.8 03/12/19
+ * @(#)Map.java	1.10 06/03/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
 import java.awt.Polygon;
-import java.awt.Rectangle;
+import java.io.Serializable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import javax.swing.text.AttributeSet;
@@ -18,9 +18,9 @@ import javax.swing.text.AttributeSet;
  * you can test if a point falls inside the map via the contains method.
  *
  * @author  Scott Violet
- * @version 1.8 12/19/03
+ * @version 1.10 03/28/06
  */
-class Map {
+class Map implements Serializable {
     /** Name of the Map. */
     private String           name;
     /** An array of AttributeSets. */

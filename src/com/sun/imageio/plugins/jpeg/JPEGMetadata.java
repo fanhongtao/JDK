@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGMetadata.java	1.27 03/12/19
+ * @(#)JPEGMetadata.java	1.29 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1250,7 +1250,7 @@ public class JPEGMetadata extends IIOMetadata implements Cloneable {
             NodeList children = node.getChildNodes();
             for (int i = 0; i < children.getLength(); i++) {
                 Node child = children.item(i);
-                NamedNodeMap attrs = node.getAttributes();
+                NamedNodeMap attrs = child.getAttributes();
                 int childID = MarkerSegment.getAttributeValue(child, 
                                                               attrs, 
                                                               "htableId", 

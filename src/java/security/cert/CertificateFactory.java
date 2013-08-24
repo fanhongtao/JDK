@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateFactory.java	1.28 04/05/05
+ * @(#)CertificateFactory.java	1.32 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.security.Provider;
+import java.security.Security;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.NoSuchAlgorithmException;
@@ -76,7 +77,7 @@ import sun.security.jca.GetInstance.Instance;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.28, 05/05/04
+ * @version 1.32, 04/21/06
  *
  * @see Certificate
  * @see X509Certificate
@@ -115,25 +116,31 @@ public class CertificateFactory {
     }
 
     /**
-     * Generates a certificate factory object that implements the
-     * specified certificate type. If the default provider package
-     * provides an implementation of the requested certificate type,
-     * an instance of certificate factory containing that
-     * implementation is returned.
-     * If the type is not available in the default
-     * package, other packages are searched.
+     * Returns a certificate factory object that implements the
+     * specified certificate type.
+     *
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new CertificateFactory object encapsulating the
+     * CertificateFactorySpi implementation from the first
+     * Provider that supports the specified type is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param type the name of the requested certificate type.
      * See Appendix A in the <a href=
-     * "../../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a>
      * for information about standard certificate types.
      *
      * @return a certificate factory object for the specified type.
      *
-     * @exception CertificateException if the requested certificate type is
-     * not available in the default provider package or any of the other
-     * provider packages that were searched.
+     * @exception CertificateException if no Provider supports a
+     *		CertificateFactorySpi implementation for the
+     *		specified type.
+     *
+     * @see java.security.Provider
      */
     public static final CertificateFactory getInstance(String type)
 	    throws CertificateException {
@@ -148,21 +155,38 @@ public class CertificateFactory {
     }
 
     /**
-     * Generates a certificate factory object for the specified
-     * certificate type from the specified provider.
+     * Returns a certificate factory object for the specified
+     * certificate type.
      *
-     * @param type the certificate type
+     * <p> A new CertificateFactory object encapsulating the
+     * CertificateFactorySpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
+     *
+     * @param type the certificate type.
+     * See Appendix A in the <a href=
+     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * for information about standard certificate types.
+     *
      * @param provider the name of the provider.
      *
      * @return a certificate factory object for the specified type.
      *
-     * @exception CertificateException if the certificate type is
-     * not available from the specified provider.
+     * @exception CertificateException if a CertificateFactorySpi
+     *		implementation for the specified algorithm is not
+     *		available from the specified provider.
      *
-     * @exception NoSuchProviderException if the provider has not been
-     * configured.
+     * @exception NoSuchProviderException if the specified provider is not
+     *		registered in the security provider list.
      *
-     * @see Provider
+     * @exception IllegalArgumentException if the provider name is null
+     *		or empty.
+     *
+     * @see java.security.Provider
      */
     public static final CertificateFactory getInstance(String type,
 	    String provider) throws CertificateException,
@@ -178,22 +202,32 @@ public class CertificateFactory {
     }
 
     /**
-     * Generates a certificate factory object for the specified
-     * certificate type from the specified provider.
-     * Note: the <code>provider</code> doesn't have to be registered.
+     * Returns a certificate factory object for the specified
+     * certificate type.
      *
-     * @param type the certificate type
-     * @param provider the provider
+     * <p> A new CertificateFactory object encapsulating the
+     * CertificateFactorySpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
+     *
+     * @param type the certificate type.
+     * See Appendix A in the <a href=
+     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * for information about standard certificate types.
+
+     * @param provider the provider.
      *
      * @return a certificate factory object for the specified type.
      *
-     * @exception CertificateException if the certificate type is
-     * not available from the specified provider.
+     * @exception CertificateException if a CertificateFactorySpi
+     *		implementation for the specified algorithm is not available
+     *		from the specified Provider object.
      *
      * @exception IllegalArgumentException if the <code>provider</code> is
-     * null.
+     *		null.
      *
-     * @see Provider
+     * @see java.security.Provider
      *
      * @since 1.4
      */
@@ -275,7 +309,7 @@ public class CertificateFactory {
      * Returns an iteration of the <code>CertPath</code> encodings supported 
      * by this certificate factory, with the default encoding first. See 
      * Appendix A in the 
-     * <a href="../../../../guide/security/certpath/CertPathProgGuide.html#AppA">
+     * <a href="../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
      * Java Certification Path API Programmer's Guide</a> for information about 
      * standard encoding names and their formats. 
      * <p>
@@ -314,7 +348,7 @@ public class CertificateFactory {
      * Generates a <code>CertPath</code> object and initializes it with
      * the data read from the <code>InputStream</code> inStream. The data
      * is assumed to be in the specified encoding. See Appendix A in the 
-     * <a href="../../../../guide/security/certpath/CertPathProgGuide.html#AppA">
+     * <a href="../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
      * Java Certification Path API Programmer's Guide</a>
      * for information about standard encoding names and their formats.
      *

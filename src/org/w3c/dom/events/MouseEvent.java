@@ -110,27 +110,31 @@ public interface MouseEvent extends UIEvent {
      * <code>dispatchEvent</code> method, though it may be called multiple 
      * times during that phase if necessary. If called multiple times, the 
      * final invocation takes precedence.
-     * @param typeArgSpecifies the event type.
-     * @param canBubbleArgSpecifies whether or not the event can bubble.
-     * @param cancelableArgSpecifies whether or not the event's default 
+     * @param typeArg Specifies the event type.
+     * @param canBubbleArg Specifies whether or not the event can bubble.
+     * @param cancelableArg Specifies whether or not the event's default 
      *   action can be prevented.
-     * @param viewArgSpecifies the <code>Event</code>'s 
+     * @param viewArg Specifies the <code>Event</code>'s 
      *   <code>AbstractView</code>.
-     * @param detailArgSpecifies the <code>Event</code>'s mouse click count.
-     * @param screenXArgSpecifies the <code>Event</code>'s screen x coordinate
-     * @param screenYArgSpecifies the <code>Event</code>'s screen y coordinate
-     * @param clientXArgSpecifies the <code>Event</code>'s client x coordinate
-     * @param clientYArgSpecifies the <code>Event</code>'s client y coordinate
-     * @param ctrlKeyArgSpecifies whether or not control key was depressed 
+     * @param detailArg Specifies the <code>Event</code>'s mouse click count.
+     * @param screenXArg Specifies the <code>Event</code>'s screen x 
+     *   coordinate
+     * @param screenYArg Specifies the <code>Event</code>'s screen y 
+     *   coordinate
+     * @param clientXArg Specifies the <code>Event</code>'s client x 
+     *   coordinate
+     * @param clientYArg Specifies the <code>Event</code>'s client y 
+     *   coordinate
+     * @param ctrlKeyArg Specifies whether or not control key was depressed 
      *   during the <code>Event</code>.
-     * @param altKeyArgSpecifies whether or not alt key was depressed during 
+     * @param altKeyArg Specifies whether or not alt key was depressed during 
      *   the <code>Event</code>.
-     * @param shiftKeyArgSpecifies whether or not shift key was depressed 
+     * @param shiftKeyArg Specifies whether or not shift key was depressed 
      *   during the <code>Event</code>.
-     * @param metaKeyArgSpecifies whether or not meta key was depressed 
+     * @param metaKeyArg Specifies whether or not meta key was depressed 
      *   during the <code>Event</code>.
-     * @param buttonArgSpecifies the <code>Event</code>'s mouse button.
-     * @param relatedTargetArgSpecifies the <code>Event</code>'s related 
+     * @param buttonArg Specifies the <code>Event</code>'s mouse button.
+     * @param relatedTargetArg Specifies the <code>Event</code>'s related 
      *   <code>EventTarget</code>.
      */
     public void initMouseEvent(String typeArg, 

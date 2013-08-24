@@ -70,10 +70,11 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLEntityResolver;
  * as a DTD loader, so that XML 1.1 external subsets can
  * be processed correctly (hence it's rather anomalous-appearing
  * derivation from XMLDTDLoader).
+ * 
+ * @xerces.internal
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: XML11DTDProcessor.java,v 1.2 2003/05/08 20:11:55 elena Exp $
  */
 public class XML11DTDProcessor extends XMLDTDLoader{
 

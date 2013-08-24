@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * LALOAD - Load long from array
  * <PRE>Stack: ..., arrayref, index -&gt; ..., value1, value2</PRE>
  *
- * @version $Id: LALOAD.java,v 1.1.1.1 2001/10/29 20:00:21 jvanzyl Exp $
+ * @version $Id: LALOAD.java,v 1.1.2.1 2005/07/31 23:45:21 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LALOAD extends ArrayInstruction implements StackProducer {

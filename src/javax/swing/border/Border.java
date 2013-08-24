@@ -1,7 +1,7 @@
 /*
- * @(#)Border.java	1.19 03/12/19
+ * @(#)Border.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -37,7 +37,7 @@ import java.awt.Component;
  * <li>To create a new border class, subclass AbstractBorder.   
  * </ul>
  * 
- * @version 1.19 12/19/03
+ * @version 1.20 11/17/05
  * @author David Kloba
  * @author Amy Fowler
  * @see javax.swing.BorderFactory

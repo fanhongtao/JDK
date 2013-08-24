@@ -1,7 +1,7 @@
 /*
- * @(#)Charset.java	1.47 04/08/19
+ * @(#)Charset.java	1.53 06/06/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import sun.security.action.GetPropertyAction;
 
 /**
  * A named mapping between sequences of sixteen-bit Unicode <a
- * href="../../lang/Character.java#unicode">code units</a> and sequences of
+ * href="../../lang/Character.html#unicode">code units</a> and sequences of
  * bytes.  This class defines methods for creating decoders and encoders and
  * for retrieving the various names associated with a charset.  Instances of
  * this class are immutable.
@@ -86,9 +86,9 @@ import sun.security.action.GetPropertyAction;
  * Registration Procedures</i></a>.
  *
  * <p> Every charset has a <i>canonical name</i> and may also have one or more
- * <i>aliases</i>.  The canonical name is returned by the {@link #name name} method
+ * <i>aliases</i>.  The canonical name is returned by the {@link #name() name} method
  * of this class.  Canonical names are, by convention, usually in upper case.
- * The aliases of a charset are returned by the {@link #aliases aliases}
+ * The aliases of a charset are returned by the {@link #aliases() aliases}
  * method.
  *
  * <a name="hn">
@@ -228,7 +228,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.47, 04/08/19
+ * @version 1.53, 06/06/28
  * @since 1.4
  *
  * @see CharsetDecoder
@@ -278,10 +278,10 @@ public abstract class Charset
 	    if (c >= 'A' && c <= 'Z') continue;
 	    if (c >= 'a' && c <= 'z') continue;
 	    if (c >= '0' && c <= '9') continue;
-	    if (c == '-') continue;
-	    if (c == ':') continue;
-	    if (c == '_') continue;
-	    if (c == '.') continue;
+	    if (c == '-' && i != 0) continue;
+	    if (c == ':' && i != 0) continue;
+	    if (c == '_' && i != 0) continue;
+	    if (c == '.' && i != 0) continue;
 	    throw new IllegalCharsetNameException(s);
 	}
     }
@@ -472,6 +472,9 @@ public abstract class Charset
      *
      * @throws IllegalCharsetNameException
      *         If the given charset name is illegal
+     *
+     * @throws  IllegalArgumentException
+     *          If the given <tt>charsetName</tt> is null
      */
     public static boolean isSupported(String charsetName) {
 	return (lookup(charsetName) != null);
@@ -488,6 +491,9 @@ public abstract class Charset
      *
      * @throws  IllegalCharsetNameException
      *          If the given charset name is illegal
+     *
+     * @throws  IllegalArgumentException
+     *          If the given <tt>charsetName</tt> is null
      *
      * @throws  UnsupportedCharsetException
      *          If no support for the named charset is available
@@ -552,7 +558,7 @@ public abstract class Charset
 	    });
     }
 
-    private static Charset defaultCharset;
+    private static volatile Charset defaultCharset;
 
     /**
      * Returns the default charset of this Java virtual machine.
@@ -566,18 +572,19 @@ public abstract class Charset
      * @since 1.5
      */
     public static Charset defaultCharset() {
-	synchronized (Charset.class) {
-	    if (defaultCharset == null) {
+        if (defaultCharset == null) {
+	    synchronized (Charset.class) {
 		java.security.PrivilegedAction pa =
 		    new GetPropertyAction("file.encoding");
 		String csn = (String)AccessController.doPrivileged(pa);
 		Charset cs = lookup(csn);
 		if (cs != null)
-		    return cs;
-		return forName("UTF-8");
-	    }
-	    return defaultCharset;
+		    defaultCharset = cs;
+                else 
+		    defaultCharset = forName("UTF-8");
+            }
 	}
+	return defaultCharset;
     }
 
 
@@ -697,8 +704,7 @@ public abstract class Charset
      * it is not necessarily the case that the given charset is not contained
      * in this charset.
      *
-     * @return  <tt>true</tt> if, and only if, the given charset
-     *          is contained in this charset
+     * @return  <tt>true</tt> if the given charset is contained in this charset
      */
     public abstract boolean contains(Charset cs);
 

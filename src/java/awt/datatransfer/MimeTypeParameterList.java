@@ -1,7 +1,7 @@
 /*
- * @(#)MimeTypeParameterList.java	1.15 03/12/19
+ * @(#)MimeTypeParameterList.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.util.Set;
  * An object that encapsualtes the parameter list of a MimeType
  * as defined in RFC 2045 and 2046.
  *
- * @version 1.15, 12/19/03
+ * @version 1.16, 11/17/05
  * @author jeff.dunn@eng.sun.com
  */
 class MimeTypeParameterList implements Cloneable {

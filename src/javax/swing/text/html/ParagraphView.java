@@ -1,7 +1,7 @@
 /*
- * @(#)ParagraphView.java	1.29 04/09/14
+ * @(#)ParagraphView.java	1.30 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -23,7 +23,7 @@ import javax.swing.text.JTextComponent;
  * configuration.
  *
  * @author  Timothy Prinzing
- * @version 1.29 09/14/04
+ * @version 1.30 11/17/05
  */
 
 public class ParagraphView extends javax.swing.text.ParagraphView {
@@ -213,7 +213,7 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
         if (a == null) {
             return;
         }
-
+        
 	Rectangle r;
 	if (a instanceof Rectangle) {
 	    r = (Rectangle) a;

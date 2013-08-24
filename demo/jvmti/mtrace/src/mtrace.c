@@ -1,7 +1,7 @@
 /*
- * @(#)mtrace.c	1.24 04/09/24
+ * @(#)mtrace.c	1.28 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -123,50 +123,6 @@ typedef struct {
 } GlobalAgentData;
 
 static GlobalAgentData *gdata;
-
-/* Every JVMTI interface returns an error code, which should be checked
- *   to avoid any cascading errors down the line.
- *   The interface GetErrorName() returns the actual enumeration constant
- *   name, making the error messages much easier to understand.
- */
-static void
-check_jvmti_error(jvmtiEnv *jvmti, jvmtiError errnum, const char *str)
-{
-    if ( errnum != JVMTI_ERROR_NONE ) {
-	char       *errnum_str;
-	
-	errnum_str = NULL;
-	(void)(*jvmti)->GetErrorName(jvmti, errnum, &errnum_str);
-	
-	fatal_error("ERROR: JVMTI: %d(%s): %s\n", errnum, 
-		(errnum_str==NULL?"Unknown":errnum_str),
-		(str==NULL?"":str));
-    }
-}
-
-/* All memory allocated by JVMTI must be freed by the JVMTI Deallocate
- *   interface.
- */
-static void
-deallocate(jvmtiEnv *jvmti, void *ptr)
-{
-    jvmtiError error;
-    
-    error = (*jvmti)->Deallocate(jvmti, ptr);
-    check_jvmti_error(jvmti, error, "Cannot deallocate memory");
-}
-
-/* Allocation of JVMTI managed memory */
-static void *
-allocate(jvmtiEnv *jvmti, jint len)
-{
-    jvmtiError error;
-    void      *ptr;
-    
-    error = (*jvmti)->Allocate(jvmti, len, (unsigned char **)&ptr);
-    check_jvmti_error(jvmti, error, "Cannot allocate memory");
-    return ptr;
-}
 
 /* Enter a critical section by doing a JVMTI Raw Monitor Enter */
 static void
@@ -762,7 +718,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 	 *   JVMTI interface, this is a fatal error.
 	 */
 	fatal_error("ERROR: Unable to access JVMTI Version 1 (0x%x),"
-                " is your J2SE a 1.5 or newer version?"
+                " is your JDK a 5.0 or newer version?"
                 " JNIEnv's GetEnv() returned %d\n",
                JVMTI_VERSION_1, res);
     }
@@ -823,6 +779,9 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
      */
     error = (*jvmti)->CreateRawMonitor(jvmti, "agent data", &(gdata->lock));
     check_jvmti_error(jvmti, error, "Cannot create raw monitor");
+
+    /* Add demo jar file to boot classpath */
+    add_demo_jar_to_bootclasspath(jvmti, "mtrace");
 
     /* We return JNI_OK to signify success */
     return JNI_OK;

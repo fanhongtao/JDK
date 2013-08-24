@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.75 04/05/05
+ * @(#)DefaultListSelectionModel.java	1.78 06/07/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.75 05/05/04
+ * @version 1.78 07/19/06
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel
@@ -53,41 +53,21 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 
     protected boolean leadAnchorNotificationEnabled = true;
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public int getMinSelectionIndex() { return isSelectionEmpty() ? -1 : minIndex; }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public int getMaxSelectionIndex() { return maxIndex; }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public boolean getValueIsAdjusting() { return isAdjusting; }
 
-    // implements javax.swing.ListSelectionModel
-    /**
-     * Returns the selection mode.
-     * @return  one of the these values:
-     * <ul>
-     * <li>SINGLE_SELECTION
-     * <li>SINGLE_INTERVAL_SELECTION
-     * <li>MULTIPLE_INTERVAL_SELECTION
-     * </ul>
-     * @see #getSelectionMode
-     */
+    /** {@inheritDoc} */
     public int getSelectionMode() { return selectionMode; }
 
-    // implements javax.swing.ListSelectionModel
     /**
-     * Sets the selection mode.  The default is
-     * MULTIPLE_INTERVAL_SELECTION.
-     * @param selectionMode  one of three values:
-     * <ul>
-     * <li>SINGLE_SELECTION
-     * <li>SINGLE_INTERVAL_SELECTION
-     * <li>MULTIPLE_INTERVAL_SELECTION
-     * </ul>
-     * @exception IllegalArgumentException  if <code>selectionMode</code>
-     *		is not one of the legal values shown above
-     * @see #setSelectionMode
+     * {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
      */
     public void setSelectionMode(int selectionMode) {
 	switch (selectionMode) {
@@ -101,22 +81,22 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	}
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public boolean isSelectedIndex(int index) {
 	return ((index < minIndex) || (index > maxIndex)) ? false : value.get(index);
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public boolean isSelectionEmpty() {
 	return (minIndex > maxIndex);
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public void addListSelectionListener(ListSelectionListener l) {
  	listenerList.add(ListSelectionListener.class, l);
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public void removeListSelectionListener(ListSelectionListener l) {
  	listenerList.remove(ListSelectionListener.class, l);
     }
@@ -408,21 +388,42 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
         fireValueChanged();
     }
 
-   /**   Change the selection with the effect of first clearing the values
-    *   in the inclusive range [clearMin, clearMax] then setting the values
-    *   in the inclusive range [setMin, setMax]. Do this in one pass so
-    *   that no values are cleared if they would later be set.
+   /**  
+    * Change the selection with the effect of first clearing the values
+    * in the inclusive range [clearMin, clearMax] then setting the values
+    * in the inclusive range [setMin, setMax]. Do this in one pass so
+    * that no values are cleared if they would later be set.
     */
     private void changeSelection(int clearMin, int clearMax, int setMin, int setMax) {
         changeSelection(clearMin, clearMax, setMin, setMax, true);
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public void clearSelection() {
 	removeSelectionIntervalImpl(minIndex, maxIndex, false);
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** 
+     * Changes the selection to be between {@code index0} and {@code index1}
+     * inclusive. {@code index0} doesn't have to be less than or equal to
+     * {@code index1}.
+     * <p>
+     * In {@code SINGLE_SELECTION} selection mode, only the second index
+     * is used.
+     * <p>
+     * If this represents a change to the current selection, then each
+     * {@code ListSelectionListener} is notified of the change.
+     * <p>
+     * If either index is {@code -1}, this method does nothing and returns
+     * without exception. Otherwise, if either index is less than {@code -1},
+     * an {@code IndexOutOfBoundsException} is thrown.
+     * 
+     * @param index0 one end of the interval.
+     * @param index1 other end of the interval
+     * @throws IndexOutOfBoundsException if either index is less than {@code -1}
+     *         (and neither index is {@code -1})
+     * @see #addListSelectionListener
+     */
     public void setSelectionInterval(int index0, int index1) {
         if (index0 == -1 || index1 == -1) {
             return;
@@ -441,7 +442,32 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
         changeSelection(clearMin, clearMax, setMin, setMax);
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** 
+     * Changes the selection to be the set union of the current selection
+     * and the indices between {@code index0} and {@code index1} inclusive.
+     * <p>
+     * In {@code SINGLE_SELECTION} selection mode, this is equivalent
+     * to calling {@code setSelectionInterval}, and only the second index
+     * is used. In {@code SINGLE_INTERVAL_SELECTION} selection mode, this
+     * method behaves like {@code setSelectionInterval}, unless the given
+     * interval is immediately adjacent to or overlaps the existing selection,
+     * and can therefore be used to grow it.
+     * <p>
+     * If this represents a change to the current selection, then each
+     * {@code ListSelectionListener} is notified of the change. Note that
+     * {@code index0} doesn't have to be less than or equal to {@code index1}.
+     * <p>
+     * If either index is {@code -1}, this method does nothing and returns
+     * without exception. Otherwise, if either index is less than {@code -1},
+     * an {@code IndexOutOfBoundsException} is thrown.
+     * 
+     * @param index0 one end of the interval.
+     * @param index1 other end of the interval
+     * @throws IndexOutOfBoundsException if either index is less than {@code -1}
+     *         (and neither index is {@code -1})
+     * @see #addListSelectionListener
+     * @see #setSelectionInterval
+     */
     public void addSelectionInterval(int index0, int index1)
     {
         if (index0 == -1 || index1 == -1) {
@@ -476,7 +502,30 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     }
 
 
-    // implements javax.swing.ListSelectionModel
+    /** 
+     * Changes the selection to be the set difference of the current selection
+     * and the indices between {@code index0} and {@code index1} inclusive.
+     * {@code index0} doesn't have to be less than or equal to {@code index1}.
+     * <p>
+     * In {@code SINGLE_INTERVAL_SELECTION} selection mode, if the removal
+     * would produce two disjoint selections, the removal is extended through
+     * the greater end of the selection. For example, if the selection is
+     * {@code 0-10} and you supply indices {@code 5,6} (in any order) the
+     * resulting selection is {@code 0-4}.
+     * <p>
+     * If this represents a change to the current selection, then each
+     * {@code ListSelectionListener} is notified of the change.
+     * <p>
+     * If either index is {@code -1}, this method does nothing and returns
+     * without exception. Otherwise, if either index is less than {@code -1},
+     * an {@code IndexOutOfBoundsException} is thrown.
+     * 
+     * @param index0 one end of the interval
+     * @param index1 other end of the interval
+     * @throws IndexOutOfBoundsException if either index is less than {@code -1}
+     *         (and neither index is {@code -1})
+     * @see #addListSelectionListener
+     */
     public void removeSelectionInterval(int index0, int index1)
     {
         removeSelectionIntervalImpl(index0, index1, true);
@@ -612,7 +661,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     }
 
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public void setValueIsAdjusting(boolean isAdjusting) {
 	if (isAdjusting != this.isAdjusting) {
 	    this.isAdjusting = isAdjusting;
@@ -647,12 +696,12 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	return clone;
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public int getAnchorSelectionIndex() {
         return anchorIndex;
     }
 
-    // implements javax.swing.ListSelectionModel
+    /** {@inheritDoc} */
     public int getLeadSelectionIndex() {
         return leadIndex;
     }

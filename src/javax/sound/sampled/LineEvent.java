@@ -1,7 +1,7 @@
 /*
- * @(#)LineEvent.java	1.26 03/12/19
+ * @(#)LineEvent.java	1.27 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package javax.sound.sampled;
  * serialize a <code>LineEvent</code> object will fail.
  *
  * @author Kara Kytle
- * @version 1.26, 03/12/19
+ * @version 1.27, 05/11/17
  *
  * @see Line
  * @see LineListener#update

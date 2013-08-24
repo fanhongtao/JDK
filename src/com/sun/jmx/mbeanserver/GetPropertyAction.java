@@ -1,7 +1,7 @@
 /*
- * @(#)GetPropertyAction.java	1.8 03/12/19
+ * @(#)GetPropertyAction.java	1.10 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,14 +15,14 @@ import java.security.PrivilegedAction;
  *
  * @since 1.5
  */
-public class GetPropertyAction implements PrivilegedAction {
+public class GetPropertyAction implements PrivilegedAction<String> {
     private final String key;
 
     public GetPropertyAction(String key) {
 	this.key = key;
     }
 
-    public Object run() {
+    public String run() {
 	return System.getProperty(key);
     }
 }

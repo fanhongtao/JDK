@@ -1,7 +1,7 @@
 /*
- * @(#)BasicBorders.java	1.33 03/12/19
+ * @(#)BasicBorders.java	1.36 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the basic L & F.
- * @version 1.33 12/19/03
+ * @version 1.36 04/07/06
  * @author Georges Saab
  * @author Amy Fowler
  */
@@ -127,6 +127,7 @@ public class BasicBorders {
  
     /**
      * Special thin border for rollover toolbar buttons.
+     * @since 1.4
      */
     public static class RolloverButtonBorder extends ButtonBorder {
 
@@ -556,10 +557,10 @@ public class BasicBorders {
 		    cBounds = child.getBounds();
 		    g.setColor(shadow);
 		    g.drawLine(0, 0, cBounds.width + 1, 0);
-		    g.drawLine(0, 1, 0, cBounds.height + 2);
+		    g.drawLine(0, 1, 0, cBounds.height + 1);
 
 		    g.setColor(highlight);
-		    g.drawLine(1, cBounds.height + 1, cBounds.width + 1,
+		    g.drawLine(0, cBounds.height + 1, cBounds.width + 1,
 			       cBounds.height + 1);
 		}
 		child = splitPane.getRightComponent();
@@ -571,9 +572,8 @@ public class BasicBorders {
 		    
 		    g.setColor(shadow);
 		    g.drawLine(cBounds.x - 1, 0, maxX, 0);
-		    g.drawLine(cBounds.x - 1, maxY, cBounds.x, maxY);
 		    g.setColor(highlight);
-		    g.drawLine(cBounds.x, maxY, maxX, maxY);
+		    g.drawLine(cBounds.x - 1, maxY, maxX, maxY);
 		    g.drawLine(maxX, 0, maxX, maxY + 1);
 		}
 	    } else {

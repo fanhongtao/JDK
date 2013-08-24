@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTCSource.java,v 1.9 2004/02/16 22:57:21 minchau Exp $
+ * $Id: XSLTCSource.java,v 1.2.4.1 2005/09/06 12:43:28 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;

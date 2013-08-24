@@ -1,7 +1,7 @@
 /*
- * @(#)FileChooserDemo.java	1.16 04/07/26
+ * @(#)FileChooserDemo.java	1.18 06/02/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)FileChooserDemo.java	1.16 04/07/26
+ * @(#)FileChooserDemo.java	1.18 06/02/03
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * JFileChooserDemo
  *
- * @version 1.1 07/16/99
+ * @version 1.18 02/03/06
  * @author Jeff Dinkins
  */
 public class FileChooserDemo extends DemoModule {
@@ -174,9 +174,9 @@ public class FileChooserDemo extends DemoModule {
 		JFileChooser fc = createFileChooser();
 
 		// Add filefilter & fileview
-		ExampleFileFilter filter = new ExampleFileFilter(
-		    new String[] {"jpg", "gif"}, getString("FileChooserDemo.filterdescription")
-		);
+                javax.swing.filechooser.FileFilter filter = createFileFilter(
+                    getString("FileChooserDemo.filterdescription"),
+                    "jpg", "gif");
 		ExampleFileView fileView = new ExampleFileView();
 		fileView.putIcon("jpg", jpgIcon);
 		fileView.putIcon("gif", gifIcon);
@@ -202,15 +202,36 @@ public class FileChooserDemo extends DemoModule {
     JDialog dialog;
     JFileChooser fc;
 
+    private javax.swing.filechooser.FileFilter createFileFilter(
+            String description, String...extensions) {
+        description = createFileNameFilterDescriptionFromExtensions(
+                    description, extensions);
+        return new FileNameExtensionFilter(description, extensions);
+    }
+
+    private String createFileNameFilterDescriptionFromExtensions(
+            String description, String[] extensions) {
+        String fullDescription = (description == null) ?
+                "(" : description + " (";
+        // build the description from the extension list
+        fullDescription += "." + extensions[0];
+        for (int i = 1; i < extensions.length; i++) {
+            fullDescription += ", .";
+            fullDescription += extensions[i];
+        }
+        fullDescription += ")";
+        return fullDescription;
+    }
+
     public JButton createCustomFileChooserButton() {
 	Action a = new AbstractAction(getString("FileChooserDemo.custombutton")) {
 	    public void actionPerformed(ActionEvent e) {
 		fc = createFileChooser();
 
 		// Add filefilter & fileview
-		ExampleFileFilter filter = new ExampleFileFilter(
-		    new String[] {"jpg", "gif"}, getString("FileChooserDemo.filterdescription")
-		);
+                javax.swing.filechooser.FileFilter filter = createFileFilter(
+                    getString("FileChooserDemo.filterdescription"),
+                    "jpg", "gif");
 		ExampleFileView fileView = new ExampleFileView();
 		fileView.putIcon("jpg", jpgIcon);
 		fileView.putIcon("gif", gifIcon);

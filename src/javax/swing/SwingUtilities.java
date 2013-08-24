@@ -1,18 +1,19 @@
 /*
- * @(#)SwingUtilities.java	1.134 04/06/15
+ * @(#)SwingUtilities.java	1.147 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import sun.swing.UIAction;
 
 import java.applet.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.dnd.DropTarget;
 
 import java.util.Vector;
 import java.util.Hashtable;
@@ -23,13 +24,15 @@ import javax.accessibility.*;
 import javax.swing.event.MenuDragMouseEvent;
 import javax.swing.plaf.UIResource;
 import javax.swing.text.View;
+import java.security.AccessController;
+import sun.security.action.GetPropertyAction;
 
 import sun.awt.AppContext;
 
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.134 06/15/04
+ * @version 1.147 08/08/06
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -38,6 +41,51 @@ public class SwingUtilities implements SwingConstants
     private static boolean canAccessEventQueue = false;
     private static boolean eventQueueTested = false;
 
+    /**
+     * Indicates if we should change the drop target when a
+     * {@code TransferHandler} is set.
+     */
+    private static boolean suppressDropSupport;
+
+    /**
+     * Indiciates if we've checked the system property for suppressing
+     * drop support.
+     */
+    private static boolean checkedSuppressDropSupport;
+
+
+    /**
+     * Returns true if <code>setTransferHandler</code> should change the
+     * <code>DropTarget</code>.
+     */
+    private static boolean getSuppressDropTarget() {
+        if (!checkedSuppressDropSupport) {
+            suppressDropSupport = Boolean.valueOf(
+                AccessController.doPrivileged(
+                    new GetPropertyAction("suppressSwingDropSupport")));
+            checkedSuppressDropSupport = true;
+        }
+        return suppressDropSupport;
+    }
+
+    /**
+     * Installs a {@code DropTarget} on the component as necessary for a
+     * {@code TransferHandler} change.
+     */
+    static void installSwingDropTargetAsNecessary(Component c,
+                                                         TransferHandler t) {
+
+        if (!getSuppressDropTarget()) {
+            DropTarget dropHandler = c.getDropTarget();
+            if ((dropHandler == null) || (dropHandler instanceof UIResource)) {
+                if (t == null) {
+                    c.setDropTarget(null);
+                } else if (!GraphicsEnvironment.isHeadless()) {
+                    c.setDropTarget(new TransferHandler.SwingDropTarget(c));
+                }
+            }
+        }
+    }
 
     /** 
      * Return true if <code>a</code> contains <code>b</code>
@@ -62,13 +110,14 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * Returns the first <code>Window </code> ancestor of <code>c</code>, or
-     * null if <code>c</code> is not contained inside a <code>Window</code>.
+     * {@code null} if <code>c</code> is not contained inside a <code>Window</code>.
      *
      * @param c <code>Component</code> to get <code>Window</code> ancestor
      *        of.
      * @return the first <code>Window </code> ancestor of <code>c</code>, or
-     *         null if <code>c</code> is not contained inside a
+     *         {@code null} if <code>c</code> is not contained inside a
      *         <code>Window</code>.
+     * @since 1.3
      */
     public static Window getWindowAncestor(Component c) {
         for(Container p = c.getParent(); p != null; p = p.getParent()) {
@@ -98,11 +147,11 @@ public class SwingUtilities implements SwingConstants
     /**
      * Convert a <code>aPoint</code> in <code>source</code> coordinate system to
      * <code>destination</code> coordinate system.
-     * If <code>source></code>is null,<code>aPoint</code> is assumed to be in <code>destination</code>'s
+     * If <code>source</code> is {@code null}, <code>aPoint</code> is assumed to be in <code>destination</code>'s
      * root component coordinate system.
-     * If <code>destination</code>is null, <code>aPoint</code> will be converted to <code>source</code>'s
+     * If <code>destination</code> is {@code null}, <code>aPoint</code> will be converted to <code>source</code>'s
      * root component coordinate system.
-     * If both <code>source</code> and <code>destination</code> are null, return <code>aPoint</code>
+     * If both <code>source</code> and <code>destination</code> are {@code null}, return <code>aPoint</code>
      * without any conversion.
      */
     public static Point convertPoint(Component source,Point aPoint,Component destination) {
@@ -129,11 +178,11 @@ public class SwingUtilities implements SwingConstants
     /**
      * Convert the point <code>(x,y)</code> in <code>source</code> coordinate system to
      * <code>destination</code> coordinate system.
-     * If <code>source></code>is null,<code>(x,y)</code> is assumed to be in <code>destination</code>'s
+     * If <code>source</code> is {@code null}, <code>(x,y)</code> is assumed to be in <code>destination</code>'s
      * root component coordinate system.
-     * If <code>destination</code>is null, <code>(x,y)</code> will be converted to <code>source</code>'s
+     * If <code>destination</code> is {@code null}, <code>(x,y)</code> will be converted to <code>source</code>'s
      * root component coordinate system.
-     * If both <code>source</code> and <code>destination</code> are null, return <code>(x,y)</code>
+     * If both <code>source</code> and <code>destination</code> are {@code null}, return <code>(x,y)</code>
      * without any conversion.
      */
     public static Point convertPoint(Component source,int x, int y,Component destination) {
@@ -144,11 +193,11 @@ public class SwingUtilities implements SwingConstants
     /** 
      * Convert the rectangle <code>aRectangle</code> in <code>source</code> coordinate system to
      * <code>destination</code> coordinate system.
-     * If <code>source></code>is null,<code>aRectangle</code> is assumed to be in <code>destination</code>'s
+     * If <code>source</code> is {@code null}, <code>aRectangle</code> is assumed to be in <code>destination</code>'s
      * root component coordinate system.
-     * If <code>destination</code>is null, <code>aRectangle</code> will be converted to <code>source</code>'s
+     * If <code>destination</code> is {@code null}, <code>aRectangle</code> will be converted to <code>source</code>'s
      * root component coordinate system.
-     * If both <code>source</code> and <code>destination</code> are null, return <code>aRectangle</code>
+     * If both <code>source</code> and <code>destination</code> are {@code null}, return <code>aRectangle</code>
      * without any conversion.
      */
     public static Rectangle convertRectangle(Component source,Rectangle aRectangle,Component destination) {
@@ -160,7 +209,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * Convenience method for searching above <code>comp</code> in the
      * component hierarchy and returns the first object of class <code>c</code> it
-     * finds. Can return null, if a class <code>c</code> cannot be found.
+     * finds. Can return {@code null}, if a class <code>c</code> cannot be found.
      */
     public static Container getAncestorOfClass(Class<?> c, Component comp)
     {
@@ -176,7 +225,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * Convenience method for searching above <code>comp</code> in the
      * component hierarchy and returns the first object of <code>name</code> it
-     * finds. Can return null, if <code>name</code> cannot be found.
+     * finds. Can return {@code null}, if <code>name</code> cannot be found.
      */
     public static Container getAncestorNamed(String name, Component comp) {
         if(comp == null || name == null)
@@ -228,13 +277,13 @@ public class SwingUtilities implements SwingConstants
     /** 
      * Returns a MouseEvent similar to <code>sourceEvent</code> except that its x
      * and y members have been converted to <code>destination</code>'s coordinate
-     * system.  If <code>source</code> is null, <code>sourceEvent</code> x and y members
+     * system.  If <code>source</code> is {@code null}, <code>sourceEvent</code> x and y members
      * are assumed to be into <code>destination</code>'s root component coordinate system.
      * If <code>destination</code> is <code>null</code>, the
      * returned MouseEvent will be in <code>source</code>'s coordinate system.
      * <code>sourceEvent</code> will not be changed. A new event is returned.
      * the <code>source</code> field of the returned event will be set
-     * to <code>destination</code> if destination is non null
+     * to <code>destination</code> if destination is non-{@code null}
      * use the translateMouseEvent() method to translate a mouse event from
      * one component to another without changing the source.
      */
@@ -259,6 +308,8 @@ public class SwingUtilities implements SwingConstants
 					   sourceWheelEvent.getWhen(),
 					   sourceWheelEvent.getModifiers(),
 					   p.x,p.y,
+                                           sourceWheelEvent.getXOnScreen(),
+                                           sourceWheelEvent.getYOnScreen(),
 					   sourceWheelEvent.getClickCount(),
 					   sourceWheelEvent.isPopupTrigger(),
 					   sourceWheelEvent.getScrollType(),
@@ -272,6 +323,8 @@ public class SwingUtilities implements SwingConstants
 					      sourceMenuDragEvent.getWhen(),
 					      sourceMenuDragEvent.getModifiers(),
 					      p.x,p.y,
+                                              sourceMenuDragEvent.getXOnScreen(),
+                                              sourceMenuDragEvent.getYOnScreen(),
 					      sourceMenuDragEvent.getClickCount(),
 					      sourceMenuDragEvent.isPopupTrigger(),
 					      sourceMenuDragEvent.getPath(),
@@ -283,8 +336,11 @@ public class SwingUtilities implements SwingConstants
 				      sourceEvent.getWhen(),
 				      sourceEvent.getModifiers(),
 				      p.x,p.y,
+                                      sourceEvent.getXOnScreen(),
+                                      sourceEvent.getYOnScreen(),
 				      sourceEvent.getClickCount(),
-				      sourceEvent.isPopupTrigger());
+				      sourceEvent.isPopupTrigger(),
+                                      MouseEvent.NOBUTTON );
 	}
 	return newEvent;
     }
@@ -370,7 +426,7 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * Returns the first <code>Window </code> ancestor of <code>c</code>, or
-     * null if <code>c</code> is not contained inside a <code>Window</code>.
+     * {@code null} if <code>c</code> is not contained inside a <code>Window</code>.
      * <p>
      * Note: This method provides the same functionality as
      * <code>getWindowAncestor</code>.
@@ -378,7 +434,7 @@ public class SwingUtilities implements SwingConstants
      * @param c <code>Component</code> to get <code>Window</code> ancestor
      *        of.
      * @return the first <code>Window </code> ancestor of <code>c</code>, or
-     *         null if <code>c</code> is not contained inside a
+     *         {@code null} if <code>c</code> is not contained inside a
      *         <code>Window</code>.
      */
     public static Window windowForComponent(Component c) {
@@ -1044,15 +1100,30 @@ public class SwingUtilities implements SwingConstants
 
 
     /**
-     * Paints a component <code>c</code> on an arbitrary graphics 
-     * <code>g</code> in the
-     * specified rectangle, specifying the rectangle's upper left corner
-     * and size.  The component is reparented to a private
-     * container (whose parent becomes p) which prevents 
-     * <code>c.validate()</code> and <code>c.repaint()</code>
-     * calls from propagating up the tree.  The intermediate
-     * container has no other effect.
-     *
+     * Paints a component to the specified <code>Graphics</code>.
+     * This method is primarily useful to render
+     * <code>Component</code>s that don't exist as part of the visible
+     * containment hierarchy, but are used for rendering.  For
+     * example, if you are doing your own rendering and want to render
+     * some text (or even HTML), you could make use of
+     * <code>JLabel</code>'s text rendering support and have it paint
+     * directly by way of this method, without adding the label to the
+     * visible containment hierarchy.
+     * <p>
+     * This method makes use of <code>CellRendererPane</code> to handle
+     * the actual painting, and is only recommended if you use one
+     * component for rendering.  If you make use of multiple components
+     * to handle the rendering, as <code>JTable</code> does, use
+     * <code>CellRendererPane</code> directly.  Otherwise, as described
+     * below, you could end up with a <code>CellRendererPane</code>
+     * per <code>Component</code>.
+     * <p>
+     * If <code>c</code>'s parent is not a <code>CellRendererPane</code>, 
+     * a new <code>CellRendererPane</code> is created, <code>c</code> is
+     * added to it, and the <code>CellRendererPane</code> is added to
+     * <code>p</code>.  If <code>c</code>'s parent is a
+     * <code>CellRendererPane</code> and the <code>CellRendererPane</code>s
+     * parent is not <code>p</code>, it is added to <code>p</code>.
      * <p>
      * The component should either descend from <code>JComponent</code>
      * or be another kind of lightweight component.
@@ -1061,7 +1132,6 @@ public class SwingUtilities implements SwingConstants
      * <code>isLightweight</code> method)
      * is true. If the Component is not lightweight, bad things map happen:
      * crashes, exceptions, painting problems...
-     * <p>
      *
      * @param g  the <code>Graphics</code> object to draw on
      * @param c  the <code>Component</code> to draw
@@ -1073,6 +1143,7 @@ public class SwingUtilities implements SwingConstants
      * @param w  an int specifying the width of the area draw in, in pixels
      * @param h  an int specifying the height of the area draw in, in pixels
      * 
+     * @see CellRendererPane
      * @see java.awt.Component#isLightweight
      */
     public static void paintComponent(Graphics g, Component c, Container p, int x, int y, int w, int h) {
@@ -1080,30 +1151,18 @@ public class SwingUtilities implements SwingConstants
     }
 
     /**
-     * Paints a component <code>c</code> on an arbitrary graphics 
-     * <code>g</code> in the specified rectangle, specifying a Rectangle object.
-     * The component is reparented to a private
-     * container (whose parent becomes <code>p</code>) which prevents 
-     * <code>c.validate()</code> and <code>c.repaint()</code>
-     * calls from propagating up the tree.  The intermediate
-     * container has no other effect.
-     *
-     * <p>
-     * The component should either descend from <code>JComponent</code>
-     * or be another kind of lightweight component.
-     * A lightweight component is one whose "lightweight" property
-     * (returned by the <code>Component</code>
-     * <code>isLightweight</code> method)
-     * is true. If the Component is not lightweight, bad things map happen:
-     * crashes, exceptions, painting problems...
-     * <p>
+     * Paints a component to the specified <code>Graphics</code>.  This
+     * is a cover method for
+     * {@link #paintComponent(Graphics,Component,Container,int,int,int,int)}.
+     * Refer to it for more information.
      *
      * @param g  the <code>Graphics</code> object to draw on
      * @param c  the <code>Component</code> to draw
      * @param p  the intermediate <code>Container</code>
      * @param r  the <code>Rectangle</code> to draw in
      * 
-     * @see java.awt.Component#isLightweight
+     * @see #paintComponent(Graphics,Component,Container,int,int,int,int)
+     * @see CellRendererPane
      */
     public static void paintComponent(Graphics g, Component c, Container p, Rectangle r) {
         paintComponent(g, c, p, r.x, r.y, r.width, r.height);
@@ -1143,7 +1202,12 @@ public class SwingUtilities implements SwingConstants
 
     private static void updateComponentTreeUI0(Component c) {
         if (c instanceof JComponent) {
-            ((JComponent) c).updateUI();
+            JComponent jc = (JComponent) c;
+            jc.updateUI();
+            JPopupMenu jpm =jc.getComponentPopupMenu();
+            if(jpm != null && jpm.isVisible() && jpm.getInvoker() == jc) {
+                updateComponentTreeUI(jpm);
+            }
         }
         Component[] children = null;
         if (c instanceof JMenu) {
@@ -1191,6 +1255,8 @@ public class SwingUtilities implements SwingConstants
      * in <em>The Java Tutorial</em>.
      * <p>
      * As of 1.3 this method is just a cover for <code>java.awt.EventQueue.invokeLater()</code>.
+     * <p>
+     * Unlike the rest of Swing, this method can be invoked from any thread.
      * 
      * @see #invokeAndWait
      */
@@ -1411,7 +1477,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * If c is a JRootPane descendant return its JRootPane ancestor.
      * If c is a RootPaneContainer then return its JRootPane.
-     * @return the JRootPane for Component c or null.
+     * @return the JRootPane for Component c or {@code null}.
      */
     public static JRootPane getRootPane(Component c) {
         if (c instanceof RootPaneContainer) {
@@ -1466,7 +1532,6 @@ public class SwingUtilities implements SwingConstants
             }
 
             Component component = event.getComponent();
-            Component last = component;
             boolean pressed = (event.getID() == KeyEvent.KEY_PRESSED);
 
             if (!isValidKeyEventForKeyBindings(event)) {
@@ -1479,14 +1544,14 @@ public class SwingUtilities implements SwingConstants
                     return ((JComponent)component).processKeyBindings(
                                                    event, pressed);
                 }
-                last = component;
+                if ((component instanceof Applet) ||
+                    (component instanceof Window)) {
+                    // No JComponents, if Window or Applet parent, process
+                    // WHEN_IN_FOCUSED_WINDOW bindings.
+                    return JComponent.processKeyBindingsForAllComponents(
+                                  event, (Container)component, pressed);
+                }
                 component = component.getParent();
-            }
-            // No JComponents, if Window or Applet parent, process
-            // WHEN_IN_FOCUSED_WINDOW bindings.
-            if ((last instanceof Applet) || (last instanceof Window)) {
-                return JComponent.processKeyBindingsForAllComponents(
-                                  event, (Container)last, pressed);
             }
         }
         return false;
@@ -1511,17 +1576,17 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * Invokes <code>actionPerformed</code> on <code>action</code> if
-     * <code>action</code> is enabled (and non null). The command for the
+     * <code>action</code> is enabled (and non-{@code null}). The command for the
      * ActionEvent is determined by:
      * <ol>
      *   <li>If the action was registered via
      *       <code>registerKeyboardAction</code>, then the command string
-     *       passed in (null will be used if null was passed in).
-     *   <li>Action value with name Action.ACTION_COMMAND_KEY, unless null.
+     *       passed in ({@code null} will be used if {@code null} was passed in).
+     *   <li>Action value with name Action.ACTION_COMMAND_KEY, unless {@code null}.
      *   <li>String value of the KeyEvent, unless <code>getKeyChar</code>
      *       returns KeyEvent.CHAR_UNDEFINED..
      * </ol>
-     * This will return true if <code>action</code> is non-null and
+     * This will return true if <code>action</code> is non-{@code null} and
      * actionPerformed is invoked on it.
      *
      * @since 1.3
@@ -1577,7 +1642,7 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * Convenience method to change the UI InputMap for <code>component</code>
-     * to <code>uiInputMap</code>. If <code>uiInputMap</code> is null,
+     * to <code>uiInputMap</code>. If <code>uiInputMap</code> is {@code null},
      * this removes any previously installed UI InputMap.
      *
      * @since 1.3
@@ -1599,7 +1664,7 @@ public class SwingUtilities implements SwingConstants
 
     /**
      * Convenience method to change the UI ActionMap for <code>component</code>
-     * to <code>uiActionMap</code>. If <code>uiActionMap</code> is null,
+     * to <code>uiActionMap</code>. If <code>uiActionMap</code> is {@code null},
      * this removes any previously installed UI ActionMap.
      *
      * @since 1.3
@@ -1622,7 +1687,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * Returns the InputMap provided by the UI for condition
      * <code>condition</code> in component <code>component</code>.
-     * <p>This will return null if the UI has not installed a InputMap
+     * <p>This will return {@code null} if the UI has not installed a InputMap
      * of the specified type.
      *
      * @since 1.3
@@ -1642,7 +1707,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * Returns the ActionMap provided by the UI 
      * in component <code>component</code>.
-     * <p>This will return null if the UI has not installed an ActionMap.
+     * <p>This will return {@code null} if the UI has not installed an ActionMap.
      *
      * @since 1.3
      */
@@ -1731,7 +1796,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * Returns a toolkit-private, shared, invisible Frame
      * to be the owner for JDialogs and JWindows created with
-     * null owners.
+     * {@code null} owners.
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true.
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -1811,7 +1876,7 @@ public class SwingUtilities implements SwingConstants
      * within string <code>text</code>. Matching algorithm is not
      * case-sensitive.
      *
-     * @param text The text to search through, may be null
+     * @param text The text to search through, may be {@code null}
      * @param mnemonic The mnemonic to find the character for.
      * @return index into the string if exists, otherwise -1
      */
@@ -1844,11 +1909,11 @@ public class SwingUtilities implements SwingConstants
      * This method is useful for classes 
      * that implement painting code.
      *
-     * @param c  the JComponent in question; if null, this method returns null
+     * @param c  the JComponent in question; if {@code null}, this method returns {@code null}
      * @param r  the Rectangle instance to be modified;
-     *           may be null
-     * @return null if the Component is null;
-     *         otherwise, returns the passed-in rectangle (if non-null)
+     *           may be {@code null}
+     * @return {@code null} if the Component is {@code null};
+     *         otherwise, returns the passed-in rectangle (if non-{@code null})
      *         or a new rectangle specifying position and size information
      *
      * @since 1.4

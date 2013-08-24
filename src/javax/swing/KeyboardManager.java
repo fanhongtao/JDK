@@ -1,7 +1,7 @@
 /*
- * @(#)KeyboardManager.java	1.16 03/12/19
+ * @(#)KeyboardManager.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -13,6 +13,7 @@ import java.awt.event.*;
 import java.applet.*;
 import java.beans.*;
 import javax.swing.event.*;
+import sun.awt.EmbeddedFrame;
 
 /**
   * The KeyboardManager class is used to help dispatch keyboard actions for the
@@ -107,10 +108,15 @@ class KeyboardManager {
 	 
 	 componentKeyStrokeMap.put(new ComponentKeyStrokePair(c,k), topContainer);
 
+         // Check for EmbeddedFrame case, they know how to process accelerators even
+         // when focus is not in Java
+         if (topContainer instanceof EmbeddedFrame) {
+             ((EmbeddedFrame)topContainer).registerAccelerator(k);
+         }
      }
 
      /**
-       * find the top Window or Applet
+       * Find the top focusable Window, Applet, or InternalFrame
        */
      private static Container getTopAncestor(JComponent c) {
         for(Container p = c.getParent(); p != null; p = p.getParent()) {
@@ -166,6 +172,12 @@ class KeyboardManager {
 	 }
 
 	 componentKeyStrokeMap.remove(ckp);
+
+         // Check for EmbeddedFrame case, they know how to process accelerators even
+         // when focus is not in Java
+         if (topContainer instanceof EmbeddedFrame) {
+             ((EmbeddedFrame)topContainer).unregisterAccelerator(ks);
+         }
      }
 
     /**
@@ -260,6 +272,9 @@ class KeyboardManager {
 
     public void registerMenuBar(JMenuBar mb) {
         Container top = getTopAncestor(mb);
+        if (top == null) {
+            return;
+        }
 	Hashtable keyMap = (Hashtable)containerMap.get(top);
 
 	if (keyMap ==  null) {  // lazy evaluate one
@@ -282,6 +297,9 @@ class KeyboardManager {
 
     public void unregisterMenuBar(JMenuBar mb) { 
 	Object topContainer = getTopAncestor(mb);
+        if (topContainer == null) {
+            return;
+        }
 	Hashtable keyMap = (Hashtable)containerMap.get(topContainer);
 	if (keyMap!=null) {
 	    Vector v = (Vector)keyMap.get(JMenuBar.class);

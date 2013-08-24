@@ -1,7 +1,7 @@
 /*
- * @(#)UnknownUserException.java	1.21 03/12/19
+ * @(#)UnknownUserException.java	1.23 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package org.omg.CORBA;
  * <code>UnknownUserException</code> object. This is available from the
  * <code>Environment</code> object returned by the method <code>Request.env</code>.
  *
- * @see <A href="../../../../guide/idl/jidlExceptions.html">documentation on
+ * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
  * @see Request
  */

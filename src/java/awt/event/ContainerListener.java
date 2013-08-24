@@ -1,7 +1,7 @@
 /*
- * @(#)ContainerListener.java	1.11 03/12/19
+ * @(#)ContainerListener.java	1.13 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,11 +29,10 @@ import java.util.EventListener;
  * @see ContainerAdapter
  * @see ContainerEvent
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/containerlistener.html">Tutorial: Writing a Container Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Tim Prinzing
  * @author Amy Fowler
- * @version 1.11 12/19/03
+ * @version 1.13 04/13/06
  * @since 1.1
  */
 public interface ContainerListener extends EventListener {

@@ -14,37 +14,35 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializerBase.java,v 1.10 2004/02/17 04:18:18 minchau Exp $
+ * $Id: SerializerBase.java,v 1.5 2006/04/14 12:09:19 sunithareddy Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
 import java.io.IOException;
-import java.util.Hashtable;
-import java.util.Stack;
 import java.util.Vector;
 
 import javax.xml.transform.SourceLocator;
 import javax.xml.transform.Transformer;
 
-import com.sun.org.apache.xml.internal.res.XMLErrorResources;
-import com.sun.org.apache.xml.internal.res.XMLMessages;
-import com.sun.org.apache.xml.internal.utils.BoolStack;
+import com.sun.org.apache.xml.internal.serializer.utils.MsgKey;
+import com.sun.org.apache.xml.internal.serializer.utils.Utils;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.Locator2;
 
 
 /**
  * This class acts as a base class for the XML "serializers"
  * and the stream serializers.
  * It contains a number of common fields and methods.
- * @author Santiago Pericas-Geertsen
- * @author G. Todd Miller 
+ * 
+ * @xsl.usage internal
  */
-abstract public class SerializerBase
-    implements SerializationHandler, SerializerConstants, com.sun.org.apache.xml.internal.dtm.ref.dom2dtm.DOM2DTM.CharacterNodeHandler
+public abstract class SerializerBase
+    implements SerializationHandler, SerializerConstants
 {
     
 
@@ -219,10 +217,14 @@ abstract public class SerializerBase
      */
     protected char[] m_attrBuff = new char[30];    
 
+    private Locator m_locator = null;
+    
+    protected boolean m_needToCallSetDocumentInfo = true;
+    
     /**
      * Receive notification of a comment.
      * 
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedLexicalHandler#comment(String)
+     * @see ExtendedLexicalHandler#comment(String)
      */
     public void comment(String data) throws SAXException
     {
@@ -236,13 +238,15 @@ abstract public class SerializerBase
     }
 
     /**
-      * TODO: This method is a HACK! Since XSLTC does not have access to the
-      * XML file, it sometimes generates a NS prefix of the form "ns?" for
-      * an attribute. If at runtime, when the qname of the attribute is
-      * known, another prefix is specified for the attribute, then we can get
-      * a qname of the form "ns?:otherprefix:name". This function patches the
-      * qname by simply ignoring "otherprefix".
-      */
+     * If at runtime, when the qname of the attribute is
+     * known, another prefix is specified for the attribute, then we can
+     * patch or hack the name with this method. For
+     * a qname of the form "ns?:otherprefix:name", this function patches the
+     * qname by simply ignoring "otherprefix".
+     * TODO: This method is a HACK! We do not have access to the
+     * XML file, it sometimes generates a NS prefix of the form "ns?" for
+     * an attribute.
+     */
     protected String patchName(String qname)
     {
 
@@ -306,9 +310,7 @@ abstract public class SerializerBase
      */
     public void setDocumentLocator(Locator locator)
     {
-        return;
-
-        // I don't do anything with this yet.
+        m_locator = locator;
     }
 
     /**
@@ -326,19 +328,21 @@ abstract public class SerializerBase
      * @param rawName    the qualified name of the attribute
      * @param type the type of the attribute (probably CDATA)
      * @param value the value of the attribute
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#addAttribute(String, String, String, String, String)
+     * @param XSLAttribute true if this attribute is coming from an xsl:attriute element
+     * @see ExtendedContentHandler#addAttribute(String, String, String, String, String)
      */
     public void addAttribute(
         String uri,
         String localName,
         String rawName,
         String type,
-        String value)
+        String value,
+        boolean XSLAttribute)
         throws SAXException
     {
         if (m_elemContext.m_startTagOpen)
         {
-            addAttributeAlways(uri, localName, rawName, type, value);
+            addAttributeAlways(uri, localName, rawName, type, value, XSLAttribute);
         }
 
     }
@@ -353,14 +357,19 @@ abstract public class SerializerBase
      * @param rawName   the qualified name of the attribute
      * @param type the type of the attribute (probably CDATA)
      * @param value the value of the attribute
+     * @param XSLAttribute true if this attribute is coming from an xsl:attribute element
+     * @return true if the attribute was added, 
+     * false if an existing value was replaced.
      */
-    public void addAttributeAlways(
+    public boolean addAttributeAlways(
         String uri,
         String localName,
         String rawName,
         String type,
-        String value)
+        String value,
+        boolean XSLAttribute)
     {
+        boolean was_added;
 //            final int index =
 //                (localName == null || uri == null) ?
 //                m_attributes.getIndex(rawName):m_attributes.getIndex(uri, localName);        
@@ -371,7 +380,12 @@ abstract public class SerializerBase
 //            else {
 //                index = m_attributes.getIndex(uri, localName);
 //            }
-            index = m_attributes.getIndex(rawName);
+            
+            if (localName == null || uri == null || uri.length() == 0)
+                index = m_attributes.getIndex(rawName);
+            else {
+                index = m_attributes.getIndex(uri,localName);
+            }
             if (index >= 0)
             {
                 /* We've seen the attribute before.
@@ -379,20 +393,22 @@ abstract public class SerializerBase
                  * we really want to re-set is the value anyway.
                  */
                 m_attributes.setValue(index,value);
+                was_added = false;
             }
             else
             {
                 // the attribute doesn't exist yet, create it
                 m_attributes.addAttribute(uri, localName, rawName, type, value);
+                was_added = true;
             }
+            return was_added;
         
     }
   
 
     /**
      *  Adds  the given attribute to the set of collected attributes, 
-     * but only if there is a currently open element.  This method is only
-     * called by XSLTC.
+     * but only if there is a currently open element.
      *
      * @param name the attribute's qualified name
      * @param value the value of the attribute
@@ -405,10 +421,28 @@ abstract public class SerializerBase
             final String localName = getLocalName(patchedName);
             final String uri = getNamespaceURI(patchedName, false);
 
-            addAttributeAlways(uri,localName, patchedName, "CDATA", value);
+            addAttributeAlways(uri,localName, patchedName, "CDATA", value, false);
          }
     }    
 
+    /**
+     * Adds the given xsl:attribute to the set of collected attributes, 
+     * but only if there is a currently open element.
+     *
+     * @param name the attribute's qualified name (prefix:localName)
+     * @param value the value of the attribute
+     * @param uri the URI that the prefix of the name points to
+     */
+    public void addXSLAttribute(String name, final String value, final String uri)
+    {
+        if (m_elemContext.m_startTagOpen)
+        {
+            final String patchedName = patchName(name);
+            final String localName = getLocalName(patchedName);
+
+            addAttributeAlways(uri,localName, patchedName, "CDATA", value, true);
+         }
+    } 
 
     /**
      * Add the given attributes to the currently collected ones. These
@@ -420,20 +454,20 @@ abstract public class SerializerBase
     {
 
         int nAtts = atts.getLength();
-
         for (int i = 0; i < nAtts; i++)
         {
             String uri = atts.getURI(i);
 
             if (null == uri)
                 uri = "";
-
+            
             addAttributeAlways(
                 uri,
                 atts.getLocalName(i),
                 atts.getQName(i),
                 atts.getType(i),
-                atts.getValue(i));
+                atts.getValue(i),
+                false);
 
         }
     }
@@ -472,7 +506,7 @@ abstract public class SerializerBase
     /**
      * Flush and close the underlying java.io.Writer. This method applies to
      * ToStream serializers, not ToSAXHandler serializers.
-     * @see com.sun.org.apache.xml.internal.serializer.ToStream
+     * @see ToStream
      */
     public void close()
     {
@@ -500,7 +534,7 @@ abstract public class SerializerBase
 
    /**
      * Sets the character encoding coming from the xsl:output encoding stylesheet attribute.
-     * @param encoding the character encoding
+     * @param m_encoding the character encoding
      */
     public void setEncoding(String m_encoding)
     {
@@ -615,7 +649,7 @@ abstract public class SerializerBase
      * Gets the XSL standalone attribute
      * @return a value of "yes" if the <code>standalone</code> delaration is to
      * be included in the output document.
-     *  @see   com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getStandalone()
+     *  @see XSLOutputAttributes#getStandalone()
      */
     public String getStandalone()
     {
@@ -653,7 +687,7 @@ abstract public class SerializerBase
     /**
      * Sets the value coming from the xsl:output version attribute.
      * @param version the version of the output format.
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setVersion(String)
+     * @see SerializationHandler#setVersion(String)
      */
     public void setVersion(String version)
     {
@@ -665,7 +699,7 @@ abstract public class SerializerBase
      * @param mediaType the non-null media-type or MIME type associated with the
      * output document.
      * @see javax.xml.transform.OutputKeys#MEDIA_TYPE
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setMediaType(String)
+     * @see SerializationHandler#setMediaType(String)
      */
     public void setMediaType(String mediaType)
     {
@@ -694,7 +728,7 @@ abstract public class SerializerBase
      * attribute.
      * @param doIndent true if the output document should be indented to
      * visually indicate its structure.
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setIndent(boolean)
+     * @see XSLOutputAttributes#setIndent(boolean)
      */
     public void setIndent(boolean doIndent)
     {
@@ -710,7 +744,7 @@ abstract public class SerializerBase
      * @param uri the URI of the namespace
      * @param prefix the prefix associated with the given URI.
      * 
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#namespaceAfterStartElement(String, String)
+     * @see ExtendedContentHandler#namespaceAfterStartElement(String, String)
      */
     public void namespaceAfterStartElement(String uri, String prefix)
         throws SAXException
@@ -726,7 +760,7 @@ abstract public class SerializerBase
      * @return A {@link DOMSerializer} interface into this serializer,  or null
      * if the serializer is not DOM capable
      * @throws IOException An I/O exception occured
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#asDOMSerializer()
+     * @see Serializer#asDOMSerializer()
      */
     public DOMSerializer asDOMSerializer() throws IOException
     { 
@@ -734,15 +768,10 @@ abstract public class SerializerBase
     }
 
     /**
-     * Push a boolean state based on if the name of the element
+     * Push a boolean state based on if the name of the current element
      * is found in the list of qnames.  A state is only pushed if
      * there were some cdata-section-names were specified.
-     *
-     * @param namespaceURI Should be a non-null reference to the namespace URL
-     *        of the element that owns the state, or empty string.
-     * @param localName Should be a non-null reference to the local name
-     *        of the element that owns the state.
-     *
+     * <p>
      * Hidden parameters are the vector of qualified elements specified in
      * cdata-section-names attribute, and the m_cdataSectionStates stack
      * onto which whether the current element is in the list is pushed (true or
@@ -823,7 +852,7 @@ abstract public class SerializerBase
     /**
      * Some users of the serializer may need the current namespace mappings
      * @return the current namespace mappings (prefix/uri)
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#getNamespaceMappings()
+     * @see ExtendedContentHandler#getNamespaceMappings()
      */
     public NamespaceMappings getNamespaceMappings()
     {
@@ -834,7 +863,7 @@ abstract public class SerializerBase
      * Returns the prefix currently pointing to the given URI (if any).
      * @param namespaceURI the uri of the namespace in question
      * @return a prefix pointing to the given URI (if any).
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#getPrefix(String)
+     * @see ExtendedContentHandler#getPrefix(String)
      */
     public String getPrefix(String namespaceURI)
     {
@@ -864,8 +893,8 @@ abstract public class SerializerBase
                 if (uri == null && !prefix.equals(XMLNS_PREFIX))
                 {
                     throw new RuntimeException(
-                        XMLMessages.createXMLMessage(
-                            XMLErrorResources.ER_NAMESPACE_PREFIX,
+                        Utils.messages.createMessage(
+                            MsgKey.ER_NAMESPACE_PREFIX,
                             new Object[] { qname.substring(0, col) }  ));
                 }
             }
@@ -910,7 +939,7 @@ abstract public class SerializerBase
     /**
      * Sets the transformer associated with this serializer
      * @param t the transformer associated with this serializer.
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setTransformer(Transformer)
+     * @see SerializationHandler#setTransformer(Transformer)
      */
     public void setTransformer(Transformer t)
     {
@@ -929,7 +958,7 @@ abstract public class SerializerBase
     /**
      * Gets the transformer associated with this serializer
      * @return returns the transformer associated with this serializer.
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#getTransformer()
+     * @see SerializationHandler#getTransformer()
      */
     public Transformer getTransformer()
     {
@@ -1192,9 +1221,9 @@ abstract public class SerializerBase
     /**
      * This method handles what needs to be done at a startDocument() call,
      * whether from an external caller, or internally called in the 
-     * serializer.  Historically Xalan has not always called a startDocument()
-     * although it always calls endDocument() on the serializer.
-     * So the serializer must be flexible for that. Even if no external call is
+     * serializer.  For historical reasons the serializer is flexible to
+     * startDocument() not always being called.
+     * Even if no external call is
      * made into startDocument() this method will always be called as a self
      * generated internal startDocument, it handles what needs to be done at a
      * startDocument() call.
@@ -1209,13 +1238,31 @@ abstract public class SerializerBase
     {
         if (m_tracer != null)
             this.fireStartDoc();
+        
     } 
+    
+    /* This method extracts version and encoding information from SAX events.
+     */
+    protected void setDocumentInfo() {
+        if (m_locator == null)
+                return;
+        try{
+            String strVersion = ((Locator2)m_locator).getXMLVersion();
+            if (strVersion != null)
+                setVersion(strVersion);
+            /*String strEncoding = ((Locator2)m_locator).getEncoding();
+            if (strEncoding != null) 
+                setEncoding(strEncoding); */
+                  
+        }catch(ClassCastException e){}
+    }
+    
     /**
      * This method is used to set the source locator, which might be used to
      * generated an error message.
      * @param locator the source locator
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#setSourceLocator(javax.xml.transform.SourceLocator)
+     * @see ExtendedContentHandler#setSourceLocator(javax.xml.transform.SourceLocator)
      */
     public void setSourceLocator(SourceLocator locator)
     {
@@ -1227,7 +1274,7 @@ abstract public class SerializerBase
      * Used only by TransformerSnapshotImpl to restore the serialization 
      * to a previous state. 
      * 
-     * @param NamespaceMappings
+     * @param mappings NamespaceMappings
      */
     public void setNamespaceMappings(NamespaceMappings mappings) {
         m_prefixMap = mappings;
@@ -1269,6 +1316,68 @@ abstract public class SerializerBase
     	this.m_version = null;
     	// don't set writer to null, so that it might be re-used
     	//this.m_writer = null;
+    }
+    
+    /**
+     * Returns true if the serializer is used for temporary output rather than
+     * final output.
+     * 
+     * This concept is made clear in the XSLT 2.0 draft.
+     */
+    final boolean inTemporaryOutputState() 
+    {
+        /* This is a hack. We should really be letting the serializer know
+         * that it is in temporary output state with an explicit call, but
+         * from a pragmatic point of view (for now anyways) having no output
+         * encoding at all, not even the default UTF-8 indicates that the serializer
+         * is being used for temporary RTF.
+         */ 
+        return (getEncoding() == null);
+        
+    }
+    
+    /**
+     * This method adds an attribute the the current element,
+     * but should not be used for an xsl:attribute child.
+     * @see ExtendedContentHandler#addAttribute(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     */
+    public void addAttribute(String uri, String localName, String rawName, String type, String value) throws SAXException 
+    {
+        if (m_elemContext.m_startTagOpen)
+        {
+            addAttributeAlways(uri, localName, rawName, type, value, false);
+        }
+    }
+    
+    /**
+     * @see org.xml.sax.DTDHandler#notationDecl(java.lang.String, java.lang.String, java.lang.String)
+     */
+    public void notationDecl(String arg0, String arg1, String arg2)
+        throws SAXException {
+        // This method just provides a definition to satisfy the interface
+        // A particular sub-class of SerializerBase provides the implementation (if desired)        
+    }
+
+    /**
+     * @see org.xml.sax.DTDHandler#unparsedEntityDecl(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     */
+    public void unparsedEntityDecl(
+        String arg0,
+        String arg1,
+        String arg2,
+        String arg3)
+        throws SAXException {
+        // This method just provides a definition to satisfy the interface
+        // A particular sub-class of SerializerBase provides the implementation (if desired)        
+    }
+
+    /**
+     * If set to false the serializer does not expand DTD entities,
+     * but leaves them as is, the default value is true.
+     */
+    public void setDTDEntityExpansion(boolean expand) {
+        // This method just provides a definition to satisfy the interface
+        // A particular sub-class of SerializerBase provides the implementation (if desired)        
     }
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPathFactory.java,v 1.9 2004/02/17 04:30:02 minchau Exp $
+ * $Id: XPathFactory.java,v 1.1.2.1 2005/08/01 01:30:14 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 

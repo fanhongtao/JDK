@@ -1,7 +1,7 @@
 /*
- * @(#)PangoFonts.java	1.11 04/03/31
+ * @(#)PangoFonts.java	1.16 06/02/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,14 +16,11 @@ import sun.font.FontManager;
 /**
  * @author Shannon Hickey
  * @author Leif Samuelsson
- * @version 1.11 03/31/04
+ * @version 1.16 02/27/06
  */
 class PangoFonts {
 
-    // A simple array for now, but this could be a HashMap if
-    // many more mappings are added
-    private static final String[][] nameMap = {{"sans", "sansserif"},
-                                               {"monospace", "monospaced"}};
+    public static final String CHARS_DIGITS = "0123456789";
 
     /**
      * Calculate a default scale factor for fonts in this L&F to match
@@ -49,15 +46,6 @@ class PangoFonts {
         fontScale = at.getScaleY();
     }
     
-    private static String mapName(String name) {
-        for (int i = 0; i < nameMap.length; i++) {
-            if (name.equals(nameMap[i][0])) {
-                return nameMap[i][1];
-            }
-        }
-        
-        return null;
-    }
 
     /**
      * Parses a String containing a pango font description and returns
@@ -82,7 +70,7 @@ class PangoFonts {
                 style |= Font.ITALIC;
             } else if (word.equalsIgnoreCase("bold")) {
                 style |= Font.BOLD;
-            } else if (GTKScanner.CHARS_DIGITS.indexOf(word.charAt(0)) != -1) {
+            } else if (CHARS_DIGITS.indexOf(word.charAt(0)) != -1) {
                 try {
                     size = Integer.parseInt(word);
                 } catch (NumberFormatException ex) {
@@ -183,16 +171,15 @@ class PangoFonts {
 	    size = 1;
 	}
 
-        String mappedName = mapName(family.toLowerCase());
-        if (mappedName != null) {
-            family = mappedName;
+        String fcFamilyLC = family.toLowerCase();
+        if (FontManager.mapFcName(fcFamilyLC) != null) {
+            /* family is a Fc/Pango logical font which we need to expand. */
+           return FontManager.getFontConfigFUIR(fcFamilyLC, style, size);
+        } else {
+            /* It's a physical font which we will create with a fallback */
+            Font font = new FontUIResource(family, style, size);
+            return FontManager.getCompositeFontUIResource(font);
         }
-
-        Font font = new FontUIResource(family, style, size);
-        if (!FontManager.fontSupportsDefaultEncoding(font)) {
-            font = FontManager.getCompositeFontUIResource(font);
-        }
-        return font;
     }
 }
 

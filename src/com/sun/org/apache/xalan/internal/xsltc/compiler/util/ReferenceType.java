@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ReferenceType.java,v 1.19 2004/02/23 17:29:35 aruny Exp $
+ * $Id: ReferenceType.java,v 1.2.4.1 2005/09/05 11:29:12 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;

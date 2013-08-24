@@ -1,7 +1,7 @@
 /*
- * @(#)JMXSubjectDomainCombiner.java	1.7 04/05/27
+ * @(#)JMXSubjectDomainCombiner.java	1.10 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,7 +9,6 @@ package com.sun.jmx.remote.security;
 
 import java.security.AccessControlContext;
 import java.security.AccessController;
-import java.security.AllPermission;
 import java.security.CodeSource;
 import java.security.Permissions;
 import java.security.ProtectionDomain;
@@ -67,46 +66,23 @@ public class JMXSubjectDomainCombiner extends SubjectDomainCombiner {
 	new ProtectionDomain(nullCodeSource, new Permissions());
 
     /**
-     * A permission set that grants AllPermission.
-     */
-    private static final Permissions allPermissions = new Permissions();
-    static {
-	allPermissions.add(new AllPermission());
-    }
-
-    /**
-     * A ProtectionDomain with a null CodeSource and a permission set that
-     * grants AllPermission.
-     */
-    private static final ProtectionDomain pdAllPerms =
-	new ProtectionDomain(nullCodeSource, allPermissions);
-
-    /**
-     * An AccessControlContext that has only system domains on the stack.
-     */
-    private static final AccessControlContext systemACC =
-	new AccessControlContext(new ProtectionDomain[0]);
-
-    /**
-     * Check if the given AccessControlContext contains only system domains.
-     */
-    private static boolean hasOnlySystemCode(AccessControlContext acc) {
-	return systemACC.equals(acc);
-    }
-
-    /**
-     * Get the current AccessControlContext. If all the protection domains
-     * in the current context are system domains then build a new context
-     * that combines the subject with a dummy protection domain that forces
-     * the use of the domain combiner.
+     * Get the current AccessControlContext combined with the supplied subject.
      */
     public static AccessControlContext getContext(Subject subject) {
-	AccessControlContext currentACC = AccessController.getContext();
-	if (hasOnlySystemCode(currentACC)) {
-	    currentACC =
-		new AccessControlContext(new ProtectionDomain[] {pdAllPerms});
-	}
-	return new AccessControlContext(currentACC,
-					new JMXSubjectDomainCombiner(subject));
+        return new AccessControlContext(AccessController.getContext(),
+                                        new JMXSubjectDomainCombiner(subject));
+    }
+
+    /**
+     * Get the AccessControlContext of the domain combiner created with
+     * the supplied subject, i.e. an AccessControlContext with the domain
+     * combiner created with the supplied subject and where the caller's
+     * context has been removed.
+     */
+    public static AccessControlContext
+        getDomainCombinerContext(Subject subject) {
+        return new AccessControlContext(
+            new AccessControlContext(new ProtectionDomain[0]),
+            new JMXSubjectDomainCombiner(subject));
     }
 }

@@ -1,9 +1,39 @@
 /*
- * @(#)JarDiff.java	1.13 03/06/26
+ * @(#)JarDiff.java	1.7 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
+ *
+ * -Redistribution in binary form must reproduce the above copyright notice,
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
+ *
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
+ * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE,
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ *
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
+
 package jnlp.sample.jardiff;
 
 import java.io.*;
@@ -48,154 +78,171 @@ public class JarDiff implements JarDiffConstants {
         JarFile2 oldJar = new JarFile2(oldPath);
         JarFile2 newJar = new JarFile2(newPath);
       
-        Iterator entries;
-        HashMap moved = new HashMap();
-        HashSet visited = new HashSet();
-	HashSet implicit = new HashSet();
-	HashSet moveSrc = new HashSet();
-	HashSet newEntries = new HashSet();
+        try {
+          Iterator entries;
+          HashMap moved = new HashMap();
+          HashSet visited = new HashSet();
+          HashSet implicit = new HashSet();
+          HashSet moveSrc = new HashSet();
+          HashSet newEntries = new HashSet();
 
-	// FIRST PASS
-	// Go through the entries in new jar and
-	// determine which files are candidates for implicit moves
-	// ( files that has the same filename and same content in old.jar
-	// and new.jar )
-	// and for files that cannot be implicitly moved, we will either
-	// find out whether it is moved or new (modified)
-	entries = newJar.getJarEntries();
-	if (entries != null) {
-	    while (entries.hasNext()) {
-		JarEntry newEntry = (JarEntry)entries.next(); 
-		String newname = newEntry.getName();
+
+          // FIRST PASS
+          // Go through the entries in new jar and
+          // determine which files are candidates for implicit moves
+          // ( files that has the same filename and same content in old.jar
+          // and new.jar )
+          // and for files that cannot be implicitly moved, we will either
+          // find out whether it is moved or new (modified)
+          entries = newJar.getJarEntries();
+          if (entries != null) {
+            while (entries.hasNext()) {
+                JarEntry newEntry = (JarEntry)entries.next(); 
+		        String newname = newEntry.getName();
 	
-		// Return best match of contents, will return a name match if possible 
-		String oldname = oldJar.getBestMatch(newJar, newEntry);
-		if (oldname == null) {
-		    // New or modified entry
-		    if (_debug) {
-			 System.out.println("NEW: "+ newname); 
-		    }
-		    newEntries.add(newname);
-		} else {
-		    // Content already exist - need to do a move
+                // Return best match of contents, will return a name match if possible 
+                String oldname = oldJar.getBestMatch(newJar, newEntry);
+                if (oldname == null) {
+                    // New or modified entry
+                    if (_debug) {
+                        System.out.println("NEW: "+ newname); 
+                    }
+                    newEntries.add(newname);
+                } else {
+                    // Content already exist - need to do a move
 		    
-		    // Should do implicit move? Yes, if names are the same, and
-		    // no move command already exist from oldJar
-		    if (oldname.equals(newname) && !moveSrc.contains(oldname)) {
-			if (_debug) { 
-			     System.out.println(newname + " added to implicit set!");
-			}
-			implicit.add(newname);
-		    } else {
-			// The 1.0.1/1.0 JarDiffPatcher cannot handle
-			// multiple MOVE command with same src.
-			// The work around here is if we are going to generate
-			// a MOVE command with duplicate src, we will
-			// instead add the target as a new file.  This way
-			// the jardiff can be applied by 1.0.1/1.0
-			// JarDiffPatcher also.
-			if (!minimal && (implicit.contains(oldname) || 
-					  moveSrc.contains(oldname) )) {
+                    // Should do implicit move? Yes, if names are the same, and
+                    // no move command already exist from oldJar
+                    if (oldname.equals(newname) && !moveSrc.contains(oldname)) {
+                        if (_debug) { 
+                            System.out.println(newname + " added to implicit set!");
+                        }
+                        implicit.add(newname);
+		            } else {
+                    // The 1.0.1/1.0 JarDiffPatcher cannot handle
+                    // multiple MOVE command with same src.
+                    // The work around here is if we are going to generate
+                    // a MOVE command with duplicate src, we will
+                    // instead add the target as a new file.  This way
+                    // the jardiff can be applied by 1.0.1/1.0
+                    // JarDiffPatcher also.
+                        if (!minimal && (implicit.contains(oldname) || 
+                            moveSrc.contains(oldname) )) {
 			    
-			    // generate non-minimal jardiff
-			    // for backward compatibility
+                            // generate non-minimal jardiff
+                            // for backward compatibility
 			   
-			    if (_debug) {
+                            if (_debug) {
 				    
-				System.out.println("NEW: "+ newname); 
-			    }
-			    newEntries.add(newname);			
-			} else {
-			    // Use newname as key, since they are unique
-			    if (_debug) {
-				System.err.println("moved.put " + newname + " " + oldname); 
-			    }
-			    moved.put(newname, oldname);
-			    moveSrc.add(oldname);
-			}
-			// Check if this disables an implicit 'move <oldname> <oldname>'
-			if (implicit.contains(oldname) && minimal) { 
+                                System.out.println("NEW: "+ newname); 
+                            }
+                            newEntries.add(newname);			
+                        } else {
+                            // Use newname as key, since they are unique
+                            if (_debug) {
+                                System.err.println("moved.put " + newname + " " + oldname); 
+                            }
+                            moved.put(newname, oldname);
+                            moveSrc.add(oldname);
+                        }
+                        // Check if this disables an implicit 'move <oldname> <oldname>'
+                        if (implicit.contains(oldname) && minimal) { 
 			  
-			    if (_debug) {
-				System.err.println("implicit.remove " + oldname);
+                           if (_debug) {
+                              System.err.println("implicit.remove " + oldname);
 				
-				System.err.println("moved.put " + oldname + " " + oldname); 
+                              System.err.println("moved.put " + oldname + " " + oldname); 
 				
-			    }
-			    implicit.remove(oldname);
-			    moved.put(oldname, oldname);
-			    moveSrc.add(oldname);		     
-			}
+                            }
+                            implicit.remove(oldname);
+                            moved.put(oldname, oldname);
+                            moveSrc.add(oldname);		     
+                        }
 
 		
-		    } 
-		}
-	    }
-	}
-
+                    } 
+                }
+            }
+          } //if (entries != null)
 	
-	// SECOND PASS: <deleted files> = <oldjarnames> - <implicitmoves> - 
-	// <source of move commands> - <new or modified entries>
-	ArrayList deleted = new ArrayList();
-	entries = oldJar.getJarEntries();
-	if (entries != null) {
-            while (entries.hasNext()) {
-		JarEntry oldEntry = (JarEntry)entries.next();
-		String oldName = oldEntry.getName();
-		if (!implicit.contains(oldName) && !moveSrc.contains(oldName)
-		    && !newEntries.contains(oldName)) {
-		    if (_debug) {
-			System.err.println("deleted.add " + oldName);
-		    }
-		    deleted.add(oldName);
-		}
-	    }
-	}
+          // SECOND PASS: <deleted files> = <oldjarnames> - <implicitmoves> - 
+          // <source of move commands> - <new or modified entries>
+          ArrayList deleted = new ArrayList();
+          entries = oldJar.getJarEntries();
+          if (entries != null) {
+              while (entries.hasNext()) {
+                  JarEntry oldEntry = (JarEntry)entries.next();
+                  String oldName = oldEntry.getName();
+                  if (!implicit.contains(oldName) && !moveSrc.contains(oldName)
+                    && !newEntries.contains(oldName)) {
+                      if (_debug) {
+                          System.err.println("deleted.add " + oldName);
+                      }
+                      deleted.add(oldName);
+                  }
+              }
+          }
 	
-	//DEBUG
-	if (_debug) {
-	    //DEBUG:  print out moved map
-	    entries = moved.keySet().iterator();
-	    if (entries != null) {
-		System.out.println("MOVED MAP!!!");
-		while (entries.hasNext()) {
-		    String newName = (String)entries.next();
-		    String oldName = (String)moved.get(newName);	
-		    System.out.println("key is " + newName + " value is " + oldName);
-		}
-	    }
+          //DEBUG
+          if (_debug) {
+              //DEBUG:  print out moved map
+              entries = moved.keySet().iterator();
+              if (entries != null) {
+                  System.out.println("MOVED MAP!!!");
+                  while (entries.hasNext()) {
+                      String newName = (String)entries.next();
+                      String oldName = (String)moved.get(newName);	
+                      System.out.println("key is " + newName + " value is " + oldName);
+                      }
+              }
 	    
-	    //DEBUG:  print out IMOVE map
-	    entries = implicit.iterator();
-	    if (entries != null) {
-		System.out.println("IMOVE MAP!!!");
-		while (entries.hasNext()) {
-		    String newName = (String)entries.next();		 
-		    System.out.println("key is " + newName);
-		}
-	    }
-	}
+              //DEBUG:  print out IMOVE map
+              entries = implicit.iterator();
+              if (entries != null) {
+                  System.out.println("IMOVE MAP!!!");
+                  while (entries.hasNext()) {
+                      String newName = (String)entries.next();		 
+                      System.out.println("key is " + newName);
+                  }
+              }
+          }
 
-	JarOutputStream jos = new JarOutputStream(os);
+          JarOutputStream jos = new JarOutputStream(os);
 
-	// Write out all the MOVEs and REMOVEs
-        createIndex(jos, deleted, moved);
+          // Write out all the MOVEs and REMOVEs
+          createIndex(jos, deleted, moved);
 
-        // Put in New and Modified entries
-	entries = newEntries.iterator();
-	if (entries != null) {
+          // Put in New and Modified entries
+          entries = newEntries.iterator();
+          if (entries != null) {
 	   
-	    while (entries.hasNext()) {
-		String newName = (String)entries.next();		      
-		if (_debug) {
-		    System.out.println("New File: " + newName);
-		}
-		writeEntry(jos, newJar.getEntryByName(newName), newJar);
-	    }
-	}
+              while (entries.hasNext()) {
+                  String newName = (String)entries.next();		      
+                  if (_debug) {
+                      System.out.println("New File: " + newName);
+                  }
+                  writeEntry(jos, newJar.getEntryByName(newName), newJar);
+              }
+          }
      
     
-        jos.finish();
+          jos.finish();
+          jos.close();
+
+        } catch (IOException ioE){
+          throw ioE;
+        } finally {
+          try { 
+              oldJar.getJarFile().close();
+          } catch (IOException e1) {
+              //ignore
+          }
+          try { 
+              newJar.getJarFile().close();
+          } catch (IOException e1) {
+            //ignore
+          }
+        } // finally
     }
 
     /**
@@ -282,14 +329,24 @@ public class JarDiff implements JarDiffConstants {
                             InputStream data) throws IOException {
         jos.putNextEntry(entry);
 
-        // Read the entry
-        int size = data.read(newBytes);
+        try {
+            // Read the entry
+            int size = data.read(newBytes);
 
-        while (size != -1) {
-            jos.write(newBytes, 0, size);
-            size = data.read(newBytes);
+            while (size != -1) {
+                jos.write(newBytes, 0, size);
+                size = data.read(newBytes);
+            }
+        } catch(IOException ioE) {
+            throw ioE;
+        } finally {
+            try {
+                data.close();
+            } catch(IOException e){
+                //Ignore
+            }
+
         }
-        data.close();
     }
 
    
@@ -326,36 +383,58 @@ public class JarDiff implements JarDiffConstants {
 	 */
 	private static boolean differs(InputStream oldIS, InputStream newIS) 
 	    throws IOException {
-	    int newSize = 0;
-	    int oldSize;
-	    int total = 0;
+        int newSize = 0;
+        int oldSize;
+        int total = 0;
+        boolean retVal = false;
 	    
-	    while (newSize != -1) {
-		newSize = newIS.read(newBytes);
-		oldSize = oldIS.read(oldBytes);
+        try{
+            while (newSize != -1) {
+                newSize = newIS.read(newBytes);
+                oldSize = oldIS.read(oldBytes);
 		
-		if (newSize != oldSize) {
-		    if (_debug) {
-			System.out.println("\tread sizes differ: " + newSize +
-					   " " + oldSize + " total " + total);
-		    }
-		    return true;
-		}
-		if (newSize > 0) {
-		    while (--newSize >= 0) {
-			total++;
-			if (newBytes[newSize] != oldBytes[newSize]) {
-			    if (_debug) {
-				System.out.println("\tbytes differ at " +
-						   total);
-			    }
-			    return true;
-			}
+                if (newSize != oldSize) {
+                    if (_debug) {
+                        System.out.println("\tread sizes differ: " + newSize +
+                            " " + oldSize + " total " + total);
+                    }
+                    retVal = true;
+                    break;
                 }
-		    newSize = 0;
-		}
-	    }
-	    return false;
+                if (newSize > 0) {
+                    while (--newSize >= 0) {
+                        total++;
+                        if (newBytes[newSize] != oldBytes[newSize]) {
+                            if (_debug) {
+                                System.out.println("\tbytes differ at " +
+                                                    total);
+                            }
+                            retVal = true;
+                            break;
+                        }
+                        if ( retVal ) {
+                            //Jump out
+                            break;
+                        }
+                        newSize = 0;
+                    }
+                }
+            }
+        } catch(IOException ioE){
+            throw ioE;
+        } finally {
+            try {
+                oldIS.close();
+            } catch(IOException e){
+                //Ignore
+            }
+            try {
+                newIS.close();
+            } catch(IOException e){
+                //Ignore
+            }
+        }
+	    return retVal;
 	}
 	
 	public String getBestMatch(JarFile2 file, JarEntry entry) throws IOException {
@@ -397,24 +476,24 @@ public class JarDiff implements JarDiffConstants {
 
 	    // check if this jar contains files with the passed in entry's crc
 	    if (_crcToEntryMap.containsKey(crcL)) {
-		// get the Linked List with files with the crc
+	        // get the Linked List with files with the crc
       		LinkedList ll = (LinkedList)_crcToEntryMap.get(crcL);
-		// go through the list and check for content match
-		ListIterator li = ll.listIterator(0);
-		if (li != null) {
-		    while (li.hasNext()) {
-			JarEntry thisEntry = (JarEntry)li.next();
+	        // go through the list and check for content match
+	        ListIterator li = ll.listIterator(0);
+	        if (li != null) {
+	            while (li.hasNext()) {
+		            JarEntry thisEntry = (JarEntry)li.next();
 
-			// check for content match
-			InputStream oldIS = getJarFile().getInputStream(thisEntry);
-			InputStream newIS = file.getJarFile().getInputStream(entry);		
+		            // check for content match
+	                InputStream oldIS = getJarFile().getInputStream(thisEntry);
+	                InputStream newIS = file.getJarFile().getInputStream(entry);		
 			    
-			if (!differs(oldIS, newIS)) {
-			    thisName = thisEntry.getName();
-			    return thisName;
-			}			    		
+	                if (!differs(oldIS, newIS)) {
+	                    thisName = thisEntry.getName();
+	                    return thisName;
+	                }
+	            }
 		    }
-		}
 	    }
 	 
 	    return thisName;

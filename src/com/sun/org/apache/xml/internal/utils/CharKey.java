@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CharKey.java,v 1.4 2004/02/17 04:21:14 minchau Exp $
+ * $Id: CharKey.java,v 1.3 2005/09/28 13:49:18 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -41,8 +41,6 @@ public class CharKey extends Object
   
   /**
    * Default constructor for a CharKey.
-   *
-   * @param key char value of this object.
    */
   public CharKey()
   {

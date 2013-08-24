@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLErrorResources.java,v 1.7 2004/02/17 04:14:26 minchau Exp $
+ * $Id: XMLErrorResources.java,v 1.2.4.1 2005/09/15 07:45:37 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.res;
 
@@ -444,10 +444,18 @@ public class XMLErrorResources extends ListResourceBundle
    *
    * @return The association list.
    */
-  public Object[][] getContents()
-  {
-    return contents;
-  }
+ 
+    protected Object[][] getContents() {
+	// return a copy of contents; in theory we want a deep clone
+	// of contents, but since it only contains (immutable) Strings,
+	// this shallow copy is sufficient
+	Object[][] msgCopy = new Object[contents.length][2];
+	for (int i = 0; i < contents.length; i++) {
+            msgCopy[i][0] = contents[i][0];
+            msgCopy[i][1] = contents[i][1];
+	}
+        return msgCopy;
+    }
 
   /**
    *   Return a named ResourceBundle for a particular locale.  This method mimics the behavior

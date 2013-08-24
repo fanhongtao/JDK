@@ -1,7 +1,7 @@
 /*
- * @(#)hprof.h	1.43 05/03/18
+ * @(#)hprof.h	1.48 05/12/06
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -61,6 +61,10 @@
 #include "jni.h"
 #include "jvmti.h"
 #include "classfile_constants.h"
+
+#ifndef SKIP_NPT
+#include "npt.h"   /* To get NptEnv for doing character conversions */
+#endif
 
 /* Macros to extract the upper and lower 32 bits of a jlong */
 
@@ -148,10 +152,12 @@ enum {
 /* Used to hold information about a field, and potentially a value too. */
 
 typedef struct FieldInfo {
-    ClassIndex  cnum;
-    StringIndex name_index;
-    StringIndex sig_index;
-    jint        modifiers;
+    ClassIndex         cnum;
+    StringIndex        name_index;
+    StringIndex        sig_index;
+    unsigned short     modifiers;
+    unsigned char      primType;
+    unsigned char      primSize;
 } FieldInfo;
 
 /* Used to hold information about a constant pool entry value for a class. */
@@ -182,6 +188,7 @@ typedef struct ConstantPoolValue {
 #include "hprof_object.h"
 #include "hprof_loader.h"
 #include "hprof_tls.h"
+#include "hprof_check.h"
 #include "hprof_io.h"
 #include "hprof_listener.h"
 #include "hprof_cpu.h"
@@ -193,14 +200,21 @@ struct LineTable;
 
 typedef struct {
     
-    jvmtiEnv            *jvmti;		/* JVMTI env for this session */
-    JavaVM              *jvm;		/* JavaVM* for this session */
-    
+    jvmtiEnv            *jvmti;	/* JVMTI env for this session */
+    JavaVM              *jvm;	/* JavaVM* for this session */
+#ifndef SKIP_NPT
+    NptEnv              *npt;	/* NptEnv* for this session, see npt.h */
+#endif 
     jint                cachedJvmtiVersion; /* JVMTI version number */
+
+    char               *header; /* "JAVA PROFILE 1.0.[12]" */
+    jboolean            segmented;  /* JNI_TRUE if 1.0.2 */
+    jlong               maxHeapSegment;
+    jlong               maxMemory;
 
     /* Option settings */
     char *              options;	     /* option string copy */
-    char *              output_filename;     /* file=filename */
+    char *              utf8_output_filename;/* file=filename */
     int                 net_port;            /* net=hostname:port */
     char *              net_hostname;        /* net=hostname:port */
     char                output_format;	     /* format=a|b */
@@ -222,13 +236,17 @@ typedef struct {
     jboolean            gc_okay;             /* gc_okay=y|n (Not used) */
     
     unsigned            logflags;	     /* logflags=bitmask */
+    
+    #define DEBUGFLAG_UNPREPARED_CLASSES 0x001
+    unsigned            debugflags;	     /* debugflags=bitmask */
+    
     jboolean            coredump;            /* coredump=y|n */
-    jboolean            exitpause;           /* exitpause=y|n */
     jboolean            errorexit;           /* errorexit=y|n */
     jboolean            pause;               /* pause=y|n */
     jboolean            debug;		     /* debug=y|n */
     jboolean            verbose;	     /* verbose=y|n */
-    jboolean            precrash;            /* precrash=y|n */
+    jboolean            primfields;	     /* primfields=y|n */
+    jboolean            primarrays;	     /* primarrays=y|n */
     jint                experiment;          /* X=NUMBER */
 
     int                 fd;             /* file or socket (net=addr). */
@@ -239,6 +257,7 @@ typedef struct {
     int			bci_counter;    /* Class BCI counter */
 
     int                 heap_fd;
+    char               *output_filename;     /* file=filename */
     char	       *heapfilename;
  
     int                 check_fd;
@@ -282,7 +301,7 @@ typedef struct {
     jrawMonitorID       dump_lock;
    
     /* Milli-second clock when hprof onload started */
-    jint                micro_sec_ticks;
+    jlong               micro_sec_ticks;
   
     /* Thread class (for starting agent threads) */
     ClassIndex          thread_cnum;
@@ -307,6 +326,7 @@ typedef struct {
     char *              heap_buffer;
     int                 heap_buffer_index;
     int                 heap_buffer_size;
+    jlong               heap_last_tag_position;
     jlong               heap_write_count;
     char *              check_buffer;
     int                 check_buffer_index;
@@ -320,6 +340,7 @@ typedef struct {
     SerialNumber        thread_serial_number_start;
     SerialNumber        trace_serial_number_start;
     SerialNumber        object_serial_number_start;
+    SerialNumber        frame_serial_number_start;
     SerialNumber        gref_serial_number_start;
     
     SerialNumber        table_serial_number_counter;
@@ -327,6 +348,7 @@ typedef struct {
     SerialNumber        thread_serial_number_counter;
     SerialNumber        trace_serial_number_counter;
     SerialNumber        object_serial_number_counter;
+    SerialNumber        frame_serial_number_counter;
     SerialNumber        gref_serial_number_counter;
 
     /* The methodID for the Object <init> method. */
@@ -368,6 +390,9 @@ typedef struct {
     void * java_crw_demo_library;
     void * java_crw_demo_function;
     void * java_crw_demo_classname_function;
+
+    /* Indication that the agent has been loaded */
+    jboolean isLoaded;
 
 } GlobalData;
 

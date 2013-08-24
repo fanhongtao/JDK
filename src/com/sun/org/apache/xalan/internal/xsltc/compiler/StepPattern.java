@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StepPattern.java,v 1.24 2004/02/16 22:24:29 minchau Exp $
+ * $Id: StepPattern.java,v 1.2.4.1 2005/09/12 11:13:19 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -50,7 +50,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 
 /**
@@ -147,7 +147,7 @@ class StepPattern extends RelativePathPattern {
 	
     public String toString() {
 	final StringBuffer buffer = new StringBuffer("stepPattern(\"");
-	buffer.append(Axis.names[_axis])
+    buffer.append(Axis.getNames(_axis))
 	    .append("\", ")
 	    .append(_isEpsilon ? 
 			("epsilon{" + Integer.toString(_nodeType) + "}") :
@@ -340,10 +340,27 @@ class StepPattern extends RelativePathPattern {
 	// Create a new matching iterator using the matching node
 	index = cpg.addMethodref(MATCHING_ITERATOR, "<init>", 
 				 "(I" + NODE_ITERATOR_SIG + ")V");
+
+        // Backwards branches are prohibited if an uninitialized object is
+        // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
+        // We don't know whether this code might contain backwards branches,
+        // so we mustn't create the new object until after we've created
+        // the suspect arguments to its constructor.  Instead we calculate
+        // the values of the arguments to the constructor first, store them
+        // in temporary variables, create the object and reload the
+        // arguments from the temporaries to avoid the problem.
+
+	_step.translate(classGen, methodGen);
+        LocalVariableGen stepIteratorTemp =
+                methodGen.addLocalVariable("step_pattern_tmp2",
+                                           Util.getJCRefType(NODE_ITERATOR_SIG),
+                                           il.getEnd(), null);
+        il.append(new ASTORE(stepIteratorTemp.getIndex()));
+
 	il.append(new NEW(cpg.addClass(MATCHING_ITERATOR)));
 	il.append(DUP);
 	il.append(new ILOAD(match.getIndex()));
-	_step.translate(classGen, methodGen);
+        il.append(new ALOAD(stepIteratorTemp.getIndex()));
 	il.append(new INVOKESPECIAL(index));
 
 	// Get the parent of the matching node

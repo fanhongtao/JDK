@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Constants.java,v 1.21 2004/02/16 20:32:32 minchau Exp $
+ * $Id: Constants.java,v 1.2.4.1 2005/09/10 19:50:56 jeffsuttor Exp $
  */
 package com.sun.org.apache.xalan.internal.templates;
 

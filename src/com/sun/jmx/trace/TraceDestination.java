@@ -1,7 +1,7 @@
 /*
- * @(#)TraceDestination.java	1.14 03/12/19
+ * @(#)TraceDestination.java	1.16 05/12/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.jmx.trace;
@@ -65,7 +65,7 @@ public interface TraceDestination {
 
     /**
      * Reset the trace destination. 
-     * The behaviour of this method is implementation dependent.
+     * The behavior of this method is implementation dependent.
      * It could be used, for instance, to (re)initialize the traces
      * according to some default System properties, or to flush 
      * (empty) the log file, etc...

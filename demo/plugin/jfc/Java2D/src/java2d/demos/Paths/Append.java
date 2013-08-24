@@ -1,7 +1,7 @@
 /*
- * @(#)Append.java	1.24 04/07/26
+ * @(#)Append.java	1.26 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,12 +35,13 @@
  */
 
 /*
- * @(#)Append.java	1.24 04/07/26
+ * @(#)Append.java	1.26 06/08/29
  */
 
 
 package java2d.demos.Paths;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
@@ -53,7 +54,7 @@ import java2d.Surface;
 public class Append extends Surface {
 
     public Append() { 
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -63,9 +64,9 @@ public class Append extends Surface {
         p.lineTo(w*0.75f, h*0.2f);
         p.closePath();
         p.append(new Rectangle2D.Double(w*.4, h*.3, w*.2, h*.1), false);
-        g2.setColor(Color.gray);
+        g2.setColor(GRAY);
         g2.fill(p);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(p);
         g2.drawString("Append rect to path", (int)(w*.25), (int)(h*.2)-5);
 
@@ -74,9 +75,9 @@ public class Append extends Surface {
         p.lineTo(w*0.75f, h*0.6f);
         p.closePath();
         p.append(new Rectangle2D.Double(w*.4, h*.7, w*.2, h*.1), true);
-        g2.setColor(Color.gray);
+        g2.setColor(GRAY);
         g2.fill(p);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(p);
         g2.drawString("Append, connect", (int) (w*.25), (int) (h*.6)-5);
     }

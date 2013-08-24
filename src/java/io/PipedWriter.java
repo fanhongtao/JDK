@@ -1,7 +1,7 @@
 /*
- * @(#)PipedWriter.java	1.16 03/12/19
+ * @(#)PipedWriter.java	1.19 06/06/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.io;
 /**
  * Piped character-output streams.
  *
- * @version 	1.16, 03/12/19
+ * @version 	1.19, 06/06/28
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -95,7 +95,10 @@ public class PipedWriter extends Writer {
      * Implements the <code>write</code> method of <code>Writer</code>.
      *
      * @param      c   the <code>char</code> to be written.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if the pipe is 
+     *		<a href=PipedOutputStream.html#BROKEN> <code>broken</code></a>,
+     *		{@link #connect(java.io.PipedReader) unconnected}, closed 
+     *		or an I/O error occurs.
      */
     public void write(int c)  throws IOException {
         if (sink == null) {
@@ -107,6 +110,8 @@ public class PipedWriter extends Writer {
     /**
      * Writes <code>len</code> characters from the specified character array 
      * starting at offset <code>off</code> to this piped output stream. 
+     * This method blocks until all the characters are written to the output
+     * stream.
      * If a thread was reading data characters from the connected piped input 
      * stream, but the thread is no longer alive, then an 
      * <code>IOException</code> is thrown.
@@ -114,7 +119,10 @@ public class PipedWriter extends Writer {
      * @param      cbuf  the data.
      * @param      off   the start offset in the data.
      * @param      len   the number of characters to write.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if the pipe is 
+     *		<a href=PipedOutputStream.html#BROKEN> <code>broken</code></a>,
+     *		{@link #connect(java.io.PipedReader) unconnected}, closed
+     *		or an I/O error occurs.
      */
     public void write(char cbuf[], int off, int len) throws IOException {
         if (sink == null) {
@@ -130,7 +138,7 @@ public class PipedWriter extends Writer {
      * to be written out. 
      * This will notify any readers that characters are waiting in the pipe.
      *
-     * @exception IOException if an I/O error occurs.
+     * @exception  IOException  if the pipe is closed, or an I/O error occurs.
      */
     public synchronized void flush() throws IOException {
 	if (sink != null) {

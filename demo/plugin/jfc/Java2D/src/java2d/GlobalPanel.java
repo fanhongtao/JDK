@@ -1,7 +1,7 @@
 /*
- * @(#)GlobalPanel.java	1.18 04/07/26
+ * @(#)GlobalPanel.java	1.20 05/11/30
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)GlobalPanel.java	1.18 04/07/26
+ * @(#)GlobalPanel.java	1.20 05/11/30
  */
 
 
@@ -102,6 +102,6 @@ public class GlobalPanel extends JPanel implements ChangeListener {
             add(Java2Demo.group[index]);
             Java2Demo.group[index].setup(false);
         }
-        validate();
+        revalidate();
     }
 }

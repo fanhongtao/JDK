@@ -1,19 +1,22 @@
 /*
- * @(#)JRootPane.java	1.88 05/05/27
+ * @(#)JRootPane.java	1.98 06/08/08
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
+import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
+import java.security.AccessController;
 import javax.accessibility.*;
 import javax.swing.plaf.RootPaneUI;
 import java.util.Vector;
 import java.io.Serializable;
 import javax.swing.border.*;
+import sun.security.action.GetBooleanAction;
 
 
 /** 
@@ -37,7 +40,7 @@ import javax.swing.border.*;
  * shown in relation to the AWT classes they extend.
  * These four components are the
  * only heavyweight containers in the Swing library. The lightweight container 
- * <code>JInternalPane</code> is also shown.
+ * <code>JInternalFrame</code> is also shown.
  * All five of these JFC/Swing containers implement the
  * <code>RootPaneContainer</code> interface,
  * and they all delegate their operations to a 
@@ -147,6 +150,11 @@ import javax.swing.border.*;
  * will need to completely fill in the background in an opaque color in 
  * <code>paintComponent</code>.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -166,16 +174,28 @@ import javax.swing.border.*;
  * @see JComponent
  * @see BoxLayout
  *
- * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
+ * @see <a href="http://java.sun.com/products/jfc/tsc/articles/mixing/">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.88 05/27/05
+ * @version 1.98 08/08/06
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
 public class JRootPane extends JComponent implements Accessible {
 
     private static final String uiClassID = "RootPaneUI";
+
+    /**
+     * Whether or not we should dump the stack when true double buffering
+     * is disabled. Default is false.
+     */
+    private static final boolean LOG_DISABLE_TRUE_DOUBLE_BUFFERING;
+
+    /**
+     * Whether or not we should ignore requests to disable true double
+     * buffering. Default is false.
+     */
+    private static final boolean IGNORE_DISABLE_TRUE_DOUBLE_BUFFERING;
 
     /**
      * Constant used for the windowDecorationStyle property. Indicates that
@@ -258,8 +278,6 @@ public class JRootPane extends JComponent implements Accessible {
      */
     public static final int WARNING_DIALOG = 8;
 
-    private Component mostRecentFocusOwner;
-
     private int windowDecorationStyle;
 
     /** The menu bar. */
@@ -304,6 +322,22 @@ public class JRootPane extends JComponent implements Accessible {
     @Deprecated
     protected DefaultAction defaultReleaseAction;
 
+    /**
+     * Whether or not true double buffering should be used.  This is typically
+     * true, but may be set to false in special situations.  For example,
+     * heavy weight popups (backed by a window) set this to false.
+     */
+    boolean useTrueDoubleBuffering = true;
+
+    static {
+        LOG_DISABLE_TRUE_DOUBLE_BUFFERING = 
+            AccessController.doPrivileged(new GetBooleanAction(
+                                   "swing.logDoubleBufferingDisable"));
+        IGNORE_DISABLE_TRUE_DOUBLE_BUFFERING =
+            AccessController.doPrivileged(new GetBooleanAction(
+                                   "swing.ignoreDoubleBufferingDisable"));
+    }
+
     /** 
      * Creates a <code>JRootPane</code>, setting up its
      * <code>glassPane</code>, <code>layeredPane</code>,
@@ -316,6 +350,17 @@ public class JRootPane extends JComponent implements Accessible {
         setLayout(createRootLayout());
         setDoubleBuffered(true);
 	updateUI();
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    public void setDoubleBuffered(boolean aFlag) {
+        if (isDoubleBuffered() != aFlag) {
+            super.setDoubleBuffered(aFlag);
+            RepaintManager.currentManager(this).doubleBufferingChanged(this);
+        }
     }
 
     /**
@@ -533,7 +578,7 @@ public class JRootPane extends JComponent implements Accessible {
     /**
      * Returns the menu bar value.
      * @deprecated As of Swing version 1.0.3
-     *  replaced by <code>getJMenubar()</code>.
+     *  replaced by <code>getJMenuBar()</code>.
      * @return the <code>JMenuBar</code> used in the pane
      */
     @Deprecated
@@ -600,11 +645,21 @@ public class JRootPane extends JComponent implements Accessible {
      * Sets a specified <code>Component</code> to be the glass pane for this
      * root pane.  The glass pane should normally be a lightweight,
      * transparent component, because it will be made visible when
-     * ever the root pane needs to grab input events.  For example,
-     * only one <code>JInternalFrame</code> is ever active when using a
-     * DefaultDesktop, and any inactive <code>JInternalFrame</code>s'
-     * glass panes are made visible so that clicking anywhere within
-     * an inactive <code>JInternalFrame</code> can activate it.
+     * ever the root pane needs to grab input events.
+     * <p>
+     * The new glass pane's visibility is changed to match that of
+     * the current glass pane.  An implication of this is that care
+     * must be taken when you want to replace the glass pane and
+     * make it visible.  Either of the following will work:
+     * <pre>
+     *   root.setGlassPane(newGlassPane);
+     *   newGlassPane.setVisible(true);
+     * </pre>
+     * or:
+     * <pre>
+     *   root.getGlassPane().setVisible(true);
+     *   root.setGlassPane(newGlassPane);
+     * </pre>
      *
      * @param glass the <code>Component</code> to use as the glass pane 
      *              for this <code>JRootPane</code>
@@ -742,6 +797,29 @@ public class JRootPane extends JComponent implements Accessible {
         return defaultButton;
     }
 
+    final void setUseTrueDoubleBuffering(boolean useTrueDoubleBuffering) {
+        this.useTrueDoubleBuffering = useTrueDoubleBuffering;
+    }
+
+    final boolean getUseTrueDoubleBuffering() {
+        return useTrueDoubleBuffering;
+    }
+
+    final void disableTrueDoubleBuffering() {
+        if (useTrueDoubleBuffering) {
+            if (!IGNORE_DISABLE_TRUE_DOUBLE_BUFFERING) {
+                if (LOG_DISABLE_TRUE_DOUBLE_BUFFERING) {
+                    System.out.println("Disabling true double buffering for " +
+                                       this);
+                    Thread.dumpStack();
+                }
+                useTrueDoubleBuffering = false;
+                RepaintManager.currentManager(this).
+                        doubleBufferingChanged(this);
+            }
+        }
+    }
+
     static class DefaultAction extends AbstractAction {
         JButton owner;
         JRootPane root;
@@ -788,6 +866,7 @@ public class JRootPane extends JComponent implements Accessible {
             add(glassPane, 0);
         }
     }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //// Begin Inner Classes
@@ -922,14 +1001,6 @@ public class JRootPane extends JComponent implements Accessible {
         public float getLayoutAlignmentX(Container target) { return 0.0f; }
         public float getLayoutAlignmentY(Container target) { return 0.0f; }
         public void invalidateLayout(Container target) {}
-    }
-
-    void setMostRecentFocusOwner(Component focusOwner) {
-	mostRecentFocusOwner = focusOwner;
-    }
-  
-    Component getMostRecentFocusOwner() {
-	return mostRecentFocusOwner;
     }
 
     /**

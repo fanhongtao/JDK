@@ -1,7 +1,7 @@
 /*
- * @(#)MidiChannel.java	1.43 04/04/22
+ * @(#)MidiChannel.java	1.44 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ package javax.sound.midi;
  *
  * @see Synthesizer#getChannels
  *
- * @version 1.43, 04/22/04
+ * @version 1.44, 11/17/05
  * @author David Rivas
  * @author Kara Kytle
  */

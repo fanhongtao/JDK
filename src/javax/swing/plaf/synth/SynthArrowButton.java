@@ -1,7 +1,7 @@
 /*
- * @(#)SynthArrowButton.java	1.15 03/12/19
+ * @(#)SynthArrowButton.java	1.17 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -13,7 +13,7 @@ import javax.swing.plaf.UIResource;
 /**
  * JButton object that draws a scaled Arrow in one of the cardinal directions.
  *
- * @version 1.15, 12/19/03
+ * @version 1.17, 11/30/05
  * @author Scott Violet
  */
 class SynthArrowButton extends JButton implements SwingConstants, UIResource {
@@ -21,7 +21,7 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
 
     public SynthArrowButton(int direction) {
         super();
-        setFocusable(false);
+        super.setFocusable(false);
         setDirection(direction);
         setDefaultCapable(false);
     }
@@ -44,7 +44,8 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
         return direction;
     }
 
-
+    public void setFocusable(boolean focusable) {} 
+    
     private static class SynthArrowButtonUI extends SynthButtonUI {
         protected void installDefaults(AbstractButton b) {
             super.installDefaults(b);

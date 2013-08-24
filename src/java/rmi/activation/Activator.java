@@ -1,7 +1,7 @@
 /*
- * @(#)Activator.java	1.18 03/12/19
+ * @(#)Activator.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import java.rmi.activation.UnknownObjectException;
  * to groups and active object's within those groups.<p>
  *
  * @author 	Ann Wollrath
- * @version	1.18, 12/19/03
+ * @version	1.20, 11/17/05
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
@@ -90,7 +90,8 @@ public interface Activator extends Remote {
      * @exception RemoteException if remote call fails
      * @since 1.2
      */
-    public MarshalledObject activate(ActivationID id, boolean force)
+    public MarshalledObject<? extends Remote> activate(ActivationID id,
+						       boolean force)
 	throws ActivationException, UnknownObjectException, RemoteException;
 
 }

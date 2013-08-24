@@ -1,7 +1,7 @@
 /*
- * @(#)EnumType.java	1.1 04/01/26
+ * @(#)EnumType.java	1.2 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import com.sun.mirror.declaration.EnumDeclaration;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.1 04/01/26
+ * @version 1.2 05/11/17
  * @since 1.5
  */
 

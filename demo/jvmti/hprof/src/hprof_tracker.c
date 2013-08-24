@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_tracker.c	1.14 04/07/27
+ * @(#)hprof_tracker.c	1.17 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,7 +37,7 @@
 /* Tracker class support functions. */
 
 /*
- * This file contains the native support calls for the sun.tools.hprof.Tracker
+ * This file contains the native support calls for the Tracker
  *   class. These native methods are registered and not made extern.
  *   Tracking is engaged by using JNI to assign to a static field in the
  *   Tracker class.
@@ -49,7 +49,7 @@
  *   interface for BCI and identify the Tracker methods to make sure
  *   they are not included in any stack traces obtained from JVMTI.
  *
- * FIXUP: The performance of the java injected code calling native methods
+ * RFE: The performance of the java injected code calling native methods
  *        could be an issue here, cpu=times seems to be the worst where
  *        a native call is made for entry and exit, even on the smallest
  *        Java method. The alternative would be to cache the data on
@@ -105,12 +105,12 @@
 
 
 /*
- * Class:     sun_tools_hprof_Tracker
+ * Class:     Tracker
  * Method:    nativeNewArray
  * Signature: (Ljava/lang/Object;Ljava/lang/Object;)V
  */
 static void JNICALL 
-Java_sun_tools_hprof_Tracker_nativeNewArray
+Tracker_nativeNewArray
   (JNIEnv *env, jclass clazz, jobject thread, jobject obj)
 {
     BEGIN_TRACKER_CALLBACK() {
@@ -119,12 +119,12 @@ Java_sun_tools_hprof_Tracker_nativeNewArray
 }
 
 /*
- * Class:     sun_tools_hprof_Tracker
+ * Class:     Tracker
  * Method:    nativeObjectInit
  * Signature: (Ljava/lang/Object;Ljava/lang/Object;)V
  */
 static void JNICALL 
-Java_sun_tools_hprof_Tracker_nativeObjectInit
+Tracker_nativeObjectInit
   (JNIEnv *env, jclass clazz, jobject thread, jobject obj)
 {
     BEGIN_TRACKER_CALLBACK() {
@@ -133,12 +133,12 @@ Java_sun_tools_hprof_Tracker_nativeObjectInit
 }
 
 /*
- * Class:     sun_tools_hprof_Tracker
+ * Class:     Tracker
  * Method:    nativeCallSite
  * Signature: (Ljava/lang/Object;II)V
  */
 static void JNICALL 
-Java_sun_tools_hprof_Tracker_nativeCallSite
+Tracker_nativeCallSite
   (JNIEnv *env, jclass clazz, jobject thread, jint cnum, jint mnum)
 {
     BEGIN_TRACKER_CALLBACK() {
@@ -147,12 +147,12 @@ Java_sun_tools_hprof_Tracker_nativeCallSite
 }
 
 /*
- * Class:     sun_tools_hprof_Tracker
+ * Class:     Tracker
  * Method:    nativeReturnSite
  * Signature: (Ljava/lang/Object;II)V
  */
 static void JNICALL 
-Java_sun_tools_hprof_Tracker_nativeReturnSite
+Tracker_nativeReturnSite
   (JNIEnv *env, jclass clazz, jobject thread, jint cnum, jint mnum)
 {
     BEGIN_TRACKER_CALLBACK() {
@@ -226,18 +226,16 @@ tracker_method(jmethodID method)
     return JNI_FALSE;
 }
 
-#define NATIVE_NAME_PREFIX Java_sun_tools_hprof_Tracker_nativeNewArray
-
 static JNINativeMethod registry[4] =
 {
         { TRACKER_NEWARRAY_NATIVE_NAME,    TRACKER_NEWARRAY_NATIVE_SIG,
-		(void*)&Java_sun_tools_hprof_Tracker_nativeNewArray },
+		(void*)&Tracker_nativeNewArray },
         { TRACKER_OBJECT_INIT_NATIVE_NAME, TRACKER_OBJECT_INIT_NATIVE_SIG,
-		(void*)&Java_sun_tools_hprof_Tracker_nativeObjectInit },
+		(void*)&Tracker_nativeObjectInit },
         { TRACKER_CALL_NATIVE_NAME,        TRACKER_CALL_NATIVE_SIG,
-		(void*)&Java_sun_tools_hprof_Tracker_nativeCallSite },
+		(void*)&Tracker_nativeCallSite },
         { TRACKER_RETURN_NATIVE_NAME,      TRACKER_RETURN_NATIVE_SIG,
-		(void*)&Java_sun_tools_hprof_Tracker_nativeReturnSite }
+		(void*)&Tracker_nativeReturnSite }
 };
 
 static struct {

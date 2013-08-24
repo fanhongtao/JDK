@@ -1,7 +1,7 @@
 /*
- * @(#)RuleBasedCollator.java	1.37 03/12/19
+ * @(#)RuleBasedCollator.java	1.41 06/03/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,10 +20,9 @@
 
 package java.text;
 
+import java.text.Normalizer;
 import java.util.Vector;
 import java.util.Locale;
-import sun.text.Normalizer;
-import sun.text.NormalizerUtilities;
 
 /**
  * The <code>RuleBasedCollator</code> class is a concrete subclass of
@@ -170,15 +169,13 @@ import sun.text.NormalizerUtilities;
  *                 ;aa,AA&lt; &#92;u00E6,&#92;u00C6&lt; &#92;u00F8,&#92;u00D8"
  *
  * <p>
- * Normally, to create a rule-based Collator object, you will use
- * <code>Collator</code>'s factory method <code>getInstance</code>.
- * However, to create a rule-based Collator object with specialized
+ * To create a <code>RuleBasedCollator</code> object with specialized
  * rules tailored to your needs, you construct the <code>RuleBasedCollator</code>
  * with the rules contained in a <code>String</code> object. For example:
  * <blockquote>
  * <pre>
- * String Simple = "&lt; a&lt; b&lt; c&lt; d";
- * RuleBasedCollator mySimple = new RuleBasedCollator(Simple);
+ * String simple = "&lt; a&lt; b&lt; c&lt; d";
+ * RuleBasedCollator mySimple = new RuleBasedCollator(simple);
  * </pre>
  * </blockquote>
  * Or:
@@ -194,42 +191,9 @@ import sun.text.NormalizerUtilities;
  * </blockquote>
  *
  * <p>
- * Combining <code>Collator</code>s is as simple as concatenating strings.
- * Here's an example that combines two <code>Collator</code>s from two
- * different locales:
- * <blockquote>
- * <pre>
- * // Create an en_US Collator object
- * RuleBasedCollator en_USCollator = (RuleBasedCollator)
- *     Collator.getInstance(new Locale("en", "US", ""));
- * // Create a da_DK Collator object
- * RuleBasedCollator da_DKCollator = (RuleBasedCollator)
- *     Collator.getInstance(new Locale("da", "DK", ""));
- * // Combine the two
- * // First, get the collation rules from en_USCollator
- * String en_USRules = en_USCollator.getRules();
- * // Second, get the collation rules from da_DKCollator
- * String da_DKRules = da_DKCollator.getRules();
- * RuleBasedCollator newCollator =
- *     new RuleBasedCollator(en_USRules + da_DKRules);
- * // newCollator has the combined rules
- * </pre>
- * </blockquote>
- *
- * <p>
- * Another more interesting example would be to make changes on an existing
- * table to create a new <code>Collator</code> object.  For example, add
- * "&amp;C&lt; ch, cH, Ch, CH" to the <code>en_USCollator</code> object to create
- * your own:
- * <blockquote>
- * <pre>
- * // Create a new Collator object with additional rules
- * String addRules = "&amp;C&lt; ch, cH, Ch, CH";
- * RuleBasedCollator myCollator =
- *     new RuleBasedCollator(en_USCollator + addRules);
- * // myCollator contains the new rules
- * </pre>
- * </blockquote>
+ * A new collation rules string can be created by concatenating rules
+ * strings. For example, the rules returned by {@link #getRules()} could
+ * be concatenated to combine multiple <code>RuleBasedCollator</code>s.
  *
  * <p>
  * The following example demonstrates how to change the order of
@@ -247,23 +211,6 @@ import sun.text.NormalizerUtilities;
  * // change the order of accent characters
  * String addOn = "& &#92;u0300 ; &#92;u0308 ; &#92;u0302";
  * RuleBasedCollator myCollator = new RuleBasedCollator(oldRules + addOn);
- * </pre>
- * </blockquote>
- *
- * <p>
- * The last example shows how to put new primary ordering in before the
- * default setting. For example, in Japanese <code>Collator</code>, you
- * can either sort English characters before or after Japanese characters,
- * <blockquote>
- * <pre>
- * // get en_US Collator rules
- * RuleBasedCollator en_USCollator = (RuleBasedCollator)Collator.getInstance(Locale.US);
- * // add a few Japanese character to sort before English characters
- * // suppose the last character before the first base letter 'a' in
- * // the English collation rule is &#92;u2212
- * String jaString = "& &#92;u2212 &lt; &#92;u3041, &#92;u3042 &lt; &#92;u3043, &#92;u3044";
- * RuleBasedCollator myJapaneseCollator = new
- *     RuleBasedCollator(en_USCollator.getRules() + jaString);
  * </pre>
  * </blockquote>
  *
@@ -563,10 +510,19 @@ public class RuleBasedCollator extends Collator{
         // For IDENTICAL comparisons, we use a bitwise character comparison
         // as a tiebreaker if all else is equal
         if (result == 0 && getStrength() == IDENTICAL) {
-            Normalizer.Mode mode = NormalizerUtilities.toNormalizerMode(getDecomposition());
-            String sourceDecomposition = Normalizer.normalize(source, mode, 0);
-            String targetDecomposition = Normalizer.normalize(target, mode, 0);
-            result = sourceDecomposition.compareTo(targetDecomposition);
+            int mode = getDecomposition();
+            Normalizer.Form form;
+            if (mode == CANONICAL_DECOMPOSITION) {
+                form = Normalizer.Form.NFD;
+            } else if (mode == FULL_DECOMPOSITION) {
+                form = Normalizer.Form.NFKD;
+            } else {
+                return source.compareTo(target);
+            }
+
+            String sourceDecomposition = Normalizer.normalize(source, form);
+            String targetDecomposition = Normalizer.normalize(target, form);
+            return sourceDecomposition.compareTo(targetDecomposition);
         }
         return result;
     }
@@ -693,10 +649,16 @@ public class RuleBasedCollator extends Collator{
 
         if (getStrength() == IDENTICAL) {
             primResult.append((char)0);
-            Normalizer.Mode mode = NormalizerUtilities.toNormalizerMode(getDecomposition());
-            primResult.append(Normalizer.normalize(source, mode, 0));
+            int mode = getDecomposition(); 
+            if (mode == CANONICAL_DECOMPOSITION) {
+                primResult.append(Normalizer.normalize(source, Normalizer.Form.NFD));
+            } else if (mode == FULL_DECOMPOSITION) {
+                primResult.append(Normalizer.normalize(source, Normalizer.Form.NFKD));
+            } else {
+                primResult.append(source);
+            }
         }
-        return new CollationKey(source, primResult.toString());
+        return new RuleBasedCollationKey(source, primResult.toString());
     }
 
     /**

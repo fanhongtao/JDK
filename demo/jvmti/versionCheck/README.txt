@@ -1,4 +1,11 @@
-versionCheck: @(#)README.txt	1.5 04/06/23
+#
+# @(#)README.txt	1.6 06/01/28
+#
+# Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+# SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+#
+
+versionCheck: @(#)README.txt	1.6 06/01/28
 
 This agent library just makes some simple calls and checks 
 the version of the interface being used to build the agent, 
@@ -8,8 +15,5 @@ You can use this agent library as follows:
 
     java -agentlib:versionCheck ...
 
-If the Java Virtual Machine complains that it can't find the library, 
-you may need to add the directory containing the library into the 
-LD_LIBRARY_PATH environment variable (Unix), or the PATH environment 
-variable (Windows).
+See ${JAVA_HOME}/demo/jvmti/index.html for help running and building agents.
 

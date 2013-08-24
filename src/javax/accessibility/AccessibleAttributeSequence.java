@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleAttributeSequence.java	1.2 03/12/19
+ * @(#)AccessibleAttributeSequence.java	1.5 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.accessibility;
@@ -19,16 +19,44 @@ import javax.swing.text.AttributeSet;
  * @see AccessibleContext#getAccessibleText
  * @see AccessibleTextSequence
  *
- * @version      1.2 12/19/03
+ * @version      1.5 11/17/05
  * @author       Lynn Monsanto
  */
  
 /**
- * Information about a contiguous sequence of text attributes
+ * This class collects together the span of text that share the same
+ * contiguous set of attributes, along with that set of attributes.  It
+ * is used by implementors of the class <code>AccessibleContext</code> in
+ * order to generate <code>ACCESSIBLE_TEXT_ATTRIBUTES_CHANGED</code> events.
+ *
+ * @see javax.accessibility.AccessibleContext
+ * @see javax.accessibility.AccessibleContext#ACCESSIBLE_TEXT_ATTRIBUTES_CHANGED
  */
 public class AccessibleAttributeSequence {
-    public int startIndex;  // the start index of the text attribute sequence
-    public int endIndex;    // the end index of the text attribute sequence
-    public AttributeSet attributes;  // the text attributes
+    /** The start index of the text sequence */
+    public int startIndex;
+
+    /** The end index of the text sequence */
+    public int endIndex;
+
+    /** The text attributes */
+    public AttributeSet attributes;
+
+    /**
+     * Constructs an <code>AccessibleAttributeSequence</code> with the given
+     * parameters.
+     *
+     * @param start the beginning index of the span of text
+     * @param end the ending index of the span of text
+     * @param attr the <code>AttributeSet</code> shared by this text span
+     *
+     * @since 1.6
+     */
+    public AccessibleAttributeSequence(int start, int end, AttributeSet attr) {
+        startIndex = start;
+        endIndex = end;
+        attributes = attr;
+    }
+
 };
 

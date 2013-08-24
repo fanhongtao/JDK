@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOMEnhancedForDTM.java,v 1.2 2004/02/16 20:54:58 minchau Exp $
+ * $Id: DOMEnhancedForDTM.java,v 1.2.4.1 2005/08/31 10:25:13 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.xsltc;
 

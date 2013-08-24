@@ -1,7 +1,7 @@
 /*
- * @(#)SQLPermission.java	1.15 03/12/19
+ * @(#)SQLPermission.java	1.17 05/12/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -74,7 +74,10 @@ public final class SQLPermission extends BasicPermission {
      * the only name allowed is "setLog".
      *
      * @param name the name of this <code>SQLPermission</code> object, which must
-	 *             be <code>setLog</code>
+	 *             be <code>setLog</code> 
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
+
      */
 
     public SQLPermission(String name) {
@@ -88,8 +91,11 @@ public final class SQLPermission extends BasicPermission {
 	 * <code>null</code>.
      *
      * @param name the name of this <code>SQLPermission</code> object, which must
-	 *             be <code>setLog</code>
-     * @param actions should be <code>null</code>
+     *             be <code>setLog</code>
+     * @param actions should be <code>null</code> 
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
+
      */
 
     public SQLPermission(String name, String actions) {

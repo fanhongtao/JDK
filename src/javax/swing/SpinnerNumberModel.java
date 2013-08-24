@@ -1,7 +1,7 @@
 /*
- * @(#)SpinnerNumberModel.java	1.12 04/05/12
+ * @(#)SpinnerNumberModel.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import java.io.Serializable;
  * @see SpinnerListModel
  * @see SpinnerDateModel
  * 
- * @version 1.12 05/12/04
+ * @version 1.13 11/17/05
  * @author Hans Muller
  * @since 1.4 
 */

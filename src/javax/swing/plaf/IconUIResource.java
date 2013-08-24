@@ -1,7 +1,7 @@
 /*
- * @(#)IconUIResource.java	1.14 03/12/19
+ * @(#)IconUIResource.java	1.16 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.io.Serializable;
 import javax.swing.Icon;
 import javax.swing.plaf.UIResource;
 
-/*
+/**
  * An Icon wrapper class which implements UIResource.  UI
  * classes which set icon properties should use this class
  * to wrap any icons specified as defaults.
@@ -31,7 +31,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see javax.swing.plaf.UIResource
- * @version 1.14 12/19/03
+ * @version 1.16 04/07/06
  * @author Amy Fowler
  *
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)FlavorMap.java	1.19 04/05/05
+ * @(#)FlavorMap.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.util.Map;
  * platform-independent MIME types. FlavorMaps need not be symmetric, but
  * typically are.
  *
- * @version 1.19, 05/05/04
+ * @version 1.20, 11/17/05
  *
  * @since 1.2
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)Rdn.java	1.7 04/06/21
+ * @(#)Rdn.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -81,7 +81,7 @@ import java.io.IOException;
  * to a constructor or method in this class will cause NullPointerException
  * to be thrown.
  *
- * @version 1.7 04/06/21
+ * @version 1.9 05/11/17
  * @since 1.5
  */
 
@@ -395,7 +395,7 @@ public class Rdn implements Serializable, Comparable<Object> {
 	    Attribute attr = attrs.put(entry.getType(), entry.getValue());
 	    if (attr != null) {
 		attr.add(entry.getValue());
-		attrs.put(entry.getType(), attr);
+		attrs.put(attr);
 	    }
 	}
         return attrs;

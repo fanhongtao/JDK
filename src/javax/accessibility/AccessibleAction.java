@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleAction.java	1.17 04/04/15
+ * @(#)AccessibleAction.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleAction
  *
- * @version     1.17 04/15/04
+ * @version     1.19 11/17/05
  * @author	Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
@@ -53,6 +53,19 @@ public interface AccessibleAction {
      */
     public static final String DECREMENT =
         new String ("decrement"); 
+
+    /**
+     * An action which causes a component to execute its default action.
+     * @since 1.6
+     */
+    public static final String CLICK = new String("click");
+ 
+    /**
+     * An action which causes a popup to become visible if it is hidden and
+     * hidden if it is visible.
+     * @since 1.6
+     */
+    public static final String TOGGLE_POPUP = new String("toggle popup");
 
     /**
      * Returns the number of accessible actions available in this object

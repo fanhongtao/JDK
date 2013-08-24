@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: BitArray.java,v 1.7 2004/02/16 22:54:59 minchau Exp $
+ * $Id: BitArray.java,v 1.2.4.1 2005/09/06 05:56:52 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -31,6 +31,7 @@ import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
  * @author Morten Jorgensen
  */
 public class BitArray implements Externalizable {
+    static final long serialVersionUID = -4876019880708377663L;
 
     private int[] _bits;
     private int   _bitSize;

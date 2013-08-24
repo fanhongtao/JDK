@@ -43,7 +43,8 @@ public interface Document extends Node {
      * , based on the <code>DocumentType</code> specified at creation time, 
      * changing it afterwards is very unlikely to result in a change of the 
      * features supported.
-     * @version DOM Level 3
+     *
+     * @since DOM Level 3
      */
     public DocumentType getDoctype();
 

@@ -1,5 +1,5 @@
 /*
- * @(#)SolarisSystem.java	1.8 06/06/23
+ * @(#)SolarisSystem.java	1.9 06/06/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.

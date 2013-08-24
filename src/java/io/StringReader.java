@@ -1,7 +1,7 @@
 /*
- * @(#)StringReader.java	1.24 04/02/19
+ * @(#)StringReader.java	1.26 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.io;
 /**
  * A character stream whose source is a string.
  *
- * @version 	1.24, 04/02/19
+ * @version 	1.26, 05/11/17
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -24,7 +24,7 @@ public class StringReader extends Reader {
     private int mark = 0;
 
     /**
-     * Create a new string reader.
+     * Creates a new string reader.
      *
      * @param s  String providing the character stream.
      */
@@ -40,7 +40,7 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Read a single character.
+     * Reads a single character.
      *
      * @return     The character read, or -1 if the end of the stream has been
      *             reached
@@ -57,7 +57,7 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Read characters into a portion of an array.
+     * Reads characters into a portion of an array.
      *
      * @param      cbuf  Destination buffer
      * @param      off   Offset at which to start writing characters
@@ -116,7 +116,7 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Tell whether this stream is ready to be read.
+     * Tells whether this stream is ready to be read.
      *
      * @return True if the next read() is guaranteed not to block for input
      *
@@ -130,14 +130,14 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Tell whether this stream supports the mark() operation, which it does.
+     * Tells whether this stream supports the mark() operation, which it does.
      */
     public boolean markSupported() {
 	return true;
     }
 
     /**
-     * Mark the present position in the stream.  Subsequent calls to reset()
+     * Marks the present position in the stream.  Subsequent calls to reset()
      * will reposition the stream to this point.
      *
      * @param  readAheadLimit  Limit on the number of characters that may be
@@ -160,7 +160,7 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Reset the stream to the most recent mark, or to the beginning of the
+     * Resets the stream to the most recent mark, or to the beginning of the
      * string if it has never been marked.
      *
      * @exception  IOException  If an I/O error occurs
@@ -173,10 +173,12 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Close the stream.
+     * Closes the stream and releases any system resources associated with
+     * it. Once the stream has been closed, further read(),
+     * ready(), mark(), or reset() invocations will throw an IOException.
+     * Closing a previously closed stream has no effect.
      */
     public void close() {
 	str = null;
     }
-
 }

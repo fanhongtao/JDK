@@ -1,27 +1,23 @@
 /*
- * @(#)ActivationGroup.java	1.44 03/12/19
+ * @(#)ActivationGroup.java	1.48 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.activation;
 
 import java.lang.reflect.Constructor;
-
-import java.net.URL;
-import java.net.MalformedURLException;
+import java.lang.reflect.InvocationTargetException;
 import java.rmi.MarshalledObject;
 import java.rmi.Naming;
-import java.rmi.activation.UnknownGroupException;
-import java.rmi.activation.UnknownObjectException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
+import java.rmi.activation.UnknownGroupException;
+import java.rmi.activation.UnknownObjectException;
 import java.rmi.server.RMIClassLoader;
-import java.security.PrivilegedExceptionAction;
-import java.security.PrivilegedActionException;
-
+import java.rmi.server.UnicastRemoteObject;
+import java.security.AccessController;
 import sun.security.action.GetIntegerAction;
 
 /**
@@ -76,7 +72,7 @@ import sun.security.action.GetIntegerAction;
  * manager you would like to install.
  *
  * @author 	Ann Wollrath
- * @version	1.44, 03/12/19
+ * @version	1.48, 05/11/17
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
@@ -109,10 +105,6 @@ public abstract class ActivationGroup
     private static ActivationSystem currSystem;
     /** used to control a group being created only once */
     private static boolean canCreate = true;
-    /** formal parameters for constructing an activation group */
-    private static Class[] groupConstrParams = {
-	ActivationGroupID.class, MarshalledObject.class
-    };
     
     /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = -7696947875314805420L;
@@ -281,59 +273,44 @@ public abstract class ActivationGroup
 	try {
 	    // load group's class
 	    String groupClassName = desc.getClassName();
-
-	    /*
-	     * Fix for 4252236: resolution of the default
-	     * activation group implementation name should be
-	     * delayed until now.
-	     */
-	    if (groupClassName == null) {
-		groupClassName = sun.rmi.server.ActivationGroupImpl.class.getName();
-	    }
-		
-	    final String className = groupClassName;
-		
-	    /*
-	     * Fix for 4170955: Because the default group
-	     * implementation is a sun.* class, the group class
-	     * needs to be loaded in a privileged block of code.  
-	     */
-	    Class cl;
-	    try {
-		cl = (Class) java.security.AccessController.
-		    doPrivileged(new PrivilegedExceptionAction() {
-			public Object run() throws ClassNotFoundException, 
-			    MalformedURLException 
-			    {
-				return RMIClassLoader.
-				    loadClass(desc.getLocation(), className);
-			    }
-		    });
-	    } catch (PrivilegedActionException pae) {
-		throw new ActivationException("Could not load default group " + 
-					      "implementation class", 
-					      pae.getException());
+	    Class<? extends ActivationGroup> cl;
+	    Class<? extends ActivationGroup> defaultGroupClass =
+		sun.rmi.server.ActivationGroupImpl.class;
+	    if (groupClassName == null ||	// see 4252236
+		groupClassName.equals(defaultGroupClass.getName()))
+	    {
+		cl = defaultGroupClass;
+	    } else {
+		Class<?> cl0;
+		try {
+		    cl0 = RMIClassLoader.loadClass(desc.getLocation(),
+						   groupClassName);
+		} catch (Exception ex) {
+		    throw new ActivationException(
+			"Could not load group implementation class", ex);
+		}
+		if (ActivationGroup.class.isAssignableFrom(cl0)) {
+		    cl = cl0.asSubclass(ActivationGroup.class);
+		} else {
+		    throw new ActivationException("group not correct class: " +
+						  cl0.getName());
+		}
 	    }
 		
 	    // create group
-	    Constructor constructor = cl.getConstructor(groupConstrParams);
-	    Object[] params = new Object[] { id, desc.getData() };
-
-	    Object obj = constructor.newInstance(params);
-	    if (obj instanceof ActivationGroup) {
-		ActivationGroup newGroup = (ActivationGroup) obj;
-		currSystem = id.getSystem();
-		newGroup.incarnation = incarnation;
-		newGroup.monitor =
-		    currSystem.activeGroup(id, newGroup, incarnation);
-		currGroup = newGroup;
-		currGroupID = id;
-		canCreate = false;
-	    } else {
-		throw new ActivationException("group not correct class: " +
-					      obj.getClass().getName());
-	    }
-	} catch (java.lang.reflect.InvocationTargetException e) {
+	    Constructor<? extends ActivationGroup> constructor =
+		cl.getConstructor(ActivationGroupID.class,
+				  MarshalledObject.class);
+	    ActivationGroup newGroup =
+		constructor.newInstance(id, desc.getData());
+	    currSystem = id.getSystem();
+	    newGroup.incarnation = incarnation;
+	    newGroup.monitor =
+		currSystem.activeGroup(id, newGroup, incarnation);
+	    currGroup = newGroup;
+	    currGroupID = id;
+	    canCreate = false;
+	} catch (InvocationTargetException e) {
 		e.getTargetException().printStackTrace();
 		throw new ActivationException("exception in group constructor",
 					      e.getTargetException());
@@ -442,10 +419,9 @@ public abstract class ActivationGroup
     {
 	if (currSystem == null) {
 	    try {
-		int port;
-		port = ((Integer)java.security.AccessController.doPrivileged(
+		int port = AccessController.doPrivileged(
                     new GetIntegerAction("java.rmi.activation.port",
-					 ActivationSystem.SYSTEM_PORT))).intValue();
+					 ActivationSystem.SYSTEM_PORT));
 		currSystem = (ActivationSystem)
 		    Naming.lookup("//:" + port +
 				  "/java.rmi.activation.ActivationSystem");
@@ -470,7 +446,8 @@ public abstract class ActivationGroup
      * @exception ActivationException if an activation error occurs
      * @since 1.2
      */
-    protected void activeObject(ActivationID id, MarshalledObject mobj)
+    protected void activeObject(ActivationID id,
+				MarshalledObject<? extends Remote> mobj)
 	throws ActivationException, UnknownObjectException, RemoteException
     {
 	getMonitor().activeObject(id, mobj);

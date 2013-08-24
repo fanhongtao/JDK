@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMException.java,v 1.7 2004/02/16 23:03:44 minchau Exp $
+ * $Id: DTMException.java,v 1.3 2005/09/28 13:48:50 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -33,6 +33,7 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
  * in the DTM module.
  */
 public class DTMException extends RuntimeException {
+    static final long serialVersionUID = -775576419181334734L;
 
     /** Field locator specifies where the error occured.
      *  @serial */
@@ -318,49 +319,62 @@ public class DTMException extends RuntimeException {
             super.printStackTrace(s);
         } catch (Throwable e) {}
 
-        Throwable exception = getException();
+        boolean isJdk14OrHigher = false;
+        try {
+            Throwable.class.getMethod("getCause", (Class[]) null);
+            isJdk14OrHigher = true;
+        } catch (NoSuchMethodException nsme) {
+            // do nothing
+        }        
 
-        for (int i = 0; (i < 10) && (null != exception); i++) {
-            s.println("---------");
-
-            try {
-                if (exception instanceof DTMException) {
-                    String locInfo =
-                        ((DTMException) exception)
-                            .getLocationAsString();
-
-                    if (null != locInfo) {
-                        s.println(locInfo);
+        // The printStackTrace method of the Throwable class in jdk 1.4 
+        // and higher will include the cause when printing the backtrace.
+        // The following code is only required when using jdk 1.3 or lower                
+        if (!isJdk14OrHigher) {
+            Throwable exception = getException();
+    
+            for (int i = 0; (i < 10) && (null != exception); i++) {
+                s.println("---------");
+    
+                try {
+                    if (exception instanceof DTMException) {
+                        String locInfo =
+                            ((DTMException) exception)
+                                .getLocationAsString();
+    
+                        if (null != locInfo) {
+                            s.println(locInfo);
+                        }
                     }
+    
+                    exception.printStackTrace(s);
+                } catch (Throwable e) {
+                    s.println("Could not print stack trace...");
                 }
-
-                exception.printStackTrace(s);
-            } catch (Throwable e) {
-                s.println("Could not print stack trace...");
-            }
-
-            try {
-                Method meth =
-                    ((Object) exception).getClass().getMethod("getException",
-                        null);
-
-                if (null != meth) {
-                    Throwable prev = exception;
-
-                    exception = (Throwable) meth.invoke(exception, null);
-
-                    if (prev == exception) {
-                        break;
+    
+                try {
+                    Method meth =
+                        ((Object) exception).getClass().getMethod("getException",
+                            (Class[]) null);
+    
+                    if (null != meth) {
+                        Throwable prev = exception;
+    
+                        exception = (Throwable) meth.invoke(exception, (Object[]) null);
+    
+                        if (prev == exception) {
+                            break;
+                        }
+                    } else {
+                        exception = null;
                     }
-                } else {
+                } catch (InvocationTargetException ite) {
+                    exception = null;
+                } catch (IllegalAccessException iae) {
+                    exception = null;
+                } catch (NoSuchMethodException nsme) {
                     exception = null;
                 }
-            } catch (InvocationTargetException ite) {
-                exception = null;
-            } catch (IllegalAccessException iae) {
-                exception = null;
-            } catch (NoSuchMethodException nsme) {
-                exception = null;
             }
         }
     }

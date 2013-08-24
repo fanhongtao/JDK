@@ -1,7 +1,7 @@
 /*
- * @(#)StringSelection.java	1.21 03/12/19
+ * @(#)StringSelection.java	1.23 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -89,7 +89,7 @@ public class StringSelection implements Transferable, ClipboardOwner {
      * <code>DataFlavor.plainTextFlavor</code>,
      * or an equivalent flavor, a <code>Reader</code> is returned.
      * <b>Note:</b> The behavior of this method for
-     * </code>DataFlavor.plainTextFlavor</code>
+     * <code>DataFlavor.plainTextFlavor</code>
      * and equivalent <code>DataFlavor</code>s is inconsistent with the
      * definition of <code>DataFlavor.plainTextFlavor</code>.
      *

@@ -1,7 +1,7 @@
 /*
- * @(#)X-Buffer.java	1.56 04/07/16
+ * @(#)X-Buffer.java	1.62 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ import java.io.IOException;
  *
  * content, by {@link #wrap(char[]) </code><i>wrapping</i><code>} an existing
  * character array or&#32;string into a buffer, or by creating a
- * <a href="ByteBuffer.html#view"><i>view</i></a> of an existing byte buffer
+ * <a href="ByteBuffer.html#views"><i>view</i></a> of an existing byte buffer.
  *
 
  *
@@ -233,7 +233,7 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.56, 04/07/16
+ * @version 1.62, 06/07/10
  * @since 1.4
  */
 
@@ -387,6 +387,7 @@ public abstract class CharBuffer
      * @throws IOException if an I/O error occurs
      * @throws NullPointerException if target is null
      * @throws ReadOnlyBufferException if target is a read only buffer
+     * @since 1.5
      */
     public int read(CharBuffer target) throws IOException {
         // Determine the number of bytes n that can be transferred
@@ -446,10 +447,10 @@ public abstract class CharBuffer
     }
 
     /**
-     * Wraps a string into a buffer.
+     * Wraps a character sequence into a buffer.
      * 
      * <p> The content of the new, read-only buffer will be the content of the
-     * given string.  The new buffer's capacity and limit will be
+     * given character sequence.  The new buffer's capacity and limit will be
      * <tt>csq.length()</tt>, its position will be zero, and its mark will be
      * undefined.  </p>
      *
@@ -1003,8 +1004,6 @@ public abstract class CharBuffer
 
 
 
-
-
      *
      * @return  This buffer
      *
@@ -1186,7 +1185,7 @@ public abstract class CharBuffer
      *         must be non-negative and smaller than <tt>remaining()</tt>
      *
      * @return  The character at index
-     *          <tt>position()</tt>&nbsp;+&nbsp;index</tt>
+     *          <tt>position()&nbsp;+&nbsp;index</tt>
      *
      * @throws  IndexOutOfBoundsException
      *          If the preconditions on <tt>index</tt> do not hold
@@ -1219,7 +1218,7 @@ public abstract class CharBuffer
      *         smaller than <tt>start</tt> and no larger than
      *         <tt>remaining()</tt>
      *
-     * @return  The new character buffer
+     * @return  The new character sequence
      *
      * @throws  IndexOutOfBoundsException
      *          If the preconditions on <tt>start</tt> and <tt>end</tt>
@@ -1346,7 +1345,7 @@ public abstract class CharBuffer
      * wrapping an existing <tt>char</tt> array is the {@link
      * ByteOrder#nativeOrder </code>native order<code>} of the underlying
      * hardware.  The byte order of a character buffer created as a <a
-     * href="ByteBuffer.html#view">view</a> of a byte buffer is that of the
+     * href="ByteBuffer.html#views">view</a> of a byte buffer is that of the
      * byte buffer at the moment that the view is created.  </p>
      *
      * @return  This buffer's byte order

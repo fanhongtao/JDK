@@ -1,7 +1,7 @@
 /*
- * @(#)TextureChooser.java	1.31 04/07/26
+ * @(#)TextureChooser.java	1.34 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)TextureChooser.java	1.31 04/07/26
+ * @(#)TextureChooser.java	1.34 06/08/29
  */
 
 package java2d;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
@@ -68,9 +69,9 @@ public class TextureChooser extends JPanel {
         setLayout(new GridLayout(0,2,5,5));
         setBorder(new TitledBorder(new EtchedBorder(), "Texture Chooser"));
 
-        add(new Surface(getGeomTexture(), this, 0));
-        add(new Surface(getImageTexture(), this, 1));
-        add(new Surface(getTextTexture(), this, 2));
+        add(new Surface(  getGeomTexture(), this, 0));
+        add(new Surface( getImageTexture(), this, 1));
+        add(new Surface(  getTextTexture(), this, 2));
         add(new Surface(getGradientPaint(), this, 3));
     }
 
@@ -78,7 +79,7 @@ public class TextureChooser extends JPanel {
     static public TexturePaint getGeomTexture() {
         BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
         Graphics2D tG2 = bi.createGraphics();
-        tG2.setBackground(Color.white);
+        tG2.setBackground(WHITE);
         tG2.clearRect(0,0,5,5);
         tG2.setColor(new Color(211,211,211,200));
         tG2.fill(new Ellipse2D.Float(0,0,5,5));
@@ -88,7 +89,7 @@ public class TextureChooser extends JPanel {
 
     public TexturePaint getImageTexture() {
         Image img = DemoImages.getImage("java-logo.gif", this);
-        int iw = img.getWidth(this);
+        int iw = img.getWidth( this);
         int ih = img.getHeight(this);
         BufferedImage bi = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_RGB);
         Graphics2D tG2 = bi.createGraphics();
@@ -105,9 +106,9 @@ public class TextureChooser extends JPanel {
         int sh = (int) (tl.getAscent()+tl.getDescent());
         BufferedImage bi = new BufferedImage(sw, sh, BufferedImage.TYPE_INT_RGB);
         Graphics2D tG2 = bi.createGraphics();
-        tG2.setBackground(Color.white);
+        tG2.setBackground(WHITE);
         tG2.clearRect(0,0,sw,sh);
-        tG2.setColor(Color.lightGray);
+        tG2.setColor(LIGHT_GRAY);
         tl.draw(tG2, 0, (float) tl.getAscent());
         Rectangle r = new Rectangle(0,0,sw,sh);
         return new TexturePaint(bi,r);
@@ -115,7 +116,7 @@ public class TextureChooser extends JPanel {
 
 
     public GradientPaint getGradientPaint() {
-        return new GradientPaint(0,0,Color.white,80,0,Color.green);
+        return new GradientPaint(0,0,WHITE,80,0,GREEN);
     }
 
     public class Surface extends JPanel implements MouseListener {
@@ -127,7 +128,7 @@ public class TextureChooser extends JPanel {
         private Object t;
 
         public Surface(Object t, TextureChooser tc, int num) {
-            setBackground(Color.white);
+            setBackground(WHITE);
             this.t = t;
             this.tc = tc;
             this.clickedFrame = (num == tc.num);
@@ -149,7 +150,7 @@ public class TextureChooser extends JPanel {
             }
             g2.fill(new Rectangle(0,0,w,h));
             if (clickedFrame || enterExitFrame) {
-                g2.setColor(Color.gray);
+                g2.setColor(GRAY);
                 BasicStroke bs = new BasicStroke(3, BasicStroke.CAP_BUTT,
                                 BasicStroke.JOIN_MITER);
                 g2.setStroke(bs);
@@ -162,10 +163,9 @@ public class TextureChooser extends JPanel {
             tc.texture = t;
             clickedFrame = true;
 
-            Component cmps[] = tc.getComponents();
-            for (int i = 0; i < cmps.length; i++) {
-                if (cmps[i] instanceof Surface) {
-                    Surface surf = (Surface) cmps[i];
+            for (Component comp : tc.getComponents()) {
+                if (comp instanceof Surface) {
+                    Surface surf = (Surface) comp;
                     if (!surf.equals(this) && surf.clickedFrame) {
                         surf.clickedFrame = false;
                         surf.repaint();

@@ -1,7 +1,7 @@
 /*
- * @(#)Panel.java	1.35 04/03/01
+ * @(#)Panel.java	1.37 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -17,7 +17,7 @@ import javax.accessibility.*;
  * The default layout manager for a panel is the
  * <code>FlowLayout</code> layout manager.
  *
- * @version 	1.35, 03/01/04
+ * @version 	1.37, 04/07/06
  * @author 	Sami Shaio
  * @see     java.awt.FlowLayout
  * @since   JDK1.0
@@ -84,6 +84,7 @@ public class Panel extends Container implements Accessible {
      *
      * @return an AccessibleAWTPanel that serves as the 
      *         AccessibleContext of this Panel
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -96,6 +97,7 @@ public class Panel extends Container implements Accessible {
      * This class implements accessibility support for the 
      * <code>Panel</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to panel user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTPanel extends AccessibleAWTContainer {
 

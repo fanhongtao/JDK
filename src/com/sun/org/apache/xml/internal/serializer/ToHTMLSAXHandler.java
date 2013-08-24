@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToHTMLSAXHandler.java,v 1.8 2004/02/17 04:18:19 minchau Exp $
+ * $Id: ToHTMLSAXHandler.java,v 1.3 2005/09/28 13:49:07 pvedula Exp $
  */
 
 package com.sun.org.apache.xml.internal.serializer;
@@ -37,12 +37,18 @@ import org.xml.sax.ext.LexicalHandler;
  * This class accepts SAX-like calls, then sends true SAX calls to a
  * wrapped SAX handler.  There is optimization done knowing that the ultimate
  * output is HTML.
- * @author Santiago Pericas-Geertsen
- * @author G. Todd Miller 
+ * 
+ * This class is not a public API.
+ * 
+ * @xsl.usage internal
  */
-public class ToHTMLSAXHandler extends ToSAXHandler
+public final class ToHTMLSAXHandler extends ToSAXHandler
 {
-
+	/**
+	 *  Handle document type declaration (for first element only)
+	 */
+	private boolean m_dtdHandled = false;
+	
     /**
      * Keeps track of whether output escaping is currently enabled
      */
@@ -51,7 +57,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Returns null.
      * @return null
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputFormat()
+     * @see Serializer#getOutputFormat()
      */
     public Properties getOutputFormat()
     {
@@ -61,7 +67,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Reurns null
      * @return null
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputStream()
+     * @see Serializer#getOutputStream()
      */
     public OutputStream getOutputStream()
     {
@@ -71,7 +77,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Returns null
      * @return null
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getWriter()
+     * @see Serializer#getWriter()
      */
     public Writer getWriter()
     {
@@ -88,7 +94,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
 
     /**
      * Does nothing.
-     * @see com.sun.org.apache.xml.internal.serializer.DOMSerializer#serialize(Node)
+     * @see DOMSerializer#serialize(Node)
      */
     public void serialize(Node node) throws IOException
     {
@@ -99,9 +105,9 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * Turns special character escaping on/off.
      *
      *
-     * @param excape true if escaping is to be set on.
+     * @param escape true if escaping is to be set on.
      *
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setEscaping(boolean)
+     * @see SerializationHandler#setEscaping(boolean)
      */
     public boolean setEscaping(boolean escape) throws SAXException
     {
@@ -121,7 +127,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * Does nothing
      * @param indent the number of spaces to indent per indentation level
      * (ignored)
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setIndent(boolean)
+     * @see SerializationHandler#setIndent(boolean)
      */
     public void setIndent(boolean indent)
     {
@@ -130,7 +136,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Does nothing.
      * @param format this parameter is not used
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputFormat(Properties)
+     * @see Serializer#setOutputFormat(Properties)
      */
     public void setOutputFormat(Properties format)
     {
@@ -139,7 +145,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Does nothing.
      * @param output this parameter is ignored
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputStream(OutputStream)
+     * @see Serializer#setOutputStream(OutputStream)
      */
     public void setOutputStream(OutputStream output)
     {
@@ -149,7 +155,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Does nothing.
      * @param writer this parameter is ignored.
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setWriter(Writer)
+     * @see Serializer#setWriter(Writer)
      */
     public void setWriter(Writer writer)
     {
@@ -218,15 +224,14 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * still be attached to the name.</p>
      *
      *
-     * @param namespaceURI The Namespace URI, or the empty string if the
+     * @param uri The Namespace URI, or the empty string if the
      *        element has no Namespace URI or if Namespace
      *        processing is not being performed.
      * @param localName The local name (without prefix), or the
      *        empty string if Namespace processing is not being
      *        performed.
-     * @param name The qualified name (with prefix), or the
+     * @param qName The qualified name (with prefix), or the
      *        empty string if qualified names are not available.
-     * @param name The element type name
      * @throws org.xml.sax.SAXException Any SAX exception, possibly
      *            wrapping another exception.
      * @see org.xml.sax.ContentHandler#endElement(String, String, String)
@@ -278,16 +283,16 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * @throws org.xml.sax.SAXException
      * @see org.xml.sax.ContentHandler#processingInstruction(String, String)
      */
-    public void processingInstruction(String arg0, String arg1)
+    public void processingInstruction(String target, String data)
         throws SAXException
     {
         flushPending();
-        m_saxHandler.processingInstruction(arg0,arg1);
+        m_saxHandler.processingInstruction(target,data);
 
 		// time to fire off processing instruction event
 		
         if (m_tracer != null)		
-		    super.fireEscapingEvent(arg0,arg1);        
+		    super.fireEscapingEvent(target,data);        
     }
 
     /**
@@ -296,7 +301,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      */
     public void setDocumentLocator(Locator arg0)
     {
-        // do nothing
+        super.setDocumentLocator(arg0);
     }
 
     /**
@@ -357,7 +362,8 @@ public class ToHTMLSAXHandler extends ToSAXHandler
     public void comment(char[] ch, int start, int length) throws SAXException
     {
         flushPending();
-        m_lexHandler.comment(ch, start, length);
+        if (m_lexHandler != null)
+            m_lexHandler.comment(ch, start, length);
 
         // time to fire off comment event
         if (m_tracer != null)
@@ -446,7 +452,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
 
     /**
      * Do nothing.
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#close()
+     * @see SerializationHandler#close()
      */
     public void close()
     {
@@ -460,7 +466,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      *
      * @throws org.xml.sax.SAXException
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#characters(String)
+     * @see ExtendedContentHandler#characters(String)
      */
     public void characters(final String chars) throws SAXException
     {
@@ -506,7 +512,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * (optional)
      * @param elementName the element name, with prefix, if any (required)
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#startElement(String)
+     * @see ExtendedContentHandler#startElement(String)
      */
     public void startElement(
         String elementNamespaceURI,
@@ -519,16 +525,18 @@ public class ToHTMLSAXHandler extends ToSAXHandler
         flushPending();
 
         // Handle document type declaration (for first element only)
-        if (m_lexHandler != null)
+        if (!m_dtdHandled)
         {
             String doctypeSystem = getDoctypeSystem();
             String doctypePublic = getDoctypePublic();
-            if ((doctypeSystem != null) || (doctypePublic != null))
-                m_lexHandler.startDTD(
-                    elementName,
-                    doctypePublic,
-                    doctypeSystem);
-            m_lexHandler = null;
+            if ((doctypeSystem != null) || (doctypePublic != null)) {
+                if (m_lexHandler != null)
+                    m_lexHandler.startDTD(
+                        elementName,
+                        doctypePublic,
+                        doctypeSystem);
+            }
+			m_dtdHandled = true;
         }
         m_elemContext = m_elemContext.push(elementNamespaceURI, elementLocalName, elementName);
     }
@@ -537,7 +545,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      *
      * @param elementName the element name, with prefix, if any
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#startElement(String)
+     * @see ExtendedContentHandler#startElement(String)
      */
     public void startElement(String elementName) throws SAXException
     {
@@ -550,7 +558,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * @throws org.xml.sax.SAXException Any SAX exception, possibly
      *     wrapping another exception.
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#endElement(String)
+     * @see ExtendedContentHandler#endElement(String)
      */
     public void endElement(String elementName) throws SAXException
     {
@@ -625,7 +633,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * that is soon to follow. Need to close any open start tag to make
      * sure than any name space attributes due to this event are associated wih
      * the up comming element, not the current one.
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#startPrefixMapping
+     * @see ExtendedContentHandler#startPrefixMapping
      *
      * @param prefix The Namespace prefix being declared.
      * @param uri The Namespace URI the prefix is mapped to.
@@ -682,7 +690,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * @param prefix the prefix associated with the given URI.
      * @param uri the URI of the namespace
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#namespaceAfterStartElement(String, String)
+     * @see ExtendedContentHandler#namespaceAfterStartElement(String, String)
      */
     public void namespaceAfterStartElement(
         final String prefix,
@@ -711,7 +719,7 @@ public class ToHTMLSAXHandler extends ToSAXHandler
      * (mostly for performance reasons).
      * 
      * @return true if the class was successfuly reset.
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#reset()
+     * @see Serializer#reset()
      */
     public boolean reset()
     {

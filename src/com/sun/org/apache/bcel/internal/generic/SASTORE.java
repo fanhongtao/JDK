@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * SASTORE - Store into short array
  * <PRE>Stack: ..., arrayref, index, value -&gt; ...</PRE>
  *
- * @version $Id: SASTORE.java,v 1.1.1.1 2001/10/29 20:00:26 jvanzyl Exp $
+ * @version $Id: SASTORE.java,v 1.1.2.1 2005/07/31 23:45:55 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class SASTORE extends ArrayInstruction implements StackConsumer {

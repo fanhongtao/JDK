@@ -1,7 +1,7 @@
 /*
- * @(#)Executor.java	1.5 04/02/09
+ * @(#)Executor.java	1.9 06/01/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.util.concurrent;
  * executor.execute(new RunnableTask2());
  * ...
  * </pre>
- * 
+ *
  * However, the <tt>Executor</tt> interface does not strictly
  * require that execution be asynchronous. In the simplest case, an
  * executor can run the submitted task immediately in the caller's
@@ -53,7 +53,7 @@ package java.util.concurrent;
  *
  * <pre>
  * class SerialExecutor implements Executor {
- *     final Queue&lt;Runnable&gt; tasks = new LinkedBlockingQueue&lt;Runnable&gt;();
+ *     final Queue&lt;Runnable&gt; tasks = new ArrayDeque&lt;Runnable&gt;();
  *     final Executor executor;
  *     Runnable active;
  *
@@ -88,6 +88,11 @@ package java.util.concurrent;
  * interface.  The {@link ThreadPoolExecutor} class provides an
  * extensible thread pool implementation. The {@link Executors} class
  * provides convenient factory methods for these Executors.
+ *
+ * <p>Memory consistency effects: Actions in a thread prior to
+ * submitting a {@code Runnable} object to an {@code Executor}
+ * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
+ * its execution begins, perhaps in another thread.
  *
  * @since 1.5
  * @author Doug Lea

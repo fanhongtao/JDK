@@ -1,7 +1,7 @@
 /*
- * @(#)ReverbType.java	1.13 03/12/19
+ * @(#)ReverbType.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -119,7 +119,7 @@ package javax.sound.sampled;
  * </table>
  * 
  * @author Kara Kytle
- * @version 1.13, 03/12/19
+ * @version 1.14, 05/11/17
  * @since 1.3
  */
 public class ReverbType {

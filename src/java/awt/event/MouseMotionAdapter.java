@@ -1,7 +1,7 @@
 /*
- * @(#)MouseMotionAdapter.java	1.15 03/12/19
+ * @(#)MouseMotionAdapter.java	1.17 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,12 +28,11 @@ package java.awt.event;
  * listener object is invoked and the <code>MouseEvent</code> is passed to it.
  *
  * @author Amy Fowler
- * @version 1.15 12/19/03
+ * @version 1.17 04/13/06
  *
  * @see MouseEvent
  * @see MouseMotionListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/mousemotionlistener.html">Tutorial: Writing a Mouse Motion Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @since 1.1
  */

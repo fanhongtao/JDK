@@ -65,6 +65,11 @@ public interface CSSRule {
     /**
      *  The parsable textual representation of the rule. This reflects the 
      * current state of the rule and not its initial value. 
+     */
+    public String getCssText();
+    /**
+     *  The parsable textual representation of the rule. This reflects the 
+     * current state of the rule and not its initial value. 
      * @exception DOMException
      *   SYNTAX_ERR: Raised if the specified CSS string value has a syntax 
      *   error and is unparsable.
@@ -74,7 +79,6 @@ public interface CSSRule {
      *   this point in the style sheet.
      *   <br>NO_MODIFICATION_ALLOWED_ERR: Raised if the rule is readonly.
      */
-    public String getCssText();
     public void setCssText(String cssText)
                         throws DOMException;
 

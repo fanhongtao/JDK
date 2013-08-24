@@ -1,7 +1,7 @@
 /*
- * @(#)ParameterMetaData.java	1.11 03/12/19
+ * @(#)ParameterMetaData.java	1.17 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,12 +9,20 @@ package java.sql;
 
 /**
  * An object that can be used to get information about the types 
- * and properties of the parameters in a <code>PreparedStatement</code> object.
+ * and properties for each parameter marker in a 
+ * <code>PreparedStatement</code> object. For some queries and driver 
+ * implementations, the data that would be returned by a <code>ParameterMetaData</code> 
+ * object may not be available until the <code>PreparedStatement</code> has 
+ * been executed.
+ *<p>
+ *Some driver implementations may not be able to provide information about the 
+ *types and properties for each parameter marker in a <code>CallableStatement</code> 
+ *object.
  *
  * @since 1.4
  */
 
-public interface ParameterMetaData {
+public interface ParameterMetaData extends Wrapper {
 
     /**
      * Retrieves the number of parameters in the <code>PreparedStatement</code> 
@@ -69,7 +77,14 @@ public interface ParameterMetaData {
     boolean isSigned(int param) throws SQLException;
 
     /**
-     * Retrieves the designated parameter's number of decimal digits.
+     * Retrieves the designated parameter's specified column size.
+     *  
+     * <P>The returned value represents the maximum column size for the given parameter. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. 0 is returned for data types where the
+     * column size is not applicable.
      *
      * @param param the first parameter is 1, the second is 2, ...
      * @return precision
@@ -80,6 +95,7 @@ public interface ParameterMetaData {
 
     /**
      * Retrieves the designated parameter's number of digits to right of the decimal point.
+     * 0 is returned for data types where the scale is not applicable.
      *
      * @param param the first parameter is 1, the second is 2, ...
      * @return scale

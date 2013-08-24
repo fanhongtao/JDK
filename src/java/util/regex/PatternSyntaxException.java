@@ -1,7 +1,7 @@
 /*
- * @(#)PatternSyntaxException.java	1.13 03/12/19
+ * @(#)PatternSyntaxException.java	1.16 06/05/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import sun.security.action.GetPropertyAction;
  * regular-expression pattern.
  *
  * @author  unascribed
- * @version 1.13, 03/12/19
+ * @version 1.16, 06/05/22
  * @since 1.4
  * @spec JSR-51
  */
@@ -75,12 +75,9 @@ public class PatternSyntaxException
 	return pattern;
     }
 
-    private static String nl;
-
-    static {
-	nl = (String)java.security.AccessController
+    private static final String nl =
+	java.security.AccessController
 	    .doPrivileged(new GetPropertyAction("line.separator"));
-    }
 
     /**
      * Returns a multi-line string containing the description of the syntax
@@ -90,7 +87,6 @@ public class PatternSyntaxException
      * @return  The full detail message
      */
     public String getMessage() {
-	String nl = System.getProperty("line.separator");
         StringBuffer sb = new StringBuffer();
         sb.append(desc);
 	if (index >= 0) {

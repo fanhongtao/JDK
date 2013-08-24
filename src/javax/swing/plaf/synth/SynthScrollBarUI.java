@@ -1,7 +1,7 @@
 /*
- * @(#)SynthScrollBarUI.java	1.28 03/12/19
+ * @(#)SynthScrollBarUI.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's ScrollBarUI.
  *
- * @version 1.28, 12/19/03
+ * @version 1.31, 11/17/05
  * @author Scott Violet
  */
 class SynthScrollBarUI extends BasicScrollBarUI implements
@@ -33,6 +33,7 @@ class SynthScrollBarUI extends BasicScrollBarUI implements
     private SynthStyle thumbStyle;
     private SynthStyle trackStyle;
 
+    private boolean validMinimumThumbSize;
     private int scrollBarWidth;
 
 
@@ -57,17 +58,15 @@ class SynthScrollBarUI extends BasicScrollBarUI implements
         SynthContext context = getContext(c, ENABLED);
         style = SynthLookAndFeel.updateStyle(context, this);
         if (style != oldStyle) {
-            Insets insets = c.getInsets();
             scrollBarWidth = style.getInt(context,"ScrollBar.thumbHeight", 14);
-            minimumThumbSize = new Dimension();
-            if (c.getOrientation() == JScrollBar.VERTICAL) {
-                    minimumThumbSize.width = scrollBarWidth;
-                    minimumThumbSize.height = 7;
-                    scrollBarWidth += insets.left + insets.right;
-            } else {
-                    minimumThumbSize.width = 7;
-                    minimumThumbSize.height = scrollBarWidth;
-                    scrollBarWidth += insets.top + insets.bottom;
+            minimumThumbSize = (Dimension)style.get(context,
+                                                "ScrollBar.minimumThumbSize");
+            if (minimumThumbSize == null) {
+                minimumThumbSize = new Dimension();
+                validMinimumThumbSize = false;
+            }
+            else {
+                validMinimumThumbSize = true;
             }
             maximumThumbSize = (Dimension)style.get(context,
                         "ScrollBar.maximumThumbSize");
@@ -172,7 +171,8 @@ class SynthScrollBarUI extends BasicScrollBarUI implements
 
         SynthLookAndFeel.update(context, g);
         context.getPainter().paintScrollBarBackground(context,
-                          g, 0, 0, c.getWidth(), c.getHeight());
+                          g, 0, 0, c.getWidth(), c.getHeight(),
+                          scrollbar.getOrientation());
         paint(context, g);
         context.dispose();
     }
@@ -197,20 +197,24 @@ class SynthScrollBarUI extends BasicScrollBarUI implements
 
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
-        context.getPainter().paintScrollBarBorder(context, g, x, y, w, h);
+        context.getPainter().paintScrollBarBorder(context, g, x, y, w, h,
+                                                  scrollbar.getOrientation());
     }
 
     protected void paintTrack(SynthContext ss, Graphics g,
                               Rectangle trackBounds) {
         SynthLookAndFeel.updateSubregion(ss, g, trackBounds);
         ss.getPainter().paintScrollBarTrackBackground(ss, g, trackBounds.x,
-                        trackBounds.y, trackBounds.width, trackBounds.height);
+                        trackBounds.y, trackBounds.width, trackBounds.height,
+                        scrollbar.getOrientation());
         ss.getPainter().paintScrollBarTrackBorder(ss, g, trackBounds.x,
-                        trackBounds.y, trackBounds.width, trackBounds.height);
+                        trackBounds.y, trackBounds.width, trackBounds.height,
+                        scrollbar.getOrientation());
     }
 
     protected void paintThumb(SynthContext ss, Graphics g,
                               Rectangle thumbBounds) {
+        SynthLookAndFeel.updateSubregion(ss, g, thumbBounds);
         int orientation = scrollbar.getOrientation();
         ss.getPainter().paintScrollBarThumbBackground(ss, g, thumbBounds.x,
                         thumbBounds.y, thumbBounds.width, thumbBounds.height,
@@ -237,9 +241,24 @@ class SynthScrollBarUI extends BasicScrollBarUI implements
      * @see #getMinimumSize
      */
     public Dimension getPreferredSize(JComponent c) {
+        Insets insets = c.getInsets();
 	return (scrollbar.getOrientation() == JScrollBar.VERTICAL)
-	    ? new Dimension(scrollBarWidth, 48)
-	    : new Dimension(48, scrollBarWidth);
+	    ? new Dimension(scrollBarWidth + insets.left + insets.right, 48)
+	    : new Dimension(48, scrollBarWidth + insets.top + insets.bottom);
+    }
+
+    protected Dimension getMinimumThumbSize() {
+        if (!validMinimumThumbSize) {
+            if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
+                minimumThumbSize.width = scrollBarWidth;
+                minimumThumbSize.height = 7;
+            } else {
+                minimumThumbSize.width = 7;
+                minimumThumbSize.height = scrollBarWidth;
+            }
+        }
+	return minimumThumbSize;
+
     }
 
 

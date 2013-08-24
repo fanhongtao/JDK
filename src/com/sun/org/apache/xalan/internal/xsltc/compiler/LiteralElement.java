@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: LiteralElement.java,v 1.25 2004/02/24 03:55:47 zongaro Exp $
+ * $Id: LiteralElement.java,v 1.2.4.1 2005/09/13 12:38:33 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -44,7 +44,7 @@ import com.sun.org.apache.xml.internal.serializer.ToHTMLStream;
 final class LiteralElement extends Instruction {
 
     private String _name;
-    private LiteralElement _literalElemParent;
+    private LiteralElement _literalElemParent = null;
     private Vector _attributeElements = null;
     private Hashtable _accessedPrefixes = null;
     
@@ -75,10 +75,14 @@ final class LiteralElement extends Instruction {
      * Returns the namespace URI for which a prefix is pointing to
      */
     private String accessedNamespace(String prefix) {
-	if (_accessedPrefixes == null)
-	    return(null);
-	else
-	    return((String)_accessedPrefixes.get(prefix));
+        if (_literalElemParent != null) {
+            String result = _literalElemParent.accessedNamespace(prefix);
+            if (result != null) {
+                return result;
+            }
+        }       
+        return _accessedPrefixes != null ? 
+            (String) _accessedPrefixes.get(prefix) : null;
     }
 
     /**
@@ -92,11 +96,9 @@ final class LiteralElement extends Instruction {
 	// Check if the parent has a declaration for this namespace
 	if (_literalElemParent != null) {
 	    final String parentUri = _literalElemParent.accessedNamespace(prefix);
-	    if (parentUri == null) {
-		_literalElemParent.registerNamespace(prefix, uri, stable, declared);
-		return;
-	    }
-	    if (parentUri.equals(uri)) return;
+	    if (parentUri != null && parentUri.equals(uri)) {
+                return;
+            }
 	}
 
 	// Check if we have any declared namesaces
@@ -228,14 +230,10 @@ final class LiteralElement extends Instruction {
 	final SymbolTable stable = parser.getSymbolTable();
 	stable.setCurrentNode(this);
 
-	// Find the closest literal element ancestor (if there is one)
-	SyntaxTreeNode _literalElemParent = getParent();
-	while (_literalElemParent != null && !(_literalElemParent instanceof LiteralElement)) {
-	    _literalElemParent = _literalElemParent.getParent();
-	}
-
-	if (!(_literalElemParent instanceof LiteralElement)) {
-	    _literalElemParent = null;
+	// Check if in a literal element context
+	SyntaxTreeNode parent = getParent();
+        if (parent != null && parent instanceof LiteralElement) {
+            _literalElemParent = (LiteralElement) parent;
 	}
 
 	_name = translateQName(_qname, stable);

@@ -1,7 +1,7 @@
 /*
- * @(#)Iterator.java	1.24 04/01/17
+ * @(#)Iterator.java	1.27 06/07/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,11 +18,11 @@ package java.util;
  * </ul><p>
  *
  * This interface is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.24, 01/17/04
+ * @version 1.27, 07/24/06
  * @see Collection
  * @see ListIterator
  * @see Enumeration
@@ -39,9 +39,7 @@ public interface Iterator<E> {
     boolean hasNext();
 
     /**
-     * Returns the next element in the iteration.  Calling this method
-     * repeatedly until the {@link #hasNext()} method returns false will
-     * return each element in the underlying collection exactly once.
+     * Returns the next element in the iteration.
      *
      * @return the next element in the iteration.
      * @exception NoSuchElementException iteration has no more elements.

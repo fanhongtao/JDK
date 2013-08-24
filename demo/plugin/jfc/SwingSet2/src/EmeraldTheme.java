@@ -1,7 +1,7 @@
 /*
- * @(#)EmeraldTheme.java	1.9 04/07/26
+ * @(#)EmeraldTheme.java	1.10 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)EmeraldTheme.java	1.9 04/07/26
+ * @(#)EmeraldTheme.java	1.10 05/11/17
  */
  
 import javax.swing.plaf.*;
@@ -47,7 +47,7 @@ import java.awt.*;
 /**
  * This class describes a theme using glowing green colors.
  *
- * @version 1.9 07/26/04
+ * @version 1.10 11/17/05
  * @author Jeff Dinkins
  */
 public class EmeraldTheme extends DefaultMetalTheme {

@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaClientRequestDispatcherImpl.java	1.86 04/06/21
+ * @(#)CorbaClientRequestDispatcherImpl.java	1.87 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

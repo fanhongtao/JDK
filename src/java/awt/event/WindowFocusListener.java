@@ -1,7 +1,7 @@
 /*
- * @(#)WindowFocusListener.java	1.6 03/12/19
+ * @(#)WindowFocusListener.java	1.8 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,12 +26,11 @@ import java.util.EventListener;
  * and the <code>WindowEvent</code> is passed to it.
  *
  * @author David Mendenhall
- * @version 1.6, 12/19/03
+ * @version 1.8, 04/13/06
  *
  * @see WindowAdapter
  * @see WindowEvent
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/windowlistener.html">Tutorial: Writing a Window Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @since 1.4
  */

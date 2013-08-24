@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamClass.java	1.56 05/09/13
+ * @(#)ObjectStreamClass.java	1.54 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -43,8 +43,6 @@ import java.util.Comparator;
 import java.util.Hashtable;
 
 import com.sun.corba.se.impl.util.RepositoryId;
-
-import sun.misc.SoftCache;
 
 import org.omg.CORBA.ValueMember;
 
@@ -105,7 +103,7 @@ public class ObjectStreamClass implements java.io.Serializable {
 	ObjectStreamClass desc = null;
 	synchronized (descriptorFor) {
 	    /* Find the matching descriptor if it already known */
-            desc = (ObjectStreamClass)descriptorFor.get(cl);
+	    desc = findDescriptorFor(cl);
 	    if (desc == null) {
                 /* Check if it's serializable */
                 boolean serializable = classSerializable.isAssignableFrom(cl);
@@ -140,23 +138,21 @@ public class ObjectStreamClass implements java.io.Serializable {
                 desc = new ObjectStreamClass(cl, superdesc,
                                              serializable, externalizable);
             }
+	}
 
-            // Must always call init.  See bug 4488137.  This code was
-            // incorrectly changed to return immediately on a non-null
-            // cache result.  That allowed threads to gain access to
-            // unintialized instances.
-            //
-            // History: Note, the following init() call was originally within 
-            // the synchronization block, as it currently is now. Later, the 
-            // init() call was moved outside the synchronization block, and 
-            // the init() method used a private member variable lock, to 
-            // avoid performance problems. See bug 4165204. But that lead to 
-            // a deadlock situation, see bug 5104239. Hence, the init() method 
-            // has now been moved back into the synchronization block. The 
-            // right approach to solving these problems would be to rewrite 
-            // this class, based on the latest java.io.ObjectStreamClass. 
-            desc.init();
-        }
+        // Must always call init.  See bug 4488137.  This code was
+        // incorrectly changed to return immediately on a non-null
+        // cache result.  That allowed threads to gain access to
+        // unintialized instances.
+        //
+        // All threads must sync on the member variable lock
+        // and check the initialization state.
+        //
+        // Another possibility is to continue to synchronize on the
+        // descriptorFor array, but that leads to poor performance
+        // (see bug 4165204 "ObjectStreamClass can hold global lock
+        // for a very long time").
+	desc.init();
 
 	return desc;
     }
@@ -360,7 +356,7 @@ public class ObjectStreamClass implements java.io.Serializable {
 	 * Otherwise, when the fields are read it may recurse
 	 * trying to find the descriptor for itself.
 	 */
-        descriptorFor.put(cl, this);
+	insertDescriptorFor(this);
 
         /*
          * The remainder of initialization occurs in init(), which is called
@@ -1400,7 +1396,64 @@ public class ObjectStreamClass implements java.io.Serializable {
 	return sb.toString();
     }
 
-    static private SoftCache descriptorFor = new SoftCache() ;
+    /*
+     * Cache of Class -> ClassDescriptor Mappings.
+     */
+    static private ObjectStreamClassEntry[] descriptorFor = new ObjectStreamClassEntry[61];
+
+    /*
+     * findDescriptorFor a Class.  This looks in the cache for a
+     * mapping from Class -> ObjectStreamClass mappings.  The hashCode
+     * of the Class is used for the lookup since the Class is the key.
+     * The entries are extended from java.lang.ref.SoftReference so the
+     * gc will be able to free them if needed.
+     */
+    private static ObjectStreamClass findDescriptorFor(Class cl) {
+
+	int hash = cl.hashCode();
+	int index = (hash & 0x7FFFFFFF) % descriptorFor.length;
+	ObjectStreamClassEntry e;
+	ObjectStreamClassEntry prev;
+
+	/* Free any initial entries whose refs have been cleared */
+	while ((e = descriptorFor[index]) != null && e.get() == null) {
+	    descriptorFor[index] = e.next;
+	}
+
+	/* Traverse the chain looking for a descriptor with ofClass == cl.
+	 * unlink entries that are unresolved.
+	 */
+	prev = e;
+	while (e != null ) {
+	    ObjectStreamClass desc = (ObjectStreamClass)(e.get());
+	    if (desc == null) {
+		// This entry has been cleared,  unlink it
+		prev.next = e.next;
+	    } else {
+		if (desc.ofClass == cl)
+		    return desc;
+		prev = e;
+	    }
+	    e = e.next;
+	}
+	return null;
+    }
+
+    /*
+     * insertDescriptorFor a Class -> ObjectStreamClass mapping.
+     */
+    private static void insertDescriptorFor(ObjectStreamClass desc) {
+	// Make sure not already present
+	if (findDescriptorFor(desc.ofClass) != null) {
+	    return;
+	}
+
+	int hash = desc.ofClass.hashCode();
+	int index = (hash & 0x7FFFFFFF) % descriptorFor.length;
+	ObjectStreamClassEntry e = new ObjectStreamClassEntry(desc);
+	e.next = descriptorFor[index];
+       	descriptorFor[index] = e;
+    }
 
     private static Field[] getDeclaredFields(final Class clz) {
         return (Field[]) AccessController.doPrivileged(new PrivilegedAction() {

@@ -1,5 +1,5 @@
 /*
- * @(#)TableView.java	1.39 06/06/30
+ * @(#)TableView.java	1.41 06/05/12
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import javax.swing.text.*;
  * HTML table view.  
  * 
  * @author  Timothy Prinzing
- * @version 1.39 06/30/06
+ * @version 1.41 05/12/06
  * @see     View
  */
 /*public*/ class TableView extends BoxView implements ViewFactory {
@@ -769,9 +769,7 @@ import javax.swing.text.*;
 		a.height -= getBottomInset() - bottom;
 	    }
 	}
-	for (int i = borderWidth; i > 0; i--) {                                         
-	    painter.paint(g, a.x + i, a.y + i, a.width - 2 * i, a.height - 2 * i, this);
-	}                                                                               
+        painter.paint(g, a.x, a.y, a.width, a.height, this); 
 	// paint interior
 	int n = getViewCount();
 	for (int i = 0; i < n; i++) {
@@ -1025,9 +1023,9 @@ import javax.swing.text.*;
 			    if (lv.isPercentage()) {
 				// add a percentage requirement
 				percentages[col+i] = Math.max(percentages[col+i], len);
-				adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight);
+                                adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight);
 			    } else {
-				adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight - 1);	
+                                adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight - 1);
 			    }
 			}
 		    }
@@ -1080,7 +1078,7 @@ import javax.swing.text.*;
 
 	public float getPreferredSpan(float parentSpan) {
 	    if ((percentages != null) && (percentages[col] != 0)) {
-		return Math.max(percentages[col], columnRequirements[col].minimum);
+                return Math.max(percentages[col], columnRequirements[col].minimum);
 	    }
 	    return columnRequirements[col].preferred;
 	}
@@ -1713,7 +1711,6 @@ import javax.swing.text.*;
 	 */
         protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    super.layoutMajorAxis(targetSpan, axis, offsets, spans);
-
 	    // calculate usage
 	    int used = 0;
 	    int n = spans.length;
@@ -1782,5 +1779,6 @@ import javax.swing.text.*;
             return rv;
         }
     }
+
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Expression.java,v 1.20 2004/02/16 22:24:28 minchau Exp $
+ * $Id: Expression.java,v 1.2.4.1 2005/09/01 14:17:51 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

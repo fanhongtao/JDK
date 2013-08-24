@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 /*
- * $Id: DOMHelper.java,v 1.6 2004/02/17 04:21:14 minchau Exp $
+ * $Id: DOMHelper.java,v 1.2.4.1 2005/09/15 08:15:40 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -66,11 +67,12 @@ public class DOMHelper
    * element might let the DOM automatically switch to a specialized
    * subclass for particular kinds of documents.)
    *
+   * @param isSecureProcessing state of the secure processing feature.
    * @return The newly created DOM Document object, with no children, or
    * null if we can't find a DOM implementation that permits creating
    * new empty Documents.
    */
-  public static Document createDocument()
+  public static Document createDocument(boolean isSecureProcessing)
   {
 
     try
@@ -82,7 +84,16 @@ public class DOMHelper
 
       dfactory.setNamespaceAware(true);
       dfactory.setValidating(true);
-
+      
+      if (isSecureProcessing)
+      {
+        try
+        {
+          dfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        }
+        catch (ParserConfigurationException pce) {}
+      }
+      
       DocumentBuilder docBuilder = dfactory.newDocumentBuilder();
       Document outNode = docBuilder.newDocument();
 
@@ -98,6 +109,21 @@ public class DOMHelper
     }
   }
 
+  /**
+   * DOM Level 1 did not have a standard mechanism for creating a new
+   * Document object. This function provides a DOM-implementation-independent
+   * abstraction for that for that concept. It's typically used when 
+   * outputting a new DOM as the result of an operation.
+   *
+   * @return The newly created DOM Document object, with no children, or
+   * null if we can't find a DOM implementation that permits creating
+   * new empty Documents.
+   */
+  public static Document createDocument()
+  {
+    return createDocument(false);
+  }
+  
   /**
    * Tells, through the combination of the default-space attribute
    * on xsl:stylesheet, xsl:strip-space, xsl:preserve-space, and the

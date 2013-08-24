@@ -1,7 +1,7 @@
 /*
- * @(#)DocumentFilter.java	1.6 03/12/19
+ * @(#)DocumentFilter.java	1.8 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -28,7 +28,7 @@ package javax.swing.text;
  *
  * @see javax.swing.text.Document
  *
- * @version 1.6 12/19/03
+ * @version 1.8 04/07/06
  * @since 1.4
  */
 public class DocumentFilter {
@@ -99,6 +99,7 @@ public class DocumentFilter {
      * a DocumentFilter must provide an implementation that will
      * not callback into the DocumentFilter when the following methods
      * are invoked from the DocumentFilter.
+     * @since 1.4
      */
     public static abstract class FilterBypass {
         /**

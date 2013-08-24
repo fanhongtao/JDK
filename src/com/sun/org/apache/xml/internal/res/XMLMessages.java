@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLMessages.java,v 1.5 2004/02/17 04:14:26 minchau Exp $
+ * $Id: XMLMessages.java,v 1.2.4.1 2005/09/15 07:45:48 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.res;
 
@@ -41,10 +41,10 @@ public class XMLMessages
     "com.sun.org.apache.xml.internal.res.XMLErrorResources";
 
   /** String to use if a bad message code is used. */
-  protected static String BAD_CODE = "BAD_CODE";
+  protected static final String BAD_CODE = "BAD_CODE";
 
   /** String to use if the message format operation failed.  */
-  protected static String FORMAT_FAILED = "FORMAT_FAILED";
+  protected static final String FORMAT_FAILED = "FORMAT_FAILED";
     
   /**
    * Set the Locale object to use.
@@ -70,7 +70,7 @@ public class XMLMessages
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
    *
-   * @param errorCode The key for the message text.
+   * @param msgKey    The key for the message text.
    * @param args      The arguments to be used as replacement text
    *                  in the message created.
    *
@@ -92,8 +92,6 @@ public class XMLMessages
   /**
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
-   *
-   * @param errorCode The key for the message text.
    *
    * @param fResourceBundle The resource bundle to use.
    * @param msgKey  The message key to use.
@@ -157,9 +155,6 @@ public class XMLMessages
   /**
    * Return a named ResourceBundle for a particular locale.  This method mimics the behavior
    * of ResourceBundle.getBundle().
-   *
-   * @param res the name of the resource to load.
-   * @param locale the locale to prefer when searching for the bundle
    *
    * @param className The class name of the resource bundle.
    * @return the ResourceBundle

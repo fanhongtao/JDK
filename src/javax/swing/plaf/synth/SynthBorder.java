@@ -1,13 +1,14 @@
 /*
- * @(#)SynthBorder.java	1.12 03/12/19
+ * @(#)SynthBorder.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 import javax.swing.plaf.UIResource;
 import sun.swing.plaf.synth.SynthUI;
@@ -16,7 +17,7 @@ import sun.swing.plaf.synth.SynthUI;
  * SynthBorder is a border that delegates to a Painter. The Insets
  * are determined at construction time.
  *
- * @version 1.12, 12/19/03
+ * @version 1.14, 11/17/05
  * @author Scott Violet
  */
 class SynthBorder extends AbstractBorder implements UIResource {
@@ -95,6 +96,15 @@ class SynthBorder extends AbstractBorder implements UIResource {
                  region == Region.TOGGLE_BUTTON) &&
                        (c instanceof AbstractButton)) {
                 margin = ((AbstractButton)c).getMargin();
+            }
+            else if ((region == Region.EDITOR_PANE ||
+                      region == Region.FORMATTED_TEXT_FIELD ||
+                      region == Region.PASSWORD_FIELD ||
+                      region == Region.TEXT_AREA ||
+                      region == Region.TEXT_FIELD ||
+                      region == Region.TEXT_PANE) &&
+                        (c instanceof JTextComponent)) {
+                margin = ((JTextComponent)c).getMargin();
             }
             else if (region == Region.TOOL_BAR && (c instanceof JToolBar)) {
                 margin = ((JToolBar)c).getMargin();

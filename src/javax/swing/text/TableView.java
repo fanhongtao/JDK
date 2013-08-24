@@ -1,7 +1,7 @@
 /*
- * @(#)TableView.java	1.33 04/05/18
+ * @(#)TableView.java	1.36 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -47,7 +47,7 @@ import javax.swing.text.html.HTML;
  * spans if desired).
  * 
  * @author  Timothy Prinzing
- * @version 1.33 05/18/04
+ * @version 1.36 04/07/06
  * @see     View
  */
 public abstract class TableView extends BoxView {
@@ -269,19 +269,18 @@ public abstract class TableView extends BoxView {
     }
 
     /**
-     * Layout the columns to fit within the given target span.
+     * Lays out the columns to fit within the given target span.
+     * Returns the results through {@code offsets} and {@code spans}.
      *
      * @param targetSpan the given span for total of all the table
-     *  columns.
+     *  columns
      * @param reqs the requirements desired for each column.  This
      *  is the column maximum of the cells minimum, preferred, and
-     *  maximum requested span.  
+     *  maximum requested span
      * @param spans the return value of how much to allocated to
-     *  each column.
+     *  each column
      * @param offsets the return value of the offset from the
-     *  origin for each column.
-     * @return the offset from the origin and the span for each column 
-     *  in the offsets and spans parameters
+     *  origin for each column
      */
     protected void layoutColumns(int targetSpan, int[] offsets, int[] spans, 
 				 SizeRequirements[] reqs) {
@@ -311,8 +310,6 @@ public abstract class TableView extends BoxView {
      *  filled in by the implementation of this method.
      * @param spans the span of each child view.  This is a return
      *  value and is filled in by the implementation of this method.
-     * @return the offset and span for each child view in the
-     *  offsets and spans parameters
      */
     protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	// make grid is properly represented
@@ -577,6 +574,7 @@ public abstract class TableView extends BoxView {
 	 * Constructs a TableView for the given element.
 	 *
 	 * @param elem the element that this view is responsible for
+	 * @since 1.4
 	 */
         public TableRow(Element elem) {
 	    super(elem, View.X_AXIS);
@@ -650,8 +648,6 @@ public abstract class TableView extends BoxView {
 	 *  filled in by the implementation of this method.
 	 * @param spans the span of each child view.  This is a return
 	 *  value and is filled in by the implementation of this method.
-	 * @return the offset and span for each child view in the
-	 *  offsets and spans parameters
 	 */
         protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    int col = 0;
@@ -696,8 +692,6 @@ public abstract class TableView extends BoxView {
 	 *  filled in by the implementation of this method.
 	 * @param spans the span of each child view.  This is a return
 	 *  value and is filled in by the implementation of this method.
-	 * @return the offset and span for each child view in the
-	 *  offsets and spans parameters
 	 */
         protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    super.layoutMinorAxis(targetSpan, axis, offsets, spans);
@@ -791,6 +785,7 @@ public abstract class TableView extends BoxView {
 	 * Constructs a TableCell for the given element.
 	 *
 	 * @param elem the element that this view is responsible for
+	 * @since 1.4
 	 */
         public TableCell(Element elem) {
 	    super(elem, View.Y_AXIS);

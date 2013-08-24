@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphVector.java	1.32 03/12/19
+ * @(#)GlyphVector.java	1.34 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -273,7 +273,8 @@ public abstract class GlyphVector implements Cloneable {
      * Returns a <code>Shape</code> whose interior corresponds to the
      * visual representation of this <code>GlyphVector</code> when
      * rendered at x,&nbsp;y.
-     * @param x,&nbsp;y the coordinates of this <code>GlyphVector</code>.
+     * @param x the X coordinate of this <code>GlyphVector</code>.
+     * @param y the Y coordinate of this <code>GlyphVector</code>.
      * @return a <code>Shape</code> that is the outline of this
      *   <code>GlyphVector</code> when rendered at the specified
      *   coordinates.
@@ -303,8 +304,8 @@ public abstract class GlyphVector implements Cloneable {
      * The outline returned by this method is positioned around the
      * origin of each individual glyph.
      * @param glyphIndex the index into this <code>GlyphVector</code>
-     * @param x,&nbsp;y the coordinates of the location of this 
-     *   <code>GlyphVector</code>.
+     * @param x the X coordinate of the location of this {@code GlyphVector}
+     * @param y the Y coordinate of the location of this {@code GlyphVector}
      * @return a <code>Shape</code> that is the outline of the glyph
      *   at the specified <code>glyphIndex</code> of this
      *	 <code>GlyphVector</code> when rendered at the specified
@@ -533,7 +534,8 @@ public abstract class GlyphVector implements Cloneable {
      * ignores the FRC.  Subclassers should override this method.
      * @param index the index of the glyph.
      * @param renderFRC the <code>FontRenderContext</code> of the <code>Graphics</code>.
-     * @param x,&nbsp;y the position at which to render this <code>GlyphVector</code>.
+     * @param x the X position at which to render this <code>GlyphVector</code>.
+     * @param y the Y position at which to render this <code>GlyphVector</code>.
      * @return a <code>Rectangle</code> bounding the pixels that would be affected.
      * @since 1.4
      */

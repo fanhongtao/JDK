@@ -1,7 +1,7 @@
 /*
- * @(#)InputEvent.java	1.34 04/06/02
+ * @(#)InputEvent.java	1.37 06/03/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.Toolkit;
  * activated.
  *
  * @author Carl Quinn
- * @version 1.34 06/02/04
+ * @version 1.37 03/17/06
  *
  * @see KeyEvent
  * @see KeyAdapter
@@ -133,8 +133,16 @@ public abstract class InputEvent extends ComponentEvent {
      */
     public static final int ALT_GRAPH_DOWN_MASK = 1 << 13;
 
-
+    // the constant below MUST be updated if any extra modifier
+    // bits are to be added!
+    // in fact, it is undesirable to add modifier bits
+    // to the same field as this may break applications
+    // see bug# 5066958
+    
+    static final int FIRST_HIGH_BIT = 1 << 14;
+    
     static final int JDK_1_3_MODIFIERS = SHIFT_DOWN_MASK - 1;
+    static final int HIGH_MODIFIERS = ~( FIRST_HIGH_BIT - 1 );
 
     /**
      * The input event's Time stamp in UTC format.  The time stamp 
@@ -264,7 +272,7 @@ public abstract class InputEvent extends ComponentEvent {
      * Returns the modifier mask for this event.
      */
     public int getModifiers() {
-        return modifiers & JDK_1_3_MODIFIERS;
+        return modifiers & (JDK_1_3_MODIFIERS | HIGH_MODIFIERS);
     }
 
     /**
@@ -292,7 +300,7 @@ public abstract class InputEvent extends ComponentEvent {
      * <PRE>
      *    int onmask = SHIFT_DOWN_MASK | BUTTON1_DOWN_MASK;
      *    int offmask = CTRL_DOWN_MASK;
-     *    if (event.getModifiersEx() & (onmask | offmask) == onmask) {
+     *    if ((event.getModifiersEx() & (onmask | offmask)) == onmask) {
      *        ...
      *    }
      * </PRE>

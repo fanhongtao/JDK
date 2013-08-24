@@ -1,7 +1,7 @@
 /*
- * @(#)InternalFrameDemo.java	1.14 04/07/26
+ * @(#)InternalFrameDemo.java	1.16 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)InternalFrameDemo.java	1.14 04/07/26
+ * @(#)InternalFrameDemo.java	1.16 05/11/17
  */
 
 
@@ -58,7 +58,7 @@ import java.net.*;
 /**
  * Internal Frames Demo
  *
- * @version 1.14 07/26/04
+ * @version 1.16 11/17/05
  * @author Jeff Dinkins
  */
 public class InternalFrameDemo extends DemoModule {

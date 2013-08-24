@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.90 06/03/27
+ * @(#)WindowsFileChooserUI.java	1.101 06/04/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,13 @@ import java.util.*;
 
 import sun.awt.shell.ShellFolder;
 import sun.swing.*;
-import com.sun.java.swing.SwingUtilities2;
+
+import javax.accessibility.*;
 
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.90 03/27/06
+ * @version 1.101 04/27/06
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -255,7 +256,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	upFolderButton.setText(null);
 	upFolderButton.setIcon(upFolderIcon);
      	upFolderButton.setToolTipText(upFolderToolTipText);
-     	upFolderButton.getAccessibleContext().setAccessibleName(upFolderAccessibleName);
+        upFolderButton.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY,
+                                         upFolderAccessibleName);
+        upFolderButton.putClientProperty(WindowsLookAndFeel.HI_RES_DISABLED_ICON_CLIENT_KEY,
+                                         Boolean.TRUE);
 	upFolderButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	upFolderButton.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 	upFolderButton.setMargin(shrinkwrap);
@@ -276,7 +280,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    }
 	    b = new JButton(getFileView(fc).getIcon(homeDir));
 	    b.setToolTipText(toolTipText);
-	    b.getAccessibleContext().setAccessibleName(toolTipText);
+            b.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, 
+                                toolTipText);
 	    b.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	    b.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 	    b.setMargin(shrinkwrap);
@@ -292,7 +297,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    b.setText(null);
 	    b.setIcon(newFolderIcon);
 	    b.setToolTipText(newFolderToolTipText);
-	    b.getAccessibleContext().setAccessibleName(newFolderAccessibleName);
+            b.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY,
+                                newFolderAccessibleName);
+            b.putClientProperty(WindowsLookAndFeel.HI_RES_DISABLED_ICON_CLIENT_KEY,
+                                Boolean.TRUE);
 	    b.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	    b.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 	    b.setMargin(shrinkwrap);
@@ -309,7 +317,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	// List Button
 	listViewButton = new JToggleButton(listViewIcon);
      	listViewButton.setToolTipText(listViewButtonToolTipText);
-     	listViewButton.getAccessibleContext().setAccessibleName(listViewButtonAccessibleName);
+        listViewButton.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY,
+                                         listViewButtonAccessibleName);
+        listViewButton.putClientProperty(WindowsLookAndFeel.HI_RES_DISABLED_ICON_CLIENT_KEY,
+                                         Boolean.TRUE);
 	listViewButton.setFocusPainted(false);
 	listViewButton.setSelected(true);
 	listViewButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
@@ -322,7 +333,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	// Details Button
 	detailsViewButton = new JToggleButton(detailsViewIcon);
      	detailsViewButton.setToolTipText(detailsViewButtonToolTipText);
-     	detailsViewButton.getAccessibleContext().setAccessibleName(detailsViewButtonAccessibleName);
+        detailsViewButton.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY,
+                                            detailsViewButtonAccessibleName);
+        detailsViewButton.putClientProperty(WindowsLookAndFeel.HI_RES_DISABLED_ICON_CLIENT_KEY,
+                                            Boolean.TRUE);
 	detailsViewButton.setFocusPainted(false);
 	detailsViewButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	detailsViewButton.setAlignmentY(JComponent.CENTER_ALIGNMENT);
@@ -490,7 +504,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	}
 	if (OS_VERSION.compareTo("4.9") >= 0) {	// Windows Me/2000 and later (4.90/5.0)
 	    if (useShellFolder) {
-		if (placesBar == null) {
+		if (placesBar == null && !UIManager.getBoolean("FileChooser.noPlacesBar")) {
 		    placesBar = new WindowsPlacesBar(fc, XPStyle.getXP() != null);
 		    fc.add(placesBar, BorderLayout.BEFORE_LINE_BEGINS);
 		    fc.addPropertyChangeListener(placesBar);
@@ -607,6 +621,11 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	approveButton.removeActionListener(getApproveSelectionAction());
 	filenameTextField.removeActionListener(getApproveSelectionAction());
 
+	if (filePane != null) {
+	    filePane.uninstallUI();
+	    filePane = null;
+	}
+
 	super.uninstallUI(c);
     }
 
@@ -660,7 +679,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    return null;
 	} else {
 	    JFileChooser fc = getFileChooser();
-	    if (fc.isDirectorySelectionEnabled() && !fc.isFileSelectionEnabled()) {
+	    if ((fc.isDirectorySelectionEnabled() && !fc.isFileSelectionEnabled()) || 
+	        (fc.isDirectorySelectionEnabled() && fc.isFileSelectionEnabled() && fc.getFileSystemView().isFileSystemRoot(file))){
 		return file.getPath();
 	    } else {
 		return file.getName();
@@ -1135,7 +1155,6 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	public void setSelectedItem(Object filter) {
 	    if(filter != null) {
 		getFileChooser().setFileFilter((FileFilter) filter);
-		setFileName(null);
 		fireContentsChanged(this, -1, -1);
 	    }
 	}

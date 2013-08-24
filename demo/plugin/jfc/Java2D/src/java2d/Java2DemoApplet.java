@@ -1,7 +1,7 @@
 /*
- * @(#)Java2DemoApplet.java	1.19 04/07/26
+ * @(#)Java2DemoApplet.java	1.22 06/08/25
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -59,7 +59,7 @@ import javax.swing.*;
               <param name="verbose" value=" ">
               <param name="zoom" value=" ">
  *
- * @version @(#)Java2DemoApplet.java	1.19 04/07/26
+ * @version @(#)Java2DemoApplet.java	1.22 06/08/25
  * @author Brian Lichtenwalter  (Framework, Intro, demos)
  * @author Jim Graham           (demos)
  */
@@ -165,7 +165,16 @@ public class Java2DemoApplet extends JApplet {
         } 
         validate();
         repaint();
-        Java2Demo.demo.requestDefaultFocus();
+        requestDefaultFocus();
+    }
+
+    private void requestDefaultFocus() {
+        Container nearestRoot = getFocusCycleRootAncestor();
+        if (nearestRoot != null) {
+            nearestRoot.getFocusTraversalPolicy()
+                       .getDefaultComponent(nearestRoot)
+                       .requestFocus();
+        } 
     }
 
     public void start() {

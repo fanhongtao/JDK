@@ -1,7 +1,7 @@
 /*
- * @(#)GZIPInputStream.java	1.29 06/03/03
+ * @(#)GZIPInputStream.java	1.33 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.EOFException;
  * the GZIP file format.
  *
  * @see		InflaterInputStream
- * @version 	1.29, 03/03/06
+ * @version 	1.33, 04/07/06
  * @author 	David Connelly
  *
  */
@@ -69,13 +69,18 @@ class GZIPInputStream extends InflaterInputStream {
     }
 
     /**
-     * Reads uncompressed data into an array of bytes. Blocks until enough
-     * input is available for decompression.
+     * Reads uncompressed data into an array of bytes. If <code>len</code> is not
+     * zero, the method will block until some input can be decompressed; otherwise,
+     * no bytes are read and <code>0</code> is returned.
      * @param buf the buffer into which the data is read
-     * @param off the start offset of the data
+     * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes read
      * @return	the actual number of bytes read, or -1 if the end of the
      *		compressed input stream is reached
+     * @exception  NullPointerException If <code>buf</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>buf.length - off</code>
      * @exception IOException if an I/O error has occurred or the compressed
      *			      input data is corrupt
      */
@@ -170,11 +175,11 @@ class GZIPInputStream extends InflaterInputStream {
 	    in = new SequenceInputStream(
 			new ByteArrayInputStream(buf, len - n, n), in);
 	}
-        // Uses left-to-right evaluation order
-        if ((readUInt(in) != crc.getValue()) ||
-            // rfc1952; ISIZE is the input size modulo 2^32
-            (readUInt(in) != (inf.getBytesWritten() & 0xffffffffL)))
-            throw new IOException("Corrupt GZIP trailer");
+	// Uses left-to-right evaluation order
+	if ((readUInt(in) != crc.getValue()) ||
+	    // rfc1952; ISIZE is the input size modulo 2^32
+	    (readUInt(in) != (inf.getBytesWritten() & 0xffffffffL)))
+	    throw new IOException("Corrupt GZIP trailer");
     }
 
     /*
@@ -201,6 +206,11 @@ class GZIPInputStream extends InflaterInputStream {
 	if (b == -1) {
 	    throw new EOFException();
 	}
+        if (b < -1 || b > 255) {
+            // Report on this.in, not argument in; see read{Header, Trailer}.
+            throw new IOException(this.in.getClass().getName()
+                + ".read() returned value out of range -1..255: " + b);
+        }
 	return b;
     }
 

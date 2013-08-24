@@ -1,7 +1,7 @@
 /*
- * @(#)StringValueExp.java	4.19 03/12/19
+ * @(#)StringValueExp.java	4.22 05/11/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,6 +64,9 @@ public class StringValueExp implements ValueExp   {
      *
      * @param s The MBean server on which the query is to be performed.
      */
+    /* There is no need for this method, because if a query is being
+       evaluated a StringValueExp can only appear inside a QueryExp,
+       and that QueryExp will itself have done setMBeanServer.  */
     public void setMBeanServer(MBeanServer s)  { }        
 
     /**

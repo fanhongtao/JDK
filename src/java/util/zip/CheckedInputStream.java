@@ -1,7 +1,7 @@
 /*
- * @(#)CheckedInputStream.java	1.19 03/12/19
+ * @(#)CheckedInputStream.java	1.22 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.io.IOException;
  * The checksum can then be used to verify the integrity of the input data.
  *
  * @see		Checksum
- * @version 	1.19, 12/19/03
+ * @version 	1.22, 04/07/06
  * @author 	David Connelly
  */
 public
@@ -47,13 +47,18 @@ class CheckedInputStream extends FilterInputStream {
     }
 
     /**
-     * Reads into an array of bytes. Will block until some input
-     * is available.
+     * Reads into an array of bytes. If <code>len</code> is not zero, the method
+     * blocks until some input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned.
      * @param buf the buffer into which the data is read
-     * @param off the start offset of the data
+     * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes read
      * @return    the actual number of bytes read, or -1 if the end
      *		  of the stream is reached.
+     * @exception  NullPointerException If <code>buf</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>buf.length - off</code>
      * @exception IOException if an I/O error has occurred
      */
     public int read(byte[] buf, int off, int len) throws IOException {

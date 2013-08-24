@@ -1,59 +1,18 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2004 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The name "Apache Software Foundation" must not be used to endorse or
- *    promote products derived from this software without prior written
- *    permission. For written permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999-2001, Sun Microsystems,
- * Inc., http://www.sun.com.  For more information on the Apache Software
- * Foundation, please see <http://www.apache.org/>.
+ * Copyright 2001-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
-
 
 package com.sun.org.apache.xerces.internal.parsers;
 
@@ -78,9 +37,9 @@ import java.io.InputStreamReader;
  * when bundled as part of the JDK.
  * <p>
  *
- * @version $Id: ObjectFactory.java,v 1.3 2004/05/08 11:07:44 vk112360 Exp $
+ * @version $Id: ObjectFactory.java,v 1.3 2005/09/26 13:02:56 sunithareddy Exp $
  */
-class ObjectFactory {
+final class ObjectFactory {
 
     //
     // Constants
@@ -181,6 +140,20 @@ class ObjectFactory {
             // Ignore and continue w/ next location
         }
 
+        // JAXP specific change
+        // always use fallback class to avoid the expense of constantly
+        // "stat"ing a non-existent "xerces.properties" and jar SPI entry
+        // see CR 6400863: Expensive creating of SAX parser in Mustang
+        if (true) {
+            if (fallbackClassName == null) {
+                throw new ConfigurationError(
+                    "Provider for " + factoryId + " cannot be found", null);
+            }
+
+            if (DEBUG) debugPrintln("using fallback, value=" + fallbackClassName);
+            return newInstance(fallbackClassName, cl, true);
+        }
+
         // Try to read from propertiesFilename, or $java.home/lib/xerces.properties
         String factoryClassName = null;
         // no properties file name specified; use $JAVA_HOME/lib/xerces.properties:
@@ -198,9 +171,10 @@ class ObjectFactory {
                 fLastModified = -1;
                 fXercesProperties = null;
             }
-
+            
             synchronized (ObjectFactory.class) {
                 boolean loadProperties = false;
+                FileInputStream fis = null;
                 try {
                     // file existed last time
                     if(fLastModified >= 0) {
@@ -224,32 +198,51 @@ class ObjectFactory {
                     if(loadProperties) {
                         // must never have attempted to read xerces.properties before (or it's outdeated)
                         fXercesProperties = new Properties();
-                        FileInputStream fis = ss.getFileInputStream(propertiesFile);
+                        fis = ss.getFileInputStream(propertiesFile);
                         fXercesProperties.load(fis);
-                        fis.close();
                     }
-	            } catch (Exception x) {
-	                fXercesProperties = null;
-	                fLastModified = -1;
+                } catch (Exception x) {
+                    fXercesProperties = null;
+                    fLastModified = -1;
                     // assert(x instanceof FileNotFoundException
-	                //        || x instanceof SecurityException)
-	                // In both cases, ignore and continue w/ next location
-	            }
+                    //        || x instanceof SecurityException)
+                    // In both cases, ignore and continue w/ next location
+                }
+                finally {
+                    // try to close the input stream if one was opened.
+                    if (fis != null) {
+                        try {
+                            fis.close();
+                        }
+                        // Ignore the exception.
+                        catch (IOException exc) {}
+                    }
+                }
             }
             if(fXercesProperties != null) {
                 factoryClassName = fXercesProperties.getProperty(factoryId);
             }
         } else {
+            FileInputStream fis = null;
             try {
-                FileInputStream fis = ss.getFileInputStream(new File(propertiesFilename));
+                fis = ss.getFileInputStream(new File(propertiesFilename));
                 Properties props = new Properties();
                 props.load(fis);
-                fis.close();
                 factoryClassName = props.getProperty(factoryId);
             } catch (Exception x) {
                 // assert(x instanceof FileNotFoundException
                 //        || x instanceof SecurityException)
                 // In both cases, ignore and continue w/ next location
+            }
+            finally {
+                // try to close the input stream if one was opened.
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    }
+                    // Ignore the exception.
+                    catch (IOException exc) {}
+                }
             }
         }
         if (factoryClassName != null) {
@@ -377,15 +370,11 @@ class ObjectFactory {
         //throw security exception if the calling thread is not allowed to access the package
         //restrict the access to package as speicified in java.security policy
         SecurityManager security = System.getSecurityManager();
-        try{
-            if (security != null) {
-                final int lastDot = className.lastIndexOf(".");
-                String packageName = className;
-                if (lastDot != -1) packageName = className.substring(0, lastDot);
-                security.checkPackageAccess(packageName);
-            }
-        }catch(SecurityException e){
-            throw e ;
+        if (security != null) {
+            final int lastDot = className.lastIndexOf(".");
+            String packageName = className;
+            if (lastDot != -1) packageName = className.substring(0, lastDot);
+            security.checkPackageAccess(packageName);
         }
         Class providerClass;
         if (cl == null) {
@@ -485,10 +474,17 @@ class ObjectFactory {
             // XXX Does not handle all possible input as specified by the
             // Jar Service Provider specification
             factoryClassName = rd.readLine();
-            rd.close();
         } catch (IOException x) {
             // No provider found
             return null;
+        }
+        finally {
+            try {
+                // try to close the reader.
+                rd.close();
+            }
+            // Ignore the exception.
+            catch (IOException exc) {}
         }
 
         if (factoryClassName != null &&
@@ -514,9 +510,12 @@ class ObjectFactory {
     /**
      * A configuration error.
      */
-    static class ConfigurationError
+    static final class ConfigurationError
         extends Error {
 
+        /** Serialization version. */
+        static final long serialVersionUID = -7285495612271660427L;
+        
         //
         // Data
         //

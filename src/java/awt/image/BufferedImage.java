@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedImage.java	1.101 04/07/16
+ * @(#)BufferedImage.java	1.107 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,8 +61,6 @@ public class BufferedImage extends java.awt.Image
 
     boolean    isAlphaPremultiplied;// If true, alpha has been premultiplied in
     // color channels
-
-    sun.awt.image.SurfaceManager surfaceManager;
 
     /**
      * Image Type Constants
@@ -858,7 +856,10 @@ public class BufferedImage extends java.awt.Image
      * if the coordinates are not in bounds.
      * However, explicit bounds checking is not guaranteed.
      *
-     * @param x,&nbsp;y the coordinates of the pixel from which to get
+     * @param x the X coordinate of the pixel from which to get
+     *          the pixel in the default RGB color model and sRGB
+     *          color space
+     * @param y the Y coordinate of the pixel from which to get
      *          the pixel in the default RGB color model and sRGB
      *          color space
      * @return an integer pixel in the default RGB color model and
@@ -890,7 +891,8 @@ public class BufferedImage extends java.awt.Image
      * if the region is not in bounds.
      * However, explicit bounds checking is not guaranteed.
      *
-     * @param startX,&nbsp;startY the starting coordinates
+     * @param startX      the starting X coordinate
+     * @param startY      the starting Y coordinate
      * @param w           width of region
      * @param h           height of region
      * @param rgbArray    if not <code>null</code>, the rgb pixels are 
@@ -959,7 +961,8 @@ public class BufferedImage extends java.awt.Image
      * if the coordinates are not in bounds.
      * However, explicit bounds checking is not guaranteed.
      *
-     * @param x,&nbsp;y the coordinates of the pixel to set
+     * @param x the X coordinate of the pixel to set
+     * @param y the Y coordinate of the pixel to set
      * @param rgb the RGB value 
      * @see #getRGB(int, int)
      * @see #getRGB(int, int, int, int, int[], int, int)
@@ -988,7 +991,8 @@ public class BufferedImage extends java.awt.Image
      * if the region is not in bounds.
      * However, explicit bounds checking is not guaranteed.
      *
-     * @param startX,&nbsp;startY the starting coordinates
+     * @param startX      the starting X coordinate
+     * @param startY      the starting Y coordinate
      * @param w           width of the region
      * @param h           height of the region
      * @param rgbArray    the rgb pixels
@@ -1080,7 +1084,7 @@ public class BufferedImage extends java.awt.Image
      * @return an {@link Object} that is the property referred to by the
      *          specified <code>name</code> or <code>null</code> if the   
      *          properties of this image are not yet known. 
-     * @throws <code>NullPointerException<code> if the property name is null.
+     * @throws <code>NullPointerException</code> if the property name is null.
      * @see ImageObserver
      * @see java.awt.Image#UndefinedProperty
      */
@@ -1093,30 +1097,20 @@ public class BufferedImage extends java.awt.Image
      * @param name the property name
      * @return an <code>Object</code> that is the property referred to by
      *          the specified <code>name</code>. 
-     * @throws <code>NullPointerException<code> if the property name is null.
+     * @throws <code>NullPointerException</code> if the property name is null.
      */
     public Object getProperty(String name) {
  	if (name == null) {
  	    throw new NullPointerException("null property name is not allowed");
  	}
 	if (properties == null) {
-            properties = new Hashtable();
+            return java.awt.Image.UndefinedProperty;
 	}
 	Object o = properties.get(name);
 	if (o == null) {
 	    o = java.awt.Image.UndefinedProperty;
 	}
 	return o;
-    }
-
-    /**
-     * Flushes all resources being used to cache optimization information.
-     * The underlying pixel data is unaffected.
-     */
-    public void flush() {
-        if (surfaceManager != null) {
-            surfaceManager.flush();
-        }
     }
 
     /**
@@ -1147,7 +1141,9 @@ public class BufferedImage extends java.awt.Image
      * Returns a subimage defined by a specified rectangular region.
      * The returned <code>BufferedImage</code> shares the same
      * data array as the original image.
-     * @param x,&nbsp;y the coordinates of the upper-left corner of the
+     * @param x the X coordinate of the upper-left corner of the
+     *          specified rectangular region
+     * @param y the Y coordinate of the upper-left corner of the
      *          specified rectangular region
      * @param w the width of the specified rectangular region 
      * @param h the height of the specified rectangular region
@@ -1593,21 +1589,4 @@ public class BufferedImage extends java.awt.Image
     public int getTransparency() {
 	return colorModel.getTransparency();
     }
-
-    /**
-     * This overrides Image.getCapabilities(gc) to get the capabilities
-     * of its surfaceManager.  This means that BufferedImage objects that
-     * are accelerated may return a caps object that will indicate this
-     * acceleration.
-     */
-    public ImageCapabilities getCapabilities(GraphicsConfiguration gc) {
-	if (surfaceManager != null) {
-	    return surfaceManager.getCapabilities(gc);
-	}
-	// should not reach here unless the surfaceManager for this image
-	// has not yet been created
-	return super.getCapabilities(gc);
-    }
 }
-
-

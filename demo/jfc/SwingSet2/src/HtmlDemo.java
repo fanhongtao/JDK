@@ -1,7 +1,7 @@
 /*
- * @(#)HtmlDemo.java	1.11 04/07/26
+ * @(#)HtmlDemo.java	1.12 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)HtmlDemo.java	1.11 04/07/26
+ * @(#)HtmlDemo.java	1.12 05/11/17
  */
 
 
@@ -59,7 +59,7 @@ import java.net.*;
 /**
  * Html Demo
  *
- * @version 1.11 04/07/26
+ * @version 1.12 05/11/17
  * @author Jeff Dinkins
  */
 public class HtmlDemo extends DemoModule {

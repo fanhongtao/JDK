@@ -1,7 +1,7 @@
 /*
- * @(#)TreePath.java	1.29 03/12/19
+ * @(#)TreePath.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.29 12/19/03
+ * @version 1.31 11/17/05
  * @author Scott Violet
  * @author Philip Milne
  */
@@ -216,14 +216,16 @@ public class TreePath extends Object implements Serializable {
     /**
      * Returns true if <code>aTreePath</code> is a
      * descendant of this
-     * TreePath. A TreePath P1 is a descendent of a TreePath P2
+     * TreePath. A TreePath P1 is a descendant of a TreePath P2
      * if P1 contains all of the components that make up 
      * P2's path.
      * For example, if this object has the path [a, b],
      * and <code>aTreePath</code> has the path [a, b, c], 
      * then <code>aTreePath</code> is a descendant of this object.
      * However, if <code>aTreePath</code> has the path [a],
-     * then it is not a descendant of this object.
+     * then it is not a descendant of this object.  By this definition
+     * a TreePath is always considered a descendant of itself.  That is,
+     * <code>aTreePath.isDescendant(aTreePath)</code> returns true.
      *
      * @return true if <code>aTreePath</code> is a descendant of this path
      */

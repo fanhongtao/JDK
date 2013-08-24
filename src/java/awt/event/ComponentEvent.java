@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentEvent.java	1.27 03/12/19
+ * @(#)ComponentEvent.java	1.29 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,10 +39,9 @@ import java.awt.Rectangle;
  * @see ComponentAdapter
  * @see ComponentListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/componentlistener.html">Tutorial: Writing a Component Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.27 12/19/03
+ * @version 1.29 04/13/06
  * @since 1.1
  */
 public class ComponentEvent extends AWTEvent {

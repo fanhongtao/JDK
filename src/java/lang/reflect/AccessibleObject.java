@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleObject.java	1.26 04/01/12
+ * @(#)AccessibleObject.java	1.29 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -136,20 +136,6 @@ public class AccessibleObject implements AnnotatedElement {
      */
     protected AccessibleObject() {}
 
-    // Cache for security checks.
-
-    // For non-public members or members in package-private classes,
-    // it is necessary to perform somewhat expensive security checks.
-    // If the security check succeeds for a given class, it will
-    // always succeed (it is not affected by the granting or revoking
-    // of permissions); we speed up the check in the common case by
-    // remembering the last Class for which the check succeeded.  This
-    // field is used by Field, Method, and Constructor.
-    //
-    // NOTE: for security purposes, this field must not be visible
-    // outside this package.
-    volatile Class securityCheckCache;
-
     // Indicates whether language-level access checks are overridden
     // by this object. Initializes to "false". This field is used by
     // Field, Method, and Constructor.
@@ -165,20 +151,33 @@ public class AccessibleObject implements AnnotatedElement {
         AccessController.doPrivileged
             (new sun.reflect.ReflectionFactory.GetReflectionFactoryAction());
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
+     */
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
         throw new AssertionError("All subclasses should override this method");
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
+     */
     public boolean isAnnotationPresent(
-        Class<? extends Annotation> annotationClass)
-    {
+        Class<? extends Annotation> annotationClass) {
         return getAnnotation(annotationClass) != null;
     }
 
+    /**
+     * @since 1.5
+     */
     public Annotation[] getAnnotations() { 
         return getDeclaredAnnotations();
     }
 
+    /**
+     * @since 1.5
+     */
     public Annotation[] getDeclaredAnnotations()  {
         throw new AssertionError("All subclasses should override this method");
     }

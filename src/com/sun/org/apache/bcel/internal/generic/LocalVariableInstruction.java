@@ -61,7 +61,7 @@ import com.sun.org.apache.bcel.internal.Constants;
 /**
  * Abstract super class for instructions dealing with local variables.
  *
- * @version $Id: LocalVariableInstruction.java,v 1.1.1.1 2001/10/29 20:00:23 jvanzyl Exp $
+ * @version $Id: LocalVariableInstruction.java,v 1.1.2.1 2005/07/31 23:45:45 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class LocalVariableInstruction extends Instruction
@@ -224,4 +224,3 @@ public abstract class LocalVariableInstruction extends Instruction
     }
   }
 }
-

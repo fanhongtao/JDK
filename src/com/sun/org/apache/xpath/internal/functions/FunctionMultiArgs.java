@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionMultiArgs.java,v 1.14 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FunctionMultiArgs.java,v 1.2.4.1 2005/09/14 20:18:43 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -31,6 +31,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class FunctionMultiArgs extends Function3Args
 {
+    static final long serialVersionUID = 7117257746138417181L;
 
   /** Argument expressions that are at index 3 or greater.
    *  @serial */
@@ -186,7 +187,7 @@ public class FunctionMultiArgs extends Function3Args
 
    
     /**
-     * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+     * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
      */
     public void callArgVisitors(XPathVisitor visitor)
     {

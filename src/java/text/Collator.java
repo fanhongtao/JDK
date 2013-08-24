@@ -1,7 +1,7 @@
 /*
- * @(#)Collator.java	1.39 04/05/05
+ * @(#)Collator.java	1.46 06/07/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,11 +20,14 @@
 
 package java.text;
 
+import java.text.spi.CollatorProvider;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.spi.LocaleServiceProvider;
 import sun.misc.SoftCache;
-import sun.text.resources.LocaleData;
+import sun.util.resources.LocaleData;
+import sun.util.LocaleServiceProviderPool;
 
 
 /**
@@ -36,7 +39,7 @@ import sun.text.resources.LocaleData;
  * <code>Collator</code> is an abstract base class. Subclasses
  * implement specific collation strategies. One subclass,
  * <code>RuleBasedCollator</code>, is currently provided with
- * the Java 2 platform and is applicable to a wide set of languages. Other
+ * the Java Platform and is applicable to a wide set of languages. Other
  * subclasses may be created to handle more specialized needs.
  *
  * <p>
@@ -68,7 +71,7 @@ import sun.text.resources.LocaleData;
  * <code>SECONDARY</code>, <code>TERTIARY</code>, and <code>IDENTICAL</code>.
  * The exact assignment of strengths to language features is
  * locale dependant.  For example, in Czech, "e" and "f" are considered
- * primary differences, while "e" and "\u00EA" are secondary differences,
+ * primary differences, while "e" and "&#283;" are secondary differences,
  * "e" and "E" are tertiary differences and "e" and "e" are identical.
  * The following shows how both case and accents could be ignored for
  * US English.
@@ -101,7 +104,7 @@ import sun.text.resources.LocaleData;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.39, 05/05/04
+ * @version     1.46, 07/23/06
  * @author      Helena Shih, Laura Werner, Richard Gillam
  */
 
@@ -168,7 +171,7 @@ public abstract class Collator
      * <p>
      * CANONICAL_DECOMPOSITION corresponds to Normalization Form D as
      * described in 
-     * <a href="http://www.unicode.org/unicode/reports/tr15/">Unicode 
+     * <a href="http://www.unicode.org/unicode/reports/tr15/tr15-23.html">Unicode 
      * Technical Report #15</a>.
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
@@ -187,7 +190,7 @@ public abstract class Collator
      * <p>
      * FULL_DECOMPOSITION corresponds to Normalization Form KD as
      * described in 
-     * <a href="http://www.unicode.org/unicode/reports/tr15/">Unicode 
+     * <a href="http://www.unicode.org/unicode/reports/tr15/tr15-23.html">Unicode 
      * Technical Report #15</a>.
      * @see java.text.Collator#getDecomposition
      * @see java.text.Collator#setDecomposition
@@ -214,22 +217,32 @@ public abstract class Collator
     public static synchronized
     Collator getInstance(Locale desiredLocale)
     {
-        RuleBasedCollator result = null;
-        result = (RuleBasedCollator) cache.get(desiredLocale);
+        Collator result = (Collator) cache.get(desiredLocale);
         if (result != null) {
                  return (Collator)result.clone();  // make the world safe
+        }
+
+        // Check whether a provider can provide an implementation that's closer 
+        // to the requested locale than what the Java runtime itself can provide.
+        LocaleServiceProviderPool pool =
+            LocaleServiceProviderPool.getPool(CollatorProvider.class);
+        if (pool.hasProviders()) {
+            Collator providersInstance = pool.getLocalizedObject(
+                                            CollatorGetter.INSTANCE,
+                                            desiredLocale, 
+                                            desiredLocale);
+            if (providersInstance != null) {
+                return providersInstance;
+            }
         }
 
         // Load the resource of the desired locale from resource
         // manager.
         String colString = "";
-        int decomp = CANONICAL_DECOMPOSITION;
-        
         try {
-            ResourceBundle resource = LocaleData.getLocaleElements(desiredLocale);
+            ResourceBundle resource = LocaleData.getCollationData(desiredLocale);
 
-            colString = resource.getString("CollationElements");
-            decomp = ((Integer)resource.getObject("CollationDecomp")).intValue();
+            colString = resource.getString("Rule");
         } catch (MissingResourceException e) {
             // Use default values
         }
@@ -237,7 +250,7 @@ public abstract class Collator
         {
             result = new RuleBasedCollator( CollationRules.DEFAULTRULES +
                                             colString,
-                                            decomp );
+                                            CANONICAL_DECOMPOSITION );
         }
         catch(ParseException foo)
         {
@@ -408,14 +421,19 @@ public abstract class Collator
      * Returns an array of all locales for which the
      * <code>getInstance</code> methods of this class can return
      * localized instances.
-     * The array returned must contain at least a <code>Locale</code>
-     * instance equal to {@link java.util.Locale#US Locale.US}.
+     * The returned array represents the union of locales supported 
+     * by the Java runtime and by installed 
+     * {@link java.text.spi.CollatorProvider CollatorProvider} implementations.  
+     * It must contain at least a Locale instance equal to 
+     * {@link java.util.Locale#US Locale.US}.
      *
      * @return An array of locales for which localized
      *         <code>Collator</code> instances are available.
      */
     public static synchronized Locale[] getAvailableLocales() {
-        return LocaleData.getAvailableLocales("CollationElements");
+        LocaleServiceProviderPool pool = 
+            LocaleServiceProviderPool.getPool(CollatorProvider.class);
+	return pool.getAvailableLocales();
     }
 
     /**
@@ -488,4 +506,31 @@ public abstract class Collator
      * @see java.text.Collator#compare
      */
     final static int GREATER = 1;
+
+    /**
+     * Obtains a Collator instance from a CollatorProvider 
+     * implementation.
+     */
+    private static class CollatorGetter 
+        implements LocaleServiceProviderPool.LocalizedObjectGetter<CollatorProvider, Collator> {
+        private static final CollatorGetter INSTANCE = new CollatorGetter();
+
+        public Collator getObject(CollatorProvider collatorProvider,
+                                Locale locale, 
+                                String key,
+                                Object... params) {
+            assert params.length == 1;
+            Collator result = collatorProvider.getInstance(locale);
+            if (result != null) {
+                // put this Collator instance in the cache for two locales, one
+                // is for the desired locale, and the other is for the actual
+                // locale where the provider is found, which may be a fall back locale.
+                cache.put((Locale)params[0], result);
+                cache.put(locale, result);
+                return (Collator)result.clone();
+            }
+            
+            return null;
+        }
+    }
  }

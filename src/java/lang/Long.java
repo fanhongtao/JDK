@@ -1,7 +1,7 @@
 /*
- * @(#)Long.java	1.79 04/05/11
+ * @(#)Long.java	1.81 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.79, 05/11/04
+ * @version 1.81, 11/17/05
  * @since   JDK1.0
  */
 public final class Long extends Number implements Comparable<Long> {
@@ -929,13 +929,13 @@ public final class Long extends Number implements Comparable<Long> {
     public static final int SIZE = 64;
  
     /**
-     * Returns an <tt>long</tt> value with at most a single one-bit, in the
+     * Returns a <tt>long</tt> value with at most a single one-bit, in the
      * position of the highest-order ("leftmost") one-bit in the specified
      * <tt>long</tt> value.  Returns zero if the specified value has no
      * one-bits in its two's complement binary representation, that is, if it
      * is equal to zero.
      *
-     * @return an <tt>long</tt> value with a single one-bit, in the position
+     * @return a <tt>long</tt> value with a single one-bit, in the position
      *     of the highest-order one-bit in the specified value, or zero if
      *     the specified value is itself equal to zero.
      * @since 1.5
@@ -952,13 +952,13 @@ public final class Long extends Number implements Comparable<Long> {
     }
 
     /**
-     * Returns an <tt>long</tt> value with at most a single one-bit, in the
+     * Returns a <tt>long</tt> value with at most a single one-bit, in the
      * position of the lowest-order ("rightmost") one-bit in the specified
      * <tt>long</tt> value.  Returns zero if the specified value has no
      * one-bits in its two's complement binary representation, that is, if it
      * is equal to zero.
      *
-     * @return an <tt>long</tt> value with a single one-bit, in the position
+     * @return a <tt>long</tt> value with a single one-bit, in the position
      *     of the lowest-order one-bit in the specified value, or zero if
      *     the specified value is itself equal to zero.
      * @since 1.5

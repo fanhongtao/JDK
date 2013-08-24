@@ -1,7 +1,7 @@
 /*
- * @(#)System.java	1.150 06/03/22
+ * @(#)System.java	1.158 06/03/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.lang;
@@ -15,8 +15,8 @@ import java.security.PrivilegedAction;
 import java.security.AllPermission;
 import java.nio.channels.Channel;
 import java.nio.channels.spi.SelectorProvider;
-import sun.net.InetAddressCachePolicy;
 import sun.nio.ch.Interruptible;
+import sun.net.InetAddressCachePolicy;
 import sun.reflect.Reflection;
 import sun.security.util.SecurityConstants;
 import sun.reflect.annotation.AnnotationType;
@@ -32,7 +32,7 @@ import sun.reflect.annotation.AnnotationType;
  * method for quickly copying a portion of an array.
  *
  * @author  unascribed
- * @version 1.150, 03/22/06
+ * @version 1.158, 03/13/06
  * @since   JDK1.0
  */
 public final class System {
@@ -98,7 +98,7 @@ public final class System {
 
     /* The security manager for the system.
      */
-    private static SecurityManager security = null;
+    private static volatile SecurityManager security = null;
 
     /**
      * Reassigns the "standard" input stream.
@@ -173,6 +173,23 @@ public final class System {
 	setErr0(err);
     }
 
+    private static volatile Console cons = null;
+    /**
+     * Returns the unique {@link java.io.Console Console} object associated
+     * with the current Java virtual machine, if any.
+     *
+     * @return  The system console, if any, otherwise <tt>null</tt>.
+     *
+     * @since   1.6
+     */
+     public static Console console() {
+         if (cons == null) {
+             synchronized (System.class) {
+                 cons = sun.misc.SharedSecrets.getJavaIOAccess().console();
+	     }
+         }
+         return cons;
+     }
 
     /** 
      * Returns the channel inherited from the entity that created this
@@ -204,8 +221,10 @@ public final class System {
     }
 
     private static void checkIO() {
-        if (security != null)
-	    security.checkPermission(new RuntimePermission("setIO"));
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("setIO"));
+	}
     }
 
     private static native void setIn0(InputStream in);
@@ -247,10 +266,11 @@ public final class System {
 
     private static synchronized
     void setSecurityManager0(final SecurityManager s) {
-	if (security != null) {
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
  	    // ask the currently installed security manager if we
  	    // can replace it.
- 	    security.checkPermission(new RuntimePermission
+ 	    sm.checkPermission(new RuntimePermission
 				     ("setSecurityManager"));
 	}
 
@@ -557,9 +577,11 @@ public final class System {
      * @see        java.util.Properties
      */
     public static Properties getProperties() {
-	if (security != null) {
-	    security.checkPropertiesAccess();
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPropertiesAccess();
 	}
+
 	return props;
     }
 
@@ -586,8 +608,9 @@ public final class System {
      * @see        java.lang.SecurityManager#checkPropertiesAccess()
      */
     public static void setProperties(Properties props) {
-	if (security != null) {
-	    security.checkPropertiesAccess();
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPropertiesAccess();
 	}
         if (props == null) {
             props = new Properties();
@@ -624,9 +647,11 @@ public final class System {
      */
     public static String getProperty(String key) {
 	checkKey(key);
-	if (security != null) {
-	    security.checkPropertyAccess(key);
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPropertyAccess(key);
 	}
+
 	return props.getProperty(key);
     }
 
@@ -658,9 +683,11 @@ public final class System {
      */
     public static String getProperty(String key, String def) {
 	checkKey(key);
-	if (security != null) {
-	    security.checkPropertyAccess(key);
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPropertyAccess(key);
 	}
+
 	return props.getProperty(key, def);
     }
 
@@ -695,9 +722,12 @@ public final class System {
      */
     public static String setProperty(String key, String value) {
 	checkKey(key);
-	if (security != null)
-	    security.checkPermission(new PropertyPermission(key,
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPermission(new PropertyPermission(key,
 		SecurityConstants.PROPERTY_WRITE_ACTION));
+	}
+
 	return (String) props.setProperty(key, value);
     }
 
@@ -729,9 +759,12 @@ public final class System {
      * @since 1.5
      */
     public static String clearProperty(String key) {
-        checkKey(key);
-        if (security != null)
-            security.checkPermission(new PropertyPermission(key, "write"));
+	checkKey(key);
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new PropertyPermission(key, "write"));
+	}
+
         return (String) props.remove(key);
     }
 
@@ -758,7 +791,7 @@ public final class System {
      * variable <code>name</code> is returned.
      *
      * <p><a name="EnvironmentVSSystemProperties"><i>System
-     * properties</i> and <i>environment variables</i> are both
+     * properties</i> and <i>environment variables</i></a> are both
      * conceptually mappings between names and values.  Both
      * mechanisms can be used to pass user-defined information to a
      * Java process.  Environment variables have a more global effect,
@@ -791,8 +824,10 @@ public final class System {
      * @see    ProcessBuilder#environment()
      */
     public static String getenv(String name) {
-	if (security != null)
-	    security.checkPermission(new RuntimePermission("getenv."+name));
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("getenv."+name));
+	}
 
 	return ProcessEnvironment.getenv(name);
     }
@@ -839,8 +874,10 @@ public final class System {
      * @since  1.5
      */
     public static java.util.Map<String,String> getenv() {
-	if (security != null)
-	    security.checkPermission(new RuntimePermission("getenv.*"));
+	SecurityManager sm = getSecurityManager();
+        if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("getenv.*"));
+	}
 
 	return ProcessEnvironment.getenv();
     }
@@ -1014,14 +1051,16 @@ public final class System {
      * by initializeSystemClass().
      */
     private static InputStream nullInputStream() throws NullPointerException {
-	if (currentTimeMillis() > 0)
+	if (currentTimeMillis() > 0) {
 	    return null;
+	}
 	throw new NullPointerException();
     }
 
     private static PrintStream nullPrintStream() throws NullPointerException {
-	if (currentTimeMillis() > 0)
+	if (currentTimeMillis() > 0) {
 	    return null;
+	}
 	throw new NullPointerException();
     }
 
@@ -1043,13 +1082,22 @@ public final class System {
 	// from trying to use itself to load this library later.
 	loadLibrary("zip");
 
-        // Currently File.deleteOnExit is built on JVM_Exit, which is a
-        // separate mechanism from shutdown hooks. Unfortunately in order to
-        // work properly JVM_Exit implicitly requires that Java signal
-        // handlers be set up for HUP, TERM, and INT (where available). If
-        // File.deleteOnExit were implemented in terms of shutdown hooks this
-        // call to Terminator.setup() could be removed.
+	// Setup Java signal handlers for HUP, TERM, and INT (where available).
         Terminator.setup();
+
+	// The order in with the hooks are added here is important as it
+	// determines the order in which they are run. 
+        // (1)Console restore hook needs to be called first.
+        // (2)Application hooks must be run before calling deleteOnExitHook.
+	Shutdown.add(sun.misc.SharedSecrets.getJavaIOAccess().consoleRestoreHook());
+	Shutdown.add(ApplicationShutdownHooks.hook());
+	Shutdown.add(sun.misc.SharedSecrets.getJavaIODeleteOnExitAccess());
+
+        // Initialize any miscellenous operating system settings that need to be
+        // set for the class libraries. Currently this is no-op everywhere except
+        // for Windows where the process-wide error mode is set before the java.io
+        // classes are used.
+        sun.misc.VM.initializeOSEnvironment();
 
 	// Set the maximum amount of direct memory.  This value is controlled
 	// by the vm option -XX:MaxDirectMemorySize=<size>.  This method acts
@@ -1082,6 +1130,10 @@ public final class System {
             }
             public AnnotationType getAnnotationType(Class klass) {
                 return klass.getAnnotationType();
+            }
+            public <E extends Enum<E>>
+		    E[] getEnumConstantsShared(Class<E> klass) {
+                return klass.getEnumConstantsShared();
             }
             public void blockedOn(Thread t, Interruptible b) {
                 t.blockedOn(b);

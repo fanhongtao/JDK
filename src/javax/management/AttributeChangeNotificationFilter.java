@@ -1,11 +1,11 @@
 /*
- * @(#)AttributeChangeNotificationFilter.java	4.25 03/12/19
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)AttributeChangeNotificationFilter.java	4.28 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-package javax.management; 
+package javax.management;
 
 
 // java import
@@ -14,17 +14,17 @@ import java.util.Vector;
 
 
 /**
- * This class implements of the {@link javax.management.NotificationFilter NotificationFilter} 
+ * This class implements of the {@link javax.management.NotificationFilter NotificationFilter}
  * interface for the {@link javax.management.AttributeChangeNotification attribute change notification}.
  * The filtering is performed on the name of the observed attribute.
  * <P>
- * It manages a list of enabled attribute names. 
+ * It manages a list of enabled attribute names.
  * A method allows users to enable/disable as many attribute names as required.
  *
  * @since 1.5
  */
-public class AttributeChangeNotificationFilter implements NotificationFilter, java.io.Serializable { 
-    
+public class AttributeChangeNotificationFilter implements NotificationFilter {
+
     /* Serial version */
     private static final long serialVersionUID = -6347317584796410029L;
 
@@ -32,7 +32,7 @@ public class AttributeChangeNotificationFilter implements NotificationFilter, ja
      * @serial {@link Vector} that contains the enabled attribute names.
      *         The default value is an empty vector.
      */
-    private Vector enabledAttributes = new Vector();
+    private Vector<String> enabledAttributes = new Vector<String>();
 
 
     /**
@@ -41,36 +41,36 @@ public class AttributeChangeNotificationFilter implements NotificationFilter, ja
      * with each enabled attribute name.
      * If the attribute name equals one of the enabled attribute names,
      * the notification must be sent to the listener and this method returns <CODE>true</CODE>.
-     *   
+     *
      * @param notification The attribute change notification to be sent.
      * @return <CODE>true</CODE> if the notification has to be sent to the listener, <CODE>false</CODE> otherwise.
-     */  
+     */
     public synchronized boolean isNotificationEnabled(Notification notification) {
-        
+
         String type = notification.getType();
-        
-        if ((type == null) || 
+
+        if ((type == null) ||
             (type.equals(AttributeChangeNotification.ATTRIBUTE_CHANGE) == false) ||
             (!(notification instanceof AttributeChangeNotification))) {
             return false;
         }
-        
+
         String attributeName =
           ((AttributeChangeNotification)notification).getAttributeName();
         return enabledAttributes.contains(attributeName);
     }
-    
+
     /**
      * Enables all the attribute change notifications the attribute name of which equals
      * the specified name to be sent to the listener.
      * <BR>If the specified name is already in the list of enabled attribute names,
      * this method has no effect.
-     *   
+     *
      * @param name The attribute name.
      * @exception java.lang.IllegalArgumentException The attribute name parameter is null.
-     */  
+     */
     public synchronized void enableAttribute(String name) throws java.lang.IllegalArgumentException {
-        
+
         if (name == null) {
             throw new java.lang.IllegalArgumentException("The name cannot be null.");
         }
@@ -78,33 +78,33 @@ public class AttributeChangeNotificationFilter implements NotificationFilter, ja
             enabledAttributes.addElement(name);
         }
     }
-    
+
     /**
-     * Disables all the attribute change notifications the attribute name of which equals 
+     * Disables all the attribute change notifications the attribute name of which equals
      * the specified attribute name to be sent to the listener.
      * <BR>If the specified name is not in the list of enabled attribute names,
      * this method has no effect.
-     *   
+     *
      * @param name The attribute name.
-     */  
+     */
     public synchronized void disableAttribute(String name) {
         enabledAttributes.removeElement(name);
     }
-    
+
     /**
      * Disables all the attribute names.
-     */  
+     */
     public synchronized void disableAllAttributes() {
         enabledAttributes.removeAllElements();
     }
-    
+
     /**
      * Gets all the enabled attribute names for this filter.
      *
      * @return The list containing all the enabled attribute names.
      */
-    public synchronized Vector getEnabledAttributes() {
+    public synchronized Vector<String> getEnabledAttributes() {
         return enabledAttributes;
     }
-   
+
 }

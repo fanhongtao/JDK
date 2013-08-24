@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XResources_ja_JP_A.java,v 1.7 2004/02/17 04:22:15 minchau Exp $
+ * $Id: XResources_ja_JP_A.java,v 1.2.4.1 2005/09/15 08:16:07 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils.res;
 
@@ -34,34 +34,23 @@ public class XResources_ja_JP_A extends XResourceBundle
    *
    * @return The association list.
    */
-  protected Object[][] getContents() {
-      // return a copy of contents; in theory we want a deep clone
-      // of contents, but since it only contains (immutable) Strings,
-      // this shallow copy is sufficient
-      Object[][] msgCopy = new Object[contents.length][2];
-      for (int i = 0; i < contents.length; i++) {
-          msgCopy[i][0] = contents[i][0];
-          msgCopy[i][1] = contents[i][1];
-      }
-      return msgCopy;
-  }
-
-  /** The association list.         */
-  static final Object[][] contents =
+  public Object[][] getContents()
+  {
+    return new Object[][]
   {
     { "ui_language", "ja" }, { "help_language", "ja" }, { "language", "ja" },
-    { "alphabet",
+    { "alphabet", new CharArrayWrapper(
       new char[]{ 0x30a2, 0x30a4, 0x30a6, 0x30a8, 0x30aa, 0x30ab, 0x30ad,
                   0x30af, 0x30b1, 0x30b3, 0x30b5, 0x30b7, 0x30b9, 0x30bb,
                   0x30bd, 0x30bf, 0x30c1, 0x30c4, 0x30c6, 0x30c8, 0x30ca,
                   0x30cb, 0x30cc, 0x30cd, 0x30ce, 0x30cf, 0x30d2, 0x30d5,
                   0x30d8, 0x30db, 0x30de, 0x30df, 0x30e0, 0x30e1, 0x30e2,
                   0x30e4, 0x30e6, 0x30e8, 0x30e9, 0x30ea, 0x30eb, 0x30ec,
-                  0x30ed, 0x30ef, 0x30f0, 0x30f1, 0x30f2, 0x30f3 } },
-    { "tradAlphabet",
+                  0x30ed, 0x30ef, 0x30f0, 0x30f1, 0x30f2, 0x30f3 }) },
+    { "tradAlphabet", new CharArrayWrapper(
       new char[]{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
                   'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                  'Y', 'Z' } },
+                  'Y', 'Z' }) },
 
     //language orientation 
     { "orientation", "LeftToRight" },
@@ -73,20 +62,23 @@ public class XResources_ja_JP_A extends XResourceBundle
     // largest numerical value
     //{"MaxNumericalValue", new Integer(10000000000)},
     //These would not be used for EN. Only used for traditional numbering   
-    { "numberGroups", new int[]{ 1 } },
+    { "numberGroups", new IntArrayWrapper(new int[]{ 1 }) },
 
     //These only used for mutiplicative-additive numbering
     // Note that we are using longs and that the last two 
     // multipliers are not supported. This is a known limitation.
-    { "multiplier",
-      new long[]{ Long.MAX_VALUE, Long.MAX_VALUE, 100000000, 10000, 1000, 100, 10 } },
-    { "multiplierChar",
-      new char[]{ 0x4EAC, 0x5146, 0x5104, 0x4E07, 0x5343, 0x767e, 0x5341 } },
+    { "multiplier", new LongArrayWrapper(
+      new long[]{ Long.MAX_VALUE, Long.MAX_VALUE, 100000000, 10000, 1000, 
+          100, 10 }) },
+    { "multiplierChar", new CharArrayWrapper(
+      new char[]{ 0x4EAC, 0x5146, 0x5104, 0x4E07, 0x5343, 0x767e, 0x5341 }) },
 
     // chinese only? 
-    { "zero", new char[0] },
-    { "digits",
+    { "zero", new CharArrayWrapper(new char[0]) },
+    { "digits", new CharArrayWrapper(
       new char[]{ 0x4E00, 0x4E8C, 0x4E09, 0x56DB, 0x4E94, 0x516D, 0x4E03,
-                  0x516B, 0x4E5D } }, { "tables", new String[]{ "digits" } }
+                  0x516B, 0x4E5D }) }, { "tables", new StringArrayWrapper(
+                      new String[]{ "digits" }) }
   };
+  }
 }

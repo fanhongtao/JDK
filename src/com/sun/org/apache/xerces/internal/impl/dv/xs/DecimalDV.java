@@ -1,72 +1,37 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001, 2002 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001,2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.dv.xs;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import com.sun.org.apache.xerces.internal.impl.dv.InvalidDatatypeValueException;
 import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
+import com.sun.org.apache.xerces.internal.xs.datatypes.XSDecimal;
 
 /**
  * Represent the schema type "decimal"
  *
+ * @xerces.internal 
+ *
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: DecimalDV.java,v 1.9 2003/05/08 20:11:55 elena Exp $
+ * @version $Id: DecimalDV.java,v 1.2.6.1 2005/09/06 11:43:02 neerajbj Exp $
  */
 public class DecimalDV extends TypeValidator {
 
@@ -95,7 +60,7 @@ public class DecimalDV extends TypeValidator {
     }
     
     // Avoid using the heavy-weight java.math.BigDecimal
-    static class XDecimal {
+    static class XDecimal implements XSDecimal {
         // sign: 0 for vlaue 0; 1 for positive values; -1 for negative values
         int sign = 1;
         // total digits. >= 1
@@ -318,6 +283,78 @@ public class DecimalDV extends TypeValidator {
                 }
             }
             canonical = buffer.toString();
+        }
+        
+        public BigDecimal getBigDecimal() {
+            if (sign == 0) {
+                return new BigDecimal(BigInteger.ZERO);
+            }
+            return new BigDecimal(toString());
+        }
+        
+        public BigInteger getBigInteger() throws NumberFormatException {
+            if (fracDigits != 0) {
+                throw new NumberFormatException();
+            }
+            if (sign == 0) {
+                return BigInteger.ZERO;
+            }
+            if (sign == 1) {
+                return new BigInteger(ivalue);
+            }
+            return new BigInteger("-" + ivalue);
+        }
+        
+        public long getLong() throws NumberFormatException {
+            if (fracDigits != 0) {
+                throw new NumberFormatException();
+            }
+            if (sign == 0) {
+                return 0L;
+            }
+            if (sign == 1) {
+                return Long.parseLong(ivalue);
+            }
+            return Long.parseLong("-" + ivalue);
+        }
+        
+        public int getInt() throws NumberFormatException {
+            if (fracDigits != 0) {
+                throw new NumberFormatException();
+            }
+            if (sign == 0) {
+                return 0;
+            }
+            if (sign == 1) {
+                return Integer.parseInt(ivalue);
+            }
+            return Integer.parseInt("-" + ivalue);
+        }
+        
+        public short getShort() throws NumberFormatException {
+            if (fracDigits != 0) {
+                throw new NumberFormatException();
+            }
+            if (sign == 0) {
+                return 0;
+            }
+            if (sign == 1) {
+                return Short.parseShort(ivalue);
+            }
+            return Short.parseShort("-" + ivalue);
+        }
+        
+        public byte getByte() throws NumberFormatException {
+            if (fracDigits != 0) {
+                throw new NumberFormatException();
+            }
+            if (sign == 0) {
+                return 0;
+            }
+            if (sign == 1) {
+                return Byte.parseByte(ivalue);
+            }
+            return Byte.parseByte("-" + ivalue);
         }
     }
 } // class DecimalDV

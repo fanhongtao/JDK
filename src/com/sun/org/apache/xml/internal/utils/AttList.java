@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AttList.java,v 1.12 2004/02/17 04:21:14 minchau Exp $
+ * $Id: AttList.java,v 1.2.4.1 2005/09/15 08:15:35 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -116,7 +116,7 @@ public class AttList implements Attributes
    * Look up an attribute's qualified name by index.
    *
    *
-   * @param index The attribute index (zero-based).
+   * @param i The attribute index (zero-based).
    *
    * @return The attribute's qualified name
    */
@@ -129,7 +129,7 @@ public class AttList implements Attributes
    * Get the attribute's node type by index
    *
    *
-   * @param index The attribute index (zero-based)
+   * @param i The attribute index (zero-based)
    *
    * @return the attribute's node type
    */
@@ -142,7 +142,7 @@ public class AttList implements Attributes
    * Get the attribute's node value by index
    *
    *
-   * @param index The attribute index (zero-based)
+   * @param i The attribute index (zero-based)
    *
    * @return the attribute's node value
    */

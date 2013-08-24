@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Otherwise.java,v 1.6 2004/02/16 22:24:28 minchau Exp $
+ * $Id: Otherwise.java,v 1.2.4.1 2005/09/02 10:58:56 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

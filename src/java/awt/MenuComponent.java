@@ -1,7 +1,7 @@
 /*
- * @(#)MenuComponent.java	1.77 04/05/18
+ * @(#)MenuComponent.java	1.81 06/06/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.77, 05/18/04
+ * @version 	1.81, 06/01/06
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -238,6 +238,8 @@ public abstract class MenuComponent implements java.io.Serializable {
      */
     public void setFont(Font f) {
 	font = f;
+	//Fixed 6312943: NullPointerException in method MenuComponent.setFont(Font)
+	MenuComponentPeer peer = (MenuComponentPeer)this.peer;
         if (peer != null) {
             peer.setFont(f);
         }
@@ -278,7 +280,7 @@ public abstract class MenuComponent implements java.io.Serializable {
 	return false;
     }
 
-    /*
+    /**
      * Delivers an event to this component or one of its sub components.
      * @param e the event
      */
@@ -404,6 +406,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      *
      * @return the <code>AccessibleContext</code> of this
      *     <code>MenuComponent</code>
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         return accessibleContext;
@@ -416,6 +419,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * meant only to be subclassed by menu component developers.
      * <p>
      * The class used to obtain the accessible role for this object.
+     * @since 1.3
      */
     protected abstract class AccessibleAWTMenuComponent 
 	extends AccessibleContext
@@ -638,7 +642,10 @@ public abstract class MenuComponent implements java.io.Serializable {
 
         /**
          * Sets the <code>Cursor</code> of this object.
-         *
+         * <p>
+         * The method may have no visual effect if the Java platform
+         * implementation and/or the native system do not support
+         * changing the mouse cursor shape.
          * @param cursor the new <code>Cursor</code> for the object
          */
         public void setCursor(Cursor cursor) {

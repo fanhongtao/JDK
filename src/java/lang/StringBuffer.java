@@ -1,13 +1,12 @@
 /*
- * @(#)StringBuffer.java	1.99 04/07/15
+ * @(#)StringBuffer.java	1.101 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
 
-import sun.misc.FloatingDecimal;
 
 /**
  * A thread-safe, mutable sequence of characters. 
@@ -59,7 +58,7 @@ import sun.misc.FloatingDecimal;
  * it performs no synchronization.
  *
  * @author	Arthur van Hoff
- * @version 	1.99, 07/15/04
+ * @version 	1.101, 11/17/05
  * @see     java.lang.StringBuilder
  * @see     java.lang.String
  * @since   JDK1.0
@@ -353,7 +352,7 @@ import sun.misc.FloatingDecimal;
      * @see     #append(java.lang.String)
      */
     public synchronized StringBuffer append(float f) {
-        new FloatingDecimal(f).appendTo(this);
+	super.append(f);
 	return this;
     }
 
@@ -362,7 +361,7 @@ import sun.misc.FloatingDecimal;
      * @see     #append(java.lang.String)
      */
     public synchronized StringBuffer append(double d) {
-        new FloatingDecimal(d).appendTo(this);
+	super.append(d);
 	return this;
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ForwardPositionIterator.java,v 1.9 2004/02/27 01:59:31 zongaro Exp $
+ * $Id: ForwardPositionIterator.java,v 1.2.4.1 2005/09/06 06:22:05 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AttributeIterator.java,v 1.15 2004/02/17 04:32:08 minchau Exp $
+ * $Id: AttributeIterator.java,v 1.2.4.1 2005/09/14 19:45:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
  */
 public class AttributeIterator extends ChildTestIterator
 {
+    static final long serialVersionUID = -8417986700712229686L;
 
   /**
    * Create a AttributeIterator object.

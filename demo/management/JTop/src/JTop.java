@@ -1,7 +1,7 @@
 /*
- * @(#)JTop.java	1.1 05/10/20
+ * @(#)JTop.java	1.5 06/05/08
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,16 +35,23 @@
  */
 
 /*
- * @(#)JTop.java	1.3 05/11/04
+ * @(#)JTop.java	1.5 06/05/08
  *
  * Example of using the java.lang.management API to sort threads
  * by CPU usage.
  *
+ * JTop class can be run as a standalone application.
  * It first establishs a connection to a target VM specified
  * by the given hostname and port number where the JMX agent
  * to be connected.  It then polls for the thread information
  * and the CPU consumption of each thread to display every 2 
  * seconds.
+ *
+ * It is also used by JTopPlugin which is a JConsolePlugin
+ * that can be used with JConsole (see README.txt). The JTop
+ * GUI will be added as a JConsole tab by the JTop plugin.
+ *
+ * @see com.sun.tools.jconsole.JConsolePlugin
  *
  * @author Mandy Chung
  */
@@ -62,6 +69,7 @@ import java.util.SortedMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
 import java.text.NumberFormat;
 import java.net.MalformedURLException;
 import static java.lang.management.ManagementFactory.*;
@@ -78,9 +86,9 @@ import javax.swing.table.*;
  * in a table.
  */
 public class JTop extends JPanel {
-    private static MBeanServerConnection server;
-    private static ThreadMXBean tmbean;
-    private static MyTableModel tmodel;
+    private MBeanServerConnection server;
+    private ThreadMXBean tmbean;
+    private MyTableModel tmodel;
     public JTop() {
         super(new GridLayout(1,0));
 
@@ -101,16 +109,34 @@ public class JTop extends JPanel {
         add(scrollPane);
     }
 
-    static class MyTableModel extends AbstractTableModel {
+    // Set the MBeanServerConnection object for communicating
+    // with the target VM
+    public void setMBeanServerConnection(MBeanServerConnection mbs) {
+        this.server = mbs;
+        try {
+            this.tmbean = newPlatformMXBeanProxy(server,
+                                                 THREAD_MXBEAN_NAME,
+                                                 ThreadMXBean.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (!tmbean.isThreadCpuTimeSupported()) {
+            System.err.println("This VM does not support thread CPU time monitoring");
+        } else {
+            tmbean.setThreadCpuTimeEnabled(true);
+        }
+    }
+
+    class MyTableModel extends AbstractTableModel {
         private String[] columnNames = {"ThreadName",
                                         "CPU(sec)",
                                         "State"};
         // List of all threads. The key of each entry is the CPU time
         // and its value is the ThreadInfo object with no stack trace.
-        private List<Map.Entry<Long, ThreadInfo>> threadList;
+        private List<Map.Entry<Long, ThreadInfo>> threadList = 
+            Collections.EMPTY_LIST;
 
         public MyTableModel() {
-            refresh();
         }
 
         public int getColumnCount() {
@@ -129,12 +155,15 @@ public class JTop extends JPanel {
             Map.Entry<Long, ThreadInfo> me = threadList.get(row);
             switch (col) {
                 case 0 : 
+                    // Column 0 shows the thread name
                     return me.getValue().getThreadName();
                 case 1 : 
+                    // Column 1 shows the CPU usage
                     long ns = me.getKey().longValue();
                     double sec = ns / 1000000000;
                     return new Double(sec);
                 case 2 : 
+                    // Column 2 shows the thread state
                     return me.getValue().getThreadState();
                 default: 
                     return null;
@@ -145,22 +174,49 @@ public class JTop extends JPanel {
             return getValueAt(0, c).getClass();
         }
 
-        public void refresh() {
-            // refresh the thread list to get the current info
-            threadList = getThreadList();
-            fireTableDataChanged();
+        void setThreadList(List<Map.Entry<Long, ThreadInfo>> list) {
+            threadList = list;
         }
     }
 
     /**
+     * Get the thread list with CPU consumption and the ThreadInfo
+     * for each thread sorted by the CPU time.
+     */
+    private List<Map.Entry<Long, ThreadInfo>> getThreadList() {
+        // Get all threads and their ThreadInfo objects 
+        // with no stack trace
+        long[] tids = tmbean.getAllThreadIds();
+        ThreadInfo[] tinfos = tmbean.getThreadInfo(tids);
+
+        // build a map with key = CPU time and value = ThreadInfo
+        SortedMap<Long, ThreadInfo> map = new TreeMap<Long, ThreadInfo>();
+        for (int i = 0; i < tids.length; i++) { 
+            long cpuTime = tmbean.getThreadCpuTime(tids[i]);
+            // filter out threads that have been terminated
+            if (cpuTime != -1 && tinfos[i] != null) {
+                map.put(new Long(cpuTime), tinfos[i]);
+            }
+        }
+
+        // build the thread list and sort it with CPU time
+        // in decreasing order
+        Set<Map.Entry<Long, ThreadInfo>> set = map.entrySet();
+        List<Map.Entry<Long, ThreadInfo>> list = 
+            new ArrayList<Map.Entry<Long, ThreadInfo>>(set);
+        Collections.reverse(list);
+        return list;
+    }
+
+
+    /**
      * Format Double with 4 fraction digits
      */ 
-    static class DoubleRenderer extends DefaultTableCellRenderer {
+    class DoubleRenderer extends DefaultTableCellRenderer {
         NumberFormat formatter;
         public DoubleRenderer() { 
             super();
             setHorizontalAlignment(JLabel.RIGHT);
-            System.out.println(getVerticalAlignment());
         }
     
         public void setValue(Object value) {
@@ -172,7 +228,47 @@ public class JTop extends JPanel {
         }
     }
 
+    // SwingWorker responsible for updating the GUI
+    // 
+    // It first gets the thread and CPU usage information as a 
+    // background task done by a worker thread so that
+    // it will not block the event dispatcher thread.
+    //
+    // When the worker thread finishes, the event dispatcher
+    // thread will invoke the done() method which will update
+    // the UI.
+    class Worker extends SwingWorker<List<Map.Entry<Long, ThreadInfo>>,Object> {
+        private MyTableModel tmodel;
+        Worker(MyTableModel tmodel) {
+            this.tmodel = tmodel;
+        }
+
+        // Get the current thread info and CPU time
+        public List<Map.Entry<Long, ThreadInfo>> doInBackground() {
+            return getThreadList();
+        }
+                                                                                
+        // fire table data changed to trigger GUI update
+        // when doInBackground() is finished
+        protected void done() {
+            try {
+                // Set table model with the new thread list 
+                tmodel.setThreadList(get());
+                // refresh the table model 
+                tmodel.fireTableDataChanged();
+            } catch (InterruptedException e) {
+            } catch (ExecutionException e) {
+            }
+        }
+    }
+
+    // Return a new SwingWorker for UI update
+    public SwingWorker<?,?> newSwingWorker() {
+        return new Worker(tmodel);
+    }
+
     public static void main(String[] args) throws Exception {
+        // Validate the input arguments
         if (args.length != 1) {
             usage();
         }
@@ -192,25 +288,25 @@ public class JTop extends JPanel {
             usage();
         }
 
-        server = connect(hostname, port);
-        tmbean = newPlatformMXBeanProxy(server,
-                                        THREAD_MXBEAN_NAME,
-                                        ThreadMXBean.class);
-        if (!tmbean.isThreadCpuTimeSupported()) {
-            System.err.println("This VM does not support thread CPU time monitoring");
-            System.exit(1);
-        }
-        tmbean.setThreadCpuTimeEnabled(true);
+        // Create the JTop Panel
+        final JTop jtop = new JTop();
+        // Set up the MBeanServerConnection to the target VM
+        MBeanServerConnection server = connect(hostname, port);
+        jtop.setMBeanServerConnection(server);
 
+        // A timer task to update GUI per each interval
 	TimerTask timerTask = new TimerTask() {
             public void run() {
-		tmodel.refresh();
+                // Schedule the SwingWorker to update the GUI
+		jtop.newSwingWorker().execute();
             }
 	};
 
+        // Create the standalone window with JTop panel
+        // by the event dispatcher thread
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                createAndShowGUI();
+                createAndShowGUI(jtop);
             }
         });
 
@@ -249,48 +345,19 @@ public class JTop extends JPanel {
         System.out.println("Usage: java JTop <hostname>:<port>");
         System.exit(1);
     }
-
-    /**
-     * Get the thread list with CPU consumption and the ThreadInfo
-     * for each thread sorted by the CPU time.
-     */
-    private static List<Map.Entry<Long, ThreadInfo>> getThreadList() {
-        // Get all threads and their ThreadInfo objects 
-        long[] tids = tmbean.getAllThreadIds();
-        ThreadInfo[] tinfos = tmbean.getThreadInfo(tids);
-
-        // build a map with key = CPU time and value = ThreadInfo
-        SortedMap<Long, ThreadInfo> map = new TreeMap<Long, ThreadInfo>();
-        for (int i = 0; i < tids.length; i++) { 
-            long cpuTime = tmbean.getThreadCpuTime(tids[i]);
-            // filter out threads that have been terminated
-            if (cpuTime != -1 && tinfos[i] != null) {
-                map.put(new Long(cpuTime), tinfos[i]);
-            }
-        }
-
-        // build the thread list and sort it with CPU time
-        // in decreasing order
-        Set<Map.Entry<Long, ThreadInfo>> set = map.entrySet();
-        List<Map.Entry<Long, ThreadInfo>> list = 
-            new ArrayList<Map.Entry<Long, ThreadInfo>>(set);
-        Collections.reverse(list);
-        return list;
-    }
-
     /**
      * Create the GUI and show it.  For thread safety,
      * this method should be invoked from the
      * event-dispatching thread.
      */
-    private static void createAndShowGUI() {
+    private static void createAndShowGUI(JPanel jtop) {
         // Create and set up the window.
         JFrame frame = new JFrame("JTop");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Create and set up the content pane.
         JComponent contentPane = (JComponent) frame.getContentPane();
-        contentPane.add(new JTop(), BorderLayout.CENTER);
+        contentPane.add(jtop, BorderLayout.CENTER);
         contentPane.setOpaque(true); //content panes must be opaque
         contentPane.setBorder(new EmptyBorder(12, 12, 12, 12));
         frame.setContentPane(contentPane);

@@ -1,7 +1,7 @@
 /*
- * @(#)Array.java	1.23 04/05/05
+ * @(#)Array.java	1.27 06/08/06 
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,6 +43,9 @@ package java.sql;
  * If the connection's type map or a type map supplied to a method has no entry
  * for the base type, the elements are mapped according to the standard mapping.
  * <p>
+ * All methods on the <code>Array</code> interface must be fully implemented if the 
+ * JDBC driver supports the data type.
+ *
  * @since 1.2 
  */
 
@@ -61,6 +64,8 @@ public interface Array {
    * name for a base type that is a UDT
    * @exception SQLException if an error occurs while attempting
    * to access the type name
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   String getBaseTypeName() throws SQLException;
@@ -74,6 +79,8 @@ public interface Array {
    * <code>Array</code> object
    * @exception SQLException if an error occurs while attempting
    * to access the base type 
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   int getBaseType() throws SQLException;
@@ -85,12 +92,19 @@ public interface Array {
    * programming language. This version of the method <code>getArray</code>
    * uses the type map associated with the connection for customizations of 
    * the type mappings.
+   * <p>
+   * <strong>Note:</strong> When <code>getArray</code> is used to materialize 
+   * a base type that maps to a primitive data type, then it is 
+   * implementation-defined whether the array returned is an array of 
+   * that primitive data type or an array of <code>Object</code>.
    *
    * @return an array in the Java programming language that contains 
    * the ordered elements of the SQL <code>ARRAY</code> value
    * designated by this <code>Array</code> object
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   Object getArray() throws SQLException;
@@ -105,6 +119,11 @@ public interface Array {
    * uses the standard mapping. This version of the method
    * <code>getArray</code> uses either the given type map or the standard mapping;
    * it never uses the type map associated with the connection.
+   * <p>
+   * <strong>Note:</strong> When <code>getArray</code> is used to materialize 
+   * a base type that maps to a primitive data type, then it is 
+   * implementation-defined whether the array returned is an array of 
+   * that primitive data type or an array of <code>Object</code>.
    *
    * @param map a <code>java.util.Map</code> object that contains mappings
    *            of SQL type names to classes in the Java programming language
@@ -112,6 +131,8 @@ public interface Array {
    *         elements of the SQL array designated by this object
    * @exception SQLException if an error occurs while attempting to 
    *                         access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   Object getArray(java.util.Map<String,Class<?>> map) throws SQLException;
@@ -122,6 +143,11 @@ public interface Array {
    * specified <code>index</code> and containing up to <code>count</code> 
    * successive elements of the SQL array.  This method uses the type map
    * associated with the connection for customizations of the type mappings.
+   * <p>
+   * <strong>Note:</strong> When <code>getArray</code> is used to materialize 
+   * a base type that maps to a primitive data type, then it is 
+   * implementation-defined whether the array returned is an array of 
+   * that primitive data type or an array of <code>Object</code>.
    *
    * @param index the array index of the first element to retrieve;
    *              the first element is at index 1
@@ -130,6 +156,8 @@ public interface Array {
    * of the SQL array, beginning with element <code>index</code>
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   Object getArray(long index, int count) throws SQLException;
@@ -147,6 +175,11 @@ public interface Array {
    * uses the standard mapping. This version of the method
    * <code>getArray</code> uses either the given type map or the standard mapping;
    * it never uses the type map associated with the connection.
+   * <p>
+   * <strong>Note:</strong> When <code>getArray</code> is used to materialize 
+   * a base type that maps to a primitive data type, then it is 
+   * implementation-defined whether the array returned is an array of 
+   * that primitive data type or an array of <code>Object</code>.
    *
    * @param index the array index of the first element to retrieve;
    *              the first element is at index 1
@@ -161,6 +194,8 @@ public interface Array {
    * <code>index</code>
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   Object getArray(long index, int count, java.util.Map<String,Class<?>> map)
@@ -185,6 +220,8 @@ public interface Array {
    * object, with the rows in ascending order based on the indices.
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   ResultSet getResultSet () throws SQLException;
@@ -214,6 +251,8 @@ public interface Array {
    * object, with the rows in ascending order based on the indices.
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   ResultSet getResultSet (java.util.Map<String,Class<?>> map) throws SQLException;
@@ -243,6 +282,8 @@ public interface Array {
    * index <code>index</code>.
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   ResultSet getResultSet(long index, int count) throws SQLException;
@@ -278,11 +319,31 @@ public interface Array {
    * index <code>index</code>.
    * @exception SQLException if an error occurs while attempting to
    * access the array
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
    * @since 1.2
    */
   ResultSet getResultSet (long index, int count,
 			  java.util.Map<String,Class<?>> map)
     throws SQLException;
+    /**
+     * This method frees the <code>Array</code> object and releases the resources that 
+     * it holds. The object is invalid once the <code>free</code>
+     * method is called.
+     *<p>
+     * After <code>free</code> has been called, any attempt to invoke a
+     * method other than <code>free</code> will result in a <code>SQLException</code> 
+     * being thrown.  If <code>free</code> is called multiple times, the subsequent
+     * calls to <code>free</code> are treated as a no-op.
+     *<p>
+     * 
+     * @throws SQLException if an error occurs releasing
+     * the Array's resources
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
+     * @since 1.6
+     */
+    void free() throws SQLException;
 
 }
 

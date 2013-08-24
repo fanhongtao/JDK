@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpMibTable.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.57
- * @(#)date      04/09/15
+ * @(#)version   4.59
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -74,7 +74,7 @@ import com.sun.jmx.trace.Trace;
  * @see com.sun.jmx.snmp.agent.SnmpTableEntryFactory
  * @see com.sun.jmx.snmp.agent.SnmpTableSupport
  *
- * @version     4.57     01/22/04
+ * @version     4.59     04/07/06
  * @author      Sun Microsystems, Inc
  */
 
@@ -1323,7 +1323,7 @@ public abstract class SnmpMibTable extends SnmpMibNode
      *         </code>),</li>
      *     <li>or call <code>setRowStatus(<i>notInService</i> or <i>
      *         notReady</i>)</code> depending on the result of <code>
-     *         isRowReady()</i> (<code>rowAction = <i>createAndWait</i>
+     *         isRowReady()</code> (<code>rowAction = <i>createAndWait</i>
      *         </code>),</li>
      *     <li>or call <code>setRowStatus(<i>notInService</i>)</code> 
      *         (<code> rowAction = <i>notInService</i></code>),

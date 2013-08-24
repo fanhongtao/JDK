@@ -1,12 +1,30 @@
-// $Id: StreamResult.java,v 1.3.22.4 2004/07/13 22:27:51 jsuttor Exp $
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
  */
 
 /*
- * @(#)StreamResult.java	1.15 04/07/13
+ * $Id: StreamResult.java,v 1.4 2005/11/03 19:34:27 jeffsuttor Exp $
+ * @(#)StreamResult.java	1.24 05/11/30
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
+
 package javax.xml.transform.stream;
 
 import javax.xml.transform.Result;
@@ -78,7 +96,10 @@ public class StreamResult implements Result {
      * @param f Must a non-null File reference.
      */
     public StreamResult(File f) {
-        setSystemId(f);
+        //convert file to appropriate URI, f.toURI().toASCIIString() 
+        //converts the URI to string as per rule specified in
+        //RFC 2396,
+        setSystemId(f.toURI().toASCIIString());
     }
 
     /**
@@ -141,37 +162,14 @@ public class StreamResult implements Result {
     /**
      * <p>Set the system ID from a <code>File</code> reference.</p>
      * 
-     * <p>Note the use of {@link File#toURI()} and {@link File#toURL()}.
-     * <code>toURI()</code> is prefered and used if possible.
-     * To allow JAXP 1.3 to run on J2SE 1.3, <code>toURL()</code>
-     * is used if a {@link NoSuchMethodException} is thrown by the attempt
-     * to use <code>toURI()</code>.</p>
      *
      * @param f Must a non-null File reference.
      */
     public void setSystemId(File f) {
-    	
-    	try {
-    		// assume >= 1.4
-    		this.systemId = f.toURI().toString();
-    	} catch (java.lang.NoSuchMethodError nme) {
-    		// running on J2SE 1.3?
-    		try {
-        		this.systemId = f.toURL().toString();
-    		} catch (MalformedURLException malformedURLException) {
-    			this.systemId = null;
-    			throw new RuntimeException(
-    					"javax.xml.transform.stream.StreamResult#setSystemId(File f) with MalformedURLException: "
-    					+ malformedURLException.toString()
-    			);
-    		}
-        } catch (Exception exception) {
-    		throw new RuntimeException(
-    				"javax.xml.transform.stream.StreamResult#setSystemId(File f):"
-    				+ " unexpected Exception: " + exception.toString()
-			);
-    		
-        }
+    	//convert file to appropriate URI, f.toURI().toASCIIString() 
+        //converts the URI to string as per rule specified in
+        //RFC 2396,
+        this.systemId = f.toURI().toASCIIString();
     }
 
     /**

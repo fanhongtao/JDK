@@ -1,7 +1,7 @@
 /*
- * @(#)AttributedString.java	1.36 04/07/16
+ * @(#)AttributedString.java	1.39 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,15 +11,23 @@ import java.util.*;
 import java.text.AttributedCharacterIterator.Attribute;
 
 /**
-* An AttributedString holds text and related attribute information. It
-* may be used as the actual data storage in some cases where a text
-* reader wants to access attributed text through the AttributedCharacterIterator
-* interface.
-*
-* @see AttributedCharacterIterator
-* @see Annotation
-* @since 1.2
-*/
+ * An AttributedString holds text and related attribute information. It
+ * may be used as the actual data storage in some cases where a text
+ * reader wants to access attributed text through the AttributedCharacterIterator
+ * interface.
+ *
+ * <p>
+ * An attribute is a key/value pair, identified by the key.  No two
+ * attributes on a given character can have the same key.
+ *
+ * <p>The values for an attribute are immutable, or must not be mutated
+ * by clients or storage.  They are always passed by reference, and not
+ * cloned.
+ *
+ * @see AttributedCharacterIterator
+ * @see Annotation
+ * @since 1.2
+ */
 
 public class AttributedString {
 
@@ -94,6 +102,7 @@ public class AttributedString {
     /**
      * Constructs an AttributedString instance with the given text.
      * @param text The text for this attributed string.
+     * @exception NullPointerException if <code>text</code> is null.
      */
     public AttributedString(String text) {
         if (text == null) {
@@ -106,6 +115,8 @@ public class AttributedString {
      * Constructs an AttributedString instance with the given text and attributes.
      * @param text The text for this attributed string.
      * @param attributes The attributes that apply to the entire string.
+     * @exception NullPointerException if <code>text</code> or
+     *            <code>attributes</code> is null.
      * @exception IllegalArgumentException if the text has length 0
      * and the attributes parameter is not an empty Map (attributes
      * cannot be applied to a 0-length range).
@@ -144,6 +155,7 @@ public class AttributedString {
      * Constructs an AttributedString instance with the given attributed
      * text represented by AttributedCharacterIterator.
      * @param text The text for this attributed string.
+     * @exception NullPointerException if <code>text</code> is null.
      */
     public AttributedString(AttributedCharacterIterator text) {
 	// If performance is critical, this constructor should be
@@ -164,6 +176,7 @@ public class AttributedString {
      * @param beginIndex Index of the first character of the range.
      * @param endIndex Index of the character following the last character
      * of the range.
+     * @exception NullPointerException if <code>text</code> is null.
      * @exception IllegalArgumentException if the subrange given by
      * beginIndex and endIndex is out of the text range.
      * @see java.text.Annotation
@@ -191,6 +204,8 @@ public class AttributedString {
      * @param attributes Specifies attributes to be extracted
      * from the text. If null is specified, all available attributes will
      * be used.
+     * @exception NullPointerException if <code>text</code> or
+     *            <code>attributes</code> is null.
      * @exception IllegalArgumentException if the subrange given by
      * beginIndex and endIndex is out of the text range.
      * @see java.text.Annotation
@@ -277,6 +292,7 @@ public class AttributedString {
      * Adds an attribute to the entire string.
      * @param attribute the attribute key
      * @param value the value of the attribute; may be null
+     * @exception NullPointerException if <code>attribute</code> is null.
      * @exception IllegalArgumentException if the AttributedString has length 0
      * (attributes cannot be applied to a 0-length range).
      */
@@ -300,6 +316,7 @@ public class AttributedString {
      * @param value The value of the attribute. May be null.
      * @param beginIndex Index of the first character of the range.
      * @param endIndex Index of the character following the last character of the range.
+     * @exception NullPointerException if <code>attribute</code> is null.
      * @exception IllegalArgumentException if beginIndex is less then 0, endIndex is
      * greater than the length of the string, or beginIndex and endIndex together don't
      * define a non-empty subrange of the string.
@@ -324,6 +341,7 @@ public class AttributedString {
      * @param beginIndex Index of the first character of the range.
      * @param endIndex Index of the character following the last
      * character of the range.
+     * @exception NullPointerException if <code>attributes</code> is null.
      * @exception IllegalArgumentException if beginIndex is less then
      * 0, endIndex is greater than the length of the string, or
      * beginIndex and endIndex together don't define a non-empty
@@ -522,7 +540,7 @@ public class AttributedString {
      * accessible.
      *
      * @param attributes a list of attributes that the client is interested in
-     * @return an iterator providing access to the text and its attributes
+     * @return an iterator providing access to the entire text and its selected attributes
      */
     public AttributedCharacterIterator getIterator(Attribute[] attributes) {
         return getIterator(attributes, 0, length());
@@ -651,7 +669,7 @@ public class AttributedString {
     }
 
     /**
-     * Sets the attributes for the range from offset to the the next run break 
+     * Sets the attributes for the range from offset to the next run break 
      * (typically the end of the text) to the ones specified in attrs.
      * This is only meant to be called from the constructor!
      */

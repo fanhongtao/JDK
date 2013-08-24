@@ -1,7 +1,7 @@
 /*
- * @(#)Adjustable.java	1.18 03/12/19
+ * @(#)Adjustable.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.awt.event.*;
  * The interface for objects which have an adjustable numeric value
  * contained within a bounded range of values.
  *
- * @version 1.18 12/19/03
+ * @version 1.19 11/17/05
  * @author Amy Fowler
  * @author Tim Prinzing
  */

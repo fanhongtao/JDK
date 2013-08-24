@@ -1,7 +1,7 @@
 /*
- * @(#)NotificationBuffer.java	1.5 05/08/31
+ * @(#)NotificationBuffer.java	1.7 06/02/21
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,13 +25,9 @@ public interface NotificationBuffer {
      * operation will block until one arrives, subject to the
      * timeout.</p>
      *
-     * @param listeners a Set of {@link ListenerInfo} that reflects
-     * the filters to be applied to notifications.  Accesses to this
-     * Set are synchronized on the Set object.  The Set is consulted
-     * for selected notifications that are present when the method
-     * starts, and for selected notifications that arrive while it is
-     * executing.  The contents of the Set can be modified, with
-     * appropriate synchronization, while the method is running.
+     * @param filter an object that will add notifications to a
+     * {@code List<TargetedNotification>} if they match the current
+     * listeners with their filters.
      * @param startSequenceNumber the first sequence number to
      * consider.
      * @param timeout the maximum time to wait.  May be 0 to indicate
@@ -45,7 +41,7 @@ public interface NotificationBuffer {
      * different notifications.
      */
     public NotificationResult
-        fetchNotifications(Set<ListenerInfo> listeners,
+        fetchNotifications(NotificationBufferFilter filter,
                            long startSequenceNumber,
                            long timeout,
                            int maxNotifications)

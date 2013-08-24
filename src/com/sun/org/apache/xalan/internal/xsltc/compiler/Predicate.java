@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Predicate.java,v 1.34 2004/02/24 02:58:42 zongaro Exp $
+ * $Id: Predicate.java,v 1.2.4.1 2005/09/12 11:02:18 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -44,6 +44,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TestGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
+import com.sun.org.apache.xalan.internal.xsltc.runtime.Operators;
 
 /**
  * @author Jacek Ambroziak
@@ -326,7 +327,7 @@ final class Predicate extends Expression implements Closure {
            positionCall.setParser(getParser());
            positionCall.setParent(this);
 
-           _exp = new EqualityExpr(EqualityExpr.EQ, positionCall,
+           _exp = new EqualityExpr(Operators.EQ, positionCall,
                                     _exp);
            if (_exp.typeCheck(stable) != Type.Boolean) {
                _exp = new CastExpr(_exp, Type.Boolean);

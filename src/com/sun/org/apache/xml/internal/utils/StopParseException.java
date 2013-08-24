@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StopParseException.java,v 1.2 2004/02/17 04:21:14 minchau Exp $
+ * $Id: StopParseException.java,v 1.2.4.1 2005/09/15 08:15:54 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -27,7 +27,7 @@ package com.sun.org.apache.xml.internal.utils;
  */
 public class StopParseException extends org.xml.sax.SAXException
 {
-
+        static final long serialVersionUID = 210102479218258961L;
   /**
    * Constructor StopParseException.
    */

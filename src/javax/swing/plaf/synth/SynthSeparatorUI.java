@@ -1,7 +1,7 @@
 /*
- * @(#)SynthSeparatorUI.java	1.14 03/12/19
+ * @(#)SynthSeparatorUI.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.swing.plaf.synth.SynthUI;
  * A Synth L&F implementation of SeparatorUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.14 12/19/03
+ * @version 1.16 11/17/05
  * @author Shannon Hickey
  * @author Joshua Outwater
  */
@@ -90,9 +90,11 @@ class SynthSeparatorUI extends SeparatorUI implements PropertyChangeListener,
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
+        JSeparator separator = (JSeparator)context.getComponent();
         SynthLookAndFeel.update(context, g);
         context.getPainter().paintSeparatorBackground(context,
-                          g, 0, 0, c.getWidth(), c.getHeight());
+                          g, 0, 0, c.getWidth(), c.getHeight(),
+                          separator.getOrientation());
         paint(context, g);
         context.dispose();
     }
@@ -113,7 +115,9 @@ class SynthSeparatorUI extends SeparatorUI implements PropertyChangeListener,
     
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
-        context.getPainter().paintSeparatorBorder(context, g, x, y, w, h);
+        JSeparator separator = (JSeparator)context.getComponent();
+        context.getPainter().paintSeparatorBorder(context, g, x, y, w, h,
+                                                  separator.getOrientation());
     }
 
     public Dimension getPreferredSize(JComponent c) {

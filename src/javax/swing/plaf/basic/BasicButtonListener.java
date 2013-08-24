@@ -1,7 +1,7 @@
 /*
- * @(#)BasicButtonListener.java	1.64 06/01/30
+ * @(#)BasicButtonListener.java	1.69 06/01/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.64 01/30/06
+ * @version 1.69 01/30/06
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -259,7 +259,7 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
 
     /**
-     * Actions for Buttons. Two type of action are supported:
+     * Actions for Buttons. Two types of action are supported:
      * pressed: Moves the button to a pressed state
      * released: Disarms the button.
      */
@@ -286,9 +286,9 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
                 ButtonModel model = b.getModel();
                 model.setPressed(false);
                 model.setArmed(false);
-            }
+            } 
         }
-
+        
         public boolean isEnabled(Object sender) {
 	    if(sender != null && (sender instanceof AbstractButton) &&
                       !((AbstractButton)sender).getModel().isEnabled()) {

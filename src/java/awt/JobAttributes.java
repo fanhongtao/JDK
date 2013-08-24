@@ -1,7 +1,7 @@
 /*
- * @(#)JobAttributes.java	1.9 03/12/19
+ * @(#)JobAttributes.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,12 +36,14 @@ package java.awt;
  * has a corresponding <code>set<i>attributeName</i>ToDefault</code> method.
  * Default value fields are not provided.
  *
- * @version	1.9, 12/19/03
+ * @version	1.11, 04/07/06
  * @author	David Mendenhall
+ * @since 1.3
  */
 public final class JobAttributes implements Cloneable {
     /**
      * A type-safe enumeration of possible default selection states.
+     * @since 1.3
      */
     public static final class DefaultSelectionType extends AttributeValue {
         private static final int I_ALL = 0;
@@ -78,6 +80,7 @@ public final class JobAttributes implements Cloneable {
 
     /**
      * A type-safe enumeration of possible job destinations.
+     * @since 1.3
      */
     public static final class DestinationType extends AttributeValue {
         private static final int I_FILE = 0;
@@ -107,6 +110,7 @@ public final class JobAttributes implements Cloneable {
 
     /**
      * A type-safe enumeration of possible dialogs to display to the user.
+     * @since 1.3
      */
     public static final class DialogType extends AttributeValue {
         private static final int I_COMMON = 0;
@@ -142,6 +146,7 @@ public final class JobAttributes implements Cloneable {
      * A type-safe enumeration of possible multiple copy handling states.
      * It is used to control how the sheets of multiple copies of a single
      * document are collated.
+     * @since 1.3
      */
     public static final class MultipleDocumentHandlingType extends
                                                                AttributeValue {
@@ -178,6 +183,7 @@ public final class JobAttributes implements Cloneable {
     /**
      * A type-safe enumeration of possible multi-page impositions. These
      * impositions are in compliance with IPP 1.1.
+     * @since 1.3
      */
     public static final class SidesType extends AttributeValue {
         private static final int I_ONE_SIDED = 0;

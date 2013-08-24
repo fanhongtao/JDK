@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_reference.h	1.5 04/07/27
+ * @(#)hprof_reference.h	1.7 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,9 +38,12 @@
 #define HPROF_REFERENCE_H
 
 void     reference_init(void);
-RefIndex reference_new(RefIndex next, jvmtiObjectReferenceKind kind,
-		jlong class_tag, jlong size, jlong object_tag,
-		jint element_index);
+RefIndex reference_obj(RefIndex next, jvmtiHeapReferenceKind kind,
+		ObjectIndex object_index, jint index, jint length);
+RefIndex reference_prim_field(RefIndex next, jvmtiHeapReferenceKind refKind,
+              jvmtiPrimitiveType primType, jvalue value, jint field_index);
+RefIndex reference_prim_array(RefIndex next, jvmtiPrimitiveType element_type, 
+		const void *elements, jint count);
 void     reference_cleanup(void);
 void     reference_dump_class(JNIEnv *env, ObjectIndex object_index,
 		RefIndex list);

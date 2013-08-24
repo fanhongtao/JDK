@@ -1,7 +1,7 @@
 /*
- * @(#)VolatileImage.java	1.17 03/12/19
+ * @(#)VolatileImage.java	1.20 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,6 +32,26 @@ import java.awt.Transparency;
  * re-rendered.  VolatileImage provides an interface for 
  * allowing the user to detect these problems and fix them
  * when they occur.
+ * <p>
+ * When a VolatileImage object is created, limited system resources
+ * such as video memory (VRAM) may be allocated in order to support
+ * the image.
+ * When a VolatileImage object is no longer used, it may be
+ * garbage-collected and those system resources will be returned,
+ * but this process does not happen at guaranteed times.
+ * Applications that create many VolatileImage objects (for example,
+ * a resizing window may force recreation of its back buffer as the
+ * size changes) may run out of optimal system resources for new
+ * VolatileImage objects simply because the old objects have not
+ * yet been removed from the system.  
+ * (New VolatileImage objects may still be created, but they
+ * may not perform as well as those created in accelerated
+ * memory).
+ * The flush method may be called at any time to proactively release
+ * the resources used by a VolatileImage so that it does not prevent
+ * subsequent VolatileImage objects from being accelerated.
+ * In this way, applications can have more control over the state
+ * of the resources taken up by obsolete VolatileImage objects.
  * <p>
  * This image should not be subclassed directly but should be created
  * by using the {@link java.awt.Component#createVolatileImage(int, int)
@@ -90,6 +110,7 @@ import java.awt.Transparency;
  * will never indicate that the information is not yet available and 
  * the <code>ImageObserver</code> used in such methods will never 
  * need to be recorded for an asynchronous callback notification.
+ * @since 1.4
  */
 public abstract class VolatileImage extends Image implements Transparency
 {
@@ -181,36 +202,6 @@ public abstract class VolatileImage extends Image implements Transparency
 
     // REMIND: if we want any decent performance for getScaledInstance(),
     // we should override the Image implementation of it...
-
-    /**
-     * Releases system resources currently consumed by this image.
-     * <p>
-     * When a VolatileImage object is created, limited system resources
-     * such as video memory (VRAM) may be allocated in order to
-     * support the image.  When a VolatileImage object is no longer
-     * used, it may be garbage-collected and those system resources
-     * will be returned, but this process does 
-     * not happen at guaranteed times.  Applications that create
-     * many VolatileImage objects (for example, a resizing window
-     * may force recreation of its back buffer as the size
-     * changes) may run out of optimal system
-     * resources for new VolatileImage objects simply because the
-     * old objects have not yet been removed from the system.  
-     * (New VolatileImage objects may still be created, but they
-     * may not perform as well as those created in accelerated
-     * memory).
-     * <p>
-     * By calling this flush method, applications can have more control over
-     * the state of the resources taken up by obsolete VolatileImage objects.
-     * <p>
-     * This method will cause the contents of the image to be lost, so
-     * calls to {@link #contentsLost} will return <code>true</code>
-     * and the image must be validated before it can be used again.
-     * @see #contentsLost
-     * @see #validate
-     */
-    public void flush() {
-    }
 
     /**
      * This method returns a {@link Graphics2D}, but is here

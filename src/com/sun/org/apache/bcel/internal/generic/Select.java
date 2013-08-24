@@ -59,7 +59,7 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
 /** 
  * Select - Abstract super class for LOOKUPSWITCH and TABLESWITCH instructions.
  *
- * @version $Id: Select.java,v 1.1.1.1 2001/10/29 20:00:27 jvanzyl Exp $
+ * @version $Id: Select.java,v 1.1.2.1 2005/07/31 23:45:26 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see LOOKUPSWITCH
  * @see TABLESWITCH
@@ -153,9 +153,7 @@ public abstract class Select extends BranchInstruction
     padding = (4 - (bytes.getIndex() % 4)) % 4; // Compute number of pad bytes
 
     for(int i=0; i < padding; i++) {
-      byte b;
-      if((b=bytes.readByte()) != 0)
-	throw new ClassGenException("Padding byte != 0: " + b);
+      bytes.readByte();
     }
     
     // Default branch target common for both cases (TABLESWITCH, LOOKUPSWITCH)

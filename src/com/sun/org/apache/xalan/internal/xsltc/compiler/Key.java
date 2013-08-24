@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: Key.java,v 1.18 2004/02/24 03:55:47 zongaro Exp $
+ * $Id: Key.java,v 1.6 2006/04/25 02:25:08 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
+
+import java.util.Vector;
 
 import com.sun.org.apache.bcel.internal.generic.BranchHandle;
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
@@ -41,8 +43,8 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.StringType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.dtm.Axis;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Morten Jorgensen
@@ -69,7 +71,7 @@ final class Key extends TopLevelElement {
      * The type of the _use expression.
      */
     private Type _useType;
-
+        
     /**
      * Parse the <xsl:key> element and attributes
      * @param parser A reference to the stylesheet parser
@@ -78,11 +80,15 @@ final class Key extends TopLevelElement {
 
 	// Get the required attributes and parser XPath expressions
         final String name = getAttribute("name");
-        if (!XMLChar.isValidQName(name)){
+        if (!XML11Char.isXML11ValidQName(name)){
             ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
             parser.reportError(Constants.ERROR, err);           
         }
+        
+        // Parse key name and add to symbol table
         _name = parser.getQNameIgnoreDefaultNs(name);
+        getSymbolTable().addKey(_name, this);
+        
 	_match = parser.parsePattern(this, "match", null);
 	_use = parser.parseExpression(this, "use", null);
 
@@ -160,10 +166,6 @@ final class Key extends TopLevelElement {
 
 	// Get the 'parameter' from the stack and store it in a local var.
 	il.append(new ISTORE(parentNode.getIndex()));	
-	il.append(methodGen.loadDOM());
-	il.append(new ILOAD(parentNode.getIndex()));	
-	il.append(new INVOKEINTERFACE(getNodeIdent, 2));
-	il.append(new ISTORE(parentNode.getIndex()));
 
 	// Save current node and current iterator on the stack
 	il.append(methodGen.loadCurrentNode());
@@ -272,11 +274,6 @@ final class Key extends TopLevelElement {
 	    il.append(DUP_X1);
 	    il.append(methodGen.loadCurrentNode());
 	    _use.translate(classGen, methodGen);
-	    il.append(SWAP);
-	    il.append(methodGen.loadDOM());
-	    il.append(SWAP);
-	    il.append(new INVOKEINTERFACE(getNodeIdent, 2));
-	    il.append(SWAP);
 	    il.append(new INVOKEVIRTUAL(key));
 	    
 	    il.append(methodGen.loadDOM());

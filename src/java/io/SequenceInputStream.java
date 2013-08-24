@@ -1,7 +1,7 @@
 /*
- * @(#)SequenceInputStream.java	1.28 04/05/12
+ * @(#)SequenceInputStream.java	1.33 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.Vector;
  * on the last of the contained input streams.
  *
  * @author  Author van Hoff
- * @version 1.28, 05/12/04
+ * @version 1.33, 06/07/06
  * @since   JDK1.0
  */
 public
@@ -99,7 +99,21 @@ class SequenceInputStream extends InputStream {
     }
 
     /**
-     * Returns the number of bytes available on the current stream.
+     * Returns an estimate of the number of bytes that can be read (or
+     * skipped over) from the current underlying input stream without
+     * blocking by the next invocation of a method for the current
+     * underlying input stream. The next invocation might be
+     * the same thread or another thread.  A single read or skip of this
+     * many bytes will not block, but may read or skip fewer bytes.
+     * <p>
+     * This method simply calls {@code available} of the current underlying
+     * input stream and returns the result.
+     *
+     * @return an estimate of the number of bytes that can be read (or
+     *         skipped over) from the current underlying input stream
+     *         without blocking or {@code 0} if this input stream
+     *         has been closed by invoking its {@link #close()} method
+     * @exception  IOException  if an I/O error occurs.
      *
      * @since   JDK1.1
      */
@@ -142,9 +156,9 @@ class SequenceInputStream extends InputStream {
 
     /**
      * Reads up to <code>len</code> bytes of data from this input stream
-     * into an array of bytes. This method blocks until at least 1 byte
-     * of input is available. If the first argument is <code>null</code>,
-     * up to <code>len</code> bytes are read and discarded.
+     * into an array of bytes.  If <code>len</code> is not zero, the method
+     * blocks until at least 1 byte of input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned.
      * <p>
      * The <code>read</code> method of <code>SequenceInputStream</code>
      * tries to read the data from the current substream. If it fails to
@@ -153,9 +167,14 @@ class SequenceInputStream extends InputStream {
      * substream and begins reading from the next substream.
      *
      * @param      b     the buffer into which the data is read.
-     * @param      off   the start offset of the data.
+     * @param      off   the start offset in array <code>b</code>
+     *                   at which the data is written.
      * @param      len   the maximum number of bytes read.
      * @return     int   the number of bytes read.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      * @exception  IOException  if an I/O error occurs.
      */
     public int read(byte b[], int off, int len) throws IOException {
@@ -163,8 +182,7 @@ class SequenceInputStream extends InputStream {
 	    return -1;
 	} else if (b == null) {
 	    throw new NullPointerException();
-	} else if ((off < 0) || (off > b.length) || (len < 0) ||
-		   ((off + len) > b.length) || ((off + len) < 0)) {
+	} else if (off < 0 || len < 0 || len > b.length - off) {
 	    throw new IndexOutOfBoundsException();
 	} else if (len == 0) {
 	    return 0;
@@ -189,7 +207,6 @@ class SequenceInputStream extends InputStream {
      * from an enumeration, all remaining elements
      * are requested from the enumeration and closed
      * before the <code>close</code> method returns.
-     * of <code>InputStream</code> .
      *
      * @exception  IOException  if an I/O error occurs.
      */

@@ -1,7 +1,7 @@
 /*
- * @(#)EmptyBorder.java	1.26 03/12/19
+ * @(#)EmptyBorder.java	1.28 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -25,7 +25,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.26 12/19/03
+ * @version 1.28 04/07/06
  * @author David Kloba
  */
 public class EmptyBorder extends AbstractBorder implements Serializable
@@ -66,6 +66,7 @@ public class EmptyBorder extends AbstractBorder implements Serializable
     /**
      * Returns the insets of the border.
      * @param c the component for which this border insets value applies
+     * @since 1.3
      */
     public Insets getBorderInsets(Component c)       {
         return getBorderInsets();
@@ -86,6 +87,7 @@ public class EmptyBorder extends AbstractBorder implements Serializable
 
     /**
      * Returns the insets of the border.
+     * @since 1.3
      */
     public Insets getBorderInsets() {
         return new Insets(top, left, bottom, right);

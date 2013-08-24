@@ -68,11 +68,11 @@ import java.util.HashMap;
  * Constants.MAX_SHORT entries. Note that the first (0) is used by the
  * JVM and that Double and Long constants need two slots.
  *
- * @version $Id: ConstantPoolGen.java,v 1.1.1.1 2001/10/29 20:00:08 jvanzyl Exp $
+ * @version $Id: ConstantPoolGen.java,v 1.1.2.1 2005/07/31 23:45:00 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Constant
  */
-public class ConstantPoolGen {
+public class ConstantPoolGen implements java.io.Serializable {
   protected int        size      = 1024; // Inital size, sufficient in most cases
   protected Constant[] constants = new Constant[size];
   protected int        index     = 1; // First entry (0) used by JVM
@@ -82,7 +82,7 @@ public class ConstantPoolGen {
   private static final String FIELDREF_DELIM   = "&";
   private static final String NAT_DELIM        = "%";
 
-  private static class Index {
+  private static class Index implements java.io.Serializable {
     int index;
     Index(int i) { index = i; }
   }
@@ -201,12 +201,12 @@ public class ConstantPoolGen {
     if((ret = lookupString(str)) != -1)
       return ret; // Already in CP
 
+    int utf8 = addUtf8(str);
+
     adjustSize();
 
-    ConstantUtf8   u8 = new ConstantUtf8(str);
-    ConstantString s  = new ConstantString(index);
+    ConstantString s  = new ConstantString(utf8);
        
-    constants[index++] = u8;
     ret = index;
     constants[index++] = s;
 
@@ -323,11 +323,13 @@ public class ConstantPoolGen {
    * @return index on success, -1 otherwise
    */
   public int lookupFloat(float n) {
+    int bits = Float.floatToIntBits(n);
+
     for(int i=1; i < index; i++) {
       if(constants[i] instanceof ConstantFloat) {
 	ConstantFloat c = (ConstantFloat)constants[i];
 
-	if(c.getBytes() == n)
+	if(Float.floatToIntBits(c.getBytes()) == bits)
 	  return i;
       }
     }
@@ -438,11 +440,13 @@ public class ConstantPoolGen {
    * @return index on success, -1 otherwise
    */
   public int lookupDouble(double n) {
+    long bits = Double.doubleToLongBits(n);
+
     for(int i=1; i < index; i++) {
       if(constants[i] instanceof ConstantDouble) {
 	ConstantDouble c = (ConstantDouble)constants[i];
-
-	if(c.getBytes() == n)
+	
+	if(Double.doubleToLongBits(c.getBytes()) == bits)
 	  return i;
       }
     }

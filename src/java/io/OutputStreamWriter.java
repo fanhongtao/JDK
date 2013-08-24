@@ -1,7 +1,7 @@
 /*
- * @(#)OutputStreamWriter.java	1.47 04/01/12
+ * @(#)OutputStreamWriter.java	1.50 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,21 +37,22 @@ import sun.nio.cs.StreamEncoder;
  * <p> A <i>surrogate pair</i> is a character represented by a sequence of two
  * <tt>char</tt> values: A <i>high</i> surrogate in the range '&#92;uD800' to
  * '&#92;uDBFF' followed by a <i>low</i> surrogate in the range '&#92;uDC00' to
- * '&#92;uDFFF'.  If the character represented by a surrogate pair cannot be
- * encoded by a given charset then a charset-dependent <i>substitution
- * sequence</i> is written to the output stream.
+ * '&#92;uDFFF'. 
  *
  * <p> A <i>malformed surrogate element</i> is a high surrogate that is not
  * followed by a low surrogate or a low surrogate that is not preceded by a
- * high surrogate.  It is illegal to attempt to write a character stream
- * containing malformed surrogate elements.  The behavior of an instance of
- * this class when a malformed surrogate element is written is not specified.
+ * high surrogate.  
+ * 
+ * <p> This class always replaces malformed surrogate elements and unmappable
+ * character sequences with the charset's default <i>substitution sequence</i>.
+ * The {@linkplain java.nio.charset.CharsetEncoder} class should be used when more
+ * control over the encoding process is required.
  *
  * @see BufferedWriter
  * @see OutputStream
  * @see java.nio.charset.Charset
  *
- * @version 	1.47, 04/01/12
+ * @version 	1.50, 06/06/07
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -61,7 +62,7 @@ public class OutputStreamWriter extends Writer {
     private final StreamEncoder se;
 
     /**
-     * Create an OutputStreamWriter that uses the named charset.
+     * Creates an OutputStreamWriter that uses the named charset.
      *
      * @param  out
      *         An OutputStream
@@ -83,7 +84,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Create an OutputStreamWriter that uses the default character encoding.
+     * Creates an OutputStreamWriter that uses the default character encoding.
      *
      * @param  out  An OutputStream
      */
@@ -97,7 +98,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Create an OutputStreamWriter that uses the given charset. </p>
+     * Creates an OutputStreamWriter that uses the given charset. </p>
      *
      * @param  out
      *         An OutputStream
@@ -116,7 +117,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Create an OutputStreamWriter that uses the given charset encoder.  </p>
+     * Creates an OutputStreamWriter that uses the given charset encoder.  </p>
      *
      * @param  out
      *         An OutputStream
@@ -135,7 +136,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Return the name of the character encoding being used by this stream.
+     * Returns the name of the character encoding being used by this stream.
      *
      * <p> If the encoding has an historical name then that name is returned;
      * otherwise the encoding's canonical name is returned.
@@ -158,10 +159,8 @@ public class OutputStreamWriter extends Writer {
 	return se.getEncoding();
     }
 
-
-
     /**
-     * Flush the output buffer to the underlying byte stream, without flushing
+     * Flushes the output buffer to the underlying byte stream, without flushing
      * the byte stream itself.  This method is non-private only so that it may
      * be invoked by PrintStream.
      */
@@ -170,7 +169,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Write a single character.
+     * Writes a single character.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -179,7 +178,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Write a portion of an array of characters.
+     * Writes a portion of an array of characters.
      *
      * @param  cbuf  Buffer of characters
      * @param  off   Offset from which to start writing characters
@@ -192,7 +191,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Write a portion of a string.
+     * Writes a portion of a string.
      *
      * @param  str  A String
      * @param  off  Offset from which to start writing characters
@@ -205,7 +204,7 @@ public class OutputStreamWriter extends Writer {
     }
 
     /**
-     * Flush the stream.
+     * Flushes the stream.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -213,13 +212,7 @@ public class OutputStreamWriter extends Writer {
 	se.flush();
     }
 
-    /**
-     * Close the stream.
-     *
-     * @exception  IOException  If an I/O error occurs
-     */
     public void close() throws IOException {
 	se.close();
     }
-
 }

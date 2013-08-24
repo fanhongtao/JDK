@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AdaptiveResultTreeImpl.java,v 1.7 2004/02/19 23:17:45 igorh Exp $
+ * $Id: AdaptiveResultTreeImpl.java,v 1.2.4.1 2005/09/06 05:52:18 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.xsltc.dom;
 
@@ -566,7 +566,7 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
     
     private void maybeEmitStartElement() throws SAXException
     {
-	if (_openElementName != null) {
+        if (_openElementName != null) {
 
 	   int index;
 	   if ((index =_openElementName.indexOf(":")) < 0)
@@ -579,6 +579,7 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
 
 	    _openElementName = null;
 	}
+        
     }
     
     // Create and initialize the wrapped SAXImpl object

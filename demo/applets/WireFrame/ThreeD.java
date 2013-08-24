@@ -1,7 +1,7 @@
 /*
- * @(#)ThreeD.java	1.14 04/07/26
+ * @(#)ThreeD.java	1.18 06/02/22
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -20,7 +20,7 @@
  * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN")
  * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
  * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
  * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ThreeD.java	1.14 04/07/26
+ * @(#)ThreeD.java	1.18 06/02/22
  */
 
 /* A set of classes to parse, represent and display 3D wireframe models
@@ -75,7 +75,8 @@ class Model3D {
     /** Create a 3D model by parsing an input stream */
     Model3D (InputStream is) throws IOException, FileFormatException {
       this();
-      StreamTokenizer st = new StreamTokenizer(new BufferedReader(new InputStreamReader(is)));
+      StreamTokenizer st = new StreamTokenizer(
+              new BufferedReader(new InputStreamReader(is, "UTF-8")));
       st.eolIsSignificant(true);
       st.commentChar('#');
     scan:

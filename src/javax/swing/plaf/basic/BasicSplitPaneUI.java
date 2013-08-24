@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.80 04/05/18
+ * @(#)BasicSplitPaneUI.java	1.83 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,12 +24,13 @@ import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.UIResource;
+import sun.swing.SwingUtilities2;
 
 
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.80 05/18/04
+ * @version 1.83 06/07/06
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -352,7 +353,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 	// focus forward traversal key
 	if (managingFocusForwardTraversalKeys==null) {
-	    managingFocusForwardTraversalKeys = new TreeSet();
+	    managingFocusForwardTraversalKeys = new HashSet();
 	    managingFocusForwardTraversalKeys.add(
 		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0));
 	}
@@ -360,7 +361,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 					managingFocusForwardTraversalKeys);
 	// focus backward traversal key
 	if (managingFocusBackwardTraversalKeys==null) {
-	    managingFocusBackwardTraversalKeys = new TreeSet();
+	    managingFocusBackwardTraversalKeys = new HashSet();
 	    managingFocusBackwardTraversalKeys.add(
 		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK));
 	}
@@ -2187,7 +2188,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 			SwingUtilities.isDescendingFrom(focusOn, right)) ) ) {
 		    return;
 		}
- 		BasicLookAndFeel.compositeRequestFocus(focusOn);
+ 		SwingUtilities2.compositeRequestFocus(focusOn);
 	    }
 	}
 

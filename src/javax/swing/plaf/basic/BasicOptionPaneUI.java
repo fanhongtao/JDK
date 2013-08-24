@@ -1,7 +1,7 @@
 /*
- * @(#)BasicOptionPaneUI.java	1.58 03/12/19
+ * @(#)BasicOptionPaneUI.java	1.61 06/04/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ import sun.security.action.GetPropertyAction;
  * The <code>Container</code>, message, icon, and buttons are all
  * determined from abstract methods.
  * 
- * @version 1.58 12/19/03
+ * @version 1.61 04/04/06
  * @author James Gosling
  * @author Scott Violet
  * @author Amy Fowler
@@ -679,16 +679,18 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		    initialFocusComponent = newComponent;
                     if (initialFocusComponent instanceof JButton) {
                         JButton defaultB = (JButton)initialFocusComponent;
-                        defaultB.addAncestorListener(new AncestorListener() {
-                           public void ancestorAdded(AncestorEvent e) { 
-                               JButton defaultButton = (JButton)e.getComponent();
-                               JRootPane root = SwingUtilities.getRootPane(defaultButton);
-                               if (root != null) {
-                                   root.setDefaultButton(defaultButton);
-                               }
-                           }
-                           public void ancestorRemoved(AncestorEvent event) {}
-                           public void ancestorMoved(AncestorEvent event) {}
+                        defaultB.addHierarchyListener(new HierarchyListener() {
+                            public void hierarchyChanged(HierarchyEvent e) {
+                                if ((e.getChangeFlags() & 
+                                        HierarchyEvent.PARENT_CHANGED) != 0) {
+                                    JButton defaultButton = (JButton) e.getComponent();
+                                    JRootPane root = 
+                                            SwingUtilities.getRootPane(defaultButton);
+                                    if (root != null) {
+                                        root.setDefaultButton(defaultButton);
+                                    }
+                                }
+                            }
                         });
                     }
 		}
@@ -734,54 +736,57 @@ public class BasicOptionPaneUI extends OptionPaneUI {
                 Object[] defaultOptions;
 		int type = optionPane.getOptionType();
                 Locale l = optionPane.getLocale();
+                int minimumWidth =
+                    DefaultLookup.getInt(optionPane, this,
+                                        "OptionPane.buttonMinimumWidth",-1);
 		if (type == JOptionPane.YES_NO_OPTION) {
                     defaultOptions = new ButtonFactory[2];
                     defaultOptions[0] = new ButtonFactory(
                         UIManager.getString("OptionPane.yesButtonText", l),
                         getMnemonic("OptionPane.yesButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.yesIcon"));
+                                          "OptionPane.yesIcon"), minimumWidth);
                     defaultOptions[1] = new ButtonFactory(
                         UIManager.getString("OptionPane.noButtonText", l),
                         getMnemonic("OptionPane.noButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.noIcon"));
+                                          "OptionPane.noIcon"), minimumWidth);
 		} else if (type == JOptionPane.YES_NO_CANCEL_OPTION) {
                     defaultOptions = new ButtonFactory[3];
                     defaultOptions[0] = new ButtonFactory(
                         UIManager.getString("OptionPane.yesButtonText", l),
                         getMnemonic("OptionPane.yesButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.yesIcon"));
+                                          "OptionPane.yesIcon"), minimumWidth);
                     defaultOptions[1] = new ButtonFactory(
                         UIManager.getString("OptionPane.noButtonText",l),
                         getMnemonic("OptionPane.noButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.noIcon"));
+                                          "OptionPane.noIcon"), minimumWidth);
                     defaultOptions[2] = new ButtonFactory(
                         UIManager.getString("OptionPane.cancelButtonText",l),
                         getMnemonic("OptionPane.cancelButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.cancelIcon"));
+                                          "OptionPane.cancelIcon"), minimumWidth);
 		} else if (type == JOptionPane.OK_CANCEL_OPTION) {
                     defaultOptions = new ButtonFactory[2];
                     defaultOptions[0] = new ButtonFactory(
                         UIManager.getString("OptionPane.okButtonText",l),
                         getMnemonic("OptionPane.okButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.okIcon"));
+                                          "OptionPane.okIcon"), minimumWidth);
                     defaultOptions[1] = new ButtonFactory(
                         UIManager.getString("OptionPane.cancelButtonText",l),
                         getMnemonic("OptionPane.cancelButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.cancelIcon"));
+                                          "OptionPane.cancelIcon"), minimumWidth);
 		} else {
                     defaultOptions = new ButtonFactory[1];
                     defaultOptions[0] = new ButtonFactory(
                         UIManager.getString("OptionPane.okButtonText",l),
                         getMnemonic("OptionPane.okButtonMnemonic", l),
                         (Icon)DefaultLookup.get(optionPane, this,
-                                          "OptionPane.okIcon"));
+                                          "OptionPane.okIcon"), minimumWidth);
                 }
                 return defaultOptions;
                 
@@ -1386,15 +1391,23 @@ public class BasicOptionPaneUI extends OptionPaneUI {
         private String text;
         private int mnemonic;
         private Icon icon;
+        private int minimumWidth = -1;
 
-        ButtonFactory(String text, int mnemonic, Icon icon) {
+        ButtonFactory(String text, int mnemonic, Icon icon, int minimumWidth) {
             this.text = text;
             this.mnemonic = mnemonic;
             this.icon = icon;
+            this.minimumWidth = minimumWidth;
         }
 
         JButton createButton() {
-            JButton button = new JButton(text);
+            JButton button = null;
+
+            if (minimumWidth > 0) {
+                button = new ConstrainedButton(text, minimumWidth);
+            } else {
+                button = new JButton(text);
+            }
             if (icon != null) {
                 button.setIcon(icon);
             }
@@ -1402,6 +1415,27 @@ public class BasicOptionPaneUI extends OptionPaneUI {
                 button.setMnemonic(mnemonic);
             }
             return button;
+        }
+        
+        private static class ConstrainedButton extends JButton {
+            int minimumWidth;
+
+            ConstrainedButton(String text, int minimumWidth) {
+                super(text);
+                this.minimumWidth = minimumWidth;
+            }
+
+            public Dimension getMinimumSize() {
+                Dimension min = super.getMinimumSize();
+                min.width = Math.max(min.width, minimumWidth);
+                return min;
+            }
+
+            public Dimension getPreferredSize() {
+                Dimension pref = super.getPreferredSize();
+                pref.width = Math.max(pref.width, minimumWidth);
+                return pref;
+            }
         }
     }
 }

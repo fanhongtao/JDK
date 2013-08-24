@@ -59,7 +59,7 @@ import  com.sun.org.apache.bcel.internal.Constants;
 /** 
  * Abstract super class for Fieldref and Methodref constants.
  *
- * @version $Id: ConstantCP.java,v 1.1.1.1 2001/10/29 19:59:58 jvanzyl Exp $
+ * @version $Id: ConstantCP.java,v 1.1.2.1 2005/07/31 23:46:28 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     ConstantFieldref
  * @see     ConstantMethodref
@@ -82,7 +82,7 @@ public abstract class ConstantCP extends Constant {
    *
    * @param tag  Constant type tag
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   ConstantCP(byte tag, DataInputStream file) throws IOException
   {
@@ -104,7 +104,7 @@ public abstract class ConstantCP extends Constant {
    * Dump constant field reference to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

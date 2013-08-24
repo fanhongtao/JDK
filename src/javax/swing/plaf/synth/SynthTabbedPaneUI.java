@@ -1,7 +1,7 @@
 /*
- * @(#)SynthTabbedPaneUI.java	1.32 04/04/02
+ * @(#)SynthTabbedPaneUI.java	1.39 05/12/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,12 +20,12 @@ import java.beans.PropertyChangeEvent;
 import java.util.Vector;
 import java.util.Hashtable;
 import sun.swing.plaf.synth.SynthUI;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * A Synth L&F implementation of TabbedPaneUI.
  *
- * @version 1.32, 04/02/04
+ * @version 1.39, 12/19/05
  * @author Scott Violet
  */
 /**
@@ -41,11 +41,19 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
     private SynthStyle tabStyle;
     private SynthStyle tabAreaStyle;
     private SynthStyle tabContentStyle;
+
+    private Rectangle textRect;
+    private Rectangle iconRect;
     
     private Rectangle tabAreaBounds = new Rectangle();
 
     public static ComponentUI createUI(JComponent c) {
         return new SynthTabbedPaneUI();
+    }
+
+    SynthTabbedPaneUI() {
+        textRect = new Rectangle();
+        iconRect = new Rectangle();
     }
 
     private boolean scrollableTabLayoutEnabled() {
@@ -193,6 +201,26 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
         context.dispose();
     }
 
+    protected int getBaseline(int tab) {
+        if (tabPane.getTabComponentAt(tab) != null ||
+                getTextViewForTab(tab) != null) {
+            return super.getBaseline(tab);
+        }
+        String title = tabPane.getTitleAt(tab);
+        Font font = tabContext.getStyle().getFont(tabContext);
+        FontMetrics metrics = getFontMetrics(font);
+        Icon icon = getIconForTab(tab);
+        textRect.setBounds(0, 0, 0, 0);
+        iconRect.setBounds(0, 0, 0, 0);
+        calcRect.setBounds(0, 0, Short.MAX_VALUE, maxTabHeight);
+        tabContext.getStyle().getGraphicsUtils(tabContext).layoutText(
+                tabContext, metrics, title, icon, SwingUtilities.CENTER,
+                SwingUtilities.CENTER, SwingUtilities.LEADING,
+                SwingUtilities.TRAILING, calcRect,
+                iconRect, textRect, textIconGap);
+        return textRect.y + metrics.getAscent() + getBaselineOffset();
+    }
+
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintTabbedPaneBorder(context, g, x, y, w, h);
@@ -280,14 +308,15 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
         SynthLookAndFeel.updateSubregion(ss, g, tabAreaBounds);
         ss.getPainter().paintTabbedPaneTabAreaBackground(ss, g,
              tabAreaBounds.x, tabAreaBounds.y, tabAreaBounds.width,
-             tabAreaBounds.height);
+             tabAreaBounds.height, tabPlacement);
         ss.getPainter().paintTabbedPaneTabAreaBorder(ss, g, tabAreaBounds.x,
-             tabAreaBounds.y, tabAreaBounds.width, tabAreaBounds.height);
+             tabAreaBounds.y, tabAreaBounds.width, tabAreaBounds.height,
+             tabPlacement);
 
         int tabCount = tabPane.getTabCount();
 
-        Rectangle iconRect = new Rectangle(),
-                  textRect = new Rectangle();
+        iconRect.setBounds(0, 0, 0, 0);
+        textRect.setBounds(0, 0, 0, 0);
 
         // Paint tabRuns of tabs from back to front
         for (int i = runCount - 1; i >= 0; i--) {
@@ -309,6 +338,27 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
             }
         }
     }
+    
+    protected void setRolloverTab(int index) {
+        int oldRolloverTab = getRolloverTab();
+        super.setRolloverTab(index);
+
+        Rectangle r = null;
+        
+        if ((oldRolloverTab >= 0) && (oldRolloverTab < tabPane.getTabCount())) {
+            r = getTabBounds(tabPane, oldRolloverTab);
+            if (r != null) {
+                tabPane.repaint(r);
+            }
+        }
+
+        if (index >= 0) {
+            r = getTabBounds(tabPane, index);
+            if (r != null) {
+                tabPane.repaint(r);
+            }
+        }
+    }
 
     protected void paintTab(SynthContext ss, Graphics g,
                             int tabPlacement, Rectangle[] rects, int tabIndex, 
@@ -316,29 +366,33 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
         Rectangle tabRect = rects[tabIndex];
         int selectedIndex = tabPane.getSelectedIndex();
         boolean isSelected = selectedIndex == tabIndex;
-        updateTabContext(tabIndex, isSelected, false, 
+        updateTabContext(tabIndex, isSelected,
+                          (getRolloverTab() == tabIndex), 
                           (getFocusIndex() == tabIndex));
 
         SynthLookAndFeel.updateSubregion(ss, g, tabRect);
         tabContext.getPainter().paintTabbedPaneTabBackground(tabContext,
                                 g, tabRect.x, tabRect.y, tabRect.width,
-                                tabRect.height, tabIndex);
+                                tabRect.height, tabIndex,
+                                tabPane.getTabPlacement());
         tabContext.getPainter().paintTabbedPaneTabBorder(tabContext, g,
                    tabRect.x, tabRect.y, tabRect.width, tabRect.height,
-                   tabIndex);
+                   tabIndex, tabPane.getTabPlacement());
         
-        String title = tabPane.getTitleAt(tabIndex);
-        Font font = ss.getStyle().getFont(ss);
-        FontMetrics metrics = SwingUtilities2.getFontMetrics(tabPane, g, font);
-        Icon icon = getIconForTab(tabIndex);
+        if (tabPane.getTabComponentAt(tabIndex) == null) {
+            String title = tabPane.getTitleAt(tabIndex);
+            Font font = ss.getStyle().getFont(ss);
+            FontMetrics metrics = SwingUtilities2.getFontMetrics(tabPane, g, font);
+            Icon icon = getIconForTab(tabIndex);
 
-        layoutLabel(ss, tabPlacement, metrics, tabIndex, title, icon, 
+            layoutLabel(ss, tabPlacement, metrics, tabIndex, title, icon,
                     tabRect, iconRect, textRect, isSelected);
 
-        paintText(ss, g, tabPlacement, font, metrics, 
-                  tabIndex, title, textRect, isSelected);
+            paintText(ss, g, tabPlacement, font, metrics,
+                    tabIndex, title, textRect, isSelected);
 
-        paintIcon(g, tabPlacement, tabIndex, icon, iconRect, isSelected);
+            paintIcon(g, tabPlacement, tabIndex, icon, iconRect, isSelected);
+        }
     }
 
     protected void layoutLabel(SynthContext ss, int tabPlacement, 
@@ -455,22 +509,25 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
         Icon icon = getIconForTab(tabIndex);
         Insets tabInsets = getTabInsets(tabPlacement, tabIndex);
         int width = tabInsets.left + tabInsets.right + 3;
-
-        if (icon != null) {
-            width += icon.getIconWidth() + textIconGap;
-        }
-	View v = getTextViewForTab(tabIndex);
-	if (v != null) {
-	    // html
-	    width += (int)v.getPreferredSpan(View.X_AXIS);
-	} else {
-	    // plain text
-	    String title = tabPane.getTitleAt(tabIndex);
-            width += tabContext.getStyle().getGraphicsUtils(tabContext).
+        Component tabComponent = tabPane.getTabComponentAt(tabIndex);
+        if (tabComponent != null) {
+            width += tabComponent.getPreferredSize().width;
+        } else {
+            if (icon != null) {
+                width += icon.getIconWidth() + textIconGap;
+            }
+            View v = getTextViewForTab(tabIndex);
+            if (v != null) {
+                // html
+                width += (int) v.getPreferredSpan(View.X_AXIS);
+            } else {
+                // plain text
+                String title = tabPane.getTitleAt(tabIndex);
+                width += tabContext.getStyle().getGraphicsUtils(tabContext).
                         computeStringWidth(tabContext, metrics.getFont(),
-                        metrics, title);
-	}
-	
+                                metrics, title);
+            }
+        }
         return width;
     }
 
@@ -503,11 +560,17 @@ class SynthTabbedPaneUI extends BasicTabbedPaneUI implements SynthUI, PropertyCh
     private void updateTabContext(int index, boolean selected,
                                   boolean isMouseOver, boolean hasFocus) {
         int state = 0;
-        if (!tabPane.isEnabledAt(index)) {
+        if (!tabPane.isEnabled() || !tabPane.isEnabledAt(index)) {
 	    state |= SynthConstants.DISABLED;
+            if (selected) {
+                state |= SynthConstants.SELECTED;
+            }
         }
         else if (selected) {
             state |= (SynthConstants.ENABLED | SynthConstants.SELECTED);
+            if (isMouseOver && UIManager.getBoolean("TabbedPane.isTabRollover")) {
+                state |= SynthConstants.MOUSE_OVER;
+            }
         }
         else if (isMouseOver) {
             state |= (SynthConstants.ENABLED | SynthConstants.MOUSE_OVER);

@@ -1,7 +1,7 @@
 /*
- * @(#)Action.java	1.30 03/12/19
+ * @(#)Action.java	1.36 06/04/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -33,32 +33,6 @@ import java.beans.*;
  *     then know to disable event generation for that item and to modify the 
  *     display accordingly.
  * </ul>
- * Certain containers, including menus and tool bars, know how to add an
- * <code>Action</code> object. When an <code>Action</code> object is added
- * to such a container, the container:
- * <ol type="a">
- * <li>Creates a component that is appropriate for that container 
- *     (a tool bar creates a button component, for example).
- * <li>Gets the appropriate property(s) from the <code>Action</code> object to 
- *     customize the component (for example, the icon image and flyover text).
- * <li>Checks the initial state of the <code>Action</code> object to determine 
- *     if it is enabled or disabled, and renders the component in the 
- *     appropriate fashion.
- * <li>Registers a listener with the <code>Action</code> object so that is 
- *     notified of state changes. When the <code>Action</code> object changes
- *     from enabled to disabled,
- *     or back, the container makes the appropriate revisions to the
- *     event-generation mechanisms and renders the component accordingly.
- * </ol>
- * For example, both a menu item and a toolbar button could access a
- * <code>Cut</code> action object. The text associated with the object is 
- * specified as "Cut", and an image depicting a pair of scissors is specified 
- * as its icon. The <code>Cut</code> action-object can then be added to a
- * menu and to a tool bar. Each container does the appropriate things with the
- * object, and invokes its <code>actionPerformed</code> method when the
- * component associated with it is activated. The application can then disable 
- * or enable the application object without worrying about what user-interface
- * components are connected to it.
  * <p>
  * This interface can be added to an existing class or used to create an
  * adapter (typically, by subclassing <code>AbstractAction</code>).
@@ -75,8 +49,149 @@ import java.beans.*;
  * functionality and broadcast of property changes.  For this reason,
  * you should take care to only use <code>Action</code>s where their benefits
  * are desired, and use simple <code>ActionListener</code>s elsewhere.
+ * <p>
+ * 
+ * <h4><a name="buttonActions"></a>Swing Components Supporting <code>Action</code></h4>
+ * <p>
+ * Many of Swing's components have an <code>Action</code> property.  When
+ * an <code>Action</code> is set on a component, the following things
+ * happen:
+ * <ul>
+ * <li>The <code>Action</code> is added as an <code>ActionListener</code> to
+ *     the component.
+ * <li>The component configures some of its properties to match the
+ *      <code>Action</code>.
+ * <li>The component installs a <code>PropertyChangeListener</code> on the
+ *     <code>Action</code> so that the component can change its properties
+ *     to reflect changes in the <code>Action</code>'s properties.        
+ * </ul>
+ * <p>
+ * The following table describes the properties used by
+ * <code>Swing</code> components that support <code>Actions</code>.
+ * In the table, <em>button</em> refers to any
+ * <code>AbstractButton</code> subclass, which includes not only
+ * <code>JButton</code> but also classes such as
+ * <code>JMenuItem</code>. Unless otherwise stated, a
+ * <code>null</code> property value in an <code>Action</code> (or a
+ * <code>Action</code> that is <code>null</code>) results in the
+ * button's corresponding property being set to <code>null</code>.
+ * <p>
+ * <table border="1" cellpadding="1" cellspacing="0" 
+ *         summary="Supported Action properties"
+ *         valign="top" >
+ *  <tr valign="top"  align="left">
+ *    <th bgcolor="#CCCCFF" align="left">Component Property
+ *    <th bgcolor="#CCCCFF" align="left">Components
+ *    <th bgcolor="#CCCCFF" align="left">Action Key
+ *    <th bgcolor="#CCCCFF" align="left">Notes
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>enabled</code></b>
+ *      <td>All
+ *      <td>The <code>isEnabled</code> method
+ *      <td>&nbsp;
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>toolTipText</code></b>
+ *      <td>All
+ *      <td><code>SHORT_DESCRIPTION</code>
+ *      <td>&nbsp;
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>actionCommand</code></b>
+ *      <td>All
+ *      <td><code>ACTION_COMMAND_KEY</code>
+ *      <td>&nbsp;
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>mnemonic</code></b>
+ *      <td>All buttons
+ *      <td><code>MNEMONIC_KEY</code>
+ *      <td>A <code>null</code> value or <code>Action</code> results in the
+ *          button's <code>mnemonic</code> property being set to
+ *          <code>'\0'</code>.
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>text</code></b>
+ *      <td>All buttons
+ *      <td><code>NAME</code>
+ *      <td>If you do not want the text of the button to mirror that
+ *          of the <code>Action</code>, set the property
+ *          <code>hideActionText</code> to <code>true</code>.  If
+ *          <code>hideActionText</code> is <code>true</code>, setting the
+ *          <code>Action</code> changes the text of the button to
+ *          <code>null</code> and any changes to <code>NAME</code>
+ *          are ignored.  <code>hideActionText</code> is useful for
+ *          tool bar buttons that typically only show an <code>Icon</code>.
+ *          <code>JToolBar.add(Action)</code> sets the property to
+ *          <code>true</code> if the <code>Action</code> has a
+ *          non-<code>null</code> value for <code>LARGE_ICON_KEY</code> or
+ *          <code>SMALL_ICON</code>.
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>displayedMnemonicIndex</code></b>
+ *      <td>All buttons
+ *      <td><code>DISPLAYED_MNEMONIC_INDEX_KEY</code>
+ *      <td>If the value of <code>DISPLAYED_MNEMONIC_INDEX_KEY</code> is
+ *          beyond the bounds of the text, it is ignored.  When
+ *          <code>setAction</code> is called, if the value from the
+ *          <code>Action</code> is <code>null</code>, the displayed
+ *          mnemonic index is not updated.  In any subsequent changes to
+ *          <code>DISPLAYED_MNEMONIC_INDEX_KEY</code>, <code>null</code>
+ *          is treated as -1.
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>icon</code></b>
+ *      <td>All buttons except of <code>JCheckBox</code>,
+ *      <code>JToggleButton</code> and <code>JRadioButton</code>.
+ *      <td>either <code>LARGE_ICON_KEY</code> or
+ *          <code>SMALL_ICON</code>
+ *     <td>The <code>JMenuItem</code> subclasses only use
+ *         <code>SMALL_ICON</code>.  All other buttons will use
+ *         <code>LARGE_ICON_KEY</code>; if the value is <code>null</code> they
+ *         use <code>SMALL_ICON</code>.
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>accelerator</code></b>
+ *      <td>All <code>JMenuItem</code> subclasses, with the exception of
+ *          <code>JMenu</code>.
+ *      <td><code>ACCELERATOR_KEY</code>
+ *      <td>&nbsp;
+ *  <tr valign="top"  align="left">
+ *      <td><b><code>selected</code></b>
+ *      <td><code>JToggleButton</code>, <code>JCheckBox</code>,
+ *          <code>JRadioButton</code>, <code>JCheckBoxMenuItem</code> and
+ *          <code>JRadioButtonMenuItem</code>
+ *      <td><code>SELECTED_KEY</code>
+ *      <td>Components that honor this property only use
+ *          the value if it is {@code non-null}. For example, if
+ *          you set an {@code Action} that has a {@code null}
+ *          value for {@code SELECTED_KEY} on a {@code JToggleButton}, the
+ *          {@code JToggleButton} will not update it's selected state in
+ *          any way. Similarly, any time the {@code JToggleButton}'s 
+ *          selected state changes it will only set the value back on
+ *          the {@code Action} if the {@code Action} has a {@code non-null}
+ *          value for {@code SELECTED_KEY}.
+ *          <br>
+ *          Components that honor this property keep their selected state
+ *          in sync with this property. When the same {@code Action} is used
+ *          with multiple components, all the components keep their selected
+ *          state in sync with this property. Mutually exclusive
+ *          buttons, such as {@code JToggleButton}s in a {@code ButtonGroup},
+ *          force only one of the buttons to be selected. As such, do not
+ *          use the same {@code Action} that defines a value for the
+ *          {@code SELECTED_KEY} property with multiple mutually
+ *          exclusive buttons.
+ * </table>
+ * <p>
+ * <code>JPopupMenu</code>, <code>JToolBar</code> and <code>JMenu</code>
+ * all provide convenience methods for creating a component and setting the
+ * <code>Action</code> on the corresponding component.  Refer to each of
+ * these classes for more information.
+ * <p>
+ * <code>Action</code> uses <code>PropertyChangeListener</code> to
+ * inform listeners the <code>Action</code> has changed.  The beans
+ * specification indicates that a <code>null</code> property name can
+ * be used to indicate multiple values have changed.  By default Swing
+ * components that take an <code>Action</code> do not handle such a
+ * change.  To indicate that Swing should treat <code>null</code>
+ * according to the beans specification set the system property
+ * <code>swing.actions.reconfigureOnNull</code> to the <code>String</code>
+ * value <code>true</code>.
  *
- * @version 1.30 12/19/03
+ * @version 1.36 04/18/06
  * @author Georges Saab
  * @see AbstractAction
  */
@@ -107,7 +222,14 @@ public interface Action extends ActionListener {
     public static final String LONG_DESCRIPTION = "LongDescription";
     /**
      * The key used for storing a small <code>Icon</code>, such
-     * as <code>ImageIcon</code>, for the action, used for toolbar buttons.  
+     * as <code>ImageIcon</code>.  This is typically used with
+     * menus such as <code>JMenuItem</code>.
+     * <p>
+     * If the same <code>Action</code> is used with menus and buttons you'll
+     * typically specify both a <code>SMALL_ICON</code> and a
+     * <code>LARGE_ICON_KEY</code>.  The menu will use the
+     * <code>SMALL_ICON</code> and the button will use the
+     * <code>LARGE_ICON_KEY</code>.
      */
     public static final String SMALL_ICON = "SmallIcon";
 
@@ -129,12 +251,70 @@ public interface Action extends ActionListener {
     public static final String ACCELERATOR_KEY="AcceleratorKey";
     
     /**
-     * The key used for storing a <code>KeyEvent</code> to be used as
-     * the mnemonic for the action.
+     * The key used for storing an <code>Integer</code> that corresponds to
+     * one of the <code>KeyEvent</code> key codes.  The value is
+     * commonly used to specify a mnemonic.  For example:
+     * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A)</code>
+     * sets the mnemonic of <code>myAction</code> to 'a'.
      *
      * @since 1.3
      */
     public static final String MNEMONIC_KEY="MnemonicKey";
+
+    /**
+     * The key used for storing a <code>Boolean</code> that corresponds
+     * to the selected state.  This is typically used only for components
+     * that have a meaningful selection state.  For example,
+     * <code>JRadioButton</code> and <code>JCheckBox</code> make use of
+     * this but instances of <code>JMenu</code> don't.
+     * <p>
+     * This property differs from the others in that it is both read
+     * by the component and set by the component.  For example,
+     * if an <code>Action</code> is attached to a <code>JCheckBox</code>
+     * the selected state of the <code>JCheckBox</code> will be set from
+     * that of the <code>Action</code>.  If the user clicks on the
+     * <code>JCheckBox</code> the selected state of the <code>JCheckBox</code>
+     * <b>and</b> the <code>Action</code> will <b>both</b> be updated.
+     * <p>
+     * Note: the value of this field is prefixed with 'Swing' to
+     * avoid possible collisions with existing <code>Actions</code>.
+     *
+     * @since 1.6
+     */
+    public static final String SELECTED_KEY = "SwingSelectedKey";
+
+    /**
+     * The key used for storing an <code>Integer</code> that corresponds
+     * to the index in the text (identified by the <code>NAME</code>
+     * property) that the decoration for a mnemonic should be rendered at.  If
+     * the value of this property is greater than or equal to the length of
+     * the text, it will treated as -1.
+     * <p>
+     * Note: the value of this field is prefixed with 'Swing' to
+     * avoid possible collisions with existing <code>Actions</code>.
+     *
+     * @see AbstractButton#setDisplayedMnemonicIndex
+     * @since 1.6
+     */
+    public static final String DISPLAYED_MNEMONIC_INDEX_KEY =
+                                 "SwingDisplayedMnemonicIndexKey";
+
+    /**
+     * The key used for storing an <code>Icon</code>.  This is typically
+     * used by buttons, such as <code>JButton</code> and 
+     * <code>JToggleButton</code>.
+     * <p>
+     * If the same <code>Action</code> is used with menus and buttons you'll
+     * typically specify both a <code>SMALL_ICON</code> and a
+     * <code>LARGE_ICON_KEY</code>.  The menu will use the
+     * <code>SMALL_ICON</code> and the button the <code>LARGE_ICON_KEY</code>.
+     * <p>
+     * Note: the value of this field is prefixed with 'Swing' to
+     * avoid possible collisions with existing <code>Actions</code>.
+     *
+     * @since 1.6
+     */
+    public static final String LARGE_ICON_KEY = "SwingLargeIconKey";
 
     /**
      * Gets one of this object's properties

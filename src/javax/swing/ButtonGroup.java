@@ -1,7 +1,7 @@
 /*
- * @(#)ButtonGroup.java	1.37 04/05/05
+ * @(#)ButtonGroup.java	1.39 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -30,13 +30,7 @@ import java.io.Serializable;
  * because <code>JButton</code> and <code>JMenuItem</code>
  * don't implement the selected state.
  * <p>
- * Initially, all buttons in the group are unselected. Once any button is
- * selected, one button is always selected in the group. There is no way
- * to turn a button programmatically to "off", in order to clear the button
- * group. To give the appearance of "none selected", add an invisible radio
- * button to the group and then programmatically select that button to 
- * turn off all the displayed radio buttons. For example, a normal button
- * with the label "none" could be wired to select the invisible radio button.
+ * Initially, all buttons in the group are unselected. 
  * <p>
  * For examples and further information on using button groups see
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html#radiobutton">How to Use Radio Buttons</a>,
@@ -51,7 +45,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.37 05/05/04
+ * @version 1.39 11/17/05
  * @author Jeff Dinkins
  */
 public class ButtonGroup implements Serializable {
@@ -104,7 +98,21 @@ public class ButtonGroup implements Serializable {
         }
         b.getModel().setGroup(null);
     }
-
+    
+    /**
+     * Clears the selection such that none of the buttons 
+     * in the <code>ButtonGroup</code> are selected.
+     * 
+     * @since 1.6       
+     */ 
+    public void clearSelection() {
+        if (selection != null) {
+            ButtonModel oldSelection = selection;
+            selection = null;
+            oldSelection.setSelected(false);            
+        }
+    }
+ 
     /**
      * Returns all the buttons that are participating in
      * this group.

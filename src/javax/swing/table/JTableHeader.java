@@ -1,11 +1,13 @@
 /*
- * @(#)JTableHeader.java	1.66 03/12/19
+ * @(#)JTableHeader.java	1.75 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.table;
+
+import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 import java.util.*;
 import java.awt.*;
@@ -35,7 +37,7 @@ import java.io.IOException;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.66 12/19/03
+ * @version 1.75 04/07/06
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.JTable
@@ -125,7 +127,8 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
     public JTableHeader(TableColumnModel cm) {
 	super();
 
-	setFocusable(false);
+	//setFocusable(false); // for strict win/mac compatibility mode,
+                               // this method should be invoked
 
 	if (cm == null)
 	    cm = createDefaultColumnModel();
@@ -293,6 +296,7 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
      * Sets the default renderer to be used when no <code>headerRenderer</code>
      * is defined by a <code>TableColumn</code>.
      * @param  defaultRenderer  the default renderer
+     * @since 1.3
      */
     public void setDefaultRenderer(TableCellRenderer defaultRenderer) {
 	this.defaultRenderer = defaultRenderer;
@@ -302,6 +306,7 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
      * Returns the default renderer used when no <code>headerRenderer</code>
      * is defined by a <code>TableColumn</code>.  
      * @return the default renderer
+     * @since 1.3
      */
     public TableCellRenderer getDefaultRenderer() {
 	return defaultRenderer;
@@ -393,8 +398,9 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 		p.translate(-cellRect.x, -cellRect.y);
 		newEvent = new MouseEvent(component, event.getID(),
 					  event.getWhen(), event.getModifiers(),
-					  p.x, p.y, event.getClickCount(),
-					  event.isPopupTrigger());
+					  p.x, p.y, event.getXOnScreen(), event.getYOnScreen(),
+                                          event.getClickCount(),
+					  event.isPopupTrigger(), MouseEvent.NOBUTTON);
 
 		tip = ((JComponent)component).getToolTipText(newEvent);
 	    }
@@ -443,8 +449,11 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
      */
     public void updateUI(){
 	setUI((TableHeaderUI)UIManager.getUI(this));
-	resizeAndRepaint();
-	invalidate();//PENDING
+
+        TableCellRenderer renderer = getDefaultRenderer();
+        if (!(renderer instanceof UIResource) && renderer instanceof Component) {
+            SwingUtilities.updateComponentTreeUI((Component)renderer);
+        }
     }
 
 
@@ -595,30 +604,12 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
      *  is defined by a <code>TableColumn</code>. 
      *
      *  @return the default table column renderer
+     * @since 1.3
      */
     protected TableCellRenderer createDefaultRenderer() {
-	DefaultTableCellRenderer label = new UIResourceTableCellRenderer();
-	label.setHorizontalAlignment(JLabel.CENTER);
-	return label;
+	return new DefaultTableCellHeaderRenderer();
     }
 
-    private static class UIResourceTableCellRenderer extends DefaultTableCellRenderer implements UIResource {
-	    public Component getTableCellRendererComponent(JTable table, Object value,
-                         boolean isSelected, boolean hasFocus, int row, int column) {
-	        if (table != null) {
-	            JTableHeader header = table.getTableHeader();
-	            if (header != null) {
-	                setForeground(header.getForeground());
-	                setBackground(header.getBackground());
-	                setFont(header.getFont());
-	            }
-                }
-
-                setText((value == null) ? "" : value.toString());
-		setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-	        return this;
-            }
-    }
 
     /**
      * Initializes the local variables and properties with default values.
@@ -870,6 +861,7 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 
             /**
              *  Constructs an AccessiblJTableHeaaderEntry
+	     * @since 1.4
              */
             public AccessibleJTableHeaderEntry(int c, JTableHeader p, JTable t) {
                 parent = p;
@@ -949,15 +941,22 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
             public String getAccessibleName() {
                 AccessibleContext ac = getCurrentAccessibleContext();
                 if (ac != null) {
-		    String name = ac.getAccessibleName();
+                    String name = ac.getAccessibleName();
                     if ((name != null) && (name != "")) {
-			return ac.getAccessibleName();
-		    }
+                        // return the cell renderer's AccessibleName
+                        return name;
+                    }
                 }
-		if ((accessibleName != null) && (accessibleName != "")) {
-		    return accessibleName;
-		} else {
-                    return table.getColumnName(column);
+                if ((accessibleName != null) && (accessibleName != "")) {
+                    return accessibleName;
+                } else {
+                    // fall back to the client property
+                    String name = (String)getClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY);
+                    if (name != null) {
+                        return name;
+                    } else {
+                        return table.getColumnName(column);
+                    }
                 }
             }
 

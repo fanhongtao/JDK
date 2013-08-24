@@ -26,7 +26,7 @@ package org.w3c.dom;
  * are defined throughout the DOM Level 3 specifications. Names are 
  * case-insensitive. To avoid possible conflicts, as a convention, names 
  * referring to parameters defined outside the DOM specification should be 
- * made unique. Because parameters are exposed as properties in the , names 
+ * made unique. Because parameters are exposed as properties in names 
  * are recommended to follow the section 5.16 Identifiers of [Unicode] with the addition of the character '-' (HYPHEN-MINUS) but it is not 
  * enforced by the DOM implementation. DOM Level 3 Core Implementations are 
  * required to recognize all parameters defined in this specification. Some 

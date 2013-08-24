@@ -70,6 +70,8 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
+import javax.xml.stream.events.XMLEvent;
+
 
 /**
  * The scanner acts as the source for the document
@@ -96,11 +98,13 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  *  <li>http://apache.org/xml/properties/internal/entity-manager</li>
  *  <li>http://apache.org/xml/properties/internal/dtd-scanner</li>
  * </ul>
+ * 
+ * @xerces.internal
  *
  * @author Elena Litani, IBM
  * @author Michael Glavassevich, IBM
- * 
- * @version $Id: XML11NSDocumentScannerImpl.java,v 1.11 2004/04/30 15:36:38 mrglavas Exp $
+ * @author Sunitha Reddy, Sun Microsystems
+ * @version $Id: XML11NSDocumentScannerImpl.java,v 1.3 2005/10/03 14:55:33 sunithareddy Exp $
  */
 public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
 
@@ -131,6 +135,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
      */
     private boolean fSawSpace;
 
+    
     /**
      * The scanner is responsible for removing DTD validator
      * from the pipeline if it is not needed.
@@ -163,10 +168,10 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
      *          production [44].
      */
     protected boolean scanStartElement() throws IOException, XNIException {
-        if (DEBUG_CONTENT_SCANNING)
+        
+        if (DEBUG_START_END_ELEMENT)
             System.out.println(">>> scanStartElementNS()");
-
-        // Note: namespace processing is on by default
+                // Note: namespace processing is on by default
         fEntityScanner.scanQName(fElementQName);
         // REVISIT - [Q] Why do we need this local variable? -- mrglavas
         String rawname = fElementQName.rawname;
@@ -231,7 +236,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
             if (fSecurityManager != null && fAttributes.getLength() > fElementAttributeLimit){                
                 fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                              "ElementAttributeLimit",
-                                             new Object[]{rawname, new Integer(fAttributes.getLength()) },
+                                             new Object[]{rawname, new Integer(fElementAttributeLimit) },
                                              XMLErrorReporter.SEVERITY_FATAL_ERROR );
             }           
 
@@ -330,7 +335,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
         }
 
         // call handler
-        if (fDocumentHandler != null) {
+        
             if (empty) {
 
                 //decrease the markup depth..
@@ -344,18 +349,24 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
                 }
 
                 fDocumentHandler.emptyElement(fElementQName, fAttributes, null);
-
-                if (fBindNamespaces) {
+                
+                /*if (fBindNamespaces) {
                     fNamespaceContext.popContext();
-                }
+                }*/
+                fScanEndElement = true;
+                
                 //pop the element off the stack..
-                fElementStack.popElement(fElementQName);
+                fElementStack.popElement();
             } else {
+                
+                if(dtdGrammarUtil != null)
+                    dtdGrammarUtil.startElement(fElementQName, fAttributes); 
+                
+                if (fDocumentHandler != null)
                 fDocumentHandler.startElement(fElementQName, fAttributes, null);
             }
-        }
-
-        if (DEBUG_CONTENT_SCANNING)
+        
+        if (DEBUG_START_END_ELEMENT)
             System.out.println("<<< scanStartElement(): " + empty);
         return empty;
 
@@ -560,13 +571,13 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
                     fNamespaceContext.popContext();
                 }
                 //pop the element off the stack..
-                fElementStack.popElement(fElementQName);
+                fElementStack.popElement();
             } else {
                 fDocumentHandler.startElement(fElementQName, fAttributes, null);
             }
         }
 
-        if (DEBUG_CONTENT_SCANNING)
+        if (DEBUG_START_END_ELEMENT)
             System.out.println("<<< scanStartElementAfterName(): " + empty);
         return empty;
         
@@ -591,7 +602,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
      */
     protected void scanAttribute(XMLAttributesImpl attributes)
         throws IOException, XNIException {
-        if (DEBUG_CONTENT_SCANNING)
+        if (DEBUG_START_END_ELEMENT)
             System.out.println(">>> scanAttribute()");
 
         // name
@@ -733,7 +744,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
             }
         }
 
-        if (DEBUG_CONTENT_SCANNING)
+        if (DEBUG_START_END_ELEMENT)
             System.out.println("<<< scanAttribute()");
     } // scanAttribute(XMLAttributes)
 
@@ -752,12 +763,12 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
      * @return The element depth.
      */
     protected int scanEndElement() throws IOException, XNIException {
-        if (DEBUG_CONTENT_SCANNING)
+        if (DEBUG_START_END_ELEMENT)
             System.out.println(">>> scanEndElement()");
 
         // pop context
-        fElementStack.popElement(fElementQName);
-
+        QName endElementName = fElementStack.popElement();
+                
         // Take advantage of the fact that next string _should_ be "fElementQName.rawName",
         //In scanners most of the time is consumed on checks done for XML characters, we can
         // optimize on it and avoid the checks done for endElement,
@@ -767,10 +778,11 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
 
         //REVISIT: if the string is not the same as expected.. we need to do better error handling..
         //We can skip this for now... In any case if the string doesn't match -- document is not well formed.
-        if (!fEntityScanner.skipString(fElementQName.rawname)) {
-            reportFatalError(
+        
+        if (!fEntityScanner.skipString(endElementName.rawname)) {
+             reportFatalError(
                 "ETagRequired",
-                new Object[] { fElementQName.rawname });
+                new Object[] { endElementName.rawname });
         }
 
         // end
@@ -778,7 +790,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
         if (!fEntityScanner.skipChar('>')) {
             reportFatalError(
                 "ETagUnterminated",
-                new Object[] { fElementQName.rawname });
+                new Object[] { endElementName.rawname });
         }
         fMarkupDepth--;
 
@@ -788,20 +800,23 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
         // check that this element was opened in the same entity
         if (fMarkupDepth < fEntityStack[fEntityDepth - 1]) {
             reportFatalError(
-                "ElementEntityMismatch",
-                new Object[] { fCurrentElement.rawname });
+                "ElementEntityMismatch", 
+                new Object[] { endElementName.rawname });
         }
-
+        
         // call handler
         if (fDocumentHandler != null) {
-
-            fDocumentHandler.endElement(fElementQName, null);
-            if (fBindNamespaces) {
+            fDocumentHandler.endElement(endElementName, null);
+           
+            /*if (fBindNamespaces) {
                 fNamespaceContext.popContext();
-            }
-
+            }*/
+            
         }
-
+        
+        if(dtdGrammarUtil != null)
+            dtdGrammarUtil.endElement(endElementName);
+        
         return fMarkupDepth;
 
     } // scanEndElement():int
@@ -814,15 +829,34 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
         fBindNamespaces = false;
     }
 
-    /** Creates a content dispatcher. */
-    protected Dispatcher createContentDispatcher() {
-        return new NS11ContentDispatcher();
-    } // createContentDispatcher():Dispatcher
+    /** Creates a content Driver. */
+    protected Driver createContentDriver() {
+        return new NS11ContentDriver();
+    } // createContentDriver():Driver
 
-    /**
-     * Dispatcher to handle content scanning.
+    
+    /** return the next state on the input
+     *
+     * @return int
      */
-    protected final class NS11ContentDispatcher extends ContentDispatcher {
+    
+    public int next() throws IOException, XNIException {
+        //since namespace context should still be valid when the parser is at the end element state therefore
+        //we pop the context only when next() has been called after the end element state was encountered. - nb.
+        
+        if((fScannerLastState == XMLEvent.END_ELEMENT) && fBindNamespaces){
+            fScannerLastState = -1;
+            fNamespaceContext.popContext();
+        }
+        
+        return fScannerLastState = super.next();
+    }
+    
+    
+    /**
+     * Driver to handle content scanning.
+     */
+    protected final class NS11ContentDriver extends ContentDriver {
         /**
          * Scan for root element hook. This method is a hook for
          * subclasses to add code that handles scanning for the root
@@ -833,8 +867,8 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
          *
          * @return True if the caller should stop and return true which
          *          allows the scanner to switch to a new scanning
-         *          dispatcher. A return value of false indicates that
-         *          the content dispatcher should continue as normal.
+         *          Driver. A return value of false indicates that
+         *          the content Driver should continue as normal.
          */
         protected boolean scanRootElementHook()
             throws IOException, XNIException {
@@ -846,7 +880,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
                 reconfigurePipeline();
                 if (scanStartElementAfterName()) {
                     setScannerState(SCANNER_STATE_TRAILING_MISC);
-                    setDispatcher(fTrailingMiscDispatcher);
+                    setDriver(fTrailingMiscDriver);
                     return true;
                 }
             }
@@ -854,7 +888,7 @@ public class XML11NSDocumentScannerImpl extends XML11DocumentScannerImpl {
                 reconfigurePipeline();
                 if (scanStartElement()) {
                     setScannerState(SCANNER_STATE_TRAILING_MISC);
-                    setDispatcher(fTrailingMiscDispatcher);
+                    setDriver(fTrailingMiscDriver);
                     return true;
                 }
             }

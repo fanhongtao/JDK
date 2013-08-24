@@ -1,7 +1,7 @@
 /*
- * @(#)Button.java	1.77 04/05/05
+ * @(#)Button.java	1.82 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import javax.accessibility.*;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.77 05/05/04
+ * @version 	1.82 07/11/06
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener
@@ -72,8 +72,8 @@ public class Button extends Component implements Accessible {
     /**
      * The button's label.  This value may be null.  
      * @serial
-     * @see getLabel()
-     * @see setLabel()
+     * @see #getLabel()
+     * @see #setLabel(String)
      */
     String label;
 
@@ -81,8 +81,8 @@ public class Button extends Component implements Accessible {
      * The action to be performed once a button has been
      * pressed.  This value may be null. 
      * @serial
-     * @see getActionCommand()
-     * @see setActionCommand()
+     * @see #getActionCommand()
+     * @see #setActionCommand(String)
      */
     String actionCommand;
 
@@ -231,6 +231,8 @@ public class Button extends Component implements Accessible {
      * this button. Action events occur when a user presses or releases
      * the mouse over this button.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         l the action listener
      * @see           #removeActionListener
@@ -251,6 +253,8 @@ public class Button extends Component implements Accessible {
      * receives action events from this button. Action events occur
      * when a user presses or releases the mouse over this button.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         	l     the action listener
      * @see           	#addActionListener
@@ -492,6 +496,7 @@ public class Button extends Component implements Accessible {
      * @beaninfo
      *       expert: true
      *  description: The AccessibleContext associated with this Button.
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -504,6 +509,7 @@ public class Button extends Component implements Accessible {
      * This class implements accessibility support for the 
      * <code>Button</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to button user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTButton extends AccessibleAWTComponent
         implements AccessibleAction, AccessibleValue
@@ -607,7 +613,7 @@ public class Button extends Component implements Accessible {
          * @see javax.swing.AbstractButton#isSelected()
          */
         public Number getCurrentAccessibleValue() {
-            return new Integer(0);
+            return Integer.valueOf(0);
         }
 
         /**
@@ -625,7 +631,7 @@ public class Button extends Component implements Accessible {
          * @return An Integer of 0.
          */
         public Number getMinimumAccessibleValue() {
-            return new Integer(0);
+            return Integer.valueOf(0);
         }
 
         /**
@@ -634,7 +640,7 @@ public class Button extends Component implements Accessible {
          * @return An Integer of 0.
          */
         public Number getMaximumAccessibleValue() {
-            return new Integer(0);
+            return Integer.valueOf(0);
         }
 
         /**

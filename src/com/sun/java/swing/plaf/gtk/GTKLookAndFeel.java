@@ -1,33 +1,37 @@
 /*
- * @(#)GTKLookAndFeel.java	1.74 05/03/30
+ * @(#)GTKLookAndFeel.java	1.105 06/08/03
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.lang.ref.*;
 import javax.swing.plaf.synth.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.File;
-import java.lang.reflect.*;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.*;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.colorchooser.*;
 import javax.swing.plaf.*;
 import javax.swing.text.DefaultEditorKit;
 import java.io.IOException;
 
+import com.sun.java.swing.plaf.gtk.GTKConstants.PositionType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.StateType;
+import sun.awt.SunToolkit;
 import sun.security.action.GetPropertyAction;
+import sun.swing.DefaultLayoutStyle;
 
 /**
- * @version 1.74, 03/30/05
+ * @version 1.105, 08/03/06
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -35,22 +39,26 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
     /**
      * Whether or not text is drawn antialiased.  This keys off the
-     * desktop property 'gnome.Xft/Antialias'.
+     * desktop property 'gnome.Xft/Antialias' and 'gnome.Xft/RGBA'
+     * We should assume ON - or some variation of ON as no GTK desktop
+     * ships with it OFF.
      */
-    static Boolean aaText = Boolean.FALSE;
+    static Object aaTextInfo;
 
     /**
-     * Whether or not the default locale is CJK. If it is,
-     * the GNOME desktop property for antialiasing is ignored
-     * and the text is always rendered w/o aa.
-     * This is done to be consistent with what GTK does - they
-     * disable text aa for CJK locales as well.
-     *
-     * Note: this doesn't work well with changing locales
-     * at runtime. But most of Swing/2D code (including fonts
-     * initialization) doesn't either.
+     * Solaris, or Linux with Sun JDS in a CJK Locale.
+     * Used to determine if Sun's high quality CJK fonts are present.
      */
-    static boolean cjkLocale;
+    private static boolean isSunCJK;
+
+    /*
+     * Used to override if system (desktop) text anti-aliasing settings should
+     * be used. The reasons for this are are is that currently its "off"
+     * for CJK locales which is not likely to be a good universal answer, and
+     * also its off for remote display. So this provides an unsupported
+     * way to explicitly request that it be "on".
+     */
+    private static boolean gtkAAFontSettingsCond;
 
     /**
      * Font to use in places where there is no widget.
@@ -62,6 +70,17 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
      * method.
      */
     private boolean inInitialize;
+    
+
+    /**
+     * StyleFactory needs to be created only the first time.
+     */
+    private GTKStyleFactory styleFactory;
+    
+    /**
+     * Cached theme name. Used by GTKGraphicsUtils
+     */
+    private static String gtkThemeName = "Default";
 
     static {
         // Backup for specifying the version, this isn't currently documented.
@@ -73,6 +92,35 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         }
         else {
             IS_22 = true;
+        }
+
+        String language = Locale.getDefault().getLanguage();
+        boolean cjkLocale =
+            (Locale.CHINESE.getLanguage().equals(language) ||
+             Locale.JAPANESE.getLanguage().equals(language) ||
+             Locale.KOREAN.getLanguage().equals(language));
+
+        if (cjkLocale) {
+            boolean isSunDesktop = false;
+            String osName = System.getProperty("os.name");
+            if (osName != null) {
+                if (osName.equals("SunOS")) {
+                    isSunDesktop = true;
+                } else if (osName.equals("Linux")) {
+                    Boolean val =
+                        (Boolean)java.security.AccessController.doPrivileged(
+                            new java.security.PrivilegedAction() {
+                                    public Object run() {
+                                        File f = new File("/etc/sun-release");
+                                        return Boolean.valueOf(f.exists());
+                                    }
+                                });
+                    isSunDesktop = val.booleanValue();
+                }
+            }
+            if (isSunDesktop) {
+                isSunCJK = true;
+            }
         }
     }
 
@@ -90,19 +138,46 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
     /**
      * Maps a swing constant to a GTK constant.
      */
-    static int SwingOrientationConstantToGTK(int side) {
+    static PositionType SwingOrientationConstantToGTK(int side) {
         switch (side) {
         case SwingConstants.LEFT:
-            return GTKConstants.LEFT;
+            return PositionType.LEFT;
         case SwingConstants.RIGHT:
-            return GTKConstants.RIGHT;
+            return PositionType.RIGHT;
         case SwingConstants.TOP:
-            return GTKConstants.TOP;
+            return PositionType.TOP;
         case SwingConstants.BOTTOM:
-            return GTKConstants.BOTTOM;
+            return PositionType.BOTTOM;
         }
-        assert false : "Unknowning orientation: " + side;
-        return side;
+        assert false : "Unknown orientation: " + side;
+        return PositionType.TOP;
+    }
+
+    /**
+     * Maps from Synth state to native GTK state using typesafe enumeration
+     * StateType.  This is only used by the GTKNativeEngine.
+     */
+    static StateType synthStateToGTKStateType(int state) {
+        StateType result;
+        switch (state) {
+            case SynthConstants.PRESSED:
+                result = StateType.ACTIVE;
+                break;
+            case SynthConstants.MOUSE_OVER:
+                result = StateType.PRELIGHT;
+                break;
+            case SynthConstants.SELECTED:
+                result = StateType.SELECTED;
+                break;
+            case SynthConstants.DISABLED:
+                result = StateType.INSENSITIVE;
+                break;
+            case SynthConstants.ENABLED:
+            default: 
+                result = StateType.NORMAL;
+                break;
+        }
+        return result;
     }
 
     /**
@@ -113,18 +188,15 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
      * <tr><td>SynthConstants.PRESSED<td>ACTIVE
      * <tr><td>SynthConstants.SELECTED<td>SELECTED
      * <tr><td>SynthConstants.MOUSE_OVER<td>PRELIGHT
-     * <tr><td>SynthConstants.DISABLED<td>INACTIVE
+     * <tr><td>SynthConstants.DISABLED<td>INSENSITIVE
      * <tr><td>SynthConstants.ENABLED<td>NORMAL
      * </table>
      * Additionally some widgets are special cased.
      */
     static int synthStateToGTKState(Region region, int state) {
-        int orgState = state;
-
         if ((state & SynthConstants.PRESSED) != 0) {
             if (region == Region.RADIO_BUTTON
                     || region == Region.CHECK_BOX
-                    || region == Region.TOGGLE_BUTTON
                     || region == Region.MENU
                     || region == Region.MENU_ITEM
                     || region == Region.RADIO_BUTTON_MENU_ITEM
@@ -134,8 +206,18 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             } else {
                 state = SynthConstants.PRESSED;
             }
-        }
-        else if ((state & SynthConstants.SELECTED) != 0) {
+
+        } else if (region == Region.TABBED_PANE_TAB) {
+            if ((state & SynthConstants.DISABLED) != 0) {
+                state = SynthConstants.DISABLED;
+            }
+            else if ((state & SynthConstants.SELECTED) != 0) {
+                state = SynthConstants.ENABLED;
+            } else {
+                state = SynthConstants.PRESSED;
+            }
+            
+        } else if ((state & SynthConstants.SELECTED) != 0) {
             if (region == Region.MENU) {
                 state = SynthConstants.MOUSE_OVER;
             } else if (region == Region.RADIO_BUTTON ||
@@ -144,30 +226,30 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                           region == Region.CHECK_BOX_MENU_ITEM ||
                           region == Region.CHECK_BOX ||
                           region == Region.BUTTON) {
+                if ((state & SynthConstants.DISABLED) != 0) {
+                    state = SynthConstants.DISABLED;
+                }
                 // If the button is SELECTED and is PRELIGHT we need to
                 // make the state MOUSE_OVER otherwise we don't paint the
                 // PRELIGHT.
-                if ((state & SynthConstants.MOUSE_OVER) != 0) {
+                else if ((state & SynthConstants.MOUSE_OVER) != 0) {
                     state = SynthConstants.MOUSE_OVER;
                 } else {
                     state = SynthConstants.PRESSED;
                 }
-            } else if (region == Region.TABBED_PANE_TAB) {
-                state = SynthConstants.ENABLED;
             } else {
                 state = SynthConstants.SELECTED;
             }
         }
+
         else if ((state & SynthConstants.MOUSE_OVER) != 0) {
             state = SynthConstants.MOUSE_OVER;
         }
-        else if ((state & SynthConstants.DISABLED) != 0) {
-            state = SynthConstants.DISABLED;
-        }
+        else if ((state & SynthConstants.DISABLED) != 0) { 
+            state = SynthConstants.DISABLED; 
+        } 
         else {
             if (region == Region.SLIDER_TRACK) {
-                state = SynthConstants.PRESSED;
-            } else if (region == Region.TABBED_PANE_TAB) {
                 state = SynthConstants.PRESSED;
             } else {
                 state = SynthConstants.ENABLED;
@@ -194,6 +276,12 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         // We need to call super for basic's properties file.
         UIDefaults table = super.getDefaults();
 
+        // SynthTabbedPaneUI supports rollover on tabs, GTK does not
+        table.put("TabbedPane.isTabRollover", Boolean.TRUE);
+
+        // Prevents Synth from setting text AA by itself
+        table.put("Synth.doNotSetTextAA", true);
+        
         initResourceBundle(table);
         // For compatability with apps expecting certain defaults we'll
         // populate the table with the values from basic.
@@ -219,11 +307,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "getSelectedCellBorder");
 
         GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory(); 
-        GTKStyle tableStyle = (GTKStyle)factory.getStyle("GtkTreeView");
-        Color tableFocusCellBg = tableStyle.getColorForState(null, Region.TABLE,
-                SynthConstants.ENABLED, GTKColorType.BACKGROUND);
-        Color tableFocusCellFg = tableStyle.getColorForState(null, Region.TABLE,
-                SynthConstants.ENABLED, GTKColorType.FOREGROUND);
+        GTKStyle tableStyle = (GTKStyle)factory.getStyle(null, Region.TREE);
+        Color tableFocusCellBg = tableStyle.getGTKColor(SynthConstants.ENABLED,
+                GTKColorType.BACKGROUND);
+        Color tableFocusCellFg = tableStyle.getGTKColor(SynthConstants.ENABLED,
+                GTKColorType.FOREGROUND);
         
         Integer caretBlinkRate = new Integer(500);
         Insets zeroInsets = new InsetsUIResource(0, 0, 0, 0);
@@ -238,6 +326,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                          "COPY", DefaultEditorKit.copyAction,
                         "PASTE", DefaultEditorKit.pasteAction,
                           "CUT", DefaultEditorKit.cutAction,
+               "control INSERT", DefaultEditorKit.copyAction, 
+                 "shift INSERT", DefaultEditorKit.pasteAction, 
+                 "shift DELETE", DefaultEditorKit.cutAction, 
                    "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                 "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                   "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -256,8 +347,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                    "shift HOME", DefaultEditorKit.selectionBeginLineAction,
                     "shift END", DefaultEditorKit.selectionEndLineAction,
                    "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+             "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                        "ctrl H", DefaultEditorKit.deletePrevCharAction,
                        "DELETE", DefaultEditorKit.deleteNextCharAction,
+                  "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+              "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                         "RIGHT", DefaultEditorKit.forwardAction,
                          "LEFT", DefaultEditorKit.backwardAction,
                      "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -274,6 +368,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                          "COPY", DefaultEditorKit.copyAction,
                         "PASTE", DefaultEditorKit.pasteAction,
                           "CUT", DefaultEditorKit.cutAction,
+               "control INSERT", DefaultEditorKit.copyAction, 
+                 "shift INSERT", DefaultEditorKit.pasteAction, 
+                 "shift DELETE", DefaultEditorKit.cutAction, 
                    "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                 "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                   "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -292,6 +389,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                    "shift HOME", DefaultEditorKit.selectionBeginLineAction,
                     "shift END", DefaultEditorKit.selectionEndLineAction,
                    "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+             "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                        "ctrl H", DefaultEditorKit.deletePrevCharAction,
                        "DELETE", DefaultEditorKit.deleteNextCharAction,
                         "RIGHT", DefaultEditorKit.forwardAction,
@@ -312,6 +410,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "COPY", DefaultEditorKit.copyAction,
                             "PASTE", DefaultEditorKit.pasteAction,
                               "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction, 
+                     "shift INSERT", DefaultEditorKit.pasteAction, 
+                     "shift DELETE", DefaultEditorKit.cutAction, 
                        "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                       "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -346,8 +447,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                     "shift KP_DOWN", DefaultEditorKit.selectionDownAction,
                             "ENTER", DefaultEditorKit.insertBreakAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction, 
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -371,10 +475,8 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             }
             public Object createValue(UIDefaults table) {
                 GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory();
-                GTKStyle style = (GTKStyle)factory.getStyle(
-                        GTKStyleFactory.gtkClassFor(region));
-                return style.getFontForState(
-                        null, region, SynthConstants.ENABLED);
+                GTKStyle style = (GTKStyle)factory.getStyle(null, region);
+                return style.getFontForState(null, region, SynthConstants.ENABLED);
             }
         }
         
@@ -387,14 +489,14 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                          "SPACE", "pressed",
                 "released SPACE", "released",
                          "ENTER", "pressed",
-                "released ENTER", "released"
+                "released ENTER", "released" 
               }),
             "Button.font", new FontLazyValue(Region.BUTTON),
 
 
 	    "CheckBox.focusInputMap", new UIDefaults.LazyInputMap(new Object[]{
                          "SPACE", "pressed",
-                "released SPACE", "released",
+                "released SPACE", "released" 
               }),
             "CheckBox.icon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
@@ -443,6 +545,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
 		 }),
             "ComboBox.font", new FontLazyValue(Region.COMBO_BOX),
+            "ComboBox.isEnterSelectablePopup", Boolean.TRUE,
 
 
             "EditorPane.caretForeground", caretColor,
@@ -455,7 +558,8 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
 	    "FileChooser.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "cancelSelection"
+                     "ESCAPE", "cancelSelection",
+                 "ctrl ENTER", "approveSelection"
 		 }),
             "FileChooserUI", "com.sun.java.swing.plaf.gtk.GTKLookAndFeel",
 
@@ -471,6 +575,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "COPY", DefaultEditorKit.copyAction,
                             "PASTE", DefaultEditorKit.pasteAction,
                               "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction, 
+                     "shift INSERT", DefaultEditorKit.pasteAction, 
+                     "shift DELETE", DefaultEditorKit.cutAction, 
                        "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                       "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -489,8 +596,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                        "shift HOME", DefaultEditorKit.selectionBeginLineAction,
                         "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -518,6 +628,10 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "InternalFrame.layoutTitlePaneAtOrigin", Boolean.TRUE,
             "InternalFrame.useTaskBar", Boolean.TRUE,
 
+            "InternalFrameTitlePane.iconifyButtonOpacity", null,
+            "InternalFrameTitlePane.maximizeButtonOpacity", null,
+            "InternalFrameTitlePane.closeButtonOpacity", null,
+
             "Label.font", new FontLazyValue(Region.LABEL), 
 
             "List.focusCellHighlightBorder", focusBorder,
@@ -530,7 +644,10 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "COPY", "copy",
                             "PASTE", "paste",
                               "CUT", "cut",
-		               "UP", "selectPreviousRow",
+                   "control INSERT", "copy", 
+                     "shift INSERT", "paste", 
+                     "shift DELETE", "cut", 
+                               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
 		      "shift KP_UP", "selectPreviousRowExtendSelection",
@@ -624,6 +741,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "MenuItem.arrowIcon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getMenuItemArrowIcon"),
+            "MenuItem.checkIcon", null,
             "MenuItem.font", new FontLazyValue(Region.MENU_ITEM),
             "MenuItem.margin", zeroInsets,
 
@@ -680,7 +798,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                    new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
                    "released SPACE", "released",
-                           "RETURN", "pressed"
+                           "RETURN", "pressed" 
 	           }),
             "RadioButton.icon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
@@ -737,6 +855,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                     }),
 
 
+	    "Spinner.disableOnBoundaryValues", Boolean.TRUE,
             "ScrollPane.ancestorInputMap",
                     new UIDefaults.LazyInputMap(new Object[] {
 		           "RIGHT", "unitScrollRight",
@@ -801,7 +920,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                           "KP_DOWN", "decrement",
                }),
             "Spinner.font", new FontLazyValue(Region.SPINNER),
-
+            "Spinner.editorAlignment", JTextField.LEADING,
 
             "SplitPane.ancestorInputMap",
                     new UIDefaults.LazyInputMap(new Object[] {
@@ -867,6 +986,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                                  "COPY", "copy",
                                 "PASTE", "paste",
                                   "CUT", "cut",
+                       "control INSERT", "copy", 
+                         "shift INSERT", "paste", 
+                         "shift DELETE", "cut", 
                                 "RIGHT", "selectNextColumn",
                              "KP_RIGHT", "selectNextColumn",
                           "shift RIGHT", "selectNextColumnExtendSelection",
@@ -927,7 +1049,8 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                                 "SPACE", "addToSelection",
                            "ctrl SPACE", "toggleAndAnchor",
                           "shift SPACE", "extendTo",
-                     "ctrl shift SPACE", "moveSelectionTo"
+                     "ctrl shift SPACE", "moveSelectionTo",
+                                   "F8", "focusHeader"
                     }),
             "Table.ancestorInputMap.RightToLeft",
                     new UIDefaults.LazyInputMap(new Object[] {
@@ -953,6 +1076,12 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                  "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
                     }),
             "Table.font", new FontLazyValue(Region.TABLE),
+            "Table.ascendingSortIcon",  new GTKStyle.GTKLazyValue(
+                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
+                              "getAscendingSortIcon"),
+            "Table.descendingSortIcon",  new GTKStyle.GTKLazyValue(
+                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
+                              "getDescendingSortIcon"),
             
             "TableHeader.font", new FontLazyValue(Region.TABLE_HEADER),
 
@@ -988,7 +1117,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 	    "ToggleButton.focusInputMap",
                    new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
-                   "released SPACE", "released"
+                   "released SPACE", "released" 
 	           }),
             "ToggleButton.font", new FontLazyValue(Region.TOGGLE_BUTTON),
 
@@ -1020,6 +1149,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "Tree.rowHeight", new Integer(-1),
             "Tree.scrollsOnExpand", Boolean.FALSE,
             "Tree.expanderSize", new Integer(10),
+            "Tree.repaintWholeRow", Boolean.TRUE,
 	    "Tree.closedIcon", null,
 	    "Tree.leafIcon", null,
 	    "Tree.openIcon", null,
@@ -1041,6 +1171,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                                    "COPY", "copy",
                                   "PASTE", "paste",
                                     "CUT", "cut",
+                         "control INSERT", "copy", 
+                           "shift INSERT", "paste", 
+                           "shift DELETE", "cut", 
 		                     "UP", "selectPrevious",
 		                  "KP_UP", "selectPrevious",
 		               "shift UP", "selectPreviousExtendSelection",
@@ -1113,23 +1246,27 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         if (fallbackFont != null) {
             table.put("TitledBorder.font", fallbackFont);
         }
+        aaTextInfo =
+            SwingUtilities2.AATextInfo.getAATextInfo(gtkAAFontSettingsCond);
+	table.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
     }
 
     protected void initSystemColorDefaults(UIDefaults table) {
         GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory();
-        GTKStyle windowStyle = (GTKStyle)factory.getStyle("GtkWindow");
+        GTKStyle windowStyle =
+                (GTKStyle)factory.getStyle(null, Region.INTERNAL_FRAME);
         table.put("window", windowStyle.getGTKColor(SynthConstants.ENABLED,
-                                                    GTKColorType.BACKGROUND));
-        table.put("windowText", windowStyle.getGTKColor(
-                SynthConstants.ENABLED, GTKColorType.TEXT_FOREGROUND));
+                GTKColorType.BACKGROUND));
+        table.put("windowText", windowStyle.getGTKColor(SynthConstants.ENABLED,
+                GTKColorType.TEXT_FOREGROUND));
 
-        GTKStyle entryStyle = (GTKStyle)factory.getStyle("GtkEntry");
+        GTKStyle entryStyle = (GTKStyle)factory.getStyle(null, Region.TEXT_FIELD);
         table.put("text", entryStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.TEXT_BACKGROUND));
         table.put("textText", entryStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.TEXT_FOREGROUND));
         table.put("textHighlight",
-                  entryStyle.getGTKColor(SynthConstants.SELECTED,
+                entryStyle.getGTKColor(SynthConstants.SELECTED,
                                          GTKColorType.TEXT_BACKGROUND));
         table.put("textHighlightText",
                   entryStyle.getGTKColor(SynthConstants.SELECTED,
@@ -1144,7 +1281,31 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         }
         table.put("caretColor", caretColor);
         
-        GTKStyle widgetStyle = (GTKStyle)factory.getStyle("GtkWidget");
+        GTKStyle menuStyle = (GTKStyle)factory.getStyle(null, Region.MENU_ITEM);
+        table.put("menu", menuStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.BACKGROUND));
+        table.put("menuText", menuStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.TEXT_FOREGROUND));
+        
+        GTKStyle scrollbarStyle = (GTKStyle)factory.getStyle(null, Region.SCROLL_BAR);
+        table.put("scrollbar", scrollbarStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.BACKGROUND));
+        
+        GTKStyle infoStyle = (GTKStyle)factory.getStyle(null, Region.OPTION_PANE);
+        table.put("info", infoStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.BACKGROUND));
+        table.put("infoText", infoStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.TEXT_FOREGROUND));
+        
+        GTKStyle desktopStyle = (GTKStyle)factory.getStyle(null, Region.DESKTOP_PANE);
+        table.put("desktop", desktopStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.BACKGROUND));
+        
+        // colors specific only for GTK
+        // It is impossible to create a simple GtkWidget without specifying the 
+        // type. So for GtkWidget we can use any appropriate concrete type of
+        // wigdet. LABEL in this case.
+        GTKStyle widgetStyle = (GTKStyle)factory.getStyle(null, Region.LABEL);
         table.put("control", widgetStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.BACKGROUND));
         table.put("controlText", widgetStyle.getGTKColor(
@@ -1159,29 +1320,6 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 SynthConstants.ENABLED, GTKColorType.DARK));
         table.put("controlDkShadow", widgetStyle.getGTKColor(
                 SynthConstants.ENABLED, GTKColorType.BLACK));
-        
-        
-        GTKStyle menuStyle = (GTKStyle)factory.getStyle("GtkMenuItem");
-        table.put("menu", menuStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.BACKGROUND));
-        table.put("menuText", menuStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.TEXT_FOREGROUND));
-        
-        GTKStyle scrollbarStyle = (GTKStyle)factory.getStyle("GtkScrollbar");
-        table.put("scrollbar", scrollbarStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.BACKGROUND));
-        
-        GTKStyle infoStyle = (GTKStyle)factory.getStyle("GtkMessageDialog");
-        table.put("info", scrollbarStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.BACKGROUND));
-        table.put("infoText", scrollbarStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.TEXT_FOREGROUND));
-        
-        GTKStyle desktopStyle = (GTKStyle)factory.getStyle("GtkContainer");
-        table.put("desktop", scrollbarStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.BACKGROUND));
-        
-        // colors specific only for GTK
         table.put("light", widgetStyle.getGTKColor(
                 SynthConstants.ENABLED, GTKColorType.LIGHT));
         table.put("mid", widgetStyle.getGTKColor(
@@ -1205,44 +1343,22 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 	}
         return SynthLookAndFeel.createUI(c);
     }
-
+    
     /**
-     * Updates the <code>aaText</code> field.
+     * Returns the cached gtkThemeName
      */
-    static void updateAAText() {
-        if (!cjkLocale) {
-            Object aaValue = Toolkit.getDefaultToolkit().
-                getDesktopProperty("gnome.Xft/Antialias");
-            aaText = Boolean.valueOf(((aaValue instanceof Number) &&
-                                      ((Number)aaValue).intValue() == 1));
-        }
+    static String getGtkThemeName() {
+        return gtkThemeName;
     }
-
+    
     static boolean isLeftToRight(Component c) {
         return c.getComponentOrientation().isLeftToRight();
     }
 
-    private static boolean isLocalDisplay() {
-        try {
-            Class x11Class = Class.forName("sun.awt.X11GraphicsEnvironment");
-            Method isDisplayLocalMethod = x11Class.getMethod(
-                      "isDisplayLocal", new Class[0]);
-            return (Boolean)isDisplayLocalMethod.invoke(null, null);
-        } catch (NoSuchMethodException nsme) {
-        } catch (ClassNotFoundException cnfe) {
-        } catch (IllegalAccessException iae) {
-        } catch (InvocationTargetException ite) {
-        }
-        // If we get here we're most likely being run on Windows, return
-        // false.
-        return false;
-    }
-
-
     public void initialize() {
         super.initialize();
         inInitialize = true;
-        loadStylesFromThemeFiles();
+        loadStyles();
         inInitialize = false;
 
         Toolkit kit = Toolkit.getDefaultToolkit();
@@ -1253,17 +1369,24 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         pcl = new WeakPCL(this, kit, "gnome.Xft/DPI");
         kit.addPropertyChangeListener(pcl.getKey(), pcl);
 
-        String language = Locale.getDefault().getLanguage();
-        cjkLocale = 
-            (Locale.CHINESE.getLanguage().equals(language) ||
-             Locale.JAPANESE.getLanguage().equals(language) ||
-             Locale.KOREAN.getLanguage().equals(language));
+        /*
+         * Check if system AA font settings should be used.
+         * Sun's JDS (for Linux and Solaris) ships with high quality CJK
+         * fonts and specifies via fontconfig that these be rendered in
+         * B&W to take advantage of the embedded bitmaps.
+         * If is a Sun CJK locale or remote display, indicate by the condition
+         * variable that in this case the L&F recommends ignoring desktop
+         * settings. On other Unixes (eg Linux) this doesn't apply.
+         * REMIND 1: The isSunCJK test is really just a place holder
+         * until we can properly query fontconfig and use the properties
+         * set for specific fonts.
+         * REMIND 2: See comment on isLocalDisplay() definition regarding
+         * XRender.
+         */
+        gtkAAFontSettingsCond = !isSunCJK && SwingUtilities2.isLocalDisplay();
+        pcl = new WeakPCL(this, kit, SunToolkit.DESKTOPFONTHINTS);
+        kit.addPropertyChangeListener(pcl.getKey(), pcl);
 
-        if (isLocalDisplay()) {
-            pcl = new WeakPCL(this, kit, "gnome.Xft/Antialias");
-            kit.addPropertyChangeListener(pcl.getKey(), pcl);
-            updateAAText();
-        }
         flushUnreferenced();
     }
 
@@ -1293,7 +1416,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         public void propertyChange(final PropertyChangeEvent pce) {
             final GTKLookAndFeel lnf = (GTKLookAndFeel)get();
 
-            if (lnf == null || UIManager.getLookAndFeel() != lnf) { 
+            if (lnf == null || UIManager.getLookAndFeel() != lnf) {
                 // The property was GC'ed, we're no longer interested in
                 // PropertyChanges, remove the listener.
                 dispose();
@@ -1303,11 +1426,18 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 // on the AWT-Motif thread which can cause a deadlock.
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        if ("gnome.Xft/Antialias".equals(
-                                                  pce.getPropertyName())) {
-                            updateAAText();
+                        String name = pce.getPropertyName();
+                        /* We are listening for GTK desktop text AA settings: 
+                         * "gnome.Xft/Antialias" and "gnome.Xft/RGBA".
+                         * However we don't need to read these here as
+                         * the UIDefaults reads them and this event causes
+                         * those to be reinitialised.
+                         */
+                        if ("gnome.Net/ThemeName".equals(name)) {
+                            GTKEngine.INSTANCE.themeChanged();
+                            GTKIconFactory.resetIcons();
                         }
-                        lnf.loadStylesFromThemeFiles();
+                        lnf.loadStyles();
                         Frame appFrames[] = Frame.getFrames();
                         for (int i = 0; i < appFrames.length; i++) {
                             SynthLookAndFeel.updateStyles(appFrames[i]);
@@ -1324,7 +1454,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
     public void propertyChange(PropertyChangeEvent evt) {
         String propertyName = evt.getPropertyName();
-	loadStylesFromThemeFiles();
+        loadStyles();
         Frame appFrames[] = Frame.getFrames();
         for (int i = 0; i < appFrames.length; i++) {
             SynthLookAndFeel.updateStyles(appFrames[i]);
@@ -1357,77 +1487,12 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         super.loadSystemColors(table, systemColors, false);
     }
 
-    private void loadStylesFromThemeFiles() {
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                GTKParser parser = new GTKParser();
+    private void loadStyles() {
+        gtkThemeName = (String)Toolkit.getDefaultToolkit().
+                getDesktopProperty("gnome.Net/ThemeName");
 
-                // GTK rc file parsing:
-                // First, attempts to load the file specified in the
-                // swing.gtkthemefile system property.
-                // RC files come from one of the following locations:
-                // 1 - environment variable GTK2_RC_FILES, which is colon
-                //     separated list of rc files or
-                // 2 - SYSCONFDIR/gtk-2.0/gtkrc and ~/.gtkrc-2.0
-                // 
-                // Additionally the default Theme file is parsed last. The default
-                // theme name comes from the desktop property gnome.Net/ThemeName
-                //     Default theme is looked for in ~/.themes/THEME/gtk-2.0/gtkrc
-                //     and env variable GTK_DATA_PREFIX/THEME/gtkrc or
-                //     GTK_DATA_PREFIX/THEME/gtk-2.0/gtkrc
-                //     (or compiled GTK_DATA_PREFIX) GTK_DATA_PREFIX is
-                //     /usr/share/themes on debian,
-                //     /usr/sfw/share/themes on Solaris.
-                // Lastly key bindings are supposed to come from a different theme
-                // with the path built as above, using the desktop property
-                // named gnome.Gtk/KeyThemeName.
-
-                // Try system property override first:
-                String filename = System.getProperty("swing.gtkthemefile");
-                String sep = File.separator;
-
-                if (filename == null || !parseThemeFile(filename, parser)) {
-	            // Try to load user's theme first
-	            String userHome = System.getProperty("user.home");
-	            if (userHome != null) {
-                        parseThemeFile(userHome + sep + ".gtkrc-2.0", parser);
-	            }
-	            // Now try to load "Default" theme
-	            String themeName = (String)Toolkit.getDefaultToolkit().
-                        getDesktopProperty("gnome.Net/ThemeName");
-	            if (themeName == null) {
-	        	themeName = "Default";
-	            }
-                    String[] dirs = new String[] {
-                        userHome + "/.themes",
-                        System.getProperty("swing.gtkthemedir"),
-                        "/usr/share/themes" // Debian/Redhat/Solaris/SuSE
-                    };
-
-                    String themeDirName = null;
-                    // Find the first existing rc file in the list.
-                    for (int i = 0; i < dirs.length; i++) {
-                        if (dirs[i] == null) {
-                            continue;
-                        }
-
-                        if (new File(dirs[i] + sep + themeName + sep +
-                                    "gtk-2.0" + sep + "gtkrc").canRead()) {
-                            themeDirName = dirs[i];
-                            break;
-                        }
-                    }
-
-                    if (themeDirName != null) {
-                        parseThemeFile(themeDirName + sep + themeName + sep +
-                                "gtk-2.0" + sep + "gtkrc", parser);
-                    }
-	        }
-                setStyleFactory(handleParsedData(parser));
-                parser.clearParser();
-		return null;
-	    }
-	});
+        setStyleFactory(getGTKStyleFactory());
+        
         // If we are in initialize initializations will be
         // called later, don't do it now.
         if (!inInitialize) {
@@ -1436,65 +1501,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             initComponentDefaults(table);            
         }
     }
-
-    private boolean parseThemeFile(String fileName, GTKParser parser) {
-        File file = new File(fileName);
-	if (file.exists()) {
-            try {
-                parser.parseFile(file, fileName);
-            } catch (IOException ioe) {
-                System.err.println("error: (" + ioe.toString()
-                                   + ") while parsing file: \""
-                                   + fileName
-                                   + "\"");
-            }
-            return true;
-	}
-        return false; // file doesn't exist
-    }
-
-    /**
-     * This method is responsible for handling the data that was parsed.
-     * One of it's jobs is to fetch and deal with the GTK settings stored
-     * in the parser. It's other job is to create a style factory with an
-     * appropriate default style, load into it the styles from the parser,
-     * and return that factory.
-     */
-    private GTKStyleFactory handleParsedData(GTKParser parser) {
-        HashMap settings = parser.getGTKSettings();
-
-        /*
-         * The following is a list of the settings that GTK supports and their meanings.
-         * Currently, we only support a subset ("gtk-font-name" and "gtk-icon-sizes"):
-         *
-         *   "gtk-can-change-accels"     : Whether menu accelerators can be changed
-         *                                 by pressing a key over the menu item.
-         *   "gtk-color-palette"         : Palette to use in the color selector.
-         *   "gtk-cursor-blink"          : Whether the cursor should blink.
-         *   "gtk-cursor-blink-time"     : Length of the cursor blink cycle, in milleseconds.
-         *   "gtk-dnd-drag-threshold"    : Number of pixels the cursor can move before dragging.
-         *   "gtk-double-click-time"     : Maximum time allowed between two clicks for them
-         *                                 to be considered a double click (in milliseconds).
-         *   "gtk-entry-select-on-focus" : Whether to select the contents of an entry when it
-         *                                 is focused.
-         *   "gtk-font-name"             : Name of default font to use.
-         *   "gtk-icon-sizes"            : List of icon sizes (gtk-menu=16,16:gtk-button=20,20...
-         *   "gtk-key-theme-name"        : Name of key theme RC file to load.
-         *   "gtk-menu-bar-accel"        : Keybinding to activate the menu bar.
-         *   "gtk-menu-bar-popup-delay"  : Delay before the submenus of a menu bar appear.
-         *   "gtk-menu-popdown-delay"    : The time before hiding a submenu when the pointer is
-         *                                 moving towards the submenu.
-         *   "gtk-menu-popup-delay"      : Minimum time the pointer must stay over a menu item
-         *                                 before the submenu appear.
-         *   "gtk-split-cursor"          : Whether two cursors should be displayed for mixed
-         *                                 left-to-right and right-to-left text.
-         *   "gtk-theme-name"            : Name of theme RC file to load.
-         *   "gtk-toolbar-icon-size"     : Size of icons in default toolbars.
-         *   "gtk-toolbar-style"         : Whether default toolbars have text only, text and icons,
-         *                                 icons only, etc.
-         */
-
-        Object iconSizes = settings.get("gtk-icon-sizes");
+    
+    private GTKStyleFactory getGTKStyleFactory() {
+        
+        GTKEngine engine = GTKEngine.INSTANCE;
+        Object iconSizes = engine.getSetting(GTKEngine.Settings.GTK_ICON_SIZES);
         if (iconSizes instanceof String) {
             if (!configIconSizes((String)iconSizes)) {
                 System.err.println("Error parsing gtk-icon-sizes string: '" + iconSizes + "'");
@@ -1505,19 +1516,22 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         Object fontName = Toolkit.getDefaultToolkit().getDesktopProperty(
                                   "gnome.Gtk/FontName");
 
-        if (!(fontName instanceof String)) {
-            fontName = settings.get("gtk-font-name");
+       if (!(fontName instanceof String)) {
+            fontName = engine.getSetting(GTKEngine.Settings.GTK_FONT_NAME);
             if (!(fontName instanceof String)) {
-                fontName = "sans 10";
+               fontName = "sans 10";
             }
         }
-        Font defaultFont = PangoFonts.lookupFont((String)fontName);
-        GTKStyle defaultStyle = new GTKStyle(defaultFont);
-        GTKStyleFactory factory = new GTKStyleFactory(defaultStyle);
 
-        parser.loadStylesInto(factory);
+        if (styleFactory == null) {
+            styleFactory = new GTKStyleFactory();
+        }
+
+        Font defaultFont = PangoFonts.lookupFont((String)fontName);
         fallbackFont = defaultFont;
-        return factory;
+        styleFactory.initStyles(defaultFont);
+
+        return styleFactory;
     }
 
     private boolean configIconSizes(String sizeString) {
@@ -1579,5 +1593,74 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
      */
     public boolean shouldUpdateStyleOnAncestorChanged() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public LayoutStyle getLayoutStyle() {
+        return GnomeLayoutStyle.INSTANCE;
+    }
+
+
+    /**
+     * Gnome layout style.  From:
+     * http://developer.gnome.org/projects/gup/hig/2.0/design-window.html#window-layout-spacing
+     * You'll notice this doesn't do the radiobutton/checkbox border
+     * adjustments that windows/metal do.  This is because gtk doesn't
+     * provide margins/insets for checkbox/radiobuttons.
+     */
+    private static class GnomeLayoutStyle extends DefaultLayoutStyle {
+        private static GnomeLayoutStyle INSTANCE = new GnomeLayoutStyle();
+
+        @Override
+        public int getPreferredGap(JComponent component1,
+                JComponent component2, ComponentPlacement type, int position,
+                Container parent) {
+            // Checks args
+            super.getPreferredGap(component1, component2, type, position,
+                                  parent);
+
+            switch(type) {
+            case INDENT:
+                if (position == SwingConstants.EAST ||
+                        position == SwingConstants.WEST) {
+                    // Indent group members 12 pixels to denote hierarchy and
+                    // association.
+                    return 12;
+                }
+                // Fall through to related
+            // As a basic rule of thumb, leave space between user
+            // interface components in increments of 6 pixels, going up as
+            // the relationship between related elements becomes more
+            // distant. For example, between icon labels and associated
+            // graphics within an icon, 6 pixels are adequate. Between
+            // labels and associated components, leave 12 horizontal
+            // pixels. For vertical spacing between groups of components,
+            // 18 pixels is adequate.
+            //
+            // The first part of this is handled automatically by Icon (which
+            // won't give you 6 pixels).
+            case RELATED:
+                if (isLabelAndNonlabel(component1, component2, position)) {
+                    return 12;
+                }
+                return 6;
+            case UNRELATED:
+                return 12;
+            }
+            return 0;
+        }
+
+        @Override
+        public int getContainerGap(JComponent component, int position,
+                                   Container parent) {
+            // Checks args
+            super.getContainerGap(component, position, parent);
+            // A general padding of 12 pixels is
+            // recommended between the contents of a dialog window and the
+            // window borders.
+            return 12;
+        }
     }
 }

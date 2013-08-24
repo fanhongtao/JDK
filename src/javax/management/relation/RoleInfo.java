@@ -1,7 +1,7 @@
 /*
- * @(#)RoleInfo.java	1.34 03/12/19
+ * @(#)RoleInfo.java	1.40 05/12/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,6 +27,8 @@ import com.sun.jmx.mbeanserver.Introspector;
 /**
  * A RoleInfo object summarises a role in a relation type.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>2504952983494636987L</code>.
+ * 
  * @since 1.5
  */
 public class RoleInfo implements Serializable {
@@ -82,8 +84,8 @@ public class RoleInfo implements Serializable {
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -106,7 +108,7 @@ public class RoleInfo implements Serializable {
     /**
      * To specify an unlimited cardinality.
      */
-    public static int ROLE_CARDINALITY_INFINITY = -1;
+    public static final int ROLE_CARDINALITY_INFINITY = -1;
 
     //
     // Private members
@@ -154,24 +156,24 @@ public class RoleInfo implements Serializable {
     /**
      * Constructor.
      *
-     * @param theName  name of the role.
-     * @param theRefMBeanClassName  name of the class of MBean(s) expected to
+     * @param roleName  name of the role.
+     * @param mbeanClassName  name of the class of MBean(s) expected to
      * be referenced in corresponding role.  If an MBean <em>M</em> is in
      * this role, then the MBean server must return true for
-     * {@link MBeanServer#isInstanceOf isInstanceOf(M, theRefMBeanClassName)}.
-     * @param theIsReadable  flag to indicate if the corresponding role
+     * {@link MBeanServer#isInstanceOf isInstanceOf(M, mbeanClassName)}.
+     * @param read  flag to indicate if the corresponding role
      * can be read
-     * @param theIsWritable  flag to indicate if the corresponding role
+     * @param write  flag to indicate if the corresponding role
      * can be set
-     * @param theMinDegree  minimum degree for role, i.e. minimum number of
+     * @param min  minimum degree for role, i.e. minimum number of
      * MBeans to provide in corresponding role
-     * Must be less or equal than theMaxDegree.
+     * Must be less than or equal to <tt>max</tt>.
      * (ROLE_CARDINALITY_INFINITY for unlimited)
-     * @param theMaxDegree  maximum degree for role, i.e. maximum number of
+     * @param max  maximum degree for role, i.e. maximum number of
      * MBeans to provide in corresponding role
-     * Must be greater or equal than theMinDegree
+     * Must be greater than or equal to <tt>min</tt>
      * (ROLE_CARDINALITY_INFINITY for unlimited)
-     * @param theDescription  description of the role (can be null)
+     * @param descr  description of the role (can be null)
      *
      * @exception IllegalArgumentException  if null parameter
      * @exception InvalidRoleInfoException  if the minimum degree is
@@ -179,42 +181,42 @@ public class RoleInfo implements Serializable {
      * @exception ClassNotFoundException As of JMX 1.2, this exception
      * can no longer be thrown.  It is retained in the declaration of
      * this class for compatibility with existing code.
-     * @exception NotCompliantMBeanException  if the class theRefMBeanClassName
+     * @exception NotCompliantMBeanException  if the class mbeanClassName
      * is not a MBean class.
      */
-    public RoleInfo(String theName,
-		    String theRefMBeanClassName,
-		    boolean theIsReadable,
-		    boolean theIsWritable,
-		    int theMinDegree,
-		    int theMaxDegree,
-		    String theDescription)
+    public RoleInfo(String roleName,
+		    String mbeanClassName,
+		    boolean read,
+		    boolean write,
+		    int min,
+		    int max,
+		    String descr)
     throws IllegalArgumentException,
 	   InvalidRoleInfoException,
            ClassNotFoundException,
            NotCompliantMBeanException {
 
-	init(theName,
-	     theRefMBeanClassName,
-	     theIsReadable,
-	     theIsWritable,
-	     theMinDegree,
-	     theMaxDegree,
-	     theDescription);
+	init(roleName,
+	     mbeanClassName,
+	     read,
+	     write,
+	     min,
+	     max,
+	     descr);
 	return;
     }
 
     /**
      * Constructor.
      *
-     * @param theName  name of the role
-     * @param theRefMBeanClassName  name of the class of MBean(s) expected to
+     * @param roleName  name of the role
+     * @param mbeanClassName  name of the class of MBean(s) expected to
      * be referenced in corresponding role.  If an MBean <em>M</em> is in
      * this role, then the MBean server must return true for
-     * {@link MBeanServer#isInstanceOf isInstanceOf(M, theRefMBeanClassName)}.
-     * @param theIsReadable  flag to indicate if the corresponding role
+     * {@link MBeanServer#isInstanceOf isInstanceOf(M, mbeanClassName)}.
+     * @param read  flag to indicate if the corresponding role
      * can be read
-     * @param theIsWritable  flag to indicate if the corresponding role
+     * @param write  flag to indicate if the corresponding role
      * can be set
      *
      * <P>Minimum and maximum degrees defaulted to 1.
@@ -228,19 +230,19 @@ public class RoleInfo implements Serializable {
      * exception can no longer be thrown.  It is retained in the
      * declaration of this class for compatibility with existing code.
      */
-    public RoleInfo(String theName,
-		    String theRefMBeanClassName,
-		    boolean theIsReadable,
-		    boolean theIsWritable)
+    public RoleInfo(String roleName,
+		    String mbeanClassName,
+		    boolean read,
+		    boolean write)
     throws IllegalArgumentException,
 	   ClassNotFoundException,
            NotCompliantMBeanException {
 
 	try {
-	    init(theName,
-		 theRefMBeanClassName,
-		 theIsReadable,
-		 theIsWritable,
+	    init(roleName,
+		 mbeanClassName,
+		 read,
+		 write,
 		 1,
 		 1,
 		 null);
@@ -255,11 +257,11 @@ public class RoleInfo implements Serializable {
     /**
      * Constructor.
      *
-     * @param theName  name of the role
-     * @param theRefMBeanClassName  name of the class of MBean(s) expected to
+     * @param roleName  name of the role
+     * @param mbeanClassName  name of the class of MBean(s) expected to
      * be referenced in corresponding role.  If an MBean <em>M</em> is in
      * this role, then the MBean server must return true for
-     * {@link MBeanServer#isInstanceOf isInstanceOf(M, theRefMBeanClassName)}.
+     * {@link MBeanServer#isInstanceOf isInstanceOf(M, mbeanClassName)}.
      *
      * <P>IsReadable and IsWritable defaulted to true.
      * <P>Minimum and maximum degrees defaulted to 1.
@@ -273,15 +275,15 @@ public class RoleInfo implements Serializable {
      * exception can no longer be thrown.  It is retained in the
      * declaration of this class for compatibility with existing code.
       */
-    public RoleInfo(String theName,
-		    String theRefMBeanClassName)
+    public RoleInfo(String roleName,
+		    String mbeanClassName)
     throws IllegalArgumentException,
 	   ClassNotFoundException,
            NotCompliantMBeanException {
 
 	try {
-	    init(theName,
-		 theRefMBeanClassName,
+	    init(roleName,
+		 mbeanClassName,
 		 true,
 		 true,
 		 1,
@@ -298,30 +300,30 @@ public class RoleInfo implements Serializable {
     /**
      * Copy constructor.
      *
-     * @param theRoleInfo the RoleInfo to be copied.
+     * @param roleInfo the <tt>RoleInfo</tt> instance to be copied.
      *
      * @exception IllegalArgumentException  if null parameter
      */
-    public RoleInfo(RoleInfo theRoleInfo)
+    public RoleInfo(RoleInfo roleInfo)
 	throws IllegalArgumentException {
 
-	if (theRoleInfo == null) {
+	if (roleInfo == null) {
 	    // Revisit [cebro] Localize message
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
 	try {
-	    init(theRoleInfo.getName(),
-		 theRoleInfo.getRefMBeanClassName(),
-		 theRoleInfo.isReadable(),
-		 theRoleInfo.isWritable(),
-		 theRoleInfo.getMinDegree(),
-		 theRoleInfo.getMaxDegree(),
-		 theRoleInfo.getDescription());
+	    init(roleInfo.getName(),
+		 roleInfo.getRefMBeanClassName(),
+		 roleInfo.isReadable(),
+		 roleInfo.isWritable(),
+		 roleInfo.getMinDegree(),
+		 roleInfo.getMaxDegree(),
+		 roleInfo.getDescription());
 	} catch (InvalidRoleInfoException exc3) {
 	    // OK : Can never happen as the minimum degree and the maximum
-	    //      degree were already checked at the time the theRoleInfo
+	    //      degree were already checked at the time the roleInfo
 	    //      instance was created.
 	}
     }
@@ -395,17 +397,17 @@ public class RoleInfo implements Serializable {
     }
 
     /**
-     * Returns a boolean to specify if given value is greater or equal than
-     * expected minimum degree (true if yes).
+     * Returns true if the <tt>value</tt> parameter is greater than or equal to
+     * the expected minimum degree, false otherwise.
      *
-     * @param theValue  value
+     * @param value  the value to be checked
      *
-     * @return true if greater or equal than minimum degree, false otherwise.
+     * @return true if greater than or equal to minimum degree, false otherwise.
      */
-    public boolean checkMinDegree(int theValue) {
-	if (theValue >= ROLE_CARDINALITY_INFINITY &&
+    public boolean checkMinDegree(int value) {
+	if (value >= ROLE_CARDINALITY_INFINITY &&
 	    (minDegree == ROLE_CARDINALITY_INFINITY
-	     || theValue >= minDegree)) {
+	     || value >= minDegree)) {
 	    return true;
 	} else {
 	    return false;
@@ -413,18 +415,18 @@ public class RoleInfo implements Serializable {
     }
 
     /**
-     * Returns a boolean to specify if given value is less or equal than
-     * expected maximum degree (true if yes).
+     * Returns true if the <tt>value</tt> parameter is lower than or equal to
+     * the expected maximum degree, false otherwise.
      *
-     * @param theValue  value
+     * @param value  the value to be checked
      *
-     * @return true if less or equal than maximum degree, false otherwise.
+     * @return true if lower than or equal to maximum degree, false otherwise.
      */
-    public boolean checkMaxDegree(int theValue) {
-	if (theValue >= ROLE_CARDINALITY_INFINITY &&
+    public boolean checkMaxDegree(int value) {
+	if (value >= ROLE_CARDINALITY_INFINITY &&
 	    (maxDegree == ROLE_CARDINALITY_INFINITY ||
-	     (theValue != ROLE_CARDINALITY_INFINITY &&
-	      theValue <= maxDegree))) {
+	     (value != ROLE_CARDINALITY_INFINITY &&
+	      value <= maxDegree))) {
 	    return true;
 	} else {
 	    return false;
@@ -452,45 +454,45 @@ public class RoleInfo implements Serializable {
     // Misc
     //
 
-    // Initialisation
-    private void init(String theName,
-		      String theRefMBeanClassName,
-		      boolean theIsReadable,
-		      boolean theIsWritable,
-		      int theMinDegree,
-		      int theMaxDegree,
-		      String theDescription)
+    // Initialization
+    private void init(String roleName,
+		      String mbeanClassName,
+		      boolean read,
+		      boolean write,
+		      int min,
+		      int max,
+		      String descr)
 	    throws IllegalArgumentException,
 		   InvalidRoleInfoException {
 
-	if (theName == null ||
-	    theRefMBeanClassName == null) {
+	if (roleName == null ||
+	    mbeanClassName == null) {
 	    // Revisit [cebro] Localize message
 	    String excMsg = "Invalid parameter.";
 	    throw new IllegalArgumentException(excMsg);
 	}
 
-	name = theName;
-	isReadable = theIsReadable;
-	isWritable = theIsWritable;
-	if (theDescription != null) {
-	    description = theDescription;
+	name = roleName;
+	isReadable = read;
+	isWritable = write;
+	if (descr != null) {
+	    description = descr;
 	}
 
 	boolean invalidRoleInfoFlg = false;
 	StringBuffer excMsgStrB = new StringBuffer();
-	if (theMaxDegree != ROLE_CARDINALITY_INFINITY &&
-	    (theMinDegree == ROLE_CARDINALITY_INFINITY ||
-	     theMinDegree > theMaxDegree)) {
+	if (max != ROLE_CARDINALITY_INFINITY &&
+	    (min == ROLE_CARDINALITY_INFINITY ||
+	     min > max)) {
 	    // Revisit [cebro] Localize message
 	    excMsgStrB.append("Minimum degree ");
-	    excMsgStrB.append(theMinDegree);
+	    excMsgStrB.append(min);
 	    excMsgStrB.append(" is greater than maximum degree ");
-	    excMsgStrB.append(theMaxDegree);
+	    excMsgStrB.append(max);
 	    invalidRoleInfoFlg = true;
 
-	} else if (theMinDegree < ROLE_CARDINALITY_INFINITY ||
-		   theMaxDegree < ROLE_CARDINALITY_INFINITY) {
+	} else if (min < ROLE_CARDINALITY_INFINITY ||
+		   max < ROLE_CARDINALITY_INFINITY) {
 	    // Revisit [cebro] Localize message
 	    excMsgStrB.append("Minimum or maximum degree has an illegal value, must be [0, ROLE_CARDINALITY_INFINITY].");
 	    invalidRoleInfoFlg = true;
@@ -498,10 +500,10 @@ public class RoleInfo implements Serializable {
 	if (invalidRoleInfoFlg) {
 	    throw new InvalidRoleInfoException(excMsgStrB.toString());
 	}
-	minDegree = theMinDegree;
-	maxDegree = theMaxDegree;
+	minDegree = min;
+	maxDegree = max;
 
-        referencedMBeanClassName = theRefMBeanClassName;
+        referencedMBeanClassName = mbeanClassName;
 
 	return;
     }    

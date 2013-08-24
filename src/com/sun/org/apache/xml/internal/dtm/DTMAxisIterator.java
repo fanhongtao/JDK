@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMAxisIterator.java,v 1.7 2004/02/16 23:03:44 minchau Exp $
+ * $Id: DTMAxisIterator.java,v 1.2.4.1 2005/09/15 08:14:52 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 

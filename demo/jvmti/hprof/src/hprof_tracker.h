@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_tracker.h	1.7 04/07/27
+ * @(#)hprof_tracker.h	1.9 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,7 +43,8 @@
 #define OBJECT_INIT_NAME	"<init>"
 #define OBJECT_INIT_SIG		"()V"
 
-#define TRACKER_CLASS_NAME      "sun/tools/hprof/Tracker"
+#define TRACKER_PACKAGE         "com/sun/demo/jvmti/hprof"
+#define TRACKER_CLASS_NAME      TRACKER_PACKAGE "/Tracker"
 #define TRACKER_CLASS_SIG       "L" TRACKER_CLASS_NAME ";"
 
 #define TRACKER_NEWARRAY_NAME        "NewArray"

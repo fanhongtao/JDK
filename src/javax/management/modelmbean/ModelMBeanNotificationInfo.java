@@ -1,8 +1,8 @@
 /*
  * @(#)file      ModelMBeanNotificationInfo.java
  * @(#)author    IBM Corp.
- * @(#)version   1.35
- * @(#)lastedit      04/02/10
+ * @(#)version   1.40
+ * @(#)lastedit      05/12/29
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -68,14 +68,16 @@ import com.sun.jmx.trace.Trace;
  * The default descriptor contains the name, descriptorType, displayName  
  * and severity(=6) fields.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-7445681389570207141L</code>.
+ * 
  * @since 1.5
  */
 
 // Sun Microsystems, Sept. 2002: Revisited for JMX 1.2 (DF)
 //
-public class ModelMBeanNotificationInfo extends MBeanNotificationInfo 
-	 implements DescriptorAccess, Cloneable
-{
+public class ModelMBeanNotificationInfo
+    extends MBeanNotificationInfo
+    implements DescriptorAccess {
 
     // Serialization compatibility stuff:
     // Two serial forms are supported in this class. The selected form 
@@ -112,8 +114,8 @@ public class ModelMBeanNotificationInfo extends MBeanNotificationInfo
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: No compat with 1.0
@@ -384,7 +386,7 @@ public class ModelMBeanNotificationInfo extends MBeanNotificationInfo
 	    throw new RuntimeOperationsException(new 
 		IllegalArgumentException(
 	        "Invalid descriptor passed in parameter"), 
-	        "Exception occured in ModelMBeanNotificationInfo " + ftag);
+	        "Exception occurred in ModelMBeanNotificationInfo " + ftag);
 	}
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)JSplitPane.java	1.76 03/12/19
+ * @(#)JSplitPane.java	1.79 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,6 +61,11 @@ import java.io.IOException;
  * the default, indicates the right/bottom component gets all the space,
  * where as a value of 1 indicates the left/top component gets all the space.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -73,7 +78,7 @@ import java.io.IOException;
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.76 12/19/03
+ * @version 1.79 08/08/06
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible
@@ -163,7 +168,7 @@ public class JSplitPane extends JComponent implements Accessible
 
     /**
      * Bound property for weight.
-     * @since 1.3.
+     * @since 1.3
      */
     public final static String RESIZE_WEIGHT_PROPERTY = "resizeWeight";
 

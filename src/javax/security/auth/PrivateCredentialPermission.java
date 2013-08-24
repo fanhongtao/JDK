@@ -1,7 +1,7 @@
 /*
- * @(#)PrivateCredentialPermission.java	1.31 03/12/19
+ * @(#)PrivateCredentialPermission.java	1.32 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,7 +82,7 @@ import sun.security.util.ResourcesMgr;
  * "a.b.Principal" with the name, "duke", and "c.d.Principal", with the name,
  * "dukette".
  *
- * @version 1.31, 12/19/03
+ * @version 1.32, 11/17/05
  */
 public final class PrivateCredentialPermission extends Permission {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Image.java	1.39 03/12/19
+ * @(#)Image.java	1.43 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -13,12 +13,14 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.AreaAveragingScaleFilter;
 import java.awt.image.ReplicateScaleFilter;
 
+import sun.awt.image.SurfaceManager;
+
 /**
  * The abstract class <code>Image</code> is the superclass of all 
  * classes that represent graphical images. The image must be 
  * obtained in a platform-specific manner.
  *
- * @version 	1.39, 12/19/03
+ * @version 	1.43, 04/07/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -104,7 +106,7 @@ public abstract class Image {
      * @param       name   a property name.
      * @param       observer   an object waiting for this image to be loaded.
      * @return      the value of the named property.
-     * @throws      <code>NullPointerException<code> if the property name is null.
+     * @throws      <code>NullPointerException</code> if the property name is null.
      * @see         java.awt.image.ImageObserver
      * @see         java.awt.Image#UndefinedProperty
      */
@@ -200,22 +202,47 @@ public abstract class Image {
     public static final int SCALE_AREA_AVERAGING = 16;
 
     /**
-     * Flushes all resources being used by this Image object.  This
-     * includes any pixel data that is being cached for rendering to
+     * Flushes all reconstructable resources being used by this Image object.
+     * This includes any pixel data that is being cached for rendering to
      * the screen as well as any system resources that are being used
-     * to store data or pixels for the image.  The image is reset to
-     * a state similar to when it was first created so that if it is
-     * again rendered, the image data will have to be recreated or
-     * fetched again from its source.
+     * to store data or pixels for the image if they can be recreated.
+     * The image is reset to a state similar to when it was first created
+     * so that if it is again rendered, the image data will have to be
+     * recreated or fetched again from its source.
      * <p>
-     * This method always leaves the image in a state such that it can 
-     * be reconstructed.  This means the method applies only to cached 
-     * or other secondary representations of images such as those that 
-     * have been generated from an <tt>ImageProducer</tt> (read from a 
-     * file, for example). It does nothing for off-screen images that 
-     * have only one copy of their data.
+     * Examples of how this method affects specific types of Image object:
+     * <ul>
+     * <li>
+     * BufferedImage objects leave the primary Raster which stores their
+     * pixels untouched, but flush any information cached about those
+     * pixels such as copies uploaded to the display hardware for
+     * accelerated blits.
+     * <li>
+     * Image objects created by the Component methods which take a
+     * width and height leave their primary buffer of pixels untouched,
+     * but have all cached information released much like is done for
+     * BufferedImage objects.
+     * <li>
+     * VolatileImage objects release all of their pixel resources
+     * including their primary copy which is typically stored on
+     * the display hardware where resources are scarce.
+     * These objects can later be restored using their
+     * {@link java.awt.image.VolatileImage#validate validate}
+     * method.
+     * <li>
+     * Image objects created by the Toolkit and Component classes which are
+     * loaded from files, URLs or produced by an {@link ImageProducer}
+     * are unloaded and all local resources are released.
+     * These objects can later be reloaded from their original source
+     * as needed when they are rendered, just as when they were first
+     * created.
+     * </ul>
      */
-    public abstract void flush();
+    public void flush() {
+        if (surfaceManager != null) {
+            surfaceManager.flush();
+        }
+    }
 
     /**
      * Returns an ImageCapabilities object which can be
@@ -235,15 +262,20 @@ public abstract class Image {
      * @return an <code>ImageCapabilities</code> object that contains
      * the capabilities of this <code>Image</code> on the specified
      * GraphicsConfiguration.
-     * @see #java.awt.image.VolatileImage.getCapabilities()
+     * @see java.awt.image.VolatileImage#getCapabilities()
      * VolatileImage.getCapabilities()
      * @since 1.5
      */
     public ImageCapabilities getCapabilities(GraphicsConfiguration gc) {
-	// Note: this is just a default object that gets returned by the
-	// base Image object.  Subclasses of Image should override this
-	// method and return an ImageCapabilities object that is appropriate
-	// for a given instance of that subclass.
+	if (surfaceManager != null) {
+	    return surfaceManager.getCapabilities(gc);
+	}
+	// Note: this is just a default object that gets returned in the
+	// absence of any more specific information from a surfaceManager.
+	// Subclasses of Image should either override this method or
+	// make sure that they always have a non-null SurfaceManager
+	// to return an ImageCapabilities object that is appropriate
+	// for their given subclass type.
 	return defaultImageCaps;
     }
     
@@ -254,7 +286,7 @@ public abstract class Image {
      * resources such as video memory.  When and if it is possible to
      * accelerate this Image, if there are not enough resources available
      * to provide that acceleration but enough can be freed up by
-     * de-acceleration some other image of lower priority, then that other
+     * de-accelerating some other image of lower priority, then that other
      * Image may be de-accelerated in deference to this one.  Images
      * that have the same priority take up resources on a first-come,
      * first-served basis.
@@ -273,6 +305,9 @@ public abstract class Image {
 					       "between 0 and 1, inclusive");
         }
 	accelerationPriority = priority;
+        if (surfaceManager != null) {
+            surfaceManager.setAccelerationPriority(accelerationPriority);
+        }
     }
 
     /**
@@ -284,5 +319,18 @@ public abstract class Image {
      */
     public float getAccelerationPriority() {
 	return accelerationPriority;
+    }
+
+    SurfaceManager surfaceManager;
+
+    static {
+	SurfaceManager.setImageAccessor(new SurfaceManager.ImageAccessor() {
+	    public SurfaceManager getSurfaceManager(Image img) {
+		return img.surfaceManager;
+	    }
+	    public void setSurfaceManager(Image img, SurfaceManager mgr) {
+		img.surfaceManager = mgr;
+	    }
+	});
     }
 }

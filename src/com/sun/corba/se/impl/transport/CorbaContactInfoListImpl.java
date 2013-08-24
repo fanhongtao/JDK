@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaContactInfoListImpl.java	1.37 05/05/27
+ * @(#)CorbaContactInfoListImpl.java	1.37 06/08/14
  * 
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -119,7 +119,7 @@ public class CorbaContactInfoListImpl
 
     public synchronized int hashCode()
     {
-	    return targetIOR.hashCode();
+	return targetIOR.hashCode();
     }
 
     ////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 /*
- * @(#)AudioFileFormat.java	1.23 03/12/19
+ * @(#)AudioFileFormat.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,7 +80,7 @@ import java.util.Map;
  * @author David Rivas
  * @author Kara Kytle
  * @author Florian Bomers
- * @version 1.23 03/12/19
+ * @version 1.24 05/11/17
  * @see AudioInputStream
  * @since 1.3
  */

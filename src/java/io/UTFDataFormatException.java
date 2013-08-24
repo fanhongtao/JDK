@@ -1,7 +1,7 @@
 /*
- * @(#)UTFDataFormatException.java	1.13 04/05/13
+ * @(#)UTFDataFormatException.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.io;
  * which modified UTF-8 strings are read and written.
  *
  * @author  Frank Yellin
- * @version 1.13, 05/13/04
+ * @version 1.14, 11/17/05
  * @see     java.io.DataInput
  * @see     java.io.DataInputStream#readUTF(java.io.DataInput)
  * @see     java.io.IOException

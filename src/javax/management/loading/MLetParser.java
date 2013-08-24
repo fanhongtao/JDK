@@ -1,7 +1,7 @@
 /*
- * @(#)MLetParser.java	1.26 04/04/16
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MLetParser.java	1.29 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,14 +17,16 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.File;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.sun.jmx.trace.Trace;
 
 
 /**
- * This class is used for parsing URLs. 
+ * This class is used for parsing URLs.
  *
  * @since 1.5
  */
@@ -35,7 +37,7 @@ class MLetParser {
   *   PRIVATE VARIABLES
   * ------------------------------------------
   */
-    
+
     /**
      * The current character
      */
@@ -45,13 +47,13 @@ class MLetParser {
      * Tag to parse.
      */
     private static String tag = "mlet";
-    
+
     /**
      * The name of this class to be used for trace messages
      */
     private String dbgTag = "MLetParser";
-    
-    
+
+
   /*
   * ------------------------------------------
   *   CONSTRUCTORS
@@ -63,13 +65,13 @@ class MLetParser {
      */
     public MLetParser() {
     }
-    
+
     /*
      * ------------------------------------------
      *   PUBLIC METHODS
      * ------------------------------------------
      */
-    
+
     /**
      * Scan spaces.
      */
@@ -78,12 +80,12 @@ class MLetParser {
 	    c = in.read();
 	}
     }
-    
+
     /**
      * Scan identifier
      */
     public String scanIdentifier(Reader in) throws IOException {
-	StringBuffer buf = new StringBuffer();
+	StringBuilder buf = new StringBuilder();
 	while (true) {
 	    if (((c >= 'a') && (c <= 'z')) ||
 		((c >= 'A') && (c <= 'Z')) ||
@@ -95,14 +97,16 @@ class MLetParser {
 	    }
 	}
     }
-    
+
     /**
      * Scan tag
      */
-    public Hashtable scanTag(Reader in) throws IOException {
-	Hashtable atts = new Hashtable();
+    public Map<String,String> scanTag(Reader in) throws IOException {
+	Map<String,String> atts = new HashMap<String,String>();
 	skipSpace(in);
 	while (c >= 0 && c != '>') {
+            if (c == '<')
+                throw new IOException("Missing '>' in tag");
 	    String att = scanIdentifier(in);
 	    String val = "";
 	    skipSpace(in);
@@ -114,7 +118,7 @@ class MLetParser {
 		    quote = c;
 		    c = in.read();
 		}
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		while ((c > 0) &&
 		       (((quote < 0) && (c != ' ') && (c != '\t') &&
 			 (c != '\n') && (c != '\r') && (c != '>'))
@@ -133,34 +137,36 @@ class MLetParser {
 	}
 	return atts;
     }
-    
+
     /**
      * Scan an html file for <mlet> tags
      */
-    public Vector parse(URL url) throws IOException {
+    public List<MLetContent> parse(URL url) throws IOException {
 	String mth = "parse";
-	// Warning Messages    
-	String requiresNameWarning = "<param name=... value=...> tag requires name parameter.";
-	String paramOutsideWarning = "<param> tag outside <mlet> ... </mlet>.";
+	// Warning Messages
+	String requiresTypeWarning = "<arg type=... value=...> tag requires type parameter.";
+	String requiresValueWarning = "<arg type=... value=...> tag requires value parameter.";
+	String paramOutsideWarning = "<arg> tag outside <mlet> ... </mlet>.";
 	String requiresCodeWarning = "<mlet> tag requires either code or object parameter.";
 	String requiresJarsWarning = "<mlet> tag requires archive parameter.";
-	
+
 	URLConnection conn;
-	
+
 	conn = url.openConnection();
-	Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-	
+	Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(),
+							     "UTF-8"));
+
 	// The original URL may have been redirected - this
 	// sets it to whatever URL/codebase we ended up getting
 	//
 	url = conn.getURL();
-	
-	Vector mlets = new Vector();
-	Hashtable atts = null;  
-	
-	Vector types = new Vector();
-	Vector values = new Vector();
-	
+
+	List<MLetContent> mlets = new ArrayList<MLetContent>();
+	Map<String,String> atts = null;
+
+	List<String> types = new ArrayList<String>();
+	List<String> values = new ArrayList<String>();
+
 	// debug("parse","*** Parsing " + url );
 	while(true) {
 	    c = in.read();
@@ -171,48 +177,29 @@ class MLetParser {
 		if (c == '/') {
 		    c = in.read();
 		    String nm = scanIdentifier(in);
+                    if (c != '>')
+                        throw new IOException("Missing '>' in tag");
 		    if (nm.equalsIgnoreCase(tag)) {
 			if (atts != null) {
-			    // Constructor parameters
-			    if ((types.size() == values.size()) && ((!types.isEmpty()) && (!values.isEmpty()))) {
-				atts.put("types", types.clone());
-				atts.put("values", values.clone());
-			    }
-			    mlets.addElement(new MLetContent(url, atts));
+			    mlets.add(new MLetContent(url, atts, types, values));
 			}
 			atts = null;
-			types.removeAllElements();
-			values.removeAllElements();
+			types = new ArrayList<String>();
+			values = new ArrayList<String>();
 		    }
 		} else {
 		    String nm = scanIdentifier(in);
 		    if (nm.equalsIgnoreCase("arg")) {
-			Hashtable t = scanTag(in);
-			String att = (String) t.get("type");
+			Map<String,String> t = scanTag(in);
+			String att = t.get("type");
 			if (att == null) {
 			    if (isTraceOn()) {
-				trace(mth, requiresNameWarning);
+				trace(mth, requiresTypeWarning);
 			    }
-			    throw new IOException(requiresNameWarning);
+			    throw new IOException(requiresTypeWarning);
 			} else {
 			    if (atts != null) {
-				types.addElement(att);
-			    } else {
-				if (isTraceOn()) {
-				    trace(mth, paramOutsideWarning);
-				}
-				throw new IOException(paramOutsideWarning);
-			    }
-			}			  
-			String val = (String) t.get("value");
-			if (val == null) {
-			    if (isTraceOn()) {
-				trace(mth, requiresNameWarning);
-			    }
-			    throw new IOException(requiresNameWarning);
-			} else {
-			    if (atts != null) {
-				values.addElement(val);
+				types.add(att);
 			    } else {
 				if (isTraceOn()) {
 				    trace(mth, paramOutsideWarning);
@@ -220,8 +207,23 @@ class MLetParser {
 				throw new IOException(paramOutsideWarning);
 			    }
 			}
-		    }
-		    else {
+			String val = t.get("value");
+			if (val == null) {
+			    if (isTraceOn()) {
+				trace(mth, requiresValueWarning);
+			    }
+			    throw new IOException(requiresValueWarning);
+			} else {
+			    if (atts != null) {
+				values.add(val);
+			    } else {
+				if (isTraceOn()) {
+				    trace(mth, paramOutsideWarning);
+				}
+				throw new IOException(paramOutsideWarning);
+			    }
+			}
+		    } else {
 			if (nm.equalsIgnoreCase(tag)) {
 			    atts = scanTag(in);
 			    if (atts.get("code") == null && atts.get("object") == null) {
@@ -242,7 +244,7 @@ class MLetParser {
 		    }
 		}
 	    }
-	}  
+	}
 	in.close();
 	return mlets;
     }
@@ -250,7 +252,7 @@ class MLetParser {
     /**
      * Parse the document pointed by the URL urlname
      */
-    public Vector parseURL(String urlname) throws IOException {
+    public List<MLetContent> parseURL(String urlname) throws IOException {
 	// Parse the document
 	//
 	URL url = null;
@@ -279,10 +281,10 @@ class MLetParser {
      *   PRIVATE METHODS
      * ------------------------------------------
      */
-    
+
     // TRACES & DEBUG
     //---------------
-    
+
     private boolean isTraceOn() {
         return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MLET);
     }

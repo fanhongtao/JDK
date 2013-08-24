@@ -1,7 +1,7 @@
 /*
- * @(#)Future.java	1.6 04/02/09
+ * @(#)Future.java	1.11 06/03/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,10 +30,13 @@ package java.util.concurrent;
  * class App {
  *   ExecutorService executor = ...
  *   ArchiveSearcher searcher = ...
- *   void showSearch(final String target) throws InterruptedException {
- *     Future&lt;String&gt; future = executor.submit(new Callable&lt;String&gt;() {
- *         public String call() { return searcher.search(target); }
- *     });
+ *   void showSearch(final String target)
+ *       throws InterruptedException {
+ *     Future&lt;String&gt; future
+ *       = executor.submit(new Callable&lt;String&gt;() {
+ *         public String call() {
+ *             return searcher.search(target);
+ *         }});
  *     displayOtherThings(); // do other things while searching
  *     try {
  *       displayText(future.get()); // use future
@@ -42,8 +45,8 @@ package java.util.concurrent;
  * }
  * </pre>
  *
- * The {@link FutureTask} class is an implementation of <tt>Future</tt> that 
- * implements <tt>Runnable</tt>, and so may be executed by an <tt>Executor</tt>. 
+ * The {@link FutureTask} class is an implementation of <tt>Future</tt> that
+ * implements <tt>Runnable</tt>, and so may be executed by an <tt>Executor</tt>.
  * For example, the above construction with <tt>submit</tt> could be replaced by:
  * <pre>
  *     FutureTask&lt;String&gt; future =
@@ -53,6 +56,11 @@ package java.util.concurrent;
  *       }});
  *     executor.execute(future);
  * </pre>
+ *
+ * <p>Memory consistency effects: Actions taken by the asynchronous computation
+ * <a href="package-summary.html#MemoryVisibility"> <i>happen-before</i></a>
+ * actions following the corresponding {@code Future.get()} in another thread.
+ *
  * @see FutureTask
  * @see Executor
  * @since 1.5
@@ -63,13 +71,17 @@ public interface Future<V> {
 
     /**
      * Attempts to cancel execution of this task.  This attempt will
-     * fail if the task has already completed, already been cancelled,
+     * fail if the task has already completed, has already been cancelled,
      * or could not be cancelled for some other reason. If successful,
      * and this task has not started when <tt>cancel</tt> is called,
      * this task should never run.  If the task has already started,
      * then the <tt>mayInterruptIfRunning</tt> parameter determines
      * whether the thread executing this task should be interrupted in
      * an attempt to stop the task.
+     *
+     * <p>After this method returns, subsequent calls to {@link #isDone} will
+     * always return <tt>true</tt>.  Subsequent calls to {@link #isCancelled}
+     * will always return <tt>true</tt> if this method returned <tt>true</tt>.
      *
      * @param mayInterruptIfRunning <tt>true</tt> if the thread executing this
      * task should be interrupted; otherwise, in-progress tasks are allowed
@@ -84,18 +96,18 @@ public interface Future<V> {
      * Returns <tt>true</tt> if this task was cancelled before it completed
      * normally.
      *
-     * @return <tt>true</tt> if task was cancelled before it completed
+     * @return <tt>true</tt> if this task was cancelled before it completed
      */
     boolean isCancelled();
 
     /**
-     * Returns <tt>true</tt> if this task completed.  
+     * Returns <tt>true</tt> if this task completed.
      *
      * Completion may be due to normal termination, an exception, or
      * cancellation -- in all of these cases, this method will return
      * <tt>true</tt>.
-     * 
-     * @return <tt>true</tt> if this task completed.
+     *
+     * @return <tt>true</tt> if this task completed
      */
     boolean isDone();
 
@@ -129,6 +141,3 @@ public interface Future<V> {
     V get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException;
 }
-
-
-

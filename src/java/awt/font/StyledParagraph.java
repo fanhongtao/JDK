@@ -1,5 +1,5 @@
 /*
- * @(#)StyledParagraph.java	1.8 03/08/18
+ * @(#)StyledParagraph.java	1.9 05/08/26
  * (C) Copyright IBM Corp. 1999,  All rights reserved.
  */
 package java.awt.font;
@@ -10,7 +10,7 @@ import java.awt.im.InputMethodHighlight;
 import java.text.Annotation;
 import java.text.AttributedCharacterIterator;
 import java.util.Vector;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import sun.font.Decoration;
 import sun.font.FontResolver;
@@ -426,7 +426,7 @@ final class StyledParagraph {
                 }
 
                 if (imStyles != null) {
-                    Hashtable newStyles = new Hashtable(5, (float)0.9);
+                    HashMap newStyles = new HashMap(5, (float)0.9);
                     newStyles.putAll(oldStyles);
 
                     newStyles.putAll(imStyles);

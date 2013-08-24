@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2003 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.dom;
@@ -70,8 +29,10 @@ import org.w3c.dom.ranges.RangeException;
 /** The RangeImpl class implements the org.w3c.dom.range.Range interface.
  *  <p> Please see the API documentation for the interface classes  
  *  and use the interfaces in your client programs.
+ *  
+ * @xerces.internal
  *
- * @version $Id: RangeImpl.java,v 1.28 2003/11/02 15:07:58 mrglavas Exp $
+ * @version $Id: RangeImpl.java,v 1.2.6.1 2005/08/31 12:44:48 sunithareddy Exp $
  */
 public class RangeImpl  implements Range {
     
@@ -94,7 +55,8 @@ public class RangeImpl  implements Range {
     Node fInsertNode = null;
     Node fDeleteNode = null;
     Node fSplitNode = null;
-    
+    // Was the Node inserted from the Range or the Document
+    boolean fInsertedFromRange = false; 
     
     /** The constructor. Clients must use DocumentRange.createRange(),
      *  because it registers the Range with the document, so it can 
@@ -193,100 +155,138 @@ public class RangeImpl  implements Range {
     public void setStart(Node refNode, int offset)
                          throws RangeException, DOMException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+        if (fDocument.errorChecking) {
+            if ( fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !isLegalContainer(refNode)) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
-        if ( !isLegalContainer(refNode)) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
-        }
-
         
         checkIndex(refNode, offset);
         
         fStartContainer = refNode;
         fStartOffset = offset;
+        
+        // If one boundary-point of a Range is set to have a root container
+        // other
+        // than the current one for the Range, the Range should be collapsed to
+        // the new position.
+        // The start position of a Range should never be after the end position.
+        if (getCommonAncestorContainer() == null
+                || (fStartContainer == fEndContainer && fEndOffset < fStartOffset)) {
+            collapse(true);
+        } 
     }
     
     public void setEnd(Node refNode, int offset)
                        throws RangeException, DOMException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+        if (fDocument.errorChecking) {
+            if (fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !isLegalContainer(refNode)) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
-        if ( !isLegalContainer(refNode)) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
-        }
-        
+    	
         checkIndex(refNode, offset);
         
         fEndContainer = refNode;
         fEndOffset = offset;
+        
+        // If one boundary-point of a Range is set to have a root container
+        // other
+        // than the current one for the Range, the Range should be collapsed to
+        // the new position.
+        // The start position of a Range should never be after the end position.
+        if (getCommonAncestorContainer() == null
+                || (fStartContainer == fEndContainer && fEndOffset < fStartOffset)) {
+            collapse(false);
+        } 
     }
 
     public void setStartBefore(Node refNode) 
         throws RangeException 
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+        if (fDocument.errorChecking) {
+            if (fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !hasLegalRootContainer(refNode) ||
+                    !isLegalContainedNode(refNode) )
+            {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
-        if ( !hasLegalRootContainer(refNode) ||
-            !isLegalContainedNode(refNode) )
-        {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
-        }
+    	
         fStartContainer = refNode.getParentNode();
         int i = 0;
         for (Node n = refNode; n!=null; n = n.getPreviousSibling()) {
             i++;
         }
         fStartOffset = i-1;
+        
+        // If one boundary-point of a Range is set to have a root container
+        // other
+        // than the current one for the Range, the Range should be collapsed to
+        // the new position.
+        // The start position of a Range should never be after the end position.
+        if (getCommonAncestorContainer() == null
+                || (fStartContainer == fEndContainer && fEndOffset < fStartOffset)) {
+            collapse(true);
+        }  
     }
     
     public void setStartAfter(Node refNode)
         throws RangeException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-        }
-        if ( !hasLegalRootContainer(refNode) || 
-            !isLegalContainedNode(refNode)) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+        if (fDocument.errorChecking) {
+            if (fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !hasLegalRootContainer(refNode) || 
+                    !isLegalContainedNode(refNode)) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
         fStartContainer = refNode.getParentNode();
         int i = 0;
@@ -294,26 +294,38 @@ public class RangeImpl  implements Range {
             i++;
         }
         fStartOffset = i;
+        
+        // If one boundary-point of a Range is set to have a root container
+        // other
+        // than the current one for the Range, the Range should be collapsed to
+        // the new position.
+        // The start position of a Range should never be after the end position.
+        if (getCommonAncestorContainer() == null
+                || (fStartContainer == fEndContainer && fEndOffset < fStartOffset)) {
+            collapse(true);
+        } 
     }
     
     public void setEndBefore(Node refNode)
         throws RangeException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-        }
-        if ( !hasLegalRootContainer(refNode) ||
-            !isLegalContainedNode(refNode)) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+        if (fDocument.errorChecking) {
+            if (fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !hasLegalRootContainer(refNode) ||
+                    !isLegalContainedNode(refNode)) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
         fEndContainer = refNode.getParentNode();
         int i = 0;
@@ -321,26 +333,38 @@ public class RangeImpl  implements Range {
             i++;
         }
         fEndOffset = i-1;
+
+        // If one boundary-point of a Range is set to have a root container
+        // other
+        // than the current one for the Range, the Range should be collapsed to
+        // the new position.
+        // The start position of a Range should never be after the end position.
+        if (getCommonAncestorContainer() == null
+                || (fStartContainer == fEndContainer && fEndOffset < fStartOffset)) {
+            collapse(false);
+        } 
     }
                                             
     public void setEndAfter(Node refNode)
         throws RangeException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-        }
-        if ( !hasLegalRootContainer(refNode) ||
-            !isLegalContainedNode(refNode)) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+        if (fDocument.errorChecking) {
+            if( fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !hasLegalRootContainer(refNode) ||
+                    !isLegalContainedNode(refNode)) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
         fEndContainer = refNode.getParentNode();
         int i = 0;
@@ -348,6 +372,16 @@ public class RangeImpl  implements Range {
             i++;
         }
         fEndOffset = i;
+        
+        // If one boundary-point of a Range is set to have a root container
+        // other
+        // than the current one for the Range, the Range should be collapsed to
+        // the new position.
+        // The start position of a Range should never be after the end position.
+        if (getCommonAncestorContainer() == null
+                || (fStartContainer == fEndContainer && fEndOffset < fStartOffset)) {
+            collapse(false);
+        } 
     }
     
     public void collapse(boolean toStart) {
@@ -370,21 +404,23 @@ public class RangeImpl  implements Range {
     public void selectNode(Node refNode)
         throws RangeException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-        }
-        if ( !isLegalContainer( refNode.getParentNode() ) ||
-            !isLegalContainedNode( refNode ) ) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+        if (fDocument.errorChecking) {
+            if (fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !isLegalContainer( refNode.getParentNode() ) ||
+                    !isLegalContainedNode( refNode ) ) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
         Node parent = refNode.getParentNode();
         if (parent != null ) // REVIST: what to do if it IS null?
@@ -403,20 +439,22 @@ public class RangeImpl  implements Range {
     public void selectNodeContents(Node refNode)
         throws RangeException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-        }
-        if ( !isLegalContainer(refNode)) {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
-        if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
-            throw new DOMException(
-                DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+        if (fDocument.errorChecking) {
+            if( fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if ( !isLegalContainer(refNode)) {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+            if ( fDocument != refNode.getOwnerDocument() && fDocument != refNode) {
+                throw new DOMException(
+                        DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
         }
         fStartContainer = refNode;
         fEndContainer = refNode;
@@ -437,12 +475,24 @@ public class RangeImpl  implements Range {
     public short compareBoundaryPoints(short how, Range sourceRange)
         throws DOMException
     {
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-    	}
-       
+        if (fDocument.errorChecking) {
+            if( fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            // WRONG_DOCUMENT_ERR: Raised if the two Ranges are not in the same Document or DocumentFragment.  
+            if ((fDocument != sourceRange.getStartContainer().getOwnerDocument()
+                    && fDocument != sourceRange.getStartContainer() 
+                    && sourceRange.getStartContainer() != null)
+                    || (fDocument != sourceRange.getEndContainer().getOwnerDocument()
+                            && fDocument != sourceRange.getEndContainer() 
+                            && sourceRange.getStartContainer() != null)) {
+                throw new DOMException(DOMException.WRONG_DOCUMENT_ERR,
+                        DOMMessageFormatter.formatMessage( DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+            }
+        }
+        
         Node endPointA;
         Node endPointB;
         int offsetA;
@@ -569,31 +619,35 @@ public class RangeImpl  implements Range {
         throws DOMException, RangeException
     {
     	if ( newNode == null ) return; //throw exception?
-        
-        if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+    	
+    	int type = newNode.getNodeType();
+    	
+    	if (fDocument.errorChecking) {
+    	    if (fDetach) {
+    	        throw new DOMException(
+    	                DOMException.INVALID_STATE_ERR, 
+    	                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+    	    }
+    	    if ( fDocument != newNode.getOwnerDocument() ) {
+    	        throw new DOMException(DOMException.WRONG_DOCUMENT_ERR,
+    	                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
+    	    }
+    	    
+    	    if (type == Node.ATTRIBUTE_NODE
+    	            || type == Node.ENTITY_NODE
+    	            || type == Node.NOTATION_NODE
+    	            || type == Node.DOCUMENT_NODE)
+    	    {
+    	        throw new RangeExceptionImpl(
+    	                RangeException.INVALID_NODE_TYPE_ERR, 
+    	                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+    	    }
     	}
-        if ( fDocument != newNode.getOwnerDocument() ) {
-            throw new DOMException(DOMException.WRONG_DOCUMENT_ERR,
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
-        }
-       
-        int type = newNode.getNodeType();
-        if (type == Node.ATTRIBUTE_NODE
-            || type == Node.ENTITY_NODE
-            || type == Node.NOTATION_NODE
-            || type == Node.DOCUMENT_NODE)
-        {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
         Node cloneCurrent;
         Node current;
         int currentChildren = 0;
-
+        fInsertedFromRange = true;
+        
         //boolean MULTIPLE_MODE = false;
         if (fStartContainer.getNodeType() == Node.TEXT_NODE) {
         
@@ -647,37 +701,37 @@ public class RangeImpl  implements Range {
             }
             //update fEndOffset. ex:<body><p/></body>. Range(start;end): body,0; body,1
             // insert <h1>: <body></h1><p/></body>. Range(start;end): body,0; body,2
-            if ( fEndContainer == fStartContainer ) {     //update fEndOffset
+            if ( fEndContainer == fStartContainer && fEndOffset != 0 ) {     //update fEndOffset if not 0
                 fEndOffset += (fEndContainer.getChildNodes().getLength() - currentChildren);
             }
-
-        } 
+        }
+        fInsertedFromRange = false;
     }
     
     public void surroundContents(Node newParent)
         throws DOMException, RangeException
     {
         if (newParent==null) return;
-        
-    	if( fDetach) {
-    		throw new DOMException(
-    		DOMException.INVALID_STATE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
-    	}
         int type = newParent.getNodeType();
-        if (type == Node.ATTRIBUTE_NODE
-            || type == Node.ENTITY_NODE
-            || type == Node.NOTATION_NODE
-            || type == Node.DOCUMENT_TYPE_NODE
-            || type == Node.DOCUMENT_NODE
-            || type == Node.DOCUMENT_FRAGMENT_NODE)
-        {
-    		throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
-        }
         
-        Node root = getCommonAncestorContainer();
+        if (fDocument.errorChecking) {
+            if (fDetach) {
+                throw new DOMException(
+                        DOMException.INVALID_STATE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+            }
+            if (type == Node.ATTRIBUTE_NODE
+                    || type == Node.ENTITY_NODE
+                    || type == Node.NOTATION_NODE
+                    || type == Node.DOCUMENT_TYPE_NODE
+                    || type == Node.DOCUMENT_NODE
+                    || type == Node.DOCUMENT_FRAGMENT_NODE)
+            {
+                throw new RangeExceptionImpl(
+                        RangeException.INVALID_NODE_TYPE_ERR, 
+                        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+            }
+        }
         
         Node realStart = fStartContainer;
         Node realEnd = fEndContainer;
@@ -719,7 +773,7 @@ public class RangeImpl  implements Range {
     		DOMException.INVALID_STATE_ERR, 
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
     	}
-    	
+
     	Node node = fStartContainer;
         Node stopNode = fEndContainer;
     	StringBuffer sb = new StringBuffer();
@@ -776,6 +830,11 @@ public class RangeImpl  implements Range {
     }
     
     public void detach() {
+        if( fDetach) {
+            throw new DOMException(
+            DOMException.INVALID_STATE_ERR, 
+                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_STATE_ERR", null));
+        }        
         fDetach = true;
         fDocument.removeRange(this);
     }
@@ -913,6 +972,7 @@ public class RangeImpl  implements Range {
     public void insertedNodeFromDOM(Node node) {
         if (node == null) return;
         if (fInsertNode == node) return;
+        if (fInsertedFromRange) return; // Offsets are adjusted in Range.insertNode
         
         Node parent = node.getParentNode();
         
@@ -1691,7 +1751,7 @@ public class RangeImpl  implements Range {
      *         If the traversal operation is
      *         <code>DELETE_CONTENTS</code> the return value is null.
      */
-    private Node traverseFullySelected( Node n, int how )
+    private Node traverseFullySelected( Node n, int how ) 
     {
         switch( how )
         {
@@ -1701,9 +1761,9 @@ public class RangeImpl  implements Range {
             if ( n.getNodeType()==Node.DOCUMENT_TYPE_NODE )
             {
                 // TBD: This should be a HIERARCHY_REQUEST_ERR
-                throw new RangeExceptionImpl(
-    		RangeException.INVALID_NODE_TYPE_ERR, 
-                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INVALID_NODE_TYPE_ERR", null));
+                throw new DOMException(
+                        DOMException.HIERARCHY_REQUEST_ERR, 
+                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
             }
             return n;
         case DELETE_CONTENTS:

@@ -1,24 +1,37 @@
 /*
  * @(#)Timestamp.java	1.58 04/05/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.sql;
 
+import java.util.StringTokenizer;
+
 /**
  * <P>A thin wrapper around <code>java.util.Date</code> that allows
  * the JDBC API to identify this as an SQL <code>TIMESTAMP</code> value.
  * It adds the ability
- * to hold the SQL <code>TIMESTAMP</code> nanos value and provides formatting and
+ * to hold the SQL <code>TIMESTAMP</code> fractional seconds value, by allowing
+ * the specification of fractional seconds to a precision of nanoseconds.
+ * A Timestamp also provides formatting and
  * parsing operations to support the JDBC escape syntax for timestamp values.
+ *
+ * <p>The precision of a Timestamp object is calculated to be either:
+ * <ul>
+ * <li><code>19 </code>, which is the number of characters in yyyy-mm-dd hh:mm:ss
+ * <li> <code> 20 + s </code>, which is the number
+ * of characters in the yyyy-mm-dd hh:mm:ss.[fff...] and <code>s</code> represents  the scale of the given Timestamp,
+ * its fractional seconds precision.
+ *</ul>
  *
  * <P><B>Note:</B> This type is a composite of a <code>java.util.Date</code> and a
  * separate nanoseconds value. Only integral seconds are stored in the
  * <code>java.util.Date</code> component. The fractional seconds - the nanos - are
  * separate.  The <code>Timestamp.equals(Object)</code> method never returns 
- * <code>true</code> when passed a value of type <code>java.util.Date</code>
+ * <code>true</code> when passed an object
+ * that isn't an instance of <code>java.sql.Timestamp</code>, 
  * because the nanos component of a date is unknown.
  * As a result, the <code>Timestamp.equals(Object)</code>
  * method is not symmetric with respect to the
@@ -72,7 +85,7 @@ public class Timestamp extends java.util.Date {
      * @param time milliseconds since January 1, 1970, 00:00:00 GMT.
      *        A negative number is the number of milliseconds before
      *         January 1, 1970, 00:00:00 GMT.
-     * @see java.util.Calendar for more information
+     * @see java.util.Calendar 
      */
     public Timestamp(long time) {
 	super((time/1000)*1000);
@@ -90,7 +103,7 @@ public class Timestamp extends java.util.Date {
      * @param time   the number of milliseconds.
      * @see #getTime
      * @see #Timestamp(long time)
-     * @see java.util.Calendar for more information
+     * @see java.util.Calendar
      */
     public void setTime(long time) {
 	super.setTime((time/1000)*1000);
@@ -124,10 +137,11 @@ public class Timestamp extends java.util.Date {
      * Converts a <code>String</code> object in JDBC timestamp escape format to a
      * <code>Timestamp</code> value.
      *
-     * @param s timestamp in format <code>yyyy-mm-dd hh:mm:ss.fffffffff</code>
+     * @param s timestamp in format <code>yyyy-mm-dd hh:mm:ss[.f...]</code>.  The
+     * fractional seconds may be omitted.
      * @return corresponding <code>Timestamp</code> value
      * @exception java.lang.IllegalArgumentException if the given argument
-     * does not have the format <code>yyyy-mm-dd hh:mm:ss.fffffffff</code>
+     * does not have the format <code>yyyy-mm-dd hh:mm:ss[.f...]</code>
      */
     public static Timestamp valueOf(String s) {
 	String date_s;
@@ -146,10 +160,20 @@ public class Timestamp extends java.util.Date {
 	int firstColon = 0;
 	int secondColon = 0;
 	int period = 0;
-	String formatError = "Timestamp format must be yyyy-mm-dd hh:mm:ss.fffffffff";
+	String formatError = "Timestamp format must be yyyy-mm-dd hh:mm:ss[.fffffffff]";
 	String zeros = "000000000";
+	String delimiterDate = "-";
+	String delimiterTime = ":";
+	StringTokenizer stringTokeninzerDate;
+	StringTokenizer stringTokeninzerTime;
 
 	if (s == null) throw new java.lang.IllegalArgumentException("null string");
+
+	int counterD = 0;
+	int intDate[] = {4,2,2};
+
+	int counterT = 0;
+	int intTime[] = {2,2,12};
 
 	// Split the string into date and time components
 	s = s.trim();
@@ -161,7 +185,30 @@ public class Timestamp extends java.util.Date {
 	    throw new java.lang.IllegalArgumentException(formatError);
 	}
 
+	stringTokeninzerTime = new StringTokenizer(time_s, delimiterTime);
+	stringTokeninzerDate = new StringTokenizer(date_s, delimiterDate);
+	
+	while(stringTokeninzerDate.hasMoreTokens()) {
+	     String tokenDate = stringTokeninzerDate.nextToken();
+	     if(tokenDate.length() != intDate[counterD] ) {
+		throw new java.lang.IllegalArgumentException(formatError);
+	     }
+	     counterD++;	
+	}
+	
+	/*
+         //Commenting this portion out for checking of time
 
+	while(stringTokeninzerTime.hasMoreTokens()) {
+	     String tokenTime = stringTokeninzerTime.nextToken();
+	
+	     if	(counterT < 2 && tokenTime.length() != intTime[counterT]  ) {
+		throw new java.lang.IllegalArgumentException(formatError);
+	     }
+	     counterT++;	
+	}	     
+	*/	  
+  
 	// Parse the date
 	firstDash = date_s.indexOf('-');
 	secondDash = date_s.indexOf('-', firstDash+1);
@@ -174,7 +221,7 @@ public class Timestamp extends java.util.Date {
 	period = time_s.indexOf('.', secondColon+1);
 
 	// Convert the date
-	if ((firstDash > 0) & (secondDash > 0) & 
+	if ((firstDash > 0) && (secondDash > 0) && 
 	    (secondDash < date_s.length()-1)) {
 	    year = Integer.parseInt(date_s.substring(0, firstDash)) - 1900;
 	    month = 
@@ -218,20 +265,6 @@ public class Timestamp extends java.util.Date {
      *         <code>yyyy-mm-dd hh:mm:ss.fffffffff</code>,
      * where <code>ffffffffff</code> indicates nanoseconds.
      * <P>
-     * NOTE: To specify a timestamp for the class 
-     * <code>java.text.SimpleDateFormat</code>, use "yyyy.MM.dd" rather than
-     * "yyyy-mm-dd". In the context of <code>java.text.SimpleDateFormat</code>,
-     * "mm" indicates minutes rather than the month. Note that 
-     * <code>java.text.SimpleDateFormat</code> does not allow for the
-     * nanoseconds component of a <code>Timestamp</code> object.
-     * For Example:
-     * <PRE>
-     *
-     * Format Pattern				Result
-     * --------------				------
-     * "yyyy.MM.dd G 'at' hh:mm:ss z"	-->	2002.07.10 AD at 15:08:56 PDT
-     *
-     * </PRE>
      * @return a <code>String</code> object in
      *           <code>yyyy-mm-dd hh:mm:ss.fffffffff</code> format
      */
@@ -308,7 +341,7 @@ public class Timestamp extends java.util.Date {
 	}
 
 	// do a string buffer here instead.
-	timestampBuf = new StringBuffer();
+	timestampBuf = new StringBuffer(20+nanosString.length());
 	timestampBuf.append(yearString);
 	timestampBuf.append("-");
 	timestampBuf.append(monthString);
@@ -386,8 +419,9 @@ public class Timestamp extends java.util.Date {
      * <code>equals(Object)</code> method in the base class.
      *
      * @param ts the <code>Object</code> value to compare with
-     * @return <code>true</code> if the given <code>Object</code>
-     *         instance is equal to this <code>Timestamp</code> object;
+     * @return <code>true</code> if the given <code>Object</code> is an instance
+     *         of a <code>Timestamp</code> that
+     *         is equal to this <code>Timestamp</code> object;
      *         <code>false</code> otherwise
      */
     public boolean equals(java.lang.Object ts) {
@@ -433,7 +467,7 @@ public class Timestamp extends java.util.Date {
      *          <code>Timestamp</code> object is before the given argument;
      *          and a value greater than <code>0</code> if this 
      *          <code>Timestamp</code> object is after the given argument.
-     * @since   1.2
+     * @since   1.4
      */
     public int compareTo(Timestamp ts) {
         int i = super.compareTo(ts);
@@ -449,22 +483,22 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Compares this <code>Timestamp</code> object to the given
+     * Compares this <code>Timestamp</code> object to the given 
      * <code>Date</code>, which must be a <code>Timestamp</code>
      * object. If the argument is not a <code>Timestamp</code> object,
      * this method throws a <code>ClassCastException</code> object.
-     * (<code>Timestamp</code> objects are
+     * (<code>Timestamp</code> objects are 
      * comparable only to other <code>Timestamp</code> objects.)
      *
      * @param o the <code>Date</code> to be compared, which must be a
      *        <code>Timestamp</code> object
      * @return  the value <code>0</code> if this <code>Timestamp</code> object
-     *          and the given object are equal; a value less than <code>0</code>
+     *          and the given object are equal; a value less than <code>0</code> 
      *          if this  <code>Timestamp</code> object is before the given argument;
-     *          and a value greater than <code>0</code> if this
+     *          and a value greater than <code>0</code> if this 
      *          <code>Timestamp</code> object is after the given argument.
      *
-     * @since   1.5
+     * @since	1.5
      */
     public int compareTo(java.util.Date o) {
        if(o instanceof Timestamp) {
@@ -478,8 +512,8 @@ public class Timestamp extends java.util.Date {
           Timestamp ts = new Timestamp(o.getTime());
           return this.compareTo(ts);
       }
-    }
-
+    } 
+            
     static final long serialVersionUID = 2745179027874758501L;
 
 }

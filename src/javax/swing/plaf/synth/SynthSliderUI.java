@@ -1,7 +1,7 @@
 /*
  * @(#)SynthSliderUI.java    1.94 01/12/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,13 +30,13 @@ import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicSliderUI;
 import sun.swing.plaf.synth.SynthUI;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 
 /**
  * Synth's SliderUI.
  *
- * @version 1.21, 12/19/03
+ * @version 1.30, 02/07/06
  * @author Joshua Outwater
  */
 class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
@@ -94,7 +94,7 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
         slider.addPropertyChangeListener(this);
     }
 
-    protected void uninstallListeners() {
+    protected void uninstallListeners(JSlider slider) {
         slider.removePropertyChangeListener(this);
         super.uninstallListeners(slider);
     }
@@ -149,6 +149,75 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
             thumbActive = active;
             slider.repaint(thumbRect);
         }
+    }
+
+    public int getBaseline(JComponent c, int width, int height) {
+        if (c == null) {
+            throw new NullPointerException("Component must be non-null");
+        }
+        if (width < 0 || height < 0) {
+            throw new IllegalArgumentException(
+                    "Width and height must be >= 0");
+        }
+        if (slider.getPaintLabels() && labelsHaveSameBaselines()) {
+            // Get the insets for the track.
+            Insets trackInsets = new Insets(0, 0, 0, 0);
+            SynthContext trackContext = getContext(slider,
+                                                   Region.SLIDER_TRACK);
+            style.getInsets(trackContext, trackInsets);
+            trackContext.dispose();
+            if (slider.getOrientation() == JSlider.HORIZONTAL) {
+                int valueHeight = 0;
+                if (paintValue) {
+                    SynthContext context = getContext(slider);
+                    valueHeight = context.getStyle().getGraphicsUtils(context).
+                            getMaximumCharHeight(context);
+                    context.dispose();
+                }
+                int tickHeight = 0;
+                if (slider.getPaintTicks()) {
+                    tickHeight = getTickLength();
+                }
+                int labelHeight = getHeightOfTallestLabel();
+                int contentHeight = valueHeight + trackHeight +
+                        trackInsets.top + trackInsets.bottom +
+                        tickHeight + labelHeight + 4;
+                int centerY = height / 2 - contentHeight / 2;
+                centerY += valueHeight + 2;
+                centerY += trackHeight + trackInsets.top + trackInsets.bottom;
+                centerY += tickHeight + 2;
+                Component label = (Component)slider.getLabelTable().
+                                   elements().nextElement();
+                Dimension pref = label.getPreferredSize();
+                return centerY + label.getBaseline(pref.width, pref.height);
+            }
+            else { // VERTICAL
+                Integer value = slider.getInverted() ? getLowestValue() :
+                                                       getHighestValue();
+                if (value != null) {
+                    int valueY = insetCache.top;
+                    int valueHeight = 0;
+                    if (paintValue) {
+                        SynthContext context = getContext(slider);
+                        valueHeight = context.getStyle().getGraphicsUtils(
+                                context).getMaximumCharHeight(context);
+                        context.dispose();
+                    }
+                    int contentHeight = height - insetCache.top -
+                            insetCache.bottom;
+                    int trackY = valueY + valueHeight;
+                    int trackHeight = contentHeight - valueHeight;
+                    int yPosition = yPositionForValue(value.intValue(), trackY,
+                                                      trackHeight);
+                    Component label = (Component)slider.getLabelTable().
+                            get(value);
+                    Dimension pref = label.getPreferredSize();
+                    return yPosition - pref.height / 2 +
+                            label.getBaseline(pref.width, pref.height);
+                }
+            }
+        }
+        return -1;
     }
 
     public Dimension getPreferredSize(JComponent c)  {
@@ -219,14 +288,48 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
             contentDim.width = slider.getWidth() - insetCache.left
                 - insetCache.right;
 
+            // Check if any of the labels will paint out of bounds.
+            int pad = 0;
+            if (slider.getPaintLabels()) {
+                // Calculate the track rectangle.  It is necessary for
+                // xPositionForValue to return correct values.
+                trackRect.x = insetCache.left;
+                trackRect.width = contentDim.width;
+
+                Dictionary dictionary = slider.getLabelTable();
+                if (dictionary != null) {
+                    int minValue = slider.getMinimum();
+                    int maxValue = slider.getMaximum();
+    
+                    // Iterate through the keys in the dictionary and find the
+                    // first and last labels indices that fall within the
+                    // slider range.
+                    int firstLblIdx = Integer.MAX_VALUE;
+                    int lastLblIdx = Integer.MIN_VALUE;
+                    for (Enumeration keys = dictionary.keys();
+                            keys.hasMoreElements(); ) {
+                        int keyInt = ((Integer)keys.nextElement()).intValue();
+                        if (keyInt >= minValue && keyInt < firstLblIdx) {
+                            firstLblIdx = keyInt;
+                        }
+                        if (keyInt <= maxValue && keyInt > lastLblIdx) {
+                            lastLblIdx = keyInt;
+                        }
+                    }
+                    // Calculate the pad necessary for the labels at the first
+                    // and last visible indices.
+                    pad = getPadForLabel(firstLblIdx);
+                    pad = Math.max(pad, getPadForLabel(lastLblIdx));
+                }
+            }
+            // Calculate the painting rectangles for each of the different
+            // slider areas.
+            valueRect.x = trackRect.x = tickRect.x = labelRect.x =
+                (insetCache.left + pad);
+            valueRect.width = trackRect.width = tickRect.width =
+                labelRect.width = (contentDim.width - (pad * 2));
 
             int centerY = slider.getHeight() / 2 - contentDim.height / 2;
-
-            // Layout the components.
-            valueRect.x = trackRect.x = tickRect.x = labelRect.x =
-                insetCache.left;
-            valueRect.width = trackRect.width =
-                tickRect.width = labelRect.width = contentDim.width;
 
             valueRect.y = centerY;
             centerY += valueRect.height + 2;
@@ -261,14 +364,6 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
                     synthGraphics.getMaximumCharHeight(context);
             }
 
-            contentDim.width = trackRect.width + trackInsets.left
-                + trackInsets.right + tickRect.width
-                + labelRect.width + 2 + insetCache.left + insetCache.right;
-            contentDim.height = slider.getHeight()
-                - insetCache.top - insetCache.bottom;
-
-            int startX = slider.getWidth() / 2 - contentDim.width / 2;
-
             // Get the max width of the min or max value of the slider.
             FontMetrics fm = slider.getFontMetrics(slider.getFont());
             valueRect.width = Math.max(
@@ -276,17 +371,15 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
                     fm, "" + slider.getMaximum()),
                 synthGraphics.computeStringWidth(context, slider.getFont(),
                     fm, "" + slider.getMinimum()));
-            
-            // Check to see if we need to make the width larger due to the size
-            // of the value string.  The value string is centered above the
-            // track.
-            if (valueRect.width > (trackRect.width + trackInsets.left
-                        + trackInsets.right)) {
-                int diff = (valueRect.width - (trackRect.width
-                            + trackInsets.left + trackInsets.right)) / 2;
-                contentDim.width += diff;
-                startX += diff;
-            }
+
+            int l = valueRect.width / 2;
+            int w1 = trackInsets.left + trackRect.width / 2;
+            int w2 = trackRect.width / 2 + trackInsets.right +
+                              tickRect.width + labelRect.width;
+            contentDim.width = Math.max(w1, l) + Math.max(w2, l) +
+                    2 + insetCache.left + insetCache.right;
+            contentDim.height = slider.getHeight() -
+                                    insetCache.top - insetCache.bottom;
 
             // Layout the components.
             trackRect.y = tickRect.y = labelRect.y =
@@ -294,26 +387,55 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
             trackRect.height = tickRect.height = labelRect.height =
                 contentDim.height - valueRect.height;
 
+            int startX = slider.getWidth() / 2 - contentDim.width / 2;
             if (SynthLookAndFeel.isLeftToRight(slider)) {
+                if (l > w1) {
+                    startX += (l - w1);
+                }
                 trackRect.x = startX + trackInsets.left;
-                startX += trackRect.width + trackInsets.right +
-                    trackInsets.left;
 
+                startX += trackInsets.left + trackRect.width + trackInsets.right;
                 tickRect.x = startX;
-                startX += tickRect.width + 2;
-
-                labelRect.x = startX;
+                labelRect.x = startX + tickRect.width + 2;
             } else {
+                if (l > w2) {
+                    startX += (l - w2);
+                }
                 labelRect.x = startX;
+
                 startX += labelRect.width + 2;
-
                 tickRect.x = startX;
-                startX += tickRect.width + trackInsets.left;
-
-                trackRect.x = startX;
+                trackRect.x = startX + tickRect.width + trackInsets.left;
             }
         }
         context.dispose();
+    }
+
+    /**
+     * Calculates the pad for the label at the specified index.
+     *
+     * @param index index of the label to calculate pad for.
+     * @return padding required to keep label visible.
+     */
+    private int getPadForLabel(int i) {
+        Dictionary dictionary = slider.getLabelTable();
+        int pad = 0;
+
+        Object o = dictionary.get(i);
+        if (o != null) {
+            Component c = (Component)o;
+            int centerX = xPositionForValue(i);
+            int cHalfWidth = c.getPreferredSize().width / 2;
+            if (centerX - cHalfWidth < insetCache.left) {
+                pad = Math.max(pad, insetCache.left - (centerX - cHalfWidth));
+            }
+  
+            if (centerX + cHalfWidth > slider.getWidth() - insetCache.right) {
+                pad = Math.max(pad, (centerX + cHalfWidth) -
+                        (slider.getWidth() - insetCache.right));
+            }
+        }
+        return pad;
     }
 
     protected void calculateThumbLocation() {
@@ -355,6 +477,10 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
             thumbRect.x = trackRect.x + trackBorder;
             thumbRect.y = valuePosition - (thumbRect.height / 2);
         }
+        Point mousePosition = slider.getMousePosition();
+        if(mousePosition != null) {
+        updateThumbState(mousePosition.x, mousePosition.y);
+       }
     }
 
     protected void calculateTickRect() {
@@ -422,12 +548,12 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
         return xPosition;
     }
 
-    protected int yPositionForValue(int value) {
+    protected int yPositionForValue(int value, int trackY, int trackHeight) {
         int min = slider.getMinimum();
         int max = slider.getMaximum();
-        int trackTop = trackRect.y + thumbRect.height / 2 + trackBorder;
-        int trackBottom = trackRect.y + trackRect.height
-            - thumbRect.height / 2 - trackBorder;
+        int trackTop = trackY + thumbRect.height / 2 + trackBorder;
+        int trackBottom = trackY + trackHeight - thumbRect.height / 2 -
+                trackBorder;
         int trackLength = trackBottom - trackTop;
         double valueRange = (double)max - (double)min;
         double pixelsPerValue = (double)trackLength / (double)valueRange;
@@ -574,7 +700,8 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
         SynthContext context = getContext(c);
         SynthLookAndFeel.update(context, g);
         context.getPainter().paintSliderBackground(context,
-                          g, 0, 0, c.getWidth(), c.getHeight());
+                          g, 0, 0, c.getWidth(), c.getHeight(),
+                          slider.getOrientation());
         paint(context, g);
         context.dispose();
     }
@@ -592,10 +719,20 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
 
         if (paintValue) {
             FontMetrics fm = SwingUtilities2.getFontMetrics(slider, g);
-            valueRect.x = (thumbRect.x + (thumbRect.width / 2)) -
-                context.getStyle().getGraphicsUtils(context).
+            int labelWidth = context.getStyle().getGraphicsUtils(context).
                 computeStringWidth(context, g.getFont(), fm,
-                "" + slider.getValue()) / 2;
+                    "" + slider.getValue());
+            valueRect.x = thumbRect.x + (thumbRect.width - labelWidth) / 2;
+            
+            // For horizontal sliders, make sure value is not painted
+            // outside slider bounds.
+            if (slider.getOrientation() == JSlider.HORIZONTAL) {
+                if (valueRect.x + labelWidth > contentDim.width) {
+                    valueRect.x = contentDim.width - labelWidth;
+                }
+                valueRect.x = Math.max(valueRect.x, 0);
+            }
+            
             g.setColor(context.getStyle().getColor(
                     context, ColorType.TEXT_FOREGROUND));
             context.getStyle().getGraphicsUtils(context).paintText(
@@ -622,7 +759,8 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
 
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
-        context.getPainter().paintSliderBorder(context, g, x, y, w, h);
+        context.getPainter().paintSliderBorder(context, g, x, y, w, h,
+                                               slider.getOrientation());
     }
 
     public void paintThumb(SynthContext context, Graphics g,
@@ -639,13 +777,14 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
 
     public void paintTrack(SynthContext context, Graphics g,
             Rectangle trackBounds) {
+        int orientation = slider.getOrientation();
         SynthLookAndFeel.updateSubregion(context, g, trackBounds);
         context.getPainter().paintSliderTrackBackground(context, g,
                 trackBounds.x, trackBounds.y, trackBounds.width,
-                trackBounds.height);
+                trackBounds.height, orientation);
         context.getPainter().paintSliderTrackBorder(context, g,
                 trackBounds.x, trackBounds.y, trackBounds.width,
-                trackBounds.height);
+                trackBounds.height, orientation);
     }
 
     public void propertyChange(PropertyChangeEvent e) {

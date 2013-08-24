@@ -1,12 +1,14 @@
 /*
- * @(#)MBeanOperationInfo.java	1.31 03/12/19
+ * @(#)MBeanOperationInfo.java	1.41 06/03/15
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management;
 
+import com.sun.jmx.mbeanserver.Introspector;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -17,7 +19,7 @@ import java.util.Arrays;
  *
  * @since 1.5
  */
-public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Serializable, Cloneable  {
+public class MBeanOperationInfo extends MBeanFeatureInfo implements Cloneable {
 
     /* Serial version */
     static final long serialVersionUID = -6178860474881375330L;
@@ -36,7 +38,7 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
      * and would modify the MBean in some way, typically by writing some value
      * or changing a configuration.
      */
-    public static final int ACTION = 1 ;
+    public static final int ACTION = 1;
 
     /**
      * Indicates that the operation is both read-like and write-like.
@@ -68,26 +70,27 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
      */
     private final int impact;
 
-    /** @see MBeanInfo#immutable */
-    private final transient boolean immutable;
+    /** @see MBeanInfo#arrayGettersSafe */
+    private final transient boolean arrayGettersSafe;
 
 
     /**
-     * Constructs an <CODE>MBeanOperationInfo</CODE> object.
+     * Constructs an <CODE>MBeanOperationInfo</CODE> object.  The
+     * {@link Descriptor} of the constructed object will include
+     * fields contributed by any annotations on the {@code Method}
+     * object that contain the {@link DescriptorKey} meta-annotation.
      *
      * @param method The <CODE>java.lang.reflect.Method</CODE> object
      * describing the MBean operation.
      * @param description A human readable description of the operation.
      */
-    public MBeanOperationInfo(String description,
-			      Method method)
-	    throws IllegalArgumentException {
-
+    public MBeanOperationInfo(String description, Method method) {
 	this(method.getName(),
 	     description,
 	     methodSignature(method),
 	     method.getReturnType().getName(),
-	     UNKNOWN);
+	     UNKNOWN,
+             Introspector.descriptorForElement(method));
     }
 
     /**
@@ -106,10 +109,34 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
 			      String description,
 			      MBeanParameterInfo[] signature,
 			      String type,
-			      int impact)
-	    throws IllegalArgumentException {
+			      int impact) {
+        this(name, description, signature, type, impact, (Descriptor) null);
+    }
+    
+    /**
+     * Constructs an <CODE>MBeanOperationInfo</CODE> object.
+     *
+     * @param name The name of the method.
+     * @param description A human readable description of the operation.
+     * @param signature <CODE>MBeanParameterInfo</CODE> objects
+     * describing the parameters(arguments) of the method.  This may be
+     * null with the same effect as a zero-length array.
+     * @param type The type of the method's return value.
+     * @param impact The impact of the method, one of <CODE>INFO,
+     * ACTION, ACTION_INFO, UNKNOWN</CODE>.
+     * @param descriptor The descriptor for the operation.  This may be null
+     * which is equivalent to an empty descriptor.
+     *
+     * @since 1.6
+     */
+    public MBeanOperationInfo(String name,
+			      String description,
+			      MBeanParameterInfo[] signature,
+			      String type,
+			      int impact,
+                              Descriptor descriptor) {
 
-	super(name, description);
+	super(name, description, descriptor);
 
 	if (signature == null || signature.length == 0)
 	    signature = MBeanParameterInfo.NO_PARAMS;
@@ -118,8 +145,8 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
 	this.signature = signature;
 	this.type = type;
 	this.impact = impact;
-	this.immutable =
-	    MBeanInfo.isImmutableClass(this.getClass(),
+	this.arrayGettersSafe =
+	    MBeanInfo.arrayGettersSafe(this.getClass(),
 				       MBeanOperationInfo.class);
     }
 
@@ -135,7 +162,7 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
      */
      public Object clone () {
 	 try {
-	     return  super.clone() ;
+	     return super.clone() ;
 	 } catch (CloneNotSupportedException e) {
 	     // should not happen as this class is cloneable
 	     return null;
@@ -165,17 +192,34 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
      * @return  An array of <CODE>MBeanParameterInfo</CODE> objects.
      */
     public MBeanParameterInfo[] getSignature() {
-	if (signature.length == 0)
+        // If MBeanOperationInfo was created in our implementation, 
+        // signature cannot be null - because our constructors replace
+        // null with MBeanParameterInfo.NO_PARAMS;
+        //
+        // However, signature could be null if an  MBeanOperationInfo is 
+        // deserialized from a byte array produced by another implementation.
+        // This is not very likely but possible, since the serial form says
+        // nothing against it. (see 6373150)
+        //
+        if (signature == null)
+            // if signature is null simply return an empty array .
+            //
+            return MBeanParameterInfo.NO_PARAMS;
+        else if (signature.length == 0)
 	    return signature;
 	else
 	    return (MBeanParameterInfo[]) signature.clone();
     }
 
     private MBeanParameterInfo[] fastGetSignature() {
-	if (immutable)
-	    return signature;
-	else
-	    return getSignature();
+	if (arrayGettersSafe) {
+            // if signature is null simply return an empty array .
+            // see getSignature() above.
+            //
+            if (signature == null)
+                return MBeanParameterInfo.NO_PARAMS;
+            else return signature;
+        } else return getSignature();
     }
 
     /**
@@ -188,15 +232,34 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
 	return impact;
     }
 
+    public String toString() {
+        String impactString;
+        switch (getImpact()) {
+        case ACTION: impactString = "action"; break;
+        case ACTION_INFO: impactString = "action/info"; break;
+        case INFO: impactString = "info"; break;
+        case UNKNOWN: impactString = "unknown"; break;
+        default: impactString = "(" + getImpact() + ")";
+        }
+        return getClass().getName() + "[" +
+            "description=" + getDescription() + ", " +
+            "name=" + getName() + ", " +
+            "returnType=" + getReturnType() + ", " +
+            "signature=" + Arrays.asList(fastGetSignature()) + ", " +
+            "impact=" + impactString + ", " +
+            "descriptor=" + getDescriptor() +
+            "]";
+    }
+
     /**
      * Compare this MBeanOperationInfo to another.
      *
      * @param o the object to compare to.
      *
-     * @return true iff <code>o</code> is an MBeanOperationInfo such
+     * @return true if and only if <code>o</code> is an MBeanOperationInfo such
      * that its {@link #getName()}, {@link #getReturnType()}, {@link
-     * #getDescription()}, {@link #getImpact()}, and {@link
-     * #getSignature()} values are equal (not necessarily identical)
+     * #getDescription()}, {@link #getImpact()}, {@link #getDescriptor()}
+     * and {@link #getSignature()} values are equal (not necessarily identical)
      * to those of this MBeanConstructorInfo.  Two signature arrays
      * are equal if their elements are pairwise equal.
      */
@@ -210,7 +273,8 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
 		p.getReturnType().equals(getReturnType()) &&
 		p.getDescription().equals(getDescription()) &&
 		p.getImpact() == getImpact() &&
-		Arrays.equals(p.fastGetSignature(), fastGetSignature()));
+		Arrays.equals(p.fastGetSignature(), fastGetSignature()) &&
+                p.getDescriptor().equals(getDescriptor()));
     }
 
     /* We do not include everything in the hashcode.  We assume that
@@ -225,12 +289,21 @@ public class MBeanOperationInfo extends MBeanFeatureInfo implements java.io.Seri
 
     private static MBeanParameterInfo[] methodSignature(Method method) {
 	final Class[] classes = method.getParameterTypes();
+        final Annotation[][] annots = method.getParameterAnnotations();
+        return parameters(classes, annots);
+    }
+
+    static MBeanParameterInfo[] parameters(Class[] classes,
+                                           Annotation[][] annots) {
 	final MBeanParameterInfo[] params =
 	    new MBeanParameterInfo[classes.length];
+        assert(classes.length == annots.length);
 
 	for (int i = 0; i < classes.length; i++) {
+            Descriptor d = Introspector.descriptorForAnnotations(annots[i]);
 	    final String pn = "p" + (i + 1);
-	    params[i] = new MBeanParameterInfo(pn, classes[i].getName(), "");
+	    params[i] =
+                new MBeanParameterInfo(pn, classes[i].getName(), "", d);
 	}
 
 	return params;

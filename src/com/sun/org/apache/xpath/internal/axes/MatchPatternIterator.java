@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MatchPatternIterator.java,v 1.8 2004/02/17 04:32:08 minchau Exp $
+ * $Id: MatchPatternIterator.java,v 1.2.4.2 2005/09/14 19:45:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -38,6 +38,7 @@ import com.sun.org.apache.xpath.internal.patterns.StepPattern;
  */
 public class MatchPatternIterator extends LocPathIterator
 {
+    static final long serialVersionUID = -5201153767396296474L;
 
   /** This is the select pattern, translated into a match pattern. */
   protected StepPattern m_pattern;
@@ -140,7 +141,7 @@ public class MatchPatternIterator extends LocPathIterator
     }
     if(false || DEBUG)
     {
-      System.out.println("axis: "+Axis.names[m_superAxis]);
+      System.out.println("axis: "+Axis.getNames(m_superAxis));
     }
     
   }
@@ -150,7 +151,7 @@ public class MatchPatternIterator extends LocPathIterator
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)

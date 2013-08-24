@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEvent.java	1.55 04/06/02
+ * @(#)AWTEvent.java	1.60 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.lang.reflect.Field;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.55 06/02/04
+ * @version 1.60 04/07/06
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {
@@ -186,6 +186,11 @@ public abstract class AWTEvent extends EventObject {
     public final static long WINDOW_FOCUS_EVENT_MASK = 0x80000;
 
     /**
+     * WARNING: there are more mask defined privately.  See
+     * SunToolkit.GRAB_EVENT_MASK.
+     */
+
+    /**
      * The maximum value for reserved AWT event IDs. Programs defining
      * their own event IDs should use IDs greater than this value.
      */
@@ -246,8 +251,9 @@ public abstract class AWTEvent extends EventObject {
 
     /**
      * Constructs an AWTEvent object with the specified source object and type.
+     * 
      * @param source the object where the event originated
-     * @id the event type
+     * @param id the event type
      */
     public AWTEvent(Object source, int id) {
         super(source);
@@ -273,6 +279,7 @@ public abstract class AWTEvent extends EventObject {
      * client use.
      *
      * @param newSource the new Object to which the event should be dispatched
+     * @since 1.4
      */ 
     public void setSource(Object newSource) {
 	if (source == newSource) {
@@ -455,7 +462,7 @@ public abstract class AWTEvent extends EventObject {
                       arg = ie.getItem();
 
                   } else { // Checkbox
-                      arg = new Boolean(ie.getStateChange() == ItemEvent.SELECTED);
+                      arg = Boolean.valueOf(ie.getStateChange() == ItemEvent.SELECTED);
                   }
               }
               return new Event(src, newid, arg);
@@ -486,7 +493,7 @@ public abstract class AWTEvent extends EventObject {
                 default:
                   return null;
               }
-              return new Event(src, newid, new Integer(aje.getValue()));
+              return new Event(src, newid, Integer.valueOf(aje.getValue()));
 
           default:
         }

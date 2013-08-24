@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 The Apache Software Foundation.
+ * Copyright 2004,2005 The Apache Software Foundation.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLDTDDescription;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
 
-import org.xml.sax.EntityResolver;
 import org.xml.sax.ext.EntityResolver2;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -37,7 +36,7 @@ import org.xml.sax.SAXException;
  * 
  * @author Michael Glavassevich, IBM
  * 
- * @version $Id: EntityResolver2Wrapper.java,v 1.2 2004/05/07 09:00:32 vk112360 Exp $
+ * @version $Id: EntityResolver2Wrapper.java,v 1.2.6.1 2005/09/05 07:52:14 neerajbj Exp $
  */
 public class EntityResolver2Wrapper 
     implements ExternalSubsetResolver {
@@ -150,7 +149,7 @@ public class EntityResolver2Wrapper
         if (fEntityResolver != null) {
             
             String pubId = resourceIdentifier.getPublicId();
-            String sysId = resourceIdentifier.getExpandedSystemId();
+            String sysId = resourceIdentifier.getLiteralSystemId();
             String baseURI = resourceIdentifier.getBaseSystemId();
             String name = null;
             if (resourceIdentifier instanceof XMLDTDDescription) {
@@ -160,12 +159,12 @@ public class EntityResolver2Wrapper
                 name = ((XMLEntityDescription) resourceIdentifier).getEntityName();
             }
             
-            // When all of the parameters are null, the user's entity resolver
+            // When both pubId and sysId are null, the user's entity resolver
             // can do nothing about it. We'd better not bother calling it.
             // This happens when the resourceIdentifier is a GrammarDescription,
             // which describes a schema grammar of some namespace, but without
             // any schema location hint. -Sg
-            if (pubId == null && sysId == null && baseURI == null && name == null) {
+            if (pubId == null && sysId == null) {
                 return null;
             }
             

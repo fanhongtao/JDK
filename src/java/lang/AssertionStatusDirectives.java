@@ -1,7 +1,7 @@
 /*
- * @(#)AssertionStatusDirectives.java	1.4 03/12/19
+ * @(#)AssertionStatusDirectives.java	1.6 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ class AssertionStatusDirectives {
      * <p>In the case of conflicting directives for the same class, the
      * last directive for a given class wins.  In other words, if a string
      * <tt>s</tt> appears multiple times in the <tt>classes</tt> array
-     * and <tt>i</t> is the highest integer for which
+     * and <tt>i</tt> is the highest integer for which
      * <tt>classes[i].equals(s)</tt>, then <tt>classEnabled[i]</tt>
      * indicates whether assertions are to be enabled in class <tt>s</tt>.
      */
@@ -61,7 +61,7 @@ class AssertionStatusDirectives {
      * In the case of conflicting directives for the same package-tree, the
      * last directive for a given package-tree wins.  In other words, if a
      * string <tt>s</tt> appears multiple times in the <tt>packages</tt> array
-     * and <tt>i</t> is the highest integer for which
+     * and <tt>i</tt> is the highest integer for which
      * <tt>packages[i].equals(s)</tt>, then <tt>packageEnabled[i]</tt>
      * indicates whether assertions are to be enabled in package-tree
      * <tt>s</tt>.

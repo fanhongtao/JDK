@@ -71,7 +71,7 @@ package com.sun.org.apache.xerces.internal.xni;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLAttributes.java,v 1.9 2003/01/23 17:27:12 sandygao Exp $
+ * @version $Id: XMLAttributes.java,v 1.1.2.1 2005/08/01 03:34:00 jeffsuttor Exp $
  */
 public interface XMLAttributes {
 
@@ -224,6 +224,10 @@ public interface XMLAttributes {
      */
     public String getQName(int index);
 
+    //why the above method doens't return QName ?
+    public QName getQualifiedName(int index);
+    
+
     /**
      * Sets the type of the attribute at the specified index.
      * 
@@ -304,6 +308,8 @@ public interface XMLAttributes {
      */
     public void setValue(int attrIndex, String attrValue);
 
+    public void setValue(int attrIndex, String attrValue, XMLString value);
+    
     /**
      * Look up an attribute's value by index.
      * <p>
@@ -415,8 +421,7 @@ public interface XMLAttributes {
      *
      */
     public Augmentations getAugmentations(String qName);
-
-
+    
     /**
      * Sets the augmentations of the attribute at the specified index.
      * 
@@ -424,6 +429,8 @@ public interface XMLAttributes {
      * @param augs      The augmentations.
      */
     public void setAugmentations(int attrIndex, Augmentations augs);
+
+
 
 
 } // interface XMLAttributes

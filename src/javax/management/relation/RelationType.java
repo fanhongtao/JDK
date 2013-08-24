@@ -1,7 +1,7 @@
 /*
- * @(#)RelationType.java	1.17 03/12/19
+ * @(#)RelationType.java	1.20 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,13 +36,13 @@ public interface RelationType extends Serializable {
      *
      * @return an {@link ArrayList} of {@link RoleInfo}.
      */
-    public List getRoleInfos();
+    public List<RoleInfo> getRoleInfos();
 
     /**
      * Returns the role info (RoleInfo object) for the given role info name
      * (null if not found).
      *
-     * @param theRoleInfoName  role info name
+     * @param roleInfoName  role info name
      *
      * @return RoleInfo object providing role definition
      * does not exist
@@ -51,7 +51,7 @@ public interface RelationType extends Serializable {
      * @exception RoleInfoNotFoundException  if no role info with that name in
      * relation type.
      */
-    public RoleInfo getRoleInfo(String theRoleInfoName)
+    public RoleInfo getRoleInfo(String roleInfoName)
 	throws IllegalArgumentException,
 	       RoleInfoNotFoundException;
 }

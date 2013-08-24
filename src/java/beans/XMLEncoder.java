@@ -1,7 +1,7 @@
 /*
- * @(#)XMLEncoder.java	1.33 03/12/19
+ * @(#)XMLEncoder.java	1.35 06/03/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -9,6 +9,9 @@ package java.beans;
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.UnsupportedCharsetException;
 
 /**
  * The <code>XMLEncoder</code> class is a complementary alternative to
@@ -180,7 +183,7 @@ import java.lang.reflect.*;
  *
  * @since 1.4
  *
- * @version 1.33 12/19/03
+ * @version 1.35 03/09/06
  * @author Philip Milne
  */
 public class XMLEncoder extends Encoder {
@@ -446,38 +449,32 @@ public class XMLEncoder extends Encoder {
         return d;
     }
 
-    private static String quoteCharacters(String s) {
-	StringBuffer result = null;
-        for(int i = 0, max = s.length(), delta = 0; i < max; i++) {
-	    char c = s.charAt(i);
-	    String replacement = null;
-
-	    if (c == '&') {
-		replacement = "&amp;";
-	    } else if (c == '<') {
-		replacement = "&lt;";
-	    } else if (c == '\r') {
-		replacement = "&#13;";
-	    } else if (c == '>') {
-		replacement = "&gt;";
-	    } else if (c == '"') {
-		replacement = "&quot;";
-	    } else if (c == '\'') {
-		replacement = "&apos;";
-	    }
-	    
-	    if (replacement != null) {
-		if (result == null) {
-		    result = new StringBuffer(s);
-		}
-		result.replace(i + delta, i + delta + 1, replacement);
-		delta += (replacement.length() - 1);
-	    }
-        }
-        if (result == null) {
-            return s;
-        }
-	return result.toString();
+    /**
+     * Returns <code>true</code> if the argument,
+     * a Unicode code point, is valid in XML documents.
+     * Unicode characters fit into the low sixteen bits of a Unicode code point,
+     * and pairs of Unicode <em>surrogate characters</em> can be combined
+     * to encode Unicode code point in documents containing only Unicode.
+     * (The <code>char</code> datatype in the Java Programming Language
+     * represents Unicode characters, including unpaired surrogates.)
+     * <par>
+     * [2] Char ::= #x0009 | #x000A | #x000D
+     *            | [#x0020-#xD7FF]
+     *            | [#xE000-#xFFFD]
+     *            | [#x10000-#x10ffff]
+     * </par>
+     *
+     * @param code  the 32-bit Unicode code point being tested
+     * @return  <code>true</code> if the Unicode code point is valid,
+     *          <code>false</code> otherwise
+     */
+    private static boolean isValidCharCode(int code) {
+        return (0x0020 <= code && code <= 0xD7FF)
+            || (0x000A == code)
+            || (0x0009 == code)
+            || (0x000D == code)
+            || (0xE000 <= code && code <= 0xFFFD)
+            || (0x10000 <= code && code <= 0x10ffff);
     }
 
     private void writeln(String exp) {
@@ -527,7 +524,15 @@ public class XMLEncoder extends Encoder {
 		String primitiveTypeName = primitiveType.getName();
 		// Make sure that character types are quoted correctly.
 		if (primitiveType == Character.TYPE) {
-		    value = quoteCharacters(((Character)value).toString());
+                    char code = ((Character) value).charValue();
+                    if (!isValidCharCode(code)) {
+                        writeln(createString(code));
+                        return;
+                    }
+                    value = quoteCharCode(code);
+                    if (value == null) {
+                        value = Character.valueOf(code);
+                    }
 		}
 		writeln("<" + primitiveTypeName + ">" + value + "</" + 
 			primitiveTypeName + ">");
@@ -535,7 +540,7 @@ public class XMLEncoder extends Encoder {
 	    }
 
 	} else if (value instanceof String) {
-            writeln("<string>" + quoteCharacters((String)value) + "</string>");
+            writeln(createString((String) value));
             return;
         }
 
@@ -545,6 +550,61 @@ public class XMLEncoder extends Encoder {
         }
 
         outputStatement(d.exp, outer, isArgument);
+    }
+
+    private static String quoteCharCode(int code) {
+        switch(code) {
+          case '&':  return "&amp;";
+          case '<':  return "&lt;";
+          case '>':  return "&gt;";
+          case '"':  return "&quot;";
+          case '\'': return "&apos;";
+          case '\r': return "&#13;";
+          default:   return null;
+        }
+    }
+
+    private static String createString(int code) {
+        return "<char code=\"#" + Integer.toString(code, 16) + "\"/>";
+    }
+
+    private String createString(String string) {
+        CharsetEncoder encoder = Charset.forName(encoding).newEncoder();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<string>");
+        int index = 0;
+        while (index < string.length()) {
+            int point = string.codePointAt(index);
+            int count = Character.charCount(point);
+
+            if (isValidCharCode(point) && encoder.canEncode(string.substring(index, index + count))) {
+                String value = quoteCharCode(point);
+                if (value != null) {
+                    sb.append(value);
+                } else {
+                    sb.appendCodePoint(point);
+                }
+                index += count;
+            } else {
+                sb.append(createString(string.charAt(index)));
+                index++;
+            }
+/*
+            String value = isValidCharCode(point) && encoder.canEncode(string.substring(index, index + count))
+                    ? quoteCharCode(point)
+                    : createString(point);
+
+            if (value != null) {
+                sb.append(value);
+            } else {
+                sb.appendCodePoint(point);
+            }
+            index += count;
+*/
+        }
+        sb.append("</string>");
+        return sb.toString();
     }
 
     private void outputStatement(Statement exp, Object outer, boolean isArgument) {

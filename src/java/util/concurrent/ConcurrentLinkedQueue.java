@@ -1,7 +1,7 @@
 /*
- * @(#)ConcurrentLinkedQueue.java	1.7 04/06/11
+ * @(#)ConcurrentLinkedQueue.java	1.12 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.*;
 
 
 /**
- * An unbounded thread-safe {@linkplain Queue queue} based on linked nodes.  
+ * An unbounded thread-safe {@linkplain Queue queue} based on linked nodes.
  * This queue orders elements FIFO (first-in-first-out).
  * The <em>head</em> of the queue is that element that has been on the
  * queue the longest time.
@@ -19,11 +19,11 @@ import java.util.concurrent.atomic.*;
  * queue the shortest time. New elements
  * are inserted at the tail of the queue, and the queue retrieval
  * operations obtain elements at the head of the queue.
- * A <tt>ConcurrentLinkedQueue</tt> is an appropriate choice when 
+ * A <tt>ConcurrentLinkedQueue</tt> is an appropriate choice when
  * many threads will share access to a common collection.
  * This queue does not permit <tt>null</tt> elements.
  *
- * <p>This implementation employs an efficient &quot;wait-free&quot; 
+ * <p>This implementation employs an efficient &quot;wait-free&quot;
  * algorithm based on one described in <a
  * href="http://www.cs.rochester.edu/u/michael/PODC96.html"> Simple,
  * Fast, and Practical Non-Blocking and Blocking Concurrent Queue
@@ -38,8 +38,15 @@ import java.util.concurrent.atomic.*;
  * <em>optional</em> methods of the {@link Collection} and {@link
  * Iterator} interfaces.
  *
+ * <p>Memory consistency effects: As with other concurrent
+ * collections, actions in a thread prior to placing an object into a
+ * {@code ConcurrentLinkedQueue}
+ * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
+ * actions subsequent to the access or removal of that element from
+ * the {@code ConcurrentLinkedQueue} in another thread.
+ *
  * <p>This class is a member of the
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @since 1.5
@@ -59,61 +66,68 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * fields to null. The normal queue operations unlink but then
      * pass over nodes with null item fields. Similarly, iteration
      * methods ignore those with nulls.
+     *
+     * Also note that like most non-blocking algorithms in this
+     * package, this implementation relies on the fact that in garbage
+     * collected systems, there is no possibility of ABA problems due
+     * to recycled nodes, so there is no need to use "counted
+     * pointers" or related techniques seen in versions used in
+     * non-GC'ed settings.
      */
 
     private static class Node<E> {
         private volatile E item;
         private volatile Node<E> next;
-        
-        private static final 
-            AtomicReferenceFieldUpdater<Node, Node> 
+
+        private static final
+            AtomicReferenceFieldUpdater<Node, Node>
             nextUpdater =
             AtomicReferenceFieldUpdater.newUpdater
             (Node.class, Node.class, "next");
-        private static final 
-            AtomicReferenceFieldUpdater<Node, Object> 
+        private static final
+            AtomicReferenceFieldUpdater<Node, Object>
             itemUpdater =
             AtomicReferenceFieldUpdater.newUpdater
             (Node.class, Object.class, "item");
-        
+
         Node(E x) { item = x; }
-        
+
         Node(E x, Node<E> n) { item = x; next = n; }
-        
+
         E getItem() {
             return item;
         }
-        
+
         boolean casItem(E cmp, E val) {
             return itemUpdater.compareAndSet(this, cmp, val);
         }
-        
+
         void setItem(E val) {
             itemUpdater.set(this, val);
         }
-        
+
         Node<E> getNext() {
             return next;
         }
-        
+
         boolean casNext(Node<E> cmp, Node<E> val) {
             return nextUpdater.compareAndSet(this, cmp, val);
         }
-        
+
         void setNext(Node<E> val) {
             nextUpdater.set(this, val);
         }
-        
+
     }
 
-    private static final 
-        AtomicReferenceFieldUpdater<ConcurrentLinkedQueue, Node> 
-        tailUpdater = 
+    private static final
+        AtomicReferenceFieldUpdater<ConcurrentLinkedQueue, Node>
+        tailUpdater =
         AtomicReferenceFieldUpdater.newUpdater
         (ConcurrentLinkedQueue.class, Node.class, "tail");
-    private static final 
-        AtomicReferenceFieldUpdater<ConcurrentLinkedQueue, Node> 
-        headUpdater = 
+    private static final
+        AtomicReferenceFieldUpdater<ConcurrentLinkedQueue, Node>
+        headUpdater =
         AtomicReferenceFieldUpdater.newUpdater
         (ConcurrentLinkedQueue.class,  Node.class, "head");
 
@@ -142,44 +156,40 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     public ConcurrentLinkedQueue() {}
 
     /**
-     * Creates a <tt>ConcurrentLinkedQueue</tt> 
+     * Creates a <tt>ConcurrentLinkedQueue</tt>
      * initially containing the elements of the given collection,
      * added in traversal order of the collection's iterator.
      * @param c the collection of elements to initially contain
-     * @throws NullPointerException if <tt>c</tt> or any element within it
-     * is <tt>null</tt>
+     * @throws NullPointerException if the specified collection or any
+     *         of its elements are null
      */
     public ConcurrentLinkedQueue(Collection<? extends E> c) {
         for (Iterator<? extends E> it = c.iterator(); it.hasNext();)
             add(it.next());
     }
 
-    // Have to override just to update the javadoc 
+    // Have to override just to update the javadoc
 
     /**
-     * Adds the specified element to the tail of this queue.
-     * @param o the element to add.
-     * @return <tt>true</tt> (as per the general contract of
-     * <tt>Collection.add</tt>).
+     * Inserts the specified element at the tail of this queue.
      *
-     * @throws NullPointerException if the specified element is <tt>null</tt>
+     * @return <tt>true</tt> (as specified by {@link Collection#add})
+     * @throws NullPointerException if the specified element is null
      */
-    public boolean add(E o) {
-        return offer(o);
+    public boolean add(E e) {
+        return offer(e);
     }
 
     /**
-     * Inserts the specified element to the tail of this queue.
+     * Inserts the specified element at the tail of this queue.
      *
-     * @param o the element to add.
-     * @return <tt>true</tt> (as per the general contract of
-     * <tt>Queue.offer</tt>).
-     * @throws NullPointerException if the specified element is <tt>null</tt>
+     * @return <tt>true</tt> (as specified by {@link Queue#offer})
+     * @throws NullPointerException if the specified element is null
      */
-    public boolean offer(E o) {
-        if (o == null) throw new NullPointerException();
-        Node<E> n = new Node<E>(o, null);
-        for(;;) {
+    public boolean offer(E e) {
+        if (e == null) throw new NullPointerException();
+        Node<E> n = new Node<E>(e, null);
+        for (;;) {
             Node<E> t = tail;
             Node<E> s = t.getNext();
             if (t == tail) {
@@ -268,6 +278,11 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     }
 
 
+    /**
+     * Returns <tt>true</tt> if this queue contains no elements.
+     *
+     * @return <tt>true</tt> if this queue contains no elements
+     */
     public boolean isEmpty() {
         return first() == null;
     }
@@ -282,7 +297,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
      * asynchronous nature of these queues, determining the current
      * number of elements requires an O(n) traversal.
      *
-     * @return  the number of elements in this queue.
+     * @return the number of elements in this queue
      */
     public int size() {
         int count = 0;
@@ -296,6 +311,14 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         return count;
     }
 
+    /**
+     * Returns <tt>true</tt> if this queue contains the specified element.
+     * More formally, returns <tt>true</tt> if and only if this queue contains
+     * at least one element <tt>e</tt> such that <tt>o.equals(e)</tt>.
+     *
+     * @param o object to be checked for containment in this queue
+     * @return <tt>true</tt> if this queue contains the specified element
+     */
     public boolean contains(Object o) {
         if (o == null) return false;
         for (Node<E> p = first(); p != null; p = p.getNext()) {
@@ -307,6 +330,17 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         return false;
     }
 
+    /**
+     * Removes a single instance of the specified element from this queue,
+     * if it is present.  More formally, removes an element <tt>e</tt> such
+     * that <tt>o.equals(e)</tt>, if this queue contains one or more such
+     * elements.
+     * Returns <tt>true</tt> if this queue contained the specified element
+     * (or equivalently, if this queue changed as a result of the call).
+     *
+     * @param o element to be removed from this queue, if present
+     * @return <tt>true</tt> if this queue changed as a result of the call
+     */
     public boolean remove(Object o) {
         if (o == null) return false;
         for (Node<E> p = first(); p != null; p = p.getNext()) {
@@ -319,6 +353,19 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         return false;
     }
 
+    /**
+     * Returns an array containing all of the elements in this queue, in
+     * proper sequence.
+     *
+     * <p>The returned array will be "safe" in that no references to it are
+     * maintained by this queue.  (In other words, this method must allocate
+     * a new array).  The caller is thus free to modify the returned array.
+     *
+     * <p>This method acts as bridge between array-based and collection-based
+     * APIs.
+     *
+     * @return an array containing all of the elements in this queue
+     */
     public Object[] toArray() {
         // Use ArrayList to deal with resizing.
         ArrayList<E> al = new ArrayList<E>();
@@ -330,6 +377,42 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         return al.toArray();
     }
 
+    /**
+     * Returns an array containing all of the elements in this queue, in
+     * proper sequence; the runtime type of the returned array is that of
+     * the specified array.  If the queue fits in the specified array, it
+     * is returned therein.  Otherwise, a new array is allocated with the
+     * runtime type of the specified array and the size of this queue.
+     *
+     * <p>If this queue fits in the specified array with room to spare
+     * (i.e., the array has more elements than this queue), the element in
+     * the array immediately following the end of the queue is set to
+     * <tt>null</tt>.
+     *
+     * <p>Like the {@link #toArray()} method, this method acts as bridge between
+     * array-based and collection-based APIs.  Further, this method allows
+     * precise control over the runtime type of the output array, and may,
+     * under certain circumstances, be used to save allocation costs.
+     *
+     * <p>Suppose <tt>x</tt> is a queue known to contain only strings.
+     * The following code can be used to dump the queue into a newly
+     * allocated array of <tt>String</tt>:
+     *
+     * <pre>
+     *     String[] y = x.toArray(new String[0]);</pre>
+     *
+     * Note that <tt>toArray(new Object[0])</tt> is identical in function to
+     * <tt>toArray()</tt>.
+     *
+     * @param a the array into which the elements of the queue are to
+     *          be stored, if it is big enough; otherwise, a new array of the
+     *          same runtime type is allocated for this purpose
+     * @return an array containing all of the elements in this queue
+     * @throws ArrayStoreException if the runtime type of the specified array
+     *         is not a supertype of the runtime type of every element in
+     *         this queue
+     * @throws NullPointerException if the specified array is null
+     */
     public <T> T[] toArray(T[] a) {
         // try to use sent-in array
         int k = 0;
@@ -358,12 +441,12 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
     /**
      * Returns an iterator over the elements in this queue in proper sequence.
      * The returned iterator is a "weakly consistent" iterator that
-     * will never throw {@link java.util.ConcurrentModificationException},
+     * will never throw {@link ConcurrentModificationException},
      * and guarantees to traverse elements as they existed upon
      * construction of the iterator, and may (but is not guaranteed to)
      * reflect any modifications subsequent to construction.
      *
-     * @return an iterator over the elements in this queue in proper sequence.
+     * @return an iterator over the elements in this queue in proper sequence
      */
     public Iterator<E> iterator() {
         return new Itr();
@@ -380,7 +463,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
          * that an element exists in hasNext(), we must return it in
          * the following next() call even if it was in the process of
          * being removed when hasNext() was called.
-         **/
+         */
         private E nextItem;
 
         /**

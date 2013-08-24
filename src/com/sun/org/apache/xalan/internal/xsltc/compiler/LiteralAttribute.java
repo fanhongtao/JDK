@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: LiteralAttribute.java,v 1.8 2004/02/16 22:24:29 minchau Exp $
+ * $Id: LiteralAttribute.java,v 1.2.4.1 2005/09/12 10:38:03 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -50,7 +50,7 @@ final class LiteralAttribute extends Instruction {
     public LiteralAttribute(String name, String value, Parser parser,
         SyntaxTreeNode parent) 
     {
-   	_name = name;
+	_name = name;
         setParent(parent);
 	_value = AttributeValue.create(this, value, parser);
     }

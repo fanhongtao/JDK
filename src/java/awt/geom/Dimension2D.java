@@ -1,7 +1,7 @@
 /*
- * @(#)Dimension2D.java	1.13 03/12/19
+ * @(#)Dimension2D.java	1.15 06/02/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,10 +16,12 @@ package java.awt.geom;
  * The actual storage representation of the sizes is left to
  * the subclass.
  * 
- * @version 	1.13, 12/19/03
+ * @version 	1.15, 02/24/06
  * @author	Jim Graham
+ * @since 1.2
  */
 public abstract class Dimension2D implements Cloneable {
+
     /**
      * This is an abstract class that cannot be instantiated directly.
      * Type-specific implementation subclasses are available for
@@ -28,6 +30,7 @@ public abstract class Dimension2D implements Cloneable {
      * methods below.
      *
      * @see java.awt.Dimension
+     * @since 1.2
      */
     protected Dimension2D() {
     }
@@ -36,6 +39,7 @@ public abstract class Dimension2D implements Cloneable {
      * Returns the width of this <code>Dimension</code> in double 
      * precision.
      * @return the width of this <code>Dimension</code>.
+     * @since 1.2
      */
     public abstract double getWidth();
 
@@ -43,6 +47,7 @@ public abstract class Dimension2D implements Cloneable {
      * Returns the height of this <code>Dimension</code> in double 
      * precision.
      * @return the height of this <code>Dimension</code>.
+     * @since 1.2
      */
     public abstract double getHeight();
 
@@ -56,6 +61,7 @@ public abstract class Dimension2D implements Cloneable {
      * object
      * @param height  the new height for the <code>Dimension</code> 
      * object
+     * @since 1.2
      */
     public abstract void setSize(double width, double height);
 
@@ -66,6 +72,7 @@ public abstract class Dimension2D implements Cloneable {
      * <code>getSize</code> method of <code>Component</code>.
      * @param d  the new size for the <code>Dimension2D</code>
      * object
+     * @since 1.2
      */
     public void setSize(Dimension2D d) {
 	setSize(d.getWidth(), d.getHeight());

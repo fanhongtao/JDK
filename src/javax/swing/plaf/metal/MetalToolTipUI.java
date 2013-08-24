@@ -1,13 +1,13 @@
 /*
- * @(#)MetalToolTipUI.java	1.28 03/12/19
+ * @(#)MetalToolTipUI.java	1.31 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -15,6 +15,8 @@ import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicToolTipUI;
+import javax.swing.plaf.basic.BasicHTML;
+import javax.swing.text.View;
 
 
 /**
@@ -29,7 +31,7 @@ import javax.swing.plaf.basic.BasicToolTipUI;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.28 12/19/03
+ * @version 1.31 11/30/05
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
@@ -65,34 +67,65 @@ public class MetalToolTipUI extends BasicToolTipUI {
 
     public void paint(Graphics g, JComponent c) {
         JToolTip tip = (JToolTip)c;
-
-	super.paint(g, c);
-
         Font font = c.getFont();
         FontMetrics metrics = SwingUtilities2.getFontMetrics(c, g, font);
-	String keyText = getAcceleratorString(tip);
-	String tipText = tip.getTipText();
-	if (tipText == null) {
-	    tipText = "";
-	}
-	if (! (keyText.equals(""))) {  // only draw control key if there is one
-	    g.setFont(smallFont);
-	    g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
-	    SwingUtilities2.drawString(tip, g, keyText,
-                         SwingUtilities2.stringWidth(
-                         tip, metrics, tipText) + padSpaceBetweenStrings, 
-		         2 + metrics.getAscent());
-	}
+        Dimension size = c.getSize();
+        int accelBL;
+
+        g.setColor(c.getForeground());
+        // fix for bug 4153892
+        String tipText = tip.getTipText();
+        if (tipText == null) {
+            tipText = "";
+        }
+
+        String accelString = getAcceleratorString(tip);
+        FontMetrics accelMetrics = SwingUtilities2.getFontMetrics(c, g, smallFont);
+        int accelSpacing = calcAccelSpacing(c, accelMetrics, accelString);
+
+        Insets insets = tip.getInsets();
+        Rectangle paintTextR = new Rectangle(
+            insets.left + 3,
+            insets.top,
+            size.width - (insets.left + insets.right) - 6 - accelSpacing,
+            size.height - (insets.top + insets.bottom));
+        View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+        if (v != null) {
+            v.paint(g, paintTextR);
+            accelBL = BasicHTML.getHTMLBaseline(v, paintTextR.width,
+                                                  paintTextR.height);
+        } else {
+            g.setFont(font);
+            SwingUtilities2.drawString(tip, g, tipText, paintTextR.x,
+                                  paintTextR.y + metrics.getAscent());
+            accelBL = metrics.getAscent();
+        }
+
+        if (!accelString.equals("")) {
+            g.setFont(smallFont);
+            g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
+            SwingUtilities2.drawString(tip, g, accelString,
+                                       tip.getWidth() - 1 - insets.right
+                                           - accelSpacing
+                                           + padSpaceBetweenStrings
+                                           - 3,
+                                       paintTextR.y + accelBL);
+        }
+    }
+
+    private int calcAccelSpacing(JComponent c, FontMetrics fm, String accel) {
+        return accel.equals("")
+               ? 0
+               : padSpaceBetweenStrings +
+                 SwingUtilities2.stringWidth(c, fm, accel);
     }
 
     public Dimension getPreferredSize(JComponent c) {
 	Dimension d = super.getPreferredSize(c);
 
 	String key = getAcceleratorString((JToolTip)c);
-	if (! (key.equals(""))) {
-            FontMetrics fm = c.getFontMetrics(smallFont);	
-	    d.width += SwingUtilities2.stringWidth(c, fm, key) +
-                            padSpaceBetweenStrings;
+	if (!(key.equals(""))) {
+            d.width += calcAccelSpacing(c, c.getFontMetrics(smallFont), key);
 	}
         return d;
     }
@@ -122,65 +155,23 @@ public class MetalToolTipUI extends BasicToolTipUI {
             return "";
         }
         JComponent comp = tip.getComponent();
-	if (comp == null) {
+	if (!(comp instanceof AbstractButton)) {
 	    return "";
 	}
 
-	KeyStroke[] keys;
-
-	if (comp instanceof JTabbedPane) {
-	  TabbedPaneUI ui = ( (JTabbedPane)(comp) ).getUI();
-	  if (ui instanceof MetalTabbedPaneUI) {		
-	    // if comp is instance of JTabbedPane and have 'metal' look-and-feel
-	    // detect tab the mouse is over now
-	    int rolloverTabIndex = ( (MetalTabbedPaneUI)ui ).getRolloverTabIndex();
-       	    if  (rolloverTabIndex == -1)
-    	      keys = new KeyStroke[0];
-    	    else {
-    	      // detect mnemonic for this tab
-    	      int mnemonic = ((JTabbedPane)comp).getMnemonicAt(rolloverTabIndex);
-    	      if (mnemonic == -1)
- 	        keys = new KeyStroke[0];
- 	      else {
- 	        // and store it as mnemonic for the component
-                KeyStroke keyStroke = KeyStroke.getKeyStroke(mnemonic, Event.ALT_MASK);
-                keys = new KeyStroke[1];
-                keys[0] = keyStroke;
-              }
-            }
-          }
-          else
-            keys = comp.getRegisteredKeyStrokes();
+	KeyStroke[] keys = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).keys();
+        if (keys == null) {
+            return "";
         }
-	else
-	  keys = comp.getRegisteredKeyStrokes();
 
 	String controlKeyStr = "";
 
-	for (int i = 0; i < keys.length; i++) {
-	  int mod = keys[i].getModifiers();
-	  int condition =  comp.getConditionForKeyStroke(keys[i]);
-
-	  if ( condition == JComponent.WHEN_IN_FOCUSED_WINDOW )
-	  {
-	      controlKeyStr = KeyEvent.getKeyModifiersText(mod) +
-                              acceleratorDelimiter +
-                              KeyEvent.getKeyText(keys[i].getKeyCode());
-	      break;
-	  }
-	}
-
-	/* Special case for menu item since they do not register a
-	   keyboard action for their mnemonics and they always use Alt */
-	if ( controlKeyStr.equals("") && comp instanceof JMenuItem )
-	{
-	    int mnemonic = ((JMenuItem) comp).getMnemonic();
-	    if ( mnemonic != 0 )
-	    {
-	        controlKeyStr =
-                    KeyEvent.getKeyModifiersText(KeyEvent.ALT_MASK) +
-                    acceleratorDelimiter + (char)mnemonic;
-	    }
+        for (int i = 0; i < keys.length; i++) {
+            int mod = keys[i].getModifiers();
+            controlKeyStr = KeyEvent.getKeyModifiersText(mod) +
+                            acceleratorDelimiter +
+                            KeyEvent.getKeyText(keys[i].getKeyCode());
+            break;
 	}
 
 	return controlKeyStr;

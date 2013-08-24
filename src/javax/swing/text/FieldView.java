@@ -1,7 +1,7 @@
 /*
- * @(#)FieldView.java	1.25 03/12/19
+ * @(#)FieldView.java	1.27 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * current visibility settings of the JTextField.
  *
  * @author  Timothy Prinzing
- * @version 1.25 12/19/03
+ * @version 1.27 11/30/05
  * @see     View
  */
 public class FieldView extends PlainView {
@@ -200,7 +200,7 @@ public class FieldView extends PlainView {
 		width = Utilities.getTabbedTextWidth(buff, fm, 0, this, 0);
                 if (buff.count > 0) {
                     Component c = getContainer();
-                    firstLineOffset = com.sun.java.swing.SwingUtilities2.
+                    firstLineOffset = sun.swing.SwingUtilities2.
                         getLeftSideBearing((c instanceof JComponent) ?
                                            (JComponent)c : null, fm,
                                            buff.array[buff.offset]);

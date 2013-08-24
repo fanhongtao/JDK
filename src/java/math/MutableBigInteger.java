@@ -1,10 +1,10 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)MutableBigInteger.java	1.12 03/12/19
+ * @(#)MutableBigInteger.java	1.14 05/11/17
  */
 
 package java.math;
@@ -21,7 +21,7 @@ package java.math;
  * BigIntegers.
  *
  * @see     BigInteger
- * @version 1.12, 12/19/03
+ * @version 1.14, 11/17/05
  * @author  Michael McCloskey
  * @since   1.3
  */
@@ -995,8 +995,7 @@ class MutableBigInteger {
     private MutableBigInteger binaryGCD(MutableBigInteger v) {
         // Algorithm B from Knuth section 4.5.2
         MutableBigInteger u = this;
-        MutableBigInteger q = new MutableBigInteger(),
-            r = new MutableBigInteger();
+        MutableBigInteger r = new MutableBigInteger();
 
         // step B1
         int s1 = u.getLowestSetBit();

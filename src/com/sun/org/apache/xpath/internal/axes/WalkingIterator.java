@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WalkingIterator.java,v 1.10 2004/02/17 04:32:08 minchau Exp $
+ * $Id: WalkingIterator.java,v 1.2.4.2 2005/09/14 19:45:19 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -32,6 +32,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
 
 public class WalkingIterator extends LocPathIterator implements ExpressionOwner
 {
+    static final long serialVersionUID = 9110225941815665906L;
   /**
    * Create a WalkingIterator iterator, including creation
    * of step walkers from the opcode list, and call back
@@ -140,7 +141,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)

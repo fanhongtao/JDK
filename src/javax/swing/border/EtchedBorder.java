@@ -1,7 +1,7 @@
 /*
- * @(#)EtchedBorder.java	1.18 03/12/19
+ * @(#)EtchedBorder.java	1.20 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -29,7 +29,7 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 12/19/03
+ * @version 1.20 04/07/06
  * @author David Kloba
  * @author Amy Fowler
  */
@@ -152,6 +152,7 @@ public class EtchedBorder extends AbstractBorder
      * color was specified at instantiation, the highlight color
      * is derived from the specified component's background color.
      * @param c the component for which the highlight may be derived
+     * @since 1.3
      */
     public Color getHighlightColor(Component c)   {
         return highlight != null? highlight : 
@@ -162,6 +163,7 @@ public class EtchedBorder extends AbstractBorder
      * Returns the highlight color of the etched border.
      * Will return null if no highlight color was specified
      * at instantiation.
+     * @since 1.3
      */
     public Color getHighlightColor()   {
         return highlight;
@@ -173,6 +175,7 @@ public class EtchedBorder extends AbstractBorder
      * color was specified at instantiation, the shadow color
      * is derived from the specified component's background color.
      * @param c the component for which the shadow may be derived
+     * @since 1.3
      */
     public Color getShadowColor(Component c)   {
         return shadow != null? shadow : c.getBackground().darker();
@@ -182,6 +185,7 @@ public class EtchedBorder extends AbstractBorder
      * Returns the shadow color of the etched border.
      * Will return null if no shadow color was specified
      * at instantiation.
+     * @since 1.3
      */
     public Color getShadowColor()   {
         return shadow;

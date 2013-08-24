@@ -1,7 +1,7 @@
 /*
- * @(#)DemoPanel.java	1.20 04/07/26
+ * @(#)DemoPanel.java	1.22 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)DemoPanel.java	1.20 04/07/26
+ * @(#)DemoPanel.java	1.22 06/08/09
  */
 
 
@@ -47,6 +47,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.CompoundBorder;
 
+import static java2d.CustomControlsContext.State.*;
 
 /**
  * The panel for the Surface, Custom Controls & Tools. 
@@ -99,7 +100,7 @@ public class DemoPanel extends JPanel {
             && Java2Demo.ccthreadCB != null 
                 && Java2Demo.ccthreadCB.isSelected()) 
         {
-            ccc.handleThread(CustomControlsContext.START);
+            ccc.handleThread(START);
         }
     }
 
@@ -112,13 +113,13 @@ public class DemoPanel extends JPanel {
             surface.bimg = null;
         }
         if (ccc != null) {
-            ccc.handleThread(CustomControlsContext.STOP);
+            ccc.handleThread(STOP);
         }
     }
 
 
     public void setDemoBorder(JPanel p) {
-        int top = (p.getComponentCount()+1 >= 3) ? 0 : 5;
+        int top  =  (p.getComponentCount()+1 >= 3)      ? 0 : 5;
         int left = ((p.getComponentCount()+1) % 2) == 0 ? 0 : 5;
         EmptyBorder eb = new EmptyBorder(top,left,5,5);
         SoftBevelBorder sbb = new SoftBevelBorder(SoftBevelBorder.RAISED);

@@ -56,9 +56,11 @@
  */
 
 package com.sun.org.apache.xerces.internal.impl.dtd;
+
 import com.sun.org.apache.xerces.internal.impl.dv.DatatypeValidator;
+
 /**
- * @version $Id: XMLSimpleType.java,v 1.5 2002/02/15 16:00:29 sandygao Exp $
+ * @version $Id: XMLSimpleType.java,v 1.1.2.1 2005/08/01 03:36:36 jeffsuttor Exp $
  */
 public class XMLSimpleType {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)ContainerPeer.java	1.20 03/12/19
+ * @(#)ContainerPeer.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt.peer;
@@ -22,13 +22,6 @@ public interface ContainerPeer extends ComponentPeer {
     void beginLayout();
     void endLayout();
     boolean isPaintPending();
-
-    /**
-     * Cancels a pending paint on the specified region of the
-     * Component.
-     */
-    void cancelPendingPaint(int x, int y, int w, int h);
-
 
     /**
      * Restacks native windows - children of this native window - according to Java container order

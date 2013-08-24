@@ -1,7 +1,7 @@
 /*
- * @(#)AuthProvider.java	1.3 04/02/03
+ * @(#)AuthProvider.java	1.4 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import javax.security.auth.callback.CallbackHandler;
  * if it determines that a login must be performed
  * prior to certain operations.
  *
- * @version 1.3, 02/03/04
+ * @version 1.4, 11/17/05
  * @since 1.5
  */
 public abstract class AuthProvider extends Provider {

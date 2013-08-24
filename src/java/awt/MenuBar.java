@@ -1,7 +1,7 @@
 /*
- * @(#)MenuBar.java	1.69 04/05/18
+ * @(#)MenuBar.java	1.72 06/04/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -24,8 +24,8 @@ import javax.accessibility.*;
  * This is what a menu bar might look like:
  * <p>
  * <img src="doc-files/MenuBar-1.gif"
- * <alt="Diagram of MenuBar containing 2 menus: Examples and Options. 
- * Examples menu is expanded showing items: Basic, Simple, Check, and More Examples.">
+ * <alt="Diagram of MenuBar containing 2 menus: Examples and Options.
+ * Examples menu is expanded showing items: Basic, Simple, Check, and More Examples."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
  * A menu bar handles keyboard shortcuts for menu items, passing them
@@ -40,7 +40,7 @@ import javax.accessibility.*;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.69, 05/18/04
+ * @version 1.72, 04/18/06
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -433,6 +433,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      *
      * @return an AccessibleAWTMenuBar that serves as the 
      *         AccessibleContext of this MenuBar
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -457,6 +458,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * This class implements accessibility support for the 
      * <code>MenuBar</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to menu bar user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTMenuBar extends AccessibleAWTMenuComponent
     {
@@ -470,6 +472,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
          *
          * @return an instance of AccessibleRole describing the role of the 
          * object
+         * @since 1.4
          */
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.MENU_BAR;

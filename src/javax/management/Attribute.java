@@ -1,7 +1,7 @@
 /*
- * @(#)Attribute.java	4.22 03/12/19
+ * @(#)Attribute.java	4.25 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -95,6 +95,23 @@ public class Attribute implements Serializable   {
 
 	return ((name.equals(val.getName())) && 
 		(value.equals(val.getValue())));
-    } 
-   
+    }
+
+    /**
+     * Returns a hash code value for this attribute.
+     *
+     * @return a hash code value for this attribute.
+     */
+    public int hashCode() {
+        return name.hashCode() ^ (value == null ? 0 : value.hashCode());
+    }
+
+    /**
+     * Returns a String object representing this Attribute's value. The format of this
+     * string is not specified, but users can expect that two Attributes return the
+     * same string if and only if they are equal.
+     */
+    public String toString() {
+	return getName() + " = " + getValue();
+    }   
  }

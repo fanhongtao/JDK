@@ -1,7 +1,7 @@
 /*
- * @(#)ChannelIOSecure.java	1.2 04/07/26
+ * @(#)ChannelIOSecure.java	1.4 06/04/11
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -96,7 +96,7 @@ import javax.net.ssl.SSLEngineResult.*;
  *
  * @author Brad R. Wetmore
  * @author Mark Reinhold
- * @version 1.2, 04/07/26
+ * @version 1.4, 06/04/11
  */
 class ChannelIOSecure extends ChannelIO {
 
@@ -164,6 +164,9 @@ class ChannelIOSecure extends ChannelIO {
 	initialHSStatus = HandshakeStatus.NEED_UNWRAP;
 	initialHSComplete = false;
 
+	// Create a buffer using the normal expected packet size we'll
+	// be getting.  This may change, depending on the peer's
+	// SSL implementation. 
 	netBBSize = sslEngine.getSession().getPacketBufferSize();
 	inNetBB = ByteBuffer.allocate(netBBSize);
 	outNetBB = ByteBuffer.allocate(netBBSize);
@@ -183,6 +186,9 @@ class ChannelIOSecure extends ChannelIO {
 
 	ChannelIOSecure cio = new ChannelIOSecure(sc, blocking, sslc);
 
+	// Create a buffer using the normal expected application size we'll
+	// be getting.  This may change, depending on the peer's
+	// SSL implementation. 
 	cio.appBBSize = cio.sslEngine.getSession().getApplicationBufferSize();
 	cio.requestBB = ByteBuffer.allocate(cio.appBBSize);
 
@@ -195,6 +201,16 @@ class ChannelIOSecure extends ChannelIO {
      */
     protected void resizeRequestBB() {
 	resizeRequestBB(appBBSize);
+    }
+
+    /*
+     * Adjust the inbount network buffer to an appropriate size.
+     */
+    private void resizeResponseBB() {
+	ByteBuffer bb = ByteBuffer.allocate(netBBSize);
+	inNetBB.flip();
+	bb.put(inNetBB);
+	inNetBB = bb;
     }
 
     /*
@@ -284,10 +300,7 @@ class ChannelIOSecure extends ChannelIO {
 
 needIO:
 	    while (initialHSStatus == HandshakeStatus.NEED_UNWRAP) {
-		/*
-		 * Don't need to resize requestBB, since no app data should
-		 * be generated here.
-		 */
+		resizeRequestBB();    // expected room for unwrap
 		inNetBB.flip();
 		result = sslEngine.unwrap(inNetBB, requestBB);
 		inNetBB.compact();
@@ -314,6 +327,12 @@ needIO:
 		    break;
 
 		case BUFFER_UNDERFLOW:
+		    // Resize buffer if needed.
+		    netBBSize = sslEngine.getSession().getPacketBufferSize();
+		    if (netBBSize > inNetBB.capacity()) {
+			resizeResponseBB();
+		    }
+
 		    /*
 		     * Need to go reread the Channel for more data.
 		     */
@@ -322,7 +341,13 @@ needIO:
 		    }
 		    break needIO;
 
-		default: // BUFFER_OVERFLOW/CLOSED:
+		case BUFFER_OVERFLOW:
+		    // Reset the application buffer size.
+		    appBBSize = 
+			sslEngine.getSession().getApplicationBufferSize();
+		    break;
+
+		default: //CLOSED:
 		    throw new IOException("Received" + result.getStatus() +
 			"during initial handshaking");
 		}
@@ -415,7 +440,7 @@ needIO:
 	}
 
 	do {
-	    resizeRequestBB();    // guarantees enough room for unwrap
+	    resizeRequestBB();    // expected room for unwrap
 	    inNetBB.flip();
 	    result = sslEngine.unwrap(inNetBB, requestBB);
 	    inNetBB.compact();
@@ -428,7 +453,19 @@ needIO:
 	     */
 	    switch (result.getStatus()) {
 
+	    case BUFFER_OVERFLOW:
+		// Reset the application buffer size.
+		appBBSize = sslEngine.getSession().getApplicationBufferSize();
+		break;
+		
 	    case BUFFER_UNDERFLOW:
+		// Resize buffer if needed.
+		netBBSize = sslEngine.getSession().getPacketBufferSize();
+		if (netBBSize > inNetBB.capacity()) {
+		    resizeResponseBB();
+
+		    break; // break, next read will support larger buffer.
+		}
 	    case OK:
 		if (result.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
 		    doTasks();

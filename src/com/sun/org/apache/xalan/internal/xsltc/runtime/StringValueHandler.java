@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StringValueHandler.java,v 1.10 2004/02/16 22:55:55 minchau Exp $
+ * $Id: StringValueHandler.java,v 1.2.4.1 2005/09/06 11:33:25 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;

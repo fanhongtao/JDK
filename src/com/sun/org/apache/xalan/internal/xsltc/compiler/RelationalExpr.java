@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: RelationalExpr.java,v 1.19 2004/02/16 22:24:28 minchau Exp $
+ * $Id: RelationalExpr.java,v 1.2.4.1 2005/09/12 11:05:00 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -43,10 +43,11 @@ import com.sun.org.apache.xalan.internal.xsltc.runtime.Operators;
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
  */
-final class RelationalExpr extends Expression implements Operators {
+final class RelationalExpr extends Expression {
+
     private int _op;
     private Expression _left, _right;
-		
+
     public RelationalExpr(int op, Expression left, Expression right) {
 	_op = op;
 	(_left = left).setParent(this);
@@ -142,9 +143,9 @@ final class RelationalExpr extends Expression implements Operators {
 	    // Ensure that the node-set is the left argument
 	    if (tright instanceof NodeSetType) {
 		final Expression temp = _right; _right = _left; _left = temp;
-		_op = (_op == Operators.GT) ? Operators.LT :
-		    (_op == Operators.LT) ? Operators.GT :
-		    (_op == Operators.GE) ? Operators.LE : Operators.GE;
+        _op = (_op == Operators.GT) ? Operators.LT :
+            (_op == Operators.LT) ? Operators.GT :
+            (_op == Operators.GE) ? Operators.LE : Operators.GE;
 		tright = _right.getType();
 	    }
 
@@ -176,9 +177,8 @@ final class RelationalExpr extends Expression implements Operators {
 	}
 
 	// Lookup the table of primops to find the best match
-	MethodType ptype = lookupPrimop(stable, Operators.names[_op],
-					new MethodType(Type.Void, 
-						       tleft, tright)); 
+    MethodType ptype = lookupPrimop(stable, Operators.getOpNames(_op),
+                new MethodType(Type.Void, tleft, tright)); 
 
 	if (ptype != null) {
 	    Type arg1 = (Type) ptype.argsType().elementAt(0);
@@ -242,25 +242,25 @@ final class RelationalExpr extends Expression implements Operators {
 	    Type tleft = _left.getType(); 
 
 	    if (tleft instanceof RealType) {
-		il.append(tleft.CMP(_op == LT || _op == LE));
+        il.append(tleft.CMP(_op == Operators.LT || _op == Operators.LE));
 		tleft = Type.Int;
 		tozero = true;
 	    }
 
 	    switch (_op) {
-	    case LT:
+        case Operators.LT:
 		bi = tleft.GE(tozero);	
 		break;
 		
-	    case GT:
+        case Operators.GT:
 		bi = tleft.LE(tozero);
 		break;
 		
-	    case LE:
+        case Operators.LE:
 		bi = tleft.GT(tozero);
 		break;
 		
-	    case GE:
+        case Operators.GE:
 		bi = tleft.LT(tozero);
 		break;
 		
@@ -274,6 +274,6 @@ final class RelationalExpr extends Expression implements Operators {
     }
 
     public String toString() {
-	return Operators.names[_op] + '(' + _left + ", " + _right + ')';
+        return Operators.getOpNames(_op) + '(' + _left + ", " + _right + ')';
     }
 }

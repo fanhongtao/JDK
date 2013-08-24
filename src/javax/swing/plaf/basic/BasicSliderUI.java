@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSliderUI.java	1.100 03/12/19
+ * @(#)BasicSliderUI.java	1.107 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,6 +11,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Adjustable;
 import java.awt.event.*;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -35,7 +36,7 @@ import sun.swing.UIAction;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.100 12/19/03
+ * @version 1.107 11/17/05
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
@@ -77,6 +78,16 @@ public class BasicSliderUI extends SliderUI{
     private Color highlightColor;
     private Color focusColor;
 
+    /**
+     * Whther or not sameLabelBaselines is up to date.
+     */
+    private boolean checkedLabelBaselines;
+    /**
+     * Whether or not all the entries in the labeltable have the same
+     * baseline.
+     */
+    private boolean sameLabelBaselines;
+
 
     protected Color getShadowColor() {
         return shadowColor;
@@ -112,6 +123,8 @@ public class BasicSliderUI extends SliderUI{
 
     public void installUI(JComponent c)   {
         slider = (JSlider) c;
+
+        checkedLabelBaselines = false;
 
         slider.setEnabled(slider.isEnabled());
         LookAndFeel.installProperty(slider, "opaque", Boolean.TRUE);
@@ -178,7 +191,8 @@ public class BasicSliderUI extends SliderUI{
 
     protected void installDefaults( JSlider slider ) {
         LookAndFeel.installBorder(slider, "Slider.border");
-        LookAndFeel.installColors(slider, "Slider.background", "Slider.foreground");
+        LookAndFeel.installColorsAndFont(slider, "Slider.background",
+					 "Slider.foreground", "Slider.font");
         highlightColor = UIManager.getColor("Slider.highlight");
 
         shadowColor = UIManager.getColor("Slider.shadow");
@@ -279,6 +293,127 @@ public class BasicSliderUI extends SliderUI{
 	SwingUtilities.replaceUIActionMap(slider, null);
 	SwingUtilities.replaceUIInputMap(slider, JComponent.WHEN_FOCUSED,
 					 null);
+    }
+
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        if (slider.getPaintLabels() && labelsHaveSameBaselines()) {
+            FontMetrics metrics = slider.getFontMetrics(slider.getFont());
+            Insets insets = slider.getInsets();
+            Dimension thumbSize = getThumbSize();
+	    if (slider.getOrientation() == JSlider.HORIZONTAL) {
+                int tickLength = getTickLength();
+                int contentHeight = height - insets.top - insets.bottom -
+                    focusInsets.top - focusInsets.bottom;
+                int thumbHeight = thumbSize.height;
+                int centerSpacing = thumbHeight;
+                if (slider.getPaintTicks()) {
+                    centerSpacing += tickLength;
+                }
+                // Assume uniform labels.
+                centerSpacing += getHeightOfTallestLabel();
+                int trackY = insets.top + focusInsets.top +
+                    (contentHeight - centerSpacing - 1) / 2;
+                int trackHeight = thumbHeight;
+                int tickY = trackY + trackHeight;
+                int tickHeight = tickLength;
+                if (!slider.getPaintTicks()) {
+                    tickHeight = 0;
+                }
+                int labelY = tickY + tickHeight;
+                return labelY + metrics.getAscent();
+            }
+            else { // vertical
+                boolean inverted = slider.getInverted();
+                Integer value = inverted ? getLowestValue() :
+                                           getHighestValue();
+                if (value != null) {
+                    int thumbHeight = thumbSize.height;
+                    int trackBuffer = Math.max(metrics.getHeight() / 2,
+                                               thumbHeight / 2);
+                    int contentY = focusInsets.top + insets.top;
+                    int trackY = contentY + trackBuffer;
+                    int trackHeight = height - focusInsets.top -
+                        focusInsets.bottom - insets.top - insets.bottom -
+                        trackBuffer - trackBuffer;
+                    int yPosition = yPositionForValue(value, trackY,
+                                                      trackHeight);
+                    return yPosition - metrics.getHeight() / 2 +
+                        metrics.getAscent();
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        // NOTE: BasicSpinner really provides for CENTER_OFFSET, but
+        // the default min/pref size is smaller than it should be
+        // so that getBaseline() doesn't implement the contract
+        // for CENTER_OFFSET as defined in Component.
+        return Component.BaselineResizeBehavior.OTHER;
+    }
+
+    /**
+     * Returns true if all the labels from the label table have the same
+     * baseline.
+     *
+     * @return true if all the labels from the label table have the
+     *         same baseline
+     * @since 1.6
+     */
+    protected boolean labelsHaveSameBaselines() {
+        if (!checkedLabelBaselines) {
+            checkedLabelBaselines = true;
+            Dictionary dictionary = slider.getLabelTable();
+            if (dictionary != null) {
+                sameLabelBaselines = true;
+                Enumeration elements = dictionary.elements();
+                int baseline = -1;
+                while (elements.hasMoreElements()) {
+                    Component label = (Component)elements.nextElement();
+                    Dimension pref = label.getPreferredSize();
+                    int labelBaseline = label.getBaseline(pref.width,
+                                                          pref.height);
+                    if (labelBaseline >= 0) {
+                        if (baseline == -1) {
+                            baseline = labelBaseline;
+                        }
+                        else if (baseline != labelBaseline) {
+                            sameLabelBaselines = false;
+                            break;
+                        }
+                    }
+                    else {
+                        sameLabelBaselines = false;
+                        break;
+                    }
+                }
+            }
+            else {
+                sameLabelBaselines = false;
+            }
+        }
+        return sameLabelBaselines;
     }
 
     public Dimension getPreferredHorizontalSize() {
@@ -509,29 +644,18 @@ public class BasicSliderUI extends SliderUI{
 	    tickRect.x = trackRect.x;
 	    tickRect.y = trackRect.y + trackRect.height;
 	    tickRect.width = trackRect.width;
-	    tickRect.height = getTickLength();
-	    
-	    if ( !slider.getPaintTicks() ) {
-	        --tickRect.y;
-		tickRect.height = 0;
-	    }
+	    tickRect.height = (slider.getPaintTicks()) ? getTickLength() : 0;
 	}
 	else {
+	    tickRect.width = (slider.getPaintTicks()) ? getTickLength() : 0;
 	    if(BasicGraphicsUtils.isLeftToRight(slider)) {
 	        tickRect.x = trackRect.x + trackRect.width;
-		tickRect.width = getTickLength();
 	    }
 	    else {
-	        tickRect.width = getTickLength();
 	        tickRect.x = trackRect.x - tickRect.width;
 	    }
 	    tickRect.y = trackRect.y;
 	    tickRect.height = trackRect.height;
-
-	    if ( !slider.getPaintTicks() ) {
-	        --tickRect.x;
-		tickRect.width = 0;
-	    }
 	}
     }
 
@@ -685,28 +809,62 @@ public class BasicSliderUI extends SliderUI{
     }
 
     /**
+     * Returns the biggest value that has an entry in the label table.
+     *
+     * @return biggest value that has an entry in the label table, or
+     *         null.
+     * @since 1.6
+     */
+    protected Integer getHighestValue() {
+        Dictionary dictionary = slider.getLabelTable();
+        if (dictionary != null) {
+            Enumeration keys = dictionary.keys();
+            int max = slider.getMinimum() - 1;
+            while (keys.hasMoreElements()) {
+                max = Math.max(max, ((Integer)keys.nextElement()).intValue());
+            }
+            if (max == slider.getMinimum() - 1) {
+                return null;
+            }
+            return max;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the smallest value that has an entry in the label table.
+     *
+     * @return smallest value that has an entry in the label table, or
+     *         null.
+     * @since 1.6
+     */
+    protected Integer getLowestValue() {
+        Dictionary dictionary = slider.getLabelTable();
+        if (dictionary != null) {
+            Enumeration keys = dictionary.keys();
+            int min = slider.getMaximum() + 1;
+            while (keys.hasMoreElements()) {
+                min = Math.min(min, ((Integer)keys.nextElement()).intValue());
+            }
+            if (min == slider.getMaximum() + 1) {
+                return null;
+            }
+            return min;
+        }
+        return null;
+    }
+
+
+    /**
      * Returns the label that corresponds to the highest slider value in the label table.
      * @see JSlider#setLabelTable
      */
     protected Component getLowestValueLabel() {
-        Dictionary dictionary = slider.getLabelTable();
-        Component label = null;
-
-        if ( dictionary != null ) {
-            Enumeration keys = dictionary.keys();
-            if ( keys.hasMoreElements() ) {
-                int lowestValue = ((Integer)keys.nextElement()).intValue();
-
-                while ( keys.hasMoreElements() ) {
-                    int value = ((Integer)keys.nextElement()).intValue();
-                    lowestValue = Math.min( value, lowestValue );
-                }
-
-                label = (Component)dictionary.get( new Integer( lowestValue ) );
-            }
+        Integer min = getLowestValue();
+        if (min != null) {
+            return (Component)slider.getLabelTable().get(min);
         }
-
-        return label;
+        return null;
     }
 
     /**
@@ -714,24 +872,11 @@ public class BasicSliderUI extends SliderUI{
      * @see JSlider#setLabelTable
      */
     protected Component getHighestValueLabel() {
-        Dictionary dictionary = slider.getLabelTable();
-        Component label = null;
-
-        if ( dictionary != null ) {
-            Enumeration keys = dictionary.keys();
-            if ( keys.hasMoreElements() ) {
-                int highestValue = ((Integer)keys.nextElement()).intValue();
-
-                while ( keys.hasMoreElements() ) {
-                    int value = ((Integer)keys.nextElement()).intValue();
-                    highestValue = Math.max( value, highestValue );
-                }
-
-                label = (Component)dictionary.get( new Integer( highestValue ) );
-            }
+        Integer max = getHighestValue();
+        if (max != null) {
+            return (Component)slider.getLabelTable().get(max);
         }
-
-        return label;
+        return null;
     }
 
     public void paint( Graphics g, JComponent c )   {
@@ -783,16 +928,12 @@ public class BasicSliderUI extends SliderUI{
     }
 
     public void paintTrack(Graphics g)  {        
-        int cx, cy, cw, ch;
-        int pad;
 
         Rectangle trackBounds = trackRect;
 
         if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
-            pad = trackBuffer;
-            cx = pad;
-            cy = (trackBounds.height / 2) - 2;
-            cw = trackBounds.width;
+            int cy = (trackBounds.height / 2) - 2;
+            int cw = trackBounds.width;
 
             g.translate(trackBounds.x, trackBounds.y + cy);
 
@@ -808,10 +949,8 @@ public class BasicSliderUI extends SliderUI{
             g.translate(-trackBounds.x, -(trackBounds.y + cy));
         }
         else {
-            pad = trackBuffer;
-            cx = (trackBounds.width / 2) - 2;
-            cy = pad;
-            ch = trackBounds.height;
+            int cx = (trackBounds.width / 2) - 2;
+            int ch = trackBounds.height;
 
             g.translate(trackBounds.x + cx, trackBounds.y);
 
@@ -935,11 +1074,15 @@ public class BasicSliderUI extends SliderUI{
             Enumeration keys = dictionary.keys();
             int minValue = slider.getMinimum();
             int maxValue = slider.getMaximum();
+	    boolean enabled = slider.isEnabled();
             while ( keys.hasMoreElements() ) {
                 Integer key = (Integer)keys.nextElement();
                 int value = key.intValue();
                 if (value >= minValue && value <= maxValue) {
                     Component label = (Component)dictionary.get( key );
+		    if (label instanceof JComponent) {
+			((JComponent)label).setEnabled(enabled);
+		    }
                     if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
                         g.translate( 0, labelBounds.y );
                         paintHorizontalLabel( g, value, label );
@@ -1166,25 +1309,37 @@ public class BasicSliderUI extends SliderUI{
     }
 
     protected int yPositionForValue( int value )  {
+        return yPositionForValue(value, trackRect.y, trackRect.height);
+    }
+
+    /**
+     * Returns the y location for the specified value.  No checking is
+     * done on the arguments.  In particular if <code>trackHeight</code> is
+     * negative undefined results may occur.
+     *
+     * @param value the slider value to get the location for
+     * @param trackY y-origin of the track
+     * @param trackHeight the height of the track
+     * @since 1.6
+     */
+    protected int yPositionForValue(int value, int trackY, int trackHeight) {
         int min = slider.getMinimum();
         int max = slider.getMaximum();
-        int trackLength = trackRect.height; 
         double valueRange = (double)max - (double)min;
-        double pixelsPerValue = (double)trackLength / (double)valueRange;
-        int trackTop = trackRect.y;
-        int trackBottom = trackRect.y + (trackRect.height - 1);
+        double pixelsPerValue = (double)trackHeight / (double)valueRange;
+        int trackBottom = trackY + (trackHeight - 1);
         int yPosition;
 
         if ( !drawInverted() ) {
-            yPosition = trackTop;
+            yPosition = trackY;
             yPosition += Math.round( pixelsPerValue * ((double)max - value ) );
         }
         else {
-            yPosition = trackTop;
+            yPosition = trackY;
             yPosition += Math.round( pixelsPerValue * ((double)value - min) );
         }
 
-        yPosition = Math.max( trackTop, yPosition );
+        yPosition = Math.max( trackY, yPosition );
         yPosition = Math.min( trackBottom, yPosition );
 
         return yPosition;
@@ -1287,7 +1442,9 @@ public class BasicSliderUI extends SliderUI{
                     propertyName == "minorTickSpacing" ||
                     propertyName == "paintTicks" ||
                     propertyName == "paintTrack" ||
+                    propertyName == "font" ||
                     propertyName == "paintLabels") {
+                checkedLabelBaselines = false;
                 calculateGeometry();
                 slider.repaint();
             } else if (propertyName == "componentOrientation") {
@@ -1452,26 +1609,26 @@ public class BasicSliderUI extends SliderUI{
                 }
                 break;
             }
-            scrollDueToClickInTrack(direction);
-            Rectangle r = thumbRect;
-            if (!r.contains(currentMouseX, currentMouseY)) {
-                if (shouldScroll(direction)) {
-                    scrollTimer.stop();
-                    scrollListener.setDirection(direction);
-                    scrollTimer.start();
-                }
-            }
+
+	    if (shouldScroll(direction)) {
+		scrollDueToClickInTrack(direction);
+	    }
+	    if (shouldScroll(direction)) {
+		scrollTimer.stop();
+		scrollListener.setDirection(direction);
+		scrollTimer.start();
+	    }
         }
 
         public boolean shouldScroll(int direction) {
             Rectangle r = thumbRect;
             if (slider.getOrientation() == JSlider.VERTICAL) {
                 if (drawInverted() ? direction < 0 : direction > 0) {
-                    if (r.y + r.height  <= currentMouseY) {
+                    if (r.y  <= currentMouseY) {
                         return false;
                     }
                 }
-                else if (r.y >= currentMouseY) {
+                else if (r.y + r.height >= currentMouseY) {
                     return false;
                 }
             }

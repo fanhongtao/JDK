@@ -1,7 +1,7 @@
 /*
- * @(#)ReflectionUtils.java	1.10 05/08/26
+ * @(#)ReflectionUtils.java	1.10 06/05/23
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -387,7 +387,7 @@ class ReflectionUtils {
     }
 
     public static Object getPrivateField(Object instance, Class cls, String name) {
-	return getPrivateField(instance, cls, name);
+	return getPrivateField(instance, cls, name, null);
     }
 
     /**

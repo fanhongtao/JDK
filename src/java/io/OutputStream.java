@@ -1,7 +1,7 @@
 /*
- * @(#)OutputStream.java	1.29 04/04/21
+ * @(#)OutputStream.java	1.30 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ package java.io;
  * that writes one byte of output.
  *
  * @author  Arthur van Hoff
- * @version 1.29, 04/21/04
+ * @version 1.30, 11/17/05
  * @see     java.io.BufferedOutputStream
  * @see     java.io.ByteArrayOutputStream
  * @see     java.io.DataOutputStream

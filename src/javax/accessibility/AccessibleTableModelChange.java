@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleTableModelChange.java	1.10 03/12/19
+ * @(#)AccessibleTableModelChange.java	1.12 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,6 +34,7 @@ package javax.accessibility;
  *
  * @version     1.2 10/12/99
  * @author	Lynn Monsanto
+ * @since 1.3
  */
 public interface AccessibleTableModelChange {
 

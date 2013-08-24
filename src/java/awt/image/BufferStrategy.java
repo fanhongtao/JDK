@@ -1,7 +1,7 @@
 /*
- * @(#)BufferStrategy.java	1.6 03/12/19
+ * @(#)BufferStrategy.java	1.11 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,9 +24,9 @@ import java.awt.Image;
  * to be synonymous: an area of contiguous memory, either in video device
  * memory or in system memory.
  * <p>
- * There are several types of complex buffer strategies;
- * sequential ring buffering, blit buffering, and stereo buffering are
- * common types.  Sequential ring buffering (i.e., double or triple
+ * There are several types of complex buffer strategies, including
+ * sequential ring buffering and blit buffering.
+ * Sequential ring buffering (i.e., double or triple
  * buffering) is the most common; an application draws to a single <i>back
  * buffer</i> and then moves the contents to the front (display) in a single
  * step, either by copying the data or moving the video pointer.
@@ -56,27 +56,6 @@ import java.awt.Image;
  *
  * </pre>
  * <p>
- * Stereo buffering is for hardware that supports rendering separate images for
- * a left and right eye.  It is similar to sequential ring buffering, but
- * there are two buffer chains, one for each eye.  Both buffer chains flip
- * simultaneously:
- *
- * <pre>
- * Stereo buffering:
- *
- *                     ***********         ***********
- *                     *         * ------> *         *
- * [To left eye] <---- * Front B *         * Back B. * <---- Rendering
- *                     *         * <------ *         *
- *                     ***********         ***********
- *                                  Show
- *                     ***********         ***********
- *                     *         * ------> *         *
- * [To right eye] <--- * Front B *         * Back B. * <---- Rendering
- *                     *         * <------ *         *
- *                     ***********         ***********
- * </pre>
- * <p>
  * Here is an example of how buffer strategies can be created and used:
  * <pre><code>
  *
@@ -93,12 +72,35 @@ import java.awt.Image;
  * w.createBufferStrategy(2);
  * BufferStrategy strategy = w.getBufferStrategy();
  *
- * // Render loop
+ * // Main loop
  * while (!done) {
- *    Graphics g = strategy.getDrawGraphics();
- *    // Draw to graphics
- *    ...
- *    strategy.show();
+ *     // Prepare for rendering the next frame
+ *     // ...
+ *
+ *     // Render single frame
+ *     do {
+ *         // The following loop ensures that the contents of the drawing buffer
+ *         // are consistent in case the underlying surface was recreated
+ *         do {
+ *             // Get a new graphics context every time through the loop
+ *             // to make sure the strategy is validated
+ *             Graphics graphics = strategy.getDrawGraphics();
+ *     
+ *             // Render to graphics
+ *             // ...
+ *
+ *             // Dispose the graphics
+ *             graphics.dispose();
+ *
+ *             // Repeat the rendering if the drawing buffer contents 
+ *             // were restored
+ *         } while (strategy.contentsRestored());
+ *
+ *         // Display the buffer
+ *         strategy.show();
+ *
+ *         // Repeat the rendering if the drawing buffer was lost
+ *     } while (strategy.contentsLost());
  * }
  *
  * // Dispose the window
@@ -108,21 +110,27 @@ import java.awt.Image;
  *
  * @see java.awt.Component
  * @see java.awt.GraphicsConfiguration
+ * @see VolatileImage
  * @author Michael Martak
  * @since 1.4
  */
 public abstract class BufferStrategy {
     
     /**
+     * Returns the <code>BufferCapabilities</code> for this
+     * <code>BufferStrategy</code>.
+     *
      * @return the buffering capabilities of this strategy
      */
     public abstract BufferCapabilities getCapabilities();
 
     /**
-     * @return the graphics on the drawing buffer.  This method may not
+     * Creates a graphics context for the drawing buffer.  This method may not
      * be synchronized for performance reasons; use of this method by multiple
      * threads should be handled at the application level.  Disposal of the
      * graphics object obtained must be handled by the application.
+     *
+     * @return a graphics context for the drawing buffer
      */
     public abstract Graphics getDrawGraphics();
 
@@ -131,6 +139,9 @@ public abstract class BufferStrategy {
      * <code>getDrawGraphics</code>.  Since the buffers in a buffer strategy
      * are usually type <code>VolatileImage</code>, they may become lost.
      * For a discussion on lost buffers, see <code>VolatileImage</code>.
+     *
+     * @return Whether or not the drawing buffer was lost since the last call
+     * to <code>getDrawGraphics</code>. 
      * @see java.awt.image.VolatileImage
      */
     public abstract boolean contentsLost();
@@ -143,6 +154,9 @@ public abstract class BufferStrategy {
      * been recently restored from a lost state since the last call to
      * <code>getDrawGraphics</code>, it may require repainting.
      * For a discussion on lost buffers, see <code>VolatileImage</code>.
+     *
+     * @return Whether or not the drawing buffer was restored since the last
+     *         call to <code>getDrawGraphics</code>. 
      * @see java.awt.image.VolatileImage
      */
     public abstract boolean contentsRestored();
@@ -152,5 +166,20 @@ public abstract class BufferStrategy {
      * (blitting) or changing the display pointer (flipping).
      */
     public abstract void show();
+
+    /**
+     * Releases system resources currently consumed by this
+     * <code>BufferStrategy</code> and
+     * removes it from the associated Component.  After invoking this
+     * method, <code>getBufferStrategy</code> will return null.  Trying
+     * to use a <code>BufferStrategy</code> after it has been disposed will
+     * result in undefined behavior.
+     *
+     * @see java.awt.Component#createBufferStrategy
+     * @see java.awt.Component#getBufferStrategy
+     * @since 1.6
+     */
+    public void dispose() {
+    }
 }
 

@@ -1,12 +1,11 @@
 /*
- * @(#)IdentityHashMap.java	1.23 05/09/02
+ * @(#)IdentityHashMap.java	1.30 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
-
 import java.io.*;
 
 /**
@@ -60,28 +59,30 @@ import java.io.*;
  * pays not to set the expected maximum size too high if you are especially
  * concerned with iteration performance or memory usage.
  *
- * <p><b>Note that this implementation is not synchronized.</b> If multiple
- * threads access this map concurrently, and at least one of the threads
- * modifies the map structurally, it <i>must</i> be synchronized externally.
- * (A structural modification is any operation that adds or deletes one or
- * more mappings; merely changing the value associated with a key that an
- * instance already contains is not a structural modification.)  This is
- * typically accomplished by synchronizing on some object that naturally
- * encapsulates the map.  If no such object exists, the map should be
- * "wrapped" using the <tt>Collections.synchronizedMap</tt> method.  This is
- * best done at creation time, to prevent accidental unsynchronized access to
- * the map: <pre>
- *     Map m = Collections.synchronizedMap(new HashMap(...));
- * </pre>
+ * <p><strong>Note that this implementation is not synchronized.</strong>
+ * If multiple threads access an identity hash map concurrently, and at
+ * least one of the threads modifies the map structurally, it <i>must</i>
+ * be synchronized externally.  (A structural modification is any operation
+ * that adds or deletes one or more mappings; merely changing the value
+ * associated with a key that an instance already contains is not a
+ * structural modification.)  This is typically accomplished by
+ * synchronizing on some object that naturally encapsulates the map.
  *
- * <p>The iterators returned by all of this class's "collection view methods"
- * are <i>fail-fast</i>: if the map is structurally modified at any time after
- * the iterator is created, in any way except through the iterator's own
- * <tt>remove</tt> or <tt>add</tt> methods, the iterator will throw a
- * <tt>ConcurrentModificationException</tt>.  Thus, in the face of concurrent
- * modification, the iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the
- * future.
+ * If no such object exists, the map should be "wrapped" using the
+ * {@link Collections#synchronizedMap Collections.synchronizedMap}
+ * method.  This is best done at creation time, to prevent accidental
+ * unsynchronized access to the map:<pre>
+ *   Map m = Collections.synchronizedMap(new IdentityHashMap(...));</pre>
+ *
+ * <p>The iterators returned by the <tt>iterator</tt> method of the
+ * collections returned by all of this class's "collection view
+ * methods" are <i>fail-fast</i>: if the map is structurally modified
+ * at any time after the iterator is created, in any way except
+ * through the iterator's own <tt>remove</tt> method, the iterator
+ * will throw a {@link ConcurrentModificationException}.  Thus, in the
+ * face of concurrent modification, the iterator fails quickly and
+ * cleanly, rather than risking arbitrary, non-deterministic behavior
+ * at an undetermined time in the future.
  *
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
@@ -99,7 +100,7 @@ import java.io.*;
  * {@link HashMap} (which uses <i>chaining</i> rather than linear-probing).
  *
  * <p>This class is a member of the
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @see     System#identityHashCode(Object)
@@ -175,7 +176,7 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Return internal representation of null key back to caller as null
+     * Returns internal representation of null key back to caller as null.
      */
     private static Object unmaskNull(Object key) {
         return (key == NULL_KEY ? null : key);
@@ -195,7 +196,7 @@ public class IdentityHashMap<K,V>
      * the map may cause the internal data structure to grow, which may be
      * somewhat time-consuming.
      *
-     * @param expectedMaxSize the expected maximum size of the map.
+     * @param expectedMaxSize the expected maximum size of the map
      * @throws IllegalArgumentException if <tt>expectedMaxSize</tt> is negative
      */
     public IdentityHashMap(int expectedMaxSize) {
@@ -230,7 +231,7 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Initialize object to be an empty map with the specified initial
+     * Initializes object to be an empty map with the specified initial
      * capacity, which is assumed to be a power of two between
      * MINIMUM_CAPACITY and MAXIMUM_CAPACITY inclusive.
      */
@@ -247,8 +248,8 @@ public class IdentityHashMap<K,V>
      * Constructs a new identity hash map containing the keys-value mappings
      * in the specified map.
      *
-     * @param m the map whose mappings are to be placed into this map.
-     * @throws NullPointerException if the specified map is null.
+     * @param m the map whose mappings are to be placed into this map
+     * @throws NullPointerException if the specified map is null
      */
     public IdentityHashMap(Map<? extends K, ? extends V> m) {
         // Allow for a bit of growth
@@ -259,7 +260,7 @@ public class IdentityHashMap<K,V>
     /**
      * Returns the number of key-value mappings in this identity hash map.
      *
-     * @return the number of key-value mappings in this map.
+     * @return the number of key-value mappings in this map
      */
     public int size() {
         return size;
@@ -270,14 +271,14 @@ public class IdentityHashMap<K,V>
      * mappings.
      *
      * @return <tt>true</tt> if this identity hash map contains no key-value
-     *         mappings.
+     *         mappings
      */
     public boolean isEmpty() {
         return size == 0;
     }
 
     /**
-     * Return index for Object x.
+     * Returns index for Object x.
      */
     private static int hash(Object x, int length) {
         int h = System.identityHashCode(x);
@@ -286,24 +287,27 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Circularly traverse table of size len.
-     **/
+     * Circularly traverses table of size len.
+     */
     private static int nextKeyIndex(int i, int len) {
         return (i + 2 < len ? i + 2 : 0);
     }
 
     /**
-     * Returns the value to which the specified key is mapped in this identity
-     * hash map, or <tt>null</tt> if the map contains no mapping for
-     * this key.  A return value of <tt>null</tt> does not <i>necessarily</i>
-     * indicate that the map contains no mapping for the key; it is also
-     * possible that the map explicitly maps the key to <tt>null</tt>. The
-     * <tt>containsKey</tt> method may be used to distinguish these two
-     * cases.
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
      *
-     * @param   key the key whose associated value is to be returned.
-     * @return  the value to which this map maps the specified key, or
-     *          <tt>null</tt> if the map contains no mapping for this key.
+     * <p>More formally, if this map contains a mapping from a key
+     * {@code k} to a value {@code v} such that {@code (key == k)},
+     * then this method returns {@code v}; otherwise it returns
+     * {@code null}.  (There can be at most one such mapping.)
+     *
+     * <p>A return value of {@code null} does not <i>necessarily</i>
+     * indicate that the map contains no mapping for the key; it's also
+     * possible that the map explicitly maps the key to {@code null}.
+     * The {@link #containsKey containsKey} operation may be used to
+     * distinguish these two cases.
+     *
      * @see #put(Object, Object)
      */
     public V get(Object key) {
@@ -325,9 +329,9 @@ public class IdentityHashMap<K,V>
      * Tests whether the specified object reference is a key in this identity
      * hash map.
      *
-     * @param   key   possible key.
+     * @param   key   possible key
      * @return  <code>true</code> if the specified object reference is a key
-     *          in this map.
+     *          in this map
      * @see     #containsValue(Object)
      */
     public boolean containsKey(Object key) {
@@ -349,9 +353,9 @@ public class IdentityHashMap<K,V>
      * Tests whether the specified object reference is a value in this identity
      * hash map.
      *
-     * @param value value whose presence in this map is to be tested.
+     * @param value value whose presence in this map is to be tested
      * @return <tt>true</tt> if this map maps one or more keys to the
-     *         specified object reference.
+     *         specified object reference
      * @see     #containsKey(Object)
      */
     public boolean containsValue(Object value) {
@@ -366,10 +370,10 @@ public class IdentityHashMap<K,V>
     /**
      * Tests if the specified key-value mapping is in the map.
      *
-     * @param   key   possible key.
-     * @param   value possible value.
+     * @param   key   possible key
+     * @param   value possible value
      * @return  <code>true</code> if and only if the specified key-value
-     *          mapping is in map.
+     *          mapping is in the map
      */
     private boolean containsMapping(Object key, Object value) {
         Object k = maskNull(key);
@@ -388,15 +392,15 @@ public class IdentityHashMap<K,V>
 
     /**
      * Associates the specified value with the specified key in this identity
-     * hash map.  If the map previously contained a mapping for this key, the
+     * hash map.  If the map previously contained a mapping for the key, the
      * old value is replaced.
      *
-     * @param key the key with which the specified value is to be associated.
-     * @param value the value to be associated with the specified key.
+     * @param key the key with which the specified value is to be associated
+     * @param value the value to be associated with the specified key
      * @return the previous value associated with <tt>key</tt>, or
-     *	       <tt>null</tt> if there was no mapping for <tt>key</tt>.  (A
-     *         <tt>null</tt> return can also indicate that the map previously
-     *         associated <tt>null</tt> with the specified key.)
+     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+     *         (A <tt>null</tt> return can also indicate that the map
+     *         previously associated <tt>null</tt> with <tt>key</tt>.)
      * @see     Object#equals(Object)
      * @see     #get(Object)
      * @see     #containsKey(Object)
@@ -465,32 +469,32 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Copies all of the mappings from the specified map to this map
-     * These mappings will replace any mappings that
-     * this map had for any of the keys currently in the specified map.<p>
+     * Copies all of the mappings from the specified map to this map.
+     * These mappings will replace any mappings that this map had for
+     * any of the keys currently in the specified map.
      *
-     * @param t mappings to be stored in this map.
-     * @throws NullPointerException if the specified map is null.
+     * @param m mappings to be stored in this map
+     * @throws NullPointerException if the specified map is null
      */
-    public void putAll(Map<? extends K, ? extends V> t) {
-        int n = t.size();
+    public void putAll(Map<? extends K, ? extends V> m) {
+        int n = m.size();
         if (n == 0)
             return;
         if (n > threshold) // conservatively pre-expand
             resize(capacity(n));
 
-	for (Entry<? extends K, ? extends V> e : t.entrySet())
+	for (Entry<? extends K, ? extends V> e : m.entrySet())
             put(e.getKey(), e.getValue());
     }
 
     /**
      * Removes the mapping for this key from this map if present.
      *
-     * @param key key whose mapping is to be removed from the map.
-     * @return previous value associated with specified key, or <tt>null</tt>
-     *	       if there was no entry for key.  (A <tt>null</tt> return can
-     *	       also indicate that the map previously associated <tt>null</tt>
-     *	       with the specified key.)
+     * @param key key whose mapping is to be removed from the map
+     * @return the previous value associated with <tt>key</tt>, or
+     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+     *         (A <tt>null</tt> return can also indicate that the map
+     *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
     public V remove(Object key) {
         Object k = maskNull(key);
@@ -519,10 +523,10 @@ public class IdentityHashMap<K,V>
     /**
      * Removes the specified key-value mapping from the map if it is present.
      *
-     * @param   key   possible key.
-     * @param   value possible value.
+     * @param   key   possible key
+     * @param   value possible value
      * @return  <code>true</code> if and only if the specified key-value
-     *          mapping was in map.
+     *          mapping was in the map
      */
     private boolean removeMapping(Object key, Object value) {
         Object k = maskNull(key);
@@ -585,7 +589,8 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Removes all mappings from this map.
+     * Removes all of the mappings from this map.
+     * The map will be empty after this call returns.
      */
     public void clear() {
         modCount++;
@@ -600,7 +605,7 @@ public class IdentityHashMap<K,V>
      * <tt>true</tt> if the given object is also a map and the two maps
      * represent identical object-reference mappings.  More formally, this
      * map is equal to another map <tt>m</tt> if and only if
-     * map <tt>this.entrySet().equals(m.entrySet())</tt>.
+     * <tt>this.entrySet().equals(m.entrySet())</tt>.
      *
      * <p><b>Owing to the reference-equality-based semantics of this map it is
      * possible that the symmetry and transitivity requirements of the
@@ -608,8 +613,8 @@ public class IdentityHashMap<K,V>
      * to a normal map.  However, the <tt>Object.equals</tt> contract is
      * guaranteed to hold among <tt>IdentityHashMap</tt> instances.</b>
      *
-     * @param  o object to be compared for equality with this map.
-     * @return <tt>true</tt> if the specified object is equal to this map.
+     * @param  o object to be compared for equality with this map
+     * @return <tt>true</tt> if the specified object is equal to this map
      * @see Object#equals(Object)
      */
     public boolean equals(Object o) {
@@ -636,12 +641,12 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Returns the hash code value for this map.  The hash code of a map
-     * is defined to be the sum of the hashcode of each entry in the map's
-     * entrySet view.  This ensures that <tt>t1.equals(t2)</tt> implies
-     * that <tt>t1.hashCode()==t2.hashCode()</tt> for any two
-     * <tt>IdentityHashMap</tt> instances <tt>t1</tt> and <tt>t2</tt>, as
-     * required by the general contract of {@link Object#hashCode()}.
+     * Returns the hash code value for this map.  The hash code of a map is
+     * defined to be the sum of the hash codes of each entry in the map's
+     * <tt>entrySet()</tt> view.  This ensures that <tt>m1.equals(m2)</tt>
+     * implies that <tt>m1.hashCode()==m2.hashCode()</tt> for any two
+     * <tt>IdentityHashMap</tt> instances <tt>m1</tt> and <tt>m2</tt>, as
+     * required by the general contract of {@link Object#hashCode}.
      *
      * <p><b>Owing to the reference-equality-based semantics of the
      * <tt>Map.Entry</tt> instances in the set returned by this map's
@@ -650,8 +655,7 @@ public class IdentityHashMap<K,V>
      * paragraph will be violated if one of the two objects being compared is
      * an <tt>IdentityHashMap</tt> instance and the other is a normal map.</b>
      *
-     * @return the hash code value for this map.
-     * @see Object#hashCode()
+     * @return the hash code value for this map
      * @see Object#equals(Object)
      * @see #equals(Object)
      */
@@ -673,14 +677,14 @@ public class IdentityHashMap<K,V>
      * Returns a shallow copy of this identity hash map: the keys and values
      * themselves are not cloned.
      *
-     * @return a shallow copy of this map.
+     * @return a shallow copy of this map
      */
     public Object clone() {
         try {
-            IdentityHashMap<K,V> t = (IdentityHashMap<K,V>) super.clone();
-            t.entrySet = null;
-            t.table = (Object[])table.clone();
-            return t;
+            IdentityHashMap<K,V> m = (IdentityHashMap<K,V>) super.clone();
+            m.entrySet = null;
+            m.table = (Object[])table.clone();
+            return m;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
@@ -892,7 +896,7 @@ public class IdentityHashMap<K,V>
      * over the set is in progress, the results of the iteration are
      * undefined.  The set supports element removal, which removes the
      * corresponding mapping from the map, via the <tt>Iterator.remove</tt>,
-     * <tt>Set.remove</tt>, <tt>removeAll</tt> <tt>retainAll</tt>, and
+     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and
      * <tt>clear</tt> methods.  It does not support the <tt>add</tt> or
      * <tt>addAll</tt> methods.
      *
@@ -904,7 +908,7 @@ public class IdentityHashMap<K,V>
      * <tt>remove</tt>, <tt>containsAll</tt>, <tt>equals</tt>, and
      * <tt>hashCode</tt> methods.</b>
      *
-     * <p>The <tt>equals</tt> method of the returned set returns <tt>true</tt>
+     * <p><b>The <tt>equals</tt> method of the returned set returns <tt>true</tt>
      * only if the specified object is a set containing exactly the same
      * object references as the returned set.  The symmetry and transitivity
      * requirements of the <tt>Object.equals</tt> contract may be violated if
@@ -919,7 +923,7 @@ public class IdentityHashMap<K,V>
      * general contract of the <tt>Object.hashCode</tt> method among sets
      * returned by this method.
      *
-     * @return an identity-based set view of the keys contained in this map.
+     * @return an identity-based set view of the keys contained in this map
      * @see Object#equals(Object)
      * @see System#identityHashCode(Object)
      */
@@ -973,15 +977,16 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * <p>Returns a collection view of the values contained in this map.  The
-     * collection is backed by the map, so changes to the map are reflected in
-     * the collection, and vice-versa.  If the map is modified while an
-     * iteration over the collection is in progress, the results of the
-     * iteration are undefined.  The collection supports element removal,
-     * which removes the corresponding mapping from the map, via the
-     * <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt> and <tt>clear</tt> methods.
-     * It does not support the <tt>add</tt> or <tt>addAll</tt> methods.
+     * Returns a {@link Collection} view of the values contained in this map.
+     * The collection is backed by the map, so changes to the map are
+     * reflected in the collection, and vice-versa.  If the map is
+     * modified while an iteration over the collection is in progress,
+     * the results of the iteration are undefined.  The collection
+     * supports element removal, which removes the corresponding
+     * mapping from the map, via the <tt>Iterator.remove</tt>,
+     * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
+     * <tt>retainAll</tt> and <tt>clear</tt> methods.  It does not
+     * support the <tt>add</tt> or <tt>addAll</tt> methods.
      *
      * <p><b>While the object returned by this method implements the
      * <tt>Collection</tt> interface, it does <i>not</i> obey
@@ -990,8 +995,6 @@ public class IdentityHashMap<K,V>
      * reference-equality rather than object-equality.  This affects the
      * behavior of its <tt>contains</tt>, <tt>remove</tt> and
      * <tt>containsAll</tt> methods.</b>
-     *
-     * @return a collection view of the values contained in this map.
      */
     public Collection<V> values() {
         Collection<V> vs = values;
@@ -1026,15 +1029,16 @@ public class IdentityHashMap<K,V>
     }
 
     /**
-     * Returns a set view of the mappings contained in this map.  Each element
-     * in the returned set is a reference-equality-based <tt>Map.Entry</tt>.
-     * The set is backed by the map, so changes to the map are reflected in
-     * the set, and vice-versa.  If the map is modified while an iteration
-     * over the set is in progress, the results of the iteration are
-     * undefined.  The set supports element removal, which removes the
-     * corresponding mapping from the map, via the <tt>Iterator.remove</tt>,
-     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
-     * <tt>clear</tt> methods.  It does not support the <tt>add</tt> or
+     * Returns a {@link Set} view of the mappings contained in this map.
+     * Each element in the returned set is a reference-equality-based
+     * <tt>Map.Entry</tt>.  The set is backed by the map, so changes
+     * to the map are reflected in the set, and vice-versa.  If the
+     * map is modified while an iteration over the set is in progress,
+     * the results of the iteration are undefined.  The set supports
+     * element removal, which removes the corresponding mapping from
+     * the map, via the <tt>Iterator.remove</tt>, <tt>Set.remove</tt>,
+     * <tt>removeAll</tt>, <tt>retainAll</tt> and <tt>clear</tt>
+     * methods.  It does not support the <tt>add</tt> or
      * <tt>addAll</tt> methods.
      *
      * <p>Like the backing map, the <tt>Map.Entry</tt> objects in the set
@@ -1043,7 +1047,7 @@ public class IdentityHashMap<K,V>
      * behavior of the <tt>equals</tt> and <tt>hashCode</tt> methods of these
      * <tt>Map.Entry</tt> objects.  A reference-equality based <tt>Map.Entry
      * e</tt> is equal to an object <tt>o</tt> if and only if <tt>o</tt> is a
-     * <tt>Map.Entry</tt> and <tt>e.getKey()==o.getKey() &&
+     * <tt>Map.Entry</tt> and <tt>e.getKey()==o.getKey() &amp;&amp;
      * e.getValue()==o.getValue()</tt>.  To accommodate these equals
      * semantics, the <tt>hashCode</tt> method returns
      * <tt>System.identityHashCode(e.getKey()) ^
@@ -1060,7 +1064,7 @@ public class IdentityHashMap<K,V>
      * hold among identity-based map entries, and among sets of such entries.
      * </b>
      *
-     * @return a set view of the identity-mappings contained in this map.
+     * @return a set view of the identity-mappings contained in this map
      */
     public Set<Map.Entry<K,V>> entrySet() {
         Set<Map.Entry<K,V>> es = entrySet;
@@ -1100,7 +1104,7 @@ public class IdentityHashMap<K,V>
         public boolean removeAll(Collection<?> c) {
             boolean modified = false;
             for (Iterator i = iterator(); i.hasNext(); ) {
-                if(c.contains(i.next())) {
+                if (c.contains(i.next())) {
                     i.remove();
                     modified = true;
                 }
@@ -1109,12 +1113,16 @@ public class IdentityHashMap<K,V>
         }
 
         public Object[] toArray() {
-            List<Map.Entry<K,V>> c = new ArrayList<Map.Entry<K,V>>(size());
-            for (Map.Entry<K,V> e : this)
-                c.add(new AbstractMap.SimpleEntry<K,V>(e));
-            return c.toArray();
+	    int size = size();
+	    Object[] result = new Object[size];
+	    Iterator<Map.Entry<K,V>> it = iterator();
+	    for (int i = 0; i < size; i++)
+		result[i] = new AbstractMap.SimpleEntry<K,V>(it.next());
+	    return result;
         }
-        public <T> T[] toArray(T[] a) {
+
+	@SuppressWarnings("unchecked")
+	public <T> T[] toArray(T[] a) {
 	    int size = size();
 	    if (a.length < size)
 		a = (T[])java.lang.reflect.Array
@@ -1185,7 +1193,7 @@ public class IdentityHashMap<K,V>
 
     /**
      * The put method for readObject.  It does not resize the table,
-     * update modcount, etc.
+     * update modCount, etc.
      */
     private void putForCreate(K key, V value)
         throws IOException

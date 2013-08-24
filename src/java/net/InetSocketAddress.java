@@ -1,7 +1,7 @@
 /*
- * @(#)InetSocketAddress.java	1.21 05/08/04
+ * @(#)InetSocketAddress.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -217,6 +217,7 @@ public class InetSocketAddress extends SocketAddress {
      * This has the benefit of <b>not</b> attemptimg a reverse lookup.
      *
      * @return the hostname, or String representation of the address.
+     * @since 1.6
      */
     final String getHostString() {
 	if (hostname != null)

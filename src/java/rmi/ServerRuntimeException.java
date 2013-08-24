@@ -1,7 +1,7 @@
 /*
- * @(#)ServerRuntimeException.java	1.18 04/05/18
+ * @(#)ServerRuntimeException.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.rmi;
  * <p>A <code>ServerRuntimeException</code> is not thrown from servers
  * executing on the Java 2 platform v1.2 or later versions.
  * 
- * @version 1.18, 05/18/04
+ * @version 1.19, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement

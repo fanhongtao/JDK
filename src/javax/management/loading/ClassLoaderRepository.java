@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoaderRepository.java	1.18 03/12/19
+ * @(#)ClassLoaderRepository.java	1.20 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ public interface ClassLoaderRepository {
      * @exception ClassNotFoundException The specified class could not be 
      *            found.
      */
-    public Class loadClass(String className) 
+    public Class<?> loadClass(String className) 
 	    throws ClassNotFoundException;
     
     /**
@@ -93,8 +93,8 @@ public interface ClassLoaderRepository {
      * @exception ClassNotFoundException The specified class could not
      * be found.
      */
-    public Class loadClassWithout(ClassLoader exclude,
-				  String className) 
+    public Class<?> loadClassWithout(ClassLoader exclude,
+				     String className) 
 	    throws ClassNotFoundException;
 
     /**
@@ -128,8 +128,8 @@ public interface ClassLoaderRepository {
      *
      * @since.unbundled JMX 1.2
      */
-    public Class loadClassBefore(ClassLoader stop,
-				 String className)
+    public Class<?> loadClassBefore(ClassLoader stop,
+				    String className)
 	    throws ClassNotFoundException;
     
 }

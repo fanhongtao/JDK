@@ -1,7 +1,7 @@
 /*
- * @(#)AnnotatedElement.java	1.3 04/02/03
+ * @(#)AnnotatedElement.java	1.5 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,27 +41,27 @@ public interface AnnotatedElement {
      * is present on this element, else false.  This method
      * is designed primarily for convenient access to marker annotations.
      *
-     * @param annotationType the Class object corresponding to the
+     * @param annotationClass the Class object corresponding to the
      *        annotation type
      * @return true if an annotation for the specified annotation
      *     type is present on this element, else false
-     * @throws NullPointerException if annotationType is null
+     * @throws NullPointerException if the given annotation class is null
      * @since 1.5
      */
-     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+     boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
    /**
      * Returns this element's annotation for the specified type if
      * such an annotation is present, else null.
      *
-     * @param annotationType the Class object corresponding to the 
+     * @param annotationClass the Class object corresponding to the 
      *        annotation type
      * @return this element's annotation for the specified annotation type if
      *     present on this element, else null
-     * @throws NullPointerException if annotationType is null
+     * @throws NullPointerException if the given annotation class is null
      * @since 1.5
      */
-    <T extends Annotation> T getAnnotation(Class<T> annotationType);
+    <T extends Annotation> T getAnnotation(Class<T> annotationClass);
 
     /**
      * Returns all annotations present on this element.  (Returns an array

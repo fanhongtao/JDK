@@ -1,7 +1,7 @@
 /*
- * @(#)Shape.java	1.22 03/12/19
+ * @(#)Shape.java	1.24 06/02/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,6 +56,7 @@ import java.awt.geom.Rectangle2D;
  *
  * @version 1.19 06/24/98
  * @author Jim Graham
+ * @since 1.2
  */
 public interface Shape {
     /**
@@ -73,6 +74,7 @@ public interface Shape {
      * @return an integer <code>Rectangle</code> that completely encloses
      *                 the <code>Shape</code>.
      * @see #getBounds2D
+     * @since 1.2
      */
     public Rectangle getBounds();
 
@@ -91,27 +93,30 @@ public interface Shape {
      * @return an instance of <code>Rectangle2D</code> that is a
      *                 high-precision bounding box of the <code>Shape</code>.
      * @see #getBounds
+     * @since 1.2
      */
     public Rectangle2D getBounds2D();
 
     /**
      * Tests if the specified coordinates are inside the boundary of the 
      * <code>Shape</code>.
-     * @param x the specified x coordinate
-     * @param y the specified y coordinate
+     * @param x the specified X coordinate to be tested
+     * @param y the specified Y coordinate to be tested
      * @return <code>true</code> if the specified coordinates are inside 
      *         the <code>Shape</code> boundary; <code>false</code>
      *         otherwise.
+     * @since 1.2
      */
     public boolean contains(double x, double y);
 
     /**
      * Tests if a specified {@link Point2D} is inside the boundary
      * of the <code>Shape</code>.
-     * @param p a specified <code>Point2D</code>
+     * @param p the specified <code>Point2D</code> to be tested
      * @return <code>true</code> if the specified <code>Point2D</code> is 
      *          inside the boundary of the <code>Shape</code>;
      *		<code>false</code> otherwise.
+     * @since 1.2
      */
     public boolean contains(Point2D p);
 
@@ -122,7 +127,8 @@ public interface Shape {
      * if any point is contained in both the interior of the 
      * <code>Shape</code> and the specified rectangular area.
      * <p>
-     * This method might conservatively return <code>true</code> when:
+     * The {@code Shape.intersects()} method allows a {@code Shape}
+     * implementation to conservatively return {@code true} when:
      * <ul>
      * <li>
      * there is a high probability that the rectangular area and the
@@ -131,13 +137,18 @@ public interface Shape {
      * the calculations to accurately determine this intersection
      * are prohibitively expensive.
      * </ul>
-     * This means that this method might return <code>true</code> even
-     * though the rectangular area does not intersect the <code>Shape</code>.
-     * The {@link java.awt.geom.Area Area} class can be used to perform 
-     * more accurate computations of geometric intersection for any 
-     * <code>Shape</code> object if a more precise answer is required.
-     * @param x the x coordinate of the specified rectangular area
-     * @param y the y coordinate of the specified rectangular area
+     * This means that for some {@code Shapes} this method might
+     * return {@code true} even though the rectangular area does not
+     * intersect the {@code Shape}.
+     * The {@link java.awt.geom.Area Area} class performs
+     * more accurate computations of geometric intersection than most 
+     * {@code Shape} objects and therefore can be used if a more precise
+     * answer is required.
+     *
+     * @param x the X coordinate of the upper-left corner
+     *          of the specified rectangular area
+     * @param y the Y coordinate of the upper-left corner
+     *          of the specified rectangular area
      * @param w the width of the specified rectangular area
      * @param h the height of the specified rectangular area
      * @return <code>true</code> if the interior of the <code>Shape</code> and
@@ -145,13 +156,15 @@ public interface Shape {
      * 		both highly likely to intersect and intersection calculations 
      * 		would be too expensive to perform; <code>false</code> otherwise.
      * @see java.awt.geom.Area
+     * @since 1.2
      */
     public boolean intersects(double x, double y, double w, double h);
 
     /**
      * Tests if the interior of the <code>Shape</code> intersects the 
      * interior of a specified <code>Rectangle2D</code>.
-     * This method might conservatively return <code>true</code> when:
+     * The {@code Shape.intersects()} method allows a {@code Shape}
+     * implementation to conservatively return {@code true} when:
      * <ul>
      * <li>
      * there is a high probability that the <code>Rectangle2D</code> and the
@@ -160,9 +173,14 @@ public interface Shape {
      * the calculations to accurately determine this intersection
      * are prohibitively expensive.
      * </ul>
-     * This means that this method might return <code>true</code> even
-     * though the <code>Rectangle2D</code> does not intersect the
-     * <code>Shape</code>. 
+     * This means that for some {@code Shapes} this method might
+     * return {@code true} even though the {@code Rectangle2D} does not
+     * intersect the {@code Shape}.
+     * The {@link java.awt.geom.Area Area} class performs
+     * more accurate computations of geometric intersection than most 
+     * {@code Shape} objects and therefore can be used if a more precise
+     * answer is required.
+     *
      * @param r the specified <code>Rectangle2D</code>
      * @return <code>true</code> if the interior of the <code>Shape</code> and  
      * 		the interior of the specified <code>Rectangle2D</code>
@@ -170,6 +188,7 @@ public interface Shape {
      *		calculations would be too expensive to perform; <code>false</code>
      * 		otherwise.
      * @see #intersects(double, double, double, double)
+     * @since 1.2
      */
     public boolean intersects(Rectangle2D r);
 
@@ -180,7 +199,8 @@ public interface Shape {
      * entire rectanglar area to be considered contained within the 
      * <code>Shape</code>.
      * <p>
-     * This method might conservatively return <code>false</code> when:
+     * The {@code Shape.contains()} method allows a {@code Shape}
+     * implementation to conservatively return {@code false} when:
      * <ul>
      * <li>
      * the <code>intersect</code> method returns <code>true</code> and
@@ -189,13 +209,18 @@ public interface Shape {
      * <code>Shape</code> entirely contains the rectangular area are
      * prohibitively expensive.
      * </ul>
-     * This means that this method might return <code>false</code> even
-     * though the <code>Shape</code> contains the rectangular area.
-     * The <code>Area</code> class can be used to perform more accurate 
-     * computations of geometric intersection for any <code>Shape</code>
-     * object if a more precise answer is required.
-     * @param x the x coordinate of the specified rectangular area
-     * @param y the y coordinate of the specified rectangular area
+     * This means that for some {@code Shapes} this method might
+     * return {@code false} even though the {@code Shape} contains
+     * the rectangular area.
+     * The {@link java.awt.geom.Area Area} class performs
+     * more accurate geometric computations than most 
+     * {@code Shape} objects and therefore can be used if a more precise
+     * answer is required.
+     *
+     * @param x the X coordinate of the upper-left corner
+     *          of the specified rectangular area
+     * @param y the Y coordinate of the upper-left corner
+     *          of the specified rectangular area
      * @param w the width of the specified rectangular area
      * @param h the height of the specified rectangular area
      * @return <code>true</code> if the interior of the <code>Shape</code>
@@ -207,13 +232,15 @@ public interface Shape {
      * 		perform.
      * @see java.awt.geom.Area
      * @see #intersects
+     * @since 1.2
      */
     public boolean contains(double x, double y, double w, double h);
 
     /**
      * Tests if the interior of the <code>Shape</code> entirely contains the 
      * specified <code>Rectangle2D</code>.
-     * This method might conservatively return <code>false</code> when:
+     * The {@code Shape.contains()} method allows a {@code Shape}
+     * implementation to conservatively return {@code false} when:
      * <ul>
      * <li>
      * the <code>intersect</code> method returns <code>true</code> and
@@ -222,12 +249,14 @@ public interface Shape {
      * <code>Shape</code> entirely contains the <code>Rectangle2D</code>
      * are prohibitively expensive.
      * </ul>
-     * This means that this method might return <code>false</code> even   
-     * though the <code>Shape</code> contains the
-     * <code>Rectangle2D</code>.
-     * The <code>Area</code> class can be used to perform more accurate 
-     * computations of geometric intersection for any <code>Shape</code>  
-     * object if a more precise answer is required.
+     * This means that for some {@code Shapes} this method might
+     * return {@code false} even though the {@code Shape} contains
+     * the {@code Rectangle2D}.
+     * The {@link java.awt.geom.Area Area} class performs
+     * more accurate geometric computations than most 
+     * {@code Shape} objects and therefore can be used if a more precise
+     * answer is required.
+     *
      * @param r The specified <code>Rectangle2D</code>
      * @return <code>true</code> if the interior of the <code>Shape</code>
      *          entirely contains the <code>Rectangle2D</code>;
@@ -237,6 +266,7 @@ public interface Shape {
      *          and the containment calculations would be too expensive to
      *          perform. 
      * @see #contains(double, double, double, double)
+     * @since 1.2
      */
     public boolean contains(Rectangle2D r);
 
@@ -256,16 +286,13 @@ public interface Shape {
      * implementing the <code>Shape</code> interface isolate iterations
      * that are in process from any changes that might occur to the original
      * object's geometry during such iterations.
-     * <p>
-     * Before using a particular implementation of the <code>Shape</code> 
-     * interface in more than one thread simultaneously, refer to its 
-     * documentation to verify that it guarantees that iterations are isolated 
-     * from modifications.
+     *
      * @param at an optional <code>AffineTransform</code> to be applied to the
      * 		coordinates as they are returned in the iteration, or 
      *		<code>null</code> if untransformed coordinates are desired
      * @return a new <code>PathIterator</code> object, which independently    
      *		traverses the geometry of the <code>Shape</code>.
+     * @since 1.2
      */
     public PathIterator getPathIterator(AffineTransform at);
 
@@ -299,11 +326,7 @@ public interface Shape {
      * implementing the <code>Shape</code> interface isolate iterations
      * that are in process from any changes that might occur to the original
      * object's geometry during such iterations.
-     * <p>
-     * Before using a particular implementation of this interface in more
-     * than one thread simultaneously, refer to its documentation to
-     * verify that it guarantees that iterations are isolated from
-     * modifications.
+     *
      * @param at an optional <code>AffineTransform</code> to be applied to the
      * 		coordinates as they are returned in the iteration, or 
      *		<code>null</code> if untransformed coordinates are desired
@@ -311,7 +334,8 @@ public interface Shape {
      *          approximate the curved segments are allowed to deviate
      *          from any point on the original curve
      * @return a new <code>PathIterator</code> that independently traverses 
-     * 		the <code>Shape</code> geometry.
-    */
+     *         a flattened view of the geometry of the  <code>Shape</code>.
+     * @since 1.2
+     */
     public PathIterator getPathIterator(AffineTransform at, double flatness);
 }

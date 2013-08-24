@@ -1,7 +1,7 @@
 /*
- * @(#)UnrecoverableEntryException.java	1.2 03/12/19
+ * @(#)UnrecoverableEntryException.java	1.3 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,7 @@ package java.security;
 /**
  * This exception is thrown if an entry in the keystore cannot be recovered.
  *
- * @version 1.2, 12/19/03
+ * @version 1.3, 11/17/05
  *
  * @since 1.5
  */

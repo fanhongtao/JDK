@@ -1,7 +1,7 @@
 /*
- * @(#)OperatingSystemMXBean.java	1.9 04/04/20
+ * @(#)OperatingSystemMXBean.java	1.11 05/12/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ package java.lang.management;
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.9, 04/20/04 
+ * @version 1.11, 12/09/05 
  * @since   1.5
  */
 public interface OperatingSystemMXBean {
@@ -96,5 +96,27 @@ public interface OperatingSystemMXBean {
      *          machine; never smaller than one.
      */
     public int getAvailableProcessors();
+
+    /**
+     * Returns the system load average for the last minute.
+     * The system load average is the sum of the number of runnable entities
+     * queued to the {@linkplain #getAvailableProcessors available processors}
+     * and the number of runnable entities running on the available processors
+     * averaged over a period of time.
+     * The way in which the load average is calculated is operating system
+     * specific but is typically a damped time-dependent average.
+     * <p>
+     * If the load average is not available, a negative value is returned.
+     * <p>
+     * This method is designed to provide a hint about the system load
+     * and may be queried frequently.
+     * The load average may be unavailable on some platform where it is
+     * expensive to implement this method.
+     *
+     * @return the system load average; or a negative value if not available.
+     *
+     * @since 1.6
+     */
+    public double getSystemLoadAverage();
 }
 

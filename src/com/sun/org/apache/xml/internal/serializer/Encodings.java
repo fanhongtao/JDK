@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Encodings.java,v 1.8 2004/02/23 10:29:37 aruny Exp $
+ * $Id: Encodings.java,v 1.3 2005/09/28 13:49:04 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -39,57 +39,29 @@ import java.security.AccessController;
  * to override encoding names and provide the last printable character
  * for each encoding.
  *
- * @version $Revision: 1.8 $ $Date: 2004/02/23 10:29:37 $
+ * @version $Revision: 1.3 $ $Date: 2005/09/28 13:49:04 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  */
 
-public class Encodings extends Object
+public final class Encodings extends Object
 {
 
     /**
      * The last printable character for unknown encodings.
      */
-    static final int m_defaultLastPrintable = 0x7F;
+    private static final int m_defaultLastPrintable = 0x7F;
 
     /**
      * Standard filename for properties file with encodings data.
      */
-    static final String ENCODINGS_FILE = "com/sun/org/apache/xml/internal/serializer/Encodings.properties";
+    private static final String ENCODINGS_FILE = "com/sun/org/apache/xml/internal/serializer/Encodings.properties";
 
     /**
      * Standard filename for properties file with encodings data.
      */
-    static final String ENCODINGS_PROP = "com.sun.org.apache.xalan.internal.serialize.encodings";
+    private static final String ENCODINGS_PROP = "com.sun.org.apache.xalan.internal.serialize.encodings";
 
-    /** SUN JVM internal ByteToChar converter method */
-    private static final Method
-        SUN_CHAR2BYTE_CONVERTER_METHOD = findCharToByteConverterMethod();
-
-    private static Method findCharToByteConverterMethod() {
-        try
-        {
-            AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
-                    try {
-                        Class charToByteConverterClass = (Class) 
-                            Class.forName("sun.io.CharToByteConverter");
-                        Class argTypes[] = {String.class};
-                        return charToByteConverterClass.getMethod("getConverter", argTypes);
-                    }
-                    catch (Exception e) {
-                        throw new RuntimeException(e.toString());
-                    }
-                }});
-        }
-        catch (Exception e)
-        {
-            System.err.println(
-                "Warning: Could not get charToByteConverterClass!");
-        }
-
-        return null;
-    }
-
+    
     /**
      * Returns a writer for the specified encoding based on
      * an output stream.
@@ -100,7 +72,7 @@ public class Encodings extends Object
      * @throws UnsupportedEncodingException There is no convertor
      *  to support this encoding
      */
-    public static Writer getWriter(OutputStream output, String encoding)
+    static Writer getWriter(OutputStream output, String encoding)
         throws UnsupportedEncodingException
     {
 
@@ -135,61 +107,7 @@ public class Encodings extends Object
             throw new UnsupportedEncodingException(encoding);
         }
     }
-
-    /**
-     * Returns an opaque CharToByte converter for the specified encoding.
-     *
-     * @param encoding The encoding
-     * @return An object which should be a sun.io.CharToByteConverter, or null.
-     */
-    public static Object getCharToByteConverter(String encoding)
-    {
-        if (SUN_CHAR2BYTE_CONVERTER_METHOD == null) {
-            return null;
-        }
-
-        Object args[] = new Object[1];
-        for (int i = 0; i < _encodings.length; ++i)
-        {
-            if (_encodings[i].name.equalsIgnoreCase(encoding))
-            {
-                try
-                {
-                    args[0] = _encodings[i].javaName;
-                    Object converter =
-                        SUN_CHAR2BYTE_CONVERTER_METHOD.invoke(null, args);
-                    if (null != converter) 
-                        return converter;
-                }
-                catch (Exception iae)
-                {
-                    // keep trying
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the last printable character for the specified
-     * encoding.
-     *
-     * @param encoding The encoding
-     * @return The last printable character
-     */
-    public static int getLastPrintable(String encoding)
-    {
-        EncodingInfo ei;
-
-        String normalizedEncoding = encoding.toUpperCase();
-        ei = (EncodingInfo) _encodingTableKeyJava.get(normalizedEncoding);
-        if (ei == null)
-            ei = (EncodingInfo) _encodingTableKeyMime.get(normalizedEncoding);
-        if (ei != null)
-            return ei.lastPrintable;
-        return m_defaultLastPrintable;
-    }
+    
 
     /**
      * Returns the last printable character for an unspecified
@@ -201,9 +119,75 @@ public class Encodings extends Object
     {
         return m_defaultLastPrintable;
     }
+    
+    
+    
+    /**
+     * Returns the EncodingInfo object for the specified
+     * encoding.
+     * <p>
+     * This is not a public API.
+     *
+     * @param encoding The encoding
+     * @return The object that is used to determine if 
+     * characters are in the given encoding.
+     * @xsl.usage internal
+     */
+    static EncodingInfo getEncodingInfo(String encoding)
+    {
+        EncodingInfo ei;
+
+        String normalizedEncoding = toUpperCaseFast(encoding);
+        ei = (EncodingInfo) _encodingTableKeyJava.get(normalizedEncoding);
+        if (ei == null)
+            ei = (EncodingInfo) _encodingTableKeyMime.get(normalizedEncoding);
+        if (ei == null) {
+            // We shouldn't have to do this, but just in case.
+            ei = new EncodingInfo(null,null);
+        }
+
+        return ei;
+    }
+ 
+    /**
+     * A fast and cheap way to uppercase a String that is
+     * only made of printable ASCII characters.
+     * <p>
+     * This is not a public API.
+     * @param s a String of ASCII characters
+     * @return an uppercased version of the input String,
+     * possibly the same String.
+     * @xsl.usage internal
+     */
+    static private String toUpperCaseFast(final String s) {
+
+    	boolean different = false;
+    	final int mx = s.length();
+		char[] chars = new char[mx];
+    	for (int i=0; i < mx; i++) {
+    		char ch = s.charAt(i);
+            // is the character a lower case ASCII one?
+    		if ('a' <= ch && ch <= 'z') {
+                // a cheap and fast way to uppercase that is good enough
+    			ch = (char) (ch + ('A' - 'a'));
+    			different = true; // the uppercased String is different
+    		}
+    		chars[i] = ch;
+    	}
+    	
+    	// A little optimization, don't call String.valueOf() if
+    	// the uppercased string is the same as the input string.
+    	final String upper;
+    	if (different) 
+    		upper = String.valueOf(chars);
+    	else
+    		upper = s;
+    		
+    	return upper;
+    }
 
     /** The default encoding, ISO style, ISO style.   */
-    public static final String DEFAULT_MIME_ENCODING = "UTF-8";
+    static final String DEFAULT_MIME_ENCODING = "UTF-8";
 
     /**
      * Get the proper mime encoding.  From the XSLT recommendation: "The encoding
@@ -221,7 +205,7 @@ public class Encodings extends Object
      *
      * @return The ISO-style encoding string, or null if failure.
      */
-    public static String getMimeEncoding(String encoding)
+    static String getMimeEncoding(String encoding)
     {
 
         if (null == encoding)
@@ -280,7 +264,7 @@ public class Encodings extends Object
      *
      * @return ISO-style encoding string.
      */
-    public static String convertJava2MimeEncoding(String encoding)
+    private static String convertJava2MimeEncoding(String encoding)
     {
         EncodingInfo enc =
             (EncodingInfo) _encodingTableKeyJava.get(encoding.toUpperCase());
@@ -379,19 +363,19 @@ public class Encodings extends Object
                 String val = props.getProperty(javaName);
                 int pos = val.indexOf(' ');
                 String mimeName;
-                int lastPrintable;
+                //int lastPrintable;
                 if (pos < 0)
                 {
                     // Maybe report/log this problem?
                     //  "Last printable character not defined for encoding " +
                     //  mimeName + " (" + val + ")" ...
                     mimeName = val;
-                    lastPrintable = 0x00FF;
+                    //lastPrintable = 0x00FF;
                 }
                 else
                 {
-                    lastPrintable =
-                        Integer.decode(val.substring(pos).trim()).intValue();
+                    //lastPrintable =
+                    //    Integer.decode(val.substring(pos).trim()).intValue();
                     StringTokenizer st =
                         new StringTokenizer(val.substring(0, pos), ",");
                     for (boolean first = true;
@@ -400,7 +384,7 @@ public class Encodings extends Object
                     {
                         mimeName = st.nextToken();
                         ret[j] =
-                            new EncodingInfo(mimeName, javaName, lastPrintable);
+                            new EncodingInfo(mimeName, javaName);
                         _encodingTableKeyMime.put(
                             mimeName.toUpperCase(),
                             ret[j]);
@@ -416,12 +400,61 @@ public class Encodings extends Object
         }
         catch (java.net.MalformedURLException mue)
         {
-            throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException(mue);
+            throw new com.sun.org.apache.xml.internal.serializer.utils.WrappedRuntimeException(mue);
         }
         catch (java.io.IOException ioe)
         {
-            throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException(ioe);
+            throw new com.sun.org.apache.xml.internal.serializer.utils.WrappedRuntimeException(ioe);
         }
+    }
+
+    /**
+     * Return true if the character is the high member of a surrogate pair.
+     * <p>
+     * This is not a public API.
+     * @param ch the character to test
+     * @xsl.usage internal
+     */
+    static boolean isHighUTF16Surrogate(char ch) {
+        return ('\uD800' <= ch && ch <= '\uDBFF');
+    }
+    /**
+     * Return true if the character is the low member of a surrogate pair.
+     * <p>
+     * This is not a public API.
+     * @param ch the character to test
+     * @xsl.usage internal
+     */
+    static boolean isLowUTF16Surrogate(char ch) {
+        return ('\uDC00' <= ch && ch <= '\uDFFF');
+    }
+    /**
+     * Return the unicode code point represented by the high/low surrogate pair.
+     * <p>
+     * This is not a public API.
+     * @param highSurrogate the high char of the high/low pair
+     * @param lowSurrogate the low char of the high/low pair
+     * @xsl.usage internal
+     */
+    static int toCodePoint(char highSurrogate, char lowSurrogate) {
+        int codePoint =
+            ((highSurrogate - 0xd800) << 10)
+                + (lowSurrogate - 0xdc00)
+                + 0x10000;
+        return codePoint;
+    }
+    /**
+     * Return the unicode code point represented by the char.
+     * A bit of a dummy method, since all it does is return the char,
+     * but as an int value.
+     * <p>
+     * This is not a public API.
+     * @param ch the char.
+     * @xsl.usage internal
+     */
+    static int toCodePoint(char ch) {
+        int codePoint = ch;
+        return codePoint;
     }
 
     private static final Hashtable _encodingTableKeyJava = new Hashtable();

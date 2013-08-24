@@ -1,7 +1,7 @@
 /*
- * @(#)PushbackReader.java	1.18 03/12/19
+ * @(#)PushbackReader.java	1.21 06/01/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.io;
  * A character-stream reader that allows characters to be pushed back into the
  * stream.
  *
- * @version 	1.18, 03/12/19
+ * @version 	1.21, 06/01/24
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -26,7 +26,7 @@ public class PushbackReader extends FilterReader {
     private int pos;
 
     /**
-     * Create a new pushback reader with a pushback buffer of the given size.
+     * Creates a new pushback reader with a pushback buffer of the given size.
      *
      * @param   in   The reader from which characters will be read
      * @param	size The size of the pushback buffer
@@ -42,7 +42,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Create a new pushback reader with a one-character pushback buffer.
+     * Creates a new pushback reader with a one-character pushback buffer.
      *
      * @param   in  The reader from which characters will be read
      */
@@ -50,14 +50,14 @@ public class PushbackReader extends FilterReader {
 	this(in, 1);
     }
 
-    /** Check to make sure that the stream has not been closed. */
+    /** Checks to make sure that the stream has not been closed. */
     private void ensureOpen() throws IOException {
 	if (buf == null)
 	    throw new IOException("Stream closed");
     }
 
     /**
-     * Read a single character.
+     * Reads a single character.
      *
      * @return     The character read, or -1 if the end of the stream has been
      *             reached
@@ -75,7 +75,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Read characters into a portion of an array.
+     * Reads characters into a portion of an array.
      *
      * @param      cbuf  Destination buffer
      * @param      off   Offset at which to start writing characters
@@ -122,9 +122,11 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Push back a single character.
+     * Pushes back a single character by copying it to the front of the
+     * pushback buffer. After this method returns, the next character to be read
+     * will have the value <code>(char)c</code>.
      *
-     * @param  c  The character to push back
+     * @param  c  The int value representing a character to be pushed back
      *
      * @exception  IOException  If the pushback buffer is full,
      *                          or if some other I/O error occurs
@@ -139,7 +141,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Push back a portion of an array of characters by copying it to the
+     * Pushes back a portion of an array of characters by copying it to the
      * front of the pushback buffer.  After this method returns, the next
      * character to be read will have the value <code>cbuf[off]</code>, the
      * character after that will have the value <code>cbuf[off+1]</code>, and
@@ -163,7 +165,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Push back an array of characters by copying it to the front of the
+     * Pushes back an array of characters by copying it to the front of the
      * pushback buffer.  After this method returns, the next character to be
      * read will have the value <code>cbuf[0]</code>, the character after that
      * will have the value <code>cbuf[1]</code>, and so forth.
@@ -178,7 +180,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Tell whether this stream is ready to be read.
+     * Tells whether this stream is ready to be read.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -190,7 +192,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Mark the present position in the stream. The <code>mark</code>
+     * Marks the present position in the stream. The <code>mark</code>
      * for class <code>PushbackReader</code> always throws an exception.
      *
      * @exception  IOException  Always, since mark is not supported
@@ -200,7 +202,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Reset the stream. The <code>reset</code> method of 
+     * Resets the stream. The <code>reset</code> method of 
      * <code>PushbackReader</code> always throws an exception.
      *
      * @exception  IOException  Always, since reset is not supported
@@ -210,7 +212,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Tell whether this stream supports the mark() operation, which it does
+     * Tells whether this stream supports the mark() operation, which it does
      * not.
      */
     public boolean markSupported() {
@@ -218,7 +220,10 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Close the stream.
+     * Closes the stream and releases any system resources associated with
+     * it. Once the stream has been closed, further read(),
+     * unread(), ready(), or skip() invocations will throw an IOException.
+     * Closing a previously closed stream has no effect.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -228,7 +233,7 @@ public class PushbackReader extends FilterReader {
     }
 
     /**
-     * Skip characters.  This method will block until some characters are
+     * Skips characters.  This method will block until some characters are
      * available, an I/O error occurs, or the end of the stream is reached.
      *
      * @param  n  The number of characters to skip
@@ -256,5 +261,4 @@ public class PushbackReader extends FilterReader {
             return avail + super.skip(n);
         }
     }
-
 }

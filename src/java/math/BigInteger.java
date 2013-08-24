@@ -1,10 +1,10 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)BigInteger.java	1.70 05/08/09
+ * @(#)BigInteger.java	1.75 06/06/28
  */
 
 package java.math;
@@ -71,7 +71,7 @@ import java.io.*;
  * a null object reference for any input parameter.
  *
  * @see     BigDecimal
- * @version 1.70, 08/09/05
+ * @version 1.75, 06/28/06
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -117,7 +117,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * (either value is acceptable).
      *
      * @serial
-     * @see #bitLength
+     * @see #bitLength()
      */
     private int bitLength = -1;
 
@@ -458,7 +458,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * @param  rnd source of randomness to be used in computing the new
      *	       BigInteger.
      * @throws IllegalArgumentException <tt>numBits</tt> is negative.
-     * @see #bitLength
+     * @see #bitLength()
      */
     public BigInteger(int numBits, Random rnd) {
 	this(1, randomBits(numBits, rnd));
@@ -467,7 +467,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
     private static byte[] randomBits(int numBits, Random rnd) {
 	if (numBits < 0)
 	    throw new IllegalArgumentException("numBits must be non-negative");
-	int numBytes = (numBits+7)/8;
+	int numBytes = (int)(((long)numBits+7)/8); // avoid overflow
 	byte[] randomBits = new byte[numBytes];
 
 	// Generate random bytes and mask out any excess bits
@@ -496,7 +496,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * @param  rnd source of random bits used to select candidates to be
      *	       tested for primality.
      * @throws ArithmeticException <tt>bitLength &lt; 2</tt>.
-     * @see    #bitLength
+     * @see    #bitLength()
      */
     public BigInteger(int bitLength, int certainty, Random rnd) {
         BigInteger prime;
@@ -527,7 +527,8 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      *	       tested for primality.
      * @return a BigInteger of <tt>bitLength</tt> bits that is probably prime
      * @throws ArithmeticException <tt>bitLength &lt; 2</tt>.
-     * @see    #bitLength
+     * @see    #bitLength()
+     * @since 1.4
      */
     public static BigInteger probablePrime(int bitLength, Random rnd) {
 	if (bitLength < 2)
@@ -576,7 +577,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
                 return p;
 
             // Do expensive test if we survive pre-test (or it's inapplicable)
-            if (p.primeToCertainty(certainty))
+            if (p.primeToCertainty(certainty, rnd))
                 return p;
         }
     }
@@ -598,7 +599,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         // Use a sieve length likely to contain the next prime number
         int searchLen = (bitLength / 20) * 64;
         BitSieve searchSieve = new BitSieve(p, searchLen);
-        BigInteger candidate = searchSieve.retrieve(p, certainty);
+        BigInteger candidate = searchSieve.retrieve(p, certainty, rnd);
 
         while ((candidate == null) || (candidate.bitLength() != bitLength)) {
             p = p.add(BigInteger.valueOf(2*searchLen));
@@ -606,7 +607,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
                 p = new BigInteger(bitLength, rnd).setBit(bitLength-1);
             p.mag[p.mag.length-1] &= 0xfffffffe;
             searchSieve = new BitSieve(p, searchLen);
-            candidate = searchSieve.retrieve(p, certainty);
+            candidate = searchSieve.retrieve(p, certainty, rnd);
         }
         return candidate;
     }
@@ -657,7 +658,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
                     return result;
 
                 // The expensive test
-                if (result.primeToCertainty(DEFAULT_PRIME_CERTAINTY))
+                if (result.primeToCertainty(DEFAULT_PRIME_CERTAINTY, null))
                     return result;
 
                 result = result.add(TWO);
@@ -674,7 +675,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         while(true) {
            BitSieve searchSieve = new BitSieve(result, searchLen);
            BigInteger candidate = searchSieve.retrieve(result,
-                                                     DEFAULT_PRIME_CERTAINTY);
+						 DEFAULT_PRIME_CERTAINTY, null);
            if (candidate != null)
                return candidate;
            result = result.add(BigInteger.valueOf(2 * searchLen));
@@ -695,7 +696,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * @return <tt>true</tt> if this BigInteger is probably prime,
      * 	       <tt>false</tt> if it's definitely composite.
      */
-    boolean primeToCertainty(int certainty) {
+    boolean primeToCertainty(int certainty, Random random) {
         int rounds = 0;
         int n = (Math.min(certainty, Integer.MAX_VALUE-1)+1)/2;
 
@@ -706,7 +707,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         if (sizeInBits < 100) {
             rounds = 50;
             rounds = n < rounds ? n : rounds;
-            return passesMillerRabin(rounds);
+            return passesMillerRabin(rounds, random);
         }
 
         if (sizeInBits < 256) {
@@ -722,7 +723,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         }
         rounds = n < rounds ? n : rounds;
 
-        return passesMillerRabin(rounds) && passesLucasLehmer();
+        return passesMillerRabin(rounds, random) && passesLucasLehmer();
     }
 
     /**
@@ -843,6 +844,15 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         return u;
     }
 
+    private static volatile Random staticRandom;
+
+    private static Random getSecureRandom() {
+	if (staticRandom == null) {
+	    staticRandom = new java.security.SecureRandom();
+	}
+	return staticRandom;
+    }
+
     /**
      * Returns true iff this BigInteger passes the specified number of
      * Miller-Rabin tests. This test is taken from the DSA spec (NIST FIPS
@@ -852,7 +862,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * This BigInteger is a positive, odd number greater than 2.
      * iterations<=50.
      */
-    private boolean passesMillerRabin(int iterations) {
+    private boolean passesMillerRabin(int iterations, Random rnd) {
 	// Find a and m such that m is odd and this == 1 + 2**a * m
         BigInteger thisMinusOne = this.subtract(ONE);
 	BigInteger m = thisMinusOne;
@@ -860,7 +870,9 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
 	m = m.shiftRight(a);
 
 	// Do the tests
-        Random rnd = new Random();
+	if (rnd == null) {
+	    rnd = getSecureRandom();
+	}
 	for (int i=0; i<iterations; i++) {
 	    // Generate a uniform random on (1, this)
 	    BigInteger b;
@@ -2091,7 +2103,6 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
     }
 
     int[] javaIncrement(int[] val) {
-        boolean done = false;
         int lastSum = 0;
         for (int i=val.length-1;  i >= 0 && lastSum == 0; i--)
             lastSum = (val[i] += 1);
@@ -2480,7 +2491,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
 	if (!w.testBit(0) || w.equals(ONE))
 	    return false;
 
-        return w.primeToCertainty(certainty);
+        return w.primeToCertainty(certainty, null);
     }
 
     // Comparison Operations

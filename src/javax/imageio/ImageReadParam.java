@@ -1,7 +1,7 @@
 /*
- * @(#)ImageReadParam.java	1.58 03/12/19
+ * @(#)ImageReadParam.java	1.59 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

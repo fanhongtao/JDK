@@ -59,7 +59,7 @@ import java.io.*;
 /** 
  * Abstract super class for fields and methods.
  *
- * @version $Id: FieldOrMethod.java,v 1.1.1.1 2001/10/29 20:00:01 jvanzyl Exp $
+ * @version $Id: FieldOrMethod.java,v 1.1.2.1 2005/07/31 23:46:39 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class FieldOrMethod extends AccessFlags implements Cloneable, Node {
@@ -83,11 +83,11 @@ public abstract class FieldOrMethod extends AccessFlags implements Cloneable, No
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
-   * @throw ClassFormatError
+   * @throws IOException
+   * @throws ClassFormatException
    */
   protected FieldOrMethod(DataInputStream file, ConstantPool constant_pool)
-    throws IOException, ClassFormatError
+    throws IOException, ClassFormatException
   {
     this(file.readUnsignedShort(), file.readUnsignedShort(),
 	 file.readUnsignedShort(), null, constant_pool);
@@ -120,7 +120,7 @@ public abstract class FieldOrMethod extends AccessFlags implements Cloneable, No
    * Dump object to file stream on binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

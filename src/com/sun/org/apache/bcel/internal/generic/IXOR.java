@@ -58,8 +58,8 @@ package com.sun.org.apache.bcel.internal.generic;
  * IXOR - Bitwise XOR int
  * <PRE>Stack: ..., value1, value2 -&gt; ..., result</PRE>
  *
- * @version $Id: IXOR.java,v 1.1.1.1 2001/10/29 20:00:17 jvanzyl Exp $
- * @authXOR  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
+ * @version $Id: IXOR.java,v 1.1.2.1 2005/07/31 23:44:48 jeffsuttor Exp $
+ * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class IXOR extends ArithmeticInstruction {
   public IXOR() {

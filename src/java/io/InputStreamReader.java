@@ -1,7 +1,7 @@
 /*
- * @(#)InputStreamReader.java	1.44 03/12/19
+ * @(#)InputStreamReader.java	1.47 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import sun.nio.cs.StreamDecoder;
  * @see InputStream
  * @see java.nio.charset.Charset
  *
- * @version     1.44, 03/12/19
+ * @version     1.47, 05/11/17
  * @author      Mark Reinhold
  * @since       JDK1.1
  */
@@ -47,7 +47,7 @@ public class InputStreamReader extends Reader {
     private final StreamDecoder sd;
 
     /**
-     * Create an InputStreamReader that uses the default charset.
+     * Creates an InputStreamReader that uses the default charset.
      *
      * @param  in   An InputStream
      */
@@ -62,7 +62,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Create an InputStreamReader that uses the named charset.
+     * Creates an InputStreamReader that uses the named charset.
      *
      * @param  in
      *         An InputStream
@@ -84,7 +84,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Create an InputStreamReader that uses the given charset. </p>
+     * Creates an InputStreamReader that uses the given charset. </p>
      *
      * @param  in       An InputStream
      * @param  cs       A charset
@@ -100,7 +100,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Create an InputStreamReader that uses the given charset decoder.  </p>
+     * Creates an InputStreamReader that uses the given charset decoder.  </p>
      *
      * @param  in       An InputStream
      * @param  dec      A charset decoder
@@ -116,7 +116,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Return the name of the character encoding being used by this stream.
+     * Returns the name of the character encoding being used by this stream.
      *
      * <p> If the encoding has an historical name then that name is returned;
      * otherwise the encoding's canonical name is returned.
@@ -124,10 +124,10 @@ public class InputStreamReader extends Reader {
      * <p> If this instance was created with the {@link
      * #InputStreamReader(InputStream, String)} constructor then the returned
      * name, being unique for the encoding, may differ from the name passed to
-     * the constructor.  This method may return <code>null</code> if the stream
-     * has been closed. </p>
-     *
-     * @return The historical name of this encoding, or possibly
+     * the constructor. This method will return <code>null</code> if the
+     * stream has been closed.
+     * </p>
+     * @return The historical name of this encoding, or
      *         <code>null</code> if the stream has been closed
      *
      * @see java.nio.charset.Charset
@@ -140,7 +140,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Read a single character.
+     * Reads a single character.
      *
      * @return The character read, or -1 if the end of the stream has been
      *         reached
@@ -152,7 +152,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Read characters into a portion of an array.
+     * Reads characters into a portion of an array.
      *
      * @param      cbuf     Destination buffer
      * @param      offset   Offset at which to start storing characters
@@ -168,7 +168,7 @@ public class InputStreamReader extends Reader {
     }
 
     /**
-     * Tell whether this stream is ready to be read.  An InputStreamReader is
+     * Tells whether this stream is ready to be read.  An InputStreamReader is
      * ready if its input buffer is not empty, or if bytes are available to be
      * read from the underlying byte stream.
      *
@@ -178,13 +178,7 @@ public class InputStreamReader extends Reader {
 	return sd.ready();
     }
 
-    /**
-     * Close the stream.
-     *
-     * @exception  IOException  If an I/O error occurs
-     */
     public void close() throws IOException {
 	sd.close();
     }
-
 }

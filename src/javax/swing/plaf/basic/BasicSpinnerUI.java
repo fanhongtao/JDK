@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSpinnerUI.java	1.22 03/12/19
+ * @(#)BasicSpinnerUI.java	1.28 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import sun.swing.DefaultLookup;
 /**
  * The default Spinner UI delegate.
  *
- * @version 1.22 12/19/03
+ * @version 1.28 04/10/06
  * @author Hans Muller
  * @since 1.4
  */
@@ -135,6 +135,10 @@ public class BasicSpinnerUI extends SpinnerUI
     protected void installListeners() {
         propertyChangeListener = createPropertyChangeListener();
         spinner.addPropertyChangeListener(propertyChangeListener);
+	if (DefaultLookup.getBoolean(spinner, this,
+	    "Spinner.disableOnBoundaryValues", false)) {
+	    spinner.addChangeListener(getHandler());
+	}
 	JComponent editor = spinner.getEditor();
 	if (editor != null && editor instanceof JSpinner.DefaultEditor) {
 	    JTextField tf = ((JSpinner.DefaultEditor)editor).getTextField();
@@ -156,6 +160,7 @@ public class BasicSpinnerUI extends SpinnerUI
      */
     protected void uninstallListeners() {
 	spinner.removePropertyChangeListener(propertyChangeListener);
+	spinner.removeChangeListener(handler);
 	JComponent editor = spinner.getEditor();
 	removeEditorBorderListener(editor);
 	if (editor instanceof JSpinner.DefaultEditor) {
@@ -296,6 +301,7 @@ public class BasicSpinnerUI extends SpinnerUI
      */
     protected Component createPreviousButton() {
 	Component c = createArrowButton(SwingConstants.SOUTH);
+        c.setName("Spinner.previousButton");
         installPreviousButtonListeners(c);
         return c;
     }
@@ -317,6 +323,7 @@ public class BasicSpinnerUI extends SpinnerUI
      */
     protected Component createNextButton() {
 	Component c = createArrowButton(SwingConstants.NORTH);
+        c.setName("Spinner.nextButton");
         installNextButtonListeners(c);
         return c;
     }
@@ -331,6 +338,7 @@ public class BasicSpinnerUI extends SpinnerUI
 	} else {
 	    b.setBorder(buttonBorder);
 	}
+        b.setInheritsPopupMenu(true);
 	return b;
     }
 
@@ -362,7 +370,9 @@ public class BasicSpinnerUI extends SpinnerUI
 	JComponent editor = spinner.getEditor();
 	maybeRemoveEditorBorder(editor);
 	installEditorBorderListener(editor);
-	return editor;
+        editor.setInheritsPopupMenu(true);
+        updateEditorAlignment(editor);
+        return editor;
     }
 
 
@@ -385,9 +395,20 @@ public class BasicSpinnerUI extends SpinnerUI
 	spinner.remove(oldEditor);
 	maybeRemoveEditorBorder(newEditor);
 	installEditorBorderListener(newEditor);
+        newEditor.setInheritsPopupMenu(true);
+        updateEditorAlignment(newEditor);
 	spinner.add(newEditor, "Editor");
     }
 
+    private void updateEditorAlignment(JComponent editor) {
+        if (editor instanceof JSpinner.DefaultEditor) {
+            // if editor alignment isn't set in LAF, we get 0 (CENTER) here
+            int alignment = UIManager.getInt("Spinner.editorAlignment");
+            JTextField text = ((JSpinner.DefaultEditor)editor).getTextField();
+            text.setHorizontalAlignment(alignment);
+        }
+    }
+    
     /**
      * Remove the border around the inner editor component for LaFs
      * that install an outside border around the spinner,
@@ -458,7 +479,24 @@ public class BasicSpinnerUI extends SpinnerUI
         for (int counter = c.getComponentCount() - 1; counter >= 0;counter--) {
             Component child = c.getComponent(counter);
 
-            child.setEnabled(enabled);
+	    if (DefaultLookup.getBoolean(spinner, this,
+		"Spinner.disableOnBoundaryValues", false)) {
+ 		SpinnerModel model = spinner.getModel();
+ 		if (child.getName() == "Spinner.nextButton" &&
+		    model.getNextValue() == null) {
+ 		    child.setEnabled(false);
+ 		}
+ 		else if (child.getName() == "Spinner.previousButton" &&
+			 model.getPreviousValue() == null) {
+ 		    child.setEnabled(false);
+ 		}
+ 		else {
+ 		    child.setEnabled(enabled);
+ 		}
+ 	    }
+	    else {
+		child.setEnabled(enabled);
+	    }
             if (child instanceof Container) {
                 updateEnabledState((Container)child, enabled);
             }
@@ -497,6 +535,43 @@ public class BasicSpinnerUI extends SpinnerUI
     static void loadActionMap(LazyActionMap map) {
         map.put("increment", nextButtonHandler);
         map.put("decrement", previousButtonHandler);
+    }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        JComponent editor = spinner.getEditor();
+        Insets insets = spinner.getInsets();
+        width = width - insets.left - insets.right;
+        height = height - insets.top - insets.bottom;
+        if (width >= 0 && height >= 0) {
+            int baseline = editor.getBaseline(width, height);
+            if (baseline >= 0) {
+                return insets.top + baseline;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        return spinner.getEditor().getBaselineResizeBehavior();
     }
 
     /**
@@ -695,7 +770,7 @@ public class BasicSpinnerUI extends SpinnerUI
         }
 
         public void mouseEntered(MouseEvent e) {
-	    if (spinner != null && !autoRepeatTimer.isRunning()) {
+	    if (spinner != null && !autoRepeatTimer.isRunning() && spinner == eventToSpinner(e)) {
 		autoRepeatTimer.start();	    
 	    }
         }
@@ -737,22 +812,24 @@ public class BasicSpinnerUI extends SpinnerUI
 	}
 
 	public void focusLost(FocusEvent e) {
-	    if (autoRepeatTimer.isRunning()) {
-		autoRepeatTimer.stop();	    
-	    }	    
-	    spinner = null;
-	    if (arrowButton != null) {
-		ButtonModel model = arrowButton.getModel();
-		model.setPressed(false);
-		model.setArmed(false);
-		arrowButton = null;
-	    }
+            if (spinner == eventToSpinner(e)) {
+                if (autoRepeatTimer.isRunning()) {
+                    autoRepeatTimer.stop();	    
+                }	    
+                spinner = null;
+                if (arrowButton != null) {
+                    ButtonModel model = arrowButton.getModel();
+                    model.setPressed(false);
+                    model.setArmed(false);
+                    arrowButton = null;
+                }
+            }
 	}
     }
 
 
     private static class Handler implements LayoutManager,
-            PropertyChangeListener {
+            PropertyChangeListener, ChangeListener {
         //
         // LayoutManager
         //
@@ -906,7 +983,8 @@ public class BasicSpinnerUI extends SpinnerUI
 			}
 		    }
 		    }
-		    else if ("enabled".equals(propertyName)) {
+		    else if ("enabled".equals(propertyName) ||
+			     "model".equals(propertyName)) {
 			ui.updateEnabledState();
 		    }
 		else if ("font".equals(propertyName)) {
@@ -954,6 +1032,19 @@ public class BasicSpinnerUI extends SpinnerUI
 		    }
 		} else if (children[i] instanceof JComponent) {
 		    ((JComponent)children[i]).setToolTipText( spinner.getToolTipText() );
+		}
+	    }
+	}
+
+	public void stateChanged(ChangeEvent e) {
+	    if (e.getSource() instanceof JSpinner) {
+		JSpinner spinner = (JSpinner)e.getSource();
+		SpinnerUI spinnerUI = spinner.getUI();
+		if (DefaultLookup.getBoolean(spinner, spinnerUI,
+		    "Spinner.disableOnBoundaryValues", false) &&
+		    spinnerUI instanceof BasicSpinnerUI) {
+		    BasicSpinnerUI ui = (BasicSpinnerUI)spinnerUI;
+		    ui.updateEnabledState();
 		}
 	    }
 	}

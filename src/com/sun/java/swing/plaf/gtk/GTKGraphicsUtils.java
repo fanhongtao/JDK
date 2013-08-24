@@ -1,7 +1,7 @@
 /*
- * @(#)GTKGraphicsUtils.java	1.13 03/12/19
+ * @(#)GTKGraphicsUtils.java	1.17 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -13,12 +13,17 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 /**
- * @version 1.13, 12/19/03
+ * @version 1.17, 06/07/06
  * @author Joshua Outwater
  */
 class GTKGraphicsUtils extends SynthGraphicsUtils {
     public void paintText(SynthContext context, Graphics g, String text,
                           int x, int y, int mnemonicIndex) {
+        if (context.getRegion() == Region.INTERNAL_FRAME_TITLE_PANE) {
+            // Metacity handles painting of text on internal frame title,
+            // ignore this.
+            return;
+        }
         int componentState = context.getComponentState();
         if ((componentState & SynthConstants.DISABLED) ==
                               SynthConstants.DISABLED){
@@ -35,6 +40,15 @@ class GTKGraphicsUtils extends SynthGraphicsUtils {
             super.paintText(context, g, text, x, y, mnemonicIndex);
         }
         else {
+            String themeName = GTKLookAndFeel.getGtkThemeName();
+            if (themeName != null && themeName.startsWith("blueprint") &&
+                shouldShadowText(context.getRegion(), componentState)) {
+
+                g.setColor(Color.BLACK);
+                super.paintText(context, g, text, x+1, y+1, mnemonicIndex);
+                g.setColor(Color.WHITE);
+            }
+            
             super.paintText(context, g, text, x, y, mnemonicIndex);
         }
     }
@@ -52,22 +66,33 @@ class GTKGraphicsUtils extends SynthGraphicsUtils {
      */
     public void paintText(SynthContext context, Graphics g, String text,
                           Rectangle bounds, int mnemonicIndex) {
-        Color color = g.getColor();
-
-        Region region = context.getRegion();
-        if ((region == Region.RADIO_BUTTON || region == Region.CHECK_BOX ||
-             region == Region.TABBED_PANE_TAB) &&
-             (context.getComponentState() & SynthConstants.FOCUSED) != 0) {
+        Region id = context.getRegion();
+        if ((id == Region.RADIO_BUTTON ||
+             id == Region.CHECK_BOX ||
+             id == Region.TABBED_PANE_TAB) &&
+            (context.getComponentState() & SynthConstants.FOCUSED) != 0)
+        {
             JComponent source = context.getComponent();
             if (!(source instanceof AbstractButton) ||
                 ((AbstractButton)source).isFocusPainted()) {
-                ((GTKStyle)(context.getStyle())).getEngine(context).paintFocus(
-                    context, g, SynthConstants.ENABLED,
-                        "checkbutton", bounds.x - 2, bounds.y - 2,
+
+                Color color = g.getColor();
+                GTKPainter.INSTANCE.paintFocus(context, g, id,
+                        context.getComponentState(), "checkbutton",
+                        bounds.x - 2, bounds.y - 2,
                         bounds.width + 4, bounds.height + 4);
                 g.setColor(color);
             }
         }
         super.paintText(context, g, text, bounds, mnemonicIndex);
+    }
+
+    private static boolean shouldShadowText(Region id, int state) {
+        int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
+        return((gtkState == SynthConstants.MOUSE_OVER) &&
+               (id == Region.MENU ||
+                id == Region.MENU_ITEM || 
+                id == Region.CHECK_BOX_MENU_ITEM ||
+                id == Region.RADIO_BUTTON_MENU_ITEM));
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEventMulticaster.java	1.37 04/05/05
+ * @(#)AWTEventMulticaster.java	1.41 06/08/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -16,17 +16,11 @@ import java.util.EventListener;
 
 
 /**
- * A class which implements efficient and thread-safe multi-cast event 
- * dispatching for the AWT events defined in the java.awt.event package.  
- * This class will manage an immutable structure consisting of a chain of 
- * event listeners and will dispatch events to those listeners.  Because
- * the structure is immutable, it is safe to use this API to add/remove
- * listeners during the process of an event dispatch operation.
- * However, event listeners added during the process of an event dispatch 
- * operation will not be notified of the event currently being dispatched.
- *
- * An example of how this class could be used to implement a new
- * component which fires "action" events:
+ * {@code AWTEventMulticaster} implements efficient and thread-safe multi-cast
+ * event dispatching for the AWT events defined in the {@code java.awt.event}
+ * package.
+ * <p>
+ * The following example illustrates how to use this class:
  *
  * <pre><code>
  * public myComponent extends Component {
@@ -47,10 +41,48 @@ import java.util.EventListener;
  *     }
  * }
  * </code></pre>
+ * The important point to note is the first argument to the {@code
+ * add} and {@code remove} methods is the field maintaining the
+ * listeners. In addition you must assign the result of the {@code add}
+ * and {@code remove} methods to the field maintaining the listeners.
+ * <p>
+ * {@code AWTEventMulticaster} is implemented as a pair of {@code
+ * EventListeners} that are set at construction time. {@code
+ * AWTEventMulticaster} is immutable. The {@code add} and {@code
+ * remove} methods do not alter {@code AWTEventMulticaster} in
+ * anyway. If necessary, a new {@code AWTEventMulticaster} is
+ * created. In this way it is safe to add and remove listeners during
+ * the process of an event dispatching.  However, event listeners
+ * added during the process of an event dispatch operation are not
+ * notified of the event currently being dispatched.
+ * <p>
+ * All of the {@code add} methods allow {@code null} arguments. If the
+ * first argument is {@code null}, the second argument is returned. If
+ * the first argument is not {@code null} and the second argument is
+ * {@code null}, the first argument is returned. If both arguments are
+ * {@code non-null}, a new {@code AWTEventMulticaster} is created using
+ * the two arguments and returned.
+ * <p>
+ * For the {@code remove} methods that take two arguments, the following is
+ * returned:
+ * <ul>
+ *   <li>{@code null}, if the first argument is {@code null}, or
+ *       the arguments are equal, by way of {@code ==}.
+ *   <li>the first argument, if the first argument is not an instance of
+ *       {@code AWTEventMulticaster}.
+ *   <li>result of invoking {@code remove(EventListener)} on the
+ *       first argument, supplying the second argument to the
+ *       {@code remove(EventListener)} method.
+ * </ul>
+ * <p>Swing makes use of
+ * {@link javax.swing.event.EventListenerList EventListenerList} for
+ * similar logic. Refer to it for details.
+ *
+ * @see javax.swing.event.EventListenerList
  *
  * @author      John Rose
  * @author 	Amy Fowler
- * @version 	1.37, 05/05/04
+ * @version 	1.41, 08/16/06
  * @since 	1.1
  */
 
@@ -77,9 +109,18 @@ public class AWTEventMulticaster implements
     }
 
     /**
-     * Removes a listener from this multicaster and returns the
-     * resulting multicast listener.
+     * Removes a listener from this multicaster.
+     * <p>
+     * The returned multicaster contains all the listeners in this
+     * multicaster with the exception of all occurrences of {@code oldl}.
+     * If the resulting multicaster contains only one regular listener
+     * the regular listener may be returned.  If the resulting multicaster
+     * is empty, then {@code null} may be returned instead.
+     * <p>
+     * No exception is thrown if {@code oldl} is {@code null}.
+     *
      * @param oldl the listener to be removed
+     * @return resulting listener
      */
     protected EventListener remove(EventListener oldl) {
 	if (oldl == a)  return b;
@@ -346,6 +387,7 @@ public class AWTEventMulticaster implements
      * Handles the windowStateChanged event by invoking the
      * windowStateChanged methods on listener-a and listener-b.
      * @param e the window event
+     * @since 1.4
      */
     public void windowStateChanged(WindowEvent e) {
         ((WindowStateListener)a).windowStateChanged(e);
@@ -357,6 +399,7 @@ public class AWTEventMulticaster implements
      * Handles the windowGainedFocus event by invoking the windowGainedFocus
      * methods on listener-a and listener-b.
      * @param e the window event
+     * @since 1.4
      */
     public void windowGainedFocus(WindowEvent e) {
         ((WindowFocusListener)a).windowGainedFocus(e);
@@ -367,6 +410,7 @@ public class AWTEventMulticaster implements
      * Handles the windowLostFocus event by invoking the windowLostFocus
      * methods on listener-a and listener-b.
      * @param e the window event
+     * @since 1.4
      */
     public void windowLostFocus(WindowEvent e) {
         ((WindowFocusListener)a).windowLostFocus(e);
@@ -431,6 +475,7 @@ public class AWTEventMulticaster implements
      * Handles the hierarchyChanged event by invoking the
      * hierarchyChanged methods on listener-a and listener-b.
      * @param e the item event
+     * @since 1.3
      */
     public void hierarchyChanged(HierarchyEvent e) {
         ((HierarchyListener)a).hierarchyChanged(e);
@@ -441,6 +486,7 @@ public class AWTEventMulticaster implements
      * Handles the ancestorMoved event by invoking the
      * ancestorMoved methods on listener-a and listener-b.
      * @param e the item event
+     * @since 1.3
      */
     public void ancestorMoved(HierarchyEvent e) {
         ((HierarchyBoundsListener)a).ancestorMoved(e);
@@ -451,6 +497,7 @@ public class AWTEventMulticaster implements
      * Handles the ancestorResized event by invoking the
      * ancestorResized methods on listener-a and listener-b.
      * @param e the item event
+     * @since 1.3
      */
     public void ancestorResized(HierarchyEvent e) {
         ((HierarchyBoundsListener)a).ancestorResized(e);
@@ -543,6 +590,7 @@ public class AWTEventMulticaster implements
      * and returns the resulting multicast listener.
      * @param a window-state-listener-a
      * @param b window-state-listener-b
+     * @since 1.4
      */
     public static WindowStateListener add(WindowStateListener a,
                                           WindowStateListener b) {
@@ -554,6 +602,7 @@ public class AWTEventMulticaster implements
      * and returns the resulting multicast listener.
      * @param a window-focus-listener-a
      * @param b window-focus-listener-b
+     * @since 1.4
      */
     public static WindowFocusListener add(WindowFocusListener a,
                                           WindowFocusListener b) {
@@ -608,6 +657,7 @@ public class AWTEventMulticaster implements
      * returns the resulting multicast listener.
      * @param a hierarchy-listener-a
      * @param b hierarchy-listener-b
+     * @since 1.3
      */
      public static HierarchyListener add(HierarchyListener a, HierarchyListener b) {
         return (HierarchyListener)addInternal(a, b);
@@ -618,6 +668,7 @@ public class AWTEventMulticaster implements
      * returns the resulting multicast listener.
      * @param a hierarchy-bounds-listener-a
      * @param b hierarchy-bounds-listener-b
+     * @since 1.3
      */
      public static HierarchyBoundsListener add(HierarchyBoundsListener a, HierarchyBoundsListener b) {
         return (HierarchyBoundsListener)addInternal(a, b);
@@ -710,6 +761,7 @@ public class AWTEventMulticaster implements
      * and returns the resulting multicast listener.
      * @param l window-state-listener-l
      * @param oldl the window-state-listener being removed
+     * @since 1.4
      */
     public static WindowStateListener remove(WindowStateListener l,
                                              WindowStateListener oldl) {
@@ -721,6 +773,7 @@ public class AWTEventMulticaster implements
      * and returns the resulting multicast listener.
      * @param l window-focus-listener-l
      * @param oldl the window-focus-listener being removed
+     * @since 1.4
      */
     public static WindowFocusListener remove(WindowFocusListener l,
                                              WindowFocusListener oldl) {
@@ -775,6 +828,7 @@ public class AWTEventMulticaster implements
      * returns the resulting multicast listener.
      * @param l hierarchy-listener-l
      * @param oldl the hierarchy-listener being removed
+     * @since 1.3
      */
     public static HierarchyListener remove(HierarchyListener l, HierarchyListener oldl) {
         return (HierarchyListener) removeInternal(l, oldl);
@@ -786,6 +840,7 @@ public class AWTEventMulticaster implements
      * listener.
      * @param l hierarchy-bounds-listener-l
      * @param oldl the hierarchy-bounds-listener being removed
+     * @since 1.3
      */
     public static HierarchyBoundsListener remove(HierarchyBoundsListener l, HierarchyBoundsListener oldl) {
         return (HierarchyBoundsListener) removeInternal(l, oldl);
@@ -803,10 +858,10 @@ public class AWTEventMulticaster implements
       return (MouseWheelListener) removeInternal(l, oldl);
     }
 
-    /** 
+    /**
      * Returns the resulting multicast listener from adding listener-a
-     * and listener-b together.  
-     * If listener-a is null, it returns listener-b;  
+     * and listener-b together.
+     * If listener-a is null, it returns listener-b;
      * If listener-b is null, it returns listener-a
      * If neither are null, then it creates and returns
      * a new AWTEventMulticaster instance which chains a with b.
@@ -937,6 +992,8 @@ public class AWTEventMulticaster implements
      *          <code><em>Foo</em>Listener</code>s by the specified multicast
      *          listener, or an empty array if no such listeners have been
      *          chained by the specified multicast listener
+     * @exception NullPointerException if the specified
+     *             {@code listenertype} parameter is {@code null}
      * @exception ClassCastException if <code>listenerType</code>
      *          doesn't specify a class or interface that implements
      *          <code>java.util.EventListener</code>
@@ -944,8 +1001,12 @@ public class AWTEventMulticaster implements
      * @since 1.4
      */
     public static <T extends EventListener> T[]
-	getListeners(EventListener l, Class<T> listenerType)
+        getListeners(EventListener l, Class<T> listenerType)
     {
+        if (listenerType == null) {
+            throw new NullPointerException ("Listener type should not be null");
+        }
+
         int n = getListenerCount(l, listenerType); 
         T[] result = (T[])Array.newInstance(listenerType, n);
         populateListenerArray(result, l, 0);

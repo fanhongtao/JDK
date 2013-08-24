@@ -1,9 +1,15 @@
+#
+# @(#)README.txt	1.11 06/01/28
+#
+# Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+# SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+#
 
-mtrace: @(#)README.txt	1.10 04/06/23
+mtrace: @(#)README.txt	1.11 06/01/28
 
 This agent library can be used to track method call and return counts.
-It uses the same java_crw_demo library used by HPROF to do BCI on all the 
-classfiles loaded into the Virtual Machine.  It will print out a 
+It uses the same java_crw_demo library used by HPROF to do BCI on all or
+selected classfiles loaded into the Virtual Machine.  It will print out a 
 sorted list of the most heavily used classes (as determined by the number 
 of method calls into the class) and also include the call and return counts 
 for all methods that are called.  
@@ -16,8 +22,5 @@ To get help on the available options try:
 
     java -agentlib:mtrace=help
 
-If the Virtual Machine complains that it can't find the library, you 
-may need to add the directory containing the library into the 
-LD_LIBRARY_PATH environment variable (Unix), or the PATH environment 
-variable (Windows).
+See ${JAVA_HOME}/demo/jvmti/index.html for help running and building agents.
 

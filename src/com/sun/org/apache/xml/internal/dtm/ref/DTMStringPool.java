@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMStringPool.java,v 1.8 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMStringPool.java,v 1.2.4.1 2005/09/15 08:15:05 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.dtm.ref;
@@ -50,7 +50,7 @@ import com.sun.org.apache.xml.internal.utils.IntVector;
  * it's safer that way, but this could trivially be turned into a general
  * ObjectPool if one was needed.</p>
  *
- * <p>Status: Passed basic test in _main().</p>
+ * <p>Status: Passed basic test in main().</p>
  * */
 public class DTMStringPool
 {

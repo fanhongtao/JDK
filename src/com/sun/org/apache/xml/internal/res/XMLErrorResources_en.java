@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLErrorResources_en.java,v 1.4 2004/02/17 04:14:26 minchau Exp $
+ * $Id: XMLErrorResources_en.java,v 1.2.4.1 2005/09/15 07:45:40 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.res;
 

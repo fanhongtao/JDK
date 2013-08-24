@@ -1,13 +1,13 @@
 /*
- * @(#)GTKConstants.java	1.13 03/12/19
+ * @(#)GTKConstants.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
 /**
- * @version 1.13, 12/19/03
+ * @version 1.15, 11/17/05
  * @author Scott Violet
  */
 public interface GTKConstants {
@@ -17,38 +17,85 @@ public interface GTKConstants {
      */
     public static final int UNDEFINED = -100;
 
+    /**
+     * Java representation of native GtkIconSize enum
+     */
+    public enum IconSize {
+        INVALID,
+        MENU,
+        SMALL_TOOLBAR,
+        LARGE_TOOLBAR,
+        BUTTON,
+        DND,
+        DIALOG
+    }
 
-    public static final int SHADOW_IN = 0;
-    public static final int SHADOW_OUT = 1;
+    /**
+     * Java representation of native GtkTextDirection enum
+     */
+    public enum TextDirection {
+        NONE,
+        LTR,
+        RTL
+    }
 
-    // These values are not respected currently,
-    // but have been included for completeness
-    public static final int SHADOW_ETCHED_IN = 2;
-    public static final int SHADOW_ETCHED_OUT = 3;
-    public static final int SHADOW_NONE = 4;
+    /**
+     * Java representation of native GtkShadowType enum
+     */
+    public enum ShadowType {
+        NONE,
+        IN,
+        OUT,
+        ETCHED_IN,
+        ETCHED_OUT
+    }
 
+    /**
+     * Java representation of native GtkStateType enum
+     */
+    public enum StateType {
+        NORMAL,
+        ACTIVE,
+        PRELIGHT,
+        SELECTED,
+        INSENSITIVE
+    }
 
-    public static final int EXPANDER_COLLAPSED = 0;
-    public static final int EXPANDER_EXPANDED = 1;
+    /**
+     * Java representation of native GtkExpanderStyle enum
+     */
+    public enum ExpanderStyle {
+        COLLAPSED,
+        SEMI_COLLAPSED,
+        SEMI_EXPANDED,
+        EXPANDED,
+    }
 
+    /**
+     * Java representation of native GtkPositionType enum
+     */
+    public enum PositionType {
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM
+    }
 
-    public static final int LEFT = 0;
-    public static final int RIGHT = 1;
-    public static final int TOP = 2;
-    public static final int BOTTOM = 3;
+    /**
+     * Java representation of native GtkArrowType enum
+     */
+    public enum ArrowType {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT
+    }
 
-
-    public static final int ARROW_UP = 100;
-    public static final int ARROW_DOWN = 101;
-    public static final int ARROW_LEFT = 102;
-    public static final int ARROW_RIGHT = 103;
-
-
-    public static final int LTR = 0;
-    public static final int RTL = 1;
-
-
-    public static final int HORIZONTAL = 0;
-    public static final int VERTICAL = 1;
-
+    /**
+     * Java representation of native GtkOrientation enum
+     */
+    public enum Orientation {
+        HORIZONTAL,
+        VERTICAL
+    }
 }

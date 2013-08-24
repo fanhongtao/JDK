@@ -1,7 +1,7 @@
 /*
- * @(#)TableDemo.java	1.17 04/07/26
+ * @(#)TableDemo.java	1.23 05/11/30
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)TableDemo.java	1.17 04/07/26
+ * @(#)TableDemo.java	1.23 05/11/30
  */
 
 
@@ -62,7 +62,7 @@ import java.text.MessageFormat;
 /**
  * Table demo
  *
- * @version 1.17 07/26/04
+ * @version 1.23 11/30/05
  * @author Philip Milne
  * @author Steve Wilson
  */
@@ -356,6 +356,16 @@ public class TableDemo extends DemoModule {
         controlPanel.add(printPanel);
 
 	setTableControllers(); // Set accessibility information
+
+        getDemoPanel().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(KeyStroke.getKeyStroke("ctrl P"), "print");
+
+        getDemoPanel().getActionMap().put("print", new AbstractAction() {
+            public void actionPerformed(ActionEvent ae) {
+                printTable();
+            }
+        });
+                
     } // TableDemo()
 
     /**
@@ -505,7 +515,7 @@ public class TableDemo extends DemoModule {
 	  {"David", "Geary",      blue,        getString("TableDemo.pulpfiction"), new Double(3), watermelon},
 //	  {"James", "Gosling",    pink,        getString("TableDemo.tennis"), new Double(21), donut},
 	  {"Eric", "Hawkes",      blue,        getString("TableDemo.bladerunner"), new Double(.693), pickle},
-          {"Shannon", "Hickey",   green,       getString("TableDemo.shawshank"), new Integer(2), grapes},
+          {"Shannon", "Hickey",   green,       getString("TableDemo.shawshank"), new Double(2), grapes},
 	  {"Earl", "Johnson",     green,       getString("TableDemo.pulpfiction"), new Double(8), carrot},
 	  {"Robi", "Khan",        green,       getString("TableDemo.goodfellas"), new Double(89), apple},
 	  {"Robert", "Kim",       blue,        getString("TableDemo.mohicans"), new Double(655321), strawberry},
@@ -522,7 +532,7 @@ public class TableDemo extends DemoModule {
 	  {"Phil", "Milne",       suspectpink, getString("TableDemo.withnail"), new Double(3), banana},
 	  {"Lynn", "Monsanto",    cybergreen,  getString("TableDemo.dasboot"), new Double(52), peach},
 	  {"Hans", "Muller",      rustred,     getString("TableDemo.eraserhead"), new Double(0), pineapple},
-          {"Joshua", "Outwater",  blue,        getString("TableDemo.labyrinth"), new Integer(3), pineapple},
+          {"Joshua", "Outwater",  blue,        getString("TableDemo.labyrinth"), new Double(3), pineapple},
 	  {"Tim", "Prinzing",     blue,        getString("TableDemo.firstsight"), new Double(69), pepper},
 	  {"Raj", "Premkumar",    jfcblue2,    getString("TableDemo.none"), new Double(7), broccoli},
 	  {"Howard", "Rosen",     green,       getString("TableDemo.defending"), new Double(7), strawberry},
@@ -532,14 +542,14 @@ public class TableDemo extends DemoModule {
 	  {"Tom", "Santos",       blue,        getString("TableDemo.spinaltap"), new Double(241), pepper},
 	  {"Rich", "Schiavi",     blue,        getString("TableDemo.repoman"), new Double(0xFF), pepper},
 	  {"Nancy", "Schorr",     green,       getString("TableDemo.fifthelement"), new Double(47), watermelon},
-	  {"Keith", "Sprochi",    darkgreen,   getString("TableDemo.2001"), new Integer(13), watermelon},
-	  {"Matt", "Tucker",      eblue,       getString("TableDemo.starwars"), new Integer(2), broccoli},
-	  {"Dmitri", "Trembovetski", red,      getString("TableDemo.aliens"), new Integer(222), tomato},
-	  {"Scott", "Violet",     violet,      getString("TableDemo.raiders"), new Integer(-97), banana},
-	  {"Kathy", "Walrath",    blue,        getString("TableDemo.thinman"), new Integer(8), pear},
-	  {"Nathan", "Walrath",   black,       getString("TableDemo.chusingura"), new Integer(3), grapefruit},
-	  {"Steve", "Wilson",     green,       getString("TableDemo.raiders"), new Integer(7), onion},
-	  {"Kathleen", "Zelony",  gray,        getString("TableDemo.dog"), new Integer(13), grapes}
+	  {"Keith", "Sprochi",    darkgreen,   getString("TableDemo.2001"), new Double(13), watermelon},
+	  {"Matt", "Tucker",      eblue,       getString("TableDemo.starwars"), new Double(2), broccoli},
+	  {"Dmitri", "Trembovetski", red,      getString("TableDemo.aliens"), new Double(222), tomato},
+	  {"Scott", "Violet",     violet,      getString("TableDemo.raiders"), new Double(-97), banana},
+	  {"Kathy", "Walrath",    darkgreen,   getString("TableDemo.thinman"), new Double(8), pear},
+	  {"Nathan", "Walrath",   black,       getString("TableDemo.chusingura"), new Double(3), grapefruit},
+	  {"Steve", "Wilson",     green,       getString("TableDemo.raiders"), new Double(7), onion},
+	  {"Kathleen", "Zelony",  gray,        getString("TableDemo.dog"), new Double(13), grapes}
         };
 
         // Create a model of the data.
@@ -556,6 +566,8 @@ public class TableDemo extends DemoModule {
 
         // Create the table
         tableView = new JTable(dataModel);
+        TableRowSorter sorter = new TableRowSorter(dataModel);
+        tableView.setRowSorter(sorter);
 
         // Show colors by rendering them in their own color.
         DefaultTableCellRenderer colorRenderer = new DefaultTableCellRenderer() {
@@ -634,20 +646,30 @@ public class TableDemo extends DemoModule {
             boolean status = tableView.print(printMode, headerFmt, footerFmt);
 
             if (status) {
-                JOptionPane.showMessageDialog(this, getString("TableDemo.printingComplete"),
-                                                    getString("TableDemo.printingResult"),
-                                                    JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(tableView.getParent(),
+                                              getString("TableDemo.printingComplete"),
+                                              getString("TableDemo.printingResult"),
+                                              JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, getString("TableDemo.printingCancelled"),
-                                                    getString("TableDemo.printingResult"),
-                                                    JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(tableView.getParent(),
+                                              getString("TableDemo.printingCancelled"),
+                                              getString("TableDemo.printingResult"),
+                                              JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (PrinterException pe) {
             String errorMessage = MessageFormat.format(getString("TableDemo.printingFailed"),
                                                        new Object[] {pe.getMessage()});
-            JOptionPane.showMessageDialog(this, errorMessage,
-                                                getString("TableDemo.printingResult"),
-                                                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(tableView.getParent(),
+                                          errorMessage,
+                                          getString("TableDemo.printingResult"),
+                                          JOptionPane.ERROR_MESSAGE);
+        } catch (SecurityException se) {
+            String errorMessage = MessageFormat.format(getString("TableDemo.printingFailed"),
+                                                       new Object[] {se.getMessage()});
+            JOptionPane.showMessageDialog(tableView.getParent(),
+                                          errorMessage,
+                                          getString("TableDemo.printingResult"),
+                                          JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -673,7 +695,7 @@ public class TableDemo extends DemoModule {
 	    return name;
 	}
     }
-    
+        
     class ColumnLayout implements LayoutManager {
 	int xInset = 5;
 	int yInset = 5;

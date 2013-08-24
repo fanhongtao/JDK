@@ -1,7 +1,7 @@
 /*
- * @(#)NavigationFilter.java	1.4 03/12/19
+ * @(#)NavigationFilter.java	1.6 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -28,7 +28,7 @@ import java.awt.Shape;
  * @see javax.swing.text.DefaultCaret
  * @see javax.swing.text.View
  *
- * @version 1.4 12/19/03
+ * @version 1.6 04/07/06
  * @since 1.4
  */
 public class NavigationFilter {
@@ -101,6 +101,7 @@ public class NavigationFilter {
      * position the cursor. Caret implementations that wish to support
      * a NavigationFilter must provide an implementation that will
      * not callback into the NavigationFilter.
+     * @since 1.4
      */
     public static abstract class FilterBypass {
         /**

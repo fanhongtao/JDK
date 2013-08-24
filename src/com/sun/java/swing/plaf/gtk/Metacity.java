@@ -1,13 +1,16 @@
 /*
- * @(#)Metacity.java	1.23 04/08/31
+ * @(#)Metacity.java	1.37 06/07/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
+import com.sun.java.swing.plaf.gtk.GTKConstants.ArrowType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.ShadowType;
 
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.synth.*;
 
 import java.awt.*;
@@ -26,7 +29,7 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.*;
 
 /**
- * @version 1.23, 08/31/04
+ * @version 1.37, 07/19/06
  */
 class Metacity implements SynthConstants {
     // Tutorial:
@@ -38,35 +41,34 @@ class Metacity implements SynthConstants {
     static Metacity INSTANCE;
 
     private static final String[] themeNames = {
-	getUserTheme(),
+        getUserTheme(),
         "blueprint",
-	"Bluecurve",
-	"Crux",
-	"SwingFallbackTheme"
+    	"Bluecurve",
+        "Crux",
+        "SwingFallbackTheme"
     };
 
-
     static {
-	for (String themeName : themeNames) {
-	    if (themeName != null) {
-		try {
-		    INSTANCE = new Metacity(themeName);
-		} catch (FileNotFoundException ex) {
-		} catch (IOException ex) {
-		    logError(themeName, ex);
-		} catch (ParserConfigurationException ex) {
-		    logError(themeName, ex);
-		} catch (SAXException ex) {
-		    logError(themeName, ex);
-		}
-	    }
-	    if (INSTANCE != null) {
-		break;
-	    }
-	}
-	if (INSTANCE == null) {
-	    throw new Error("Could not find any installed metacity theme, and fallback failed");
-	}
+        for (String themeName : themeNames) {
+            if (themeName != null) {
+            try {
+                INSTANCE = new Metacity(themeName);
+            } catch (FileNotFoundException ex) {
+            } catch (IOException ex) {
+                logError(themeName, ex);
+            } catch (ParserConfigurationException ex) {
+                logError(themeName, ex);
+            } catch (SAXException ex) {
+                logError(themeName, ex);
+            }
+            }
+            if (INSTANCE != null) {
+            break;
+            }
+        }
+        if (INSTANCE == null) {
+            throw new Error("Could not find any installed metacity theme, and fallback failed");
+        }
     }
 
     private static boolean errorLogged = false;
@@ -197,6 +199,8 @@ class Metacity implements SynthConstants {
     }
 
     void paintButtonBackground(SynthContext context, Graphics g, int x, int y, int w, int h) {
+	updateFrameGeometry(context);
+
 	this.context = context;
 	JButton button = (JButton)context.getComponent();
 	String buttonName = button.getName();
@@ -265,10 +269,6 @@ class Metacity implements SynthConstants {
 		"name", getStringAttr(frame, "style")
 	    });
 	    if (frame_style != null) {
-		setFrameGeometry(titlePane,
-				 frameGeometries.get(getStringAttr(frame_style, "geometry")));
-
-
 		Shape oldClip = g.getClip();
 		if ((right_corner && getBoolean("rounded_top_right", false)) ||
 		    (left_corner  && getBoolean("rounded_top_left", false))) { 
@@ -281,6 +281,10 @@ class Metacity implements SynthConstants {
 			g.setClip(getRoundedClipShape(0, 0, w, h,
 						      11, 11, RoundRectClipShape.TOP_LEFT));
 		    }
+
+                    Rectangle clipBounds = oldClip.getBounds();
+                    g.clipRect(clipBounds.x, clipBounds.y, 
+                               clipBounds.width, clipBounds.height);
 		}
 		drawButton(frame_style, location+"_background", state, g, w, h, jif);
 		drawButton(frame_style, function, state, g, w, h, jif);
@@ -312,6 +316,8 @@ class Metacity implements SynthConstants {
     }
 
     void paintFrameBorder(SynthContext context, Graphics g, int x0, int y0, int width, int height) {
+	updateFrameGeometry(context);
+
 	this.context = context;
 	JComponent comp = context.getComponent();
 	JComponent titlePane = findChild(comp, "InternalFrame.northPane");
@@ -326,6 +332,7 @@ class Metacity implements SynthConstants {
 	} else if (comp instanceof JInternalFrame.JDesktopIcon) {
 	    jif = ((JInternalFrame.JDesktopIcon)comp).getInternalFrame();
 	} else {
+	    assert false : "component is not JInternalFrame or JInternalFrame.JDesktopIcon";
 	    return;
         }
 
@@ -350,11 +357,6 @@ class Metacity implements SynthConstants {
 	variables.put("icon_width",  32);
 	variables.put("icon_height", 32);
 
-
-	if (frame_style_set == null) {
-	    frame_style_set = getNode("frame_style_set", new String[] { "name", "normal" });
-	}
-
 	if (frame_style_set != null) {
 	    Node frame = getNode(frame_style_set, "frame", new String[] {
 		"focus", (active ? "yes" : "no"),
@@ -366,8 +368,6 @@ class Metacity implements SynthConstants {
 		    "name", getStringAttr(frame, "style")
 		});
 		if (frame_style != null) {
-		    Map gm = frameGeometries.get(getStringAttr(frame_style, "geometry"));
-		    setFrameGeometry(titlePane, gm);
 		    Shape oldClip = g.getClip();
 		    boolean roundTopLeft     = getBoolean("rounded_top_left",     false);
 		    boolean roundTopRight    = getBoolean("rounded_top_right",    false);
@@ -383,6 +383,10 @@ class Metacity implements SynthConstants {
 					(roundBottomLeft  ? RoundRectClipShape.BOTTOM_LEFT  : 0) |
 					(roundBottomRight ? RoundRectClipShape.BOTTOM_RIGHT : 0)));
 		    }
+                
+                    Rectangle clipBounds = oldClip.getBounds();
+                    g.clipRect(clipBounds.x, clipBounds.y,
+                               clipBounds.width, clipBounds.height);
 
 		    int titleHeight = titlePane.getHeight();
 
@@ -786,7 +790,7 @@ class Metacity implements SynthConstants {
 
     protected void setFrameGeometry(JComponent titlePane, Map gm) {
 	this.frameGeometry = gm;
-	if (getInt("top_height") == 0) {
+        if (getInt("top_height") == 0 && titlePane != null) {
 	    gm.put("top_height", new Integer(titlePane.getHeight()));
 	}
     }
@@ -1065,31 +1069,32 @@ class Metacity implements SynthConstants {
 	    state = MOUSE_OVER;
 	}
 
-	int shadowType = -1;
+	ShadowType shadowType = null;
 	if ("in".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_IN;
+	    shadowType = ShadowType.IN;
 	} else if ("out".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_OUT;
+	    shadowType = ShadowType.OUT;
 	} else if ("etched_in".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_ETCHED_IN;
+	    shadowType = ShadowType.ETCHED_IN;
 	} else if ("etched_out".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_ETCHED_OUT;
+	    shadowType = ShadowType.ETCHED_OUT;
 	} else if ("none".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_NONE;
+	    shadowType = ShadowType.NONE;
 	}
-	int direction = -1;
+
+	ArrowType direction = null;
 	if ("up".equals(arrow)) {
-	    direction = GTKConstants.ARROW_UP;
+	    direction = ArrowType.UP;
 	} else if ("down".equals(arrow)) {
-	    direction = GTKConstants.ARROW_DOWN;
+	    direction = ArrowType.DOWN;
 	} else if ("left".equals(arrow)) {
-	    direction = GTKConstants.ARROW_LEFT;
+	    direction = ArrowType.LEFT;
 	} else if ("right".equals(arrow)) {
-	    direction = GTKConstants.ARROW_RIGHT;
+	    direction = ArrowType.RIGHT;
 	}
-	GTKEngine engine = ((GTKStyle)context.getStyle()).getEngine(context);
-	engine.paintArrow(context, g, state, shadowType,
-			  direction, null, x, y, w, h);
+
+        GTKPainter.INSTANCE.paintMetacityElement(context, g, state,
+                "metacity-arrow", x, y, w, h, shadowType, direction);
     }
 
     protected void drawGTKBox(Node node, Graphics g) {
@@ -1112,20 +1117,20 @@ class Metacity implements SynthConstants {
 	    state = MOUSE_OVER;
 	}
 
-	int shadowType = -1;
+	ShadowType shadowType = null;
 	if ("in".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_IN;
+	    shadowType = ShadowType.IN;
 	} else if ("out".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_OUT;
+	    shadowType = ShadowType.OUT;
 	} else if ("etched_in".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_ETCHED_IN;
+	    shadowType = ShadowType.ETCHED_IN;
 	} else if ("etched_out".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_ETCHED_OUT;
+	    shadowType = ShadowType.ETCHED_OUT;
 	} else if ("none".equals(shadow)) {
-	    shadowType = GTKConstants.SHADOW_NONE;
+	    shadowType = ShadowType.NONE;
 	}
-	GTKEngine.INSTANCE.paintBox(context, g, state, shadowType,
-				    null, x, y, w, h);
+        GTKPainter.INSTANCE.paintMetacityElement(context, g, state,
+                "metacity-box", x, y, w, h, shadowType, null);
     }
 
     protected void drawGTKVLine(Node node, Graphics g) {
@@ -1147,7 +1152,8 @@ class Metacity implements SynthConstants {
 	    state = MOUSE_OVER;
 	}
 
-	GTKEngine.INSTANCE.paintVline(context, g, state, null, x, y1, 1, y2-y1);
+        GTKPainter.INSTANCE.paintMetacityElement(context, g, state,
+                "metacity-vline", x, y1, 1, y2 - y1, null, null);
     }
 
     protected void drawGradient(Node node, Graphics g) {
@@ -1379,6 +1385,8 @@ class Metacity implements SynthConstants {
 
 
     Insets getBorderInsets(SynthContext context, Insets insets) {
+	updateFrameGeometry(context);
+
 	if (insets == null) {
 	    insets = new Insets(0, 0, 0, 0);
 	}
@@ -1387,6 +1395,54 @@ class Metacity implements SynthConstants {
 	insets.left   = getInt("left_width");
 	insets.right  = getInt("right_width");
 	return insets;
+    }
+
+
+    private void updateFrameGeometry(SynthContext context) {
+        this.context = context;
+        JComponent comp = context.getComponent();
+        JComponent titlePane = findChild(comp, "InternalFrame.northPane");
+
+        JInternalFrame jif = null;
+        if (comp instanceof JInternalFrame) {
+            jif = (JInternalFrame)comp;
+        } else if (comp instanceof JInternalFrame.JDesktopIcon) {
+            jif = ((JInternalFrame.JDesktopIcon)comp).getInternalFrame();
+        } else {
+	    assert false : "component is not JInternalFrame or JInternalFrame.JDesktopIcon";
+            return;
+        }
+
+        if (frame_style_set == null) {
+            Node window = getNode("window", new String[]{"type", "normal"});
+             
+            if (window != null) {
+                frame_style_set = getNode("frame_style_set", 
+                        new String[] {"name", getStringAttr(window, "style_set")});
+            } 
+            
+            if (frame_style_set == null) {
+                frame_style_set = getNode("frame_style_set", new String[] {"name", "normal"});
+            }
+        }        
+
+        if (frame_style_set != null) {
+            Node frame = getNode(frame_style_set, "frame", new String[] {
+                "focus", (jif.isSelected() ? "yes" : "no"),
+                "state", (jif.isMaximum() ? "maximized" : "normal")
+            });
+
+            if (frame != null) {
+                Node frame_style = getNode("frame_style", new String[] {
+                    "name", getStringAttr(frame, "style")
+                });
+                if (frame_style != null) {
+                    Map gm = frameGeometries.get(getStringAttr(frame_style, "geometry"));
+
+                    setFrameGeometry(titlePane, gm);
+                }
+            }
+        }
     }
 
 
@@ -1486,7 +1542,8 @@ class Metacity implements SynthConstants {
 			    String aName  = attrs[a * 2];
 			    String aValue = attrs[a * 2 + 1];
 			    Node attr = nodeAttrs.getNamedItem(aName);
-			    if (attr == null || !aValue.equals((String)attr.getNodeValue())) {
+			    if (attr == null || 
+                                aValue != null && !aValue.equals((String)attr.getNodeValue())) {
 				matches = false;
 				break;
 			    }
@@ -1576,9 +1633,13 @@ class Metacity implements SynthConstants {
 		return GTKColorType.adjustColor(c, 1.0F, alpha, alpha);
 	    } else if ("blend".equals(function)) {
 		assert (n == 4);
-		Color bg = parseColor2(tokenizer.nextToken());
-		Color fg = parseColor2(tokenizer.nextToken());
-		float alpha = Float.parseFloat(tokenizer.nextToken());
+                Color  bg = parseColor2(tokenizer.nextToken());
+                Color  fg = parseColor2(tokenizer.nextToken());
+                float alpha = Float.parseFloat(tokenizer.nextToken());
+                if (alpha > 1.0f) {
+                    alpha = 1.0f / alpha;
+                }
+                
 		return new Color((int)(bg.getRed() + ((fg.getRed() - bg.getRed()) * alpha)),
 				 (int)(bg.getRed() + ((fg.getRed() - bg.getRed()) * alpha)),
 				 (int)(bg.getRed() + ((fg.getRed() - bg.getRed()) * alpha)));
@@ -1627,17 +1688,53 @@ class Metacity implements SynthConstants {
 			type = GTKColorType.LIGHT;
 		    }
 		    if (state >= 0 && type != null) {
-			c = ((GTKStyle)context.getStyle()).getGTKColor(context.getComponent(),
-								       context.getRegion(),
-								       state, type);
+			c = ((GTKStyle)context.getStyle()).getGTKColor(context, state, type);
 		    }
 		}
 	    }
 	}
 	if (c == null) {
-	    c = GTKParser.parseColorString(str);
+	    c = parseColorString(str);
 	}
 	return c;
+    }
+
+    private static Color parseColorString(String str) {
+        if (str.charAt(0) == '#') {
+            str = str.substring(1);
+            
+            int i = str.length();
+            
+            if (i < 3 || i > 12 || (i % 3) != 0) {
+                return null;
+            }
+            
+            i /= 3;
+            
+            int r;
+            int g;
+            int b;
+            
+            try {
+                r = Integer.parseInt(str.substring(0, i), 16);
+                g = Integer.parseInt(str.substring(i, i * 2), 16);
+                b = Integer.parseInt(str.substring(i * 2, i * 3), 16);
+            } catch (NumberFormatException nfe) {
+                return null;
+            }
+            
+            if (i == 4) {
+                return new ColorUIResource(r / 65535.0f, g / 65535.0f, b / 65535.0f);
+            } else if (i == 1) {
+                return new ColorUIResource(r / 15.0f, g / 15.0f, b / 15.0f);
+            } else if (i == 2) {
+                return new ColorUIResource(r, g, b);
+            } else {
+                return new ColorUIResource(r / 4095.0f, g / 4095.0f, b / 4095.0f);
+            }
+        } else {
+            return XColors.lookupColor(str);
+        }
     }
 
     class ArithmeticExpressionEvaluator {
@@ -1979,8 +2076,20 @@ class Metacity implements SynthConstants {
 	    }
 
 	    public int currentSegment(double[] coords) {
-		return 0;  // Not called 
-	    }
+                if (isDone()) {
+                    throw new NoSuchElementException("roundrect iterator out of bounds");
+                }
+                double ctrls[] = ctrlpts[index];
+                int nc = 0;
+                for (int i = 0; i < ctrls.length; i += 4) {
+                    coords[nc++] = x + ctrls[i + 0] * w + ctrls[i + 1] * aw;
+                    coords[nc++] = y + ctrls[i + 2] * h + ctrls[i + 3] * ah;
+                }
+                if (affine != null) {
+                    affine.transform(coords, 0, coords, 0, nc / 2);
+                }
+                return types[index];
+            }
 	}
     }
 }

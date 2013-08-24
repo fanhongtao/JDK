@@ -1,7 +1,7 @@
 /*
- * @(#)TableColumnModelEvent.java	1.16 03/12/19
+ * @(#)TableColumnModelEvent.java	1.19 06/04/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import javax.swing.table.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.16 12/19/03
+ * @version 1.19 04/11/06
  * @author Alan Chung
  * @see TableColumnModelListener
  */
@@ -37,7 +37,7 @@ public class TableColumnModelEvent extends java.util.EventObject
     /** The index of the column from where it was moved or removed */
     protected int	fromIndex;
 
-    /** The index of the column to where it was moved or added from */
+    /** The index of the column to where it was moved or added */
     protected int	toIndex;
 
 //
@@ -45,12 +45,15 @@ public class TableColumnModelEvent extends java.util.EventObject
 //
 
     /**
-     * Constructs a TableColumnModelEvent object.
+     * Constructs a {@code TableColumnModelEvent} object.
      *
-     * @param source  the TableColumnModel that originated the event
-     *                (typically <code>this</code>)
-     * @param from    an int specifying the first row in a range of affected rows
-     * @param to      an int specifying the last row in a range of affected rows
+     * @param source  the {@code TableColumnModel} that originated the event
+     * @param from    an int specifying the index from where the column was
+     *                moved or removed
+     * @param to      an int specifying the index to where the column was
+     *                moved or added
+     * @see #getFromIndex
+     * @see #getToIndex
      */
     public TableColumnModelEvent(TableColumnModel source, int from, int to) {
 	super(source);

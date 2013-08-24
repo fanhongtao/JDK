@@ -1,10 +1,28 @@
-// $Id: Transformer.java,v 1.9.14.1.2.4 2004/06/28 18:45:41 ndw Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)Transformer.java	1.25 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)Transformer.java	1.34 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.transform;
@@ -29,7 +47,7 @@ import java.util.Properties;
  * output properties are preserved across transformations.</p>
  * 
  * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.9.14.1.2.4 $, $Date: 2004/06/28 18:45:41 $
+ * @version $Revision: 1.3 $, $Date: 2005/10/12 17:14:20 $
  */
 public abstract class Transformer {
 
@@ -52,6 +70,9 @@ public abstract class Transformer {
 	 * or {@link ErrorListener} <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.
 	 * It is guaranteed to have a functionally equal <code>URIResolver</code>
 	 * and <code>ErrorListener</code>.</p>
+     * 
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method.
 	 * 
 	 * @since 1.5
 	 */
@@ -120,6 +141,7 @@ public abstract class Transformer {
      * the transformation process.
      *
      * @param name of <code>Object</code> to get
+     *
      * @return A parameter that has been set with setParameter.
      */
     public abstract Object getParameter(String name);
@@ -197,8 +219,11 @@ public abstract class Transformer {
      * argument keys are not recognized and are not namespace qualified.
      *
      * @param oformat A set of output properties that will be
-     * used to override any of the same properties in affect
-     * for the transformation.
+     *   used to override any of the same properties in affect
+     *   for the transformation.
+     *
+     * @throws IllegalArgumentException When keys are not recognized and
+     *   are not namespace qualified.
      *
      * @see javax.xml.transform.OutputKeys
      * @see java.util.Properties
@@ -274,10 +299,15 @@ public abstract class Transformer {
         throws IllegalArgumentException;
 
     /**
-     * Get an output property that is in effect for the
-     * transformer.  The property specified may be a property
-     * that was set with setOutputProperty, or it may be a
-     * property specified in the stylesheet.
+     * <p>Get an output property that is in effect for the transformer.</p>
+     *
+     * <p>If a property has been set using {@link #setOutputProperty},
+     * that value will be returned. Otherwise, if a property is explicitly
+     * specified in the stylesheet, that value will be returned. If
+     * the value of the property has been defaulted, that is, if no
+     * value has been set explicitly either with {@link #setOutputProperty} or
+     * in the stylesheet, the result may vary depending on
+     * implementation and input stylesheet.</p>
      *
      * @param name A non-null String that specifies an output
      * property name, which may be namespace qualified.
@@ -296,6 +326,7 @@ public abstract class Transformer {
      * Set the error event listener in effect for the transformation.
      *
      * @param listener The new error listener.
+     *
      * @throws IllegalArgumentException if listener is null.
      */
     public abstract void setErrorListener(ErrorListener listener)

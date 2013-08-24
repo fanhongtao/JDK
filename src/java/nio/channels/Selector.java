@@ -1,7 +1,7 @@
 /*
- * @(#)Selector.java	1.37 04/05/05
+ * @(#)Selector.java	1.38 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -178,7 +178,7 @@ import java.util.Set;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.37, 04/05/05
+ * @version 1.38, 05/11/17
  * @since 1.4
  *
  * @see SelectableChannel

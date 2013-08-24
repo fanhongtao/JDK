@@ -1,7 +1,7 @@
 /*
  * @(#)ClassDoc.java	1.15 02/10/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package com.sun.javadoc;
  *
  * @see Type
  *
- * @since JDK1.2
+ * @since 1.2
  * @author Kaiyang Liu (original)
  * @author Robert Field (rewrite)
  */

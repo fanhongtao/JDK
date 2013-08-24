@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncSubstring.java,v 1.12 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncSubstring.java,v 1.2.4.1 2005/09/14 20:18:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -31,6 +31,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class FuncSubstring extends Function3Args
 {
+    static final long serialVersionUID = -5996676095024715502L;
 
   /**
    * Execute the function.  The function must return

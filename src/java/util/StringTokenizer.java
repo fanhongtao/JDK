@@ -1,7 +1,7 @@
 /*
- * @(#)StringTokenizer.java	1.34 04/05/05
+ * @(#)StringTokenizer.java	1.35 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -78,7 +78,7 @@ import java.lang.*;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.34, 05/05/04
+ * @version 1.35, 11/17/05
  * @see     java.io.StreamTokenizer
  * @since   JDK1.0
  */

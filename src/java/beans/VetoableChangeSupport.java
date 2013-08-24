@@ -1,7 +1,7 @@
 /*
- * @(#)VetoableChangeSupport.java	1.44 04/03/04
+ * @(#)VetoableChangeSupport.java	1.47 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -208,6 +208,7 @@ public class VetoableChangeSupport implements java.io.Serializable {
      *         the named property.  If no such listeners have been added,
      *         or if <code>propertyName</code> is null, an empty array is
      *         returned.
+     * @since 1.4
      */
     public synchronized VetoableChangeListener[] getVetoableChangeListeners(
             String propertyName) {
@@ -253,7 +254,7 @@ public class VetoableChangeSupport implements java.io.Serializable {
 
     /**
      * Report a int vetoable property update to any registered listeners.
-     * No event is fired if old and new are equal and non-null.
+     * No event is fired if old and new are equal.
      * <p>
      * This is merely a convenience wrapper around the more general
      * fireVetoableChange method that takes Object values.
@@ -274,7 +275,7 @@ public class VetoableChangeSupport implements java.io.Serializable {
 
     /**
      * Report a boolean vetoable property update to any registered listeners.
-     * No event is fired if old and new are equal and non-null.
+     * No event is fired if old and new are equal.
      * <p>
      * This is merely a convenience wrapper around the more general
      * fireVetoableChange method that takes Object values.

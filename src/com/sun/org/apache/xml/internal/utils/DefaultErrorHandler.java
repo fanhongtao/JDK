@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DefaultErrorHandler.java,v 1.15 2004/02/17 04:21:14 minchau Exp $
+ * $Id: DefaultErrorHandler.java,v 1.2.4.1 2005/09/15 08:15:43 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -42,6 +42,13 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
   PrintWriter m_pw;
 
   /**
+   * if this flag is set to true, we will rethrow the exception on
+   * the error() and fatalError() methods. If it is false, the errors 
+   * are reported to System.err. 
+   */
+  boolean m_throwExceptionOnError = true;
+
+  /**
    * Constructor DefaultErrorHandler
    */
   public DefaultErrorHandler(PrintWriter pw)
@@ -62,7 +69,16 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
    */
   public DefaultErrorHandler()
   {
+    this(true);
+  }
+
+  /**
+   * Constructor DefaultErrorHandler
+   */
+  public DefaultErrorHandler(boolean throwExceptionOnError)
+  {
     m_pw = new PrintWriter(System.err, true);
+    m_throwExceptionOnError = throwExceptionOnError;
   }
 
 
@@ -192,13 +208,15 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
    */
   public void error(TransformerException exception) throws TransformerException
   {
-    // printLocation(exception);
-    // ensureLocationSet(exception);
-    
-    printLocation(m_pw, exception);
-    m_pw.println(exception.getMessage());
-
-    //throw exception;
+    // If the m_throwExceptionOnError flag is true, rethrow the exception.
+    // Otherwise report the error to System.err.
+    if (m_throwExceptionOnError)
+      throw exception;
+    else
+    {
+      printLocation(m_pw, exception);
+      m_pw.println(exception.getMessage());
+    }
   }
 
   /**
@@ -223,10 +241,15 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
    */
   public void fatalError(TransformerException exception) throws TransformerException
   {
-    // printLocation(exception);
-    // ensureLocationSet(exception);
-
-    throw exception;
+    // If the m_throwExceptionOnError flag is true, rethrow the exception.
+    // Otherwise report the error to System.err.
+    if (m_throwExceptionOnError)
+      throw exception;
+    else
+    {
+      printLocation(m_pw, exception);
+      m_pw.println(exception.getMessage());
+    }
   }
   
   public static void ensureLocationSet(TransformerException exception)

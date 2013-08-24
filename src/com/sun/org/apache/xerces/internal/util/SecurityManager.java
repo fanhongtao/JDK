@@ -73,7 +73,7 @@ import com.sun.org.apache.xerces.internal.impl.Constants;
  *
  * @author  Neil Graham, IBM
  *
- * @version $Id: SecurityManager.java,v 1.5 2004/03/23 01:23:41 mrglavas Exp $
+ * @version $Id: SecurityManager.java,v 1.2 2005/08/16 22:49:14 jeffsuttor Exp $
  */
 public final class SecurityManager {
 
@@ -85,7 +85,7 @@ public final class SecurityManager {
     private final static int DEFAULT_ENTITY_EXPANSION_LIMIT = 64000;
     
     /** Default value of number of nodes created. **/
-    private final static int DEFAULT_MAX_OCCUR_NODE_LIMIT = 3000;
+    private final static int DEFAULT_MAX_OCCUR_NODE_LIMIT = 5000;
 
     //
     // Data

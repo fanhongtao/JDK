@@ -62,7 +62,7 @@ import  java.io.*;
  * indices of the inner and outer classes, the name and the attributes
  * of the inner class.
  *
- * @version $Id: InnerClass.java,v 1.1.1.1 2001/10/29 20:00:01 jvanzyl Exp $
+ * @version $Id: InnerClass.java,v 1.1.2.1 2005/07/31 23:46:35 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see InnerClasses
  */
@@ -83,7 +83,7 @@ public final class InnerClass implements Cloneable, Node {
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */  
   InnerClass(DataInputStream file) throws IOException
   {
@@ -120,7 +120,7 @@ public final class InnerClass implements Cloneable, Node {
    * Dump inner class attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

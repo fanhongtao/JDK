@@ -1,10 +1,28 @@
-// $Id: XPathExpressionException.java,v 1.3.12.1 2004/06/15 00:05:01 rameshm Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)XPathExpressionException.java	1.6 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)XPathExpressionException.java	1.14 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.xpath;
@@ -14,7 +32,7 @@ package javax.xml.xpath;
  *
  * @author  <a href="mailto:Norman.Walsh@Sun.com">Norman Walsh</a>
  * @author  <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.3.12.1 $, $Date: 2004/06/15 00:05:01 $
+ * @version $Revision: 1.2 $, $Date: 2005/06/10 03:50:44 $
  * @since 1.5
  */
 public class XPathExpressionException extends XPathException {
@@ -25,22 +43,29 @@ public class XPathExpressionException extends XPathException {
     private static final long serialVersionUID = -1837080260374986980L;
 
     /**
-     * <p>Constructs a new <code>XPathExpressionException</code> with the specified detail <code>message</code>.</p>
+     * <p>Constructs a new <code>XPathExpressionException</code>
+     * with the specified detail <code>message</code>.</p>
      *
      * <p>The <code>cause</code> is not initialized.</p>
      *
-     * <p>If <code>message</code> is <code>null</code>, then a <code>NullPointerException</code> is thrown.</p>
+     * <p>If <code>message</code> is <code>null</code>,
+     * then a <code>NullPointerException</code> is thrown.</p>
      *
      * @param message The detail message.
+     *
+     * @throws NullPointerException When <code>message</code> is
+     *   <code>null</code>.
      */
     public XPathExpressionException(String message) {
         super(message);
     }
 
     /**
-     * <p>Constructs a new <code>XPathExpressionException</code> with the specified <code>cause</code>.</p>
+     * <p>Constructs a new <code>XPathExpressionException</code>
+     * with the specified <code>cause</code>.</p>
      *
-     * <p>If <code>cause</code> is <code>null</code>, then a <code>NullPointerException</code> is thrown.</p>
+     * <p>If <code>cause</code> is <code>null</code>,
+     * then a <code>NullPointerException</code> is thrown.</p>
      *
      * @param cause The cause.
      *

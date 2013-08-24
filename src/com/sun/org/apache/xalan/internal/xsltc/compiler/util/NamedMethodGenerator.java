@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NamedMethodGenerator.java,v 1.7 2004/02/16 22:26:44 minchau Exp $
+ * $Id: NamedMethodGenerator.java,v 1.2.4.1 2005/09/05 11:19:56 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -33,7 +33,7 @@ import com.sun.org.apache.bcel.internal.generic.Type;
  * @author Santiago Pericas-Geertsen
  */
 public final class NamedMethodGenerator extends MethodGenerator {
-    protected static int CURRENT_INDEX  = 4;
+    protected static final int CURRENT_INDEX  = 4;
     
     // The index of the first parameter (after dom/iterator/handler/current)
     private static final int PARAM_START_INDEX = 5;

@@ -1,7 +1,7 @@
 /*
- * @(#)MotifMenuBarUI.java	1.38 03/12/19
+ * @(#)MotifMenuBarUI.java	1.39 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * 1.38 12/19/03
+ * 1.39 11/17/05
  * @author Georges Saab
  * @author Rich Schiavi
  */

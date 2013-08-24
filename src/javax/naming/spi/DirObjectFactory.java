@@ -1,7 +1,7 @@
 /*
- * @(#)DirObjectFactory.java	1.11 04/07/16
+ * @(#)DirObjectFactory.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import javax.naming.directory.Attributes;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.11 04/07/16
+  * @version 1.12 05/11/17
   *
   * @see NamingManager#getObjectInstance
   * @see DirectoryManager#getObjectInstance

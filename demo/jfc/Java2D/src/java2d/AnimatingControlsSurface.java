@@ -1,7 +1,7 @@
 /*
- * @(#)AnimatingControlsSurface.java	1.8 04/07/26
+ * @(#)AnimatingControlsSurface.java	1.12 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,19 +35,19 @@
  */
 
 /*
- * @(#)AnimatingControlsSurface.java	1.8 04/07/26
+ * @(#)AnimatingControlsSurface.java	1.12 06/08/29
  */
 
 package java2d;
 
 import java.awt.Component;
 
+import static java2d.CustomControlsContext.State.*;
 
 /**
  * Demos that animate and have custom controls extend this class.
  */
 public abstract class AnimatingControlsSurface extends AnimatingSurface implements CustomControlsContext {
-
 
     public void setControls(Component[] controls) {
         this.controls = controls;
@@ -65,15 +65,13 @@ public abstract class AnimatingControlsSurface extends AnimatingSurface implemen
         return controls;
     }
 
-    public void handleThread(int state) {
-        for (int i = 0; i < controls.length; i++) {
-            if (state == CustomControlsContext.START) {
-                if (controls[i] instanceof CustomControls) {
-                    ((CustomControls) controls[i]).start();
-                }
-            } else if (state == CustomControlsContext.STOP) {
-                if (controls[i] instanceof CustomControls) {
-                    ((CustomControls) controls[i]).stop();
+    public void handleThread(CustomControlsContext.State state) {
+        for (Component control : controls) {
+            if (control instanceof CustomControls) {
+                if (state == START) {
+                    ((CustomControls) control).start();
+                } else {
+                    ((CustomControls) control).stop();
                 }
             }
         }

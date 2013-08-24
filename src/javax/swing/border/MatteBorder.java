@@ -1,7 +1,7 @@
 /*
- * @(#)MatteBorder.java	1.22 03/12/19
+ * @(#)MatteBorder.java	1.24 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -27,7 +27,7 @@ import javax.swing.Icon;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.22 12/19/03
+ * @version 1.24 04/07/06
  * @author Amy Fowler
  */
 public class MatteBorder extends EmptyBorder
@@ -52,6 +52,7 @@ public class MatteBorder extends EmptyBorder
      * Creates a matte border with the specified insets and color.
      * @param borderInsets the insets of the border
      * @param matteColor the color rendered for the border
+     * @since 1.3
      */
     public MatteBorder(Insets borderInsets, Color matteColor)   {
         super(borderInsets);
@@ -75,6 +76,7 @@ public class MatteBorder extends EmptyBorder
      * Creates a matte border with the specified insets and tile icon.
      * @param borderInsets the insets of the border
      * @param tileIcon the icon to be used for tiling the border
+     * @since 1.3
      */
     public MatteBorder(Insets borderInsets, Icon tileIcon)   {
         super(borderInsets);
@@ -174,6 +176,7 @@ public class MatteBorder extends EmptyBorder
     /**
      * Returns the insets of the border.
      * @param c the component for which this border insets value applies
+     * @since 1.3
      */
     public Insets getBorderInsets(Component c) {
         return getBorderInsets();
@@ -183,6 +186,7 @@ public class MatteBorder extends EmptyBorder
      * Reinitialize the insets parameter with this Border's current Insets. 
      * @param c the component for which this border insets value applies
      * @param insets the object to be reinitialized
+     * @since 1.3
      */
     public Insets getBorderInsets(Component c, Insets insets) {
         return computeInsets(insets);
@@ -190,6 +194,7 @@ public class MatteBorder extends EmptyBorder
 
     /**
      * Returns the insets of the border.
+     * @since 1.3
      */
     public Insets getBorderInsets() {
         return computeInsets(new Insets(0,0,0,0));
@@ -217,6 +222,7 @@ public class MatteBorder extends EmptyBorder
     /**
      * Returns the color used for tiling the border or null
      * if a tile icon is being used.
+     * @since 1.3
      */
     public Color getMatteColor() {
         return color;
@@ -225,6 +231,7 @@ public class MatteBorder extends EmptyBorder
    /**
      * Returns the icon used for tiling the border or null
      * if a solid color is being used.
+     * @since 1.3
      */
     public Icon getTileIcon() {
         return tileIcon;

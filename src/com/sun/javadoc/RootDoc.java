@@ -1,7 +1,7 @@
 /*
  * @(#)RootDoc.java	1.13 02/10/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package com.sun.javadoc;
  * Also represents the command line information -- the 
  * packages, classes and options specified by the user. 
  *
- * @since JDK1.2
+ * @since 1.2
  * @author Robert Field
  */
 public interface RootDoc extends Doc, DocErrorReporter {

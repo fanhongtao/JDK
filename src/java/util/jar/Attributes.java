@@ -1,7 +1,7 @@
 /*
- * @(#)Attributes.java	1.50 04/05/05
+ * @(#)Attributes.java	1.54 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,11 +26,11 @@ import sun.misc.ASCIICaseInsensitiveComparator;
  * the ASCII characters in the set [0-9a-zA-Z_-], and cannot exceed 70 
  * characters in length. Attribute values can contain any characters and 
  * will be UTF8-encoded when written to the output stream.  See the 
- * <a href="../../../../guide/jar/jar.html">JAR File Specification</a> 
+ * <a href="../../../../technotes/guides/jar/jar.html">JAR File Specification</a> 
  * for more information about valid attribute names and values.
  *
  * @author  David Connelly
- * @version 1.50, 05/05/04
+ * @version 1.54, 04/21/06
  * @see	    Manifest
  * @since   1.2
  */
@@ -403,7 +403,14 @@ public class Attributes implements Map<Object,Object>, Cloneable {
 	    try {
 		if ((putValue(name, value) != null) && (!lineContinued)) {
                     Logger.getLogger("java.util.jar").warning(
-                                     "Duplicate name in Manifest: " + name);
+                                     "Duplicate name in Manifest: " + name
+                                     + ".\n"
+                                     + "Ensure that the manifest does not "
+                                     + "have duplicate entries, and\n"
+                                     + "that blank lines separate "
+                                     + "individual sections in both your\n"
+                                     + "manifest and in the META-INF/MANIFEST.MF "
+                                     + "entry in the jar file.");
                 } 
 	    } catch (IllegalArgumentException e) {
 		throw new IOException("invalid header field name: " + name);
@@ -417,7 +424,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
      * to the ASCII characters in the set [0-9a-zA-Z_-], and cannot exceed 
      * 70 characters in length. Attribute values can contain any characters 
      * and will be UTF8-encoded when written to the output stream.  See the 
-     * <a href="../../../../guide/jar/jar.html">JAR File Specification</a> 
+     * <a href="../../../../technotes/guides/jar/jar.html">JAR File Specification</a> 
      * for more information about valid attribute names and values.
      */
     public static class Name {
@@ -503,7 +510,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
          * <code>Name</code> object for <code>Manifest-Version</code> 
          * manifest attribute. This attribute indicates the version number 
          * of the manifest standard to which a JAR file's manifest conforms.
-         * @see <a href="../../../../guide/jar/jar.html#JAR Manifest">
+         * @see <a href="../../../../technotes/guides/jar/jar.html#JAR Manifest">
          *      Manifest and Signature Specification</a>
          */ 
         public static final Name MANIFEST_VERSION = new Name("Manifest-Version");
@@ -511,7 +518,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Signature-Version</code> 
          * manifest attribute used when signing JAR files.
-         * @see <a href="../../../../guide/jar/jar.html#JAR Manifest">
+         * @see <a href="../../../../technotes/guides/jar/jar.html#JAR Manifest">
          *      Manifest and Signature Specification</a>
          */             
         public static final Name SIGNATURE_VERSION = new Name("Signature-Version");
@@ -526,7 +533,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
          * <code>Name</code> object for <code>Class-Path</code> 
          * manifest attribute. Bundled extensions can use this attribute 
          * to find other JAR files containing needed classes.
-         * @see <a href="../../../../guide/extensions/spec.html#bundled">
+         * @see <a href="../../../../technotes/guides/extensions/spec.html#bundled">
          *      Extensions Specification</a>
          */   
         public static final Name CLASS_PATH = new Name("Class-Path");
@@ -543,7 +550,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Sealed</code> manifest attribute 
          * used for sealing.
-         * @see <a href="../../../../guide/extensions/spec.html#sealing">
+         * @see <a href="../../../../technotes/guides/extensions/spec.html#sealing">
          *      Extension Sealing</a>
          */ 
         public static final Name SEALED = new Name("Sealed");
@@ -551,7 +558,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
        /**
          * <code>Name</code> object for <code>Extension-List</code> manifest attribute 
          * used for declaring dependencies on installed extensions.
-         * @see <a href="../../../../guide/extensions/spec.html#dependency">
+         * @see <a href="../../../../technotes/guides/extensions/spec.html#dependency">
          *      Installed extension dependency</a>
          */ 
         public static final Name EXTENSION_LIST = new Name("Extension-List");
@@ -559,7 +566,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Extension-Name</code> manifest attribute 
          * used for declaring dependencies on installed extensions.
-         * @see <a href="../../../../guide/extensions/spec.html#dependency">
+         * @see <a href="../../../../technotes/guides/extensions/spec.html#dependency">
          *      Installed extension dependency</a>
          */ 
         public static final Name EXTENSION_NAME = new Name("Extension-Name");
@@ -567,7 +574,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Extension-Name</code> manifest attribute 
          * used for declaring dependencies on installed extensions.
-         * @see <a href="../../../../guide/extensions/spec.html#dependency">
+         * @see <a href="../../../../technotes/guides/extensions/spec.html#dependency">
          *      Installed extension dependency</a>
          */ 
         public static final Name EXTENSION_INSTALLATION = new Name("Extension-Installation");
@@ -575,7 +582,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Implementation-Title</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name IMPLEMENTATION_TITLE = new Name("Implementation-Title");
@@ -583,7 +590,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Implementation-Version</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name IMPLEMENTATION_VERSION = new Name("Implementation-Version");
@@ -591,7 +598,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Implementation-Vendor</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name IMPLEMENTATION_VENDOR = new Name("Implementation-Vendor");
@@ -599,7 +606,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
 	/**
          * <code>Name</code> object for <code>Implementation-Vendor-Id</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name IMPLEMENTATION_VENDOR_ID = new Name("Implementation-Vendor-Id");
@@ -607,7 +614,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
        /**
          * <code>Name</code> object for <code>Implementation-Vendor-URL</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name IMPLEMENTATION_URL = new Name("Implementation-URL");
@@ -615,7 +622,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Specification-Title</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name SPECIFICATION_TITLE = new Name("Specification-Title");
@@ -623,7 +630,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Specification-Version</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name SPECIFICATION_VERSION = new Name("Specification-Version");
@@ -631,7 +638,7 @@ public class Attributes implements Map<Object,Object>, Cloneable {
         /**
          * <code>Name</code> object for <code>Specification-Vendor</code> 
          * manifest attribute used for package versioning.
-         * @see <a href="../../../../guide/versioning/spec/VersioningSpecification.html#PackageVersioning">
+         * @see <a href="../../../../technotes/guides/versioning/spec/versioning2.html#wp90779">
          *      Java Product Versioning Specification</a>
          */
         public static final Name SPECIFICATION_VENDOR = new Name("Specification-Vendor");

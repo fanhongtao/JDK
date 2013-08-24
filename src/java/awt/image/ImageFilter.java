@@ -1,7 +1,7 @@
 /*
- * @(#)ImageFilter.java	1.31 04/07/16
+ * @(#)ImageFilter.java	1.32 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.Hashtable;
  * @see FilteredImageSource
  * @see ImageConsumer
  *
- * @version	1.31 07/16/04
+ * @version	1.32 11/17/05
  * @author 	Jim Graham
  */
 public class ImageFilter implements ImageConsumer, Cloneable {

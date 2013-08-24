@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Parser.java,v 1.66 2004/12/10 18:46:42 santiagopg Exp $
+ * $Id: Parser.java,v 1.2.4.1 2005/09/13 12:14:32 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.sun.java_cup.internal.runtime.Symbol;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -272,7 +273,7 @@ public class Parser implements Constants, ContentHandler {
 	    if (prefix.equals(XMLNS_PREFIX) == false) {
 		namespace = _symbolTable.lookupNamespace(prefix);
 		if (namespace == null && reportError) {
-		    final int line = _locator.getLineNumber();
+		    final int line = getLineNumber();
 		    ErrorMsg err = new ErrorMsg(ErrorMsg.NAMESPACE_UNDEF_ERR,
 						line, prefix);
 		    reportError(ERROR, err);
@@ -383,7 +384,7 @@ public class Parser implements Constants, ContentHandler {
 		while (elements.hasMoreElements()) {
 		    Object child = elements.nextElement();
 		    if (child instanceof Text) {
-			final int l = _locator.getLineNumber();
+			final int l = getLineNumber();
 			ErrorMsg err =
 			    new ErrorMsg(ErrorMsg.ILLEGAL_TEXT_NODE_ERR,l,null);
 			reportError(ERROR, err);
@@ -445,6 +446,14 @@ public class Parser implements Constants, ContentHandler {
 	try {
 	    // Create a SAX parser and get the XMLReader object it uses
 	    final SAXParserFactory factory = SAXParserFactory.newInstance();
+	    
+	    if (_xsltc.isSecureProcessing()) {
+	        try {
+	            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+	        }
+	        catch (SAXException e) {}
+	    }
+	    
 	    try {
 		factory.setFeature(Constants.NAMESPACE_FEATURE,true);
 	    }
@@ -911,7 +920,7 @@ public class Parser implements Constants, ContentHandler {
 		node.setQName(qname);
 		node.setParser(this);
 		if (_locator != null) {
-		    node.setLineNumber(_locator.getLineNumber());
+		    node.setLineNumber(getLineNumber());
 		}
 		if (node instanceof Stylesheet) {
 		    _xsltc.setStylesheet((Stylesheet)node);
@@ -935,7 +944,7 @@ public class Parser implements Constants, ContentHandler {
 		    node = new UnsupportedElement(uri, prefix, local, false);
 		    UnsupportedElement element = (UnsupportedElement)node;
 		    ErrorMsg msg = new ErrorMsg(ErrorMsg.UNSUPPORTED_XSL_ERR,
-						_locator.getLineNumber(),local);
+						getLineNumber(),local);
 		    element.setErrorMessage(msg);
 		    if (versionIsOne) {
 		    	reportError(UNSUPPORTED,msg);
@@ -946,7 +955,7 @@ public class Parser implements Constants, ContentHandler {
 		    node = new UnsupportedElement(uri, prefix, local, true);
 		    UnsupportedElement element = (UnsupportedElement)node;
 		    ErrorMsg msg = new ErrorMsg(ErrorMsg.UNSUPPORTED_EXT_ERR,
-						_locator.getLineNumber(),local);
+						getLineNumber(),local);
 		    element.setErrorMessage(msg);
 		}
 		// Check if this is an extension of some other XSLT processor
@@ -958,7 +967,7 @@ public class Parser implements Constants, ContentHandler {
 			    UnsupportedElement elem = (UnsupportedElement)node;
 			    ErrorMsg msg =
 				new ErrorMsg(ErrorMsg.UNSUPPORTED_EXT_ERR,
-					     _locator.getLineNumber(),
+					     getLineNumber(),
 					     prefix+":"+local);
 			    elem.setErrorMessage(msg);
 			}
@@ -967,7 +976,7 @@ public class Parser implements Constants, ContentHandler {
 	    }
 	    if (node == null) {
                 node = new LiteralElement();
-                node.setLineNumber(_locator.getLineNumber());
+                node.setLineNumber(getLineNumber());
             }
 	}
 	if ((node != null) && (node instanceof LiteralElement)) {
@@ -1010,6 +1019,8 @@ public class Parser implements Constants, ContentHandler {
 	            final ErrorMsg err = 
 		        new ErrorMsg(ErrorMsg.ILLEGAL_ATTRIBUTE_ERR, 
 				attrQName, node);
+		    // Workaround for the TCK failure ErrorListener.errorTests.error001..
+	            err.setWarningError(true);
 		    reportError(WARNING, err);
 	        }
 	    }
@@ -1019,8 +1030,8 @@ public class Parser implements Constants, ContentHandler {
 
     /**
      * Parse an XPath expression:
-     *  @parent - XSL element where the expression occured
-     *  @exp    - textual representation of the expression
+     *  @param parent - XSL element where the expression occured
+     *  @param exp    - textual representation of the expression
      */
     public Expression parseExpression(SyntaxTreeNode parent, String exp) {
 	return (Expression)parseTopLevel(parent, "<EXPRESSION>"+exp, null);
@@ -1028,9 +1039,9 @@ public class Parser implements Constants, ContentHandler {
 
     /**
      * Parse an XPath expression:
-     *  @parent - XSL element where the expression occured
-     *  @attr   - name of this element's attribute to get expression from
-     *  @def    - default expression (if the attribute was not found)
+     *  @param parent - XSL element where the expression occured
+     *  @param attr   - name of this element's attribute to get expression from
+     *  @param def    - default expression (if the attribute was not found)
      */
     public Expression parseExpression(SyntaxTreeNode parent,
 				      String attr, String def) {
@@ -1044,8 +1055,8 @@ public class Parser implements Constants, ContentHandler {
 
     /**
      * Parse an XPath pattern:
-     *  @parent - XSL element where the pattern occured
-     *  @exp    - textual representation of the pattern
+     *  @param parent  - XSL element where the pattern occured
+     *  @param pattern - textual representation of the pattern
      */
     public Pattern parsePattern(SyntaxTreeNode parent, String pattern) {
 	return (Pattern)parseTopLevel(parent, "<PATTERN>"+pattern, pattern);
@@ -1053,9 +1064,9 @@ public class Parser implements Constants, ContentHandler {
 
     /**
      * Parse an XPath pattern:
-     *  @parent - XSL element where the pattern occured
-     *  @attr   - name of this element's attribute to get pattern from
-     *  @def    - default pattern (if the attribute was not found)
+     *  @param parent - XSL element where the pattern occured
+     *  @param attr   - name of this element's attribute to get pattern from
+     *  @param def    - default pattern (if the attribute was not found)
      */
     public Pattern parsePattern(SyntaxTreeNode parent,
 				String attr, String def) {
@@ -1073,8 +1084,7 @@ public class Parser implements Constants, ContentHandler {
      */
     private SyntaxTreeNode parseTopLevel(SyntaxTreeNode parent, String text,
 					 String expression) {
-	int line = 0;
-	if (_locator != null) line = _locator.getLineNumber();
+	int line = getLineNumber();
 
 	try {
 	    _xpathParser.setScanner(new XPathLexer(new StringReader(text)));
@@ -1366,6 +1376,17 @@ public class Parser implements Constants, ContentHandler {
      */
     public void setDocumentLocator(Locator locator) {
 	_locator = locator;
+    }
+    
+    /**
+     * Get the line number, or zero
+     * if there is no _locator.
+     */
+    private int getLineNumber() {
+    	int line = 0;
+    	if (_locator != null)
+    		line = _locator.getLineNumber();
+    	return line;
     }
 
 }

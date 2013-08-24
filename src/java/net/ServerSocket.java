@@ -1,7 +1,7 @@
 /*
- * @(#)ServerSocket.java	1.86 04/05/24
+ * @(#)ServerSocket.java	1.90 06/03/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.security.PrivilegedExceptionAction;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.86, 05/24/04
+ * @version 1.90, 03/27/06
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -341,7 +341,7 @@ class ServerSocket {
 	    return getImpl().getInetAddress();
 	} catch (SocketException e) {
 	    // nothing
-	    // If we're bound, the the impl has been created
+	    // If we're bound, the impl has been created
 	    // so we shouldn't get here
 	}
 	return null;
@@ -360,7 +360,7 @@ class ServerSocket {
 	    return getImpl().getLocalPort();
 	} catch (SocketException e) {
 	    // nothing
-	    // If we're bound, the the impl has been created
+	    // If we're bound, the impl has been created
 	    // so we shouldn't get here
 	}
 	return -1;
@@ -399,7 +399,7 @@ class ServerSocket {
      * @exception  IOException  if an I/O error occurs when waiting for a
      *               connection.
      * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkListen</code> method doesn't allow the operation.
+     *             <code>checkAccept</code> method doesn't allow the operation.
      * @exception  SocketTimeoutException if a timeout was previously set with setSoTimeout and
      *             the timeout has been reached.
      * @exception  java.nio.channels.IllegalBlockingModeException
@@ -558,7 +558,7 @@ class ServerSocket {
     }
 
     /** 
-     * Retrive setting for SO_TIMEOUT.  0 returns implies that the
+     * Retrieve setting for SO_TIMEOUT.  0 returns implies that the
      * option is disabled (i.e., timeout of infinity).
      * @return the SO_TIMEOUT value
      * @exception IOException if an I/O error occurs

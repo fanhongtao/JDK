@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncStringLength.java,v 1.8 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncStringLength.java,v 1.2.4.1 2005/09/14 20:18:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncStringLength extends FunctionDef1Arg
 {
+    static final long serialVersionUID = -159616417996519839L;
 
   /**
    * Execute the function.  The function must return

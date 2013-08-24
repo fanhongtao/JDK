@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SecuritySupport.java,v 1.3 2004/02/23 10:29:37 aruny Exp $
+ * $Id: SecuritySupport.java,v 1.2.4.1 2005/09/15 08:15:21 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.serializer;
@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-
-import java.util.Properties;
 
 /**
  * This class is duplicated for each Xalan-Java subpackage so keep it in sync.

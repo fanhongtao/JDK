@@ -1,7 +1,7 @@
 /*
- * @(#)BeanDescriptor.java	1.23 04/05/05
+ * @(#)BeanDescriptor.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

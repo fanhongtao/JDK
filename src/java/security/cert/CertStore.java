@@ -1,7 +1,7 @@
 /*
- * @(#)CertStore.java	1.13 04/06/28
+ * @(#)CertStore.java	1.17 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,8 +23,7 @@ import sun.security.jca.GetInstance.Instance;
  * A class for retrieving <code>Certificate</code>s and <code>CRL</code>s
  * from a repository.
  * <p>
- * This class uses a provider-based architecture, as described in the
- * Java Cryptography Architecture.
+ * This class uses a provider-based architecture.
  * To create a <code>CertStore</code>, call one of the static
  * <code>getInstance</code> methods, passing in the type of
  * <code>CertStore</code> desired, any applicable initialization parameters 
@@ -42,7 +41,7 @@ import sun.security.jca.GetInstance.Instance;
  * implementation of <code>CertStore</code> provides access to certificates
  * and CRLs stored in one or more directories using the LDAP protocol and the
  * schema as defined in the RFC service attribute. See Appendix A in the
- * <a href= "../../../../guide/security/certpath/CertPathProgGuide.html#AppA"> 
+ * <a href= "../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA"> 
  * Java Certification Path API Programmer's Guide</a> for more information about
  * standard <code>CertStore</code> types.
  * <p>
@@ -58,7 +57,7 @@ import sun.security.jca.GetInstance.Instance;
  * Multiple threads may concurrently invoke the static methods defined in
  * this class with no ill effects.
  *
- * @version 	1.13 06/28/04
+ * @version 	1.17 04/21/06
  * @since	1.4
  * @author	Sean Mullan, Steve Hanna
  */
@@ -160,11 +159,14 @@ public class CertStore {
      * <code>CertStore</code> type and is initialized with the specified
      * parameters.
      *
-     * <p>If the default provider package provides an implementation
-     * of the specified <code>CertStore</code> type, an instance of
-     * <code>CertStore</code> containing that implementation is returned.
-     * If the requested type is not available in the default package, other
-     * packages are searched.
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new CertStore object encapsulating the
+     * CertStoreSpi implementation from the first
+     * Provider that supports the specified type is returned.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * <p>The <code>CertStore</code> that is returned is initialized with the 
      * specified <code>CertStoreParameters</code>. The type of parameters 
@@ -172,16 +174,25 @@ public class CertStore {
      * Note that the specified <code>CertStoreParameters</code> object is 
      * cloned.
      * 
-     * @param type the name of the requested <code>CertStore</code> type
-     * @param params the initialization parameters (may be <code>null</code>)
+     * @param type the name of the requested <code>CertStore</code> type.
+     *  See Appendix A in the <a href=
+     *  "../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
+     *  Java Certification Path API Programmer's Guide </a>
+     *  for information about standard types.
+     *
+     * @param params the initialization parameters (may be <code>null</code>).
+     *
      * @return a <code>CertStore</code> object that implements the specified
-     *  <code>CertStore</code> type
-     * @throws NoSuchAlgorithmException if the requested type is not
-     *  available in the default provider package or any of the other provider
-     *  packages that were searched
+     *		<code>CertStore</code> type.
+     *
+     * @throws NoSuchAlgorithmException if no Provider supports a
+     *		CertStoreSpi implementation for the specified type.
+     *
      * @throws InvalidAlgorithmParameterException if the specified
-     * initialization parameters are inappropriate for this 
-     * <code>CertStore</code>
+     *		initialization parameters are inappropriate for this
+     *		<code>CertStore</code>.
+     *
+     * @see java.security.Provider
      */
     public static CertStore getInstance(String type, CertStoreParameters params)
 	    throws InvalidAlgorithmParameterException, 
@@ -207,8 +218,15 @@ public class CertStore {
     
     /**
      * Returns a <code>CertStore</code> object that implements the specified
-     * <code>CertStore</code> type, as supplied by the specified provider
-     * and initialized with the specified parameters.
+     * <code>CertStore</code> type.
+     *
+     * <p> A new CertStore object encapsulating the
+     * CertStoreSpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * <p>The <code>CertStore</code> that is returned is initialized with the 
      * specified <code>CertStoreParameters</code>. The type of parameters 
@@ -216,19 +234,34 @@ public class CertStore {
      * Note that the specified <code>CertStoreParameters</code> object is 
      * cloned.
      *
-     * @param type the requested <code>CertStore</code> type
-     * @param params the initialization parameters (may be <code>null</code>)
-     * @param provider the name of the provider
+     * @param type the requested <code>CertStore</code> type.
+     *  See Appendix A in the <a href=
+     *  "../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
+     *  Java Certification Path API Programmer's Guide </a>
+     *  for information about standard types.
+     *
+     * @param params the initialization parameters (may be <code>null</code>).
+     *
+     * @param provider the name of the provider.
+     *
      * @return a <code>CertStore</code> object that implements the
-     * specified type, as supplied by the specified provider
-     * @throws NoSuchAlgorithmException if the requested type is not
-     *  available from the specified provider
+     *		specified type.
+     *
+     * @throws NoSuchAlgorithmException if a CertStoreSpi
+     *		implementation for the specified type is not
+     *		available from the specified provider.
+     *
      * @throws InvalidAlgorithmParameterException if the specified
-     * initialization parameters are inappropriate for this 
-     * <code>CertStore</code>
-     * @throws NoSuchProviderException if the provider has not been configured
+     *		initialization parameters are inappropriate for this 
+     *		<code>CertStore</code>.
+     *
+     * @throws NoSuchProviderException if the specified provider is not
+     *		registered in the security provider list.
+     *
      * @exception IllegalArgumentException if the <code>provider</code> is
-     * null
+     *		null or empty.
+     *
+     * @see java.security.Provider
      */
     public static CertStore getInstance(String type, 
 	    CertStoreParameters params, String provider)
@@ -246,9 +279,12 @@ public class CertStore {
     
     /**
      * Returns a <code>CertStore</code> object that implements the specified
-     * <code>CertStore</code> type, as supplied by the specified provider and
-     * initialized with the specified parameters.
-     * Note: the <code>provider</code> doesn't have to be registered.
+     * <code>CertStore</code> type.
+     *
+     * <p> A new CertStore object encapsulating the
+     * CertStoreSpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
      *
      * <p>The <code>CertStore</code> that is returned is initialized with the 
      * specified <code>CertStoreParameters</code>. The type of parameters 
@@ -256,18 +292,31 @@ public class CertStore {
      * Note that the specified <code>CertStoreParameters</code> object is 
      * cloned.
      *
-     * @param type the requested <code>CertStore</code> type
-     * @param params the initialization parameters (may be <code>null</code>)
-     * @param provider the provider
+     * @param type the requested <code>CertStore</code> type.
+     *  See Appendix A in the <a href=
+     *  "../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
+     *  Java Certification Path API Programmer's Guide </a>
+     *  for information about standard types.
+     *
+     * @param params the initialization parameters (may be <code>null</code>).
+     *
+     * @param provider the provider.
+     *
      * @return a <code>CertStore</code> object that implements the
-     * specified type, as supplied by the specified provider
-     * @exception NoSuchAlgorithmException if the requested type is not
-     *  available from the specified provider
+     *		specified type.
+     *
+     * @exception NoSuchAlgorithmException if a CertStoreSpi
+     *		implementation for the specified type is not available
+     *		from the specified Provider object.
+     *
      * @throws InvalidAlgorithmParameterException if the specified
-     * initialization parameters are inappropriate for this 
-     * <code>CertStore</code>
+     *		initialization parameters are inappropriate for this 
+     *		<code>CertStore</code>
+     *
      * @exception IllegalArgumentException if the <code>provider</code> is
-     * null 
+     *		null.
+     *
+     * @see java.security.Provider
      */
     public static CertStore getInstance(String type, CertStoreParameters params,
 	    Provider provider) throws NoSuchAlgorithmException, 
@@ -316,8 +365,9 @@ public class CertStore {
      * Returns the default <code>CertStore</code> type as specified in the 
      * Java security properties file, or the string &quot;LDAP&quot; if no 
      * such property exists. The Java security properties file is located in 
-     * the file named &lt;JAVA_HOME&gt;/lib/security/java.security, where 
-     * &lt;JAVA_HOME&gt; refers to the directory where the JDK was installed.
+     * the file named &lt;JAVA_HOME&gt;/lib/security/java.security.
+     * &lt;JAVA_HOME&gt; refers to the value of the java.home system property,
+     * and specifies the directory where the JRE is installed.
      *
      * <p>The default <code>CertStore</code> type can be used by applications 
      * that do not want to use a hard-coded type when calling one of the

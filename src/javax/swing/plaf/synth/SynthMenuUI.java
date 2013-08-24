@@ -1,7 +1,7 @@
 /*
- * @(#)SynthMenuUI.java	1.11 03/12/19
+ * @(#)SynthMenuUI.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -22,7 +22,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's MenuUI.
  *
- * @version 1.11, 12/19/03
+ * @version 1.13, 11/17/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -190,6 +190,12 @@ class SynthMenuUI extends BasicMenuUI implements PropertyChangeListener,
     protected void paint(SynthContext context, Graphics g) {
         SynthContext accContext = getContext(menuItem,
                                              Region.MENU_ITEM_ACCELERATOR);
+        SynthStyle style = context.getStyle();
+        // Refetch the icons so that we get the right ones for the current
+        // state.
+        String prefix = getPropertyPrefix();
+        Icon arrowIcon = style.getIcon(context, prefix + ".arrowIcon");
+        Icon checkIcon = style.getIcon(context, prefix + ".checkIcon");
         SynthMenuItemUI.paint(context, accContext, g, checkIcon, arrowIcon,
                         useCheckAndArrow(), acceleratorDelimiter,
                         defaultTextIconGap);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Or.java,v 1.9 2004/02/17 04:35:12 minchau Exp $
+ * $Id: Or.java,v 1.2.4.1 2005/09/14 21:31:41 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -27,6 +27,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class Or extends Operation
 {
+    static final long serialVersionUID = -644107191353853079L;
 
   /**
    * OR two expressions and return the boolean result. Override

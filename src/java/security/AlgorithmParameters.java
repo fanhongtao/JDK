@@ -1,7 +1,7 @@
 /*
- * @(#)AlgorithmParameters.java	1.24 04/05/05
+ * @(#)AlgorithmParameters.java	1.27 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -19,26 +19,7 @@ import java.security.spec.InvalidParameterSpecException;
  * calling one of the <code>getInstance</code> factory methods
  * (static methods that return instances of a given class).
  * 
- * <p>There are two ways to request such an implementation: by
- * specifying either just an algorithm name, or both an algorithm name
- * and a package provider. 
- * 
- * <ul>
- *
- * <li>If just an algorithm name is specified, the system will
- * determine if there is an AlgorithmParameters
- * implementation for the algorithm requested
- * available in the environment, and if there is more than one, if
- * there is a preferred one.
- * 
- * <li>If both an algorithm name and a package provider are specified,
- * the system will determine if there is an implementation 
- * in the package requested, and throw an exception if there
- * is not.
- * 
- * </ul>
- * 
- * <p>Once an <code>AlgorithmParameters</code> object is returned, it must be
+ * <p>Once an <code>AlgorithmParameters</code> object is obtained, it must be
  * initialized via a call to <code>init</code>, using an appropriate parameter
  * specification or parameter encoding.
  *
@@ -49,7 +30,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.24, 05/05/04
+ * @version 1.27, 04/21/06
  *
  * @see java.security.spec.AlgorithmParameterSpec
  * @see java.security.spec.DSAParameterSpec
@@ -97,24 +78,34 @@ public class AlgorithmParameters {
     }
 
     /**
-     * Generates a parameter object for the specified algorithm.
+     * Returns a parameter object for the specified algorithm.
      *
-     * <p>If the default provider package provides an implementation of the
-     * requested algorithm, an instance of AlgorithmParameters containing that
-     * implementation is returned.
-     * If the algorithm is not available in the default 
-     * package, other packages are searched.
+     * <p> This method traverses the list of registered security Providers,
+     * starting with the most preferred Provider.
+     * A new AlgorithmParameters object encapsulating the
+     * AlgorithmParametersSpi implementation from the first
+     * Provider that supports the specified algorithm is returned.
      *
-     * <p>The returned parameter object must be initialized via a call to
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
+     *
+     * <p> The returned parameter object must be initialized via a call to
      * <code>init</code>, using an appropriate parameter specification or
      * parameter encoding.
      *
      * @param algorithm the name of the algorithm requested. 
+     * See Appendix A in the <a href=
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * for information about standard algorithm names.
      *
      * @return the new parameter object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the environment.
+     * @exception NoSuchAlgorithmException if no Provider supports an
+     *		AlgorithmParametersSpi implementation for the
+     *		specified algorithm.
+     *
+     * @see Provider
      */
     public static AlgorithmParameters getInstance(String algorithm) 
     throws NoSuchAlgorithmException {
@@ -130,29 +121,39 @@ public class AlgorithmParameters {
     }
 
     /** 
-     * Generates a parameter object for the specified algorithm, as supplied
-     * by the specified provider, if such an algorithm is available from the
-     * provider.
+     * Returns a parameter object for the specified algorithm.
+     *
+     * <p> A new AlgorithmParameters object encapsulating the
+     * AlgorithmParametersSpi implementation from the specified provider
+     * is returned.  The specified provider must be registered
+     * in the security provider list.
+     *
+     * <p> Note that the list of registered providers may be retrieved via
+     * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * <p>The returned parameter object must be initialized via a call to
      * <code>init</code>, using an appropriate parameter specification or
      * parameter encoding.
      *
      * @param algorithm the name of the algorithm requested.
+     * See Appendix A in the <a href=
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * for information about standard algorithm names.
      *
      * @param provider the name of the provider.
      *
      * @return the new parameter object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the package supplied by the requested
-     * provider.
+     * @exception NoSuchAlgorithmException if an AlgorithmParametersSpi
+     *		implementation for the specified algorithm is not
+     *		available from the specified provider.
      *
-     * @exception NoSuchProviderException if the provider is not
-     * available in the environment.
+     * @exception NoSuchProviderException if the specified provider is not
+     *		registered in the security provider list.
      *
      * @exception IllegalArgumentException if the provider name is null
-     * or empty. 
+     *		or empty. 
      * 
      * @see Provider 
      */
@@ -170,26 +171,32 @@ public class AlgorithmParameters {
     }
 
     /** 
-     * Generates a parameter object for the specified algorithm, as supplied
-     * by the specified provider, if such an algorithm is available from the
-     * provider. Note: the <code>provider</code> doesn't have to be registered.
+     * Returns a parameter object for the specified algorithm.
+     *
+     * <p> A new AlgorithmParameters object encapsulating the
+     * AlgorithmParametersSpi implementation from the specified Provider
+     * object is returned.  Note that the specified Provider object
+     * does not have to be registered in the provider list.
      *
      * <p>The returned parameter object must be initialized via a call to
      * <code>init</code>, using an appropriate parameter specification or
      * parameter encoding.
      *
      * @param algorithm the name of the algorithm requested.
+     * See Appendix A in the <a href=
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * for information about standard algorithm names.
      *
      * @param provider the name of the provider.
      *
      * @return the new parameter object.
      *
-     * @exception NoSuchAlgorithmException if the algorithm is
-     * not available in the package supplied by the requested
-     * provider.
+     * @exception NoSuchAlgorithmException if an AlgorithmParameterGeneratorSpi
+     *          implementation for the specified algorithm is not available
+     *          from the specified Provider object.
      *
-     * @exception IllegalArgumentException if the <code>provider</code> is
-     * null.
+     * @exception IllegalArgumentException if the provider is null.
      *
      * @see Provider
      *

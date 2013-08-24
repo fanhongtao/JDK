@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryCacheImageOutputStream.java	1.17 03/12/19
+ * @(#)MemoryCacheImageOutputStream.java	1.19 06/01/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,13 +59,13 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
     public int read(byte[] b, int off, int len) throws IOException {
         checkClosed();
         
-        // Fix 4467619: read([B,I,I) doesn't throw NPE as specified
+        if (b == null) {
+            throw new NullPointerException("b == null!");
+        }
         // Fix 4467608: read([B,I,I) works incorrectly if len<=0
-        // Will throw NullPointerException if b == null
-        // Will throw IIOBE if off, len are bad args
         if (off < 0 || len < 0 || off + len > b.length || off + len < 0) {
             throw new IndexOutOfBoundsException
-                ("off < 0 || len < 0 || off + len > b.length!");
+                ("off < 0 || len < 0 || off+len > b.length || off+len < 0!");
         }
 
         bitOffset = 0;
@@ -91,21 +91,24 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
     }
 
     public void write(int b) throws IOException {
-        checkClosed();
-        flushBits();
+        flushBits(); // this will call checkClosed() for us
         cache.write(b, streamPos);
         ++streamPos;
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        checkClosed();
-        flushBits();
+        flushBits(); // this will call checkClosed() for us
         cache.write(b, off, len, streamPos);
         streamPos += len;
     }
 
     public long length() {
-        return cache.getLength();
+        try {
+            checkClosed();
+            return cache.getLength();
+        } catch (IOException e) {
+            return -1L;
+        }
     }
 
     /**
@@ -160,12 +163,13 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
         flushBefore(length);
         super.close();
         cache.reset();
+        cache = null;
         stream = null;
     }
 
     public void flushBefore(long pos) throws IOException {
         long oFlushedPos = flushedPos;
-        super.flushBefore(pos);
+        super.flushBefore(pos); // this will call checkClosed() for us
 
         long flushBytes = flushedPos - oFlushedPos;
         cache.writeToStream(stream, oFlushedPos, flushBytes);

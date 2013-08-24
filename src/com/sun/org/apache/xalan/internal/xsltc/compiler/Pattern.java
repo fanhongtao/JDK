@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Pattern.java,v 1.4 2004/02/16 22:24:29 minchau Exp $
+ * $Id: Pattern.java,v 1.2.4.1 2005/09/12 11:00:31 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -44,7 +44,7 @@ public abstract class Pattern extends Expression {
      * make sure to backpatch both true and false lists. True lists are the 
      * default, in the sense that they always <em>"fall through"</em>. If this
      * is not the intended semantics (e.g., see 
-     * {@link com.sun.org.apache.xalan.internal.xsltc.compiler.AlternativePattern#translate()})
+     * {@link com.sun.org.apache.xalan.internal.xsltc.compiler.AlternativePattern#translate})
      * then a GOTO must be appended to the instruction list after calling
      * <code>translate</code>. 
      */

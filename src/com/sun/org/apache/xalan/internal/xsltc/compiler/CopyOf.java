@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CopyOf.java,v 1.15 2004/02/16 22:24:29 minchau Exp $
+ * $Id: CopyOf.java,v 1.2.4.1 2005/09/01 12:16:22 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

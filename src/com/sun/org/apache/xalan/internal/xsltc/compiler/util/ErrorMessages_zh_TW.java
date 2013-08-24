@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages_zh_TW.java,v 1.2 2004/02/16 22:26:44 minchau Exp $
+ * $Id: ErrorMessages_zh_TW.java,v 1.2.4.1 2005/09/15 10:16:08 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -86,7 +86,13 @@ public class ErrorMessages_zh_TW extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final String[][] m_errorMessages = {
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] {
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
         "\u540c\u4e00\u500b\u6a94\u6848\u4e2d\u5b9a\u7fa9\u4e00\u500b\u4ee5\u4e0a\u7684\u6a23\u5f0f\u8868\u3002"},
 
@@ -839,9 +845,5 @@ public class ErrorMessages_zh_TW extends ListResourceBundle {
         {ErrorMsg.RUNTIME_ERROR_KEY,
         "\u7de8\u8b6f\u5668\u932f\u8aa4\uff1a"}
     };
-
-
-    public Object[][] getContents() {
-        return m_errorMessages;
     }
 }

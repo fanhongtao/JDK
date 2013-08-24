@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SyntaxTreeNode.java,v 1.31 2004/12/10 18:46:42 santiagopg Exp $
+ * $Id: SyntaxTreeNode.java,v 1.6 2006/06/06 22:34:33 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -311,12 +311,13 @@ public abstract class SyntaxTreeNode implements Constants {
     }
 
     /**
-     * Set this syntax tree node's parent node
+     * Set this syntax tree node's parent node, if unset. For
+     * re-parenting just use <code>node._parent = newparent</code>.
+     *
      * @param parent The parent node.
      */
     protected void setParent(SyntaxTreeNode parent) {
-	if (_parent == null)
-	    _parent = parent;
+        if (_parent == null) _parent = parent;
     }
 
     /**

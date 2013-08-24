@@ -1,7 +1,7 @@
 /*
- * @(#)SplitPaneDemo.java	1.11 04/07/26
+ * @(#)SplitPaneDemo.java	1.12 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)SplitPaneDemo.java	1.11 04/07/26
+ * @(#)SplitPaneDemo.java	1.12 05/11/17
  */
 
 
@@ -59,7 +59,7 @@ import java.net.*;
 /**
  * Split Pane demo
  *
- * @version 1.11 07/26/04
+ * @version 1.12 11/17/05
  * @author Scott Violet
  * @author Jeff Dinkins
  */

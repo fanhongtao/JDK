@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryMonitor.java	1.34 04/07/26
+ * @(#)MemoryMonitor.java	1.37 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)MemoryMonitor.java	1.34 04/07/26
+ * @(#)MemoryMonitor.java	1.37 06/08/29
  */
 
 package java2d;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -71,14 +72,14 @@ public class MemoryMonitor extends JPanel {
         Font font = new Font("serif", Font.PLAIN, 10);
         JLabel label = new JLabel("Sample Rate");
         label.setFont(font);
-        label.setForeground(Color.black);
+        label.setForeground(BLACK);
         controls.add(label);
         tf = new JTextField("1000");
         tf.setPreferredSize(new Dimension(45,20));
         controls.add(tf);
         controls.add(label = new JLabel("ms"));
         label.setFont(font);
-        label.setForeground(Color.black);
+        label.setForeground(BLACK);
         controls.add(dateStampCB);
         dateStampCB.setFont(font);
         addMouseListener(new MouseAdapter() {
@@ -94,7 +95,7 @@ public class MemoryMonitor extends JPanel {
                    surf.start();
                    add(surf);
                }
-               validate();
+               revalidate();
                repaint();
             }
         });
@@ -125,7 +126,7 @@ public class MemoryMonitor extends JPanel {
       
 
         public Surface() {
-            setBackground(Color.black);
+            setBackground(BLACK);
             addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     if (thread == null) start(); else stop();
@@ -159,7 +160,7 @@ public class MemoryMonitor extends JPanel {
             float totalMemory = (float) r.totalMemory();
 
             // .. Draw allocated and used strings ..
-            big.setColor(Color.green);
+            big.setColor(GREEN);
             big.drawString(String.valueOf((int) totalMemory/1024) + "K allocated",  4.0f, (float) ascent+0.5f);
             usedStr = String.valueOf(((int) (totalMemory - freeMemory))/1024) 
                 + "K used";
@@ -183,7 +184,7 @@ public class MemoryMonitor extends JPanel {
             }
 
             // .. Memory Used ..
-            big.setColor(Color.green);
+            big.setColor(GREEN);
             for ( ; i < 10; i++)  {
                 muRect.setRect(5,(float) ssH+i*blockHeight,
                                 blockWidth,(float) blockHeight-1);
@@ -237,7 +238,7 @@ public class MemoryMonitor extends JPanel {
                 pts = new int[graphW];
                 System.arraycopy(tmp, 0, pts, 0, tmp.length);
             } else {
-                big.setColor(Color.yellow);
+                big.setColor(YELLOW);
                 pts[ptNum] = (int)(graphY+graphH*(freeMemory/totalMemory));
                 for (int j=graphX+graphW-ptNum, k=0;k < ptNum; k++, j++) {
                     if (k != 0) {

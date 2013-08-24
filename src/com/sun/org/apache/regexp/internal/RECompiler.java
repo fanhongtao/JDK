@@ -1,61 +1,20 @@
-package com.sun.org.apache.regexp.internal;
-
 /*
- * ====================================================================
- * 
- * The Apache Software License, Version 1.1
+ * Copyright 1999-2004 The Apache Software Foundation.
  *
- * Copyright (c) 1999 The Apache Software Foundation.  All rights 
- * reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:  
- *       "This product includes software developed by the 
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "The Jakarta Project", "Jakarta-Regexp", and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */ 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.sun.org.apache.regexp.internal;
 
 import com.sun.org.apache.regexp.internal.RE;
 import java.util.Hashtable;
@@ -71,7 +30,8 @@ import java.util.Hashtable;
  * @see recompile
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
- * @version $Id: RECompiler.java,v 1.2 2000/05/14 21:04:17 jon Exp $
+ * @author <a href="mailto:gholam@xtra.co.nz">Michael McCallum</a>
+ * @version $Id: RECompiler.java,v 1.1.2.1 2005/08/01 00:02:55 jeffsuttor Exp $
  */
 public class RECompiler
 {
@@ -91,20 +51,19 @@ public class RECompiler
     static final int NODE_TOPLEVEL = 2;                 // True if top level expr
 
     // Special types of 'escapes'
-    static final char ESC_MASK     = 0xfff0;            // Escape complexity mask
-    static final char ESC_BACKREF  = 0xffff;            // Escape is really a backreference
-    static final char ESC_COMPLEX  = 0xfffe;            // Escape isn't really a true character
-    static final char ESC_CLASS    = 0xfffd;            // Escape represents a whole class of characters
+    static final int ESC_MASK      = 0xffff0;           // Escape complexity mask
+    static final int ESC_BACKREF   = 0xfffff;           // Escape is really a backreference
+    static final int ESC_COMPLEX   = 0xffffe;           // Escape isn't really a true character
+    static final int ESC_CLASS     = 0xffffd;           // Escape represents a whole class of characters
 
     // {m,n} stacks
-    static final int maxBrackets = 10;                  // Maximum number of bracket pairs
-    static int brackets = 0;                            // Number of bracket sets
-    static int[] bracketStart = null;                   // Starting point
-    static int[] bracketEnd = null;                     // Ending point
-    static int[] bracketMin = null;                     // Minimum number of matches
-    static int[] bracketOpt = null;                     // Additional optional matches
+    int maxBrackets = 10;                               // Maximum number of bracket pairs
     static final int bracketUnbounded = -1;             // Unbounded value
-    static final int bracketFinished = -2;              // Unbounded value
+    int brackets = 0;                                   // Number of bracket sets
+    int[] bracketStart = null;                          // Starting point
+    int[] bracketEnd = null;                            // Ending point
+    int[] bracketMin = null;                            // Minimum number of matches
+    int[] bracketOpt = null;                            // Additional optional matches
 
     // Lookup table for POSIX character class names
     static Hashtable hashPOSIX = new Hashtable();
@@ -203,14 +162,29 @@ public class RECompiler
     void setNextOfEnd(int node, int pointTo)
     {
         // Traverse the chain until the next offset is 0
-        int next;
-        while ((next = instruction[node + RE.offsetNext]) != 0)
+        int next = instruction[node + RE.offsetNext];
+        // while the 'node' is not the last in the chain
+        // and the 'node' is not the last in the program.
+        while ( next != 0 && node < lenInstruction )
         {
+            // if the node we are supposed to point to is in the chain then
+            // point to the end of the program instead.
+            // Michael McCallum <gholam@xtra.co.nz>
+            // FIXME: // This is a _hack_ to stop infinite programs.
+            // I believe that the implementation of the reluctant matches is wrong but
+            // have not worked out a better way yet.
+            if ( node == pointTo ) {
+              pointTo = lenInstruction;
+            }
             node += next;
+            next = instruction[node + RE.offsetNext];
         }
-
-        // Point the last node in the chain to pointTo.
-        instruction[node + RE.offsetNext] = (char)(short)(pointTo - node);
+        // if we have reached the end of the program then dont set the pointTo.
+        // im not sure if this will break any thing but passes all the tests.
+        if ( node < lenInstruction ) {
+            // Point the last node in the chain to pointTo.
+            instruction[node + RE.offsetNext] = (char)(short)(pointTo - node);
+        }
     }
 
     /**
@@ -273,6 +247,33 @@ public class RECompiler
                 bracketStart[i] = bracketEnd[i] = bracketMin[i] = bracketOpt[i] = -1;
             }
         }
+    }
+
+    /** Enlarge storage for brackets only as needed. */
+    synchronized void reallocBrackets() {
+        // trick the tricky
+        if (bracketStart == null) {
+            allocBrackets();
+        }
+
+        int new_size = maxBrackets * 2;
+        int[] new_bS = new int[new_size];
+        int[] new_bE = new int[new_size];
+        int[] new_bM = new int[new_size];
+        int[] new_bO = new int[new_size];
+        // Initialize to invalid values
+        for (int i=brackets; i<new_size; i++) {
+            new_bS[i] = new_bE[i] = new_bM[i] = new_bO[i] = -1;
+        }
+        System.arraycopy(bracketStart,0, new_bS,0, brackets);
+        System.arraycopy(bracketEnd,0,   new_bE,0, brackets);
+        System.arraycopy(bracketMin,0,   new_bM,0, brackets);
+        System.arraycopy(bracketOpt,0,   new_bO,0, brackets);
+        bracketStart = new_bS;
+        bracketEnd   = new_bE;
+        bracketMin   = new_bM;
+        bracketOpt   = new_bO;
+        maxBrackets  = new_size;
     }
 
     /**
@@ -363,8 +364,8 @@ public class RECompiler
             syntaxError("Expected valid number");
         }
 
-        // Optional repetitions must be > 0
-        if (bracketOpt[brackets] <= 0)
+        // Optional repetitions must be >= 0
+        if (bracketOpt[brackets] < 0)
         {
             syntaxError("Bad range");
         }
@@ -385,7 +386,7 @@ public class RECompiler
      * @return ESC_* code or character if simple escape
      * @exception RESyntaxException Thrown if the regular expression has invalid syntax.
      */
-    char escape() throws RESyntaxException
+    int escape() throws RESyntaxException
     {
         // "Shouldn't" happen
         if (pattern.charAt(idx) != '\\')
@@ -441,7 +442,7 @@ public class RECompiler
                             c = Character.toLowerCase(c);
                             if (c >= 'a' && c <= 'f')
                             {
-                                // Compute new value 
+                                // Compute new value
                                 val = (val << 4) + (c - 'a') + 10;
                             }
                             else
@@ -452,7 +453,7 @@ public class RECompiler
                             }
                         }
                     }
-                    return (char)val;
+                    return val;
                 }
 
             case 't':
@@ -491,7 +492,7 @@ public class RECompiler
                             val = ((val << 3) + (pattern.charAt(idx++) - '0'));
                         }
                     }
-                    return (char)val;
+                    return val;
                 }
 
                 // It's actually a backreference (\[1-9]), not an escape
@@ -535,7 +536,7 @@ public class RECompiler
             {
                 idx++;
             }
-            
+
             // Should be a ":]" to terminate the POSIX character class
             if ((idx + 1) < len && pattern.charAt(idx) == ':' && pattern.charAt(idx + 1) == ']')
             {
@@ -590,7 +591,7 @@ public class RECompiler
                 case '\\':
                 {
                     // Escape always advances the stream
-                    char c;
+                    int c;
                     switch (c = escape ())
                     {
                         case ESC_COMPLEX:
@@ -643,7 +644,7 @@ public class RECompiler
                         default:
 
                             // Escape is simple so treat as a simple char
-                            simpleChar = c;
+                            simpleChar = (char) c;
                             break switchOnCharacter;
                     }
                 }
@@ -694,7 +695,7 @@ public class RECompiler
             else
             {
                 // If simple character and not start of range, include it
-                if ((idx + 1) >= len || pattern.charAt(idx + 1) != '-')
+                if (idx >= len || pattern.charAt(idx) != '-')
                 {
                     range.include(simpleChar, include);
                 }
@@ -808,7 +809,7 @@ public class RECompiler
                     {
                         // Get the escaped character (advances input automatically)
                         int idxBeforeEscape = idx;
-                        char c = escape();
+                        int c = escape();
 
                         // Check if it's a simple escape (as opposed to, say, a backreference)
                         if ((c & ESC_MASK) == ESC_MASK)
@@ -819,7 +820,7 @@ public class RECompiler
                         }
 
                         // Add escaped char to atom
-                        emit(c);
+                        emit((char) c);
                         lenAtom++;
                     }
                     break;
@@ -1005,30 +1006,47 @@ public class RECompiler
                             break;
                         }
                     }
-                    
+
                     // If its not in the list we parse the {m,n}
                     if (!found)
                     {
                         if (brackets >= maxBrackets)
                         {
-                            syntaxError("Too many bracketed closures (limit is 10)");
+                            reallocBrackets();
                         }
                         bracketStart[brackets] = idx;
                         bracket();
                         bracketEnd[brackets] = idx;
                         i = brackets++;
                     }
-                    
-                    // If there's a min, rewind stream and reparse
-                    if (--bracketMin[i] > 0)
+
+                    // Process min first
+                    if (bracketMin[i]-- > 0)
                     {
-                        // Rewind stream and run it through again
-                        idx = idxBeforeTerminal;
+                        if (bracketMin[i] > 0 || bracketOpt[i] != 0) {
+                            // Rewind stream and run it through again - more matchers coming
+                            for (int j = 0; j < brackets; j++) {
+                                if (j != i && bracketStart[j] < idx
+                                    && bracketStart[j] >= idxBeforeTerminal)
+                                {
+                                    brackets--;
+                                    bracketStart[j] = bracketStart[brackets];
+                                    bracketEnd[j] = bracketEnd[brackets];
+                                    bracketMin[j] = bracketMin[brackets];
+                                    bracketOpt[j] = bracketOpt[brackets];
+                                }
+                            }
+
+                            idx = idxBeforeTerminal;
+                        } else {
+                            // Bug #1030: No optinal matches - no need to rewind
+                            idx = bracketEnd[i];
+                        }
                         break;
                     }
-                    
+
                     // Do the right thing for maximum ({m,})
-                    if (bracketOpt[i] == bracketFinished)
+                    if (bracketOpt[i] == bracketUnbounded)
                     {
                         // Drop through now and closure expression.
                         // We are done with the {m,} expr, so skip rest
@@ -1037,37 +1055,41 @@ public class RECompiler
                         idx = bracketEnd[i];
                     }
                     else
-                        if (bracketOpt[i] == bracketUnbounded)
+                        if (bracketOpt[i]-- > 0)
                         {
-                            idx = idxBeforeTerminal;
-                            bracketOpt[i] = bracketFinished;
-                            break;
+                            if (bracketOpt[i] > 0)
+                            {
+                                // More optional matchers - 'play it again sam!'
+                                idx = idxBeforeTerminal;
+                            } else {
+                                // Bug #1030: We are done - this one is last and optional
+                                idx = bracketEnd[i];
+                            }
+                            // Drop through to optionally close
+                            closureType = '?';
                         }
                         else
-                            if (bracketOpt[i]-- > 0)
-                            {
-                                // Drop through to optionally close and then 'play it again sam!'
-                                idx = idxBeforeTerminal;
-                                closureType = '?';
-                            }
-                            else
-                            {
-                                // We are done. skip the rest of {m,n} expr
-                                idx = bracketEnd[i];
-                                break;
-                            }
+                        {
+                            // Rollback terminal - neither min nor opt matchers present
+                            lenInstruction = ret;
+                            node(RE.OP_NOTHING, 0);
+
+                            // We are done. skip the rest of {m,n} expr
+                            idx = bracketEnd[i];
+                            break;
+                        }
                 }
-                
+
                 // Fall through!
-                
+
                 case '?':
                 case '*':
-                    
+
                     if (!greedy)
                     {
                         break;
                     }
-                    
+
                     if (closureType == '?')
                     {
                         // X? is compiled as (X|)
@@ -1077,7 +1099,7 @@ public class RECompiler
                         setNextOfEnd(ret, nothing);                       // point (second) branch to OP_NOTHING
                         setNextOfEnd(ret + RE.nodeSize, nothing);         // point the end of X to OP_NOTHING node
                     }
-                    
+
                     if (closureType == '*')
                     {
                         // X* is compiled as (X{gotoX}|)
@@ -1089,7 +1111,7 @@ public class RECompiler
                         setNextOfEnd(ret, node(RE.OP_NOTHING, 0));                // OP_NOTHING
                     }
                     break;
-                    
+
                 case '+':
                 {
                     // X+ is compiled as X({gotoX}|)
@@ -1114,8 +1136,8 @@ public class RECompiler
                 case '?':
                     nodeInsert(RE.OP_RELUCTANTMAYBE, 0, ret);
                     break;
-                    
-                case '*':       
+
+                case '*':
                     nodeInsert(RE.OP_RELUCTANTSTAR, 0, ret);
                     break;
 
@@ -1125,7 +1147,7 @@ public class RECompiler
             }
 
             // Point to the expr after the closure
-            setNextOfEnd(ret, lenInstruction);          
+            setNextOfEnd(ret, lenInstruction);
         }
         return ret;
     }
@@ -1188,14 +1210,24 @@ public class RECompiler
     int expr(int[] flags) throws RESyntaxException
     {
         // Create open paren node unless we were called from the top level (which has no parens)
-        boolean paren = false;
+        int paren = -1;
         int ret = -1;
         int closeParens = parens;
         if ((flags[0] & NODE_TOPLEVEL) == 0 && pattern.charAt(idx) == '(')
         {
-            idx++;
-            paren = true;
-            ret = node(RE.OP_OPEN, parens++);
+            // if its a cluster ( rather than a proper subexpression ie with backrefs )
+            if ( idx + 2 < len && pattern.charAt( idx + 1 ) == '?' && pattern.charAt( idx + 2 ) == ':' )
+            {
+                paren = 2;
+                idx += 3;
+                ret = node( RE.OP_OPEN_CLUSTER, 0 );
+            }
+            else
+            {
+                paren = 1;
+                idx++;
+                ret = node(RE.OP_OPEN, parens++);
+            }
         }
         flags[0] &= ~NODE_TOPLEVEL;
 
@@ -1220,7 +1252,7 @@ public class RECompiler
 
         // Create an ending node (either a close paren or an OP_END)
         int end;
-        if (paren)
+        if ( paren > 0 )
         {
             if (idx < len && pattern.charAt(idx) == ')')
             {
@@ -1230,7 +1262,14 @@ public class RECompiler
             {
                 syntaxError("Missing close paren");
             }
-            end = node(RE.OP_CLOSE, closeParens);
+            if ( paren == 1 )
+            {
+                end = node(RE.OP_CLOSE, closeParens);
+            }
+            else
+            {
+                end = node( RE.OP_CLOSE_CLUSTER, 0 );
+            }
         }
         else
         {
@@ -1241,13 +1280,18 @@ public class RECompiler
         setNextOfEnd(ret, end);
 
         // Hook the ends of each branch to the end node
-        for (int next = -1, i = ret; next != 0; next = instruction[i + RE.offsetNext], i += next)
+        int currentNode = ret;
+        int nextNodeOffset = instruction[ currentNode + RE.offsetNext ];
+        // while the next node o
+        while ( nextNodeOffset != 0 && currentNode < lenInstruction )
         {
             // If branch, make the end of the branch's operand chain point to the end node.
-            if (instruction[i + RE.offsetOpcode] == RE.OP_BRANCH)
+            if ( instruction[ currentNode + RE.offsetOpcode ] == RE.OP_BRANCH )
             {
-                setNextOfEnd(i + RE.nodeSize, end);
+                setNextOfEnd( currentNode + RE.nodeSize, end );
             }
+            nextNodeOffset = instruction[ currentNode + RE.offsetNext ];
+            currentNode += nextNodeOffset;
         }
 
         // Return the node list
@@ -1293,7 +1337,7 @@ public class RECompiler
         // Return the result
         char[] ins = new char[lenInstruction];
         System.arraycopy(instruction, 0, ins, 0, lenInstruction);
-        return new REProgram(ins);
+        return new REProgram(parens, ins);
     }
 
     /**
@@ -1305,7 +1349,7 @@ public class RECompiler
         int[] minRange = new int[size];     // Range minima
         int[] maxRange = new int[size];     // Range maxima
         int num = 0;                        // Number of range array elements in use
-        
+
         /**
          * Deletes the range at a given index from the range lists
          * @param index Index of range to delete from minRange and maxRange arrays.
@@ -1317,9 +1361,9 @@ public class RECompiler
             {
                 return;
             }
-            
+
             // Move elements down
-            while (index++ < num)
+            while (++index < num)
             {
                 if (index - 1 >= 0)
                 {
@@ -1327,11 +1371,11 @@ public class RECompiler
                     maxRange[index-1] = maxRange[index];
                 }
             }
-            
+
             // One less element now
             num--;
         }
-        
+
         /**
          * Merges a range into the range list, coalescing ranges if possible.
          * @param min Minimum end of range
@@ -1347,7 +1391,7 @@ public class RECompiler
                 {
                     return;
                 }
-                
+
                 // Min-max subsumes minRange[i]-maxRange[i]
                 else if (min <= minRange[i] && max >= maxRange[i])
                 {
@@ -1355,7 +1399,7 @@ public class RECompiler
                     merge(min, max);
                     return;
                 }
-                
+
                 // Min is in the range, but max is outside
                 else if (min >= minRange[i] && min <= maxRange[i])
                 {
@@ -1364,7 +1408,7 @@ public class RECompiler
                     merge(min, max);
                     return;
                 }
-                
+
                 // Max is in the range, but min is outside
                 else if (max >= minRange[i] && max <= maxRange[i])
                 {
@@ -1374,7 +1418,7 @@ public class RECompiler
                     return;
                 }
             }
-            
+
             // Must not overlap any other ranges
             if (num >= size)
             {
@@ -1390,7 +1434,7 @@ public class RECompiler
             maxRange[num] = max;
             num++;
         }
-        
+
         /**
          * Removes a range by deleting or shrinking all other ranges
          * @param min Minimum end of range
@@ -1408,31 +1452,31 @@ public class RECompiler
                     i--;
                     return;
                 }
-                
+
                 // min-max is subsumed by minRange[i]-maxRange[i]
                 else if (min >= minRange[i] && max <= maxRange[i])
                 {
                     int minr = minRange[i];
                     int maxr = maxRange[i];
                     delete(i);
-                    if (minr < min - 1)
+                    if (minr < min)
                     {
                         merge(minr, min - 1);
                     }
-                    if (max + 1 < maxr)
+                    if (max < maxr)
                     {
                         merge(max + 1, maxr);
                     }
                     return;
                 }
-                
+
                 // minRange is in the range, but maxRange is outside
                 else if (minRange[i] >= min && minRange[i] <= max)
                 {
                     minRange[i] = max + 1;
                     return;
                 }
-                
+
                 // maxRange is in the range, but minRange is outside
                 else if (maxRange[i] >= min && maxRange[i] <= max)
                 {
@@ -1441,7 +1485,7 @@ public class RECompiler
                 }
             }
         }
-        
+
         /**
          * Includes (or excludes) the range from min to max, inclusive.
          * @param min Minimum end of range
@@ -1459,7 +1503,7 @@ public class RECompiler
                 remove(min, max);
             }
         }
-        
+
         /**
          * Includes a range with the same min and max
          * @param minmax Minimum and maximum end of range (inclusive)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SuballocatedByteVector.java,v 1.6 2004/02/17 04:21:14 minchau Exp $
+ * $Id: SuballocatedByteVector.java,v 1.2.4.1 2005/09/15 08:15:57 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -184,7 +184,7 @@ public class SuballocatedByteVector
    * Append several slots onto the vector, but do not set the values.
    * Note: "Not Set" means the value is unspecified.
    *
-   * @param value Byte to add to the list 
+   * @param numberOfElements
    */
   private  void addElements(int numberOfElements)
   {
@@ -337,8 +337,8 @@ public class SuballocatedByteVector
    * The index must be a value greater than or equal to 0 and less
    * than the current size of the vector.
    *
-   * @param node object to set
-   * @param index Index of where to set the object
+   * @param value
+   * @param at     Index of where to set the object
    */
   public void setElementAt(byte value, int at)
   {
@@ -379,10 +379,10 @@ public class SuballocatedByteVector
    * exception (see below), may return zero, or (if setSize has previously
    * been used) may return stale data.
    *
-   * @throw ArrayIndexOutOfBoundsException if the index was _clearly_
+   * @throws ArrayIndexOutOfBoundsException if the index was _clearly_
    * unreasonable (negative, or past the highest block).
    *
-   * @throw NullPointerException if the index points to a block that could
+   * @throws NullPointerException if the index points to a block that could
    * have existed (based on the highest index used) but has never had anything
    * set into it.
    * %REVIEW% Could add a catch to create the block in that case, or return 0.

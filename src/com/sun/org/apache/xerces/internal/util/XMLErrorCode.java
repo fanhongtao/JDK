@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 The Apache Software Foundation.
+ * Copyright 2004,2005 The Apache Software Foundation.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ package com.sun.org.apache.xerces.internal.util;
  *
  * @author Naela Nissar, IBM
  * 
- * @version $Id: XMLErrorCode.java,v 1.1.1.1 2004/05/04 10:22:36 vk112360 Exp $
+ * @version $Id: XMLErrorCode.java,v 1.3 2005/09/26 13:03:01 sunithareddy Exp $
  */
-public class XMLErrorCode {
+final class XMLErrorCode {
 
     //
     // Data
@@ -79,4 +79,3 @@ public class XMLErrorCode {
         return fDomain.hashCode() + fKey.hashCode();
     }
 }
-

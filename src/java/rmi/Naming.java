@@ -1,7 +1,7 @@
 /*
- * @(#)Naming.java	1.22 03/12/19
+ * @(#)Naming.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi;
@@ -217,60 +217,111 @@ public final class Naming {
 	throws MalformedURLException 
     {
 	try {
-	    URI uri = new URI(str);
-	    if (uri.getFragment() != null) {
-		throw new MalformedURLException(
-		    "invalid character, '#', in URL name: " + str);
-	    } else if (uri.getQuery() != null) {
-		throw new MalformedURLException(
-		    "invalid character, '?', in URL name: " + str);
-	    } else if (uri.getUserInfo() != null) {
-		throw new MalformedURLException(
-		    "invalid character, '@', in URL host: " + str);
-	    }
-	    String scheme = uri.getScheme();
-	    if (scheme != null && !scheme.equals("rmi")) {
-		throw new MalformedURLException("invalid URL scheme: " + str);
-	    }
-
-	    String name = uri.getPath();
-	    if (name != null) {
-		if (name.startsWith("/")) {
-		    name = name.substring(1);
-		}
-		if (name.length() == 0) {
-		    name = null;
-		}
-	    }
-
-	    String host = uri.getHost();
-	    if (host == null) {
-		host = "";
-		if (uri.getPort() == -1) {
-		    /* handle URIs with explicit port but no host
-		     * (e.g., "//:1098/foo"); although they do not strictly
-		     * conform to RFC 2396, Naming's javadoc explicitly allows
-		     * them.
-		     */
-		    String authority = uri.getAuthority();
-		    if (authority != null && authority.startsWith(":")) {
-			authority = "localhost" + authority;
-			uri = new URI(null, authority, null, null, null);
-		    }
-		}
-	    }
-	    int port = uri.getPort();
-	    if (port == -1) {
-		port = Registry.REGISTRY_PORT;
-	    }
-	    return new ParsedNamingURL(host, port, name);
-
+	    return intParseURL(str);
 	} catch (URISyntaxException ex) {
-	    throw (MalformedURLException) new MalformedURLException(
-		"invalid URL string: " + str).initCause(ex);
+	    /* With RFC 3986 URI handling, 'rmi://:<port>' and
+	     * '//:<port>' forms will result in a URI syntax exception
+	     * Convert the authority to a localhost:<port> form
+	     */
+	    MalformedURLException mue = new MalformedURLException(
+		"invalid URL String: " + str);
+	    mue.initCause(ex);
+	    int indexSchemeEnd = str.indexOf(':');
+	    int indexAuthorityBegin = str.indexOf("//:");
+	    if (indexAuthorityBegin < 0) {
+		throw mue;
+	    }
+	    if ((indexAuthorityBegin == 0) ||
+		    ((indexSchemeEnd > 0) &&
+		    (indexAuthorityBegin == indexSchemeEnd + 1))) {
+		int indexHostBegin = indexAuthorityBegin + 2;
+		String newStr = str.substring(0, indexHostBegin) +
+				"localhost" +
+				str.substring(indexHostBegin);
+		try {
+		    return intParseURL(newStr);
+		} catch (URISyntaxException inte) {
+		    throw mue;
+		} catch (MalformedURLException inte) {
+		    throw inte;
+		}
+	    }
+	    throw mue;
 	}
     }
+    
+    private static ParsedNamingURL intParseURL(String str)
+	throws MalformedURLException, URISyntaxException
+    {
+	URI uri = new URI(str);
+	if (uri.isOpaque()) {
+	    throw new MalformedURLException(
+		"not a hierarchical URL: " + str);
+	}
+	if (uri.getFragment() != null) {
+	    throw new MalformedURLException(
+		"invalid character, '#', in URL name: " + str);
+	} else if (uri.getQuery() != null) {
+	    throw new MalformedURLException(
+		"invalid character, '?', in URL name: " + str);
+	} else if (uri.getUserInfo() != null) {
+	    throw new MalformedURLException(
+		"invalid character, '@', in URL host: " + str);
+	}
+	String scheme = uri.getScheme();
+	if (scheme != null && !scheme.equals("rmi")) {
+	    throw new MalformedURLException("invalid URL scheme: " + str);
+	}
 
+	String name = uri.getPath();
+	if (name != null) {
+	    if (name.startsWith("/")) {
+		name = name.substring(1);
+	    }
+	    if (name.length() == 0) {
+		name = null;
+	    }
+	}
+
+	String host = uri.getHost();
+	if (host == null) {
+	    host = "";
+	    try {
+		/*
+		 * With 2396 URI handling, forms such as 'rmi://host:bar'
+		 * or 'rmi://:<port>' are parsed into a registry based
+		 * authority. We only want to allow server based naming
+		 * authorities.
+		 */
+		uri.parseServerAuthority();
+	    } catch (URISyntaxException use) {
+		// Check if the authority is of form ':<port>'
+		String authority = uri.getAuthority();
+		if (authority != null && authority.startsWith(":")) {
+		    // Convert the authority to 'localhost:<port>' form
+		    authority = "localhost" + authority;
+		    try {
+			uri = new URI(null, authority, null, null, null);
+			// Make sure it now parses to a valid server based
+			// naming authority
+			uri.parseServerAuthority();
+		    } catch (URISyntaxException use2) {
+			throw new
+			    MalformedURLException("invalid authority: " + str);
+		    }
+		} else {
+		    throw new
+			MalformedURLException("invalid authority: " + str);
+		}
+	    }
+	}
+	int port = uri.getPort();
+	if (port == -1) {
+	    port = Registry.REGISTRY_PORT;
+	}
+	return new ParsedNamingURL(host, port, name);
+    }
+    
     /**
      * Simple class to enable multiple URL return values.
      */

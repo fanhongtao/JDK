@@ -1,7 +1,7 @@
 /*
- * @(#)LoginModule.java	1.53 04/05/05
+ * @(#)LoginModule.java	1.54 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.util.Map;
  * no arguments.  This allows classes which load the <code>LoginModule</code>
  * to instantiate it.
  *
- * @version 1.53, 05/05/04
+ * @version 1.54, 11/17/05
  * @see javax.security.auth.login.LoginContext
  * @see javax.security.auth.login.Configuration
  */

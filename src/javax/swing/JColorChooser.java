@@ -1,7 +1,7 @@
 /*
- * @(#)JColorChooser.java	1.48 06/04/10
+ * @(#)JColorChooser.java	1.53 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,8 @@ import javax.swing.colorchooser.*;
 import javax.swing.plaf.ColorChooserUI;
 import javax.swing.event.*;
 import javax.accessibility.*;
+
+import sun.swing.SwingUtilities2;
 
 
 /**
@@ -41,6 +43,11 @@ import javax.accessibility.*;
  * can be added to detect when the current "color" property changes.
  * </ol>
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -56,7 +63,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.48 04/10/06
+ * @version 1.53 08/08/06
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -623,14 +630,14 @@ class ColorChooserDialog extends JDialog {
         JButton okButton = new JButton(okString);
 	getRootPane().setDefaultButton(okButton);
         okButton.setActionCommand("OK");
-        if (okListener != null) {
-            okButton.addActionListener(okListener);
-        }
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 hide();
             }
         });
+        if (okListener != null) {
+            okButton.addActionListener(okListener);
+        }
         buttonPane.add(okButton);
 
         cancelButton = new JButton(cancelString);
@@ -652,14 +659,14 @@ class ColorChooserDialog extends JDialog {
 	// end esc handling
 
         cancelButton.setActionCommand("cancel");
-        if (cancelListener != null) {
-            cancelButton.addActionListener(cancelListener);
-        }
         cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 hide();
             }
         });
+        if (cancelListener != null) {
+            cancelButton.addActionListener(cancelListener);
+        }
         buttonPane.add(cancelButton);
 
         JButton resetButton = new JButton(resetString);
@@ -668,7 +675,7 @@ class ColorChooserDialog extends JDialog {
                reset();
            }
         });
-        int mnemonic = UIManager.getInt("ColorChooser.resetMnemonic", -1);
+        int mnemonic = SwingUtilities2.getUIDefaultsInt("ColorChooser.resetMnemonic", -1);
         if (mnemonic != -1) {
             resetButton.setMnemonic(mnemonic);
         }

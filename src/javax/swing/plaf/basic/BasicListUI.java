@@ -1,7 +1,7 @@
 /*
- * @(#)BasicListUI.java	1.110 05/05/03
+ * @(#)BasicListUI.java	1.121 06/07/11
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,6 +19,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
+import java.awt.geom.Point2D;
 
 import java.util.ArrayList;
 import java.util.TooManyListenersException;
@@ -26,21 +27,25 @@ import java.util.TooManyListenersException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
-import com.sun.java.swing.SwingUtilities2;
-import static com.sun.java.swing.SwingUtilities2.DRAG_FIX;
+import sun.swing.SwingUtilities2;
 import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
 
 /**
- * A Windows L&F implementation of ListUI.
+ * An extensible implementation of {@code ListUI}.
  * <p>
+ * {@code BasicListUI} instances cannot be shared between multiple
+ * lists.
  *
- * @version 1.110 05/03/05
+ * @version 1.121 07/11/06
  * @author Hans Muller
  * @author Philip Milne
- * @author Shannon Hickey (improved drag recognition)
+ * @author Shannon Hickey (drag and drop)
  */
 public class BasicListUI extends ListUI
 {
+    private static final StringBuilder BASELINE_COMPONENT_KEY =
+        new StringBuilder("List.baselineComponent");
+
     protected JList list = null;
     protected CellRendererPane rendererPane;
 
@@ -125,6 +130,7 @@ public class BasicListUI extends ListUI
     private final static int widthChanged = 1 << 9;
     private final static int componentOrientationChanged = 1 << 10;
 
+    private static final int DROP_LINE_THICKNESS = 2;
 
     static void loadActionMap(LazyActionMap map) {
 	map.put(new Actions(Actions.SELECT_PREVIOUS_COLUMN));
@@ -216,7 +222,15 @@ public class BasicListUI extends ListUI
      *
      * @see #paintCell
      */
-    public void paint(Graphics g, JComponent c)
+    public void paint(Graphics g, JComponent c) {
+        Shape clip = g.getClip();
+        paintImpl(g, c);
+        g.setClip(clip);
+
+        paintDropLine(g);
+    }
+
+    private void paintImpl(Graphics g, JComponent c)
     {
         switch (layoutOrientation) {
         case JList.VERTICAL_WRAP:
@@ -294,8 +308,198 @@ public class BasicListUI extends ListUI
                 row++;
             }
         }
+	// Empty out the renderer pane, allowing renderers to be gc'ed.
+	rendererPane.removeAll();
     }
 
+    private void paintDropLine(Graphics g) {
+        JList.DropLocation loc = list.getDropLocation();
+        if (loc == null || !loc.isInsert()) {
+            return;
+        }
+
+        Color c = DefaultLookup.getColor(list, this, "List.dropLineColor", null);
+        if (c != null) {
+            g.setColor(c);
+            Rectangle rect = getDropLineRect(loc);
+            g.fillRect(rect.x, rect.y, rect.width, rect.height);
+        }
+    }
+
+    private Rectangle getDropLineRect(JList.DropLocation loc) {
+        int size = list.getModel().getSize();
+
+        if (size == 0) {
+            Insets insets = list.getInsets();
+            if (layoutOrientation == JList.HORIZONTAL_WRAP) {
+                if (list.getComponentOrientation().isLeftToRight()) {
+                    return new Rectangle(insets.left, insets.top, DROP_LINE_THICKNESS, 20);
+                } else {
+                    return new Rectangle(list.getWidth() - DROP_LINE_THICKNESS - insets.right,
+                                         insets.top, DROP_LINE_THICKNESS, 20);
+                }
+            } else {
+                return new Rectangle(insets.left, insets.top,
+                                     list.getWidth() - insets.left - insets.right,
+                                     DROP_LINE_THICKNESS);
+            }
+        }
+
+        Rectangle rect = null;
+        int index = loc.getIndex();
+        boolean decr = false;
+
+        if (layoutOrientation == JList.HORIZONTAL_WRAP) {
+            boolean ltr = list.getComponentOrientation().isLeftToRight();
+            if (index == size) {
+                decr = true;
+            } else if (index != 0 && convertModelToRow(index)
+                                         != convertModelToRow(index - 1)) {
+
+                Rectangle prev = getCellBounds(list, index - 1);
+                Rectangle me = getCellBounds(list, index);
+                Point p = loc.getDropPoint();
+                
+                if (ltr) {
+                    decr = Point2D.distance(prev.x + prev.width,
+                                            prev.y + (int)(prev.height / 2.0),
+                                            p.x, p.y)
+                           < Point2D.distance(me.x,
+                                              me.y + (int)(me.height / 2.0),
+                                              p.x, p.y);
+                } else {
+                    decr = Point2D.distance(prev.x,
+                                            prev.y + (int)(prev.height / 2.0),
+                                            p.x, p.y)
+                           < Point2D.distance(me.x + me.width,
+                                              me.y + (int)(prev.height / 2.0),
+                                              p.x, p.y);
+                }
+            }
+
+            if (decr) {
+                index--;
+                rect = getCellBounds(list, index);
+                if (ltr) {
+                    rect.x += rect.width;
+                } else {
+                    rect.x -= DROP_LINE_THICKNESS;
+                }
+            } else {
+                rect = getCellBounds(list, index);
+                if (!ltr) {
+                    rect.x += rect.width - DROP_LINE_THICKNESS;
+                }
+            }
+
+            if (rect.x >= list.getWidth()) {
+                rect.x = list.getWidth() - DROP_LINE_THICKNESS;
+            } else if (rect.x < 0) {
+                rect.x = 0;
+            }
+
+            rect.width = DROP_LINE_THICKNESS;
+        } else if (layoutOrientation == JList.VERTICAL_WRAP) {
+            if (index == size) {
+                index--;
+                rect = getCellBounds(list, index);
+                rect.y += rect.height;
+            } else if (index != 0 && convertModelToColumn(index)
+                                         != convertModelToColumn(index - 1)) {
+
+                Rectangle prev = getCellBounds(list, index - 1);
+                Rectangle me = getCellBounds(list, index);
+                Point p = loc.getDropPoint();
+                if (Point2D.distance(prev.x + (int)(prev.width / 2.0),
+                                     prev.y + prev.height,
+                                     p.x, p.y)
+                        < Point2D.distance(me.x + (int)(me.width / 2.0),
+                                           me.y,
+                                           p.x, p.y)) {
+
+                    index--;
+                    rect = getCellBounds(list, index);
+                    rect.y += rect.height;
+                } else {
+                    rect = getCellBounds(list, index);
+                }
+            } else {
+                rect = getCellBounds(list, index);
+            }
+            
+            if (rect.y >= list.getHeight()) {
+                rect.y = list.getHeight() - DROP_LINE_THICKNESS;
+            }
+            
+            rect.height = DROP_LINE_THICKNESS;
+        } else {
+            if (index == size) {
+                index--;
+                rect = getCellBounds(list, index);
+                rect.y += rect.height;
+            } else {
+                rect = getCellBounds(list, index);
+            }
+
+            if (rect.y >= list.getHeight()) {
+                rect.y = list.getHeight() - DROP_LINE_THICKNESS;
+            }
+
+            rect.height = DROP_LINE_THICKNESS;
+        }
+
+        return rect;
+    }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        int rowHeight = list.getFixedCellHeight();
+        UIDefaults lafDefaults = UIManager.getLookAndFeelDefaults();
+        Component renderer = (Component)lafDefaults.get(
+                BASELINE_COMPONENT_KEY);
+        if (renderer == null) {
+            ListCellRenderer lcr = (ListCellRenderer)UIManager.get(
+                    "List.cellRenderer");
+            renderer = lcr.getListCellRendererComponent(
+                    list, "a", -1, false, false);
+            lafDefaults.put(BASELINE_COMPONENT_KEY, renderer);
+        }
+        renderer.setFont(list.getFont());
+        // JList actually has much more complex behavior here.
+        // If rowHeight != -1 the rowHeight is either the max of all cell
+        // heights (layout orientation != VERTICAL), or is variable depending
+        // upon the cell.  We assume a default size.
+        // We could theoretically query the real renderer, but that would
+        // not work for an empty model and the results may vary with 
+        // the content.
+        if (rowHeight == -1) {
+            rowHeight = renderer.getPreferredSize().height;
+        }
+        return renderer.getBaseline(Integer.MAX_VALUE, rowHeight) +
+                list.getInsets().top;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
+    }
 
     /**
      * The preferredSize of the list depends upon the layout orientation.
@@ -475,14 +679,6 @@ public class BasicListUI extends ListUI
 	if (th == null || th instanceof UIResource) {
 	    list.setTransferHandler(defaultTransferHandler);
 	}
-	DropTarget dropTarget = list.getDropTarget();
-	if (dropTarget instanceof UIResource) {
-	    try {
-		dropTarget.addDropTargetListener(new ListDropTargetListener());
-	    } catch (TooManyListenersException tmle) {
-		// should not happen... swing drop target is multicast
-	    }
-	}
 
         focusListener = createFocusListener();
         mouseInputListener = createMouseInputListener();
@@ -491,10 +687,6 @@ public class BasicListUI extends ListUI
         listDataListener = createListDataListener();
 
         list.addFocusListener(focusListener);
-        if (!DRAG_FIX) {
-            list.addMouseListener(defaultDragRecognizer);
-            list.addMouseMotionListener(defaultDragRecognizer);
-        }
         list.addMouseListener(mouseInputListener);
         list.addMouseMotionListener(mouseInputListener);
         list.addPropertyChangeListener(propertyChangeListener);
@@ -524,10 +716,6 @@ public class BasicListUI extends ListUI
     protected void uninstallListeners()
     {
         list.removeFocusListener(focusListener);
-        if (!DRAG_FIX) {
-            list.removeMouseListener(defaultDragRecognizer);
-            list.removeMouseMotionListener(defaultDragRecognizer);
-        }
         list.removeMouseListener(mouseInputListener);
         list.removeMouseMotionListener(mouseInputListener);
         list.removePropertyChangeListener(propertyChangeListener);
@@ -590,22 +778,22 @@ public class BasicListUI extends ListUI
 	Long l = (Long)UIManager.get("List.timeFactor");
 	timeFactor = (l!=null) ? l.longValue() : 1000L;
 
-        updateIsFileList();
+	updateIsFileList();
 	isLeftToRight = list.getComponentOrientation().isLeftToRight();
     }
 
     private void updateIsFileList() {
-        boolean b = Boolean.TRUE.equals(list.getClientProperty("List.isFileList"));
-        if (b != isFileList) {
-            isFileList = b;
-            Font oldFont = list.getFont();
-            if (oldFont == null || oldFont instanceof UIResource) {
-                Font newFont = UIManager.getFont(b ? "FileChooser.listFont" : "List.font");
-                if (newFont != null && newFont != oldFont) {
-                    list.setFont(newFont);
-                }
-            }
-        }
+	boolean b = Boolean.TRUE.equals(list.getClientProperty("List.isFileList"));
+	if (b != isFileList) {
+	    isFileList = b;
+	    Font oldFont = list.getFont();
+	    if (oldFont == null || oldFont instanceof UIResource) {
+		Font newFont = UIManager.getFont(b ? "FileChooser.listFont" : "List.font");
+		if (newFont != null && newFont != oldFont) {
+		    list.setFont(newFont);
+		}
+	    }
+	}
     }
 
 
@@ -665,6 +853,8 @@ public class BasicListUI extends ListUI
 
         columnCount = 1;
 
+        updateLayoutStateNeeded = modelChanged;
+
         installDefaults();
         installListeners();
         installKeyboardActions();
@@ -709,13 +899,8 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * Convert a point in <code>JList</code> coordinates to the closest index
-     * of the cell at that location. To determine if the cell actually
-     * contains the specified location use a combination of this method and
-     * <code>getCellBounds</code>.  Returns -1 if the model is empty.
-     *
-     * @return The index of the cell at location, or -1.
-     * @see ListUI#locationToIndex
+     * {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
      */
     public int locationToIndex(JList list, Point location) {
         maybeUpdateLayoutState();
@@ -724,8 +909,7 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * @return The origin of the index'th cell, null if index is invalid.
-     * @see ListUI#indexToLocation
+     * {@inheritDoc}
      */
     public Point indexToLocation(JList list, int index) {
         maybeUpdateLayoutState();
@@ -739,8 +923,7 @@ public class BasicListUI extends ListUI
 
 
     /**
-     * @return The bounds of the index'th cell.
-     * @see ListUI#getCellBounds
+     * {@inheritDoc}
      */
     public Rectangle getCellBounds(JList list, int index1, int index2) {
         maybeUpdateLayoutState();
@@ -1266,7 +1449,7 @@ public class BasicListUI extends ListUI
 
     private Handler getHandler() {
         if (handler == null) {
-            handler = DRAG_FIX ? new DragFixHandler() : new Handler();
+            handler = new Handler();
         }
         return handler;
     }
@@ -1635,90 +1818,96 @@ public class BasicListUI extends ListUI
 
             if (name == SELECT_PREVIOUS_COLUMN) {
                 changeSelection(list, CHANGE_SELECTION,
-                                getNextColumnIndex(list, ui, -1), true);
+                                getNextColumnIndex(list, ui, -1), -1);
             }
             else if (name == SELECT_PREVIOUS_COLUMN_EXTEND) {
                 changeSelection(list, EXTEND_SELECTION,
-                                getNextColumnIndex(list, ui, -1), true);
+                                getNextColumnIndex(list, ui, -1), -1);
             }
             else if (name == SELECT_PREVIOUS_COLUMN_CHANGE_LEAD) {
                 changeSelection(list, CHANGE_LEAD,
-                                getNextColumnIndex(list, ui, -1), true);
+                                getNextColumnIndex(list, ui, -1), -1);
             }
             else if (name == SELECT_NEXT_COLUMN) {
                 changeSelection(list, CHANGE_SELECTION,
-                                getNextColumnIndex(list, ui, 1), true);
+                                getNextColumnIndex(list, ui, 1), 1);
             }
             else if (name == SELECT_NEXT_COLUMN_EXTEND) {
                 changeSelection(list, EXTEND_SELECTION,
-                                getNextColumnIndex(list, ui, 1), true);
+                                getNextColumnIndex(list, ui, 1), 1);
             }
             else if (name == SELECT_NEXT_COLUMN_CHANGE_LEAD) {
                 changeSelection(list, CHANGE_LEAD,
-                                getNextColumnIndex(list, ui, 1), true);
+                                getNextColumnIndex(list, ui, 1), 1);
             }
             else if (name == SELECT_PREVIOUS_ROW) {
                 changeSelection(list, CHANGE_SELECTION,
-                                getNextIndex(list, ui, -1), true);
+                                getNextIndex(list, ui, -1), -1);
             }
             else if (name == SELECT_PREVIOUS_ROW_EXTEND) {
                 changeSelection(list, EXTEND_SELECTION,
-                                getNextIndex(list, ui, -1), true);
+                                getNextIndex(list, ui, -1), -1);
             }
             else if (name == SELECT_PREVIOUS_ROW_CHANGE_LEAD) {
                 changeSelection(list, CHANGE_LEAD,
-                                getNextIndex(list, ui, -1), true);
+                                getNextIndex(list, ui, -1), -1);
             }
             else if (name == SELECT_NEXT_ROW) {
                 changeSelection(list, CHANGE_SELECTION,
-                                getNextIndex(list, ui, 1), true);
+                                getNextIndex(list, ui, 1), 1);
             }
             else if (name == SELECT_NEXT_ROW_EXTEND) {
                 changeSelection(list, EXTEND_SELECTION,
-                                getNextIndex(list, ui, 1), true);
+                                getNextIndex(list, ui, 1), 1);
             }
             else if (name == SELECT_NEXT_ROW_CHANGE_LEAD) {
                 changeSelection(list, CHANGE_LEAD,
-                                getNextIndex(list, ui, 1), true);
+                                getNextIndex(list, ui, 1), 1);
             }
             else if (name == SELECT_FIRST_ROW) {
-                changeSelection(list, CHANGE_SELECTION, 0, true);
+                changeSelection(list, CHANGE_SELECTION, 0, -1);
             }
             else if (name == SELECT_FIRST_ROW_EXTEND) {
-                changeSelection(list, EXTEND_SELECTION, 0, true);
+                changeSelection(list, EXTEND_SELECTION, 0, -1);
             }
             else if (name == SELECT_FIRST_ROW_CHANGE_LEAD) {
-                changeSelection(list, CHANGE_LEAD, 0, true);
+                changeSelection(list, CHANGE_LEAD, 0, -1);
             }
             else if (name == SELECT_LAST_ROW) {
                 changeSelection(list, CHANGE_SELECTION,
-                                list.getModel().getSize() - 1, true);
+                                list.getModel().getSize() - 1, 1);
             }
             else if (name == SELECT_LAST_ROW_EXTEND) {
                 changeSelection(list, EXTEND_SELECTION,
-                                list.getModel().getSize() - 1, true);
+                                list.getModel().getSize() - 1, 1);
             }
             else if (name == SELECT_LAST_ROW_CHANGE_LEAD) {
                 changeSelection(list, CHANGE_LEAD,
-                                list.getModel().getSize() - 1, true);
+                                list.getModel().getSize() - 1, 1);
             }
             else if (name == SCROLL_UP) {
-                scroll(list, CHANGE_SELECTION, true);
+                changeSelection(list, CHANGE_SELECTION,
+				getNextPageIndex(list, -1), -1);
             }
             else if (name == SCROLL_UP_EXTEND) {
-                scroll(list, EXTEND_SELECTION, true);
+                changeSelection(list, EXTEND_SELECTION,
+				getNextPageIndex(list, -1), -1);
             }
             else if (name == SCROLL_UP_CHANGE_LEAD) {
-                scroll(list, CHANGE_LEAD, true);
+                changeSelection(list, CHANGE_LEAD,
+				getNextPageIndex(list, -1), -1);
             }
             else if (name == SCROLL_DOWN) {
-                scroll(list, CHANGE_SELECTION, false);
+                changeSelection(list, CHANGE_SELECTION,
+				getNextPageIndex(list, 1), 1);
             }
             else if (name == SCROLL_DOWN_EXTEND) {
-                scroll(list, EXTEND_SELECTION, false);
+                changeSelection(list, EXTEND_SELECTION,
+				getNextPageIndex(list, 1), 1);
             }
             else if (name == SCROLL_DOWN_CHANGE_LEAD) {
-                scroll(list, CHANGE_LEAD, false);
+                changeSelection(list, CHANGE_LEAD,
+				getNextPageIndex(list, 1), 1);
             }
             else if (name == SELECT_ALL) {
                 selectAll(list);
@@ -1747,12 +1936,12 @@ public class BasicListUI extends ListUI
             else if (name == EXTEND_TO) {
                 changeSelection(list, EXTEND_SELECTION,
                                 list.getSelectionModel().getLeadSelectionIndex(),
-                                false);
+                                0);
             }
             else if (name == MOVE_SELECTION_TO) {
                 changeSelection(list, CHANGE_SELECTION,
                                 list.getSelectionModel().getLeadSelectionIndex(),
-                                false);
+                                0);
             }
         }
 
@@ -1807,62 +1996,133 @@ public class BasicListUI extends ListUI
             }
         }
 
-        private void scroll(JList list, int type,
-                            boolean up) {
-            int index = getNextPageIndex(list, up);
-
-            if (index != -1) {
-                changeSelection(list, type, index, false);
-
-                // down
-                Rectangle visRect = list.getVisibleRect();
-                Rectangle cellBounds = list.getCellBounds(index, index);
-
-                if (!up) {
-                    cellBounds.y = Math.max(0, cellBounds.y +
-                                            cellBounds.height -visRect.height);
-                    cellBounds.height = visRect.height;
-                }
-                else {
-                    cellBounds.height = visRect.height;
-                }
-                list.scrollRectToVisible(cellBounds);
-            }
-        }
-
-	private int getNextPageIndex(JList list, boolean up) {
-            if (up) {
-                int index = list.getFirstVisibleIndex();
-                ListSelectionModel lsm = list.getSelectionModel();
-
-                if (lsm.getLeadSelectionIndex() == index) {
-                    Rectangle visRect = list.getVisibleRect();
-                    visRect.y = Math.max(0, visRect.y - visRect.height);
-                    index = list.locationToIndex(visRect.getLocation());
-                }
-                return index;
-            }
-            // down
-	    int index = list.getLastVisibleIndex();
-	    ListSelectionModel lsm = list.getSelectionModel();
-
-	    if (index == -1) {
-		// Will happen if size < viewport size.
-		index = list.getModel().getSize() - 1;
+  	private int getNextPageIndex(JList list, int direction) {
+	    if (list.getModel().getSize() == 0) {
+		return -1;
 	    }
-	    if (lsm.getLeadSelectionIndex() == index) {
-		Rectangle visRect = list.getVisibleRect();
-		visRect.y += visRect.height + visRect.height - 1;
-		index = list.locationToIndex(visRect.getLocation());
-		if (index == -1) {
-		    index = list.getModel().getSize() - 1;
+
+ 	    int index = -1;
+ 	    Rectangle visRect = list.getVisibleRect();
+  	    ListSelectionModel lsm = list.getSelectionModel();
+	    int lead = lsm.getLeadSelectionIndex();
+	    Rectangle leadRect =
+		(lead==-1) ? new Rectangle() : list.getCellBounds(lead, lead);
+  
+ 	    if (list.getLayoutOrientation() == JList.VERTICAL_WRAP &&
+ 		list.getVisibleRowCount() <= 0) {
+		if (!list.getComponentOrientation().isLeftToRight()) {
+		    direction = -direction;
 		}
-	    }
-	    return index;
-	}
+		// apply for horizontal scrolling: the step for next
+		// page index is number of visible columns
+ 		if (direction < 0) {
+		    // left
+		    visRect.x = leadRect.x + leadRect.width - visRect.width;
+		    Point p = new Point(visRect.x - 1, leadRect.y);
+ 		    index = list.locationToIndex(p);
+		    Rectangle cellBounds = list.getCellBounds(index, index);
+ 		    if (visRect.intersects(cellBounds)) {
+			p.x = cellBounds.x - 1;
+ 			index = list.locationToIndex(p);
+			cellBounds = list.getCellBounds(index, index);
+ 		    }
+		    // this is necessary for right-to-left orientation only
+ 		    if (cellBounds.y != leadRect.y) {
+			p.x = cellBounds.x + cellBounds.width;
+			index = list.locationToIndex(p);
+		    }
+ 		}
+ 		else {
+ 		    // right
+		    visRect.x = leadRect.x;
+		    Point p = new Point(visRect.x + visRect.width, leadRect.y);
+ 		    index = list.locationToIndex(p);
+		    Rectangle cellBounds = list.getCellBounds(index, index);
+ 		    if (visRect.intersects(cellBounds)) {
+			p.x = cellBounds.x + cellBounds.width;
+ 			index = list.locationToIndex(p);
+			cellBounds = list.getCellBounds(index, index);
+ 		    }
+ 		    if (cellBounds.y != leadRect.y) {
+			p.x = cellBounds.x - 1;
+			index = list.locationToIndex(p);
+		    }
+ 		}
+  	    }
+ 	    else {
+ 		if (direction < 0) {
+		    // up
+		    // go to the first visible cell
+		    Point p = new Point(leadRect.x, visRect.y);
+ 		    index = list.locationToIndex(p);
+ 		    if (lead <= index) {
+			// if lead is the first visible cell (or above it)
+			// adjust the visible rect up
+			visRect.y = leadRect.y + leadRect.height - visRect.height;
+			p.y = visRect.y;
+ 			index = list.locationToIndex(p);
+			Rectangle cellBounds = list.getCellBounds(index, index);
+			// go one cell down if first visible cell doesn't fit
+			// into adjasted visible rectangle
+			if (cellBounds.y < visRect.y) {
+			    p.y = cellBounds.y + cellBounds.height;
+			    index = list.locationToIndex(p);
+			    cellBounds = list.getCellBounds(index, index);
+			}
+			// if index isn't less then lead
+			// try to go to cell previous to lead
+			if (cellBounds.y >= leadRect.y) {
+			    p.y = leadRect.y - 1;
+			    index = list.locationToIndex(p);
+			}
+ 		    }
+  		}
+ 		else {
+ 		    // down
+		    // go to the last completely visible cell
+		    Point p = new Point(leadRect.x,
+					visRect.y + visRect.height - 1);
+ 		    index = list.locationToIndex(p);
+		    Rectangle cellBounds = list.getCellBounds(index, index);
+		    // go up one cell if last visible cell doesn't fit
+		    // into visible rectangle
+		    if (cellBounds.y + cellBounds.height >
+			visRect.y + visRect.height) {
+			p.y = cellBounds.y - 1;
+			index = list.locationToIndex(p);
+			cellBounds = list.getCellBounds(index, index);
+			index = Math.max(index, lead);
+		    }
+		    
+ 		    if (lead >= index) {
+			// if lead is the last completely visible index
+			// (or below it) adjust the visible rect down
+			visRect.y = leadRect.y;
+			p.y = visRect.y + visRect.height - 1;
+			index = list.locationToIndex(p);
+			cellBounds = list.getCellBounds(index, index);
+			// go one cell up if last visible cell doesn't fit
+			// into adjasted visible rectangle
+			if (cellBounds.y + cellBounds.height >
+			    visRect.y + visRect.height) {
+			    p.y = cellBounds.y - 1;
+			    index = list.locationToIndex(p);
+			    cellBounds = list.getCellBounds(index, index);
+			}
+			// if index isn't greater then lead
+			// try to go to cell next after lead
+			if (cellBounds.y <= leadRect.y) {
+			    p.y = leadRect.y + leadRect.height;
+			    index = list.locationToIndex(p);
+			}
+		    }
+ 		}
+  	    }
+  	    return index;
+  	}
 
         private void changeSelection(JList list, int type,
-                                     int index, boolean scroll) {
+                                     int index, int direction) {
 	    if (index >= 0 && index < list.getModel().getSize()) {
 		ListSelectionModel lsm = list.getSelectionModel();
 
@@ -1873,6 +2133,12 @@ public class BasicListUI extends ListUI
 
                     type = CHANGE_SELECTION;
                 }
+
+                // IMPORTANT - This needs to happen before the index is changed.
+                // This is because JFileChooser, which uses JList, also scrolls
+                // the selected item into view. If that happens first, then
+                // this method becomes a no-op.
+                adjustScrollPositionIfNecessary(list, index, direction);
 
 		if (type == EXTEND_SELECTION) {
 		    int anchor = lsm.getAnchorSelectionIndex();
@@ -1890,26 +2156,113 @@ public class BasicListUI extends ListUI
                     // for DefaultListSelectionModel
                     ((DefaultListSelectionModel)lsm).moveLeadSelectionIndex(index);
 		}
-                if (scroll) {
-                    list.ensureIndexIsVisible(index);
-                }
 	    }
         }
 
+	/**
+	 * When scroll down makes selected index the last completely visible
+	 * index. When scroll up makes selected index the first visible index.
+	 * Adjust visible rectangle respect to list's component orientation.
+	 */
+	private void adjustScrollPositionIfNecessary(JList list, int index,
+						     int direction) {
+	    if (direction == 0) {
+		return;
+	    }
+	    Rectangle cellBounds = list.getCellBounds(index, index);
+	    Rectangle visRect = list.getVisibleRect();
+	    if (cellBounds != null && !visRect.contains(cellBounds)) {
+		if (list.getLayoutOrientation() == JList.VERTICAL_WRAP &&
+		    list.getVisibleRowCount() <= 0) {
+		    // horizontal
+		    if (list.getComponentOrientation().isLeftToRight()) {
+			if (direction > 0) {
+			    // right for left-to-right
+			    int x =Math.max(0,
+				cellBounds.x + cellBounds.width - visRect.width);
+			    int startIndex =
+				list.locationToIndex(new Point(x, cellBounds.y));
+			    Rectangle startRect = list.getCellBounds(startIndex,
+								     startIndex);
+			    if (startRect.x < x && startRect.x < cellBounds.x) {
+				startRect.x += startRect.width;
+				startIndex =
+				    list.locationToIndex(startRect.getLocation());
+				startRect = list.getCellBounds(startIndex,
+							       startIndex);
+			    }
+			    cellBounds = startRect;
+			}
+			cellBounds.width = visRect.width;
+		    }
+		    else {
+			if (direction > 0) {
+			    // left for right-to-left
+			    int x = cellBounds.x + visRect.width;
+			    int rightIndex =
+				list.locationToIndex(new Point(x, cellBounds.y));
+			    Rectangle rightRect = list.getCellBounds(rightIndex,
+								     rightIndex);
+			    if (rightRect.x + rightRect.width > x &&
+				rightRect.x > cellBounds.x) {
+				rightRect.width = 0;
+			    }
+			    cellBounds.x = Math.max(0,
+				rightRect.x + rightRect.width - visRect.width);
+			    cellBounds.width = visRect.width;
+			}
+			else {
+ 			    cellBounds.x += Math.max(0,
+ 				cellBounds.width - visRect.width);
+			    // adjust width to fit into visible rectangle
+			    cellBounds.width = Math.min(cellBounds.width,
+							visRect.width);
+			}
+		    }
+		}
+		else {
+		    // vertical
+		    if (direction > 0) {
+			//down
+			int y = Math.max(0,
+			    cellBounds.y + cellBounds.height - visRect.height);
+			int startIndex =
+			    list.locationToIndex(new Point(cellBounds.x, y));
+			Rectangle startRect = list.getCellBounds(startIndex,
+								 startIndex);
+			if (startRect.y < y && startRect.y < cellBounds.y) {
+			    startRect.y += startRect.height;
+			    startIndex = 
+				list.locationToIndex(startRect.getLocation());
+			    startRect =
+				list.getCellBounds(startIndex, startIndex);
+			}
+			cellBounds = startRect;
+			cellBounds.height = visRect.height;
+		    }
+		    else {
+			// adjust height to fit into visible rectangle
+			cellBounds.height = Math.min(cellBounds.height, visRect.height);
+		    }
+		}
+ 		list.scrollRectToVisible(cellBounds);
+	    }
+	}
+
 	private int getNextColumnIndex(JList list, BasicListUI ui,
                                        int amount) {
-            if (list.getLayoutOrientation() != JList.VERTICAL) {
+	    if (list.getLayoutOrientation() != JList.VERTICAL) {
                 int index = list.getLeadSelectionIndex();
-                int size = list.getModel().getSize();
+		int size = list.getModel().getSize();
 
                 if (index == -1) {
                     return 0;
-                } else if (size == 1) {
-                    // there's only one item so we should select it
-                    return 0;
-                } else if (ui == null || ui.columnCount <= 1) {
-                    return -1;
-                }
+		} else if (size == 1) {
+		    // there's only one item so we should select it
+		    return 0;
+		} else if (ui == null || ui.columnCount <= 1) {
+		    return -1;
+		}
 
                 int column = ui.convertModelToColumn(index);
                 int row = ui.convertModelToRow(index);
@@ -1921,7 +2274,7 @@ public class BasicListUI extends ListUI
                 }
                 int maxRowCount = ui.getRowCount(column);
                 if (row >= maxRowCount) {
-                    row = maxRowCount - 1;
+                    return -1;
                 }
                 return ui.getModelIndex(column, row);
             }
@@ -1942,10 +2295,10 @@ public class BasicListUI extends ListUI
 			index = size - 1;
 		    }
 		}
-            } else if (size == 1) { 
-                // there's only one item so we should select it
-                index = 0; 
-            } else if (list.getLayoutOrientation() == JList.HORIZONTAL_WRAP) { 
+	    } else if (size == 1) { 
+		// there's only one item so we should select it
+		index = 0; 
+	    } else if (list.getLayoutOrientation() == JList.HORIZONTAL_WRAP) { 
                 if (ui != null) {
                     index += ui.columnCount * amount;
                 }
@@ -1960,7 +2313,8 @@ public class BasicListUI extends ListUI
 
     private class Handler implements FocusListener, KeyListener,
                           ListDataListener, ListSelectionListener,
-                          MouseInputListener, PropertyChangeListener {
+                          MouseInputListener, PropertyChangeListener,
+                          BeforeDrag {
         //
         // KeyListener
         //
@@ -2153,17 +2507,30 @@ public class BasicListUI extends ListUI
 		SwingUtilities.replaceUIInputMap(list, JComponent.WHEN_FOCUSED,
 						 inputMap);
 	    } else if ("List.isFileList" == propertyName) {
-                updateIsFileList();
+		updateIsFileList();
 		redrawList();
-            } else if ("transferHandler" == propertyName) {
-                DropTarget dropTarget = list.getDropTarget();
-                if (dropTarget instanceof UIResource) {
-                    try {
-                        dropTarget.addDropTargetListener(new ListDropTargetListener());
-                    } catch (TooManyListenersException tmle) {
-                        // should not happen... swing drop target is multicast
-                    }
-                }
+            } else if ("dropLocation" == propertyName) {
+                JList.DropLocation oldValue = (JList.DropLocation)e.getOldValue();
+                repaintDropLocation(oldValue);
+                repaintDropLocation(list.getDropLocation());
+            }
+        }
+
+        private void repaintDropLocation(JList.DropLocation loc) {
+            if (loc == null) {
+                return;
+            }
+
+            Rectangle r;
+
+            if (loc.isInsert()) {
+                r = getDropLineRect(loc);
+            } else {
+                r = getCellBounds(list, loc.getIndex());
+            }
+
+            if (r != null) {
+                list.repaint(r);
             }
         }
 
@@ -2236,8 +2603,6 @@ public class BasicListUI extends ListUI
         //
         // MouseListener
         //
-	private boolean selectedOnPress;
-
         public void mouseClicked(MouseEvent e) {
         }
 
@@ -2246,155 +2611,6 @@ public class BasicListUI extends ListUI
 
         public void mouseExited(MouseEvent e) {
         }
-
-        public void mousePressed(MouseEvent e) {
-	    if (e.isConsumed()) {
-		selectedOnPress = false;
-		return;
-	    }
-	    selectedOnPress = true;
-	    adjustFocusAndSelection(e);
-	}
-
-	private void adjustFocusAndSelection(MouseEvent e) {
-	    if (!SwingUtilities.isLeftMouseButton(e)) {
-	        return;
-	    }
-
-	    if (!list.isEnabled()) {
-		return;
-	    }
-
-	    /* Request focus before updating the list selection.  This implies
-	     * that the current focus owner will see a focusLost() event
-	     * before the lists selection is updated IF requestFocus() is
-	     * synchronous (it is on Windows).  See bug 4122345
-	     */
-            SwingUtilities2.adjustFocus(list);
-
-            adjustSelection(e);
-        }
-
-        protected void adjustSelection(MouseEvent e) {
-            int row = SwingUtilities2.loc2IndexFileList(list, e.getPoint());
-            if (row < 0) {
-                // If shift is down in multi-select, we should do nothing.
-                // For single select or non-shift-click, clear the selection
-		if (isFileList &&
-                    e.getID() == MouseEvent.MOUSE_PRESSED &&
-                    (!e.isShiftDown() ||
-                     list.getSelectionMode() == ListSelectionModel.SINGLE_SELECTION)) {
-                    list.clearSelection();
-                }
-            }
-            else {
-                if (!DRAG_FIX) {
-                    boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ? true : false;
-                    list.setValueIsAdjusting(adjusting);
-                }
-                int anchorIndex = list.getAnchorSelectionIndex();
-                if (e.isControlDown()) {
-                    if (e.isShiftDown() && anchorIndex != -1) {
-                        if (list.isSelectedIndex(anchorIndex)) {
-                            list.addSelectionInterval(anchorIndex, row);
-                        } else {
-                            list.removeSelectionInterval(anchorIndex, row);
-                            list.addSelectionInterval(row, row);
-                            list.getSelectionModel().setAnchorSelectionIndex(anchorIndex);
-                        }
-                    } else if (list.isSelectedIndex(row)) {
-                        list.removeSelectionInterval(row, row);
-                    }
-                    else {
-                        list.addSelectionInterval(row, row);
-                    }
-                }
-                else if (e.isShiftDown() && (anchorIndex != -1)) {
-                    list.setSelectionInterval(anchorIndex, row);
-                }
-                else {
-                    list.setSelectionInterval(row, row);
-                }
-            }
-        }
-
-        public void mouseDragged(MouseEvent e) {
-	    if (e.isConsumed()) {
-		return;
-	    }
-	    if (!SwingUtilities.isLeftMouseButton(e)) {
-	        return;
-	    }
-	    if (!list.isEnabled()) {
-		return;
-	    }
-
-            mouseDraggedImpl(e);
-        }
-
-        protected void mouseDraggedImpl(MouseEvent e) {
-            if (e.isShiftDown() || e.isControlDown()) {
-                return;
-            }
-
-            int row = locationToIndex(list, e.getPoint());
-            if (row != -1) {
-                // 4835633.  Dragging onto a File should not select it.
-                if (isFileList) {
-                    return;
-                }
-                Rectangle cellBounds = getCellBounds(list, row, row);
-                if (cellBounds != null) {
-                    list.scrollRectToVisible(cellBounds);
-                    list.setSelectionInterval(row, row);
-                }
-            }
-        }
-
-        public void mouseMoved(MouseEvent e) {
-        }
-
-        public void mouseReleased(MouseEvent e) {
-	    if (selectedOnPress) {
-		if (!SwingUtilities.isLeftMouseButton(e)) {
-		    return;
-		}
-
-		list.setValueIsAdjusting(false);
-	    } else {
-		adjustFocusAndSelection(e);
-	    }
-        }
-
-        //
-        // FocusListener
-        //
-        protected void repaintCellFocus()
-        {
-            int leadIndex = list.getLeadSelectionIndex();
-            if (leadIndex != -1) {
-                Rectangle r = getCellBounds(list, leadIndex, leadIndex);
-                if (r != null) {
-                    list.repaint(r.x, r.y, r.width, r.height);
-                }
-            }
-        }
-
-        /* The focusGained() focusLost() methods run when the JList
-         * focus changes.
-         */
-
-        public void focusGained(FocusEvent e) {
-            repaintCellFocus();
-        }
-
-        public void focusLost(FocusEvent e) {
-            repaintCellFocus();
-        }
-    }
-
-
-    private class DragFixHandler extends Handler implements BeforeDrag {
 
         // Whether or not the mouse press (which is being considered as part
         // of a drag sequence) also caused the selection change to be fully
@@ -2444,6 +2660,45 @@ public class BasicListUI extends ListUI
             }
 
             adjustSelection(e);
+	}
+
+        private void adjustSelection(MouseEvent e) {
+            int row = SwingUtilities2.loc2IndexFileList(list, e.getPoint());
+            if (row < 0) {
+                // If shift is down in multi-select, we should do nothing.
+                // For single select or non-shift-click, clear the selection
+                if (isFileList &&
+                    e.getID() == MouseEvent.MOUSE_PRESSED &&
+                    (!e.isShiftDown() ||
+                     list.getSelectionMode() == ListSelectionModel.SINGLE_SELECTION)) {
+                    list.clearSelection();
+                }
+            }
+            else {
+                int anchorIndex = list.getAnchorSelectionIndex();
+                if (e.isControlDown()) {
+                    if (e.isShiftDown() && anchorIndex != -1) {
+                        if (list.isSelectedIndex(anchorIndex)) {
+                            list.addSelectionInterval(anchorIndex, row);
+                        } else {
+                            list.removeSelectionInterval(anchorIndex, row);
+                            list.addSelectionInterval(row, row);
+                            list.getSelectionModel().setAnchorSelectionIndex(anchorIndex);
+                        }
+                    } else if (list.isSelectedIndex(row)) {
+                        list.removeSelectionInterval(row, row);
+                    }
+                    else {
+                        list.addSelectionInterval(row, row);
+                    }
+                }
+                else if (e.isShiftDown() && (anchorIndex != -1)) {
+                    list.setSelectionInterval(anchorIndex, row);
+                }
+                else {
+                    list.setSelectionInterval(row, row);
+                }
+            }
         }
 
         public void dragStarting(MouseEvent me) {
@@ -2463,7 +2718,25 @@ public class BasicListUI extends ListUI
                 return;
             }
 
-            mouseDraggedImpl(e);
+            if (e.isShiftDown() || e.isControlDown()) {
+                return;
+            }
+
+            int row = locationToIndex(list, e.getPoint());
+            if (row != -1) {
+                // 4835633.  Dragging onto a File should not select it.
+                if (isFileList) {
+                    return;
+                }
+                Rectangle cellBounds = getCellBounds(list, row, row);
+                if (cellBounds != null) {
+                    list.scrollRectToVisible(cellBounds);
+                    list.setSelectionInterval(row, row);
+                }
+            }
+        }
+
+        public void mouseMoved(MouseEvent e) {
         }
 
         public void mouseReleased(MouseEvent e) {
@@ -2483,82 +2756,32 @@ public class BasicListUI extends ListUI
                 list.setValueIsAdjusting(false);
             }
         }
-    }
 
+        //
+        // FocusListener
+        //
+        protected void repaintCellFocus()
+        {
+            int leadIndex = list.getLeadSelectionIndex();
+            if (leadIndex != -1) {
+                Rectangle r = getCellBounds(list, leadIndex, leadIndex);
+                if (r != null) {
+                    list.repaint(r.x, r.y, r.width, r.height);
+                }
+            }
+        }
 
-    private static final ListDragGestureRecognizer defaultDragRecognizer =
-        DRAG_FIX ? null : new ListDragGestureRecognizer();
+        /* The focusGained() focusLost() methods run when the JList
+         * focus changes.
+         */
 
-    /**
-     * Drag gesture recognizer for JList components
-     */
-    static class ListDragGestureRecognizer extends BasicDragGestureRecognizer {
+        public void focusGained(FocusEvent e) {
+            repaintCellFocus();
+        }
 
-	/**
-	 * Determines if the following are true:
-	 * <ul>
-	 * <li>the press event is located over a selection
-	 * <li>the dragEnabled property is true
-	 * <li>A TranferHandler is installed
-	 * </ul>
-	 * <p>
-	 * This is implemented to perform the superclass behavior
-	 * followed by a check if the dragEnabled 
-	 * property is set and if the location picked is selected.
-	 */
-        protected boolean isDragPossible(MouseEvent e) {
-	    if (super.isDragPossible(e)) {
-		JList list = (JList) this.getComponent(e);
-		if (list.getDragEnabled()) {
-		    ListUI ui = list.getUI();
-            int row = SwingUtilities2.loc2IndexFileList(list, 
-                                                        e.getPoint());
-		    if ((row != -1) && list.isSelectedIndex(row)) {
-			return true;
-		    }
-		}
-	    }
-	    return false;
-	}
-    }
-
-    /**
-     * A DropTargetListener to extend the default Swing handling of drop operations
-     * by moving the list selection to the nearest location to the mouse pointer.
-     * Also adds autoscroll.
-     */
-    class ListDropTargetListener extends BasicDropTargetListener {
-	/**
-	 * called to save the state of a component in case it needs to
-	 * be restored because a drop is not performed.
-	 */
-        protected void saveComponentState(JComponent comp) {
-	    JList list = (JList) comp;
-	    selectedIndices = list.getSelectedIndices();
-	}
-
-	/**
-	 * called to restore the state of a component 
-	 * because a drop was not performed.
-	 */
-        protected void restoreComponentState(JComponent comp) {
-	    JList list = (JList) comp;
-	    list.setSelectedIndices(selectedIndices);
-	}
-
-	/**
-	 * called to set the insertion location to match the current
-	 * mouse pointer coordinates.
-	 */
-        protected void updateInsertionLocation(JComponent comp, Point p) {
-	    JList list = (JList) comp;
-            int index = locationToIndex(list, p);
-            if (index != -1) {
-		list.setSelectionInterval(index, index);
-	    }
-	}
-
-	private int[] selectedIndices;
+        public void focusLost(FocusEvent e) {
+            repaintCellFocus();
+        }
     }
 
     private static final TransferHandler defaultTransferHandler = new ListTransferHandler();

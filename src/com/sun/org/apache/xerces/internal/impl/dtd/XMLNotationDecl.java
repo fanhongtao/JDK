@@ -58,7 +58,7 @@
 package com.sun.org.apache.xerces.internal.impl.dtd;
 
 /**
- * @version $Id: XMLNotationDecl.java,v 1.4 2002/01/29 01:15:10 lehors Exp $
+  * @version $Id: XMLNotationDecl.java,v 1.1.2.1 2005/08/01 03:36:46 jeffsuttor Exp $
  */
 public class XMLNotationDecl {
 

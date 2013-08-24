@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTabbedPaneUI.java	1.36 03/12/19
+ * @(#)MetalTabbedPaneUI.java	1.40 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -230,7 +230,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 	    g.drawLine( 1, 6, 6, 1 );
 
 	    // Paint top
-	    g.drawLine( 6, 1, right, 1 );
+            g.drawLine( 6, 1, (tabIndex == lastIndex) ? right - 1 : right, 1 );
 
 	    // Paint left
 	    g.drawLine( 1, 6, 1, bottom );
@@ -319,23 +319,11 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
             // Check to see if this tab is over the gap
 	    if ( MetalUtils.isLeftToRight(tabPane) ) {
                 if ( tabLeft <= x && tabRight - shadowWidth > x ) {
-                    if (ocean) {
-                        if (selectedIndex == i) {
-                            return oceanSelectedBorderColor;
-                        }
-                        return getUnselectedBackgroundAt(i);
-                    }
                     return selectedIndex == i ? selectColor : getUnselectedBackgroundAt( i );
                 }
             }
             else {
 	        if ( tabLeft + shadowWidth < x && tabRight >= x ) {
-                    if (ocean) {
-                        if (selectedIndex == i) {
-                            return oceanSelectedBorderColor;
-                        }
-                        return getUnselectedBackgroundAt(i);
-                    }
                     return selectedIndex == i ? selectColor : getUnselectedBackgroundAt( i );
                 }
             }
@@ -393,9 +381,12 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
         g.drawLine( 6, 1, right, 1 );
 
         if ( tabIndex != firstIndex ) {
-            if (ocean) {
-                g.setColor(MetalLookAndFeel.getWhite());
+            if (tabPane.getSelectedIndex() == tabIndex - 1) {
+                g.setColor(selectHighlight);
+            } else {
+                g.setColor(ocean ? MetalLookAndFeel.getWhite() : highlight);
             }
+
             g.drawLine( 1, 0, 1, 4 );
         }
 
@@ -434,7 +425,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
                 g.drawLine(0, 0, 0, 5);
             }
             else if (isSelected) {
-                g.drawLine( 0, 5, 0, bottom );
+                g.drawLine( 0, 6, 0, bottom );
                 if (tabIndex != 0) {
                     g.setColor(darkShadow);
                     g.drawLine(0, 0, 0, 5);
@@ -521,7 +512,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 
 	    // Paint left
             if (ocean && isSelected) {
-                g.drawLine(0, 0, 0, bottom - 5);
+                g.drawLine(0, 0, 0, bottom - 6);
                 if ((currentRun == 0 && tabIndex != 0) ||
                     (currentRun > 0 && tabIndex != tabRuns[currentRun - 1])) {
                     g.setColor(darkShadow);
@@ -635,7 +626,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 
         if ( tabIndex != firstIndex && tabsOpaque ) {
             g.setColor( tabPane.getSelectedIndex() == tabIndex - 1 ?
-                        tabAreaBackground :
+                        selectColor :
                         getUnselectedBackgroundAt( tabIndex - 1 ) );
             g.fillRect( right - 5, 0, 5, 3 );
             g.fillRect( right - 2, 3, 2, 2 );
@@ -736,7 +727,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
 		    g.fillRect( x + 5, y + (h - 1) - 3, w - 5, 3 );
 		    break;
                 case RIGHT:
-		    g.fillRect( x, y + 1, w - 4, h - 1);
+		    g.fillRect( x, y + 2, w - 4, h - 2);
 		    g.fillRect( x + (w - 1) - 3, y + 5, 3, h - 5 );
 		    break;
                 case TOP:
@@ -762,7 +753,7 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
                 case TOP:
                 default:
 		    g.fillRect( x, y + 2, (w - 1) - 3, (h - 1) - 1 );
-		    g.fillRect( x + (w - 1) - 3, y + 4, 3, h - 4 );
+		    g.fillRect( x + (w - 1) - 3, y + 5, 3, h - 3 );
 	    }
 	}
     }
@@ -782,6 +773,14 @@ public class MetalTabbedPaneUI extends BasicTabbedPaneUI {
         return 0; 
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.6
+     */
+    protected int getBaselineOffset() {
+        return 0;
+    }
 
     public void paint( Graphics g, JComponent c ) {
         int tabPlacement = tabPane.getTabPlacement();

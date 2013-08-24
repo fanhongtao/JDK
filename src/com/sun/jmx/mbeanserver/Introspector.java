@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.68 03/12/19
+ * @(#)Introspector.java	1.90 06/01/23
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,22 +9,24 @@ package com.sun.jmx.mbeanserver;
 
 
 // Java import
+import com.sun.jmx.remote.util.EnvHelp;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
-// RI Import
-import javax.management.IntrospectionException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanConstructorInfo;
+import javax.management.Descriptor;
+import javax.management.DescriptorKey;
+import javax.management.DynamicMBean;
+import javax.management.ImmutableDescriptor;
 import javax.management.MBeanInfo;
-import javax.management.MBeanOperationInfo;
-import javax.management.MBeanParameterInfo;
 import javax.management.NotCompliantMBeanException;
-
 
 /**
  * This class contains the methods for performing all the tests needed to verify
@@ -125,7 +127,65 @@ public class Introspector {
 	    throw new NotCompliantMBeanException("MBean class must have public constructor");
 	}
     }
-    
+
+    public static void checkCompliance(Class mbeanClass)
+        throws NotCompliantMBeanException {
+        // Is DynamicMBean?
+        //
+        if (DynamicMBean.class.isAssignableFrom(mbeanClass))
+            return;
+        // Is Standard MBean?
+        //
+        final Exception mbeanException;
+        try {
+            getStandardMBeanInterface(mbeanClass);
+            return;
+        } catch (NotCompliantMBeanException e) {
+            mbeanException = e;
+        }
+        // Is MXBean?
+        //
+        final Exception mxbeanException;
+        try {
+            getMXBeanInterface(mbeanClass);
+            return;
+        } catch (NotCompliantMBeanException e) {
+            mxbeanException = e;
+        }
+        final String msg =
+            "MBean class " + mbeanClass.getName() + " does not implement " +
+            "DynamicMBean, neither follows the Standard MBean conventions (" +
+            mbeanException.toString() + ") nor the MXBean conventions (" +
+            mxbeanException.toString() + ")";
+        throw new NotCompliantMBeanException(msg);
+    }
+
+    public static DynamicMBean makeDynamicMBean(Object mbean)
+        throws NotCompliantMBeanException {
+        if (mbean instanceof DynamicMBean)
+            return (DynamicMBean) mbean;
+        final Class mbeanClass = mbean.getClass();
+        Class c = null;
+        try {
+            c = getStandardMBeanInterface(mbeanClass);
+        } catch (NotCompliantMBeanException e) {
+            // Ignore exception - we need to check whether 
+            // mbean is an MXBean first.
+        }
+        if (c != null) return new StandardMBeanSupport(mbean, c);
+
+        try {
+            c = getMXBeanInterface(mbeanClass);
+        } catch (NotCompliantMBeanException e) {
+            // Ignore exception - we cannot decide whether mbean was supposed
+            // to be an MBean or an MXBean. We will call checkCompliance() 
+            // to generate the appropriate exception.
+        }
+        if (c != null) return new MXBeanSupport(mbean, c);
+        checkCompliance(mbeanClass);
+        throw new NotCompliantMBeanException("Not compliant"); // not reached
+    }
+
     /**
      * Basic method for testing if a given class is a JMX compliant MBean.
      *
@@ -150,114 +210,105 @@ public class Introspector {
 	return testCompliance(baseClass, null);
     }
 
-    
-    /**
-     * Basic method for testing if a given class is a JMX compliant MBean.
-     *
-     * @param baseClass The class to be tested
-     *
-     * @return <code>null</code> if the MBean is a DynamicMBean, 
-     *         the computed {@link javax.management.MBeanInfo} otherwise.
-     * @exception NotCompliantMBeanException The specified class is not a 
-     *            JMX compliant MBean
-     */    
-    static MBeanInfo testCompliance(final Class baseClass,
-				    Class mbeanInterface) 
+    public static void testComplianceMXBeanInterface(Class interfaceClass)
 	    throws NotCompliantMBeanException {
-	
-	if (baseClass.isInterface()) 
-	    throw new NotCompliantMBeanException(baseClass.getName() + 
-						 " must be a class.");
-	// ------------------------------ 
-	// ------------------------------
-	if (mbeanInterface == null)
-	    // No interface specified: look for default MBean interface.
-	    mbeanInterface = getStandardMBeanInterface(baseClass);
-	else if (! mbeanInterface.isAssignableFrom(baseClass)) {
-	    // specified interface not implemented by given class
-	    final String msg =
-		baseClass.getName() + " does not implement the " + 
-		mbeanInterface.getName() + " interface";
-	    throw new NotCompliantMBeanException(msg);
-	} else if (! mbeanInterface.isInterface()) {
-	    // Base class X, but XMBean is not an interface
-	    final String msg =
-		baseClass.getName() + ": " + mbeanInterface.getName() + 
-		" is not an interface";
-	    throw new NotCompliantMBeanException(msg);
-	}
-
-
-	if (mbeanInterface == null) {
-	    // Error: MBean does not implement javax.management.DynamicMBean 
-	    // nor MBean interface
-	    final String baseClassName = baseClass.getName();
-	    final String msg =
-		baseClassName + " does not implement the " + baseClassName +
-		"MBean interface or the DynamicMBean interface";
-	    throw new NotCompliantMBeanException(msg);
-	}
-	
-	final int mods = mbeanInterface.getModifiers();
-	if (!Modifier.isPublic(mods)) 
-	    throw new NotCompliantMBeanException(mbeanInterface.getName() + 
-						 " implemented by " +
-						 baseClass.getName() + 
-						 " must be public");
-
-	return (introspect(baseClass, mbeanInterface));
+	MXBeanIntrospector.getInstance().getAnalyzer(interfaceClass);
     }
 
-    
     /**
-     * Get the MBean interface implemented by a JMX standard MBean 
-     * class.
+     * Basic method for testing if a given class is a JMX compliant
+     * Standard MBean.  This method is only called by the legacy code
+     * in com.sun.management.jmx.
      *
-     * @param baseClass The class to be tested
-     * 
-     * @return The MBean interface implemented by the MBean. 
-     *         Return <code>null</code> if the MBean is a DynamicMBean, 
+     * @param baseClass The class to be tested.
+     *
+     * @param mbeanInterface the MBean interface that the class implements,
+     * or null if the interface must be determined by introspection.
+     *
+     * @return the computed {@link javax.management.MBeanInfo}.
+     * @exception NotCompliantMBeanException The specified class is not a 
+     *            JMX compliant Standard MBean
+     */    
+    public static synchronized MBeanInfo
+            testCompliance(final Class<?> baseClass,
+                           Class<?> mbeanInterface) 
+	    throws NotCompliantMBeanException {
+        if (mbeanInterface == null)
+            mbeanInterface = getStandardMBeanInterface(baseClass);
+        MBeanIntrospector introspector = StandardMBeanIntrospector.getInstance();
+        PerInterface<?> perInterface = introspector.getPerInterface(mbeanInterface);
+        return introspector.getClassMBeanInfo(baseClass, perInterface);
+    }
+
+    /**
+     * Get the MBean interface implemented by a JMX Standard
+     * MBean class. This method is only called by the legacy
+     * code in "com.sun.management.jmx".
+     *
+     * @param baseClass The class to be tested.
+     *
+     * @return The MBean interface implemented by the MBean.
+     *         Return <code>null</code> if the MBean is a DynamicMBean,
      *         or if no MBean interface is found.
-     *
      */
     public static Class getMBeanInterface(Class baseClass) {
-
-	// ------------------------------ 
-	// ------------------------------
-	
-	// Check if the MBean implements the MBean or the Dynamic 
-	// MBean interface
-	if (isDynamic(baseClass)) return null;
-
-	return getStandardMBeanInterface(baseClass);     
+        // Check if the given class implements the MBean interface
+        // or the Dynamic MBean interface
+        if (isDynamic(baseClass)) return null;
+        try {
+            return getStandardMBeanInterface(baseClass);
+        } catch (NotCompliantMBeanException e) {
+            return null;
+        }
     }
-    
-    /**
-     * Get the MBean interface implemented by a JMX standard MBean 
-     * class.
-     *
-     * @param baseClass The class to be tested
-     * 
-     * @return The MBean interface implemented by the MBean. 
-     *         Return <code>null</code> if no MBean interface is found.
-     *         Does not check whether the MBean is a DynamicMBean.
-     *
-     */
-    static Class getStandardMBeanInterface(Class baseClass) {
 
-	// ------------------------------ 
-	// ------------------------------
-	
-	Class current = baseClass;
-	Class mbeanInterface = null;
-	
-	while (current != null) {
-	    mbeanInterface = 
-		findMBeanInterface(current, current.getName());
-	    if (mbeanInterface != null) break;
-	    current = current.getSuperclass();
-	}
-	return mbeanInterface;
+    /**
+     * Get the MBean interface implemented by a JMX Standard MBean class.
+     *
+     * @param baseClass The class to be tested.
+     *
+     * @return The MBean interface implemented by the Standard MBean.
+     *
+     * @throws NotCompliantMBeanException The specified class is
+     * not a JMX compliant Standard MBean.
+     */
+    public static Class getStandardMBeanInterface(Class baseClass)
+        throws NotCompliantMBeanException {
+        Class current = baseClass;
+        Class mbeanInterface = null;
+        while (current != null) {
+            mbeanInterface =
+                findMBeanInterface(current, current.getName());
+            if (mbeanInterface != null) break;
+            current = current.getSuperclass();
+        }
+        if (mbeanInterface != null) {
+            return mbeanInterface;
+        } else {
+            final String msg =
+                "Class " + baseClass.getName() +
+                " is not a JMX compliant Standard MBean";
+            throw new NotCompliantMBeanException(msg);
+        }
+    }
+
+    /**
+     * Get the MXBean interface implemented by a JMX MXBean class.
+     *
+     * @param baseClass The class to be tested.
+     *
+     * @return The MXBean interface implemented by the MXBean.
+     *
+     * @throws NotCompliantMBeanException The specified class is
+     * not a JMX compliant MXBean.
+     */
+    public static Class getMXBeanInterface(Class baseClass)
+        throws NotCompliantMBeanException {
+        try {
+            return MXBeanSupport.findMXBeanInterface(baseClass);
+        } catch (Exception e) {
+            throw throwException(baseClass,e);
+        }
     }
 
     /*
@@ -285,244 +336,124 @@ public class Introspector {
 	}
 	return null;     
     }
-
-
-    /**
-     * Discovers the getters, setters, operations of the class
-     *
-     * @param baseClass The XX base class.
-     * @param beanClass The XXMBean interface implemented by the tested class.
-     *
-     * @exception NotCompliantMBeanException The tested class is not a
-     * JMX compliant MBean
-     */    
-    private static MBeanInfo introspect(Class baseClass, Class beanClass)
-	    throws NotCompliantMBeanException {
-
-	// ------------------------------ 
-	// ------------------------------
-
-	List/*<MBeanAttributeInfo>*/ attributes =
-	    new ArrayList/*<MBeanAttributeInfo>*/();
-	List/*<MBeanOperationInfo>*/ operations =
-	    new ArrayList/*<MBeanOperationInfo>*/();
-	
-	Method methodList[] = beanClass.getMethods();
-	
-	// Now analyze each method.        
-	for (int i = 0; i < methodList.length; i++) { 
-	    Method method = methodList[i];
-	    String name = method.getName();            
-	    Class argTypes[] = method.getParameterTypes();
-	    Class resultType = method.getReturnType();
-	    int argCount = argTypes.length;
-
-	    try {
-		final MBeanAttributeInfo attr;
-
-		if (name.startsWith("get") && !name.equals("get")
-		    && argCount == 0 && !resultType.equals(void.class)) {
-		    // if the method is "T getX()" it is a getter
-		    attr = new MBeanAttributeInfo(name.substring(3),
-						  attributeDescription,
-						  method, null);
-		} else if (name.startsWith("set") && !name.equals("set")
-			   && argCount == 1 && resultType.equals(void.class)) {
-		    // if the method is "void setX(T x)" it is a setter
-		    attr = new MBeanAttributeInfo(name.substring(3),
-						  attributeDescription,
-						  null, method);
-		} else if (name.startsWith("is") && !name.equals("is")
-			   && argCount == 0
-			   && resultType.equals(boolean.class)) {
-		    // if the method is "boolean isX()" it is a getter
-		    attr = new MBeanAttributeInfo(name.substring(2),
-						  attributeDescription,
-						  method, null);
-		} else {
-		    // in all other cases it is an operation
-		    attr = null;
-		}
-
-		if (attr != null) {
-		    if (testConsistency(attributes, attr))
-			attributes.add(attr);
-		} else {
-		    final MBeanOperationInfo oper =
-			new MBeanOperationInfo(operationDescription, method);
-		    operations.add(oper);
-		}
-	    } catch (IntrospectionException e) {
-		// Should not happen (MBeanAttributeInfo constructor)
-		error("introspect", e);
-	    }
-	}
-
-	return constructResult(baseClass, attributes, operations); 
+    
+    public static Descriptor descriptorForElement(final AnnotatedElement elmt) {
+        if (elmt == null)
+            return ImmutableDescriptor.EMPTY_DESCRIPTOR;
+        final Annotation[] annots = elmt.getAnnotations();
+        return descriptorForAnnotations(annots);
     }
-
-    /**
-     * Checks if the types and the signatures of
-     * getters/setters/operations are conform to the MBean design
-     * patterns.
-     *
-     * Error cases:
-     * 	-  It exposes a method void Y getXX() AND a method void setXX(Z)
-     *     (parameter type mismatch) 
-     * 	-  It exposes a method void setXX(Y) AND a method void setXX(Z)
-     *     (parameter type mismatch) 
-     *  -  It exposes a  boolean isXX() method AND a YY getXX() or a void setXX(Y).
-     * Returns false if the attribute is already in attributes List
-     */    
-    private static boolean testConsistency(List/*<MBeanAttributeInfo>*/attributes,
-					   MBeanAttributeInfo attr)
-	throws NotCompliantMBeanException {
-	for (Iterator it = attributes.iterator(); it.hasNext(); ) {
-	    MBeanAttributeInfo mb = (MBeanAttributeInfo) it.next();
-	    if (mb.getName().equals(attr.getName())) {
-		if ((attr.isReadable() && mb.isReadable()) && 
-		    (attr.isIs() != mb.isIs())) {
-		    final String msg =
-			"Conflicting getters for attribute " + mb.getName();
-		    throw new NotCompliantMBeanException(msg);
-		}  
-		if (!mb.getType().equals(attr.getType())) {
-		    if (mb.isWritable() && attr.isWritable()) {
-			final String msg =
-			    "Type mismatch between parameters of set" +
-			    mb.getName() + " methods";
-			throw new NotCompliantMBeanException(msg);
-		    } else {
-			final String msg =
-			    "Type mismatch between parameters of get or is" +
-			    mb.getName() + ", set" + mb.getName() + " methods";
-			throw new NotCompliantMBeanException(msg);
-		    }
-		}
-		if (attr.isReadable() && mb.isReadable()) {
-		    return false;
-		}
-		if (attr.isWritable() && mb.isWritable()) {
-		    return false;
-		}
-	    }
-	}
-	return true;
-    }
-
-    /**
-     * Discovers the constructors of the MBean
-     */
-    static MBeanConstructorInfo[] getConstructors(Class baseClass) {
-	Constructor[] consList = baseClass.getConstructors();
-	List constructors = new ArrayList();
-	
-	// Now analyze each Constructor.        
-	for (int i = 0; i < consList.length; i++) {
-	    Constructor constructor = consList[i];    	    
-	    MBeanConstructorInfo mc = null;
-	    try {               
-		mc = new MBeanConstructorInfo(constructorDescription, constructor);		     		                
-	    } catch (Exception ex) {
-		mc = null;
-	    }
-	    if (mc != null) {
-		constructors.add(mc);
-	    }
-	}
-	// Allocate and populate the result array.
-	MBeanConstructorInfo[] resultConstructors =
-	    new MBeanConstructorInfo[constructors.size()];
-	constructors.toArray(resultConstructors);
-	return resultConstructors;
+    
+    public static Descriptor descriptorForAnnotations(Annotation[] annots) {
+        if (annots.length == 0)
+            return ImmutableDescriptor.EMPTY_DESCRIPTOR;
+        Map<String, Object> descriptorMap = new HashMap<String, Object>();
+        for (Annotation a : annots) {
+            Class<? extends Annotation> c = a.annotationType();
+            Method[] elements = c.getMethods();
+            for (Method element : elements) {
+                DescriptorKey key = element.getAnnotation(DescriptorKey.class);
+                if (key != null) {
+                    String name = key.value();
+                    Object value;
+                    try {
+                        value = element.invoke(a);
+                    } catch (RuntimeException e) { 
+                        // we don't expect this - except for possibly
+                        // security exceptions? 
+                        // RuntimeExceptions shouldn't be "UndeclaredThrowable".
+                        // anyway...
+                        //
+                        throw e;
+                    } catch (Exception e) {
+                        // we don't expect this
+                        throw new UndeclaredThrowableException(e);
+                    }
+                    value = annotationToField(value);
+                    Object oldValue = descriptorMap.put(name, value);
+                    if (oldValue != null && !equals(oldValue, value)) {
+                        final String msg =
+                            "Inconsistent values for descriptor field " + name +
+                            " from annotations: " + value + " :: " + oldValue;
+                        throw new IllegalArgumentException(msg);
+                    }
+                }
+            }
+        }
+        
+        if (descriptorMap.isEmpty())
+            return ImmutableDescriptor.EMPTY_DESCRIPTOR;
+        else
+            return new ImmutableDescriptor(descriptorMap);
     }
     
     /**
-     * Constructs the MBeanInfo of the MBean.
-     */
-    private static MBeanInfo constructResult(Class baseClass,
-					     List/*<MBeanAttributeInfo>*/ attributes,
-					     List/*<MBeanOperationInfo>*/ operations) {
-	
-	final int len = attributes.size();
-	final MBeanAttributeInfo[] attrlist = new MBeanAttributeInfo[len];
-	attributes.toArray(attrlist);
-	final ArrayList mergedAttributes = new ArrayList();
-	
-	for (int i=0;i<len;i++) {
-	    final MBeanAttributeInfo bi = attrlist[i];
-	    
-	    // bi can be null if it has already been eliminated
-	    // by the loop below at an earlier iteration
-	    // (cf. attrlist[j]=null;) In this case, just skip it.
-	    //
-	    if (bi == null) continue;
+     * Throws a NotCompliantMBeanException or a SecurityException.
+     * @param notCompliant the class which was under examination
+     * @param cause the raeson why NotCompliantMBeanException should
+     *        be thrown.
+     * @return nothing - this method always throw an exception.
+     *         The return type makes it possible to write
+     *         <pre> throw throwException(clazz,cause); </pre>
+     * @throws SecurityException - if cause is a SecurityException
+     * @throws NotCompliantMBeanException otherwise.
+     **/
+    static NotCompliantMBeanException throwException(Class<?> notCompliant,
+            Throwable cause) 
+            throws NotCompliantMBeanException, SecurityException {
+        if (cause instanceof SecurityException) 
+            throw (SecurityException) cause;
+        if (cause instanceof NotCompliantMBeanException)
+            throw (NotCompliantMBeanException)cause;
+        final String classname = 
+                (notCompliant==null)?"null class":notCompliant.getName();
+        final String reason = 
+                (cause==null)?"Not compliant":cause.getMessage();
+        final NotCompliantMBeanException res = 
+                new NotCompliantMBeanException(classname+": "+reason);
+        res.initCause(cause);
+        throw res;
+    }
 
-	    // Placeholder for the final attribute info we're going to
-	    // keep.
-	    //
-	    MBeanAttributeInfo att = bi;
-
-	    // The loop below will try to find whether bi is also present
-	    // elsewhere further down the list. 
-	    // If it is not, att will be left unchanged.
-	    // Otherwise, the found attribute info will be merged with
-	    // att and `removed' from the array by setting them to `null'
-	    //
-            for (int j=i+1;j<len;j++) {
-		MBeanAttributeInfo mi = attrlist[j];
-		
-		// mi can be null if it has already been eliminated
-		// by this loop at an earlier iteration.
-		// (cf. attrlist[j]=null;) In this case, just skip it.
-		//
-		if (mi == null) continue;
-                if ((mi.getName().compareTo(bi.getName()) == 0)) {
-		    // mi and bi have the same name, which means that 
-		    // that the attribute has been inserted twice in 
-		    // the list, which means that it is a read-write
-		    // attribute.
-		    // So we're going to replace att with a new 
-		    // attribute info with read-write mode.
-		    // We also set attrlist[j] to null in order to avoid
-		    // duplicates (attrlist[j] and attrlist[i] are now
-		    // merged into att).
-		    //
-		    attrlist[j]=null;
-		    att = new MBeanAttributeInfo(bi.getName(), 
-						 bi.getType(), 
-						 attributeDescription, 
-						 true, true, bi.isIs());
-		    // I think we could break, but it is probably
-		    // safer not to...
-		    //
-		    // break;
-		}
-	    }
-                
-	    // Now all attributes info which had the same name than bi
-	    // have been merged together in att. 
-	    // Simply add att to the merged list.
-	    //
-	    mergedAttributes.add(att);	    
+    // Convert a value from an annotation element to a descriptor field value
+    // E.g. with @interface Foo {class value()} an annotation @Foo(String.class)
+    // will produce a Descriptor field value "java.lang.String"
+    private static Object annotationToField(Object x) {
+        // An annotation element cannot have a null value but never mind
+        if (x == null)
+            return null;
+        if (x instanceof Number || x instanceof String ||
+                x instanceof Character || x instanceof Boolean ||
+                x instanceof String[])
+            return x;
+        // Remaining possibilities: array of primitive (e.g. int[]),
+        // enum, class, array of enum or class.
+        Class<?> c = x.getClass();
+        if (c.isArray()) {
+            if (c.getComponentType().isPrimitive())
+                return x;
+            Object[] xx = (Object[]) x;
+            String[] ss = new String[xx.length];
+            for (int i = 0; i < xx.length; i++)
+                ss[i] = (String) annotationToField(xx[i]);
+            return ss;
         }
- 
-        final MBeanAttributeInfo[] resultAttributes =
-	    new MBeanAttributeInfo[mergedAttributes.size()];
-	mergedAttributes.toArray(resultAttributes);
-
-        final MBeanOperationInfo[] resultOperations =
-	    new MBeanOperationInfo[operations.size()];
-	operations.toArray(resultOperations);
-
-	final MBeanConstructorInfo[] resultConstructors =
-	    getConstructors(baseClass);     
-
-        final MBeanInfo resultMBeanInfo =
-	    new MBeanInfo(baseClass.getName(), mbeanInfoDescription, 
-			  resultAttributes, resultConstructors, 
-			  resultOperations, null);
-	return resultMBeanInfo;
+        if (x instanceof Class)
+            return ((Class<?>) x).getName();
+        if (x instanceof Enum)
+            return ((Enum) x).name();
+        // The only other possibility is that the value is another
+        // annotation, or that the language has evolved since this code
+        // was written.  We don't allow for either of those currently.
+        throw new IllegalArgumentException("Illegal type for annotation " +
+                "element: " + x.getClass().getName());
+    }
+    
+    // This must be consistent with the check for duplicate field values in
+    // ImmutableDescriptor.union.  But we don't expect to be called very
+    // often so this inefficient check should be enough.
+    private static boolean equals(Object x, Object y) {
+        return Arrays.deepEquals(new Object[] {x}, new Object[] {y});
     }
 
     /**
@@ -531,32 +462,18 @@ public class Introspector {
      * @param c The interface to be tested
      * @param clName The name of the class implementing this interface
      */
-    static Class implementsMBean(Class c, String clName) {
-	if (c.getName().compareTo(clName + "MBean") == 0) {
+    private static Class implementsMBean(Class c, String clName) {
+        String clMBeanName = clName + "MBean";
+	if (c.getName().equals(clMBeanName)) {
 	    return c;
 	}   
 	Class current = c;
 	Class[] interfaces = c.getInterfaces();
 	for (int i = 0;i < interfaces.length; i++) {
-
-	    try {
-		if (interfaces[i].getName().compareTo(clName + "MBean") == 0) {
-		    return interfaces[i];
-		}     
-	    } catch (Exception e) {
-		return null;
-	    }  	
+            if (interfaces[i].getName().equals(clMBeanName))
+                return interfaces[i];
 	}
 	
 	return null;
-    }
-
-    private static void error(String method,Throwable t) {
-	com.sun.jmx.trace.Trace.send(com.sun.jmx.trace.Trace.LEVEL_ERROR,
-				     com.sun.jmx.trace.Trace.INFO_MBEANSERVER,
-				     "Introspector",
-				     method,
-				     t);
-				     
     }
 }

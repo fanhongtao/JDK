@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeSetType.java,v 1.17 2004/02/16 22:26:44 minchau Exp $
+ * $Id: NodeSetType.java,v 1.2.4.1 2005/09/05 11:21:45 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;

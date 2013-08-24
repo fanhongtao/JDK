@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Hashtree2Node.java,v 1.6 2004/02/17 04:21:14 minchau Exp $
+ * $Id: Hashtree2Node.java,v 1.2.4.1 2005/09/15 08:15:45 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.utils;
@@ -35,7 +35,7 @@ import org.w3c.dom.Node;
  * @see com.sun.org.apache.xalan.internal.xslt.EnvironmentCheck
  * @see com.sun.org.apache.xalan.internal.lib.Extensions
  * @author shane_curcuru@us.ibm.com
- * @version $Id: Hashtree2Node.java,v 1.6 2004/02/17 04:21:14 minchau Exp $
+ * @version $Id: Hashtree2Node.java,v 1.2.4.1 2005/09/15 08:15:45 suresh_emailid Exp $
  * @xsl.usage general
  */
 public abstract class Hashtree2Node

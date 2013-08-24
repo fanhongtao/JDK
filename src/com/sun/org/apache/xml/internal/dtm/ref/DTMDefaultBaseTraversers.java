@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMDefaultBaseTraversers.java,v 1.19 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMDefaultBaseTraversers.java,v 1.2.4.1 2005/09/15 08:15:00 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -26,7 +26,7 @@ import com.sun.org.apache.xml.internal.utils.XMLStringFactory;
 
 import com.sun.org.apache.xml.internal.res.XMLErrorResources;
 import com.sun.org.apache.xml.internal.res.XMLMessages;
-
+import com.sun.org.apache.xalan.internal.xsltc.dom.NodeCounter;
 
 /**
  * This class implements the traversers for DTMDefaultBase.
@@ -43,7 +43,6 @@ public abstract class DTMDefaultBaseTraversers extends DTMDefaultBase
    * Construct a DTMDefaultBaseTraversers object from a DOM node.
    *
    * @param mgr The DTMManager who owns this DTM.
-   * @param domSource the DOM source that this DTM will wrap.
    * @param source The object that is used to specify the construction source.
    * @param dtmIdentity The DTM identity ID for this DTM.
    * @param whiteSpaceFilter The white space filter for this DTM, which may
@@ -66,7 +65,6 @@ public abstract class DTMDefaultBaseTraversers extends DTMDefaultBase
    * Construct a DTMDefaultBaseTraversers object from a DOM node.
    *
    * @param mgr The DTMManager who owns this DTM.
-   * @param domSource the DOM source that this DTM will wrap.
    * @param source The object that is used to specify the construction source.
    * @param dtmIdentity The DTM identity ID for this DTM.
    * @param whiteSpaceFilter The white space filter for this DTM, which may
@@ -106,7 +104,7 @@ public abstract class DTMDefaultBaseTraversers extends DTMDefaultBase
 
     if (null == m_traversers)  // Cache of stateless traversers for this DTM
     {
-      m_traversers = new DTMAxisTraverser[Axis.names.length];
+      m_traversers = new DTMAxisTraverser[Axis.getNamesLength()];
       traverser = null;
     }
     else
@@ -186,7 +184,7 @@ public abstract class DTMDefaultBaseTraversers extends DTMDefaultBase
     }
 
     if (null == traverser)
-      throw new DTMException(XMLMessages.createXMLMessage(XMLErrorResources.ER_AXIS_TRAVERSER_NOT_SUPPORTED, new Object[]{Axis.names[axis]}));
+      throw new DTMException(XMLMessages.createXMLMessage(XMLErrorResources.ER_AXIS_TRAVERSER_NOT_SUPPORTED, new Object[]{Axis.getNames(axis)}));
       // "Axis traverser not supported: "
       //                       + Axis.names[axis]);
 

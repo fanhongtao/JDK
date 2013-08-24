@@ -1,7 +1,7 @@
 /*
- * @(#)RootPaneContainer.java	1.15 03/12/19
+ * @(#)RootPaneContainer.java	1.17 06/03/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ import java.awt.Container;
  * @see JApplet
  * @see JInternalFrame
  *
- * @version 1.15 12/19/03
+ * @version 1.17 03/22/06
  * @author Hans Muller
  */
 public interface RootPaneContainer
@@ -80,7 +80,7 @@ public interface RootPaneContainer
      * specific components.  Applications should add children to 
      * the contentPane, set its layout manager, and so on.  
      * <p>
-     * The contentPane my not be null.
+     * The contentPane may not be null.
      * <p>
      * Generally implemented with 
      * <code>getRootPane().setContentPane(contentPane);</code>

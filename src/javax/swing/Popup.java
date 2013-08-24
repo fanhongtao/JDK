@@ -1,7 +1,7 @@
 /*
- * @(#)Popup.java	1.17 03/12/19
+ * @(#)Popup.java	1.20 06/04/26
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import sun.awt.ModalExclude;
  *
  * @see PopupFactory
  *
- * @version 1.17 12/19/03
+ * @version 1.20 04/26/06
  * @since 1.4
  */
 public class Popup {
@@ -110,10 +110,15 @@ public class Popup {
      */
     void dispose() {
         Component component = getComponent();
+        Window window = SwingUtilities.getWindowAncestor(component);
 
         if (component instanceof JWindow) {
             ((Window)component).dispose();
             component = null;
+        }
+        // If our parent is a DefaultFrame, we need to dispose it, too.
+        if (window instanceof DefaultFrame) {
+            window.dispose();
         }
     }
 
@@ -157,9 +162,7 @@ public class Popup {
     /**
      * Returns the <code>Window</code> to use as the parent of the
      * <code>Window</code> created for the <code>Popup</code>. This creates
-     * a new <code>Frame</code> each time it is invoked. Subclasses that wish
-     * to support a different <code>Window</code> parent should override
-     * this.
+     * a new <code>DefaultFrame</code>, if necessary.
      */
     private Window getParentWindow(Component owner) {
         Window window = null;
@@ -206,6 +209,9 @@ public class Popup {
             super(parent);
             setFocusableWindowState(false);
             setName("###overrideRedirect###");
+            // Popups are typically transient and most likely won't benefit
+            // from true double buffering.  Turn it off here.
+            getRootPane().setUseTrueDoubleBuffering(false);
         }
 
         public void update(Graphics g) {

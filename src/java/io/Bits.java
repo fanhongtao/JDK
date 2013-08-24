@@ -1,7 +1,7 @@
 /*
- * @(#)Bits.java	1.4 03/12/19
+ * @(#)Bits.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,26 +24,26 @@ class Bits {
     
     static char getChar(byte[] b, int off) {
 	return (char) (((b[off + 1] & 0xFF) << 0) + 
-		       ((b[off + 0] & 0xFF) << 8));
+		       ((b[off + 0]) << 8));
     }
     
     static short getShort(byte[] b, int off) {
 	return (short) (((b[off + 1] & 0xFF) << 0) + 
-			((b[off + 0] & 0xFF) << 8));
+			((b[off + 0]) << 8));
     }
     
     static int getInt(byte[] b, int off) {
 	return ((b[off + 3] & 0xFF) << 0) +
 	       ((b[off + 2] & 0xFF) << 8) +
 	       ((b[off + 1] & 0xFF) << 16) +
-	       ((b[off + 0] & 0xFF) << 24);
+	       ((b[off + 0]) << 24);
     }
     
     static float getFloat(byte[] b, int off) {
 	int i = ((b[off + 3] & 0xFF) << 0) +
 		((b[off + 2] & 0xFF) << 8) +
 		((b[off + 1] & 0xFF) << 16) +
-		((b[off + 0] & 0xFF) << 24);
+		((b[off + 0]) << 24);
 	return Float.intBitsToFloat(i);
     }
     
@@ -55,7 +55,7 @@ class Bits {
 	       ((b[off + 3] & 0xFFL) << 32) +
 	       ((b[off + 2] & 0xFFL) << 40) +
 	       ((b[off + 1] & 0xFFL) << 48) +
-	       ((b[off + 0] & 0xFFL) << 56);
+	       (((long) b[off + 0]) << 56);
     }
 
     static double getDouble(byte[] b, int off) {
@@ -66,7 +66,7 @@ class Bits {
 		 ((b[off + 3] & 0xFFL) << 32) +
 		 ((b[off + 2] & 0xFFL) << 40) +
 		 ((b[off + 1] & 0xFFL) << 48) +
-		 ((b[off + 0] & 0xFFL) << 56);
+		 (((long) b[off + 0]) << 56);
 	return Double.longBitsToDouble(j);
     }
     

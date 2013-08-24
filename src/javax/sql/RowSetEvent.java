@@ -1,7 +1,7 @@
 /*
- * @(#)RowSetEvent.java	1.9 03/12/19
+ * @(#)RowSetEvent.java	1.11 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,6 +31,7 @@ public class RowSetEvent extends java.util.EventObject {
    *
    * @param source the <code>RowSet</code> object whose data has changed or
    *        whose cursor has moved
+   * @throws IllegalArgumentException if <code>source</code> is null.
    */
   public RowSetEvent(RowSet source) 
     { super(source); }

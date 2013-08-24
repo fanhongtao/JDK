@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2002,2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.dom;
@@ -72,8 +31,10 @@ import org.w3c.dom.NodeList;
  * <p>
  * This class doesn't directly support mutation events, however, it notifies
  * the document when mutations are performed so that the document class do so.
+ * 
+ * @xerces.internal 
  *
- * @version $Id: CharacterDataImpl.java,v 1.20 2003/05/08 19:52:40 elena Exp $
+ * @version $Id: CharacterDataImpl.java,v 1.2.6.1 2005/08/30 11:34:20 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public abstract class CharacterDataImpl
@@ -129,6 +90,13 @@ public abstract class CharacterDataImpl
         return data;
     }
 
+   /** Convenience wrapper for calling setNodeValueInternal when 
+     * we are not performing a replacement operation  
+     */
+    protected void setNodeValueInternal (String value) {
+    	setNodeValueInternal(value, false);
+    }
+    
     /** This function added so that we can distinguish whether
      *  setNodeValue has been called from some other DOM functions.
      *  or by the client.<p>
@@ -136,29 +104,31 @@ public abstract class CharacterDataImpl
      *  from the high-level functions in CharacterData, and another
      *  type if the client simply calls setNodeValue(value).
      */
-    protected void setNodeValueInternal(String value) {
-    	if (isReadOnly()) {
+    protected void setNodeValueInternal(String value, boolean replace) {
+        
+        CoreDocumentImpl ownerDocument = ownerDocument();
+        
+        if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
+        
         // revisit: may want to set the value in ownerDocument.
-    	// Default behavior, overridden in some subclasses
+        // Default behavior, overridden in some subclasses
         if (needsSyncData()) {
             synchronizeData();
         }
-
+        
         // keep old value for document notification
         String oldvalue = this.data;
-
-        CoreDocumentImpl ownerDocument = ownerDocument();
-
+        
         // notify document
-        ownerDocument.modifyingCharacterData(this);
-
-    	this.data = value;
-
+        ownerDocument.modifyingCharacterData(this, replace);
+        
+        this.data = value;
+        
         // notify document
-        ownerDocument.modifiedCharacterData(this, oldvalue, value);
+        ownerDocument.modifiedCharacterData(this, oldvalue, value, replace);
     }
 
     /**
@@ -242,38 +212,51 @@ public abstract class CharacterDataImpl
      */
     public void deleteData(int offset, int count) 
         throws DOMException {
+    	
+    	internalDeleteData(offset, count, false);
+    } // deleteData(int,int)
 
-    	if (isReadOnly()) {
-            String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
-            throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
+    
+    /** NON-DOM INTERNAL: Within DOM actions, we sometimes need to be able
+     * to control which mutation events are spawned. This version of the
+     * deleteData operation allows us to do so. It is not intended
+     * for use by application programs.
+     */
+    void internalDeleteData (int offset, int count, boolean replace)
+    throws DOMException {
+        
+        CoreDocumentImpl ownerDocument = ownerDocument();
+        if (ownerDocument.errorChecking) {
+            if (isReadOnly()) {
+                String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
+                throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
+            }
+            
+            if (count < 0) {
+                String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
+                throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
+            }
         }
-
-        if (count < 0) {
-            String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
-            throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
-        }
-
+        
         if (needsSyncData()) {
             synchronizeData();
         }
         int tailLength = Math.max(data.length() - count - offset, 0);
         try {
             String value = data.substring(0, offset) +
-                (tailLength > 0
-                 ? data.substring(offset + count, offset + count + tailLength) 
-                 : "");
-
-            setNodeValueInternal(value);
-
+            (tailLength > 0 ? data.substring(offset + count, offset + count + tailLength) : "");            
+            
+            setNodeValueInternal(value, replace);      
+            
             // notify document
-            ownerDocument().deletedText(this, offset, count);
+            ownerDocument.deletedText(this, offset, count);
         }
         catch (StringIndexOutOfBoundsException e) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
             throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
         }
-
-    } // deleteData(int,int)
+        
+    } // internalDeleteData(int,int,boolean)
 
     /**
      * Insert additional characters into the data stored in this node,
@@ -287,30 +270,49 @@ public abstract class CharacterDataImpl
     public void insertData(int offset, String data) 
         throws DOMException {
 
-        if (isReadOnly()) {
+    	internalInsertData(offset, data, false);
+        
+    } // insertData(int,int)
+    
+    
+    
+    /** NON-DOM INTERNAL: Within DOM actions, we sometimes need to be able
+     * to control which mutation events are spawned. This version of the
+     * insertData operation allows us to do so. It is not intended
+     * for use by application programs.
+     */
+    void internalInsertData (int offset, String data, boolean replace)
+    throws DOMException {
+        
+        CoreDocumentImpl ownerDocument = ownerDocument();
+        
+        if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
-
+        
         if (needsSyncData()) {
             synchronizeData();
         }
         try {
             String value =
                 new StringBuffer(this.data).insert(offset, data).toString();
-
-            setNodeValueInternal(value);
-
+            
+            
+            setNodeValueInternal(value, replace);
+            
             // notify document
-            ownerDocument().insertedText(this, offset, data.length());
+            ownerDocument.insertedText(this, offset, data.length());
         }
         catch (StringIndexOutOfBoundsException e) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
             throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
         }
+        
+    } // internalInsertData(int,String,boolean)
 
-    } // insertData(int,int)
-
+    
+    
     /**
      * Replace a series of characters at the specified (zero-based)
      * offset with a new string, NOT necessarily of the same
@@ -336,17 +338,36 @@ public abstract class CharacterDataImpl
      * readonly.  
      */
     public void replaceData(int offset, int count, String data) 
-        throws DOMException {
-
+    throws DOMException {
+        
+        CoreDocumentImpl ownerDocument = ownerDocument();
+        
         // The read-only check is done by deleteData()
         // ***** This could be more efficient w/r/t Mutation Events,
         // specifically by aggregating DOMAttrModified and
         // DOMSubtreeModified. But mutation events are 
         // underspecified; I don't feel compelled
         // to deal with it right now.
-        deleteData(offset, count);
-        insertData(offset, data);
-
+        if (ownerDocument.errorChecking && isReadOnly()) {
+            String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
+            throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
+        }
+        
+        if (needsSyncData()) {
+            synchronizeData();
+        }
+        
+        //notify document
+        ownerDocument.replacingData(this);
+        
+        // keep old value for document notification
+        String oldvalue = this.data;
+        
+        internalDeleteData(offset, count, true);
+        internalInsertData(offset, data, true);
+        
+        ownerDocument.replacedCharacterData(this, oldvalue, this.data);
+        
     } // replaceData(int,int,String)
 
     /**

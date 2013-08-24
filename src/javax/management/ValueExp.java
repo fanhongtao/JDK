@@ -1,7 +1,7 @@
 /*
- * @(#)ValueExp.java	4.21 04/05/18
+ * @(#)ValueExp.java	4.23 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,45 @@ package javax.management;
  *
  * @since 1.5
  */
-public interface ValueExp  extends java.io.Serializable { 
+/*
+  We considered generifying this interface as ValueExp<T>, where T is
+  the Java type that this expression generates.  This allows some additional
+  checking in the various methods of the Query class, but in practice
+  not much.  Typically you have something like
+  Query.lt(Query.attr("A"), Query.value(5)).  We can arrange for Query.value
+  to have type ValueExp<Integer> (or maybe ValueExp<Long> or ValueExp<Number>)
+  but for Query.attr we can't do better than ValueExp<?> or plain ValueExp.
+  So even though we could define Query.lt as:
+  QueryExp <T> lt(ValueExp<T> v1, ValueExp<T> v2)
+  and thus prevent comparing a
+  number against a string, in practice the first ValueExp will almost always
+  be a Query.attr so this check serves no purpose.  You would have to
+  write Query.<Number>attr("A"), for example, which would be awful.  And,
+  if you wrote Query.<Integer>attr("A") you would then discover that you
+  couldn't compare it against Query.value(5) if the latter is defined as
+  ValueExp<Number>, or against Query.value(5L) if it is defined as
+  ValueExp<Integer>.
+
+  Worse, for Query.in we would like to define:
+  QueryExp <T> in(ValueExp<T> val, ValueExp<T>[] valueList)
+  but this is unusable because you cannot write
+  "new ValueExp<Integer>[] {...}" (the compiler forbids it).
+
+  The few mistakes you might catch with this generification certainly
+  wouldn't justify the hassle of modifying user code to get the checks
+  to be made and the "unchecked" warnings that would arise if it
+  wasn't so modified.
+
+  We could reconsider this if the Query methods were augmented, for example
+  with:
+  AttributeValueExp<Number> numberAttr(String name);
+  AttributeValueExp<String> stringAttr(String name);
+  AttributeValueExp<Boolean> booleanAttr(String name);
+  QueryExp <T> in(ValueExp<T> val, Set<ValueExp<T>> valueSet).
+  But it's not really clear what numberAttr should do if it finds that the
+  attribute is not in fact a Number.
+ */
+public interface ValueExp extends java.io.Serializable { 
 
     /**
      * Applies the ValueExp on a MBean.
@@ -29,8 +67,9 @@ public interface ValueExp  extends java.io.Serializable {
      * @exception BadAttributeValueExpException 
      * @exception InvalidApplicationException
      */   
-    public ValueExp apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException ;
+    public ValueExp apply(ObjectName name)
+	    throws BadStringOperationException, BadBinaryOpValueExpException,
+		   BadAttributeValueExpException, InvalidApplicationException;
 
     /**
      * Sets the MBean server on which the query is to be performed.
@@ -43,4 +82,4 @@ public interface ValueExp  extends java.io.Serializable {
      */
     @Deprecated
     public  void setMBeanServer(MBeanServer s) ;
- }
+}

@@ -1,19 +1,26 @@
 /*
- * @(#)InterruptedException.java	1.15 03/12/19
+ * @(#)InterruptedException.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
 
 /**
- * Thrown when a thread is waiting, sleeping, or otherwise paused for
- * a long time and another thread interrupts it using the
- * <code>interrupt</code>  method in class <code>Thread</code>. 
+ * Thrown when a thread is waiting, sleeping, or otherwise occupied,
+ * and the thread is interrupted, either before or during the activity.
+ * Occasionally a method may wish to test whether the current
+ * thread has been interrupted, and if so, to immediately throw
+ * this exception.  The following code can be used to achieve
+ * this effect:
+ * <pre>
+ *  if (Thread.interrupted())  // Clears interrupted status!
+ *      throw new InterruptedException();
+ * </pre>
  *
  * @author  Frank Yellin
- * @version 1.15, 12/19/03
+ * @version 1.17, 11/17/05
  * @see     java.lang.Object#wait()
  * @see     java.lang.Object#wait(long)
  * @see     java.lang.Object#wait(long, int)

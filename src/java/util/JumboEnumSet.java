@@ -1,7 +1,7 @@
 /*
- * @(#)JumboEnumSet.java	1.8 04/05/28
+ * @(#)JumboEnumSet.java	1.10 06/01/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -168,7 +168,7 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
      *
      * @param e element to be added to this set
      * @return <tt>true</tt> if the set changed as a result of the call
-     * 
+     *
      * @throws NullPointerException if <tt>e</tt> is null
      */
     public boolean add(E e) {
@@ -292,10 +292,11 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
         if (!(c instanceof JumboEnumSet))
             return super.retainAll(c);
 
-        JumboEnumSet es = (JumboEnumSet)c;
+        JumboEnumSet<?> es = (JumboEnumSet<?>)c;
         if (es.elementType != elementType) {
+	    boolean changed = (size != 0);
             clear();
-            return true;
+            return changed;
         }
 
         for (int i = 0; i < elements.length; i++)

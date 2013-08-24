@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CharInfo.java,v 1.11 2004/02/23 10:29:37 aruny Exp $
+ * $Id: CharInfo.java,v 1.2.4.1 2005/09/15 08:15:14 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -23,18 +23,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.PropertyResourceBundle;
-import java.util.Enumeration;
 import java.util.ResourceBundle;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.xml.transform.TransformerException;
 
-import com.sun.org.apache.xml.internal.res.XMLErrorResources;
-import com.sun.org.apache.xml.internal.res.XMLMessages;
-import com.sun.org.apache.xml.internal.utils.CharKey;
-import com.sun.org.apache.xml.internal.utils.SystemIDResolver;
-import com.sun.org.apache.xml.internal.utils.WrappedRuntimeException;
+import com.sun.org.apache.xml.internal.serializer.utils.MsgKey;
+import com.sun.org.apache.xml.internal.serializer.utils.SystemIDResolver;
+import com.sun.org.apache.xml.internal.serializer.utils.Utils;
+import com.sun.org.apache.xml.internal.serializer.utils.WrappedRuntimeException;
 
 /**
  * This class provides services that tell if a character should have
@@ -46,22 +47,24 @@ import com.sun.org.apache.xml.internal.utils.WrappedRuntimeException;
  * 
  * @xsl.usage internal
  */
-class CharInfo
+final class CharInfo
 {
-    /** Lookup table for characters to entity references. */
-    private Hashtable m_charToEntityRef = new Hashtable();
+    /** Given a character, lookup a String to output (e.g. a decorated entity reference). */
+    private Hashtable m_charToString = new Hashtable();
 
     /**
      * The name of the HTML entities file.
      * If specified, the file will be resource loaded with the default class loader.
      */
-    public static String HTML_ENTITIES_RESOURCE = "com.sun.org.apache.xml.internal.serializer.HTMLEntities";
+    public static final String HTML_ENTITIES_RESOURCE = 
+                "com.sun.org.apache.xml.internal.serializer.HTMLEntities";
 
     /**
      * The name of the XML entities file.
      * If specified, the file will be resource loaded with the default class loader.
      */
-    public static String XML_ENTITIES_RESOURCE = "com.sun.org.apache.xml.internal.serializer.XMLEntities";
+    public static final String XML_ENTITIES_RESOURCE = 
+                "com.sun.org.apache.xml.internal.serializer.XMLEntities";
 
     /** The horizontal tab character, which the parser should always normalize. */
     public static final char S_HORIZONAL_TAB = 0x09;
@@ -70,7 +73,7 @@ class CharInfo
     public static final char S_LINEFEED = 0x0A;
 
     /** The carriage return character, which the parser should always normalize. */
-    public static char S_CARRIAGERETURN = 0x0D;
+    public static final char S_CARRIAGERETURN = 0x0D;
     
     /** This flag is an optimization for HTML entities. It false if entities 
      * other than quot (34), amp (38), lt (60) and gt (62) are defined
@@ -214,8 +217,8 @@ class CharInfo
 
                 if (is == null) {
                     throw new RuntimeException(
-                        XMLMessages.createXMLMessage(
-                            XMLErrorResources.ER_RESOURCE_COULD_NOT_FIND,
+                        Utils.messages.createMessage(
+                            MsgKey.ER_RESOURCE_COULD_NOT_FIND,
                             new Object[] {entitiesResource, entitiesResource}));
                 }
 
@@ -285,8 +288,8 @@ class CharInfo
                 set(S_CARRIAGERETURN);
             } catch (Exception e) {
                 throw new RuntimeException(
-                    XMLMessages.createXMLMessage(
-                        XMLErrorResources.ER_RESOURCE_COULD_NOT_LOAD,
+                    Utils.messages.createMessage(
+                        MsgKey.ER_RESOURCE_COULD_NOT_LOAD,
                         new Object[] { entitiesResource,
                                        e.toString(),
                                        entitiesResource,
@@ -317,6 +320,14 @@ class CharInfo
             isSpecialTextASCII[ch] = true;     
         }       
         
+
+
+        onlyQuotAmpLtGt = noExtraEntities;
+
+        // initialize the array with a cache of the BitSet values
+        for (int i=0; i<ASCII_MAX; i++)
+            isSpecialAttrASCII[i] = get(i);   
+            
         /* Now that we've used get(ch) just above to initialize the
          * two arrays we will change by adding a tab to the set of 
          * special chars for XML (but not HTML!).
@@ -328,16 +339,8 @@ class CharInfo
          */
         if (Method.XML.equals(method)) 
         {
-            set(S_HORIZONAL_TAB);
+            isSpecialAttrASCII[S_HORIZONAL_TAB] = true;
         }
-        
-
-        onlyQuotAmpLtGt = noExtraEntities;
-
-        // initialize the array with a cache of the BitSet values
-        for (int i=0; i<ASCII_MAX; i++)
-            isSpecialAttrASCII[i] = get(i);    
-
     }
 
     /**
@@ -353,16 +356,23 @@ class CharInfo
      */
     private void defineEntity(String name, char value)
     {
-        CharKey character = new CharKey(value);
-
-        m_charToEntityRef.put(character, name);
-        set(value);
+        StringBuffer sb = new StringBuffer("&");
+        sb.append(name);
+        sb.append(';');
+        String entityString = sb.toString();
+        
+        defineChar2StringMapping(entityString, value);
     }
 
     private CharKey m_charKey = new CharKey();
 
     /**
-     * Resolve a character to an entity reference name.
+     * Map a character to a String. For example given
+     * the character '>' this method would return the fully decorated
+     * entity name "&lt;".
+     * Strings for entity references are loaded from a properties file,
+     * but additional mappings defined through calls to defineChar2String()
+     * are possible. Such entity reference mappings could be over-ridden.
      *
      * This is reusing a stored key object, in an effort to avoid
      * heap activity. Unfortunately, that introduces a threading risk.
@@ -372,16 +382,17 @@ class CharInfo
      * keyed directly from the character's integer value; see DTM's
      * string pool for a related solution.
      *
-     * @param value character value that should be resolved to a name.
+     * @param value The character that should be resolved to
+     * a String, e.g. resolve '>' to  "&lt;".
      *
-     * @return name of character entity, or null if not found.
+     * @return The String that the character is mapped to, or null if not found.
      * @xsl.usage internal
      */
-    synchronized public String getEntityNameForChar(char value)
+    synchronized String getOutputStringForChar(char value)
     {
         // CharKey m_charKey = new CharKey(); //Alternative to synchronized
         m_charKey.setChar(value);
-        return (String) m_charToEntityRef.get(m_charKey);
+        return (String) m_charToString.get(m_charKey);
     }
     
     /**
@@ -394,7 +405,7 @@ class CharInfo
      * or entity references.
      * @xsl.usage internal
      */
-    public final boolean isSpecialAttrChar(int value)
+    final boolean isSpecialAttrChar(int value)
     {
         // for performance try the values in the boolean array first,
         // this is faster access than the BitSet for common ASCII values
@@ -417,7 +428,7 @@ class CharInfo
      * or entity references.
      * @xsl.usage internal
      */
-    public final boolean isSpecialTextChar(int value)
+    final boolean isSpecialTextChar(int value)
     {
         // for performance try the values in the boolean array first,
         // this is faster access than the BitSet for common ASCII values
@@ -437,7 +448,7 @@ class CharInfo
      * @return true if the character can go to the writer as-is
      * @xsl.usage internal
      */
-    public final boolean isTextASCIIClean(int value)
+    final boolean isTextASCIIClean(int value)
     {
         return isCleanTextASCII[value];
     }
@@ -450,7 +461,18 @@ class CharInfo
 //        return isCleanTextASCII;
 //    }
 
-
+     
+    private static CharInfo getCharInfoBasedOnPrivilege(
+        final String entitiesFileName, final String method, 
+        final boolean internal){
+            return (CharInfo) AccessController.doPrivileged(
+                new PrivilegedAction() {
+                        public Object run() {
+                            return new CharInfo(entitiesFileName, 
+                              method, internal);}
+            });            
+    }
+     
     /**
      * Factory that reads in a resource file that describes the mapping of
      * characters to entity references.
@@ -470,7 +492,7 @@ class CharInfo
      * 
      * @xsl.usage internal
      */
-    public static CharInfo getCharInfo(String entitiesFileName, String method)
+    static CharInfo getCharInfo(String entitiesFileName, String method)
     {
         CharInfo charInfo = (CharInfo) m_getCharInfoCache.get(entitiesFileName);
         if (charInfo != null) {
@@ -479,14 +501,16 @@ class CharInfo
 
         // try to load it internally - cache
         try {
-            charInfo = new CharInfo(entitiesFileName, method, true);
+            charInfo = getCharInfoBasedOnPrivilege(entitiesFileName, 
+                                        method, true);
             m_getCharInfoCache.put(entitiesFileName, charInfo);
             return charInfo;
         } catch (Exception e) {}
 
         // try to load it externally - do not cache
         try {
-            return new CharInfo(entitiesFileName, method);
+            return getCharInfoBasedOnPrivilege(entitiesFileName, 
+                                method, false);
         } catch (Exception e) {}
 
         String absoluteEntitiesFileName;
@@ -503,7 +527,8 @@ class CharInfo
             }
         }
 
-        return new CharInfo(absoluteEntitiesFileName, method, false);
+        return getCharInfoBasedOnPrivilege(entitiesFileName, 
+                                method, false);
     }
 
     /** Table of user-specified char infos. */
@@ -547,7 +572,9 @@ class CharInfo
      * 0, 1, 2 ... up to the maximum that was specified at
      * the creation of the set.
      */
-    private final void set(int i) {        
+    private final void set(int i) {   
+        setASCIIdirty(i);
+             
         int j = (i >> SHIFT_PER_WORD); // this word is used
         int k = j + 1;       
         
@@ -606,4 +633,112 @@ class CharInfo
         }
         return extra;
     }    
+    
+    /**
+     * If the character is a printable ASCII character then
+     * mark it as not clean and needing replacement with
+     * a String on output.
+     * @param ch
+     */
+    private void setASCIIdirty(int j) 
+    {
+        if (0 <= j && j < ASCII_MAX) 
+        {
+            isCleanTextASCII[j] = false;
+            isSpecialTextASCII[j] = true;
+        } 
+    }
+
+    /**
+     * If the character is a printable ASCII character then
+     * mark it as and not needing replacement with
+     * a String on output.
+     * @param ch
+     */    
+    private void setASCIIclean(int j)
+    {
+        if (0 <= j && j < ASCII_MAX) 
+        {        
+            isCleanTextASCII[j] = true;
+            isSpecialTextASCII[j] = false;
+        }
+    }
+    
+    private void defineChar2StringMapping(String outputString, char inputChar) 
+    {
+        CharKey character = new CharKey(inputChar);
+        m_charToString.put(character, outputString);
+        set(inputChar);        
+    }
+
+    /**
+     * Simple class for fast lookup of char values, when used with
+     * hashtables.  You can set the char, then use it as a key.
+     * 
+     * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+     * It exists to cut the serializers dependancy on that package.
+     *  
+     * @xsl.usage internal
+     */
+    private static class CharKey extends Object
+    {
+
+      /** String value          */
+      private char m_char;
+
+      /**
+       * Constructor CharKey
+       *
+       * @param key char value of this object.
+       */
+      public CharKey(char key)
+      {
+        m_char = key;
+      }
+  
+      /**
+       * Default constructor for a CharKey.
+       *
+       * @param key char value of this object.
+       */
+      public CharKey()
+      {
+      }
+  
+      /**
+       * Get the hash value of the character.  
+       *
+       * @return hash value of the character.
+       */
+      public final void setChar(char c)
+      {
+        m_char = c;
+      }
+
+
+
+      /**
+       * Get the hash value of the character.  
+       *
+       * @return hash value of the character.
+       */
+      public final int hashCode()
+      {
+        return (int)m_char;
+      }
+
+      /**
+       * Override of equals() for this object 
+       *
+       * @param obj to compare to
+       *
+       * @return True if this object equals this string value 
+       */
+      public final boolean equals(Object obj)
+      {
+        return ((CharKey)obj).m_char == m_char;
+      }
+    }
+   
+
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)SynthSpinnerUI.java	1.11 03/12/19
+ * @(#)SynthSpinnerUI.java	1.14 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -24,7 +24,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's SpinnerUI.
  *
- * @version 1.11, 12/19/03
+ * @version 1.14, 04/10/06
  * @author Hans Muller
  * @author Joshua Outwater
  */
@@ -45,6 +45,7 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
     }
 
     protected void installListeners() {
+	super.installListeners();
         spinner.addPropertyChangeListener(this);
     }
 
@@ -57,6 +58,7 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      * @see #installListeners
      */
     protected void uninstallListeners() {
+	super.uninstallListeners();
 	spinner.removePropertyChangeListener(this);
     }
 
@@ -120,12 +122,6 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
 
     protected LayoutManager createLayout() {
         return new SpinnerLayout();
-    }
-
-
-    // Not used since we overload install/uninstallListeners.
-    protected PropertyChangeListener createPropertyChangeListener() {
-	return this;
     }
 
 
@@ -197,6 +193,7 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
     protected JComponent createEditor() {
         JComponent editor = spinner.getEditor();
         editor.setName("Spinner.editor");
+        updateEditorAlignment(editor);
 	return editor;
     }
 
@@ -218,34 +215,21 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      */
     protected void replaceEditor(JComponent oldEditor, JComponent newEditor) {
 	spinner.remove(oldEditor);
+        updateEditorAlignment(newEditor);
 	spinner.add(newEditor, "Editor");
     }
 
-
-    /**
-     * Updates the enabled state of the children Components based on the
-     * enabled state of the <code>JSpinner</code>.
-     */
-    private void updateEnabledState() {
-        updateEnabledState(spinner, spinner.isEnabled());
-    }
-
-
-    /**
-     * Recursively updates the enabled state of the child
-     * <code>Component</code>s of <code>c</code>.
-     */
-    private void updateEnabledState(Container c, boolean enabled) {
-        for (int counter = c.getComponentCount() - 1; counter >= 0;counter--) {
-            Component child = c.getComponent(counter);
-
-            child.setEnabled(enabled);
-            if (child instanceof Container) {
-                updateEnabledState((Container)child, enabled);
+    private void updateEditorAlignment(JComponent editor) {
+        if (editor instanceof JSpinner.DefaultEditor) {
+            SynthContext context = getContext(spinner);
+            Integer alignment = (Integer)context.getStyle().get(
+                    context, "Spinner.editorAlignment");
+            if (alignment != null) {
+                JTextField text = ((JSpinner.DefaultEditor)editor).getTextField();
+                text.setHorizontalAlignment(alignment);
             }
         }
     }
-
 
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
@@ -401,15 +385,6 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
     
             if (SynthLookAndFeel.shouldUpdateStyle(e)) {
                 ui.updateStyle(spinner);
-            }
-            if ("editor".equals(propertyName)) {
-                JComponent oldEditor = (JComponent)e.getOldValue();
-                JComponent newEditor = (JComponent)e.getNewValue();
-                ui.replaceEditor(oldEditor, newEditor);
-                ui.updateEnabledState();
-            }
-            else if ("enabled".equals(propertyName)) {
-                ui.updateEnabledState();
             }
         }
     }

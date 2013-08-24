@@ -56,17 +56,16 @@ package com.sun.org.apache.bcel.internal.generic;
 
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.classfile.*;
-import java.io.*;
 import java.util.ArrayList;
 
 /** 
  * Abstract super class for all possible java types, namely basic types
  * such as int, object types like String and array types, e.g. int[]
  *
- * @version $Id: Type.java,v 1.1.1.1 2001/10/29 20:00:28 jvanzyl Exp $
+ * @version $Id: Type.java,v 1.1.2.1 2005/07/31 23:45:18 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
-public abstract class Type {
+public abstract class Type implements java.io.Serializable {
   protected byte   type;
   protected String signature; // signature for the type
 
@@ -86,7 +85,7 @@ public abstract class Type {
   public static final ObjectType    STRINGBUFFER = new ObjectType("java.lang.StringBuffer");
   public static final ObjectType    THROWABLE    = new ObjectType("java.lang.Throwable");
   public static final Type[]        NO_ARGS      = new Type[0];
-  public static final ReferenceType NULL         = new ReferenceType();
+  public static final ReferenceType NULL         = new ReferenceType(){};
   public static final Type          UNKNOWN      = new Type(Constants.T_UNKNOWN,
 							    "<unknown object>"){};
 
@@ -177,7 +176,7 @@ public abstract class Type {
       int index = signature.indexOf(';'); // Look for closing `;'
 
       if(index < 0)
-	throw new ClassFormatError("Invalid signature: " + signature);
+	throw new ClassFormatException("Invalid signature: " + signature);
 	
       consumed_chars = index + 1; // "Lblabla;" `L' and `;' are removed
 
@@ -197,7 +196,7 @@ public abstract class Type {
       int index = signature.lastIndexOf(')') + 1;
       return getType(signature.substring(index));
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
   }
 
@@ -213,7 +212,7 @@ public abstract class Type {
 
     try { // Read all declarations between for `(' and `)'
       if(signature.charAt(0) != '(')
-	throw new ClassFormatError("Invalid method signature: " + signature);
+	throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = 1; // current string position
 
@@ -222,11 +221,67 @@ public abstract class Type {
 	index += consumed_chars; // update position
       }
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
 	
     types = new Type[vec.size()];
     vec.toArray(types);
     return types;
+  }
+
+  /** Convert runtime java.lang.Class to BCEL Type object.
+   * @param cl Java class
+   * @return corresponding Type object
+   */
+  public static Type getType(java.lang.Class cl) {
+    if(cl == null) {
+      throw new IllegalArgumentException("Class must not be null");
+    }
+
+    /* That's an amzingly easy case, because getName() returns
+     * the signature. That's what we would have liked anyway.
+     */
+    if(cl.isArray()) {
+      return getType(cl.getName());
+    } else if(cl.isPrimitive()) {
+      if(cl == Integer.TYPE) {
+	return INT;
+      } else if(cl == Void.TYPE) {
+	return VOID;
+      } else if(cl == Double.TYPE) {
+	return DOUBLE;
+      } else if(cl == Float.TYPE) {
+	return FLOAT;
+      } else if(cl == Boolean.TYPE) {
+	return BOOLEAN;
+      } else if(cl == Byte.TYPE) {
+	return BYTE;
+      } else if(cl == Short.TYPE) {
+	return SHORT;
+      } else if(cl == Byte.TYPE) {
+	return BYTE;
+      } else if(cl == Long.TYPE) {
+	return LONG;
+      } else if(cl == Character.TYPE) {
+	return CHAR;
+      } else {
+	throw new IllegalStateException("Ooops, what primitive type is " + cl);
+      }
+    } else { // "Real" class
+      return new ObjectType(cl.getName());
+    }
+  }
+
+  public static String getSignature(java.lang.reflect.Method meth) {
+    StringBuffer sb = new StringBuffer("(");
+    Class[] params = meth.getParameterTypes(); // avoid clone
+
+    for(int j = 0; j < params.length; j++) {
+      sb.append(getType(params[j]).getSignature());
+    }
+
+    sb.append(")");
+    sb.append(getType(meth.getReturnType()).getSignature());
+    return sb.toString();
   }
 }

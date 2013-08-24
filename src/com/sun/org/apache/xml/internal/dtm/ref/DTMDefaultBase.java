@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMDefaultBase.java,v 1.39 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMDefaultBase.java,v 1.3 2005/09/28 13:48:52 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -41,7 +41,7 @@ import java.io.*; // for dumpDTM
  */
 public abstract class DTMDefaultBase implements DTM
 {
-	static boolean JJK_DEBUG=false;
+    static final boolean JJK_DEBUG=false;
 
   // This constant is likely to be removed in the future. Use the 
   // getDocument() method instead of ROOTNODE to get at the root 
@@ -154,7 +154,6 @@ public abstract class DTMDefaultBase implements DTM
    * Construct a DTMDefaultBase object using the default block size.
    *
    * @param mgr The DTMManager who owns this DTM.
-   * @param domSource the DOM source that this DTM will wrap.
    * @param source The object that is used to specify the construction source.
    * @param dtmIdentity The DTM identity ID for this DTM.
    * @param whiteSpaceFilter The white space filter for this DTM, which may
@@ -175,7 +174,6 @@ public abstract class DTMDefaultBase implements DTM
    * Construct a DTMDefaultBase object from a DOM node.
    *
    * @param mgr The DTMManager who owns this DTM.
-   * @param domSource the DOM source that this DTM will wrap.
    * @param source The object that is used to specify the construction source.
    * @param dtmIdentity The DTM identity ID for this DTM.
    * @param whiteSpaceFilter The white space filter for this DTM, which may
@@ -770,7 +768,7 @@ public abstract class DTMDefaultBase implements DTM
     catch(IOException ioe)
     {
       ioe.printStackTrace(System.err);
-      System.exit(-1);
+        throw new RuntimeException(ioe.getMessage());
     }
   }
   
@@ -923,7 +921,7 @@ public abstract class DTMDefaultBase implements DTM
    *
    * %REVIEW% Should this be exposed at the package/public layers?
    * 
-   * @param NodeHandle (external representation of node)
+   * @param nodeHandle (external representation of node)
    * @return nodeIdentity Internal offset to this node's records.
    * */
   final public int makeNodeIdentity(int nodeHandle)
@@ -1406,8 +1404,6 @@ public abstract class DTMDefaultBase implements DTM
      *
      * %REVIEW% Inlne this into findNamespaceContext? Create SortedSuballocatedIntVector type?
      *
-     * @param elementNodeIndex Index of a node to look up.
-     *
      * @return If positive or zero, the index of the found item.
      * If negative, index of the point at which it would have appeared,
      * encoded as -1-index and hence reconvertable by subtracting
@@ -1505,8 +1501,6 @@ public abstract class DTMDefaultBase implements DTM
    *
    * @param baseHandle handle to original node from where the first namespace
    * was relative to (needed to return nodes in document order).
-   * @param namespaceHandle handle to node which must be of type
-   * NAMESPACE_NODE.
    * @param nodeHandle A namespace handle for which we will find the next node.
    * @param inScope true if all namespaces that are in scope should be processed,
    * otherwise just process the nodes in the given element handle.
@@ -1576,7 +1570,6 @@ public abstract class DTMDefaultBase implements DTM
    * this version of the operation is primarily intended for use during negotiation
    * with the DTM Manager.
    * 
-   *  @param nodeHandle the id of the node.
    *  @return int Node handle of document, which should always be valid.
    */
   public int getDocument()
@@ -1615,7 +1608,7 @@ public abstract class DTMDefaultBase implements DTM
    */
   public int getDocumentRoot(int nodeHandle)
   {
-    return getDocument();
+    return getManager().getDTM(nodeHandle).getDocument();
   }
 
   /**
@@ -1696,7 +1689,6 @@ public abstract class DTMDefaultBase implements DTM
    * be returned.  Any additional nodes that are created that have this
    * expanded name will use this ID.
    *
-   * @param nodeHandle The handle to the node in question.
    * @param type The simple type, i.e. one of ELEMENT, ATTRIBUTE, etc.
    *
    * @param namespace The namespace URI, which may be null, may be an empty
@@ -1718,7 +1710,7 @@ public abstract class DTMDefaultBase implements DTM
   /**
    * Given an expanded-name ID, return the local name part.
    *
-   * @param ExpandedNameID an ID that represents an expanded-name.
+   * @param expandedNameID an ID that represents an expanded-name.
    * @return String Local name of this node.
    */
   public String getLocalNameFromExpandedNameID(int expandedNameID)
@@ -1729,7 +1721,7 @@ public abstract class DTMDefaultBase implements DTM
   /**
    * Given an expanded-name ID, return the namespace URI part.
    *
-   * @param ExpandedNameID an ID that represents an expanded-name.
+   * @param expandedNameID an ID that represents an expanded-name.
    * @return String URI value of this node's namespace, or null if no
    * namespace was resolved.
    */
@@ -1900,11 +1892,10 @@ public abstract class DTMDefaultBase implements DTM
    * that feature is supported by this node.
    *
    * @param feature The name of the feature to test.
-   * @param versionThis is the version number of the feature to test.
+   * @param version This is the version number of the feature to test.
    *   If the version is not
    *   specified, supporting any version of the feature will cause the
    *   method to return <code>true</code>.
-   * @param version The version string of the feature requested, may be null.
    * @return Returns <code>true</code> if the specified feature is
    *   supported on this node, <code>false</code> otherwise.
    */
@@ -2029,8 +2020,6 @@ public abstract class DTMDefaultBase implements DTM
    * no external subset or if it has no public identifier, this property
    * has no value.
    *
-   * @param the document type declaration handle
-   *
    * @return the public identifier String object, or null if there is none.
    */
   public abstract String getDocumentTypeDeclarationPublicIdentifier();
@@ -2125,7 +2114,7 @@ public abstract class DTMDefaultBase implements DTM
     int index1 = makeNodeIdentity(nodeHandle1);
     int index2 = makeNodeIdentity(nodeHandle2);
 
-    return index1!=NULL & index2!=NULL & index1 <= index2;
+    return index1!=NULL && index2!=NULL && index1 <= index2;
   }
 
   /**
@@ -2158,8 +2147,6 @@ public abstract class DTMDefaultBase implements DTM
    *        boolean. If it is false, then certain properties (indicated in their
    *        descriptions below) may be unknown. If it is true, those properties
    *        are never unknown.
-   *
-   * @param the document handle
    *
    * @param documentHandle A node handle that must identify a document.
    * @return <code>true</code> if all declarations were processed;
@@ -2348,7 +2335,7 @@ public abstract class DTMDefaultBase implements DTM
     * After the migration, the new DTMManager will treat the DTM as
     * one that is built by itself.
     * This is used to support DTM sharing between multiple transformations.
-    * @param manager the DTMManager
+    * @param mgr the DTMManager
     */
    public void migrateTo(DTMManager mgr)
    {

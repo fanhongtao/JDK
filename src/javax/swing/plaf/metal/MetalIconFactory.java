@@ -1,7 +1,7 @@
 /*
- * @(#)MetalIconFactory.java	1.60 04/02/15
+ * @(#)MetalIconFactory.java	1.64 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Vector;
+import sun.swing.CachedPainter;
 
 /**
  * Factory object that vends <code>Icon</code>s for
@@ -37,7 +38,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.60 02/15/04
+ * @version 1.64 11/17/05
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {
@@ -1085,7 +1086,7 @@ public class MetalIconFactory implements Serializable {
 		} else {
 		    MetalUtils.drawFlush3DBorder(g, x, y, controlSize, controlSize);
 		}
-		g.setColor( MetalLookAndFeel.getControlInfo() );
+		g.setColor(c.getForeground());
 	    } else {
 	        g.setColor( MetalLookAndFeel.getControlShadow() );
 	        g.drawRect( x, y, controlSize-2, controlSize-2);
@@ -1189,16 +1190,16 @@ public class MetalIconFactory implements Serializable {
             // selected dot
             if (model.isSelected()) {
                 if (enabled) {
-                    g.setColor(c.getForeground());
-                } else {
+                    g.setColor(MetalLookAndFeel.getControlInfo());
+ 		} else {
                     g.setColor(MetalLookAndFeel.getControlDarkShadow());
-                }
-                g.fillRect(4, 4, 4, 4);
-                g.drawLine(4, 3, 7, 3);
-                g.drawLine(8, 4, 8, 7);
-                g.drawLine(7, 8, 4, 8);
-                g.drawLine(3, 7, 3, 4);
-            }
+ 		}
+		g.fillRect( 4, 4,  4, 4);
+		g.drawLine( 4, 3,  7, 3);
+		g.drawLine( 8, 4,  8, 7);
+		g.drawLine( 7, 8,  4, 8);
+		g.drawLine( 3, 7,  3, 4);
+	    }
 
 	    g.translate(-x, -y);
 	}
@@ -1971,7 +1972,7 @@ public class MetalIconFactory implements Serializable {
                             MetalLookAndFeel.getMenuSelectedForeground() );
 		    }
 		    else {
-		        g.setColor(c.getForeground());
+                         g.setColor(MetalLookAndFeel.getControlInfo());
 		    }
 		}
 		else {
@@ -2122,7 +2123,7 @@ public class MetalIconFactory implements Serializable {
                                    getMenuSelectedForeground() );
 		    }
 		    else {
-		        g.setColor(c.getForeground());
+                        g.setColor(MetalLookAndFeel.getControlInfo());
 		    }
 		}
 		else {
@@ -2463,7 +2464,7 @@ private static class HorizontalSliderThumbIcon implements Icon, Serializable, UI
                   MetalLookAndFeel.getCurrentTheme());
         }
 
-        protected void paintToImage(Component c, Graphics g2,
+        protected void paintToImage(Component c, Image image, Graphics g2,
                                     int w, int h, Object[] args) {
             Graphics2D g = (Graphics2D)g2;
             boolean leftToRight = ((Boolean)args[0]).booleanValue();
@@ -2544,7 +2545,11 @@ private static class HorizontalSliderThumbIcon implements Icon, Serializable, UI
         }
 
         protected Image createImage(Component c, int w, int h,
-                                    GraphicsConfiguration config) {
+                                    GraphicsConfiguration config,
+                                    Object[] args) {
+            if (config == null) {
+                return new BufferedImage(w, h,BufferedImage.TYPE_INT_ARGB);
+            }
             return config.createCompatibleImage(
                                 w, h, Transparency.BITMASK);
         }
@@ -2576,12 +2581,16 @@ private static class HorizontalSliderThumbIcon implements Icon, Serializable, UI
 
 
         protected Image createImage(Component c, int w, int h,
-                                    GraphicsConfiguration config) {
+                                    GraphicsConfiguration config,
+                                    Object[] args) {
+            if (config == null) {
+                return new BufferedImage(w, h,BufferedImage.TYPE_INT_ARGB);
+            }
             return config.createCompatibleImage(
                                 w, h, Transparency.BITMASK);
         }
 
-        protected void paintToImage(Component c, Graphics g2,
+        protected void paintToImage(Component c, Image image, Graphics g2,
                                     int w, int h, Object[] args) {
             Graphics2D g = (Graphics2D)g2;
             boolean hasFocus = ((Boolean)args[0]).booleanValue();

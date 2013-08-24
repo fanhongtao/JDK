@@ -1,5 +1,5 @@
 /*
- * @(#)NTSystem.java	1.10 06/06/23
+ * @(#)NTSystem.java	1.11 06/06/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import javax.security.auth.login.LoginException;
  * <p> This class implementation retrieves and makes available NT
  * security information for the current user.
  * 
- * @version 1.10, 06/23/06
+ * @version 1.11, 06/08/06
  */
 public class NTSystem {
     

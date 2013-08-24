@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MethodType.java,v 1.5 2004/02/16 22:26:45 minchau Exp $
+ * $Id: MethodType.java,v 1.2.4.1 2005/09/05 11:18:05 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;

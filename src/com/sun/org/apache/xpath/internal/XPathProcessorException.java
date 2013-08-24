@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPathProcessorException.java,v 1.6 2004/02/17 04:30:02 minchau Exp $
+ * $Id: XPathProcessorException.java,v 1.2.4.1 2005/09/15 01:42:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -25,6 +25,7 @@ package com.sun.org.apache.xpath.internal;
  */
 public class XPathProcessorException extends XPathException
 {
+    static final long serialVersionUID = 1215509418326642603L;
 
   /**
    * Create an XPathProcessorException object that holds

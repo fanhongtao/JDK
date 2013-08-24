@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2003 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xpath.regex;
@@ -61,10 +20,12 @@ import java.util.Hashtable;
 import java.util.Locale;
 
 /**
- * A regular expression parser for the XML Shema.
+ * A regular expression parser for the XML Schema.
+ * 
+ * @xerces.internal
  *
  * @author TAMURA Kent &lt;kent@trl.ibm.co.jp&gt;
- * @version $Id: ParserForXMLSchema.java,v 1.5 2003/03/24 23:37:55 sandygao Exp $
+ * @version $Id: ParserForXMLSchema.java,v 1.2.6.1 2005/09/06 11:46:32 neerajbj Exp $
  */
 class ParserForXMLSchema extends RegexParser {
 
@@ -139,7 +100,7 @@ class ParserForXMLSchema extends RegexParser {
     Token processParen() throws ParseException {
         this.next();
         Token tok = Token.createParen(this.parseRegex(), 0);
-        if (this.read() != super.T_RPAREN)  throw ex("parser.factor.1", this.offset-1);
+        if (this.read() != T_RPAREN)  throw ex("parser.factor.1", this.offset-1);
         this.next();                            // Skips ')'
         return tok;
     }
@@ -208,6 +169,7 @@ class ParserForXMLSchema extends RegexParser {
         this.setContext(S_INBRACKETS);
         this.next();                            // '['
         boolean nrange = false;
+        boolean wasDecoded = false;     		// used to detect if the last - was escaped.
         RangeToken base = null;
         RangeToken tok;
         if (this.read() == T_CHAR && this.chardata == '^') {
@@ -222,6 +184,8 @@ class ParserForXMLSchema extends RegexParser {
         int type;
         boolean firstloop = true;
         while ((type = this.read()) != T_EOF) { // Don't use 'cotinue' for this loop.
+        	
+        	wasDecoded = false;
             // single-range | from-to-range | subtraction
             if (type == T_CHAR && this.chardata == ']' && !firstloop) {
                 if (nrange) {
@@ -255,6 +219,11 @@ class ParserForXMLSchema extends RegexParser {
                     tok.mergeRanges(tok2);
                     end = true;
                     break;
+                   
+                 case '-':
+                 	c = this.decodeEscaped();
+                 	wasDecoded = true;
+                 	break;
 
                   default:
                     c = this.decodeEscaped();
@@ -277,7 +246,10 @@ class ParserForXMLSchema extends RegexParser {
                 if (type == T_CHAR) {
                     if (c == '[')  throw this.ex("parser.cc.6", this.offset-2);
                     if (c == ']')  throw this.ex("parser.cc.7", this.offset-2);
-                    if (c == '-')  throw this.ex("parser.cc.8", this.offset-2);
+                    if (c == '-' && this.chardata == ']' && firstloop)  throw this.ex("parser.cc.8", this.offset-2);	// if regex = '[-]' then invalid
+                }
+                if(c == '-' && this.chardata == '-' && this.read() != T_BACKSOLIDUS && !wasDecoded) {
+                	throw this.ex("parser.cc.8", this.offset-2);
                 }
                 if (this.read() != T_CHAR || this.chardata != '-') { // Here is no '-'.
                     tok.addRange(c, c);
@@ -286,10 +258,14 @@ class ParserForXMLSchema extends RegexParser {
                     this.next(); // Skips '-'
                     if ((type = this.read()) == T_EOF)  throw this.ex("parser.cc.2", this.offset);
                                                 // c '-' ']' -> '-' is a single-range.
-                    if ((type == T_CHAR && this.chardata == ']')
-                        || type == T_XMLSCHEMA_CC_SUBTRACTION) {
+                    if(type == T_CHAR && this.chardata == ']') {				// if - is at the last position of the group
+                    	tok.addRange(c, c);
+                    	tok.addRange('-', '-');
+                    }
+                    else if (type == T_XMLSCHEMA_CC_SUBTRACTION) {
                         throw this.ex("parser.cc.8", this.offset-1);
                     } else {
+                    	
                         int rangeend = this.chardata;
                         if (type == T_CHAR) {
                             if (rangeend == '[')  throw this.ex("parser.cc.6", this.offset-1);

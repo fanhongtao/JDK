@@ -1,7 +1,7 @@
 /*
- * @(#)TextArea.java	1.78 04/05/18
+ * @(#)TextArea.java	1.81 06/06/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -12,8 +12,8 @@ import java.awt.peer.TextAreaPeer;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 import javax.accessibility.*;
 
 /**
@@ -32,7 +32,7 @@ import javax.accessibility.*;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.78, 05/18/04
+ * @version	1.81, 06/16/06
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -120,16 +120,16 @@ public class TextArea extends TextComponent {
 
     static {
         /* ensure that the necessary native libraries are loaded */
-	Toolkit.loadLibraries();
+        Toolkit.loadLibraries();
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
-	forwardTraversalKeys = KeyboardFocusManager.initFocusTraversalKeysSet(
-	    "ctrl TAB",
-	    new TreeSet());
-	backwardTraversalKeys = KeyboardFocusManager.initFocusTraversalKeysSet(
-	    "ctrl shift TAB",
-	    new TreeSet());
+        forwardTraversalKeys = KeyboardFocusManager.initFocusTraversalKeysSet(
+            "ctrl TAB",
+            new HashSet());
+        backwardTraversalKeys = KeyboardFocusManager.initFocusTraversalKeysSet(
+            "ctrl shift TAB",
+            new HashSet());
     }
 
     /**
@@ -657,6 +657,7 @@ public class TextArea extends TextComponent {
      *
      * @return an <code>AccessibleAWTTextArea</code> that serves as the 
      *         <code>AccessibleContext</code> of this <code>TextArea</code>
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -669,6 +670,7 @@ public class TextArea extends TextComponent {
      * This class implements accessibility support for the 
      * <code>TextArea</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to text area user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTTextArea extends AccessibleAWTTextComponent
     {

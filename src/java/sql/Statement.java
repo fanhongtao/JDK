@@ -1,7 +1,7 @@
 /*
- * @(#)Statement.java	1.40 03/12/19
+ * @(#)Statement.java	1.48 06/10/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.sql;
  * @see Connection#createStatement
  * @see ResultSet 
  */
-public interface Statement {
+public interface Statement extends Wrapper {
 
     /**
      * Executes the given SQL statement, which returns a single 
@@ -32,7 +32,8 @@ public interface Statement {
      *        static SQL <code>SELECT</code> statement
      * @return a <code>ResultSet</code> object that contains the data produced 
      *         by the given query; never <code>null</code> 
-     * @exception SQLException if a database access error occurs or the given
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the given
      *            SQL statement produces anything other than a single
      *            <code>ResultSet</code> object
      */
@@ -43,12 +44,15 @@ public interface Statement {
      * <code>UPDATE</code>, or <code>DELETE</code> statement or an
      * SQL statement that returns nothing, such as an SQL DDL statement.
      *
-     * @param sql an SQL <code>INSERT</code>, <code>UPDATE</code> or
-     * <code>DELETE</code> statement or an SQL statement that returns nothing
-     * @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
-     * or <code>DELETE</code> statements, or <code>0</code> for SQL statements 
-     * that return nothing
-     * @exception SQLException if a database access error occurs or the given
+     * @param sql an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE</code> or
+     * <code>DELETE</code>; or an SQL statement that returns nothing, 
+     * such as a DDL statement.
+     *
+     * @return either (1) the row count for SQL Data Manipulation Language (DML) statements
+     *         or (2) 0 for SQL statements that return nothing
+     *
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the given
      *            SQL statement produces a <code>ResultSet</code> object
      */
     int executeUpdate(String sql) throws SQLException;
@@ -64,8 +68,7 @@ public interface Statement {
      * Calling the method <code>close</code> on a <code>Statement</code>
      * object that is already closed has no effect.
      * <P>
-     * <B>Note:</B> A <code>Statement</code> object is automatically closed 
-     * when it is garbage collected. When a <code>Statement</code> object is 
+     * <B>Note:</B>When a <code>Statement</code> object is 
      * closed, its current <code>ResultSet</code> object, if one exists, is 
      * also closed.  
      *
@@ -79,31 +82,36 @@ public interface Statement {
      * Retrieves the maximum number of bytes that can be
      * returned for character and binary column values in a <code>ResultSet</code> 
      * object produced by this <code>Statement</code> object.
-     * This limit applies only to <code>BINARY</code>,
-     * <code>VARBINARY</code>, <code>LONGVARBINARY</code>, <code>CHAR</code>,
-     * <code>VARCHAR</code>, and <code>LONGVARCHAR</code>
-     * columns.  If the limit is exceeded, the excess data is silently
-     * discarded.
+     * This limit applies only to  <code>BINARY</code>, <code>VARBINARY</code>,
+     * <code>LONGVARBINARY</code>, <code>CHAR</code>, <code>VARCHAR</code>,
+     * <code>NCHAR</code>, <code>NVARCHAR</code>, <code>LONGNVARCHAR</code> 
+     * and <code>LONGVARCHAR</code> columns.  If the limit is exceeded, the 
+     * excess data is silently discarded.
      *
      * @return the current column size limit for columns storing character and 
      *         binary values; zero means there is no limit 
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @see #setMaxFieldSize
      */
     int getMaxFieldSize() throws SQLException;
     
     /**
-     * Sets the limit for the maximum number of bytes in a <code>ResultSet</code>
-     * column storing character or binary values to
-     * the given number of bytes.  This limit applies
+     * Sets the limit for the maximum number of bytes that can be returned for
+     * character and binary column values in a <code>ResultSet</code>
+     * object produced by this <code>Statement</code> object.
+     * 
+     * This limit applies
      * only to <code>BINARY</code>, <code>VARBINARY</code>,
-     * <code>LONGVARBINARY</code>, <code>CHAR</code>, <code>VARCHAR</code>, and
+     * <code>LONGVARBINARY</code>, <code>CHAR</code>, <code>VARCHAR</code>,
+     * <code>NCHAR</code>, <code>NVARCHAR</code>, <code>LONGNVARCHAR</code> and
      * <code>LONGVARCHAR</code> fields.  If the limit is exceeded, the excess data
      * is silently discarded. For maximum portability, use values
      * greater than 256.
      *
      * @param max the new column size limit in bytes; zero means there is no limit 
-     * @exception SQLException if a database access error occurs 
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> 
      *            or the condition max >= 0 is not satisfied
      * @see #getMaxFieldSize
      */
@@ -118,19 +126,22 @@ public interface Statement {
      * @return the current maximum number of rows for a <code>ResultSet</code>
      *         object produced by this <code>Statement</code> object; 
      *         zero means there is no limit
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @see #setMaxRows
      */
     int getMaxRows() throws SQLException;
 
     /**
      * Sets the limit for the maximum number of rows that any
-     * <code>ResultSet</code> object can contain to the given number.
+     * <code>ResultSet</code> object  generated by this <code>Statement</code>
+     * object can contain to the given number.
      * If the limit is exceeded, the excess
      * rows are silently dropped.
      *
      * @param max the new max rows limit; zero means there is no limit 
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> 
      *            or the condition max >= 0 is not satisfied
      * @see #getMaxRows
      */
@@ -147,18 +158,21 @@ public interface Statement {
      *
      * @param enable <code>true</code> to enable escape processing;
      *       <code>false</code> to disable it
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      */
     void setEscapeProcessing(boolean enable) throws SQLException;
 
     /**
      * Retrieves the number of seconds the driver will
-     * wait for a <code>Statement</code> object to execute. If the limit is exceeded, a
+     * wait for a <code>Statement</code> object to execute. 
+     * If the limit is exceeded, a
      * <code>SQLException</code> is thrown.
      *
      * @return the current query timeout limit in seconds; zero means there is 
      *         no limit 
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @see #setQueryTimeout
      */
     int getQueryTimeout() throws SQLException;
@@ -166,11 +180,16 @@ public interface Statement {
     /**
      * Sets the number of seconds the driver will wait for a 
      * <code>Statement</code> object to execute to the given number of seconds.
-     * If the limit is exceeded, an <code>SQLException</code> is thrown.
+     * If the limit is exceeded, an <code>SQLException</code> is thrown. A JDBC
+     * driver must apply this limit to the <code>execute</code>,
+     * <code>executeQuery</code> and <code>executeUpdate</code> methods. JDBC driver
+     * implementations may also apply this limit to <code>ResultSet</code> methods
+     * (consult your driver vendor documentation for details).
      *
      * @param seconds the new query timeout limit in seconds; zero means 
      *        there is no limit
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code>
      *            or the condition seconds >= 0 is not satisfied
      * @see #getQueryTimeout
      */
@@ -182,7 +201,10 @@ public interface Statement {
      * This method can be used by one thread to cancel a statement that
      * is being executed by another thread.
      *
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method
      */
     void cancel() throws SQLException;
 
@@ -203,8 +225,8 @@ public interface Statement {
      *
      * @return the first <code>SQLWarning</code> object or <code>null</code> 
      *         if there are no warnings
-     * @exception SQLException if a database access error occurs or this 
-     *            method is called on a closed statement
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      */
     SQLWarning getWarnings() throws SQLException;
 
@@ -215,7 +237,8 @@ public interface Statement {
      * <code>null</code> until a new warning is reported for this
      * <code>Statement</code> object.  
      *
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      */
     void clearWarnings() throws SQLException;
 
@@ -238,7 +261,9 @@ public interface Statement {
      *
      * @param name the new cursor name, which must be unique within
      *             a connection
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
      */
     void setCursorName(String name) throws SQLException;
 	
@@ -262,7 +287,8 @@ public interface Statement {
      * @return <code>true</code> if the first result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there are 
      *         no results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code> 
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults 
@@ -275,7 +301,8 @@ public interface Statement {
      *
      * @return the current result as a <code>ResultSet</code> object or
      * <code>null</code> if the result is an update count or there are no more results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @see #execute 
      */
     ResultSet getResultSet() throws SQLException; 
@@ -287,7 +314,8 @@ public interface Statement {
      * 
      * @return the current result as an update count; -1 if the current result is a
      * <code>ResultSet</code> object or there are no more results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @see #execute 
      */
     int getUpdateCount() throws SQLException; 
@@ -307,7 +335,8 @@ public interface Statement {
      * @return <code>true</code> if the next result is a <code>ResultSet</code>
      *         object; <code>false</code> if it is an update count or there are 
      *         no more results
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @see #execute 
      */
     boolean getMoreResults() throws SQLException; 
@@ -328,7 +357,8 @@ public interface Statement {
      * its own fetch direction.
      *
      * @param direction the initial direction for processing rows
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> 
      * or the given direction
      * is not one of <code>ResultSet.FETCH_FORWARD</code>,
      * <code>ResultSet.FETCH_REVERSE</code>, or <code>ResultSet.FETCH_UNKNOWN</code>
@@ -347,7 +377,8 @@ public interface Statement {
      *
      * @return the default fetch direction for result sets generated
      *          from this <code>Statement</code> object
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @since 1.2
      * @see #setFetchDirection
      */
@@ -355,15 +386,15 @@ public interface Statement {
 
     /**
      * Gives the JDBC driver a hint as to the number of rows that should 
-     * be fetched from the database when more rows are needed.  The number 
-     * of rows specified affects only result sets created using this 
-     * statement. If the value specified is zero, then the hint is ignored.
+     * be fetched from the database when more rows are needed for
+     * <code>ResultSet</code> objects genrated by this <code>Statement</code>. 
+     * If the value specified is zero, then the hint is ignored.
      * The default value is zero.
      *
      * @param rows the number of rows to fetch
-     * @exception SQLException if a database access error occurs, or the
-     *        condition 0 <= <code>rows</code> <= <code>this.getMaxRows()</code> 
-     *        is not satisfied.
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the
+     *        condition  <code>rows >= 0</code> is not satisfied.
      * @since 1.2
      * @see #getFetchSize
      */
@@ -379,7 +410,8 @@ public interface Statement {
      *
      * @return the default fetch size for result sets generated
      *          from this <code>Statement</code> object
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @since 1.2
      * @see #setFetchSize
      */
@@ -391,7 +423,8 @@ public interface Statement {
      *
      * @return either <code>ResultSet.CONCUR_READ_ONLY</code> or
      * <code>ResultSet.CONCUR_UPDATABLE</code>
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @since 1.2
      */
     int getResultSetConcurrency() throws SQLException;
@@ -403,7 +436,8 @@ public interface Statement {
      * @return one of <code>ResultSet.TYPE_FORWARD_ONLY</code>,
      * <code>ResultSet.TYPE_SCROLL_INSENSITIVE</code>, or	
      * <code>ResultSet.TYPE_SCROLL_SENSITIVE</code>
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @since 1.2
      */
     int getResultSetType()  throws SQLException;
@@ -413,13 +447,14 @@ public interface Statement {
      * <code>Statement</code> object. The commands in this list can be
      * executed as a batch by calling the method <code>executeBatch</code>.
      * <P>
-     * <B>NOTE:</B>  This method is optional.
      *
-     * @param sql typically this is a static SQL <code>INSERT</code> or 
+     * @param sql typically this is a SQL <code>INSERT</code> or 
      * <code>UPDATE</code> statement
-     * @exception SQLException if a database access error occurs, or the
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the
      * driver does not support batch updates
      * @see #executeBatch
+     * @see DatabaseMetaData#supportsBatchUpdates
      * @since 1.2
      */
     void addBatch( String sql ) throws SQLException;
@@ -428,11 +463,11 @@ public interface Statement {
      * Empties this <code>Statement</code> object's current list of 
      * SQL commands.
      * <P>
-     * <B>NOTE:</B>  This method is optional.
-     *
-     * @exception SQLException if a database access error occurs or the
+     * @exception SQLException if a database access error occurs, 
+     *  this method is called on a closed <code>Statement</code> or the
      * driver does not support batch updates
-     * @see #addBatch
+     * @see #addBatch    
+     * @see DatabaseMetaData#supportsBatchUpdates
      * @since 1.2
      */
     void clearBatch() throws SQLException;
@@ -470,7 +505,6 @@ public interface Statement {
      * process commands after a command fails
      * </OL>
      * <P>
-     * A driver is not required to implement this method.
      * The possible implementations and return values have been modified in
      * the Java 2 SDK, Standard Edition, version 1.3 to
      * accommodate the option of continuing to proccess commands in a batch
@@ -479,10 +513,15 @@ public interface Statement {
      * @return an array of update counts containing one element for each
      * command in the batch.  The elements of the array are ordered according 
      * to the order in which commands were added to the batch.
-     * @exception SQLException if a database access error occurs or the
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the
      * driver does not support batch statements. Throws {@link BatchUpdateException}
      * (a subclass of <code>SQLException</code>) if one of the commands sent to the
      * database fails to execute properly or attempts to return a result set.
+     *
+     *
+     * @see #addBatch    
+     * @see DatabaseMetaData#supportsBatchUpdates
      * @since 1.3
      */
     int[] executeBatch() throws SQLException;
@@ -491,7 +530,8 @@ public interface Statement {
      * Retrieves the <code>Connection</code> object
      * that produced this <code>Statement</code> object.
      * @return the connection that produced this statement
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      * @since 1.2
      */
     Connection getConnection()  throws SQLException;
@@ -564,7 +604,7 @@ public interface Statement {
      * <P>There are no more results when the following is true:
      * <PRE>
      *     // stmt is a Statement object
-     *     ((stmt.getMoreResults() == false) && (stmt.getUpdateCount() == -1))
+     *     ((stmt.getMoreResults(current) == false) && (stmt.getUpdateCount() == -1))
      * </PRE>
      *
      * @param current one of the following <code>Statement</code>
@@ -577,11 +617,18 @@ public interface Statement {
      * @return <code>true</code> if the next result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there are no 
      *         more results
-     * @exception SQLException if a database access error occurs or the argument
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the argument
 	 *         supplied is not one of the following:
      *        <code>Statement.CLOSE_CURRENT_RESULT</code>, 
-     *        <code>Statement.KEEP_CURRENT_RESULT</code>, or
+     *        <code>Statement.KEEP_CURRENT_RESULT</code> or
      *        <code>Statement.CLOSE_ALL_RESULTS</code>
+     *@exception SQLFeatureNotSupportedException if 
+     * <code>DatabaseMetaData.supportsMultipleOpenResults</code> returns 
+     * <code>false</code> and either 
+     *        <code>Statement.KEEP_CURRENT_RESULT</code> or
+     *        <code>Statement.CLOSE_ALL_RESULTS</code> are supplied as
+     * the argument.
      * @since 1.4
      * @see #execute
      */
@@ -593,9 +640,14 @@ public interface Statement {
      * not generate any keys, an empty <code>ResultSet</code>
      * object is returned.
      *
+     *<p><B>Note:</B>If the columns which represent the auto-generated keys were not specified,
+     * the JDBC driver implementation will determine the columns which best represent the auto-generated keys.
+     *
      * @return a <code>ResultSet</code> object containing the auto-generated key(s) 
      *         generated by the execution of this <code>Statement</code> object
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
      * @since 1.4
      */
     ResultSet getGeneratedKeys() throws SQLException;
@@ -604,22 +656,29 @@ public interface Statement {
      * Executes the given SQL statement and signals the driver with the
      * given flag about whether the
      * auto-generated keys produced by this <code>Statement</code> object
-     * should be made available for retrieval. 
+     * should be made available for retrieval.  The driver will ignore the 
+     * flag if the SQL statement
+     * is not an <code>INSERT</code> statement, or an SQL statement able to return
+     * auto-generated keys (the list of such statements is vendor-specific).
      *
-     * @param sql must be an SQL <code>INSERT</code>, <code>UPDATE</code> or
-     *        <code>DELETE</code> statement or an SQL statement that 
-     *        returns nothing
+     * @param sql an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE</code> or
+     * <code>DELETE</code>; or an SQL statement that returns nothing, 
+     * such as a DDL statement.
+     *
      * @param autoGeneratedKeys a flag indicating whether auto-generated keys
      *        should be made available for retrieval;
      *         one of the following constants:
      *         <code>Statement.RETURN_GENERATED_KEYS</code>
      *         <code>Statement.NO_GENERATED_KEYS</code>
-     * @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
-     *         or <code>DELETE</code> statements, or <code>0</code> for SQL 
-     *         statements that return nothing
-     * @exception SQLException if a database access error occurs, the given
+     * @return either (1) the row count for SQL Data Manipulation Language (DML) statements
+     *         or (2) 0 for SQL statements that return nothing
+     *
+     * @exception SQLException if a database access error occurs,
+     *  this method is called on a closed <code>Statement</code>, the given
      *            SQL statement returns a <code>ResultSet</code> object, or
      *            the given constant is not one of those allowed
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method with a constant of Statement.RETURN_GENERATED_KEYS
      * @since 1.4
      */
     int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException;
@@ -627,21 +686,27 @@ public interface Statement {
     /**
      * Executes the given SQL statement and signals the driver that the
      * auto-generated keys indicated in the given array should be made available
-     * for retrieval.  The driver will ignore the array if the SQL statement
-     * is not an <code>INSERT</code> statement.
+     * for retrieval.   This array contains the indexes of the columns in the 
+     * target table that contain the auto-generated keys that should be made
+     * available. The driver will ignore the array if the SQL statement
+     * is not an <code>INSERT</code> statement, or an SQL statement able to return
+     * auto-generated keys (the list of such statements is vendor-specific).
      *
-     * @param sql an SQL <code>INSERT</code>, <code>UPDATE</code> or
-     *        <code>DELETE</code> statement or an SQL statement that returns nothing,
-     *        such as an SQL DDL statement
+     * @param sql an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE</code> or
+     * <code>DELETE</code>; or an SQL statement that returns nothing, 
+     * such as a DDL statement.
+     *
      * @param columnIndexes an array of column indexes indicating the columns
      *        that should be returned from the inserted row
-     * @return either the row count for <code>INSERT</code>, <code>UPDATE</code>,
-     *         or <code>DELETE</code> statements, or 0 for SQL statements 
-     *         that return nothing
-     * @exception SQLException if a database access error occurs, the SQL
+     * @return either (1) the row count for SQL Data Manipulation Language (DML) statements
+     *         or (2) 0 for SQL statements that return nothing
+     *
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code>, the SQL
      *            statement returns a <code>ResultSet</code> object, or the
-	 *            second argument supplied to this method is not an <code>int</code> array
-	 *            whose elements are valid column indexes 
+     *            second argument supplied to this method is not an <code>int</code> array
+     *            whose elements are valid column indexes 
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
      * @since 1.4
      */
     int executeUpdate(String sql, int columnIndexes[]) throws SQLException;
@@ -649,21 +714,27 @@ public interface Statement {
     /**
      * Executes the given SQL statement and signals the driver that the
      * auto-generated keys indicated in the given array should be made available
-     * for retrieval.  The driver will ignore the array if the SQL statement
-     * is not an <code>INSERT</code> statement.
+     * for retrieval.   This array contains the names of the columns in the 
+     * target table that contain the auto-generated keys that should be made
+     * available. The driver will ignore the array if the SQL statement
+     * is not an <code>INSERT</code> statement, or an SQL statement able to return
+     * auto-generated keys (the list of such statements is vendor-specific).
      *
-     * @param sql an SQL <code>INSERT</code>, <code>UPDATE</code> or
-     *        <code>DELETE</code> statement or an SQL statement that returns nothing
+     * @param sql an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE</code> or
+     * <code>DELETE</code>; or an SQL statement that returns nothing, 
+     * such as a DDL statement.
      * @param columnNames an array of the names of the columns that should be 
      *        returned from the inserted row
      * @return either the row count for <code>INSERT</code>, <code>UPDATE</code>,
      *         or <code>DELETE</code> statements, or 0 for SQL statements 
      *         that return nothing
-     * @exception SQLException if a database access error occurs, the SQL
+     * @exception SQLException if a database access error occurs, 
+     *  this method is called on a closed <code>Statement</code>, the SQL
      *            statement returns a <code>ResultSet</code> object, or the
-	 *            second argument supplied to this method is not a <code>String</code> array
+     *            second argument supplied to this method is not a <code>String</code> array
      *            whose elements are valid column names
      *
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
      * @since 1.4
      */
     int executeUpdate(String sql, String columnNames[]) throws SQLException;
@@ -673,7 +744,8 @@ public interface Statement {
      * and signals the driver that any
      * auto-generated keys should be made available
      * for retrieval.  The driver will ignore this signal if the SQL statement
-     * is not an <code>INSERT</code> statement.
+     * is not an <code>INSERT</code> statement, or an SQL statement able to return
+     * auto-generated keys (the list of such statements is vendor-specific).
      * <P>
      * In some (uncommon) situations, a single SQL statement may return
      * multiple result sets and/or update counts.  Normally you can ignore
@@ -696,10 +768,13 @@ public interface Statement {
      * @return <code>true</code> if the first result is a <code>ResultSet</code>
      *         object; <code>false</code> if it is an update count or there are
      *         no results
-     * @exception SQLException if a database access error occurs or the second 
-	 *         parameter supplied to this method is not 
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the second 
+     *         parameter supplied to this method is not 
      *         <code>Statement.RETURN_GENERATED_KEYS</code> or
-	 *         <code>Statement.NO_GENERATED_KEYS</code>.
+     *         <code>Statement.NO_GENERATED_KEYS</code>.
+     * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+     * this method with a constant of Statement.RETURN_GENERATED_KEYS
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults
@@ -715,8 +790,9 @@ public interface Statement {
      * auto-generated keys indicated in the given array should be made available
      * for retrieval.  This array contains the indexes of the columns in the 
      * target table that contain the auto-generated keys that should be made
-     * available. The driver will ignore the array if the given SQL statement
-     * is not an <code>INSERT</code> statement.
+     * available.  The driver will ignore the array if the SQL statement
+     * is not an <code>INSERT</code> statement, or an SQL statement able to return
+     * auto-generated keys (the list of such statements is vendor-specific).
      * <P>
      * Under some (uncommon) situations, a single SQL statement may return
      * multiple result sets and/or update counts.  Normally you can ignore
@@ -737,9 +813,11 @@ public interface Statement {
      * @return <code>true</code> if the first result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there 
      *         are no results
-     * @exception SQLException if a database access error occurs or the 
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the 
      *            elements in the <code>int</code> array passed to this method
      *            are not valid column indexes
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults
@@ -754,8 +832,9 @@ public interface Statement {
      * auto-generated keys indicated in the given array should be made available
      * for retrieval. This array contains the names of the columns in the 
      * target table that contain the auto-generated keys that should be made
-     * available. The driver will ignore the array if the given SQL statement
-     * is not an <code>INSERT</code> statement.
+     * available.  The driver will ignore the array if the SQL statement
+     * is not an <code>INSERT</code> statement, or an SQL statement able to return
+     * auto-generated keys (the list of such statements is vendor-specific).
      * <P>
      * In some (uncommon) situations, a single SQL statement may return
      * multiple result sets and/or update counts.  Normally you can ignore
@@ -776,9 +855,11 @@ public interface Statement {
      * @return <code>true</code> if the next result is a <code>ResultSet</code> 
      *         object; <code>false</code> if it is an update count or there 
      *         are no more results
-     * @exception SQLException if a database access error occurs or the 
-	 *          elements of the <code>String</code> array passed to this
+     * @exception SQLException if a database access error occurs, 
+     * this method is called on a closed <code>Statement</code> or the 
+     *          elements of the <code>String</code> array passed to this
      *          method are not valid column names
+     * @throws SQLFeatureNotSupportedException  if the JDBC driver does not support this method
      * @see #getResultSet
      * @see #getUpdateCount
      * @see #getMoreResults
@@ -794,10 +875,62 @@ public interface Statement {
      *
      * @return either <code>ResultSet.HOLD_CURSORS_OVER_COMMIT</code> or
      *         <code>ResultSet.CLOSE_CURSORS_AT_COMMIT</code>
-     * @exception SQLException if a database access error occurs
+     * @exception SQLException if a database access error occurs or 
+     * this method is called on a closed <code>Statement</code>
      *
      * @since 1.4
      */
     int getResultSetHoldability() throws SQLException;
 
-}	
+    /**
+     * Retrieves whether this <code>Statement</code> object has been closed. A <code>Statement</code> is closed if the
+     * method close has been called on it, or if it is automatically closed.
+     * @return true if this <code>Statement</code> object is closed; false if it is still open
+     * @throws SQLException if a database access error occurs
+     * @since 1.6
+     */
+    boolean isClosed() throws SQLException;
+    
+	/**
+	 * Requests that a <code>Statement</code> be pooled or not pooled.  The value 
+	 * specified is a hint to the statement pool implementation indicating 
+	 * whether the applicaiton wants the statement to be pooled.  It is up to 
+	 * the statement pool manager as to whether the hint is used.
+	 * <p>
+	 * The poolable value of a statement is applicable to both internal 
+	 * statement caches implemented by the driver and external statement caches 
+	 * implemented by application servers and other applications.
+	 * <p>
+	 * By default, a <code>Statement</code> is not poolable when created, and 
+         * a <code>PreparedStatement</code> and <code>CallableStatement</code> 
+         * are poolable when created.
+	 * <p>
+	 * @param poolable		requests that the statement be pooled if true and
+	 * 						that the statement not be pooled if false 
+	 * <p>
+	 * @throws SQLException if this method is called on a closed 
+         * <code>Statement</code>
+	 * <p>
+	 * @since 1.6
+	 */
+	void setPoolable(boolean poolable)
+		throws SQLException;
+	
+	/**
+	 * Returns a  value indicating whether the <code>Statement</code>
+         * is poolable or not.
+	 * <p>
+	 * @return		<code>true</code> if the <code>Statement</code> 
+         * is poolable; <code>false</code> otherwise
+	 * <p>
+	 * @throws SQLException if this method is called on a closed 
+         * <code>Statement</code>
+	 * <p>
+	 * @since 1.6
+	 * <p>
+	 * @see java.sql.Statement#setPoolable(boolean) setPoolable(boolean)
+	 */
+	boolean isPoolable()
+		throws SQLException;
+
+}

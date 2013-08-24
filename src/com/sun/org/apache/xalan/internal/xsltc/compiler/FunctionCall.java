@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionCall.java,v 1.39 2004/03/16 22:46:03 santiagopg Exp $
+ * $Id: FunctionCall.java,v 1.2.4.1 2005/09/12 10:31:32 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -35,6 +35,7 @@ import com.sun.org.apache.bcel.internal.generic.INVOKEVIRTUAL;
 import com.sun.org.apache.bcel.internal.generic.InstructionConstants;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
 import com.sun.org.apache.bcel.internal.generic.InvokeInstruction;
+import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.bcel.internal.generic.PUSH;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.BooleanType;
@@ -699,6 +700,7 @@ class FunctionCall extends Expression {
 	final int n = argumentCount();
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
+	final boolean isSecureProcessing = classGen.getParser().getXSLTC().isSecureProcessing();
 	int index;
 
 	// Translate calls to methods in the BasisLibrary
@@ -742,20 +744,44 @@ class FunctionCall extends Expression {
 	    il.append(new INVOKESTATIC(index));
 	}
 	else if (_isExtConstructor) {
+	    if (isSecureProcessing)
+	        translateUnallowedExtension(cpg, il);
+	    
 	    final String clazz = 
 		_chosenConstructor.getDeclaringClass().getName();
 	    Class[] paramTypes = _chosenConstructor.getParameterTypes();
-	    
-	    il.append(new NEW(cpg.addClass(_className)));
-	    il.append(InstructionConstants.DUP);
+            LocalVariableGen[] paramTemp = new LocalVariableGen[n];
+
+            // Backwards branches are prohibited if an uninitialized object is
+            // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
+            // We don't know whether this code might contain backwards branches
+            // so we mustn't create the new object until after we've created
+            // the suspect arguments to its constructor.  Instead we calculate
+            // the values of the arguments to the constructor first, store them
+            // in temporary variables, create the object and reload the
+            // arguments from the temporaries to avoid the problem.
 
 	    for (int i = 0; i < n; i++) {
 		final Expression exp = argument(i);
+                Type expType = exp.getType();
 		exp.translate(classGen, methodGen);
 		// Convert the argument to its Java type
 		exp.startIterator(classGen, methodGen);
-		exp.getType().translateTo(classGen, methodGen, paramTypes[i]);
+		expType.translateTo(classGen, methodGen, paramTypes[i]);
+                paramTemp[i] =
+                    methodGen.addLocalVariable("function_call_tmp"+i,
+                                               expType.toJCType(),
+                                               il.getEnd(), null);
+                il.append(expType.STORE(paramTemp[i].getIndex()));
 	    }
+
+	    il.append(new NEW(cpg.addClass(_className)));
+	    il.append(InstructionConstants.DUP);
+
+            for (int i = 0; i < n; i++) {
+                final Expression arg = argument(i);
+                il.append(arg.getType().LOAD(paramTemp[i].getIndex()));
+            }
 
 	    final StringBuffer buffer = new StringBuffer();
 	    buffer.append('(');
@@ -777,6 +803,9 @@ class FunctionCall extends Expression {
 	}
 	// Invoke function calls that are handled in separate classes
 	else {
+	    if (isSecureProcessing)
+	        translateUnallowedExtension(cpg, il);
+	    
 	    final String clazz = _chosenMethod.getDeclaringClass().getName();
 	    Class[] paramTypes = _chosenMethod.getParameterTypes();
 
@@ -1045,4 +1074,16 @@ class FunctionCall extends Expression {
         return buff.toString();
     }
  	 
+    /**
+     * Translate code to call the BasisLibrary.unallowed_extensionF(String)
+     * method.
+     */
+    private void translateUnallowedExtension(ConstantPoolGen cpg,
+                                             InstructionList il) {
+	int index = cpg.addMethodref(BASIS_LIBRARY_CLASS,
+				     "unallowed_extension_functionF",
+				     "(Ljava/lang/String;)V");
+	il.append(new PUSH(cpg, _fname.toString()));
+	il.append(new INVOKESTATIC(index));   
+    } 	 
 }

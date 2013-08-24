@@ -1,7 +1,7 @@
 /*
- * @(#)CustomControls.java	1.9 04/07/26
+ * @(#)CustomControls.java	1.11 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)CustomControls.java	1.6 03/01/23
+ * @(#)CustomControls.java	1.11 06/08/09
  */
 
 package java2d;

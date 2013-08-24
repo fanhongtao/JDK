@@ -1,7 +1,7 @@
 /*
- * @(#)TableMap.java	1.13 04/07/26
+ * @(#)TableMap.java	1.14 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)TableMap.java	1.13 04/07/26
+ * @(#)TableMap.java	1.14 05/11/17
  */
 
 /** 
@@ -47,7 +47,7 @@
  * a TableMap which has not been subclassed into a chain of table filters 
  * should have no effect.
  *
- * @version 1.13 07/26/04
+ * @version 1.14 11/17/05
  * @author Philip Milne */
 
 import javax.swing.table.*; 

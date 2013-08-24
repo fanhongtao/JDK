@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedInputStream.java	1.50 04/05/03
+ * @(#)BufferedInputStream.java	1.57 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * the contained input stream.
  *
  * @author  Arthur van Hoff
- * @version 1.50, 05/03/04
+ * @version 1.57, 06/07/06
  * @since   JDK1.0
  */
 public
@@ -227,7 +227,9 @@ class BufferedInputStream extends FilterInputStream {
      *
      * @return     the next byte of data, or <code>-1</code> if the end of the
      *             stream is reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if this input stream has been closed by
+     *				invoking its {@link #close()} method,
+     *				or an I/O error occurs. 
      * @see        java.io.FilterInputStream#in
      */
     public synchronized int read() throws IOException {
@@ -296,7 +298,9 @@ class BufferedInputStream extends FilterInputStream {
      * @param      len   maximum number of bytes to read.
      * @return     the number of bytes read, or <code>-1</code> if the end of
      *             the stream has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if this input stream has been closed by
+     *				invoking its {@link #close()} method,
+     *				or an I/O error occurs. 
      */
     public synchronized int read(byte b[], int off, int len)
 	throws IOException
@@ -327,9 +331,10 @@ class BufferedInputStream extends FilterInputStream {
      * See the general contract of the <code>skip</code>
      * method of <code>InputStream</code>.
      *
-     * @param      n   the number of bytes to be skipped.
-     * @return     the actual number of bytes skipped.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if the stream does not support seek,
+     *				or if this input stream has been closed by
+     *				invoking its {@link #close()} method, or an
+     *				I/O error occurs.
      */
     public synchronized long skip(long n) throws IOException {
         getBufIfOpen(); // Check for closed stream
@@ -356,20 +361,21 @@ class BufferedInputStream extends FilterInputStream {
     }
 
     /**
-     * Returns the number of bytes that can be read from this input 
-     * stream without blocking. 
+     * Returns an estimate of the number of bytes that can be read (or
+     * skipped over) from this input stream without blocking by the next
+     * invocation of a method for this input stream. The next invocation might be
+     * the same thread or another thread.  A single read or skip of this
+     * many bytes will not block, but may read or skip fewer bytes.
      * <p>
-     * The <code>available</code> method of 
-     * <code>BufferedInputStream</code> returns the sum of the number
-     * of bytes remaining to be read in the buffer 
-     * (<code>count&nbsp;- pos</code>) 
-     * and the result of calling the <code>available</code> method of the 
-     * underlying input stream. 
+     * This method returns the sum of the number of bytes remaining to be read in
+     * the buffer (<code>count&nbsp;- pos</code>) and the result of calling the
+     * {@link java.io.FilterInputStream#in in}.available().
      *
-     * @return     the number of bytes that can be read from this input
-     *             stream without blocking.
-     * @exception  IOException  if an I/O error occurs.
-     * @see        java.io.FilterInputStream#in
+     * @return     an estimate of the number of bytes that can be read (or skipped
+     *             over) from this input stream without blocking.
+     * @exception  IOException  if this input stream has been closed by
+     *                          invoking its {@link #close()} method,
+     *                          or an I/O error occurs.
      */
     public synchronized int available() throws IOException {
 	return getInIfOpen().available() + (count - pos);
@@ -398,8 +404,10 @@ class BufferedInputStream extends FilterInputStream {
      * is thrown. Otherwise, <code>pos</code> is
      * set equal to <code>markpos</code>.
      *
-     * @exception  IOException  if this stream has not been marked or
-     *               if the mark has been invalidated.
+     * @exception  IOException  if this stream has not been marked or,
+     *			if the mark has been invalidated, or the stream 
+     *			has been closed by invoking its {@link #close()}
+     *			method, or an I/O error occurs.
      * @see        java.io.BufferedInputStream#mark(int)
      */
     public synchronized void reset() throws IOException {
@@ -427,6 +435,9 @@ class BufferedInputStream extends FilterInputStream {
     /**
      * Closes this input stream and releases any system resources 
      * associated with the stream. 
+     * Once the stream has been closed, further read(), available(), reset(),
+     * or skip() invocations will throw an IOException.
+     * Closing a previously closed stream has no effect.
      *
      * @exception  IOException  if an I/O error occurs.
      */

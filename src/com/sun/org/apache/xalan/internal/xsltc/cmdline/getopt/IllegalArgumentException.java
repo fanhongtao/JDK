@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 /*
- * $Id: IllegalArgumentException.java,v 1.4 2004/02/16 21:21:06 minchau Exp $
+ * $Id: IllegalArgumentException.java,v 1.2.4.1 2005/08/31 11:47:56 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt;
 
 
 class IllegalArgumentException extends GetOptsException{
+    static final long serialVersionUID = 8642122427294793651L;
     public IllegalArgumentException(String msg){
 	super(msg);
     }

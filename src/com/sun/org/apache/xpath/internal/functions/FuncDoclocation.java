@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncDoclocation.java,v 1.8 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncDoclocation.java,v 1.2.4.1 2005/09/14 19:53:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -30,6 +30,7 @@ import com.sun.org.apache.xpath.internal.objects.XString;
  */
 public class FuncDoclocation extends FunctionDef1Arg
 {
+    static final long serialVersionUID = 7469213946343568769L;
 
   /**
    * Execute the function.  The function must return

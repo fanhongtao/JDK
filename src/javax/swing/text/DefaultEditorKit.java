@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultEditorKit.java	1.67 03/12/19
+ * @(#)DefaultEditorKit.java	1.72 06/08/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -49,7 +49,7 @@ import javax.swing.UIManager;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.67 12/19/03
+ * @version 1.72 08/17/06
  */
 public class DefaultEditorKit extends EditorKit {
     
@@ -396,6 +396,24 @@ public class DefaultEditorKit extends EditorKit {
     public static final String deleteNextCharAction = "delete-next";
 
     /**
+     * Name of the action to delete the word that
+     * follows the beginning of the selection.
+     * @see #getActions
+     * @see JTextComponent#getSelectionStart
+     * @since 1.6
+     */
+    public static final String deleteNextWordAction = "delete-next-word";
+
+    /**
+     * Name of the action to delete the word that
+     * precedes the beginning of the selection.
+     * @see #getActions
+     * @see JTextComponent#getSelectionStart
+     * @since 1.6
+     */
+    public static final String deletePrevWordAction = "delete-previous-word";
+
+    /**
      * Name of the action to set the editor into read-only
      * mode.
      * @see #getActions
@@ -726,6 +744,8 @@ public class DefaultEditorKit extends EditorKit {
     private static final Action[] defaultActions = {
         new InsertContentAction(), new DeletePrevCharAction(), 
         new DeleteNextCharAction(), new ReadOnlyAction(),
+        new DeleteWordAction(deletePrevWordAction), 
+        new DeleteWordAction(deleteNextWordAction),
         new WritableAction(), new CutAction(), 
         new CopyAction(), new PasteAction(),
         new VerticalPageAction(pageUpAction, -1, false), 
@@ -1086,6 +1106,80 @@ public class DefaultEditorKit extends EditorKit {
         }
     }
 
+
+    /*
+     * Deletes the word that precedes/follows the beginning of the selection.
+     * @see DefaultEditorKit#getActions
+     */
+    static class DeleteWordAction extends TextAction {
+        DeleteWordAction(String name) {
+            super(name);
+            assert (name == deletePrevWordAction) 
+                || (name == deleteNextWordAction);
+        }
+        /**
+         * The operation to perform when this action is triggered.
+         *
+         * @param e the action event
+         */
+        public void actionPerformed(ActionEvent e) {
+            final JTextComponent target = getTextComponent(e);
+            if ((target != null) && (e != null)) {
+                if ((! target.isEditable()) || (! target.isEnabled())) {
+                    UIManager.getLookAndFeel().provideErrorFeedback(target);
+                    return;
+                }
+                boolean beep = true;
+                try {
+                    final int start = target.getSelectionStart();
+                    final Element line = 
+                        Utilities.getParagraphElement(target, start);
+                    int end;
+                    if (deleteNextWordAction == getValue(Action.NAME)) {
+                        end = Utilities.
+                            getNextWordInParagraph(target, line, start, false);
+                        if (end == java.text.BreakIterator.DONE) {
+                            //last word in the paragraph
+                            final int endOfLine = line.getEndOffset();
+                            if (start == endOfLine - 1) {
+                                //for last position remove last \n
+                                end = endOfLine; 
+                            } else {
+                                //remove to the end of the paragraph
+                                end = endOfLine - 1;
+                            }
+                        }
+                    } else {
+                        end = Utilities.
+                            getPrevWordInParagraph(target, line, start);
+                        if (end == java.text.BreakIterator.DONE) {
+                            //there is no previous word in the paragraph
+                            final int startOfLine = line.getStartOffset();
+                            if (start == startOfLine) {
+                                //for first position remove previous \n
+                                end = startOfLine - 1;
+                            } else {
+                                //remove to the start of the paragraph
+                                end = startOfLine;
+                            }
+                        }
+                    }
+                    int offs = Math.min(start, end);
+                    int len = Math.abs(end - start);
+                    if (offs >= 0) {
+                        target.getDocument().remove(offs, len);
+                        beep = false;
+                    }
+                } catch (BadLocationException ignore) {
+                }
+                if (beep) {
+                    UIManager.getLookAndFeel().provideErrorFeedback(target);
+                }
+            }
+        }   
+    }
+
+
     /*
      * Sets the editor into read-only mode.
      * @see DefaultEditorKit#readOnlyAction
@@ -1283,7 +1377,7 @@ public class DefaultEditorKit extends EditorKit {
      * the selection, instead of simply moving the caret.
      *
      * @see DefaultEditorKit#pageUpAction
-     * @see DefaultEditorKit#selectPageUpAction
+     * @see DefaultEditorKit#pageDownAction
      * @see DefaultEditorKit#getActions
      */
     static class VerticalPageAction extends TextAction {
@@ -1302,12 +1396,12 @@ public class DefaultEditorKit extends EditorKit {
 		Rectangle visible = target.getVisibleRect();
                 Rectangle newVis = new Rectangle(visible);
                 int selectedIndex = target.getCaretPosition();
-                int scrollAmount = target.getScrollableBlockIncrement(
+                int scrollAmount = direction *
+                        target.getScrollableBlockIncrement(
                                   visible, SwingConstants.VERTICAL, direction); 
                 int initialY = visible.y;
                 Caret caret = target.getCaret();
                 Point magicPosition = caret.getMagicCaretPosition();
-                int yOffset;   
 
                 if (selectedIndex != -1) {
                     try {
@@ -1315,11 +1409,14 @@ public class DefaultEditorKit extends EditorKit {
                                                      selectedIndex);
                         int x = (magicPosition != null) ? magicPosition.x :
                                                           dotBounds.x;
-                        // fix for 4697612 
                         int h = dotBounds.height;
-                        yOffset = direction *
-                                  (int)Math.ceil(scrollAmount / (double)h) * h; 
-                        newVis.y = constrainY(target, initialY + yOffset, yOffset);                        
+                        if (h > 0) {
+                            // We want to scroll by a multiple of caret height,
+                            // rounding towards lower integer
+                            scrollAmount = scrollAmount / h * h;
+                        }
+                        newVis.y = constrainY(target,
+                                initialY + scrollAmount, visible.height);
 
                         int newIndex;
 
@@ -1328,7 +1425,7 @@ public class DefaultEditorKit extends EditorKit {
                             // location off the old, or
                             newIndex = target.viewToModel(
                                 new Point(x, constrainY(target,
-                                          dotBounds.y + yOffset, 0)));
+                                          dotBounds.y + scrollAmount, 0)));
                         }
                         else {
                             // Dot isn't visible, choose the top or the bottom
@@ -1358,8 +1455,8 @@ public class DefaultEditorKit extends EditorKit {
                         }
                     } catch (BadLocationException ble) { }
                 } else {
-                    yOffset = direction * scrollAmount;
-                    newVis.y = constrainY(target, initialY + yOffset, yOffset);
+                    newVis.y = constrainY(target,
+                            initialY + scrollAmount, visible.height);
                 }
                 if (magicPosition != null) {
                     caret.setMagicCaretPosition(magicPosition);

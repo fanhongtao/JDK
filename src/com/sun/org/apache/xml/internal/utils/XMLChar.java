@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id$
+ * $Id: XMLChar.java,v 1.2.4.1 2005/09/15 08:16:01 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.utils;
@@ -40,7 +40,7 @@ package com.sun.org.apache.xml.internal.utils;
  * @author Arnaud  Le Hors, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: XMLChar.java,v 1.7 2002/01/29 01:15:18 lehors Exp $
+ * @version $Id: XMLChar.java,v 1.2.4.1 2005/09/15 08:16:01 suresh_emailid Exp $
  */
 public class XMLChar {
 
@@ -49,7 +49,7 @@ public class XMLChar {
     //
 
     /** Character flags. */
-    public static final byte[] CHARS = new byte[1 << 16];
+    private static final byte[] CHARS = new byte[1 << 16];
 
     /** Valid character mask. */
     public static final int MASK_VALID = 0x01;
@@ -539,7 +539,7 @@ public class XMLChar {
      * Check to see if a string is a valid NCName according to [4]
      * from the XML Namespaces 1.0 Recommendation
      *
-     * @param name string to check
+     * @param ncName string to check
      * @return true if name is a valid NCName
      */
     public static boolean isValidNCName(String ncName) {

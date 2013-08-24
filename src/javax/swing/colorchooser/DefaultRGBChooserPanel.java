@@ -1,7 +1,7 @@
 /*
  * @(#)DefaultRGBChooserPanel.java	1.31 03/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,6 +45,7 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
 
     public DefaultRGBChooserPanel() {
         super();
+        setInheritsPopupMenu(true);
     }
 
     /** 
@@ -156,6 +157,7 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
 
         JPanel enclosure = new JPanel();
         enclosure.setLayout( new SmartGridLayout( 3, 3 ) );
+        enclosure.setInheritsPopupMenu(true);
 
         // The panel that holds the sliders
 
@@ -171,11 +173,14 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
         redSlider.setMinorTickSpacing( 17 );
         redSlider.setPaintTicks( true );
         redSlider.setPaintLabels( true );
+        redSlider.setInheritsPopupMenu(true);
         enclosure.add( redSlider );
         redField = new JSpinner(
             new SpinnerNumberModel(color.getRed(), minValue, maxValue, 1));
         l.setLabelFor(redSlider);
+        redField.setInheritsPopupMenu(true);
         JPanel redFieldHolder = new JPanel(new CenterLayout());
+        redFieldHolder.setInheritsPopupMenu(true);
         redField.addChangeListener(this);
         redFieldHolder.add(redField);
         enclosure.add(redFieldHolder);
@@ -190,12 +195,15 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
         greenSlider.setMinorTickSpacing( 17 );
         greenSlider.setPaintTicks( true );
         greenSlider.setPaintLabels( true );
+        greenSlider.setInheritsPopupMenu(true);
         enclosure.add(greenSlider);
         greenField = new JSpinner(
             new SpinnerNumberModel(color.getGreen(), minValue, maxValue, 1));
         l.setLabelFor(greenSlider);
+        greenField.setInheritsPopupMenu(true);
         JPanel greenFieldHolder = new JPanel(new CenterLayout());
         greenFieldHolder.add(greenField);
+        greenFieldHolder.setInheritsPopupMenu(true);
         greenField.addChangeListener(this);
         enclosure.add(greenFieldHolder);
 
@@ -208,13 +216,16 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
         blueSlider.setMinorTickSpacing( 17 );
         blueSlider.setPaintTicks( true );
         blueSlider.setPaintLabels( true );
+        blueSlider.setInheritsPopupMenu(true);
         enclosure.add(blueSlider);
         blueField = new JSpinner(
             new SpinnerNumberModel(color.getBlue(), minValue, maxValue, 1));
         l.setLabelFor(blueSlider);
+        blueField.setInheritsPopupMenu(true);
         JPanel blueFieldHolder = new JPanel(new CenterLayout());
         blueFieldHolder.add(blueField);
         blueField.addChangeListener(this);
+        blueFieldHolder.setInheritsPopupMenu(true);
         enclosure.add(blueFieldHolder);
 
         redSlider.addChangeListener( this );

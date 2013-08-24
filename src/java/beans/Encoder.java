@@ -1,7 +1,7 @@
 /*
- * @(#)Encoder.java	1.20 04/05/05
+ * @(#)Encoder.java	1.22 06/02/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -113,9 +113,29 @@ public class Encoder {
      * <li>
      * In all other cases the default persistence delegate 
      * is returned. The default persistence delegate assumes 
-     * the type is a <em>JavaBean</em>, implying that it has a nullary constructor 
+     * the type is a <em>JavaBean</em>, implying that it has a default constructor 
      * and that its state may be characterized by the matching pairs 
      * of "setter" and "getter" methods returned by the Introspector. 
+     * The default constructor is the constructor with the greatest number
+     * of parameters that has the {@link ConstructorProperties} annotation.
+     * If none of the constructors have the {@code ConstructorProperties} annotation,
+     * then the nullary constructor (constructor with no parameters) will be used.
+     * For example, in the following the nullary constructor
+     * for {@code Foo} will be used, while the two parameter constructor
+     * for {@code Bar} will be used.
+     * <code>
+     *   public class Foo {
+     *     public Foo() { ... }
+     *     public Foo(int x) { ... }
+     *   }
+     *   public class Bar {
+     *     public Bar() { ... }
+     *     @ConstructorProperties({"x"})
+     *     public Bar(int x) { ... }
+     *     @ConstructorProperties({"x", "y"})
+     *     public Bar(int x, int y) { ... }
+     *   }
+     * </code> 
      * </ul>
      * 
      * @param  type The type of the object. 

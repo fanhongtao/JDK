@@ -1,30 +1,22 @@
-/*
- * @(#)ManagementFactory.java	1.19 04/05/17
+ /*
+ * @(#)ManagementFactory.java	1.24 06/03/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.management;
-
-import javax.management.NotificationEmitter;
 import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerPermission;
 import javax.management.ObjectName;
 import javax.management.InstanceNotFoundException;
 import javax.management.MalformedObjectNameException;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.TabularData;
 import java.util.List;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.InvocationHandler;
 import java.security.AccessController;
 import java.security.Permission;
 import java.security.PrivilegedAction;
-import sun.management.PlatformMXBeanInvocationHandler;
+import javax.management.JMX;
 
 /**
  * The <tt>ManagementFactory</tt> class is a factory class for getting 
@@ -57,9 +49,10 @@ import sun.management.PlatformMXBeanInvocationHandler;
  *         a specific <tt>MBeanServerConnection</tt> to access
  *         MXBeans remotely.
  *         The attributes and operations of an MXBean use only 
- *         <em>JMX open types</em> which include basic 
- *         data types, {@link CompositeData CompositeData},
- *         and {@link TabularData TabularData} defined in
+ *         <em>JMX open types</em> which include basic data types, 
+ *         {@link javax.management.openmbean.CompositeData CompositeData},
+ *         and {@link javax.management.openmbean.TabularData TabularData}
+ *         defined in
  *         {@link javax.management.openmbean.OpenType OpenType}.
  *         The mapping is specified below.
  *        </li>
@@ -70,12 +63,14 @@ import sun.management.PlatformMXBeanInvocationHandler;
  * A platform MXBean is a <i>managed bean</i> that conforms to
  * the JMX Instrumentation Specification and only uses
  * a set of basic data types described below.
+ * See <a href="../../../javax/management/MXBean.html#MXBean-spec"> 
+ * the specification of MXBeans</a> for details.
  * A JMX management application and the platform <tt>MBeanServer</tt>
  * can interoperate without requiring classes for MXBean specific
  * data types.  
  * The data types being transmitted between the JMX connector 
  * server and the connector client are 
- * {@link javax.management.openmbean.OpenType open types}
+ * {@linkplain javax.management.openmbean.OpenType open types}
  * and this allows interoperation across versions. 
  * <p>
  * The platform MXBean interfaces use only the following data types:
@@ -88,7 +83,8 @@ import sun.management.PlatformMXBeanInvocationHandler;
  *       {@link java.lang.String String}</li>
  *   <li>{@link java.lang.Enum Enum} classes</li> 
  *   <li>Classes that define only getter methods and define a static
- *       <tt>from</tt> method with a {@link CompositeData CompositeData} 
+ *       <tt>from</tt> method with a 
+ *       {@link javax.management.openmbean.CompositeData CompositeData}
  *       argument to convert from an input <tt>CompositeData</tt> to 
  *       an instance of that class
  *       </li> 
@@ -116,13 +112,15 @@ import sun.management.PlatformMXBeanInvocationHandler;
  *   <li>An {@link Enum} is mapped to
  *       <tt>String</tt> whose value is the name of the enum constant.
  *   <li>A class that defines only getter methods and a static
- *       <tt>from</tt> method with a {@link CompositeData CompositeData} 
+ *       <tt>from</tt> method with a 
+ *       {@link javax.management.openmbean.CompositeData CompositeData}
  *       argument is mapped to
  *       {@link javax.management.openmbean.CompositeData CompositeData}.
  *       </li>
  *   <li><tt>Map&lt;K,V&gt;</tt> is mapped to
- *       {@link TabularData TabularData}
- *       whose row type is a {@link CompositeType CompositeType} with
+ *       {@link javax.management.openmbean.TabularData TabularData}
+ *       whose row type is a 
+ *       {@link javax.management.openmbean.CompositeType CompositeType} with
  *       two items whose names are <i>"key"</i> and <i>"value"</i> 
  *       and the item types are 
  *       the corresponding mapped type of <tt>K</tt> and <tt>V</tt> 
@@ -171,14 +169,6 @@ import sun.management.PlatformMXBeanInvocationHandler;
  * </tr>
  * </table>
  * </blockquote>
- *
- * <p>
- * <b>Implementation Note:</b><p>
- * The mapping specified above could be done in the implementation
- * of each platform MXBean.  One good implementation choice is to
- * implement a MXBean as a {@link javax.management.DynamicMBean dynamic
- * MBean}.
- *
  *
  * <h4><a name="MXBeanNames">MXBean Names</a></h4>
  * Each platform MXBean for a Java virtual machine has a unique
@@ -271,9 +261,10 @@ import sun.management.PlatformMXBeanInvocationHandler;
  * @see <a href="package-summary.html#examples">
  *      Ways to Access Management Metrics</a>
  * @see java.util.logging.LoggingMXBean
+ * @see javax.management.MXBean
  *
  * @author  Mandy Chung
- * @version 1.19, 05/17/04 
+ * @version 1.24, 03/08/06 
  * @since   1.5
  */
 public class ManagementFactory {
@@ -465,7 +456,8 @@ public class ManagementFactory {
      * Returns the platform {@link javax.management.MBeanServer MBeanServer}.
      * On the first call to this method, it first creates the platform 
      * <tt>MBeanServer</tt> by calling the 
-     * {@link MBeanServerFactory#createMBeanServer} 
+     * {@link javax.management.MBeanServerFactory#createMBeanServer
+     * MBeanServerFactory.createMBeanServer} 
      * method and registers the platform MXBeans in this platform
      * <tt>MBeanServer</tt> using the <a href="#MXBeanNames">MXBean names</a>
      * defined in the class description.
@@ -539,7 +531,8 @@ public class ManagementFactory {
      *
      * <p>
      * If the MXBean is a notification emitter (i.e.,
-     * it implements {@link NotificationEmitter NotificationEmitter}),
+     * it implements 
+     * {@link javax.management.NotificationEmitter NotificationEmitter}),
      * both the <tt>mxbeanInterface</tt> and <tt>NotificationEmitter</tt>
      * will be implemented by this proxy.
      *
@@ -627,24 +620,11 @@ public class ManagementFactory {
 
             final Class[] interfaces;
             // check if the registered MBean is a notification emitter
-            if (connection.isInstanceOf(objName,
-                                        NOTIF_EMITTER)) {
-                interfaces = new Class[] {
-                                 interfaceClass,
-                                 NotificationEmitter.class
-                             };
-            } else {
-                interfaces = new Class[] {interfaceClass};
-            }
+            boolean emitter = connection.isInstanceOf(objName, NOTIF_EMITTER);
             
-            // create a MXBean proxy
-            InvocationHandler handler =
-                new PlatformMXBeanInvocationHandler(connection, 
-                                                    objName,
-                                                    interfaceClass);
-            return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(),
-                                              interfaces,
-                                              handler);
+            // create an MXBean proxy
+            return JMX.newMXBeanProxy(connection, objName, mxbeanInterface,
+                                      emitter);
         } catch (InstanceNotFoundException e) {
             final IllegalArgumentException iae =
                 new IllegalArgumentException(mxbeanName +

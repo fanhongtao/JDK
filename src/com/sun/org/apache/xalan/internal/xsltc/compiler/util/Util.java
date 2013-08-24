@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Util.java,v 1.15 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: Util.java,v 1.2.4.1 2005/09/12 11:47:15 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -23,7 +23,7 @@ import java.util.StringTokenizer;
 
 import com.sun.org.apache.bcel.internal.generic.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Constants;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -188,7 +188,7 @@ public final class Util {
         if ((str != null) && (!str.equals(Constants.EMPTYSTRING))) {
             final StringTokenizer tokens = new StringTokenizer(str);
             while (tokens.hasMoreTokens()) {
-                if (!XMLChar.isValidQName(tokens.nextToken())) {
+                if (!XML11Char.isXML11ValidQName(tokens.nextToken())) {
                     return false;
                 }
             }

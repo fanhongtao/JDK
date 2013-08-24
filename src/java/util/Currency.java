@@ -1,7 +1,7 @@
 /*
- * @(#)Currency.java	1.8 04/03/16
+ * @(#)Currency.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,14 +10,16 @@ package java.util;
 import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import sun.text.resources.LocaleData;
+import java.util.spi.CurrencyNameProvider;
+import java.util.spi.LocaleServiceProvider;
+import sun.util.LocaleServiceProviderPool;
+import sun.util.resources.LocaleData;
 
 
 /**
  * Represents a currency. Currencies are identified by their ISO 4217 currency
- * codes. See the
- * <a href="http://www.bsi-global.com/iso4217currency">
- * ISO 4217 maintenance agency</a> for more information, including a table of
+ * codes. Visit the <a href="http://www.bsi-global.com/">
+ * BSi web site</a> for more information, including a table of
  * currency codes.
  * <p>
  * The class is designed so that there's never more than one
@@ -303,24 +305,32 @@ public final class Currency implements Serializable {
      * @exception NullPointerException if <code>locale</code> is null
      */
     public String getSymbol(Locale locale) {
-        ResourceBundle bundle;
         try {
-            bundle = LocaleData.getLocaleElements(locale);
+            // Check whether a provider can provide an implementation that's closer 
+            // to the requested locale than what the Java runtime itself can provide.
+            LocaleServiceProviderPool pool =
+                LocaleServiceProviderPool.getPool(CurrencyNameProvider.class);
+
+            if (pool.hasProviders()) {
+                // Assuming that all the country locales include necessary currency 
+                // symbols in the Java runtime's resources,  so there is no need to
+                // examine whether Java runtime's currency resource bundle is missing 
+                // names.  Therefore, no resource bundle is provided for calling this 
+                // method.
+                String symbol = pool.getLocalizedObject(
+                                    CurrencyNameGetter.INSTANCE,
+                                    locale, null, currencyCode);
+                if (symbol != null) {
+                    return symbol;
+                }
+            }
+
+            ResourceBundle bundle = LocaleData.getCurrencyNames(locale);
+            return bundle.getString(currencyCode);
         } catch (MissingResourceException e) {
             // use currency code as symbol of last resort
             return currencyCode;
         }
-        String[][] symbols =
-                (String[][]) bundle.getObject("CurrencySymbols");
-        if (symbols != null) {
-            for (int i = 0; i < symbols.length; i++) {
-                if (symbols[i][0].equals(currencyCode)) {
-                    return symbols[i][1];
-                }
-            }
-        }
-        // use currency code as symbol of last resort
-        return currencyCode;
     }
     
     /**
@@ -361,5 +371,23 @@ public final class Currency implements Serializable {
             throw new IllegalArgumentException();
         }
         return mainTable.charAt((char1 - 'A') * A_TO_Z + (char2 - 'A'));
+    }
+
+    /**
+     * Obtains a localized currency names from a CurrencyNameProvider
+     * implementation.
+     */
+    private static class CurrencyNameGetter 
+        implements LocaleServiceProviderPool.LocalizedObjectGetter<CurrencyNameProvider,
+                                                                   String> {
+        private static final CurrencyNameGetter INSTANCE = new CurrencyNameGetter();
+
+        public String getObject(CurrencyNameProvider currencyNameProvider,
+                                Locale locale, 
+                                String key,
+                                Object... params) {
+            assert params.length == 0;
+	    return currencyNameProvider.getSymbol(key, locale);
+        }
     }
 }

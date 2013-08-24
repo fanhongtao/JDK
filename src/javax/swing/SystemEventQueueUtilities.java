@@ -1,7 +1,7 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.39 04/02/18
+ * @(#)SystemEventQueueUtilities.java	1.42 06/04/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -14,6 +14,7 @@ import java.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 
+import sun.awt.SunToolkit;
 import sun.awt.AppContext;
 
 /**
@@ -39,13 +40,17 @@ class SystemEventQueueUtilities
                 new StringBuffer("SystemEventQueueUtilties.rootTableKey");
 
     private static Map getRootTable() {
-	Map rt = (Map)AppContext.getAppContext().get(rootTableKey);
+        return getRootTable(AppContext.getAppContext());
+    }
+
+    private static Map getRootTable(AppContext appContext) {
+	Map rt = (Map)appContext.get(rootTableKey);
 	if (rt == null) {
 	    synchronized (rootTableKey) {
-		rt = (Map)AppContext.getAppContext().get(rootTableKey);
+		rt = (Map)appContext.get(rootTableKey);
 		if (rt == null) {
 		    rt = Collections.synchronizedMap(new WeakHashMap(4));
-		    AppContext.getAppContext().put(rootTableKey, rt);
+		    appContext.put(rootTableKey, rt);
 		}
 	    }
 	}
@@ -90,7 +95,7 @@ class SystemEventQueueUtilities
      * JRootPane ancestor and use that as the key to the table
      * of RunnableCanvas's.
      *
-     * @see RunnableCanvas
+     * @see SystemEventQueueUtilities.RunnableCanvas
      */
     private static class ComponentWorkRequest implements Runnable
     {
@@ -105,13 +110,22 @@ class SystemEventQueueUtilities
  	    // component = c;
   	}
 	public void run() {
-	    RepaintManager rm;
+	    RepaintManager rm = RepaintManager.currentManager(component);
+
 	    synchronized (this) {
-		rm = RepaintManager.currentManager(component /*null*/);
 		isPending = false;
 	    }
+            // First pass, flush any heavy paint events into real paint
+            // events.  If there are pending heavy weight requests this will
+            // result in q'ing this request up one more time.  As
+            // long as no other requests come in between now and the time
+            // the second one is processed nothing will happen.  This is not
+            // ideal, but the logic needed to suppress the second request is
+            // more headache than it's worth.
+            rm.scheduleHeavyWeightPaints();
+            // Do the actual validation and painting.
 	    rm.validateInvalidComponents();
-	    rm.paintDirtyRegions();
+	    rm.seqPaintDirtyRegions();
 	}
     }
 
@@ -124,9 +138,14 @@ class SystemEventQueueUtilities
      * called with the root obtained in a different way than RepaintManager
      * currently uses, be sure to also tweak removeRunnableCanvas.
      */
-    static void queueComponentWorkRequest(Component root)
-    {
-	ComponentWorkRequest req = (ComponentWorkRequest)(getRootTable().get(root));
+    static void queueComponentWorkRequest(Component root) {
+        queueComponentWorkRequest(root, AppContext.getAppContext());
+    }
+
+    static void queueComponentWorkRequest(Component root,
+                                          AppContext appContext) {
+	ComponentWorkRequest req = (ComponentWorkRequest)
+                 getRootTable(appContext).get(root);
 	boolean newWorkRequest = (req == null);
 	if (newWorkRequest) {
 	    req = new ComponentWorkRequest(root);
@@ -136,15 +155,21 @@ class SystemEventQueueUtilities
 	 * an event dispatching thread so before updating it further
 	 * we synchronize access to it.
 	 */
+        boolean schedule = false;
 	synchronized(req) {
 	    if (newWorkRequest) {
-		getRootTable().put(root, req);
+		getRootTable(appContext).put(root, req);
 	    }
 	    if (!req.isPending) {
-		SwingUtilities.invokeLater(req);
 		req.isPending = true;
+                schedule = true;
 	    }
 	}
+        if (schedule) {
+            SunToolkit.getSystemEventQueueImplPP(appContext).
+                postEvent(new InvocationEvent(Toolkit.getDefaultToolkit(),
+                                              req));
+        }
     }
 
 
@@ -252,7 +277,7 @@ class SystemEventQueueUtilities
      * Runnable that will message the shared instance of the Timer Queue
      * to restart.
      *
-     * @see #restartTimerQueueThread
+     * @see SystemEventQueueUtilities#restartTimerQueueThread
      */
     private static class TimerQueueRestart implements Runnable {
 	boolean attemptedStart;
@@ -275,7 +300,7 @@ class SystemEventQueueUtilities
      * Event type used for dispatching runnable objects for
      * SwingUtilities.invokeLater() and SwingUtilities.invokeAndWait().
      *
-     * @see #postRunnable
+     * @see SystemEventQueueUtilities#postRunnable
      */
     private static class RunnableEvent extends AWTEvent {
         static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1000;
@@ -327,7 +352,7 @@ class SystemEventQueueUtilities
      * an application or as trusted code), RunnableEvents are dispatched
      * to this component.
      *
-     * @see #processRunnableEvent
+     * @see SystemEventQueueUtilities#processRunnableEvent
      */
     private static class RunnableTarget extends Component
     {
@@ -559,7 +584,7 @@ class SystemEventQueueUtilities
 	 /**
 	  * Adds the event to all the RunnableCanvases.
 	  *
-	  * @see #restartTimerQueueThread
+          * @see SystemEventQueueUtilities#restartTimerQueueThread
 	  */
 	 static void postRunnableEventToAll(RunnableEvent e) {
 	     // Determine the RunnableCanvas for the current thread. It

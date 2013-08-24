@@ -1,7 +1,7 @@
 /*
- * @(#)JarInputStream.java	1.35 05/05/27
+ * @(#)JarInputStream.java	1.37 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import sun.security.util.ManifestEntryVerifier;
  * can be used to store meta-information about the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.35, 05/27/05
+ * @version 1.37, 04/07/06
  * @see	    Manifest
  * @see	    java.util.zip.ZipInputStream
  * @since   1.2
@@ -151,15 +151,21 @@ class JarInputStream extends ZipInputStream {
 
     /**
      * Reads from the current JAR file entry into an array of bytes.
-     * Blocks until some input is available.
+     * If <code>len</code> is not zero, the method
+     * blocks until some input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned.
      * If verification has been enabled, any invalid signature
      * on the current entry will be reported at some point before the
      * end of the entry is reached.
      * @param b the buffer into which the data is read
-     * @param off the start offset of the data
+     * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes to read
      * @return the actual number of bytes read, or -1 if the end of the
      *         entry is reached
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
      * @exception SecurityException if any of the jar file entries

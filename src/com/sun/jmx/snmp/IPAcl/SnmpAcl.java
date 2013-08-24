@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpAcl.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.32
- * @(#)date      04/09/15
+ * @(#)version   4.34
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -45,7 +45,7 @@ import com.sun.jmx.trace.Trace;
   *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     4.32     12/19/03
+ * @version     4.34     04/07/06
  * @author      Sun Microsystems, Inc
  */
 
@@ -298,7 +298,7 @@ public class SnmpAcl implements InetAddressAcl, Serializable {
     /**
      * Returns an enumeration of trap destinations.
      *
-     * @return An enumeration of the trap destinations (enumeration of <CODE>InetAddress<CODE>).
+     * @return An enumeration of the trap destinations (enumeration of <CODE>InetAddress</CODE>).
      */
     public Enumeration getTrapDestinations() {
         return trapDestList.keys();
@@ -309,7 +309,7 @@ public class SnmpAcl implements InetAddressAcl, Serializable {
      *
      * @param i The address of the host.
      *
-     * @return An enumeration of trap communities for a given host (enumeration of <CODE>String<CODE>).
+     * @return An enumeration of trap communities for a given host (enumeration of <CODE>String</CODE>).
      */
     public Enumeration getTrapCommunities(InetAddress i) {
         Vector list = null;
@@ -330,7 +330,7 @@ public class SnmpAcl implements InetAddressAcl, Serializable {
     /**
      * Returns an enumeration of inform destinations.
      *
-     * @return An enumeration of the inform destinations (enumeration of <CODE>InetAddress<CODE>).
+     * @return An enumeration of the inform destinations (enumeration of <CODE>InetAddress</CODE>).
      */
     public Enumeration getInformDestinations() {
         return informDestList.keys();
@@ -341,7 +341,7 @@ public class SnmpAcl implements InetAddressAcl, Serializable {
      *
      * @param i The address of the host.
      *
-     * @return An enumeration of inform communities for a given host (enumeration of <CODE>String<CODE>).
+     * @return An enumeration of inform communities for a given host (enumeration of <CODE>String</CODE>).
      */
     public Enumeration getInformCommunities(InetAddress i) {
         Vector list = null;

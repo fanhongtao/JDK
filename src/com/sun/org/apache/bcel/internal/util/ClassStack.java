@@ -59,11 +59,11 @@ import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 /** 
  * Utility class implementing a (typesafe) stack of JavaClass objects.
  *
- * @version $Id: ClassStack.java,v 1.1.1.1 2001/10/29 20:00:29 jvanzyl Exp $
+ * @version $Id: ClassStack.java,v 1.1.2.1 2005/07/31 23:47:00 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
  * @see Stack
 */
-public class ClassStack {
+public class ClassStack implements java.io.Serializable {
   private Stack stack = new Stack();
 
   public void      push(JavaClass clazz) { stack.push(clazz); }

@@ -62,7 +62,7 @@ package com.sun.org.apache.bcel.internal.classfile;
  * Implemented by wish of 
  * <A HREF="http://www.inf.fu-berlin.de/~bokowski">Boris Bokowski</A>.
  *
- * @version $Id: Visitor.java,v 1.1.1.1 2001/10/29 20:00:05 jvanzyl Exp $
+ * @version $Id: Visitor.java,v 1.1.2.1 2005/07/31 23:46:30 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public interface Visitor {
@@ -92,6 +92,7 @@ public interface Visitor {
   public void visitLocalVariable(LocalVariable obj);    
   public void visitLocalVariableTable(LocalVariableTable obj);    
   public void visitMethod(Method obj);    
+  public void visitSignature(Signature obj);
   public void visitSourceFile(SourceFile obj);    
   public void visitSynthetic(Synthetic obj);    
   public void visitUnknown(Unknown obj);    

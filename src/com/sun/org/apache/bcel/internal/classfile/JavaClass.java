@@ -55,7 +55,11 @@ package com.sun.org.apache.bcel.internal.classfile;
  */
 
 import  com.sun.org.apache.bcel.internal.Constants;
-import  com.sun.org.apache.bcel.internal.Repository;
+import  com.sun.org.apache.bcel.internal.util.SyntheticRepository;
+import  com.sun.org.apache.bcel.internal.util.ClassVector;
+import  com.sun.org.apache.bcel.internal.util.ClassQueue;
+import  com.sun.org.apache.bcel.internal.generic.Type;
+
 import  java.io.*;
 import  java.util.StringTokenizer;
 
@@ -64,8 +68,13 @@ import  java.util.StringTokenizer;
  * fields, methods and commands contained in a Java .class file.
  * See <a href="ftp://java.sun.com/docs/specs/">JVM 
  * specification</a> for details.
- *
- * @version $Id: JavaClass.java,v 1.1 2003/12/12 08:57:41 rameshm Exp $
+
+ * The intent of this class is to represent a parsed or otherwise existing
+ * class file.  Those interested in programatically generating classes
+ * should see the <a href="../generic/ClassGen.html">ClassGen</a> class.
+
+ * @version $Id: JavaClass.java,v 1.2 2005/08/16 19:34:13 jeffsuttor Exp $
+ * @see com.sun.org.apache.bcel.internal.generic.ClassGen
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class JavaClass extends AccessFlags implements Cloneable, Node {
@@ -93,10 +102,20 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
   static char    sep   = '/';   // directory separator
 
   /**
+   * In cases where we go ahead and create something,
+   * use the default SyntheticRepository, because we
+   * don't know any better.
+   */
+  private transient com.sun.org.apache.bcel.internal.util.Repository repository = 
+    SyntheticRepository.getInstance();
+
+  /**
    * Constructor gets all contents as arguments.
    *
-   * @param class_name Class name
-   * @param superclass_name Superclass name
+   * @param class_name_index Index into constant pool referencing a
+   * ConstantClass that represents this class.
+   * @param superclass_name_index Index into constant pool referencing a
+   * ConstantClass that represents this class's superclass.
    * @param file_name File name
    * @param major Major compiler version
    * @param minor Minor compiler version
@@ -150,9 +169,6 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 	break;
       }
     }
-	
-    // Get class name and superclass name
-    ConstantUtf8  name;
 
     /* According to the specification the following entries must be of type
      * `ConstantClass' but we check that anyway via the 
@@ -186,8 +202,8 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
   /**
    * Constructor gets all contents as arguments.
    *
-   * @param class_name Class name
-   * @param superclass_name Superclass name
+   * @param class_name_index Class name
+   * @param superclass_name_index Superclass name
    * @param file_name File name
    * @param major Major compiler version
    * @param minor Minor compiler version
@@ -236,7 +252,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    * Dump class to a file.
    *
    * @param file Output file
-   * @throw IOException
+   * @throws IOException
    */
   public void dump(File file) throws IOException
   {
@@ -272,8 +288,11 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     try {
       dump(ds);
-      ds.close();
-    } catch(IOException e) { e.printStackTrace(); }
+    } catch(IOException e) {
+      e.printStackTrace();
+    } finally {
+      try { ds.close(); } catch(IOException e2) { e2.printStackTrace(); }
+    }
 
     return s.toByteArray();
   }
@@ -355,31 +374,57 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
   public ConstantPool getConstantPool() { return constant_pool; }
 
   /**
-   * @return Fields, i.e., variables of the class.
+   * @return Fields, i.e., variables of the class. Like the JVM spec
+   * mandates for the classfile format, these fields are those specific to
+   * this class, and not those of the superclass or superinterfaces.
    */
   public Field[] getFields()         { return fields; }    
+
   /**
    * @return File name of class, aka SourceFile attribute value
    */
   public String getFileName()        { return file_name; }    
+
   /**
    * @return Names of implemented interfaces.
    */
   public String[] getInterfaceNames()  { return interface_names; }    
+
   /**
-   * @return Implemented interfaces.
+   * @return Indices in constant pool of implemented interfaces.
    */
-  public int[] getInterfaces()     { return interfaces; }    
+  public int[] getInterfaceIndices()     { return interfaces; }    
+
   /**
-   * @return Major number of compiler version.
+   * @return Major number of class file version.
    */
   public int  getMajor()           { return major; }    
+
   /**
    * @return Methods of the class.
    */
   public Method[] getMethods()       { return methods; }    
+
   /**
-   * @return Minor number of compiler version.
+   * @return A com.sun.org.apache.bcel.internal.classfile.Method corresponding to
+   * java.lang.reflect.Method if any
+   */
+  public Method getMethod(java.lang.reflect.Method m) {
+    for(int i = 0; i < methods.length; i++) {
+      Method method = methods[i];
+
+      if(m.getName().equals(method.getName()) &&
+	 (m.getModifiers() == method.getModifiers()) &&
+	 Type.getSignature(m).equals(method.getSignature())) {
+	return method;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @return Minor number of class file version.
    */
   public int  getMinor()           { return minor; }    
 
@@ -392,6 +437,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    * @return Superclass name.
    */
   public String getSuperclassName()  { return superclass_name; }    
+
   /**
    * @return Class name index.
    */
@@ -399,99 +445,124 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
   static {
     // Debugging ... on/off
-    //String debug = System.getProperty("JavaClass.debug");
+    String debug = null, sep = null;
+    
+    try {
+      debug = System.getProperty("JavaClass.debug");
+      // Get path separator either / or \ usually
+      sep = System.getProperty("file.separator");
+    }
+    catch (SecurityException e) {
+        // falls through
+    }
 
-    //if(debug != null)
-     // JavaClass.debug = new Boolean(debug).booleanValue();
+    if(debug != null)
+      JavaClass.debug = new Boolean(debug).booleanValue();
 
-    // Get path separator either / or \ usually
-    JavaClass.sep = java.io.File.separatorChar;
+    if(sep != null)
+      try {
+	JavaClass.sep = sep.charAt(0);
+      } catch(StringIndexOutOfBoundsException e) {} // Never reached
   }
 
   /**
-   * @param attributes.
+   * @param attributes .
    */
   public void setAttributes(Attribute[] attributes) {
     this.attributes = attributes;
   }    
+
   /**
-   * @param class_name.
+   * @param class_name .
    */
   public void setClassName(String class_name) {
     this.class_name = class_name;
   }    
+
   /**
-   * @param class_name_index.
+   * @param class_name_index .
    */
   public void setClassNameIndex(int class_name_index) {
     this.class_name_index = class_name_index;
   }    
+
   /**
-   * @param constant_pool.
+   * @param constant_pool .
    */
   public void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
   }    
+
   /**
-   * @param fields.
+   * @param fields .
    */
   public void setFields(Field[] fields) {
     this.fields = fields;
   }    
+
   /**
    * Set File name of class, aka SourceFile attribute value
    */
   public void setFileName(String file_name) {
     this.file_name = file_name;
   }    
+
   /**
-   * @param interface_names.
+   * @param interface_names .
    */
   public void setInterfaceNames(String[] interface_names) {
     this.interface_names = interface_names;
   }    
+
   /**
-   * @param interfaces.
+   * @param interfaces .
    */
   public void setInterfaces(int[] interfaces) {
     this.interfaces = interfaces;
   }    
+
   /**
-   * @param major.
+   * @param major .
    */
   public void setMajor(int major) {
     this.major = major;
   }    
+
   /**
-   * @param methods.
+   * @param methods .
    */
   public void setMethods(Method[] methods) {
     this.methods = methods;
   }    
+
   /**
-   * @param minor.
+   * @param minor .
    */
   public void setMinor(int minor) {
     this.minor = minor;
   }    
+
   /**
    * Set absolute path to file this class was read from.
    */
   public void setSourceFileName(String source_file_name) {
     this.source_file_name = source_file_name;
   }    
+
   /**
-   * @param superclass_name.
+   * @param superclass_name .
    */
   public void setSuperclassName(String superclass_name) {
     this.superclass_name = superclass_name;
   }    
+
   /**
-   * @param superclass_name_index.
+   * @param superclass_name_index .
    */
   public void setSuperclassNameIndex(int superclass_name_index) {
     this.superclass_name_index = superclass_name_index;
   }    
+
   /**
    * @return String representing class contents.
    */
@@ -586,10 +657,6 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     return c;
   }
 
-  public final boolean instanceOf(JavaClass super_class) {
-    return Repository.instanceOf(this, super_class);
-  }
-
   public final boolean isSuper() {
     return (access_flags & Constants.ACC_SUPER) != 0;
   }
@@ -602,5 +669,153 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    */
   public final byte getSource() {
     return source;
+  }
+
+  /********************* New repository functionality *********************/
+
+  /**
+   * Gets the ClassRepository which holds its definition. By default
+   * this is the same as SyntheticRepository.getInstance();
+   */
+  public com.sun.org.apache.bcel.internal.util.Repository getRepository() {
+    return repository;
+  }
+
+  /**
+   * Sets the ClassRepository which loaded the JavaClass.
+   * Should be called immediately after parsing is done.
+   */
+  public void setRepository(com.sun.org.apache.bcel.internal.util.Repository repository) {
+    this.repository = repository;
+  }
+
+  /** Equivalent to runtime "instanceof" operator.
+   *
+   * @return true if this JavaClass is derived from teh super class
+   */
+  public final boolean instanceOf(JavaClass super_class) {
+    if(this.equals(super_class))
+      return true;
+
+    JavaClass[] super_classes = getSuperClasses();
+
+    for(int i=0; i < super_classes.length; i++) {
+      if(super_classes[i].equals(super_class)) {
+	return true;
+      }
+    }
+
+    if(super_class.isInterface()) {
+      return implementationOf(super_class);
+    }
+
+    return false;
+  }
+
+  /**
+   * @return true, if clazz is an implementation of interface inter
+   */
+  public boolean implementationOf(JavaClass inter) {
+    if(!inter.isInterface()) {
+      throw new IllegalArgumentException(inter.getClassName() + " is no interface");
+    }
+
+    if(this.equals(inter)) {
+      return true;
+    }
+
+    JavaClass[] super_interfaces = getAllInterfaces();
+
+    for(int i=0; i < super_interfaces.length; i++) {
+      if(super_interfaces[i].equals(inter)) {
+	return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * @return the superclass for this JavaClass object, or null if this
+   * is java.lang.Object
+   */
+  public JavaClass getSuperClass() {
+    if("java.lang.Object".equals(getClassName())) {
+      return null;
+    }
+
+    try {
+      return repository.loadClass(getSuperclassName());
+    } catch(ClassNotFoundException e) {
+      System.err.println(e);
+      return null;
+    }
+  }
+
+  /**
+   * @return list of super classes of this class in ascending order, i.e.,
+   * java.lang.Object is always the last element
+   */
+  public JavaClass[] getSuperClasses() {
+    JavaClass   clazz = this;
+    ClassVector vec   = new ClassVector();
+
+    for(clazz = clazz.getSuperClass(); clazz != null;
+	clazz = clazz.getSuperClass())
+    {
+      vec.addElement(clazz);
+    }
+
+    return vec.toArray();
+  }
+
+  /**
+   * Get interfaces directly implemented by this JavaClass.
+   */
+  public JavaClass[] getInterfaces() {
+    String[]    interfaces = getInterfaceNames();
+    JavaClass[] classes    = new JavaClass[interfaces.length];
+
+    try {
+      for(int i = 0; i < interfaces.length; i++) {
+	classes[i] = repository.loadClass(interfaces[i]);
+      }
+    } catch(ClassNotFoundException e) {
+      System.err.println(e);
+      return null;
+    }
+
+    return classes;
+  }
+
+  /**
+   * Get all interfaces implemented by this JavaClass (transitively).
+   */
+  public JavaClass[] getAllInterfaces() {
+    ClassQueue  queue = new ClassQueue();
+    ClassVector vec   = new ClassVector();
+    
+    queue.enqueue(this);
+    
+    while(!queue.empty()) {
+      JavaClass clazz = queue.dequeue();
+      
+      JavaClass   souper     = clazz.getSuperClass();
+      JavaClass[] interfaces = clazz.getInterfaces();
+      
+      if(clazz.isInterface()) {
+	vec.addElement(clazz);
+      } else {
+	if(souper != null) {
+	  queue.enqueue(souper);
+	}
+      }
+      
+      for(int i = 0; i < interfaces.length; i++) {
+	queue.enqueue(interfaces[i]);
+      }
+    }
+	    
+    return vec.toArray();
   }
 }

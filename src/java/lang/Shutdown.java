@@ -1,14 +1,13 @@
 /*
- * @(#)Shutdown.java	1.11 03/12/19
+ * @(#)Shutdown.java	1.13 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
 
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.ArrayList;
 
 
 /**
@@ -16,34 +15,11 @@ import java.util.Iterator;
  * governing the virtual-machine shutdown sequence.
  *
  * @author   Mark Reinhold
- * @version  1.11, 03/12/19
+ * @version  1.13, 05/12/01
  * @since    1.3
  */
 
 class Shutdown {
-
-    /* Wrapper class for registered hooks, to ensure that hook identity is
-     * object identity rather than .equals identity
-     */
-    private static class WrappedHook {
-
-	private Thread hook;
-
-	WrappedHook(Thread t) {
-	    hook = t;
-	}
-
-	public int hashCode() {
-	    return System.identityHashCode(hook);
-	}
-
-	public boolean equals(Object o) {
-	    if (!(o instanceof WrappedHook)) return false;
-	    return (((WrappedHook)o).hook == hook);
-	}
-
-    }
-
 
     /* Shutdown state */
     private static final int RUNNING = 0;
@@ -55,7 +31,7 @@ class Shutdown {
     private static boolean runFinalizersOnExit = false;
 
     /* The set of registered, wrapped hooks, or null if there aren't any */
-    private static HashSet hooks = null;
+    private static ArrayList<Runnable> hooks = new ArrayList<Runnable>();
 
     /* The preceding static fields are protected by this lock */
     private static class Lock { };
@@ -75,22 +51,12 @@ class Shutdown {
     /* Add a new shutdown hook.  Checks the shutdown state and the hook itself,
      * but does not do any security checks.
      */
-    static void add(Thread hook) {
+    static void add(Runnable hook) {
 	synchronized (lock) {
 	    if (state > RUNNING)
 		throw new IllegalStateException("Shutdown in progress");
-	    if (hook.isAlive())
-		throw new IllegalArgumentException("Hook already running");
-	    if (hooks == null) {
-		hooks = new HashSet(11);
-		hooks.add(new WrappedHook(hook));
-		Terminator.setup();
-	    } else {
-		WrappedHook wh = new WrappedHook(hook);
-		if (hooks.contains(wh))
-		    throw new IllegalArgumentException("Hook previously registered");
-		hooks.add(wh);
-	    }
+
+	    hooks.add(hook);
 	}
     }
 
@@ -98,7 +64,7 @@ class Shutdown {
     /* Remove a previously-registered hook.  Like the add method, this method
      * does not do any security checks.
      */
-    static boolean remove(Thread hook) {
+    static boolean remove(Runnable hook) {
 	synchronized (lock) {
 	    if (state > RUNNING)
 		throw new IllegalStateException("Shutdown in progress");
@@ -106,12 +72,7 @@ class Shutdown {
 	    if (hooks == null) {
 		return false;
 	    } else {
-		boolean rv = hooks.remove(new WrappedHook(hook));
-		if (rv && hooks.isEmpty()) {
-		    hooks = null;
-		    Terminator.teardown();
-		}
-		return rv;
+		return hooks.remove(hook);
 	    }
 	}
     }
@@ -123,15 +84,14 @@ class Shutdown {
 	/* We needn't bother acquiring the lock just to read the hooks field,
 	 * since the hooks can't be modified once shutdown is in progress
 	 */
-	if (hooks == null) return;
-	for (Iterator i = hooks.iterator(); i.hasNext();) {
-	    ((WrappedHook)(i.next())).hook.start();
-	}
-	for (Iterator i = hooks.iterator(); i.hasNext();) {
+	for (Runnable hook : hooks) {
 	    try {
-		((WrappedHook)(i.next())).hook.join();
-	    } catch (InterruptedException x) {
-		continue;
+		hook.run();
+	    } catch(Throwable t) { 
+		if (t instanceof ThreadDeath) {
+   		    ThreadDeath td = (ThreadDeath)t;
+		    throw td;
+		} 
 	    }
 	}
     }

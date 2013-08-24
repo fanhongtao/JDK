@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeVector.java,v 1.9 2004/02/17 04:21:14 minchau Exp $
+ * $Id: NodeVector.java,v 1.2.4.1 2005/09/15 08:15:50 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xml.internal.dtm.DTM;
  */
 public class NodeVector implements Serializable, Cloneable
 {
+    static final long serialVersionUID = -713473092200731870L;
 
   /**
    * Size of blocks to allocate.
@@ -726,10 +727,6 @@ public class NodeVector implements Serializable, Cloneable
 
   /**
    * Sort an array using a quicksort algorithm.
-   *
-   * @param a The array to be sorted.
-   * @param lo0  The low index.
-   * @param hi0  The high index.
    *
    * @throws Exception
    */

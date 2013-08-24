@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2003, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.sun.org.apache.xerces.internal.parsers;
 
@@ -74,7 +33,6 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  * <code>XIncludeHandler</code>.
  * 
  * @author Peter McCracken, IBM
- * @author Arun Yadav, Sun Microsystem
  * @see com.sun.org.apache.xerces.internal.xinclude.XIncludeHandler
  */
 public class XIncludeParserConfiguration extends XML11Configuration {
@@ -84,11 +42,14 @@ public class XIncludeParserConfiguration extends XML11Configuration {
     /** Feature identifier: allow notation and unparsed entity events to be sent out of order. */
     protected static final String ALLOW_UE_AND_NOTATION_EVENTS =
         Constants.SAX_FEATURE_PREFIX + Constants.ALLOW_DTD_EVENTS_AFTER_ENDDTD_FEATURE;
-
-     /** Feature identifier: XInclude Aware */
-    protected static final String XINCLUDE_AWARE =
-        Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_AWARE ;
-
+    
+    /** Feature identifier: fixup base URIs. */
+    protected static final String XINCLUDE_FIXUP_BASE_URIS =
+        Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FIXUP_BASE_URIS_FEATURE;
+    
+    /** Feature identifier: fixup language. */
+    protected static final String XINCLUDE_FIXUP_LANGUAGE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FIXUP_LANGUAGE_FEATURE;
 
     /** Property identifier: error reporter. */
     protected static final String XINCLUDE_HANDLER =
@@ -98,16 +59,13 @@ public class XIncludeParserConfiguration extends XML11Configuration {
     protected static final String NAMESPACE_CONTEXT =
         Constants.XERCES_PROPERTY_PREFIX + Constants.NAMESPACE_CONTEXT_PROPERTY;
 
-
-	private boolean enableXInclude = false;
-
     /** Default constructor. */
     public XIncludeParserConfiguration() {
         this(null, null, null);
     } // <init>()
 
-    /**
-     * Constructs a parser configuration using the specified symbol table.
+    /** 
+     * Constructs a parser configuration using the specified symbol table. 
      *
      * @param symbolTable The symbol table to use.
      */
@@ -143,41 +101,42 @@ public class XIncludeParserConfiguration extends XML11Configuration {
         XMLGrammarPool grammarPool,
         XMLComponentManager parentSettings) {
         super(symbolTable, grammarPool, parentSettings);
-       
 
-         //add default recognized features
-         final String[] recognizedFeatures = {
-             ALLOW_UE_AND_NOTATION_EVENTS,
-             XINCLUDE_AWARE
-         };
-         addRecognizedFeatures(recognizedFeatures);
-        // add default recognized properties
         fXIncludeHandler = new XIncludeHandler();
-        addComponent(fXIncludeHandler);
-        final String[] recognizedProperties = {
-            XINCLUDE_HANDLER,
-            NAMESPACE_CONTEXT
+        addCommonComponent(fXIncludeHandler);
+        
+        final String[] recognizedFeatures = {
+            ALLOW_UE_AND_NOTATION_EVENTS,
+            XINCLUDE_FIXUP_BASE_URIS,
+            XINCLUDE_FIXUP_LANGUAGE
         };
+        addRecognizedFeatures(recognizedFeatures);
 
+        // add default recognized properties
+        final String[] recognizedProperties =
+            { XINCLUDE_HANDLER, NAMESPACE_CONTEXT };
         addRecognizedProperties(recognizedProperties);
+        
+        setFeature(ALLOW_UE_AND_NOTATION_EVENTS, true);
+        setFeature(XINCLUDE_FIXUP_BASE_URIS, true);
+        setFeature(XINCLUDE_FIXUP_LANGUAGE, true);
+        
         setProperty(XINCLUDE_HANDLER, fXIncludeHandler);
         setProperty(NAMESPACE_CONTEXT, new XIncludeNamespaceSupport());
-        setFeature(ALLOW_UE_AND_NOTATION_EVENTS, true);
-        setFeature(XINCLUDE_AWARE, false);
-    } // <init>(SymbolTable,XMLGrammarPool)
+    } // <init>(SymbolTable,XMLGrammarPool)}
     
     
 	/** Configures the pipeline. */
     protected void configurePipeline() {
         super.configurePipeline();
-		if(enableXInclude){
+
         //configure DTD pipeline
         fDTDScanner.setDTDHandler(fDTDProcessor);
         fDTDProcessor.setDTDSource(fDTDScanner);
         fDTDProcessor.setDTDHandler(fXIncludeHandler);
         fXIncludeHandler.setDTDSource(fDTDProcessor);
-        fXIncludeHandler.setDTDHandler(fDTDHandler);
-        if (fDTDHandler != null) {            
+		fXIncludeHandler.setDTDHandler(fDTDHandler);
+        if (fDTDHandler != null) {
             fDTDHandler.setDTDSource(fXIncludeHandler);
         }
 
@@ -194,33 +153,32 @@ public class XIncludeParserConfiguration extends XML11Configuration {
             prev = fLastComponent;
             fLastComponent = fXIncludeHandler;
         }
-
-        if (prev != null) {
+        
+         if (prev != null) {
             XMLDocumentHandler next = prev.getDocumentHandler();
+            prev.setDocumentHandler(fXIncludeHandler);
+            fXIncludeHandler.setDocumentSource(prev);
             if (next != null) {
                 fXIncludeHandler.setDocumentHandler(next);
                 next.setDocumentSource(fXIncludeHandler);
             }
-            prev.setDocumentHandler(fXIncludeHandler);
-            fXIncludeHandler.setDocumentSource(prev);
-        }
-        else {
+         }
+         else {
             setDocumentHandler(fXIncludeHandler);
-        }
-		}
+         }
+
     } // configurePipeline()
 
 	protected void configureXML11Pipeline() {
 		super.configureXML11Pipeline();
-		if(enableXInclude){
-		addXML11Component(fXIncludeHandler);	
+		
         // configure XML 1.1. DTD pipeline
 		fXML11DTDScanner.setDTDHandler(fXML11DTDProcessor);
 		fXML11DTDProcessor.setDTDSource(fXML11DTDScanner);
 		fXML11DTDProcessor.setDTDHandler(fXIncludeHandler);
 		fXIncludeHandler.setDTDSource(fXML11DTDProcessor);
-        fXIncludeHandler.setDTDHandler(fDTDHandler);
-		if (fDTDHandler != null) {            
+		fXIncludeHandler.setDTDHandler(fDTDHandler);
+		if (fDTDHandler != null) {
 			fDTDHandler.setDTDSource(fXIncludeHandler);
 		}
 		
@@ -245,7 +203,7 @@ public class XIncludeParserConfiguration extends XML11Configuration {
 			fXIncludeHandler.setDocumentHandler(next);
 			next.setDocumentSource(fXIncludeHandler);
 		}
-		}
+
 	} // configureXML11Pipeline()
     
     public void setProperty(String propertyId, Object value)
@@ -256,12 +214,4 @@ public class XIncludeParserConfiguration extends XML11Configuration {
 
         super.setProperty(propertyId, value);
     } // setProperty(String,Object)
-    
-	public void setFeature(String featureId, boolean state)
-    throws XMLConfigurationException {
-		if(featureId.equals(Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_AWARE)){
-			enableXInclude = state;
-		}
-		super.setFeature(featureId,state);
-	}
 }

@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * $Id: Process.java,v 1.2.4.2 2005/09/15 18:21:57 jeffsuttor Exp $
+ */
 package com.sun.org.apache.xalan.internal.xslt;
 
 import java.io.FileOutputStream;
@@ -23,12 +26,15 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -45,6 +51,14 @@ import javax.xml.transform.stream.StreamSource;
 import com.sun.org.apache.xalan.internal.Version;
 import com.sun.org.apache.xalan.internal.res.XSLMessages;
 import com.sun.org.apache.xalan.internal.res.XSLTErrorResources;
+
+//J2SE does not support Xalan interpretive
+/*
+import com.sun.org.apache.xalan.internal.trace.PrintTraceListener;
+import com.sun.org.apache.xalan.internal.trace.TraceManager;
+import com.sun.org.apache.xalan.internal.transformer.XalanProperties;
+*/
+
 import com.sun.org.apache.xml.internal.utils.DefaultErrorHandler;
 
 import org.w3c.dom.Document;
@@ -93,11 +107,30 @@ public class Process
     System.out.println(resbundle.getString("optionENTITYRESOLVER"));  //"   [-ENTITYRESOLVER full class name (EntityResolver to be used to resolve entities)]");
     waitForReturnKey(resbundle);
     System.out.println(resbundle.getString("optionCONTENTHANDLER"));  //"   [-CONTENTHANDLER full class name (ContentHandler to be used to serialize output)]");
+    System.out.println(resbundle.getString("optionSECUREPROCESSING")); //"   [-SECURE (set the secure processing feature to true)]");
+    
+    // J2SE does not support Xalan interpretive
+    /*
+    System.out.println("\n\t\t\t" + resbundle.getString("xslProc_xalan_options") + "\n");
+    
+    System.out.println(resbundle.getString("optionQC"));  //"   [-QC (Quiet Pattern Conflicts Warnings)]");
+
+    // System.out.println(resbundle.getString("optionQ"));  //"   [-Q  (Quiet Mode)]"); // sc 28-Feb-01 commented out
+    System.out.println(resbundle.getString("optionTT"));  //"   [-TT (Trace the templates as they are being called.)]");
+    System.out.println(resbundle.getString("optionTG"));  //"   [-TG (Trace each generation event.)]");
+    System.out.println(resbundle.getString("optionTS"));  //"   [-TS (Trace each selection event.)]");
+    System.out.println(resbundle.getString("optionTTC"));  //"   [-TTC (Trace the template children as they are being processed.)]");
+    System.out.println(resbundle.getString("optionTCLASS"));  //"   [-TCLASS (TraceListener class for trace extensions.)]");
+    System.out.println(resbundle.getString("optionLINENUMBERS")); //"   [-L use line numbers]"
+    System.out.println(resbundle.getString("optionINCREMENTAL"));
+    System.out.println(resbundle.getString("optionNOOPTIMIMIZE"));
+    System.out.println(resbundle.getString("optionRL"));
+    */   
     
     System.out.println("\n\t\t\t" + resbundle.getString("xslProc_xsltc_options") + "\n");
     System.out.println(resbundle.getString("optionXO"));
-    System.out.println(resbundle.getString("optionXD"));
     waitForReturnKey(resbundle);    
+    System.out.println(resbundle.getString("optionXD"));
     System.out.println(resbundle.getString("optionXJ"));
     System.out.println(resbundle.getString("optionXP"));
     System.out.println(resbundle.getString("optionXN"));
@@ -120,13 +153,20 @@ public class Process
    *
    * @param argv Input parameters from command line
    */
+  // J2SE does not support Xalan interpretive
+  // main -> _main
   public static void _main(String argv[])
   {
     
+    // Runtime.getRuntime().traceMethodCalls(false); // turns Java tracing off
     boolean doStackDumpOnError = false;
     boolean setQuietMode = false;
     boolean doDiag = false;
+    String msg = null;
+    boolean isSecureProcessing = false;
 
+    // Runtime.getRuntime().traceMethodCalls(false);
+    // Runtime.getRuntime().traceInstructions(false);
 
     /**
      * The default diagnostic writer...
@@ -144,8 +184,9 @@ public class Process
     }
     else
     {
-      // since xsltc is the default transformer 
-      boolean useXSLTC = true;
+   	// J2SE does not support Xalan interpretive
+        // false -> true
+        boolean useXSLTC = true;
       for (int i = 0; i < argv.length; i++)
       {
         if ("-XSLTC".equalsIgnoreCase(argv[i]))
@@ -155,27 +196,31 @@ public class Process
       }
         
       TransformerFactory tfactory;
-      // Since xsltc is the default transformer
-      String key = "javax.xml.transform.TransformerFactory";
-      String value = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
-      Properties props = System.getProperties();
-      props.put(key, value);
-      System.setProperties(props);      
+      if (useXSLTC)
+      {
+	 String key = "javax.xml.transform.TransformerFactory";
+	 String value = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+	 Properties props = System.getProperties();
+	 props.put(key, value);
+	 System.setProperties(props);      
+      }
       
       try
       {
         tfactory = TransformerFactory.newInstance();
+        tfactory.setErrorListener(new DefaultErrorHandler());
       }
       catch (TransformerFactoryConfigurationError pfe)
       {
         pfe.printStackTrace(dumpWriter);
-        diagnosticsWriter.println(
-          XSLMessages.createMessage(
-            XSLTErrorResources.ER_NOT_SUCCESSFUL, null));  //"XSL Process was not successful.");
+//      "XSL Process was not successful.");
+        msg = XSLMessages.createMessage(
+            XSLTErrorResources.ER_NOT_SUCCESSFUL, null);
+        diagnosticsWriter.println(msg);  
 
         tfactory = null;  // shut up compiler
 
-        doExit(-1);
+        doExit(msg);
       }
 
       boolean formatOutput = false;
@@ -185,6 +230,10 @@ public class Process
       String dumpFileName = null;
       String xslFileName = null;
       String treedumpFileName = null;
+      // J2SE does not support Xalan interpretive
+      /*
+      PrintTraceListener tracer = null;
+      */
       String outputType = null;
       String media = null;
       Vector params = new Vector();
@@ -200,6 +249,65 @@ public class Process
         {
           // The -XSLTC option has been processed.
         }
+        // J2SE does not support Xalan interpretive
+        /*
+        else if ("-TT".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+          {
+            if (null == tracer)
+              tracer = new PrintTraceListener(diagnosticsWriter);
+
+            tracer.m_traceTemplates = true;
+          }
+          else
+            printInvalidXSLTCOption("-TT");
+
+          // tfactory.setTraceTemplates(true);
+        }
+        else if ("-TG".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+          {
+            if (null == tracer)
+              tracer = new PrintTraceListener(diagnosticsWriter);
+
+            tracer.m_traceGeneration = true;
+          }
+          else
+            printInvalidXSLTCOption("-TG");
+
+          // tfactory.setTraceSelect(true);
+        }
+        else if ("-TS".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+          {
+            if (null == tracer)
+              tracer = new PrintTraceListener(diagnosticsWriter);
+
+            tracer.m_traceSelection = true;
+          }
+          else
+            printInvalidXSLTCOption("-TS");
+
+          // tfactory.setTraceTemplates(true);
+        }
+        else if ("-TTC".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+          {
+            if (null == tracer)
+              tracer = new PrintTraceListener(diagnosticsWriter);
+
+            tracer.m_traceElements = true;
+          }
+          else
+            printInvalidXSLTCOption("-TTC");
+
+          // tfactory.setTraceTemplateChildren(true);
+        }
+        */
         else if ("-INDENT".equalsIgnoreCase(argv[i]))
         {
           int indentAmount;
@@ -297,8 +405,19 @@ public class Process
           diagnosticsWriter.println(resbundle.getString("version")  //">>>>>>> Xalan Version "
                                     + Version.getVersion() + ", " +
 
+          /* xmlProcessorLiaison.getParserDescription()+ */
           resbundle.getString("version2"));  // "<<<<<<<");
         }
+        // J2SE does not support Xalan interpretive
+        /*
+        else if ("-QC".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+            quietConflictWarnings = true;
+          else
+            printInvalidXSLTCOption("-QC");
+        }
+        */
         else if ("-Q".equalsIgnoreCase(argv[i]))
         {
           setQuietMode = true;
@@ -341,20 +460,20 @@ public class Process
             }
             catch (ObjectFactory.ConfigurationError cnfe)
             {
-              System.err.println(
-                XSLMessages.createMessage(
-                  XSLTErrorResources.ER_CLASS_NOT_FOUND_FOR_OPTION,
-                  new Object[]{ "-URIResolver" }));
-              doExit(-1);
+                msg = XSLMessages.createMessage(
+                    XSLTErrorResources.ER_CLASS_NOT_FOUND_FOR_OPTION,
+                    new Object[]{ "-URIResolver" });
+              System.err.println(msg);
+              doExit(msg);
             }
           }
           else
           {
-            System.err.println(
-              XSLMessages.createMessage(
-                XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
-                new Object[]{ "-URIResolver" }));  //"Missing argument for);
-            doExit(-1);
+            msg = XSLMessages.createMessage(
+                    XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
+                    new Object[]{ "-URIResolver" });  //"Missing argument for);
+            System.err.println(msg);
+            doExit(msg);
           }
         }
         else if ("-ENTITYRESOLVER".equalsIgnoreCase(argv[i]))
@@ -368,20 +487,21 @@ public class Process
             }
             catch (ObjectFactory.ConfigurationError cnfe)
             {
-              System.err.println(
-                XSLMessages.createMessage(
-                  XSLTErrorResources.ER_CLASS_NOT_FOUND_FOR_OPTION,
-                  new Object[]{ "-EntityResolver" }));
-              doExit(-1);
+                msg = XSLMessages.createMessage(
+                    XSLTErrorResources.ER_CLASS_NOT_FOUND_FOR_OPTION,
+                    new Object[]{ "-EntityResolver" });
+              System.err.println(msg);
+              doExit(msg);
             }
           }
           else
           {
-            System.err.println(
-              XSLMessages.createMessage(
-                XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
-                new Object[]{ "-EntityResolver" }));  //"Missing argument for);
-            doExit(-1);
+//            "Missing argument for);
+              msg = XSLMessages.createMessage(
+                    XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
+                    new Object[]{ "-EntityResolver" });
+            System.err.println(msg);  
+            doExit(msg);
           }
         }
         else if ("-CONTENTHANDLER".equalsIgnoreCase(argv[i]))
@@ -395,22 +515,76 @@ public class Process
             }
             catch (ObjectFactory.ConfigurationError cnfe)
             {
-              System.err.println(
-                XSLMessages.createMessage(
-                  XSLTErrorResources.ER_CLASS_NOT_FOUND_FOR_OPTION,
-                  new Object[]{ "-ContentHandler" }));
-              doExit(-1);
+                msg = XSLMessages.createMessage(
+                    XSLTErrorResources.ER_CLASS_NOT_FOUND_FOR_OPTION,
+                    new Object[]{ "-ContentHandler" });
+              System.err.println(msg);
+              doExit(msg);
             }
           }
           else
           {
-            System.err.println(
-              XSLMessages.createMessage(
-                XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
-                new Object[]{ "-ContentHandler" }));  //"Missing argument for);
-            doExit(-1);
+//            "Missing argument for);
+              msg = XSLMessages.createMessage(
+                    XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
+                    new Object[]{ "-ContentHandler" });
+            System.err.println(msg);  
+            doExit(msg);
           }
         }
+        // J2SE does not support Xalan interpretive
+        /*
+        else if ("-L".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+            tfactory.setAttribute(XalanProperties.SOURCE_LOCATION, Boolean.TRUE); 
+          else
+            printInvalidXSLTCOption("-L");
+        }
+        else if ("-INCREMENTAL".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+            tfactory.setAttribute
+              ("http://xml.apache.org/xalan/features/incremental", 
+               java.lang.Boolean.TRUE);
+          else
+            printInvalidXSLTCOption("-INCREMENTAL");
+        }
+        else if ("-NOOPTIMIZE".equalsIgnoreCase(argv[i]))
+        {
+          // Default is true.
+          //
+          // %REVIEW% We should have a generalized syntax for negative
+          // switches...  and probably should accept the inverse even
+          // if it is the default.
+          if (!useXSLTC)
+            tfactory.setAttribute
+              ("http://xml.apache.org/xalan/features/optimize", 
+               java.lang.Boolean.FALSE);
+          else
+            printInvalidXSLTCOption("-NOOPTIMIZE");
+	}
+        else if ("-RL".equalsIgnoreCase(argv[i]))
+        {
+          if (!useXSLTC)
+          {
+            if (i + 1 < argv.length)
+              recursionLimit = Integer.parseInt(argv[++i]);
+            else
+              System.err.println(
+                XSLMessages.createMessage(
+                  XSLTErrorResources.ER_MISSING_ARG_FOR_OPTION,
+                  new Object[]{ "-rl" }));  //"Missing argument for);
+          }
+          else
+          {
+            if (i + 1 < argv.length && argv[i + 1].charAt(0) != '-')
+             i++;
+             
+            printInvalidXSLTCOption("-RL");
+          }
+        }
+        */
         // Generate the translet class and optionally specify the name
         // of the translet class.
         else if ("-XO".equalsIgnoreCase(argv[i]))
@@ -532,6 +706,15 @@ public class Process
           else
             printInvalidXalanOption("-XT");        
         }
+        else if ("-SECURE".equalsIgnoreCase(argv[i]))
+        {
+          isSecureProcessing = true;
+          try
+          {
+            tfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+          }
+          catch (TransformerConfigurationException e) {}
+        }
         else
           System.err.println(
             XSLMessages.createMessage(
@@ -541,8 +724,9 @@ public class Process
       // Print usage instructions if no xml and xsl file is specified in the command line
       if (inFileName == null && xslFileName == null)
       {
-        System.err.println(resbundle.getString("xslProc_no_input"));
-        doExit(-1);
+          msg = resbundle.getString("xslProc_no_input");
+        System.err.println(msg);
+        doExit(msg);
       }
 
       // Note that there are usage cases for calling us without a -IN arg
@@ -569,6 +753,15 @@ public class Process
 
             dfactory.setNamespaceAware(true);
 
+            if (isSecureProcessing)
+            {
+              try
+              {
+                dfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+              }
+              catch (ParserConfigurationException pce) {}
+            }
+
             DocumentBuilder docBuilder = dfactory.newDocumentBuilder();
             Node xslDOM = docBuilder.parse(new InputSource(xslFileName));
 
@@ -577,7 +770,9 @@ public class Process
           }
           else
           {
+            // System.out.println("Calling newTemplates: "+xslFileName);
             stylesheet = tfactory.newTemplates(new StreamSource(xslFileName));
+            // System.out.println("Done calling newTemplates: "+xslFileName);
           }
         }
 
@@ -604,6 +799,12 @@ public class Process
 
         SAXTransformerFactory stf = (SAXTransformerFactory) tfactory;
         
+        // J2SE does not support Xalan interpretive
+        /*
+		// This is currently controlled via TransformerFactoryImpl.
+        if (!useXSLTC && useSourceLocation)
+           stf.setAttribute(XalanProperties.SOURCE_LOCATION, Boolean.TRUE);        
+        */
 
         // Did they pass in a stylesheet, or should we get it from the 
         // document?
@@ -630,6 +831,7 @@ public class Process
         if (null != stylesheet)
         {
           Transformer transformer = flavor.equals("th") ? null : stylesheet.newTransformer();
+          transformer.setErrorListener(new DefaultErrorHandler());
 
           // Override the output format?
           if (null != outputType)
@@ -637,6 +839,29 @@ public class Process
             transformer.setOutputProperty(OutputKeys.METHOD, outputType);
           }
 
+          // J2SE does not support Xalan interpretive
+          /*
+          if (transformer instanceof com.sun.org.apache.xalan.internal.transformer.TransformerImpl)
+          {
+            com.sun.org.apache.xalan.internal.transformer.TransformerImpl impl = (com.sun.org.apache.xalan.internal.transformer.TransformerImpl)transformer;
+            TraceManager tm = impl.getTraceManager();
+
+            if (null != tracer)
+              tm.addTraceListener(tracer);
+
+            impl.setQuietConflictWarnings(quietConflictWarnings);
+
+			// This is currently controlled via TransformerFactoryImpl.
+            if (useSourceLocation)
+              impl.setProperty(XalanProperties.SOURCE_LOCATION, Boolean.TRUE);
+
+	    if(recursionLimit>0)
+	      impl.setRecursionLimit(recursionLimit);
+
+            // sc 28-Feb-01 if we re-implement this, please uncomment helpmsg in printArgOptions
+            // impl.setDiagnosticsOutput( setQuietMode ? null : diagnosticsWriter );
+          }
+          */
 
           int nParams = params.size();
 
@@ -661,6 +886,15 @@ public class Process
               dfactory.setCoalescing(true);
               dfactory.setNamespaceAware(true);
 
+              if (isSecureProcessing)
+              {
+                try
+                {
+                  dfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                }
+                catch (ParserConfigurationException pce) {}
+              }
+
               DocumentBuilder docBuilder = dfactory.newDocumentBuilder();
 
               if (entityResolver != null)
@@ -676,6 +910,8 @@ public class Process
 
               // Now serialize output to disk with identity transformer
               Transformer serializer = stf.newTransformer();
+              serializer.setErrorListener(new DefaultErrorHandler());
+              
               Properties serializationProps =
                 stylesheet.getOutputProperties();
 
@@ -696,7 +932,6 @@ public class Process
               {
               // System.out.println("Testing the TransformerHandler...");
 
-              // ===============
               XMLReader reader = null;
 
               // Use JAXP1.1 ( if possible )      
@@ -706,6 +941,15 @@ public class Process
                   javax.xml.parsers.SAXParserFactory.newInstance();
 
                 factory.setNamespaceAware(true);
+
+                if (isSecureProcessing)
+                {
+                  try
+                  {
+                    factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                  }
+                  catch (org.xml.sax.SAXException se) {}
+                }
 
                 javax.xml.parsers.SAXParser jaxpParser =
                   factory.newSAXParser();
@@ -727,7 +971,13 @@ public class Process
               {
                 reader = XMLReaderFactory.createXMLReader();
               }
-              
+
+              // J2SE does not support Xalan interpretive
+              /*              
+              if (!useXSLTC)
+                stf.setAttribute(com.sun.org.apache.xalan.internal.processor.TransformerFactoryImpl.FEATURE_INCREMENTAL, 
+                   Boolean.TRUE);
+              */
                  
               TransformerHandler th = stf.newTransformerHandler(stylesheet);
               
@@ -768,6 +1018,15 @@ public class Process
                     javax.xml.parsers.SAXParserFactory.newInstance();
 
                   factory.setNamespaceAware(true);
+
+                  if (isSecureProcessing)
+                  {
+                    try
+                    {
+                      factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                    }
+                    catch (org.xml.sax.SAXException se) {}
+                  }
 
                   javax.xml.parsers.SAXParser jaxpParser =
                     factory.newSAXParser();
@@ -815,8 +1074,10 @@ public class Process
               }
               else
               {
+                // System.out.println("Starting transform");
                 transformer.transform(new StreamSource(inFileName),
                                       strResult);
+                // System.out.println("Done with transform");
               }
             }
           }
@@ -830,10 +1091,11 @@ public class Process
         }
         else
         {
-          diagnosticsWriter.println(
-            XSLMessages.createMessage(
-              XSLTErrorResources.ER_NOT_SUCCESSFUL, null));  //"XSL Process was not successful.");
-          doExit(-1);
+//          "XSL Process was not successful.");
+            msg = XSLMessages.createMessage(
+                XSLTErrorResources.ER_NOT_SUCCESSFUL, null);
+          diagnosticsWriter.println(msg);  
+          doExit(msg);
         }
         
 	// close output streams
@@ -855,7 +1117,7 @@ public class Process
         if (doDiag)
         {
         	Object[] msgArgs = new Object[]{ inFileName, xslFileName, new Long(millisecondsDuration) };
-        	String msg = XSLMessages.createMessage("diagTiming", msgArgs);
+            msg = XSLMessages.createMessage("diagTiming", msgArgs);
         	diagnosticsWriter.println('\n');
           	diagnosticsWriter.println(msg);
         }
@@ -893,7 +1155,7 @@ public class Process
           dumpWriter.close();
         }
 
-        doExit(-1);
+        doExit(throwable.getMessage());
       }
 
       if (null != dumpFileName)
@@ -907,6 +1169,10 @@ public class Process
         // diagnosticsWriter.close();
       }
 
+      // if(!setQuietMode)
+      //  diagnosticsWriter.println(resbundle.getString("xsldone")); //"Xalan: done");
+      // else
+      // diagnosticsWriter.println("");  //"Xalan: done");
     }
   }
   
@@ -914,9 +1180,9 @@ public class Process
    * before this blows itself out of the water...
    * (I keep checking this in, it keeps vanishing. Grr!)
    * */
-  static void doExit(int i)
+  static void doExit(String msg)
   {
-    System.exit(i);
+    throw new RuntimeException(msg);
   }
   
   /**

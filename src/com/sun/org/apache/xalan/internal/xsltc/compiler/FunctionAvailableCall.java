@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionAvailableCall.java,v 1.19 2004/02/23 10:29:35 aruny Exp $
+ * $Id: FunctionAvailableCall.java,v 1.2.4.1 2005/09/01 15:30:25 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

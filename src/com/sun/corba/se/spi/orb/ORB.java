@@ -1,7 +1,7 @@
 /*
- * @(#)ORB.java	1.55 05/01/04
+ * @(#)ORB.java	1.55 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

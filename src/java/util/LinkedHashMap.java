@@ -1,12 +1,12 @@
 /*
- * @(#)LinkedHashMap.java	1.18 04/02/19
+ * @(#)LinkedHashMap.java	1.26 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
-import  java.io.*;
+import java.io.*;
 
 /**
  * <p>Hash table and linked list implementation of the <tt>Map</tt> interface,
@@ -49,7 +49,7 @@ import  java.io.*;
  * collection-views do <i>not</i> affect the order of iteration of the backing
  * map.
  *
- * <p>The {@link #removeEldestEntry(Map.Entry)} method may be overridden to 
+ * <p>The {@link #removeEldestEntry(Map.Entry)} method may be overridden to
  * impose a policy for removing stale mappings automatically when new mappings
  * are added to the map.
  *
@@ -71,18 +71,19 @@ import  java.io.*;
  * excessively high value for initial capacity is less severe for this class
  * than for <tt>HashMap</tt>, as iteration times for this class are unaffected
  * by capacity.
- * 
- * <p><strong>Note that this implementation is not synchronized.</strong> If
- * multiple threads access a linked hash map concurrently, and at least
+ *
+ * <p><strong>Note that this implementation is not synchronized.</strong>
+ * If multiple threads access a linked hash map concurrently, and at least
  * one of the threads modifies the map structurally, it <em>must</em> be
- * synchronized externally.  This is typically accomplished by synchronizing
- * on some object that naturally encapsulates the map.  If no such object
- * exists, the map should be "wrapped" using the
- * <tt>Collections.synchronizedMap</tt>method.  This is best done at creation
- * time, to prevent accidental unsynchronized access:
- * <pre>
- *    Map m = Collections.synchronizedMap(new LinkedHashMap(...));
- * </pre>
+ * synchronized externally.  This is typically accomplished by
+ * synchronizing on some object that naturally encapsulates the map.
+ *
+ * If no such object exists, the map should be "wrapped" using the
+ * {@link Collections#synchronizedMap Collections.synchronizedMap}
+ * method.  This is best done at creation time, to prevent accidental
+ * unsynchronized access to the map:<pre>
+ *   Map m = Collections.synchronizedMap(new LinkedHashMap(...));</pre>
+ *
  * A structural modification is any operation that adds or deletes one or more
  * mappings or, in the case of access-ordered linked hash maps, affects
  * iteration order.  In insertion-ordered linked hash maps, merely changing
@@ -91,37 +92,39 @@ import  java.io.*;
  * merely querying the map with <tt>get</tt> is a structural
  * modification.</strong>)
  *
- * <p>The iterators returned by the <tt>iterator</tt> methods of the
- * collections returned by all of this class's collection view methods are
+ * <p>The iterators returned by the <tt>iterator</tt> method of the collections
+ * returned by all of this class's collection view methods are
  * <em>fail-fast</em>: if the map is structurally modified at any time after
  * the iterator is created, in any way except through the iterator's own
- * remove method, the iterator will throw a
- * <tt>ConcurrentModificationException</tt>.  Thus, in the face of concurrent
- * modification, the Iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the
- * future.
+ * <tt>remove</tt> method, the iterator will throw a {@link
+ * ConcurrentModificationException}.  Thus, in the face of concurrent
+ * modification, the iterator fails quickly and cleanly, rather than risking
+ * arbitrary, non-deterministic behavior at an undetermined time in the future.
  *
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:   <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * <p>This class is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <p>This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
+ *
  * @author  Josh Bloch
- * @version 1.18, 02/19/04
+ * @version 1.26, 04/21/06
  * @see     Object#hashCode()
  * @see     Collection
  * @see     Map
  * @see     HashMap
  * @see     TreeMap
  * @see     Hashtable
- * @since   JDK1.4
+ * @since   1.4
  */
 
 public class LinkedHashMap<K,V>
@@ -148,10 +151,10 @@ public class LinkedHashMap<K,V>
      * Constructs an empty insertion-ordered <tt>LinkedHashMap</tt> instance
      * with the specified initial capacity and load factor.
      *
-     * @param  initialCapacity the initial capacity.
-     * @param  loadFactor      the load factor.
+     * @param  initialCapacity the initial capacity
+     * @param  loadFactor      the load factor
      * @throws IllegalArgumentException if the initial capacity is negative
-     *         or the load factor is nonpositive.
+     *         or the load factor is nonpositive
      */
     public LinkedHashMap(int initialCapacity, float loadFactor) {
         super(initialCapacity, loadFactor);
@@ -160,10 +163,10 @@ public class LinkedHashMap<K,V>
 
     /**
      * Constructs an empty insertion-ordered <tt>LinkedHashMap</tt> instance
-     * with the specified initial capacity and a default load factor (0.75). 
+     * with the specified initial capacity and a default load factor (0.75).
      *
-     * @param  initialCapacity the initial capacity.
-     * @throws IllegalArgumentException if the initial capacity is negative.
+     * @param  initialCapacity the initial capacity
+     * @throws IllegalArgumentException if the initial capacity is negative
      */
     public LinkedHashMap(int initialCapacity) {
 	super(initialCapacity);
@@ -172,7 +175,7 @@ public class LinkedHashMap<K,V>
 
     /**
      * Constructs an empty insertion-ordered <tt>LinkedHashMap</tt> instance
-     * with a default capacity (16) and load factor (0.75).
+     * with the default initial capacity (16) and load factor (0.75).
      */
     public LinkedHashMap() {
 	super();
@@ -182,11 +185,11 @@ public class LinkedHashMap<K,V>
     /**
      * Constructs an insertion-ordered <tt>LinkedHashMap</tt> instance with
      * the same mappings as the specified map.  The <tt>LinkedHashMap</tt>
-     * instance is created with a a default load factor (0.75) and an initial
+     * instance is created with a default load factor (0.75) and an initial
      * capacity sufficient to hold the mappings in the specified map.
      *
-     * @param  m the map whose mappings are to be placed in this map.
-     * @throws NullPointerException if the specified map is null.
+     * @param  m the map whose mappings are to be placed in this map
+     * @throws NullPointerException if the specified map is null
      */
     public LinkedHashMap(Map<? extends K, ? extends V> m) {
         super(m);
@@ -197,12 +200,12 @@ public class LinkedHashMap<K,V>
      * Constructs an empty <tt>LinkedHashMap</tt> instance with the
      * specified initial capacity, load factor and ordering mode.
      *
-     * @param  initialCapacity the initial capacity.
-     * @param  loadFactor      the load factor.
+     * @param  initialCapacity the initial capacity
+     * @param  loadFactor      the load factor
      * @param  accessOrder     the ordering mode - <tt>true</tt> for
-     *         access-order, <tt>false</tt> for insertion-order.
+     *         access-order, <tt>false</tt> for insertion-order
      * @throws IllegalArgumentException if the initial capacity is negative
-     *         or the load factor is nonpositive.
+     *         or the load factor is nonpositive
      */
     public LinkedHashMap(int initialCapacity,
 			 float loadFactor,
@@ -222,7 +225,7 @@ public class LinkedHashMap<K,V>
     }
 
     /**
-     * Transfer all entries to new table array.  This method is called
+     * Transfers all entries to new table array.  This method is called
      * by superclass resize.  It is overridden for performance, as it is
      * faster to iterate using our linked list.
      */
@@ -240,9 +243,9 @@ public class LinkedHashMap<K,V>
      * Returns <tt>true</tt> if this map maps one or more keys to the
      * specified value.
      *
-     * @param value value whose presence in this map is to be tested.
+     * @param value value whose presence in this map is to be tested
      * @return <tt>true</tt> if this map maps one or more keys to the
-     *         specified value.
+     *         specified value
      */
     public boolean containsValue(Object value) {
         // Overridden to take advantage of faster iterator
@@ -259,15 +262,19 @@ public class LinkedHashMap<K,V>
     }
 
     /**
-     * Returns the value to which this map maps the specified key.  Returns
-     * <tt>null</tt> if the map contains no mapping for this key.  A return
-     * value of <tt>null</tt> does not <i>necessarily</i> indicate that the
-     * map contains no mapping for the key; it's also possible that the map
-     * explicitly maps the key to <tt>null</tt>.  The <tt>containsKey</tt>
-     * operation may be used to distinguish these two cases.
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
      *
-     * @return the value to which this map maps the specified key.
-     * @param key key whose associated value is to be returned.
+     * <p>More formally, if this map contains a mapping from a key
+     * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
+     * key.equals(k))}, then this method returns {@code v}; otherwise
+     * it returns {@code null}.  (There can be at most one such mapping.)
+     *
+     * <p>A return value of {@code null} does not <i>necessarily</i>
+     * indicate that the map contains no mapping for the key; it's also
+     * possible that the map explicitly maps the key to {@code null}.
+     * The {@link #containsKey containsKey} operation may be used to
+     * distinguish these two cases.
      */
     public V get(Object key) {
         Entry<K,V> e = (Entry<K,V>)getEntry(key);
@@ -278,7 +285,8 @@ public class LinkedHashMap<K,V>
     }
 
     /**
-     * Removes all mappings from this map.
+     * Removes all of the mappings from this map.
+     * The map will be empty after this call returns.
      */
     public void clear() {
         super.clear();
@@ -297,15 +305,15 @@ public class LinkedHashMap<K,V>
         }
 
         /**
-         * Remove this entry from the linked list.
+         * Removes this entry from the linked list.
          */
         private void remove() {
             before.after = after;
             after.before = before;
         }
 
-        /**                                             
-         * Insert this entry before the specified existing entry in the list.
+        /**
+         * Inserts this entry before the specified existing entry in the list.
          */
         private void addBefore(Entry<K,V> existingEntry) {
             after  = existingEntry;
@@ -318,7 +326,7 @@ public class LinkedHashMap<K,V>
          * This method is invoked by the superclass whenever the value
          * of a pre-existing entry is read by Map.get or modified by Map.set.
          * If the enclosing Map is access-ordered, it moves the entry
-         * to the end of the list; otherwise, it does nothing. 
+         * to the end of the list; otherwise, it does nothing.
          */
         void recordAccess(HashMap<K,V> m) {
             LinkedHashMap<K,V> lm = (LinkedHashMap<K,V>)m;
@@ -402,7 +410,7 @@ public class LinkedHashMap<K,V>
         if (removeEldestEntry(eldest)) {
             removeEntryForKey(eldest.key);
         } else {
-            if (size >= threshold) 
+            if (size >= threshold)
                 resize(2 * table.length);
         }
     }
@@ -422,7 +430,7 @@ public class LinkedHashMap<K,V>
     /**
      * Returns <tt>true</tt> if this map should remove its eldest entry.
      * This method is invoked by <tt>put</tt> and <tt>putAll</tt> after
-     * inserting a new entry into the map.  It provides the implementer
+     * inserting a new entry into the map.  It provides the implementor
      * with the opportunity to remove the eldest entry each time a new one
      * is added.  This is useful if the map represents a cache: it allows
      * the map to reduce memory consumption by deleting stale entries.
@@ -449,7 +457,7 @@ public class LinkedHashMap<K,V>
      * <p>This implementation merely returns <tt>false</tt> (so that this
      * map acts like a normal map - the eldest element is never removed).
      *
-     * @param    eldest The least recently inserted entry in the map, or if 
+     * @param    eldest The least recently inserted entry in the map, or if
      *           this is an access-ordered map, the least recently accessed
      *           entry.  This is the entry that will be removed it this
      *           method returns <tt>true</tt>.  If the map was empty prior
@@ -458,7 +466,7 @@ public class LinkedHashMap<K,V>
      *           inserted; in other words, if the map contains a single
      *           entry, the eldest entry is also the newest.
      * @return   <tt>true</tt> if the eldest entry should be removed
-     *           from the map; <tt>false</t> if it should be retained.
+     *           from the map; <tt>false</tt> if it should be retained.
      */
     protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
         return false;

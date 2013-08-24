@@ -1,7 +1,7 @@
 /*
- * @(#)JApplet.java	1.65 03/12/19
+ * @(#)JApplet.java	1.71 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -49,6 +49,11 @@ import javax.accessibility.*;
  * complete description of the <code>contentPane</code>, <code>glassPane</code>,
  * and <code>layeredPane</code> properties.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -64,10 +69,12 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: Swing's Applet subclass.
  *
- * @version 1.65 12/19/03
+ * @version 1.71 08/08/06
  * @author Arnaud Weber
  */
-public class JApplet extends Applet implements Accessible, RootPaneContainer 
+public class JApplet extends Applet implements Accessible,
+                                               RootPaneContainer,
+                               TransferHandler.HasGetTransferHandler
 {
     /**
      * @see #getRootPane
@@ -85,6 +92,11 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
      * @see javax.swing.RootPaneContainer
      */
     protected boolean rootPaneCheckingEnabled = false;
+
+    /**
+     * The <code>TransferHandler</code> for this applet.
+     */
+    private TransferHandler transferHandler;
 
     /**
      * Creates a swing applet instance.
@@ -139,7 +151,60 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
         rp.setOpaque(true);
         return rp;
     }
-    
+
+    /**
+     * Sets the {@code transferHandler} property, which is a mechanism to
+     * support transfer of data into this component. Use {@code null}
+     * if the component does not support data transfer operations.
+     * <p>
+     * If the system property {@code suppressSwingDropSupport} is {@code false}
+     * (the default) and the current drop target on this component is either
+     * {@code null} or not a user-set drop target, this method will change the
+     * drop target as follows: If {@code newHandler} is {@code null} it will
+     * clear the drop target. If not {@code null} it will install a new
+     * {@code DropTarget}.
+     * <p>
+     * Note: When used with {@code JApplet}, {@code TransferHandler} only
+     * provides data import capability, as the data export related methods
+     * are currently typed to {@code JComponent}.
+     * <p>
+     * Please see
+     * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
+     * How to Use Drag and Drop and Data Transfer</a>, a section in
+     * <em>The Java Tutorial</em>, for more information.
+     * 
+     * @param newHandler the new {@code TransferHandler}
+     *
+     * @see TransferHandler
+     * @see #getTransferHandler
+     * @see java.awt.Component#setDropTarget
+     * @since 1.6
+     *
+     * @beaninfo
+     *        bound: true
+     *       hidden: true
+     *  description: Mechanism for transfer of data into the component
+     */
+    public void setTransferHandler(TransferHandler newHandler) {
+        TransferHandler oldHandler = transferHandler;
+        transferHandler = newHandler;
+        SwingUtilities.installSwingDropTargetAsNecessary(this, transferHandler);
+        firePropertyChange("transferHandler", oldHandler, newHandler);
+    }
+
+    /**
+     * Gets the <code>transferHandler</code> property.
+     *
+     * @return the value of the <code>transferHandler</code> property
+     *
+     * @see TransferHandler
+     * @see #setTransferHandler
+     * @since 1.6
+     */
+    public TransferHandler getTransferHandler() {
+        return transferHandler;
+    }
+
     /** 
      * Just calls <code>paint(g)</code>.  This method was overridden to 
      * prevent an unnecessary call to clear the background.
@@ -147,7 +212,6 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
     public void update(Graphics g) {
         paint(g);
     }
-
 
    /**
     * Sets the menubar for this applet.
@@ -213,7 +277,7 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
     /**
      * Adds the specified child <code>Component</code>.
-     * This method is overridden to conditionally forwad calls to the
+     * This method is overridden to conditionally forward calls to the
      * <code>contentPane</code>.
      * By default, children are added to the <code>contentPane</code> instead
      * of the frame, refer to {@link javax.swing.RootPaneContainer} for
@@ -400,6 +464,39 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
      */
     public void setGlassPane(Component glassPane) {
         getRootPane().setGlassPane(glassPane);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 1.6
+     */
+    public Graphics getGraphics() {
+        JComponent.getGraphicsInvoked(this);
+        return super.getGraphics();
+    }
+
+    /**
+     * Repaints the specified rectangle of this component within
+     * <code>time</code> milliseconds.  Refer to <code>RepaintManager</code>
+     * for details on how the repaint is handled.
+     * 
+     * @param     time   maximum time in milliseconds before update
+     * @param     x    the <i>x</i> coordinate
+     * @param     y    the <i>y</i> coordinate
+     * @param     width    the width
+     * @param     height   the height
+     * @see       RepaintManager
+     * @since     1.6
+     */
+    public void repaint(long time, int x, int y, int width, int height) {
+        if (RepaintManager.HANDLE_TOP_LEVEL_PAINT) {
+            RepaintManager.currentManager(this).addDirtyRegion(
+                              this, x, y, width, height);
+        }
+        else {
+            super.repaint(time, x, y, width, height);
+        }
     }
 
     /**

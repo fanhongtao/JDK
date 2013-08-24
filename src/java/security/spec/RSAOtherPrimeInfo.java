@@ -1,7 +1,7 @@
 /*
- * @(#)RSAOtherPrimeInfo.java	1.6 03/12/19
+ * @(#)RSAOtherPrimeInfo.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.math.BigInteger;
  *
  * @author Valerie Peng
  *
- * @version 1.6 03/12/19
+ * @version 1.7 05/11/17
  *
  * @see RSAPrivateCrtKeySpec
  * @see java.security.interfaces.RSAMultiPrimePrivateCrtKey

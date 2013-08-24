@@ -1,7 +1,7 @@
 /*
- * @(#)SQLWarning.java	1.25 03/12/19
+ * @(#)SQLWarning.java	1.30 06/08/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,40 +27,54 @@ package java.sql;
 public class SQLWarning extends SQLException {
 
     /**
-     * Constructs a fully-specified <code>SQLWarning</code> object
-     * initialized with the given values.
+     * Constructs a  <code>SQLWarning</code> object
+     *  with a given <code>reason</code>, <code>SQLState</code>  and 
+     * <code>vendorCode</code>.
      *
+     * The <code>cause</code> is not initialized, and may subsequently be
+     * initialized by a call to the 
+     * {@link Throwable#initCause(java.lang.Throwable)} method.
+     * <p>
      * @param reason a description of the warning 
-     * @param SQLstate an XOPEN code identifying the warning
+     * @param SQLState an XOPEN or SQL:2003 code identifying the warning
      * @param vendorCode a database vendor-specific warning code
      */
-     public SQLWarning(String reason, String SQLstate, int vendorCode) {
-	super(reason, SQLstate, vendorCode);
+     public SQLWarning(String reason, String SQLState, int vendorCode) {
+	super(reason, SQLState, vendorCode);
 	DriverManager.println("SQLWarning: reason(" + reason + 
-			      ") SQLstate(" + SQLstate + 
+			      ") SQLState(" + SQLState + 
 			      ") vendor code(" + vendorCode + ")");
     }
 
 
     /**
-     * Constructs an <code>SQLWarning</code> object
-     * with the given reason and SQLState;
-     * the vendorCode defaults to 0.
+     * Constructs a <code>SQLWarning</code> object
+     * with a given <code>reason</code> and <code>SQLState</code>.
      *
+     * The <code>cause</code> is not initialized, and may subsequently be
+     * initialized by a call to the 
+     * {@link Throwable#initCause(java.lang.Throwable)} method. The vendor code
+     * is initialized to 0.
+     * <p>
      * @param reason a description of the warning 
-     * @param SQLstate an XOPEN code identifying the warning
+     * @param SQLState an XOPEN or SQL:2003 code identifying the warning
      */
-    public SQLWarning(String reason, String SQLstate) {
-	super(reason, SQLstate);
+    public SQLWarning(String reason, String SQLState) {
+	super(reason, SQLState);
 	DriverManager.println("SQLWarning: reason(" + reason + 
-				  ") SQLState(" + SQLstate + ")");
+				  ") SQLState(" + SQLState + ")");
     }
 
     /**
-     * Constructs an <code>SQLWarning</code> object
-     * with the given value for a reason; SQLstate defaults to
-     * <code>null</code>, and vendorCode defaults to 0.
+     * Constructs a <code>SQLWarning</code> object
+     * with a given <code>reason</code>. The <code>SQLState</code> 
+     * is initialized to <code>null</code> and the vender code is initialized 
+     * to 0.
      *
+     * The <code>cause</code> is not initialized, and may subsequently be
+     * initialized by a call to the 
+     * {@link Throwable#initCause(java.lang.Throwable)} method.
+     * <p>
      * @param reason a description of the warning 
      */
     public SQLWarning(String reason) {
@@ -69,19 +83,93 @@ public class SQLWarning extends SQLException {
     }
 
     /**
-     * Constructs a default <code>SQLWarning</code> object.
-     * The reason defaults to <code>null</code>, SQLState
-     * defaults to <code>null</code>, and vendorCode defaults to 0.
+     * Constructs a  <code>SQLWarning</code> object.
+     * The <code>reason</code>, <code>SQLState</code> are initialized
+     * to <code>null</code> and the vendor code is initialized to 0.
      *
+     * The <code>cause</code> is not initialized, and may subsequently be
+     * initialized by a call to the 
+     * {@link Throwable#initCause(java.lang.Throwable)} method.
+     * <p>
      */
     public SQLWarning() {
 	super();
 	DriverManager.println("SQLWarning: ");
     }
 
+    /**
+     * Constructs a <code>SQLWarning</code> object
+     * with a given  <code>cause</code>.
+     * The <code>SQLState</code> is initialized
+     * to <code>null</code> and the vendor code is initialized to 0. 
+     * The <code>reason</code>  is initialized to <code>null</code> if 
+     * <code>cause==null</code> or to <code>cause.toString()</code> if 
+     * <code>cause!=null</code>.
+     * <p>
+     * @param cause the underlying reason for this <code>SQLWarning</code> (which is saved for later retrieval by the <code>getCause()</code> method); may be null indicating
+     *     the cause is non-existent or unknown.
+     */
+    public SQLWarning(Throwable cause) {
+        super(cause);
+        DriverManager.println("SQLWarning");
+    }
 
     /**
-     * Retrieves the warning chained to this <code>SQLWarning</code> object.
+     * Constructs a <code>SQLWarning</code> object
+     * with a given
+     * <code>reason</code> and  <code>cause</code>.  
+     * The <code>SQLState</code> is  initialized to <code>null</code>
+     * and the vendor code is initialized to 0.
+     * <p>
+     * @param reason a description of the warning
+     * @param cause  the underlying reason for this <code>SQLWarning</code> 
+     * (which is saved for later retrieval by the <code>getCause()</code> method);
+     * may be null indicating the cause is non-existent or unknown.
+     */
+    public SQLWarning(String reason, Throwable cause) {
+        super(reason,cause);
+        DriverManager.println("SQLWarning : reason("+ reason + ")");
+    }
+
+    /**
+     * Constructs a <code>SQLWarning</code> object
+     * with a given
+     * <code>reason</code>, <code>SQLState</code> and  <code>cause</code>.  
+     * The vendor code is initialized to 0.
+     * <p>
+     * @param reason a description of the warning
+     * @param SQLState an XOPEN or SQL:2003 code identifying the warning
+     * @param cause the underlying reason for this <code>SQLWarning</code> (which is saved for later retrieval by the <code>getCause()</code> method); may be null indicating
+     *     the cause is non-existent or unknown.
+     */
+    public SQLWarning(String reason, String SQLState, Throwable cause) {
+        super(reason,SQLState,cause);
+        DriverManager.println("SQLWarning: reason(" + reason +
+				  ") SQLState(" + SQLState + ")");
+    }
+
+    /**
+     * Constructs a<code>SQLWarning</code> object
+     * with a given
+     * <code>reason</code>, <code>SQLState</code>, <code>vendorCode</code>
+     * and  <code>cause</code>.  
+     * <p>
+     * @param reason a description of the warning
+     * @param SQLState an XOPEN or SQL:2003 code identifying the warning
+     * @param vendorCode a database vendor-specific warning code
+     * @param cause the underlying reason for this <code>SQLWarning</code> (which is saved for later retrieval by the <code>getCause()</code> method); may be null indicating
+     *     the cause is non-existent or unknown.
+     */
+    public SQLWarning(String reason, String SQLState, int vendorCode, Throwable cause) {
+        super(reason,SQLState,vendorCode,cause);
+        DriverManager.println("SQLWarning: reason(" + reason +
+			      ") SQLState(" + SQLState +
+			      ") vendor code(" + vendorCode + ")");
+
+    }
+    /**
+     * Retrieves the warning chained to this <code>SQLWarning</code> object by
+     * <code>setNextWarning</code>.
      *
      * @return the next <code>SQLException</code> in the chain; <code>null</code> if none
      * @see #setNextWarning
@@ -98,7 +186,7 @@ public class SQLWarning extends SQLException {
     }
 
     /**
-     * Adds an <code>SQLWarning</code> object to the end of the chain.
+     * Adds a <code>SQLWarning</code> object to the end of the chain.
      *
      * @param w the new end of the <code>SQLException</code> chain
      * @see #getNextWarning
@@ -107,4 +195,5 @@ public class SQLWarning extends SQLException {
 	setNextException(w);
     }
 
+    private static final long serialVersionUID = 3917336774604784856L;
 }

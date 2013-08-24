@@ -57,10 +57,11 @@
 
 package com.sun.org.apache.xerces.internal.util;
 
+import com.sun.xml.internal.stream.XMLBufferListener;
 import com.sun.org.apache.xerces.internal.xni.Augmentations;
 import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
-
+import com.sun.org.apache.xerces.internal.xni.XMLString;
 /**
  * The XMLAttributesImpl class is an implementation of the XMLAttributes
  * interface which defines a collection of attributes for an element. 
@@ -78,10 +79,10 @@ import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
  * @author Elena Litani, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XMLAttributesImpl.java,v 1.24 2004/01/19 22:12:10 mrglavas Exp $
+ * @version $Id: XMLAttributesImpl.java,v 1.3 2005/09/26 13:03:01 sunithareddy Exp $
  */
 public class XMLAttributesImpl
-    implements XMLAttributes {
+implements XMLAttributes, XMLBufferListener {
 
     //
     // Constants
@@ -212,6 +213,9 @@ public class XMLAttributesImpl
      * @see #setSpecified
      */
     public int addAttribute(QName name, String type, String value) {
+      return addAttribute(name,type,value,null);
+    }
+    public int addAttribute(QName name, String type, String value,XMLString valueCache) {
 
         int index;
         if (fLength < SIZE_LIMIT) {
@@ -307,10 +311,14 @@ public class XMLAttributesImpl
         attribute.name.setValues(name);
         attribute.type = type;
         attribute.value = value;
+        attribute.xmlValue = valueCache;
         attribute.nonNormalizedValue = value;
         attribute.specified = false;
 
-        // return
+        // clear augmentations
+        if(attribute.augs != null)
+            attribute.augs.removeAllItems();
+        
         return index;
 
     } // addAttribute(QName,String,XMLString)
@@ -392,9 +400,14 @@ public class XMLAttributesImpl
      * @see #setNonNormalizedValue
      */
     public void setValue(int attrIndex, String attrValue) {
+        setValue(attrIndex,attrValue,null);
+    }
+    
+    public void setValue(int attrIndex, String attrValue,XMLString value) {
         Attribute attribute = fAttributes[attrIndex];
         attribute.value = attrValue;
         attribute.nonNormalizedValue = attrValue;
+        attribute.xmlValue = value;
     } // setValue(int,String)
 
     /**
@@ -520,6 +533,8 @@ public class XMLAttributesImpl
         if (index < 0 || index >= fLength) {
             return null;
         }
+        if(fAttributes[index].value == null && fAttributes[index].xmlValue != null)
+            fAttributes[index].value = fAttributes[index].xmlValue.toString();
         return fAttributes[index].value;
     } // getValue(int):String
 
@@ -536,7 +551,11 @@ public class XMLAttributesImpl
      */
     public String getValue(String qname) {
         int index = getIndex(qname);
-        return index != -1 ? fAttributes[index].value : null;
+        if(index == -1 )
+            return null;
+        if(fAttributes[index].value == null)
+            fAttributes[index].value = fAttributes[index].xmlValue.toString();
+        return fAttributes[index].value;
     } // getValue(String):String
 
     //
@@ -603,8 +622,7 @@ public class XMLAttributesImpl
             if (attribute.name.localpart != null &&
                 attribute.name.localpart.equals(localPart) &&
                 ((uri==attribute.name.uri) ||
-                (uri!=null && attribute.name.uri!=null && attribute.name.uri.equals(uri))))
-            {
+            (uri!=null && attribute.name.uri!=null && attribute.name.uri.equals(uri)))) {
                 return i;
             }
         }
@@ -646,6 +664,13 @@ public class XMLAttributesImpl
         String rawname = fAttributes[index].name.rawname;
         return rawname != null ? rawname : "";
     } // getQName(int):String
+    
+    public QName getQualifiedName(int index){
+        if (index < 0 || index >= fLength) {
+            return null;
+        }
+        return fAttributes[index].name;
+    }
 
     /**
      * Look up an attribute's type by Namespace name.
@@ -1046,6 +1071,46 @@ public class XMLAttributesImpl
     public void setURI(int attrIndex, String uri) {
         fAttributes[attrIndex].name.uri = uri;
     } // getURI(int,QName)
+    
+    // Implementation methods
+    public void setSchemaId(int attrIndex, boolean schemaId) {
+        fAttributes[attrIndex].schemaId = schemaId;
+    }
+    
+    public boolean getSchemaId(int index) {
+        if (index < 0 || index >= fLength) {
+            return false;
+        }
+        return fAttributes[index].schemaId;
+    }
+    
+    public boolean getSchemaId(String qname) {
+        int index = getIndex(qname);
+        return index != -1 ? fAttributes[index].schemaId : false; 
+    } // getType(String):String
+    
+    public boolean getSchemaId(String uri, String localName) {
+        if (!fNamespaces) {
+            return false;
+        }
+        int index = getIndex(uri, localName);
+        return index != -1 ? fAttributes[index].schemaId : false;
+    } // getType(String,String):String
+    
+    //XMLBufferListener methods
+    /**
+     * This method will be invoked by XMLEntityReader before ScannedEntities buffer
+     * is reloaded.
+     */
+    public void refresh() {
+        if(fLength > 0){
+            for(int i = 0 ; i < fLength ; i++){
+                getValue(i);
+            }
+        }
+    }  
+    public void refresh(int pos) {
+	}
 
     //
     // Classes
@@ -1073,11 +1138,17 @@ public class XMLAttributesImpl
         /** Value. */
         public String value;
 
+        /** This will point to the ScannedEntities buffer.*/
+        public XMLString xmlValue;
+        
         /** Non-normalized value. */
         public String nonNormalizedValue;
 
         /** Specified. */
         public boolean specified;
+        
+        /** Schema ID type. */
+        public boolean schemaId;
         
         /** 
          * Augmentations information for this attribute.

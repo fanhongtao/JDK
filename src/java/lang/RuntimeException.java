@@ -1,7 +1,7 @@
 /*
- * @(#)RuntimeException.java	1.13 03/12/19
+ * @(#)RuntimeException.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package java.lang;
  *
  *
  * @author  Frank Yellin
- * @version 1.13, 12/19/03
+ * @version 1.14, 11/17/05
  * @since   JDK1.0
  */
 public class RuntimeException extends Exception {

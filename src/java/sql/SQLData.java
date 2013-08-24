@@ -1,7 +1,7 @@
 /*
- * @(#)SQLData.java	1.20 03/12/19
+ * @(#)SQLData.java	1.23 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,9 +52,11 @@ public interface SQLData {
   * UDT instance that is being mapped to this instance of 
   * <code>SQLData</code>.
   *
-  * @return the type name that was passed to the method <code>readSql</code>
+  * @return the type name that was passed to the method <code>readSQL</code>
   *            when this object was constructed and populated
   * @exception SQLException if there is a database access error
+  * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+  * this method
   * @since 1.2
   */
   String getSQLTypeName() throws SQLException;
@@ -85,7 +87,10 @@ public interface SQLData {
   * the value that is being custom mapped
   * @param typeName the SQL type name of the value on the data stream
   * @exception SQLException if there is a database access error
+  * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+  * this method
   * @see SQLInput
+  * @since 1.2
   */
   void readSQL (SQLInput stream, String typeName) throws SQLException;
 
@@ -105,6 +110,8 @@ public interface SQLData {
   * @param stream the <code>SQLOutput</code> object to which to write the data for
   * the value that was custom mapped
   * @exception SQLException if there is a database access error
+  * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+  * this method
   * @see SQLOutput
   * @since 1.2
   */

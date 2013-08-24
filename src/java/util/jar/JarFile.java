@@ -1,7 +1,7 @@
 /*
- * @(#)JarFile.java	1.63 05/12/09
+ * @(#)JarFile.java	1.67 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import sun.misc.SharedSecrets;
  * thrown.
  *
  * @author  David Connelly
- * @version 1.63, 12/09/05
+ * @version 1.67, 04/07/06
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -127,6 +127,7 @@ class JarFile extends ZipFile {
      *         if the <tt>mode</tt> argument is invalid
      * @throws SecurityException if access to the file is denied
      *         by the SecurityManager
+     * @since 1.3
      */
     public JarFile(File file, boolean verify, int mode) throws IOException {
 	super(file, mode);
@@ -147,22 +148,23 @@ class JarFile extends ZipFile {
 
     private Manifest getManifestFromReference() throws IOException {
 	Manifest man = manRef != null ? manRef.get() : null;
-	  
+
 	if (man == null) {
+	  
 	    JarEntry manEntry = getManEntry();
 	    
 	    // If found then load the manifest
 	    if (manEntry != null) {
 		if (verify) {
 		    byte[] b = getBytes(manEntry);
- 		    man = new Manifest(new ByteArrayInputStream(b));
+		    man = new Manifest(new ByteArrayInputStream(b));
 		    if (!jvInitialized) {
 		        jv = new JarVerifier(b);
 		    }
 		} else {
 		    man = new Manifest(super.getInputStream(manEntry));
 		}
-		manRef = new SoftReference(man);
+	        manRef = new SoftReference(man);
 	    }
 	}
 	return man;
@@ -236,19 +238,16 @@ class JarFile extends ZipFile {
 		return null;
 	    }
 	}
-	public java.security.cert.Certificate[] getCertificates() {
+	public Certificate[] getCertificates() {
             try {
                 maybeInstantiateVerifier();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 	    if (certs == null && jv != null) {
-		Certificate[] cs = jv.getCerts(getName());
-		if (cs != null) {
-		    certs = (Certificate[])cs.clone();
-		}
+		certs = jv.getCerts(getName());
 	    }
-	    return certs;
+	    return certs == null ? null : (Certificate[]) certs.clone();
 	}
 	public CodeSigner[] getCodeSigners() {
 	    try {
@@ -257,12 +256,9 @@ class JarFile extends ZipFile {
 		throw new RuntimeException(e);
 	    }
 	    if (signers == null && jv != null) {
-		CodeSigner[] csg = jv.getCodeSigners(getName());
-		if (csg != null) {
-		    signers = (CodeSigner[])csg.clone();
-		}
+		signers = jv.getCodeSigners(getName());
 	    }
-	    return signers;
+	    return signers == null ? null : (CodeSigner[]) signers.clone();
 	}
     }
 	    
@@ -491,6 +487,7 @@ class JarFile extends ZipFile {
     }
 
     private static String javaHome;
+    private static String[] jarNames;
     private boolean isKnownToNotHaveClassPathAttribute() {
         // Optimize away even scanning of manifest for jar files we
         // deliver which don't have a class-path attribute. If one of
@@ -500,19 +497,31 @@ class JarFile extends ZipFile {
             javaHome = (String) AccessController.doPrivileged(
                 new GetPropertyAction("java.home"));
         }
+        if (jarNames == null) {
+            String[] names = new String[10];
+            String fileSep = File.separator;
+            int i = 0;
+            names[i++] = fileSep + "rt.jar";
+            names[i++] = fileSep + "sunrsasign.jar";
+            names[i++] = fileSep + "jsse.jar";
+            names[i++] = fileSep + "jce.jar";
+            names[i++] = fileSep + "charsets.jar";
+            names[i++] = fileSep + "dnsns.jar";
+            names[i++] = fileSep + "ldapsec.jar";
+            names[i++] = fileSep + "localedata.jar";
+            names[i++] = fileSep + "sunjce_provider.jar";
+            names[i++] = fileSep + "sunpkcs11.jar";
+            jarNames = names;
+        }
+
         String name = getName();
         String localJavaHome = javaHome;
         if (name.startsWith(localJavaHome)) {
-            if (name.endsWith("rt.jar") ||
-                name.endsWith("sunrsasign.jar") ||
-                name.endsWith("jsse.jar") ||
-                name.endsWith("jce.jar") ||
-                name.endsWith("charsets.jar") ||
-                name.endsWith("dnsns.jar") ||
-                name.endsWith("ldapsec.jar") ||
-                name.endsWith("localedata.jar") ||
-                name.endsWith("sunjce_provider.jar")) {
-                return true;
+            String[] names = jarNames;
+            for (int i = 0; i < names.length; i++) {
+                if (name.endsWith(names[i])) {
+                    return true;
+                }
             }
         }
         return false;

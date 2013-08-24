@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Constants.java,v 1.8 2004/02/16 22:55:54 minchau Exp $
+ * $Id: Constants.java,v 1.2.4.1 2005/09/06 11:01:29 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;

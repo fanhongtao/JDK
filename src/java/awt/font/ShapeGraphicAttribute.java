@@ -1,7 +1,7 @@
 /*
- * @(#)ShapeGraphicAttribute.java	1.15 03/12/19
+ * @(#)ShapeGraphicAttribute.java	1.18 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,6 +26,8 @@ import java.awt.Shape;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -113,12 +115,7 @@ public final class ShapeGraphicAttribute extends GraphicAttribute {
     }
 
     /**
-     * Draws the graphic at the given location.  The <code>Shape</code>
-     * is drawn with its origin at (x,&nbsp;y).
-     * @param graphics the {@link Graphics2D} into which to draw the
-     * graphic
-     * @param x,&nbsp;y the user space coordinates where the graphic is
-     * drawn
+     * {@inheritDoc}
      */
     public void draw(Graphics2D graphics, float x, float y) {
 
@@ -159,6 +156,22 @@ public final class ShapeGraphicAttribute extends GraphicAttribute {
         }
 
         return bounds;
+    }
+
+    /**
+     * Return a {@link java.awt.Shape} that represents the region that
+     * this <code>ShapeGraphicAttribute</code> renders.  This is used when a
+     * {@link TextLayout} is requested to return the outline of the text.
+     * The (untransformed) shape must not extend outside the rectangular
+     * bounds returned by <code>getBounds</code>.
+     * @param tx an optional {@link AffineTransform} to apply to the
+     *   this <code>ShapeGraphicAttribute</code>. This can be null.
+     * @return the <code>Shape</code> representing this graphic attribute,
+     *   suitable for stroking or filling.
+     * @since 1.6
+     */
+    public Shape getOutline(AffineTransform tx) {
+        return tx == null ? fShape : tx.createTransformedShape(fShape);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)TextureAnim.java	1.19 04/07/26
+ * @(#)TextureAnim.java	1.22 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)TextureAnim.java	1.15 03/01/23
+ * @(#)TextureAnim.java	1.22 06/08/29
  */
 
 package java2d.demos.Paint;
     
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -81,13 +82,13 @@ public class TextureAnim extends AnimatingControlsSurface {
 
         textureImg = makeImage(32, 0);
         tilesize = textureImg.getWidth();
-        w = new AnimVal(0, 200, 3, 10, tilesize);
-        h = new AnimVal(0, 200, 3, 10, tilesize);
-        x = new AnimVal(0, 200, 3, 10, 0);
-        y = new AnimVal(0, 200, 3, 10, 0);
+        w   = new AnimVal(   0, 200, 3, 10, tilesize);
+        h   = new AnimVal(   0, 200, 3, 10, tilesize);
+        x   = new AnimVal(   0, 200, 3, 10, 0);
+        y   = new AnimVal(   0, 200, 3, 10, 0);
         rot = new AnimVal(-360, 360, 5, 15, 0);
-        shx = new AnimVal(-50, 50, 3, 10, 0);
-        shy = new AnimVal(-50, 50, 3, 10, 0);
+        shx = new AnimVal( -50,  50, 3, 10, 0);
+        shy = new AnimVal( -50,  50, 3, 10, 0);
         tilerect = new Rectangle(x.getInt(), y.getInt(),
                                  w.getInt(), h.getInt());
         texture = new TexturePaint(textureImg, tilerect);
@@ -109,13 +110,13 @@ public class TextureAnim extends AnimatingControlsSurface {
     private BufferedImage makeRGBImage(int size) {
         BufferedImage bi = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
         Graphics2D big = bi.createGraphics();
-        big.setColor(Color.white);
+        big.setColor(WHITE);
         big.fillRect(0, 0, size, size);
         for (int j = 0; j < size; j++) {
-            float red = j / (float) size;
+            float RED = j / (float) size;
             for (int i = 0; i < size; i++) {
-                float green = i / (float) size;
-                big.setColor(new Color(1.0f - red, 1.0f - green, 0.0f, 1.0f));
+                float GREEN = i / (float) size;
+                big.setColor(new Color(1.0f - RED, 1.0f - GREEN, 0.0f, 1.0f));
                 big.drawLine(i, j, i, j);
             }
         }
@@ -134,13 +135,13 @@ public class TextureAnim extends AnimatingControlsSurface {
     private BufferedImage makePNGImage(int d) {
         BufferedImage bi = new BufferedImage(d, d, BufferedImage.TYPE_INT_RGB);
         Graphics2D big = bi.createGraphics();
-        big.drawImage(img[1], 0, 0, d, d, Color.lightGray, null);
+        big.drawImage(img[1], 0, 0, d, d, LIGHT_GRAY, null);
         return bi;
     }
 
 
     public void reset(int width, int height) {
-        x.newlimits(-width/4, width/4 - w.getInt());
+        x.newlimits( -width/4,  width/4 - w.getInt());
         y.newlimits(-height/4, height/4 - h.getInt());
     }
 
@@ -152,7 +153,7 @@ public class TextureAnim extends AnimatingControlsSurface {
         if (bouncesize) {
             w.anim();
             h.anim();
-            x.newlimits(-width/4, width/4 - w.getInt());
+            x.newlimits( -width/4,  width/4 - w.getInt());
             y.newlimits(-height/4, height/4 - h.getInt());
         } else {
             if (w.getInt() != tilesize) {
@@ -169,8 +170,10 @@ public class TextureAnim extends AnimatingControlsSurface {
             y.anim();
         }
         if (newtexture ||
-            x.getInt() != tilerect.x || y.getInt() != tilerect.y ||
-            w.getInt() != tilerect.width || h.getInt() != tilerect.height)
+            x.getInt() != tilerect.x ||
+            y.getInt() != tilerect.y ||
+            w.getInt() != tilerect.width ||
+            h.getInt() != tilerect.height)
         {
             newtexture = false;
             int X = x.getInt();
@@ -207,7 +210,7 @@ public class TextureAnim extends AnimatingControlsSurface {
         g2.setPaint(texture);
         g2.fillRect(-1000, -1000, 2000, 2000);
         if (showanchor) {
-            g2.setColor(Color.black);
+            g2.setColor(BLACK);
             g2.setColor(colorblend);
             g2.fill(tilerect);
         }
@@ -229,11 +232,11 @@ public class TextureAnim extends AnimatingControlsSurface {
 
         public AnimVal(int lowval, int highval,
                        int lowrate, int highrate) {
-            this.lowval = lowval;
-            this.highval = highval;
-            this.lowrate = lowrate;
+            this.lowval  =   lowval;
+            this.highval =  highval;
+            this.lowrate =   lowrate;
             this.highrate = highrate;
-            this.curval = randval(lowval, highval);
+            this.curval  = randval(lowval,  highval);
             this.currate = randval(lowrate, highrate);
         }
 
@@ -306,15 +309,15 @@ public class TextureAnim extends AnimatingControlsSurface {
             menuitems = new JMenuItem[3];
             add(toolbar = new JToolBar());
             toolbar.setFloatable(false);
-            addTool("BO", "bounce", true);
-            addTool("SA", "show anchor", true);
-            addTool("RS", "resize", false);
-            addTool("RO", "rotate", false);
-            addTool("SX", "shear x", false);
-            addTool("SY", "shear y", false);
+            addTool("BO", "bounce",      true );
+            addTool("SA", "show anchor", true );
+            addTool("RS", "resize",      false);
+            addTool("RO", "rotate",      false);
+            addTool("SX", "shear x",     false);
+            addTool("SY", "shear y",     false);
             add(combo = new JComboBox());
             combo.addActionListener(this);
-            combo.addItem("8");
+            combo.addItem( "8");
             combo.addItem("16");
             combo.addItem("32");
             combo.addItem("64");
@@ -416,10 +419,10 @@ public class TextureAnim extends AnimatingControlsSurface {
                 Rectangle r = new Rectangle(x, y, iconSize, iconSize);
                 g2.setPaint(new TexturePaint(bi, r));
 	        g2.fillRect(x, y, iconSize, iconSize);
-	        g2.setColor(Color.gray);
+	        g2.setColor(GRAY);
 	        g2.draw3DRect(x, y, iconSize-1, iconSize-1, true);
             }
-            public int getIconWidth() { return iconSize; }
+            public int getIconWidth()  { return iconSize; }
             public int getIconHeight() { return iconSize; }
         } // End TexturedIcon class
     } // End DemoControls class

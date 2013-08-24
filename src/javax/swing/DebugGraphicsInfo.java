@@ -1,7 +1,7 @@
 /*
- * @(#)DebugGraphicsInfo.java	1.13 03/12/19
+ * @(#)DebugGraphicsInfo.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.util.*;
 /** Class used by DebugGraphics for maintaining information about how
   * to render graphics calls.
   *
-  * @version 1.13 12/19/03
+  * @version 1.14 11/17/05
   * @author Dave Karlton
   */
 class DebugGraphicsInfo {

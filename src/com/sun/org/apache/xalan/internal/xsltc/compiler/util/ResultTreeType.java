@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ResultTreeType.java,v 1.21 2004/02/16 22:26:44 minchau Exp $
+ * $Id: ResultTreeType.java,v 1.2.4.1 2005/09/05 11:30:01 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -392,7 +392,7 @@ public final class ResultTreeType extends Type {
      *
      * @param classGen A BCEL class generator
      * @param methodGen A BCEL method generator
-     * @param type An reference to the Class to translate to
+     * @param clazz An reference to the Class to translate to
      * @see com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type#translateTo
      */
     public void translateTo(ClassGenerator classGen, MethodGenerator methodGen, 

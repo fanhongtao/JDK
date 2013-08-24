@@ -1,7 +1,7 @@
 /*
- * @(#)Insets.java	1.30 03/12/19
+ * @(#)Insets.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.awt;
  * at each of its edges. The space can be a border, a blank space, or 
  * a title. 
  *
- * @version 	1.30, 12/19/03
+ * @version 	1.31, 11/17/05
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see         java.awt.LayoutManager

@@ -1,5 +1,5 @@
 /*
- * @(#)InlineView.java	1.26 06/06/30
+ * @(#)InlineView.java	1.27 06/05/12
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ import javax.swing.text.*;
  * based upon css attributes.
  *
  * @author  Timothy Prinzing
- * @version 1.26 06/30/06
+ * @version 1.27 05/12/06
  */
 public class InlineView extends LabelView {
 
@@ -183,7 +183,7 @@ public class InlineView extends LabelView {
         float rv = 0f;
         Document doc = getDocument();
         //AbstractDocument.MultiByteProperty
-       final Object MultiByteProperty = "multiByte";
+        final Object MultiByteProperty = "multiByte";
         if (doc != null && 
               Boolean.TRUE.equals(doc.getProperty(MultiByteProperty))) {
             rv = calculateLongestWordSpanUseBreakIterator();
@@ -215,73 +215,73 @@ public class InlineView extends LabelView {
                 for (int end = line.next();
                      end != BreakIterator.DONE;
                      start = end, end = line.next()) {
-                     if (end > start) {
+                    if (end > start) {
                         span = Math.max(span,
-                           metrics.charsWidth(segment.array, start,
+                            metrics.charsWidth(segment.array, start,
                                                end - start)); 
                     }
                 }
             } catch (BadLocationException ble) {
-              // If the text can't be retrieved, it can't influence the size.
+                // If the text can't be retrieved, it can't influence the size.
             }
         }
         return span;
     }
 
-   float calculateLongestWordSpanUseWhitespace() {
-       float span = 0;
-       Document doc = getDocument();
-       int p0 = getStartOffset();
-       int p1 = getEndOffset();
-       if (p1 > p0) {
-           try {
-               Segment segment = new Segment();
-               doc.getText(p0, p1 - p0, segment);
-               final int CONTENT = 0;
-               final int SPACES = 1;
-               int state = CONTENT;
-               int start = segment.offset;
-               int end = start;
-               FontMetrics metrics = getFontMetrics();
-               final int lastIndex = segment.offset + segment.count - 1;
-               for (int i = segment.offset; i <= lastIndex; i++) {
-                   boolean updateSpan = false;
-                   if (Character.isWhitespace(segment.array[i])) {
-                       if (state == CONTENT) {
-                           //we got a word
-                           updateSpan = true;
-                           state = SPACES;
-                       }
-                   } else {
-                       if (state == SPACES) {
-                           //first non space
-                           start = i;
-                           end = start;
-                           state = CONTENT;
-                       } else {
-                           end = i;
-                       }
-                      //handle last word
-                       if (i == lastIndex) {
-                           updateSpan = true;
-                       }
-                   }
-                   if (updateSpan) {
-                       if (end > start) {
-                           span = Math.max(span,
-                               metrics.charsWidth(segment.array, start, 
-                                                  end - start + 1)); 
-                       }
-                   }
-
-               }
-           } catch (BadLocationException ble) {
-               // If the text can't be retrieved, it can't influence the size.
-           }
-       }
-       return span;
-  }
     
+    float calculateLongestWordSpanUseWhitespace() {
+        float span = 0;
+        Document doc = getDocument();
+        int p0 = getStartOffset();
+        int p1 = getEndOffset();
+        if (p1 > p0) {
+            try {
+                Segment segment = new Segment();
+                doc.getText(p0, p1 - p0, segment);
+                final int CONTENT = 0;
+                final int SPACES = 1;
+                int state = CONTENT;
+                int start = segment.offset;
+                int end = start;
+                FontMetrics metrics = getFontMetrics();
+                final int lastIndex = segment.offset + segment.count - 1;
+                for (int i = segment.offset; i <= lastIndex; i++) {
+                    boolean updateSpan = false;
+                    if (Character.isWhitespace(segment.array[i])) {
+                        if (state == CONTENT) {
+                            //we got a word
+                            updateSpan = true;
+                            state = SPACES;
+                        }
+                    } else {
+                        if (state == SPACES) {
+                            //first non space
+                            start = i;
+                            end = start;
+                            state = CONTENT;
+                        } else {
+                            end = i;
+                        }
+                        //handle last word
+                        if (i == lastIndex) {
+                            updateSpan = true;
+                        }
+                    }
+                    if (updateSpan) {
+                        if (end > start) {
+                            span = Math.max(span,
+                                metrics.charsWidth(segment.array, start, 
+                                                   end - start + 1)); 
+                        }
+                    }
+
+                }
+            } catch (BadLocationException ble) {
+                // If the text can't be retrieved, it can't influence the size.
+            }
+        }
+        return span;
+    }
     /**
      * Set the cached properties from the attributes.
      */

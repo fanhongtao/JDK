@@ -1,7 +1,7 @@
 /*
- * @(#)GlobalControls.java	1.30 04/07/26
+ * @(#)GlobalControls.java	1.31 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)GlobalControls.java	1.30 04/07/26
+ * @(#)GlobalControls.java	1.31 05/11/17
  */
 
 

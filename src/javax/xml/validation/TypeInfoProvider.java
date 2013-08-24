@@ -1,10 +1,28 @@
-// $Id: TypeInfoProvider.java,v 1.11 2004/02/06 01:16:10 kk122374 Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)TypeInfoProvider.java	1.5 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)TypeInfoProvider.java	1.14 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.validation;
@@ -26,7 +44,7 @@ import org.w3c.dom.TypeInfo;
  * {@link ValidatorHandler#getTypeInfoProvider()} method.
  * 
  * @author  <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.11 $, $Date: 2004/02/06 01:16:10 $
+ * @version $Revision: 1.3 $, $Date: 2005/10/12 17:14:21 $
  * @see org.w3c.dom.TypeInfo 
  * @since 1.5
  */
@@ -42,12 +60,22 @@ public abstract class TypeInfoProvider {
     }
     
     /**
-     * <p>Returns the immutable {@link TypeInfo} object for the current element.</p>
+     * <p>Returns the immutable {@link TypeInfo} object for the current
+     * element.</p>
      * 
-     * <p>
-     * The method may only be called by the startElement event of
-     * the {@link org.xml.sax.ContentHandler} that the application sets to the
-     * {@link ValidatorHandler}.</p>
+     * <p>The method may only be called by the startElement event
+     * or the endElement event
+     * of the {@link org.xml.sax.ContentHandler} that the application sets to
+     * the {@link ValidatorHandler}.</p>
+     *
+     * <p>When W3C XML Schema validation is being performed, in the
+     * case where an element has a union type, the {@link TypeInfo}
+     * returned by a call to <code>getElementTypeInfo()</code> from the
+     * startElement
+     * event will be the union type. The <code>TypeInfo</code>
+     * returned by a call
+     * from the endElement event will be the actual member type used
+     * to validate the element.</p>
      * 
      * @throws IllegalStateException
      *      If this method is called from other {@link org.xml.sax.ContentHandler}
@@ -74,12 +102,12 @@ public abstract class TypeInfoProvider {
      * <p>
      * The method may only be called by the startElement event of
      * the {@link org.xml.sax.ContentHandler} that the application sets to the
-     * {@link ValidatorHandler}.
+     * {@link ValidatorHandler}.</p>
      * 
      * @param index
      *      The index of the attribute. The same index for
      *      the {@link org.xml.sax.Attributes} object passed to the
-     *      <tt>startElement</tt> callback.
+     *      <code>startElement</code> callback.
      * 
      * @throws IndexOutOfBoundsException
      *      If the index is invalid.
@@ -100,7 +128,7 @@ public abstract class TypeInfoProvider {
     public abstract TypeInfo getAttributeTypeInfo(int index);
     
     /**
-     * Returns <tt>true</tt> if the specified attribute is determined
+     * Returns <code>true</code> if the specified attribute is determined
      * to be ID.
      * 
      * <p>
@@ -121,7 +149,7 @@ public abstract class TypeInfoProvider {
      * @param index
      *      The index of the attribute. The same index for
      *      the {@link org.xml.sax.Attributes} object passed to the
-     *      <tt>startElement</tt> callback.
+     *      <code>startElement</code> callback.
      * 
      * @throws IndexOutOfBoundsException
      *      If the index is invalid.
@@ -135,7 +163,7 @@ public abstract class TypeInfoProvider {
     public abstract boolean isIdAttribute(int index);
     
     /**
-     * Returns <tt>false</tt> if the attribute was added by the validator.
+     * Returns <code>false</code> if the attribute was added by the validator.
      * 
      * <p>
      * This method provides information necessary for
@@ -155,7 +183,7 @@ public abstract class TypeInfoProvider {
      * @param index
      *      The index of the attribute. The same index for
      *      the {@link org.xml.sax.Attributes} object passed to the
-     *      <tt>startElement</tt> callback.
+     *      <code>startElement</code> callback.
      * 
      * @throws IndexOutOfBoundsException
      *      If the index is invalid.
@@ -164,8 +192,8 @@ public abstract class TypeInfoProvider {
      *      methods.
      * 
      * @return
-     *      <tt>true</tt> if the attribute was present before the validator
-     *      processes input. <tt>false</tt> if the attribute was added
+     *      <code>true</code> if the attribute was present before the validator
+     *      processes input. <code>false</code> if the attribute was added
      *      by the validator.
      */
     public abstract boolean isSpecified(int index);

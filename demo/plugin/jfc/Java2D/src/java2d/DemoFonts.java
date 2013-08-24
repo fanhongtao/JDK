@@ -1,7 +1,7 @@
 /*
- * @(#)DemoFonts.java	1.12 04/07/26
+ * @(#)DemoFonts.java	1.17 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,14 +35,15 @@
  */
 
 /*
- * @(#)DemoFonts.java	1.12 04/07/26
+ * @(#)DemoFonts.java	1.17 06/08/29
  */
 
 
 package java2d;
 
 import java.awt.Font;
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -53,14 +54,13 @@ import java.io.FileInputStream;
  */
 public class DemoFonts {
 
-    private String[] names =  { "A.ttf" };
-    private static Hashtable cache;
-
-
-    public DemoFonts() {
-        cache = new Hashtable(names.length);
-        for (int i = 0; i < names.length; i++) {
-            cache.put(names[i], getFont(names[i]));
+    // Prepare a static "cache" mapping font names to Font objects.
+    private static String[] names =  { "A.ttf" };
+    private static Map<String,Font> cache =
+               new ConcurrentHashMap<String,Font>(names.length);
+    static {
+        for (String name : names) {
+            cache.put(name, getFont(name));
         }
     }
 
@@ -68,7 +68,7 @@ public class DemoFonts {
     public static Font getFont(String name) {
         Font font = null;
         if (cache != null) {
-            if ((font = (Font) cache.get(name)) != null) {
+            if ((font = cache.get(name)) != null) {
                 return font;
             }
         }

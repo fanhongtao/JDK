@@ -103,10 +103,12 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDSource;
  *  <li>http://apache.org/xml/properties/internal/grammar-pool</li>
  *  <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
  * </ul>
+ * 
+ * @xerces.internal
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: XMLDTDProcessor.java,v 1.11 2003/11/10 00:59:46 mrglavas Exp $
+ * @version $Id: XMLDTDProcessor.java,v 1.1.2.1 2005/08/01 03:36:41 jeffsuttor Exp $
  */
 public class XMLDTDProcessor
         implements XMLComponent, XMLDTDFilter, XMLDTDContentModelFilter {

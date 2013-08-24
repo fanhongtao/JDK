@@ -1,7 +1,7 @@
 /*
- * @(#)SystemColor.java	1.24 03/12/19
+ * @(#)SystemColor.java	1.26 06/08/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -28,7 +28,7 @@ import java.awt.image.ColorModel;
  *
  * @see Toolkit#getDesktopProperty
  *
- * @version 	1.24, 12/19/03
+ * @version 	1.26, 08/06/06
  * @author 	Carl Quinn
  * @author      Amy Fowler
  */
@@ -36,182 +36,182 @@ public final class SystemColor extends Color implements java.io.Serializable {
 
    /**
      * The array index for the
-     * <a href="#desktop"><code>desktop</code></a> system color.
+     * {@link #desktop} system color.
      * @see SystemColor#desktop
      */
     public final static int DESKTOP = 0;
 
     /**
      * The array index for the
-     * <a href="#activeCaption"><code>activeCaption</code></a> system color.
+     * {@link #activeCaption} system color.
      * @see SystemColor#activeCaption
      */
     public final static int ACTIVE_CAPTION = 1;
 
     /**
      * The array index for the
-     * <a href="#activeCaptionText"><code>activeCaptionText</code></a> system color.
+     * {@link #activeCaptionText} system color.
      * @see SystemColor#activeCaptionText
      */
     public final static int ACTIVE_CAPTION_TEXT = 2;
 
     /**
      * The array index for the
-     * <a href="#activeCaptionBorder"><code>activeCaptionBorder</code></a> system color.
+     * {@link #activeCaptionBorder} system color.
      * @see SystemColor#activeCaptionBorder
      */
     public final static int ACTIVE_CAPTION_BORDER = 3;
 
     /**
      * The array index for the
-     * <a href="#inactiveCaption"><code>inactiveCaption</code></a> system color.
+     * {@link #inactiveCaption} system color.
      * @see SystemColor#inactiveCaption
      */
     public final static int INACTIVE_CAPTION = 4;
 
     /**
      * The array index for the
-     * <a href="#inactiveCaptionText"><code>inactiveCaptionText</code></a> system color.
+     * {@link #inactiveCaptionText} system color.
      * @see SystemColor#inactiveCaptionText
      */
     public final static int INACTIVE_CAPTION_TEXT = 5;
 
     /**
      * The array index for the
-     * <a href="#inactiveCaptionBorder"><code>inactiveCaptionBorder</code></a> system color.
+     * {@link #inactiveCaptionBorder} system color.
      * @see SystemColor#inactiveCaptionBorder
      */
     public final static int INACTIVE_CAPTION_BORDER = 6;
 
     /**
      * The array index for the
-     * <a href="#window"><code>window</code></a> system color.
+     * {@link #window} system color.
      * @see SystemColor#window
      */
     public final static int WINDOW = 7;
 
     /**
      * The array index for the
-     * <a href="#windowBorder"><code>windowBorder</code></a> system color.
+     * {@link #windowBorder} system color.
      * @see SystemColor#windowBorder
      */
     public final static int WINDOW_BORDER = 8;
 
     /**
      * The array index for the
-     * <a href="#windowText"><code>windowText</code></a> system color.
+     * {@link #windowText} system color.
      * @see SystemColor#windowText
      */
     public final static int WINDOW_TEXT = 9;
 
     /**
      * The array index for the
-     * <a href="#menu"><code>menu</code></a> system color.
+     * {@link #menu} system color.
      * @see SystemColor#menu
      */
     public final static int MENU = 10;
 
     /**
      * The array index for the
-     * <a href="#menuText"><code>menuText</code></a> system color.
+     * {@link #menuText} system color.
      * @see SystemColor#menuText
      */
     public final static int MENU_TEXT = 11;
 
     /**
      * The array index for the
-     * <a href="#text"><code>text</code></a> system color.
+     * {@link #text} system color.
      * @see SystemColor#text
      */
     public final static int TEXT = 12;
 
     /**
      * The array index for the
-     * <a href="#textText"><code>textText</code></a> system color.
+     * {@link #textText} system color.
      * @see SystemColor#textText
      */
     public final static int TEXT_TEXT = 13;
 
     /**
      * The array index for the
-     * <a href="#textHighlight"><code>textHighlight</code></a> system color.
+     * {@link #textHighlight} system color.
      * @see SystemColor#textHighlight
      */
     public final static int TEXT_HIGHLIGHT = 14;
 
     /**
      * The array index for the
-     * <a href="#textHighlightText"><code>textHighlightText</code></a> system color.
+     * {@link #textHighlightText} system color.
      * @see SystemColor#textHighlightText
      */
     public final static int TEXT_HIGHLIGHT_TEXT = 15;
 
     /**
      * The array index for the
-     * <a href="#textInactiveText"><code>textInactiveText</code></a> system color.
+     * {@link #textInactiveText} system color.
      * @see SystemColor#textInactiveText
      */
     public final static int TEXT_INACTIVE_TEXT = 16;
 
     /**
      * The array index for the
-     * <a href="#control"><code>control</code></a> system color.
+     * {@link #control} system color.
      * @see SystemColor#control
      */
     public final static int CONTROL = 17;
 
     /**
      * The array index for the
-     * <a href="#controlText"><code>controlText</code></a> system color.
+     * {@link #controlText} system color.
      * @see SystemColor#controlText
      */
     public final static int CONTROL_TEXT = 18;
 
     /**
      * The array index for the
-     * <a href="#controlHighlight"><code>controlHighlight</code></a> system color.
+     * {@link #controlHighlight} system color.
      * @see SystemColor#controlHighlight
      */
     public final static int CONTROL_HIGHLIGHT = 19;
 
     /**
      * The array index for the
-     * <a href="#controlLtHighlight"><code>controlLtHighlight</code></a> system color.
+     * {@link #controlLtHighlight} system color.
      * @see SystemColor#controlLtHighlight
      */
     public final static int CONTROL_LT_HIGHLIGHT = 20;
 
     /**
      * The array index for the
-     * <a href="#controlShadow"><code>controlShadow</code></a> system color.
+     * {@link #controlShadow} system color.
      * @see SystemColor#controlShadow
      */
     public final static int CONTROL_SHADOW = 21;
 
     /**
      * The array index for the
-     * <a href="#controlDkShadow"><code>controlDkShadow</code></a> system color.
+     * {@link #controlDkShadow} system color.
      * @see SystemColor#controlDkShadow
      */
     public final static int CONTROL_DK_SHADOW = 22;
 
     /**
      * The array index for the
-     * <a href="#scrollbar"><code>scrollbar</code></a> system color.
+     * {@link #scrollbar} system color.
      * @see SystemColor#scrollbar
      */
     public final static int SCROLLBAR = 23;
 
     /**
      * The array index for the
-     * <a href="#info"><code>info</code></a> system color.
+     * {@link #info} system color.
      * @see SystemColor#info
      */
     public final static int INFO = 24;
 
     /**
      * The array index for the
-     * <a href="#infoText"><code>infoText</code></a> system color.
+     * {@link #infoText} system color.
      * @see SystemColor#infoText
      */
     public final static int INFO_TEXT = 25;

@@ -1,7 +1,7 @@
 /*
- * @(#)ByteArrayInputStream.java	1.44 03/12/19
+ * @(#)ByteArrayInputStream.java	1.47 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.44, 12/19/03
+ * @version 1.47, 11/17/05
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */
@@ -146,17 +146,20 @@ class ByteArrayInputStream extends InputStream {
      * This <code>read</code> method cannot block. 
      *
      * @param   b     the buffer into which the data is read.
-     * @param   off   the start offset of the data.
+     * @param   off   the start offset in the destination array <code>b</code>
      * @param   len   the maximum number of bytes read.
      * @return  the total number of bytes read into the buffer, or
      *          <code>-1</code> if there is no more data because the end of
      *          the stream has been reached.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      */
     public synchronized int read(byte b[], int off, int len) {
 	if (b == null) {
 	    throw new NullPointerException();
-	} else if ((off < 0) || (off > b.length) || (len < 0) ||
-		   ((off + len) > b.length) || ((off + len) < 0)) {
+	} else if (off < 0 || len < 0 || len > b.length - off) {
 	    throw new IndexOutOfBoundsException();
 	}
 	if (pos >= count) {
@@ -197,14 +200,14 @@ class ByteArrayInputStream extends InputStream {
     }
 
     /**
-     * Returns the number of bytes that can be read from this input 
-     * stream without blocking. 
-     * The value returned is
-     * <code>count&nbsp;- pos</code>, 
+     * Returns the number of remaining bytes that can be read (or skipped over)
+     * from this input stream.
+     * <p>
+     * The value returned is <code>count&nbsp;- pos</code>, 
      * which is the number of bytes remaining to be read from the input buffer.
      *
-     * @return  the number of bytes that can be read from the input stream
-     *          without blocking.
+     * @return  the number of remaining bytes that can be read (or skipped
+     *          over) from this input stream without blocking.
      */
     public synchronized int available() {
 	return count - pos;

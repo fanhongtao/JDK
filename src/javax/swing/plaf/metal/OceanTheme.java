@@ -1,7 +1,7 @@
 /*
- * @(#)OceanTheme.java	1.16 05/01/04
+ * @(#)OceanTheme.java	1.21 06/07/12
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,19 +12,24 @@ import java.net.URL;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import sun.swing.PrintColorUIResource;
 
 /**
- * This class provides an updated look for applications using
- * <code>MetalLookAndFeel<code>. The designers of the Metal
- * Look and Feel strive to keep the default look up to date,
- * possibly through the use of new themes in the future.
- * Therefore, developers should only use this class directly
- * when they wish to customize the "Ocean" look, or force
- * it to be the current theme, regardless of future updates.
+ * The default theme for the {@code MetalLookAndFeel}.
+ * <p>
+ * The designers
+ * of the Metal Look and Feel strive to keep the default look up to
+ * date, possibly through the use of new themes in the future.
+ * Therefore, developers should only use this class directly when they
+ * wish to customize the "Ocean" look, or force it to be the current
+ * theme, regardless of future updates.
+
+ * <p>
+ * All colors returned by {@code OceanTheme} are completely
+ * opaque.
  *
- * @version 1.16 01/04/05
+ * @version 1.21 07/12/06
  * @since 1.5
  * @see MetalLookAndFeel#setCurrentTheme
  */
@@ -50,6 +55,9 @@ public class OceanTheme extends DefaultMetalTheme {
                               new ColorUIResource(0x999999);
     private static final ColorUIResource OCEAN_BLACK =
                               new PrintColorUIResource(0x333333, Color.BLACK);
+
+    private static final ColorUIResource OCEAN_DROP =
+                              new ColorUIResource(0xD2E9FF);
 
     // ComponentOrientation Icon
     // Delegates to different icons based on component orientation
@@ -91,7 +99,7 @@ public class OceanTheme extends DefaultMetalTheme {
     }
 
     /**
-     * Construct an instance of <code>OceanTheme</code>
+     * Creates an instance of <code>OceanTheme</code>
      */
     public OceanTheme() {
     }
@@ -100,7 +108,7 @@ public class OceanTheme extends DefaultMetalTheme {
      * Add this theme's custom entries to the defaults table.
      *
      * @param table the defaults table, non-null
-     * @throws NullPointerException if the parameter is null
+     * @throws NullPointerException if {@code table} is {@code null}
      */
     public void addCustomEntriesToTable(UIDefaults table) {
         Object focusBorder = new UIDefaults.ProxyLazyValue(
@@ -253,6 +261,7 @@ public class OceanTheme extends DefaultMetalTheme {
 
             "Table.focusCellHighlightBorder", focusBorder,
             "Table.gridColor", SECONDARY1,
+            "TableHeader.focusCellBackground", c8ddf2,
 
             "ToggleButton.gradient", buttonGradient,
 
@@ -273,7 +282,15 @@ public class OceanTheme extends DefaultMetalTheme {
                   getIconResource("icons/ocean/expanded.gif"),
             "Tree.leafIcon", fileIcon,
             "Tree.openIcon", directoryIcon,
-            "Tree.selectionBorderColor", getPrimary1()
+            "Tree.selectionBorderColor", getPrimary1(),
+            "Tree.dropLineColor", getPrimary1(),
+            "Table.dropLineColor", getPrimary1(),
+            "Table.dropLineShortColor", OCEAN_BLACK,
+            
+            "Table.dropCellBackground", OCEAN_DROP,
+            "Tree.dropCellBackground", OCEAN_DROP,
+            "List.dropCellBackground", OCEAN_DROP,
+            "List.dropLineColor", getPrimary1()
         };
         table.putDefaults(defaults);
     }
@@ -295,123 +312,118 @@ public class OceanTheme extends DefaultMetalTheme {
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Primary 1". The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the primary 1 color. This returns a color with an rgb hex value
+     * of {@code 0x6382BF}.
      *
-     * @return the "Primary 1" color.
+     * @return the primary 1 color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getPrimary1() {
         return PRIMARY1;
     } 
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Primary 2". The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the primary 2 color. This returns a color with an rgb hex value
+     * of {@code 0xA3B8CC}.
      *
-     * @return the "Primary 2" color.
+     * @return the primary 2 color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getPrimary2() {
         return PRIMARY2;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Primary 3". The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the primary 3 color. This returns a color with an rgb hex value
+     * of {@code 0xB8CFE5}.
      *
-     * @return the "Primary 3" color.
+     * @return the primary 3 color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getPrimary3() {
         return PRIMARY3;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Secondary 1". The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the secondary 1 color. This returns a color with an rgb hex
+     * value of {@code 0x7A8A99}.
      *
-     * @return the "Secondary 1" color.
+     * @return the secondary 1 color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getSecondary1() {
         return SECONDARY1;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Secondary 2". The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the secondary 2 color. This returns a color with an rgb hex
+     * value of {@code 0xB8CFE5}.
      *
-     * @return the "Secondary 2" color.
+     * @return the secondary 2 color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getSecondary2() {
         return SECONDARY2;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Secondary 3". The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the secondary 3 color. This returns a color with an rgb hex
+     * value of {@code 0xEEEEEE}.
      *
-     * @return the "Secondary 3" color.
+     * @return the secondary 3 color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getSecondary3() {
         return SECONDARY3;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * as "Black". The Look and Feel will use this color
-     * in painting as it sees fit. This color does not necessarily
-     * synch up with the typical concept of black, nor is
-     * it necessarily used for all black items.
+     * Returns the black color. This returns a color with an rgb hex
+     * value of {@code 0x333333}.
      *
-     * @return the "Black" color.
+     * @return the black color
+     * @see java.awt.Color#decode
      */
     protected ColorUIResource getBlack() {
         return OCEAN_BLACK;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use
-     * for the desktop background. The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the desktop color. This returns a color with an rgb hex
+     * value of {@code 0xFFFFFF}.
      *
-     * @return the "Desktop" color.
+     * @return the desktop color
+     * @see java.awt.Color#decode
      */
     public ColorUIResource getDesktopColor() {
         return MetalTheme.white;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use as the default
-     * color for inactive controls. The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the inactive control text color. This returns a color with an
+     * rgb hex value of {@code 0x999999}.
      *
-     * @return the "Inactive Control Text" color.
+     * @return the inactive control text color
      */
     public ColorUIResource getInactiveControlTextColor() {
         return INACTIVE_CONTROL_TEXT_COLOR;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use as the default
-     * color for controls. The Look and Feel will use this color
-     * in painting as it sees fit.
+     * Returns the control text color. This returns a color with an
+     * rgb hex value of {@code 0x333333}.
      *
-     * @return the "Control Text" color.
+     * @return the control text color
      */
     public ColorUIResource getControlTextColor() {
         return CONTROL_TEXT_COLOR;
     }
 
     /**
-     * Return the color that the Metal Look and Feel should use as the
-     * foreground color for disabled menu items. The Look and Feel will use
-     * this color in painting as it sees fit.
+     * Returns the menu disabled foreground color. This returns a color with an
+     * rgb hex value of {@code 0x999999}.
      *
-     * @return the "Menu Disabled Foreground" color.
+     * @return the menu disabled foreground color
      */
     public ColorUIResource getMenuDisabledForeground() {
         return MENU_DISABLED_FOREGROUND;

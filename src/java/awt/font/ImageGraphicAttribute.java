@@ -1,7 +1,7 @@
 /*
- * @(#)ImageGraphicAttribute.java	1.16 03/12/19
+ * @(#)ImageGraphicAttribute.java	1.18 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,10 @@ public final class ImageGraphicAttribute extends GraphicAttribute {
      * This object keeps a reference to <code>image</code>.
      * @param alignment one of the alignments from this 
      * <code>ImageGraphicAttribute</code>
-     * @param originX,&nbsp;originY the coordinates of the point within
+     * @param originX the X coordinate of the point within
+     * the <code>Image</code> that appears at the origin of the
+     * <code>ImageGraphicAttribute</code> in the text line.
+     * @param originY the Y coordinate of the point within
      * the <code>Image</code> that appears at the origin of the
      * <code>ImageGraphicAttribute</code> in the text line.
      */
@@ -136,11 +139,7 @@ public final class ImageGraphicAttribute extends GraphicAttribute {
     }
 
     /**
-     * Renders the graphic at the specified location.
-     * @param graphics the {@link Graphics2D} into which to render the
-     * graphic
-     * @param x,&nbsp;y the user-space coordinates where the graphic is 
-     * rendered
+     * {@inheritDoc}
      */
     public void draw(Graphics2D graphics, float x, float y) {
 

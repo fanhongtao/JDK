@@ -1,7 +1,7 @@
 /*
- * @(#)Field.java	1.42 04/05/11
+ * @(#)Field.java	1.46 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,8 @@ class Field extends AccessibleObject implements Member {
 
     // More complicated security check cache needed here than for
     // Class.newInstance() and Constructor.newInstance()
-    private volatile Class      securityCheckTargetClassCache;
+    private Class securityCheckCache;
+    private Class securityCheckTargetClassCache;
 
     // Generics infrastructure
 
@@ -201,7 +202,7 @@ class Field extends AccessibleObject implements Member {
      * <tt>Type</tt> object returned must accurately reflect the
      * actual type parameters used in the source code.
      * 
-     * <p>If an the  type of the underlying field is a type variable or a
+     * <p>If the type of the underlying field is a type variable or a
      * parameterized type, it is created. Otherwise, it is resolved.
      *
      * @return a <tt>Type</tt> object that represents the declared type for
@@ -949,12 +950,18 @@ class Field extends AccessibleObject implements Member {
                 Class targetClass = ((obj == null || !Modifier.isProtected(modifiers))
                                      ? clazz
                                      : obj.getClass());
-                if (securityCheckCache != caller ||
-                    targetClass != securityCheckTargetClassCache) {
-                    Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
-                    securityCheckCache = caller;
-                    securityCheckTargetClassCache = targetClass;
-                }
+
+		synchronized (this) {
+		    if ((securityCheckCache == caller)
+			    && (securityCheckTargetClassCache == targetClass)) {
+			return;
+		    }
+		}
+		Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
+		synchronized (this) {
+		    securityCheckCache = caller;
+		    securityCheckTargetClassCache = targetClass;
+		}
             }
         }
     }
@@ -982,6 +989,10 @@ class Field extends AccessibleObject implements Member {
 	return type.getName();
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
+     */
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
         if (annotationClass == null)
             throw new NullPointerException();
@@ -991,6 +1002,9 @@ class Field extends AccessibleObject implements Member {
 
     private static final Annotation[] EMPTY_ANNOTATION_ARRAY=new Annotation[0];
 
+    /**
+     * @since 1.5
+     */
     public Annotation[] getDeclaredAnnotations()  {
         return declaredAnnotations().values().toArray(EMPTY_ANNOTATION_ARRAY);
     }

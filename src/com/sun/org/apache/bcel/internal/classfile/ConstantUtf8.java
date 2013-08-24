@@ -62,7 +62,7 @@ import  java.io.*;
  * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class 
  * and represents a reference to a Utf8 encoded string.
  *
- * @version $Id: ConstantUtf8.java,v 1.1.1.1 2001/10/29 20:00:00 jvanzyl Exp $
+ * @version $Id: ConstantUtf8.java,v 1.1.2.1 2005/07/31 23:46:26 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */
@@ -80,7 +80,7 @@ public final class ConstantUtf8 extends Constant {
    * Initialize instance from file data.
    *
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   ConstantUtf8(DataInputStream file) throws IOException
   {    
@@ -95,6 +95,10 @@ public final class ConstantUtf8 extends Constant {
   public ConstantUtf8(String bytes)
   {
     super(Constants.CONSTANT_Utf8);
+
+    if(bytes == null)
+      throw new IllegalArgumentException("bytes must not be null!");
+
     this.bytes  = bytes;
   }    
 
@@ -113,7 +117,7 @@ public final class ConstantUtf8 extends Constant {
    * Dump String in Utf8 format to file stream.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

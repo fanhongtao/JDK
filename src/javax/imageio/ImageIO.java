@@ -1,7 +1,7 @@
 /*
- * @(#)ImageIO.java	1.85 04/05/05
+ * @(#)ImageIO.java	1.89 05/12/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,12 +18,14 @@ import java.net.URL;
 import java.security.AccessController;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
+import javax.imageio.spi.ImageReaderWriterSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.spi.ImageInputStreamSpi;
 import javax.imageio.spi.ImageOutputStreamSpi;
@@ -400,18 +402,50 @@ public final class ImageIO {
         return null;
     }
 
-    // Readers
+    private static enum SpiInfo {
+        FORMAT_NAMES {
+            @Override
+            String[] info(ImageReaderWriterSpi spi) {
+                return spi.getFormatNames();
+            }
+        },
+        MIME_TYPES {
+            @Override
+            String[] info(ImageReaderWriterSpi spi) {
+                return spi.getMIMETypes();
+            }
+        },
+        FILE_SUFFIXES {
+            @Override
+            String[] info(ImageReaderWriterSpi spi) {
+                return spi.getFileSuffixes();
+            }
+        };
+    
+        abstract String[] info(ImageReaderWriterSpi spi);
+    }
 
-    private static String[] toStringArray(Set s) {
-        String[] val = new String[s.size()];
-        Iterator iter = s.iterator();
-        int index = 0;
-        while (iter.hasNext()) {
-            val[index++] = (String)iter.next();
+    private static <S extends ImageReaderWriterSpi>
+        String[] getReaderWriterInfo(Class<S> spiClass, SpiInfo spiInfo)
+    {
+        // Ensure category is present
+        Iterator<S> iter;
+        try {
+            iter = theRegistry.getServiceProviders(spiClass, true);
+        } catch (IllegalArgumentException e) {
+            return new String[0];
         }
 
-        return val;
+        HashSet<String> s = new HashSet<String>();
+        while (iter.hasNext()) {
+            ImageReaderWriterSpi spi = iter.next();
+            Collections.addAll(s, spiInfo.info(spi));
+        }
+
+        return s.toArray(new String[s.size()]);
     }
+
+    // Readers
 
     /**
      * Returns an array of <code>String</code>s listing all of the
@@ -421,25 +455,9 @@ public final class ImageIO {
      * @return an array of <code>String</code>s.
      */
     public static String[] getReaderFormatNames() { 
-        Iterator iter;
-        // Ensure category is present
-        try {
-            iter = theRegistry.getServiceProviders(ImageReaderSpi.class, true);
-        } catch (IllegalArgumentException e) {
-            return new String[0];
-        }
-
-        Set s = new HashSet();
-        while (iter.hasNext()) {
-            ImageReaderSpi spi = (ImageReaderSpi)iter.next();
-            String[] names = spi.getFormatNames();
-            for (int i = 0; i < names.length; i++) {
-                s.add(names[i]);
-            }
-        }
-
-        return toStringArray(s);
-   }
+        return getReaderWriterInfo(ImageReaderSpi.class,
+                                   SpiInfo.FORMAT_NAMES);
+    }
 
     /**
      * Returns an array of <code>String</code>s listing all of the
@@ -449,24 +467,21 @@ public final class ImageIO {
      * @return an array of <code>String</code>s.
      */
     public static String[] getReaderMIMETypes() {
-        Iterator iter;
-        // Ensure category is present
-        try {
-            iter = theRegistry.getServiceProviders(ImageReaderSpi.class, true);
-        } catch (IllegalArgumentException e) {
-            return new String[0];
-        }
+        return getReaderWriterInfo(ImageReaderSpi.class,
+                                   SpiInfo.MIME_TYPES);
+    }
 
-        Set s = new HashSet();
-        while (iter.hasNext()) {
-            ImageReaderSpi spi = (ImageReaderSpi)iter.next();
-            String[] names = spi.getMIMETypes();
-            for (int i = 0; i < names.length; i++) {
-                s.add(names[i]);
-            }
-        }
-
-        return toStringArray(s);
+    /**
+     * Returns an array of <code>String</code>s listing all of the
+     * file suffixes associated with the formats understood
+     * by the current set of registered readers.
+     *
+     * @return an array of <code>String</code>s.
+     * @since 1.6
+     */
+    public static String[] getReaderFileSuffixes() {
+        return getReaderWriterInfo(ImageReaderSpi.class,
+                                   SpiInfo.FILE_SUFFIXES);
     }
 
     static class ImageReaderIterator implements Iterator<ImageReader> {
@@ -569,7 +584,7 @@ public final class ImageIO {
 
         public boolean filter(Object elt) {
             try {
-                return contains((String[])method.invoke(elt, null), name);
+                return contains((String[])method.invoke(elt), name);
             } catch (Exception e) {
                 return false;
             }
@@ -622,18 +637,18 @@ public final class ImageIO {
     static {
         try {
             readerFormatNamesMethod =
-                ImageReaderSpi.class.getMethod("getFormatNames", null);
+                ImageReaderSpi.class.getMethod("getFormatNames");
             readerFileSuffixesMethod =
-                ImageReaderSpi.class.getMethod("getFileSuffixes", null);
+                ImageReaderSpi.class.getMethod("getFileSuffixes");
             readerMIMETypesMethod =
-                ImageReaderSpi.class.getMethod("getMIMETypes", null);
+                ImageReaderSpi.class.getMethod("getMIMETypes");
             
             writerFormatNamesMethod =
-                ImageWriterSpi.class.getMethod("getFormatNames", null);
+                ImageWriterSpi.class.getMethod("getFormatNames");
             writerFileSuffixesMethod =
-                ImageWriterSpi.class.getMethod("getFileSuffixes", null);
+                ImageWriterSpi.class.getMethod("getFileSuffixes");
             writerMIMETypesMethod =
-                ImageWriterSpi.class.getMethod("getMIMETypes", null);
+                ImageWriterSpi.class.getMethod("getMIMETypes");
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -754,24 +769,8 @@ public final class ImageIO {
      * @return an array of <code>String</code>s.
      */
     public static String[] getWriterFormatNames() {
-        Iterator iter;
-        // Ensure category is present
-        try {
-            iter = theRegistry.getServiceProviders(ImageWriterSpi.class, true);
-        } catch (IllegalArgumentException e) {
-            return new String[0];
-        }
-
-        Set s = new HashSet();
-        while (iter.hasNext()) {
-            ImageWriterSpi spi = (ImageWriterSpi)iter.next();
-            String[] names = spi.getFormatNames();
-            for (int i = 0; i < names.length; i++) {
-                s.add(names[i]);
-            }
-        }
-
-        return toStringArray(s);
+        return getReaderWriterInfo(ImageWriterSpi.class,
+                                   SpiInfo.FORMAT_NAMES);
     }
 
     /**
@@ -782,24 +781,21 @@ public final class ImageIO {
      * @return an array of <code>String</code>s.
      */
     public static String[] getWriterMIMETypes() {
-        Iterator iter;
-        // Ensure category is present
-        try {
-            iter = theRegistry.getServiceProviders(ImageWriterSpi.class, true);
-        } catch (IllegalArgumentException e) {
-            return new String[0];
-        }
-        
-        Set s = new HashSet();
-        while (iter.hasNext()) {
-            ImageWriterSpi spi = (ImageWriterSpi)iter.next();
-            String[] names = spi.getMIMETypes();
-            for (int i = 0; i < names.length; i++) {
-                s.add(names[i]);
-            }
-        }
+        return getReaderWriterInfo(ImageWriterSpi.class,
+                                   SpiInfo.MIME_TYPES);
+    }
 
-        return toStringArray(s);
+    /**
+     * Returns an array of <code>String</code>s listing all of the
+     * file suffixes associated with the formats understood
+     * by the current set of registered writers.
+     *
+     * @return an array of <code>String</code>s.
+     * @since 1.6
+     */
+    public static String[] getWriterFileSuffixes() {
+        return getReaderWriterInfo(ImageWriterSpi.class,
+                                   SpiInfo.FILE_SUFFIXES);
     }
 
     static class ImageWriterIterator implements Iterator<ImageWriter> {
@@ -1257,7 +1253,7 @@ public final class ImageIO {
      * filename as a <code>String</code>; use this method instead after
      * creating a <code>File</code> from the filename.
      *
-     * <p> This methods does not attempt to locate
+     * <p> This method does not attempt to locate
      * <code>ImageReader</code>s that can read directly from a
      * <code>File</code>; that may be accomplished using
      * <code>IIORegistry</code> and <code>ImageReaderSpi</code>.
@@ -1283,7 +1279,11 @@ public final class ImageIO {
         if (stream == null) {
             throw new IIOException("Can't create an ImageInputStream!");
         }
-        return read(stream);
+        BufferedImage bi = read(stream);
+        if (bi == null) {
+            stream.close();
+        }
+        return bi;
     }
 
     /**
@@ -1299,10 +1299,14 @@ public final class ImageIO {
      * <code>getCacheDirectory</code> will be used to control caching in the
      * <code>ImageInputStream</code> that is created.
      *
-     * <p> This methods does not attempt to locate
+     * <p> This method does not attempt to locate
      * <code>ImageReader</code>s that can read directly from an
      * <code>InputStream</code>; that may be accomplished using
      * <code>IIORegistry</code> and <code>ImageReaderSpi</code>.
+     *
+     * <p> This method <em>does not</em> close the provided
+     * <code>InputStream</code> after the read operation has completed;
+     * it is the responsibility of the caller to close the stream, if desired.
      *
      * @param input an <code>InputStream</code> to read from.
      *
@@ -1319,7 +1323,11 @@ public final class ImageIO {
         }
 
         ImageInputStream stream = createImageInputStream(input);
-        return read(stream);
+        BufferedImage bi = read(stream);
+        if (bi == null) {
+            stream.close();
+        }
+        return bi;
     }
 
     /**
@@ -1335,7 +1343,7 @@ public final class ImageIO {
      * <code>getCacheDirectory</code> will be used to control caching in the
      * <code>ImageInputStream</code> that is created.
      *
-     * <p> This methods does not attempt to locate
+     * <p> This method does not attempt to locate
      * <code>ImageReader</code>s that can read directly from a
      * <code>URL</code>; that may be accomplished using
      * <code>IIORegistry</code> and <code>ImageReaderSpi</code>.
@@ -1361,8 +1369,15 @@ public final class ImageIO {
             throw new IIOException("Can't get input stream from URL!", e);
         }
         ImageInputStream stream = createImageInputStream(istream);
-        BufferedImage bi = read(stream);
-        istream.close();
+        BufferedImage bi;
+        try {
+            bi = read(stream);
+            if (bi == null) {
+                stream.close();
+            }
+        } finally {
+            istream.close();
+        }
         return bi;
     }
 
@@ -1373,6 +1388,11 @@ public final class ImageIO {
      * currently registered.  If no registered
      * <code>ImageReader</code> claims to be able to read the stream,
      * <code>null</code> is returned.
+     *
+     * <p> Unlike most other methods in this class, this method <em>does</em>
+     * close the provided <code>ImageInputStream</code> after the read
+     * operation has completed, unless <code>null</code> is returned,
+     * in which case this method <em>does not</em> close the stream.
      *
      * @param stream an <code>ImageInputStream</code> to read from.
      *
@@ -1397,9 +1417,13 @@ public final class ImageIO {
         ImageReader reader = (ImageReader)iter.next();
         ImageReadParam param = reader.getDefaultReadParam();
         reader.setInput(stream, true, true);
-        BufferedImage bi = reader.read(0, param);
-        stream.close();
-        reader.dispose();
+        BufferedImage bi;
+        try {
+            bi = reader.read(0, param);
+        } finally {
+            reader.dispose();
+            stream.close();
+        }
         return bi;
     }
 
@@ -1410,6 +1434,10 @@ public final class ImageIO {
      * <code>ImageOutputStream</code> starting at the current stream
      * pointer, overwriting existing stream data from that point
      * forward, if present.
+     *
+     * <p> This method <em>does not</em> close the provided
+     * <code>ImageOutputStream</code> after the write operation has completed;
+     * it is the responsibility of the caller to close the stream, if desired.
      *
      * @param im a <code>RenderedImage</code> to be written.
      * @param formatName a <code>String</code> containg the informal
@@ -1447,9 +1475,12 @@ public final class ImageIO {
         }
 
         writer.setOutput(output);
-        writer.write(im);
-        output.flush();
-        writer.dispose();
+        try {
+            writer.write(im);
+        } finally {
+            writer.dispose();
+            output.flush();
+        }
         
         return true;
     }
@@ -1485,14 +1516,22 @@ public final class ImageIO {
             throw new IIOException("Can't create output stream!", e);
         }
 
-        boolean val = write(im, formatName, stream);
-        stream.close();
+        boolean val;
+        try {
+            val = write(im, formatName, stream);
+        } finally {
+            stream.close();
+        }
         return val;
     }
 
     /**
      * Writes an image using an arbitrary <code>ImageWriter</code>
      * that supports the given format to an <code>OutputStream</code>.
+     *
+     * <p> This method <em>does not</em> close the provided
+     * <code>OutputStream</code> after the write operation has completed;
+     * it is the responsibility of the caller to close the stream, if desired.
      *
      * <p> The current cache settings from <code>getUseCache</code>and
      * <code>getCacheDirectory</code> will be used to control caching.
@@ -1521,8 +1560,12 @@ public final class ImageIO {
             throw new IIOException("Can't create output stream!", e);
         }
 
-        boolean val = write(im, formatName, stream);
-        stream.close();
+        boolean val;
+        try {
+            val = write(im, formatName, stream);
+        } finally {
+            stream.close();
+        }
         return val;
     }
 }

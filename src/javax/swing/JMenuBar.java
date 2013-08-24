@@ -1,7 +1,7 @@
 /*
- * @(#)JMenuBar.java	1.98 04/05/18
+ * @(#)JMenuBar.java	1.106 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,6 +38,11 @@ import javax.accessibility.*;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
  * a section in <em>The Java Tutorial.</em>
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -51,7 +56,7 @@ import javax.accessibility.*;
  *   attribute: isContainer true
  * description: A container for holding and displaying menus.
  *
- * @version 1.98 05/18/04
+ * @version 1.106 08/08/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -228,7 +233,10 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
      */
     @Deprecated
     public Component getComponentAtIndex(int i) {	
-	return getComponent(i);
+        if(i < 0 || i >= getComponentCount()) {
+            return null;
+        }
+        return getComponent(i);
     }
 
     /**
@@ -370,7 +378,7 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
     }
 
     /** 
-     * Implemented to be a <code>MenuElemen<code>t -- does nothing.
+     * Implemented to be a <code>MenuElement</code> -- does nothing.
      *
      * @see #getSubElements
      */
@@ -629,6 +637,7 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
 
     /**
      * Subclassed to check all the child menus.
+     * @since 1.3
      */
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
 					int condition, boolean pressed) {
@@ -653,6 +662,11 @@ public class JMenuBar extends JComponent implements Accessible,MenuElement
         }
 
         Component c = elem.getComponent();
+
+        if ( !(c.isVisible() || (c instanceof JPopupMenu)) || !c.isEnabled() ) {
+            return false;
+        }
+
         if (c != null && c instanceof JComponent &&
             ((JComponent)c).processKeyBinding(ks, e, condition, pressed)) {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SimpleResultTreeImpl.java,v 1.7 2004/02/16 22:54:59 minchau Exp $
+ * $Id: SimpleResultTreeImpl.java,v 1.2.4.1 2005/09/06 10:09:25 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.xsltc.dom;
 
@@ -24,6 +24,7 @@ import com.sun.org.apache.xalan.internal.xsltc.StripFilter;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 
 import com.sun.org.apache.xml.internal.dtm.DTM;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisTraverser;
 import com.sun.org.apache.xml.internal.dtm.DTMManager;

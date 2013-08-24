@@ -1,7 +1,7 @@
 /*
- * @(#)SecurityManager.java	1.136 04/06/28
+ * @(#)SecurityManager.java	1.139 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -166,7 +166,7 @@ import sun.security.util.SecurityConstants;
  * of system administrators who might need to perform multiple
  * tasks that require all (or numerous) permissions.
  * <p>
- * See <a href ="../../../guide/security/permissions.html">
+ * See <a href ="../../../technotes/guides/security/permissions.html">
  * Permissions in the JDK</a> for permission-related information.
  * This document includes, for example, a table listing the various SecurityManager
  * <code>check</code> methods and the permission(s) the default 
@@ -177,12 +177,12 @@ import sun.security.util.SecurityConstants;
  * <p>
  * For more information about <code>SecurityManager</code> changes made in 
  * the JDK and advice regarding porting of 1.1-style security managers,
- * see the <a href="../../../guide/security/index.html">security documentation</a>.
+ * see the <a href="../../../technotes/guides/security/index.html">security documentation</a>.
  *
  * @author  Arthur van Hoff
  * @author  Roland Schemers
  *
- * @version 1.136, 06/28/04
+ * @version 1.139, 04/21/06
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
@@ -726,7 +726,7 @@ class SecurityManager {
      * errors. 
      * <p>
      * This method calls <code>checkPermission</code> with the
-     * <code>RuntimePermission("exitVM")</code> permission.
+     * <code>RuntimePermission("exitVM."+status)</code> permission.
      * <p>
      * If you override this method, then you should make a call to 
      * <code>super.checkExit</code>
@@ -741,7 +741,7 @@ class SecurityManager {
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
     public void checkExit(int status) {
-	checkPermission(new RuntimePermission("exitVM"));
+	checkPermission(new RuntimePermission("exitVM."+status));
     }
 
     /**

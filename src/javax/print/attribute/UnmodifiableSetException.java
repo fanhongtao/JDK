@@ -1,7 +1,7 @@
 /*
- * @(#)UnmodifiableSetException.java	1.4 03/12/19
+ * @(#)UnmodifiableSetException.java	1.6 06/04/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,7 +9,7 @@ package javax.print.attribute;
 
 /**
  * Thrown to indicate that the requested operation cannot be performed
- * becasue the set is unmodifiable.
+ * because the set is unmodifiable.
  *
  * @author  Phil Race
  * @since   1.4

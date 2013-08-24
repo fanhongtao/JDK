@@ -1,7 +1,7 @@
 /*
- * @(#)PixelGrabber.java	1.25 04/07/16
+ * @(#)PixelGrabber.java	1.27 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,7 @@ import java.awt.Image;
  *
  * @see ColorModel#getRGBdefault
  *
- * @version 	1.25, 07/16/04
+ * @version 	1.27, 02/14/06
  * @author 	Jim Graham
  */
 public class PixelGrabber implements ImageConsumer {
@@ -438,7 +438,9 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
-     * @param srcX,&nbsp;srcY the coordinates of the upper-left corner
+     * @param srcX the X coordinate of the upper-left corner
+     *        of the area of pixels to be set
+     * @param srcY the Y coordinate of the upper-left corner
      *        of the area of pixels to be set
      * @param srcW the width of the area of pixels
      * @param srcH the height of the area of pixels
@@ -523,7 +525,9 @@ public class PixelGrabber implements ImageConsumer {
      * this class to retrieve pixels from an image should avoid calling
      * this method directly since that operation could result in problems
      * with retrieving the requested pixels.
-     * @param srcX,&nbsp;srcY the coordinates of the upper-left corner
+     * @param srcX the X coordinate of the upper-left corner
+     *        of the area of pixels to be set
+     * @param srcY the Y coordinate of the upper-left corner
      *        of the area of pixels to be set
      * @param srcW the width of the area of pixels
      * @param srcH the height of the area of pixels

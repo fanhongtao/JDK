@@ -1,7 +1,7 @@
 /*
- * @(#)MetalScrollPaneUI.java	1.20 04/09/08
+ * @(#)MetalScrollPaneUI.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import java.awt.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.20 09/08/04
+ * @version 1.21 11/17/05
  * @author Steve Wilson
  */
 public class MetalScrollPaneUI extends BasicScrollPaneUI

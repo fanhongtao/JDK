@@ -60,7 +60,7 @@ import com.sun.org.apache.bcel.internal.ExceptionConstants;
  * NEW - Create new object
  * <PRE>Stack: ... -&gt; ..., objectref</PRE>
  *
- * @version $Id: NEW.java,v 1.1.1.1 2001/10/29 20:00:24 jvanzyl Exp $
+ * @version $Id: NEW.java,v 1.1.2.1 2005/07/31 23:45:42 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class NEW extends CPInstruction

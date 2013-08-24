@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextServicesSupport.java	1.23 04/04/15
+ * @(#)BeanContextServicesSupport.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.Locale;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.23, 04/15/04
+ * @version 1.24, 11/17/05
  * @since 1.2
  */
 

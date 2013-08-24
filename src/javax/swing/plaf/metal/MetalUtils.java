@@ -1,7 +1,7 @@
 /*
- * @(#)MetalUtils.java	1.35 04/02/15
+ * @(#)MetalUtils.java	1.39 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -13,11 +13,13 @@ import java.awt.*;
 import java.awt.image.*;
 import java.lang.ref.*;
 import java.util.*;
+import sun.swing.CachedPainter;
+import sun.swing.ImageIconUIResource;
 
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.35 02/15/04
+ * @version 1.39 11/17/05
  * @author Steve Wilson
  */
 
@@ -231,7 +233,7 @@ class MetalUtils {
             super(count);
         }
 
-        public synchronized void paint(Component c, Graphics2D g,
+        public void paint(Component c, Graphics2D g,
                           java.util.List gradient, int x, int y, int w,
                           int h, boolean isVertical) {
             int imageWidth;
@@ -244,13 +246,15 @@ class MetalUtils {
                 imageWidth = w;
                 imageHeight = IMAGE_SIZE;
             }
-            this.w = w;
-            this.h = h;
-            paint(c, g, x, y, imageWidth, imageHeight,
-                  gradient, isVertical);
+            synchronized(c.getTreeLock()) {
+                this.w = w;
+                this.h = h;
+                paint(c, g, x, y, imageWidth, imageHeight,
+                      gradient, isVertical);
+            }
         }
 
-        protected void paintToImage(Component c, Graphics g,
+        protected void paintToImage(Component c, Image image, Graphics g,
                                     int w, int h, Object[] args) {
             Graphics2D g2 = (Graphics2D)g;
             java.util.List gradient = (java.util.List)args[0];
@@ -367,8 +371,7 @@ class MetalUtils {
     static Icon getOceanToolBarIcon(Image i) {
 	ImageProducer prod = new FilteredImageSource(i.getSource(),
                              new OceanToolBarImageFilter());
-	return new IconUIResource(new ImageIcon(
-                         Toolkit.getDefaultToolkit().createImage(prod)));
+	return new ImageIconUIResource(Toolkit.getDefaultToolkit().createImage(prod));
     }
 
     static Icon getOceanDisabledButtonIcon(Image image) {
@@ -381,8 +384,7 @@ class MetalUtils {
         }
 	ImageProducer prod = new FilteredImageSource(image.getSource(),
                       new OceanDisabledButtonImageFilter(min , max));
-	return new IconUIResource(new ImageIcon(
-                             Toolkit.getDefaultToolkit().createImage(prod)));
+	return new ImageIconUIResource(Toolkit.getDefaultToolkit().createImage(prod));
     }
 
 

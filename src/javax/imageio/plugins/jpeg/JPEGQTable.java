@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGQTable.java	1.12 03/12/19
+ * @(#)JPEGQTable.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -196,7 +196,7 @@ public class JPEGQTable {
         for (int i = 0; i< 8; i++) {
             sb.append('\t');
             for (int j = 0; j < 8; j++) {
-                sb.append(table[i]).append(" ");
+                sb.append(table[(i*8)+j]).append(" ");
             }
             sb.append('\n');
         }

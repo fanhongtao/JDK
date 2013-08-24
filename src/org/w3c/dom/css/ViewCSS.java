@@ -12,8 +12,8 @@
 
 package org.w3c.dom.css;
 
-import org.w3c.dom.views.AbstractView;
 import org.w3c.dom.Element;
+import org.w3c.dom.views.AbstractView;
 
 /**
  *  This interface represents a CSS view. The <code>getComputedStyle</code> 
@@ -30,10 +30,10 @@ import org.w3c.dom.Element;
  */
 public interface ViewCSS extends AbstractView {
     /**
-     *  This method is used to get the computed style as it is defined in . 
-     * @param elt The element whose style is to be computed. This parameter 
+     *  This method is used to get the computed style as it is defined in [<a href='http://www.w3.org/TR/1998/REC-CSS2-19980512'>CSS2</a>]. 
+     * @param elt  The element whose style is to be computed. This parameter 
      *   cannot be null. 
-     * @param pseudoElt The pseudo-element or <code>null</code> if none. 
+     * @param pseudoElt  The pseudo-element or <code>null</code> if none. 
      * @return  The computed style. The <code>CSSStyleDeclaration</code> is 
      *   read-only and contains only absolute values. 
      */

@@ -36,11 +36,11 @@ public interface EventTarget {
      * <code>EventListener</code> to be called twice and since they are 
      * discarded they do not need to be removed with the 
      * <code>removeEventListener</code> method. 
-     * @param typeThe event type for which the user is registering
-     * @param listenerThe <code>listener</code> parameter takes an interface 
+     * @param type The event type for which the user is registering
+     * @param listener The <code>listener</code> parameter takes an interface 
      *   implemented by the user which contains the methods to be called 
      *   when the event occurs.
-     * @param useCaptureIf true, <code>useCapture</code> indicates that the 
+     * @param useCapture If true, <code>useCapture</code> indicates that the 
      *   user wishes to initiate capture. After initiating capture, all 
      *   events of the specified type will be dispatched to the registered 
      *   <code>EventListener</code> before being dispatched to any 
@@ -61,11 +61,11 @@ public interface EventTarget {
      * <br>Calling <code>removeEventListener</code> with arguments which do 
      * not identify any currently registered <code>EventListener</code> on 
      * the <code>EventTarget</code> has no effect.
-     * @param typeSpecifies the event type of the <code>EventListener</code> 
+     * @param type Specifies the event type of the <code>EventListener</code> 
      *   being removed. 
-     * @param listenerThe <code>EventListener</code> parameter indicates the 
+     * @param listener The <code>EventListener</code> parameter indicates the 
      *   <code>EventListener </code> to be removed. 
-     * @param useCaptureSpecifies whether the <code>EventListener</code> 
+     * @param useCapture Specifies whether the <code>EventListener</code> 
      *   being removed was registered as a capturing listener or not. If a 
      *   listener was registered twice, one with capture and one without, 
      *   each must be removed separately. Removal of a capturing listener 
@@ -83,7 +83,7 @@ public interface EventTarget {
      * implementation. The target of the event is the 
      * <code> EventTarget</code> on which <code>dispatchEvent</code> is 
      * called. 
-     * @param evtSpecifies the event type, behavior, and contextual 
+     * @param evt Specifies the event type, behavior, and contextual 
      *   information to be used in processing the event.
      * @return The return value of <code>dispatchEvent</code> indicates 
      *   whether any of the listeners which handled the event called 

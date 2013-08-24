@@ -1,7 +1,7 @@
 /*
- * @(#)Menu.java	1.75 04/05/18
+ * @(#)Menu.java	1.78 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -31,7 +31,7 @@ import javax.accessibility.*;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.75, 05/18/04
+ * @version 1.78, 04/07/06
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
@@ -59,7 +59,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * This field indicates whether the menu has the
      * tear of property or not.  It will be set to
      * <code>true</code> if the menu has the tear off
-     * property and it will be set to <code>false></code>
+     * property and it will be set to <code>false</code>
      * if it does not.
      * A torn off menu can be deleted by a user when
      * it is no longer needed.
@@ -556,6 +556,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      *
      * @return an AccessibleAWTMenu that serves as the 
      *         AccessibleContext of this Menu
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -580,6 +581,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * This class implements accessibility support for the 
      * <code>Menu</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to menu user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTMenu extends AccessibleAWTMenuItem
     {

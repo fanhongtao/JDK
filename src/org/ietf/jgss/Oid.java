@@ -1,7 +1,7 @@
 /*
- * @(#)Oid.java	1.8 03/12/19
+ * @(#)Oid.java	1.10 06/06/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -28,7 +28,7 @@ import sun.security.util.ObjectIdentifier;
  * representing the standard name types defined in GSS-API.
  *
  * @author Mayank Upadhyay
- * @version 1.8, 12/19/03
+ * @version 1.10, 06/22/06
  * @since 1.4
  */
 public class Oid {
@@ -167,7 +167,7 @@ public class Oid {
 	    derEncoding = dout.toByteArray();
 	}
 
-        return derEncoding;
+        return (byte[])derEncoding.clone();
     }
     
     /** 

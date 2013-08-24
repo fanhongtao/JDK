@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanTrustPermission.java	1.15 03/12/19
+ * @(#)MBeanTrustPermission.java	1.17 06/04/21
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,10 +36,11 @@ public class MBeanTrustPermission extends BasicPermission {
 	<code>MBeanTrustPermission(name,null)</code>.</p>
 	@param name the name of the permission. It must be
 	"register" or "*" for this permission.
-	@exception NullPointerException if the name is null.
-	@exception IllegalArgumentException if the name is neither
-	"register" nor "*".
-    */
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is neither
+     * "register" nor "*".
+     */
     public MBeanTrustPermission(String name) {
         this(name, null);
     }
@@ -49,11 +50,12 @@ public class MBeanTrustPermission extends BasicPermission {
 	"register" or "*" for this permission.
 	@param actions the actions for the permission.  It must be
 	null or <code>""</code>.
-	@exception NullPointerException if the name is null.
-	@exception IllegalArgumentException if the name is neither
-	"register" nor "*"; or if <code>actions</code> is a non-null
-	non-empty string.
-    */
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is neither
+     * "register" nor "*"; or if <code>actions</code> is a non-null
+     * non-empty string.
+     */
     public MBeanTrustPermission(String name, String actions) {
         super(name, actions);
 	/* Check that actions is a null empty string */

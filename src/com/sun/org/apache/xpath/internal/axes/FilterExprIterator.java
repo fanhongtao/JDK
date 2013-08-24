@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FilterExprIterator.java,v 1.5 2004/02/17 04:32:08 minchau Exp $
+ * $Id: FilterExprIterator.java,v 1.2.4.2 2005/09/14 19:45:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -26,6 +26,7 @@ import com.sun.org.apache.xpath.internal.objects.XNodeSet;
 
 public class FilterExprIterator extends BasicTestIterator
 {
+    static final long serialVersionUID = 2552176105165737614L;
   /** The contained expression. Should be non-null.
    *  @serial   */
   private Expression m_expr;
@@ -37,11 +38,8 @@ public class FilterExprIterator extends BasicTestIterator
   private boolean m_canDetachNodeset = true;
 
   /**
-   * Create a ChildTestIterator object.
+   * Create a FilterExprIterator object.
    *
-   * @param traverser Traverser that tells how the KeyIterator is to be handled.
-   *
-   * @throws javax.xml.transform.TransformerException
    */
   public FilterExprIterator()
   {
@@ -49,11 +47,8 @@ public class FilterExprIterator extends BasicTestIterator
   }
   
   /**
-   * Create a ChildTestIterator object.
+   * Create a FilterExprIterator object.
    *
-   * @param traverser Traverser that tells how the KeyIterator is to be handled.
-   *
-   * @throws javax.xml.transform.TransformerException
    */
   public FilterExprIterator(Expression expr)
   {
@@ -65,7 +60,7 @@ public class FilterExprIterator extends BasicTestIterator
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)
@@ -190,8 +185,6 @@ public class FilterExprIterator extends BasicTestIterator
    * each member.  If the called visitor method returns 
    * false, the subtree should not be called.
    * 
-   * @param owner The owner of the visitor, where that path may be 
-   *              rewritten if needed.
    * @param visitor The visitor whose appropriate method will be called.
    */
   public void callPredicateVisitors(XPathVisitor visitor)

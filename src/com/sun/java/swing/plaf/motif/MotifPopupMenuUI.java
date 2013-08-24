@@ -1,13 +1,13 @@
 /*
- * @(#)MotifPopupMenuUI.java	1.25 03/12/19
+ * @(#)MotifPopupMenuUI.java	1.27 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -38,7 +38,7 @@ import javax.swing.plaf.basic.BasicPopupMenuUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.25 12/19/03
+ * @version 1.27 11/30/05
  * @author Georges Saab
  * @author Rich Schiavi
  */

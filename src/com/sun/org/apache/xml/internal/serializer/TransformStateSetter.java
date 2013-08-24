@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TransformStateSetter.java,v 1.2 2004/02/17 04:18:19 minchau Exp $
+ * $Id: TransformStateSetter.java,v 1.2.4.1 2005/09/15 08:15:29 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -27,7 +27,11 @@ import org.w3c.dom.Node;
  * specific types in their signature, so that there are no dependancies
  * of the serializer on Xalan.
  * 
+ * This interface is not a public API, it is only public because it is
+ * used by Xalan.
+ * 
  * @see com.sun.org.apache.xalan.internal.transformer.TransformState
+ * @xsl.usage internal
  */
 public interface TransformStateSetter
 {
@@ -36,14 +40,14 @@ public interface TransformStateSetter
   /**
    * Set the current node.
    *
-   * @param Node The current node.
+   * @param n The current node.
    */
   void setCurrentNode(Node n);
 
   /**
    * Reset the state on the given transformer object.
    *
-   * @param Transformer
+   * @param transformer
    */
   void resetState(Transformer transformer);
 

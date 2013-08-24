@@ -1,7 +1,7 @@
 /*
- * @(#)Intersection.java	1.29 04/07/26
+ * @(#)Intersection.java	1.32 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Intersection.java	1.26 03/10/26
+ * @(#)Intersection.java	1.32 06/08/29
  */
 
 package java2d.demos.Clipping;
@@ -49,6 +49,8 @@ import javax.swing.*;
 import java2d.AnimatingControlsSurface;
 import java2d.CustomControls;
 
+import static java.awt.Color.*;
+
 
 
 /**
@@ -56,13 +58,13 @@ import java2d.CustomControls;
  */
 public class Intersection extends AnimatingControlsSurface {
 
-    private static final int HEIGHTDECREASE = 0;
-    private static final int HEIGHTINCREASE = 1;
-    private static final int WIDTHDECREASE = 2;
-    private static final int WIDTHINCREASE = 3;
+    private static final int HEIGHT_DECREASE = 0;
+    private static final int HEIGHT_INCREASE = 1;
+    private static final int  WIDTH_DECREASE = 2;
+    private static final int  WIDTH_INCREASE = 3;
 
     private int xx, yy, ww, hh;
-    private int direction = HEIGHTDECREASE;
+    private int direction = HEIGHT_DECREASE;
     private int angdeg;
     private Shape textshape;
     private double sw, sh;
@@ -76,7 +78,7 @@ public class Intersection extends AnimatingControlsSurface {
 
 
     public Intersection() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         setControls(new Component[] { new DemoControls(this) });
     }
 
@@ -84,7 +86,7 @@ public class Intersection extends AnimatingControlsSurface {
     public void reset(int w, int h) {
         xx = yy = 0;
         ww = w-1; hh = h;
-        direction = HEIGHTDECREASE;
+        direction = HEIGHT_DECREASE;
         angdeg = 0;
         FontRenderContext frc = new FontRenderContext(null, true, false);
         Font f = new Font("serif",Font.BOLD,32);
@@ -100,35 +102,35 @@ public class Intersection extends AnimatingControlsSurface {
         sw = rectshape.getWidth();
         sh = rectshape.getHeight();
         ovals = new GeneralPath();
-        ovals.append(new Ellipse2D.Double(10, 10, 20, 20), false);
-        ovals.append(new Ellipse2D.Double(w-30, 10, 20, 20), false);
-        ovals.append(new Ellipse2D.Double(10, h-30, 20, 20), false);
+        ovals.append(new Ellipse2D.Double(  10,   10, 20, 20), false);
+        ovals.append(new Ellipse2D.Double(w-30,   10, 20, 20), false);
+        ovals.append(new Ellipse2D.Double(  10, h-30, 20, 20), false);
         ovals.append(new Ellipse2D.Double(w-30, h-30, 20, 20), false);
     }
 
 
     public void step(int w, int h) {
-        if (direction == HEIGHTDECREASE) {
+        if (direction == HEIGHT_DECREASE) {
             yy+=2; hh-=4;
             if (yy >= h/2) {
-                direction = HEIGHTINCREASE;
+                direction = HEIGHT_INCREASE;
             }
-        } else if (direction == HEIGHTINCREASE) {
+        } else if (direction == HEIGHT_INCREASE) {
             yy-=2; hh+=4;
             if (yy <= 0) {
-                direction = WIDTHDECREASE;
+                direction = WIDTH_DECREASE;
                 hh = h-1; yy = 0;
             }
         }
-        if (direction == WIDTHDECREASE) {
+        if (direction == WIDTH_DECREASE) {
             xx+=2; ww-=4;
             if (xx >= w/2) {
-                direction = WIDTHINCREASE;
+                direction = WIDTH_INCREASE;
             }
-        } else if (direction == WIDTHINCREASE) {
+        } else if (direction == WIDTH_INCREASE) {
             xx-=2; ww+=4;
             if (xx <= 0) {
-                direction = HEIGHTDECREASE;
+                direction = HEIGHT_DECREASE;
                 ww = w-1; xx = 0;
             }
         }
@@ -162,14 +164,14 @@ public class Intersection extends AnimatingControlsSurface {
             g2.clip(path);
         }
 
-        g2.setColor(Color.green);
+        g2.setColor(GREEN);
         g2.fill(rect);
 
         g2.setClip(new Rectangle(0, 0, w, h));
 
-        g2.setColor(Color.lightGray);
+        g2.setColor(LIGHT_GRAY);
         g2.draw(rect);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(path);
     }
 
@@ -189,9 +191,9 @@ public class Intersection extends AnimatingControlsSurface {
             this.demo = demo;
             add(toolbar = new JToolBar());
             toolbar.setFloatable(false);
-            addTool("Intersect", true);
-            addTool("Text", false);
-            addTool("Ovals", true);
+            addTool("Intersect", true );
+            addTool("Text",      false);
+            addTool("Ovals",     true );
         }
 
 
@@ -203,8 +205,8 @@ public class Intersection extends AnimatingControlsSurface {
             int width = b.getPreferredSize().width;
             Dimension prefSize = new Dimension(width, 21);
             b.setPreferredSize(prefSize);
-            b.setMaximumSize(prefSize);
-            b.setMinimumSize(prefSize);
+            b.setMaximumSize(  prefSize);
+            b.setMinimumSize(  prefSize);
         }
 
 

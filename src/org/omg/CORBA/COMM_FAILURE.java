@@ -1,7 +1,7 @@
 /*
- * @(#)COMM_FAILURE.java	1.32 03/12/19
+ * @(#)COMM_FAILURE.java	1.34 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,10 +15,10 @@ package org.omg.CORBA;
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
  * <P>
- * See the section <A href="../../../../guide/idl/jidlExceptions.html#minorcodemeanings">meaning
+ * See the section <A href="../../../../technotes/guides/idl/jidlExceptions.html#minorcodemeanings">meaning
  * of minor codes</A> to see the minor codes for this exception.
  *
- * @see <A href="../../../../guide/idl/jidlExceptions.html#minorcodemeanings">meaning of
+ * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html#minorcodemeanings">meaning of
  * minor codes</A>
  * @version     1.17, 09/09/97
  * @since       JDK1.2

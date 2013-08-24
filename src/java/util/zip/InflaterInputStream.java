@@ -1,7 +1,7 @@
 /*
- * @(#)InflaterInputStream.java	1.37 04/06/11
+ * @(#)InflaterInputStream.java	1.40 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.37, 06/11/04
+ * @version 	1.40, 04/07/06
  * @author 	David Connelly
  */
 public
@@ -106,19 +106,26 @@ class InflaterInputStream extends FilterInputStream {
     }
 
     /**
-     * Reads uncompressed data into an array of bytes. This method will
-     * block until some input can be decompressed.
+     * Reads uncompressed data into an array of bytes. If <code>len</code> is not
+     * zero, the method will block until some input can be decompressed; otherwise,
+     * no bytes are read and <code>0</code> is returned.
      * @param b the buffer into which the data is read
-     * @param off the start offset of the data
+     * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes read
      * @return the actual number of bytes read, or -1 if the end of the
      *         compressed input is reached or a preset dictionary is needed
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      * @exception ZipException if a ZIP format error has occurred
      * @exception IOException if an I/O error has occurred
      */
     public int read(byte[] b, int off, int len) throws IOException {
 	ensureOpen();
-        if ((off | len | (off + len) | (b.length - (off + len))) < 0) {
+	if (b == null) {
+	    throw new NullPointerException();
+	} else if (off < 0 || len < 0 || len > b.length - off) {
 	    throw new IndexOutOfBoundsException();
 	} else if (len == 0) {
 	    return 0;

@@ -1,7 +1,7 @@
 /*
- * @(#)SocketOrChannelConnectionImpl.java	1.91 04/06/21
+ * @(#)SocketOrChannelConnectionImpl.java	1.92 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

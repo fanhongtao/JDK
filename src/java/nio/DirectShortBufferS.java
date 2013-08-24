@@ -1,7 +1,7 @@
 /*
- * @(#)Direct-X-Buffer.java	1.48 04/05/03
+ * @(#)Direct-X-Buffer.java	1.50 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -280,7 +280,7 @@ class DirectShortBufferS
  	    unsafe.copyMemory(sb.ix(spos), ix(pos), srem << 1);
  	    sb.position(spos + srem);
  	    position(pos + srem);
-	} else if (!src.isDirect()) {
+	} else if (src.hb != null) {
 
 	    int spos = src.position();
 	    int slim = src.limit();

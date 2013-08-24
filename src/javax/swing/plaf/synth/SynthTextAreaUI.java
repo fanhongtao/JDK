@@ -1,7 +1,7 @@
 /*
- * @(#)SynthTextAreaUI.java	1.8 04/06/24
+ * @(#)SynthTextAreaUI.java	1.10 06/01/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import sun.swing.plaf.synth.SynthUI;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Shannon Hickey
- * @version 1.8 06/24/04
+ * @version 1.10 01/24/06
  */
 class SynthTextAreaUI extends BasicTextAreaUI implements SynthUI {
     private SynthStyle style;
@@ -47,6 +47,8 @@ class SynthTextAreaUI extends BasicTextAreaUI implements SynthUI {
     }
 
     protected void installDefaults() {
+        // Installs the text cursor on the component
+        super.installDefaults();
         updateStyle((JTextComponent)getComponent());
     }
 

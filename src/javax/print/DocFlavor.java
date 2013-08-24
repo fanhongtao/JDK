@@ -1,7 +1,7 @@
 /*
- * @(#)DocFlavor.java	1.17 03/12/19
+ * @(#)DocFlavor.java	1.20 06/04/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -278,7 +278,7 @@ import java.util.Map;
  * determines the print data format. The doc flavor's representation class 
  * denotes an interface whose methods the <code>DocPrintJob</code> invokes to
  * determine the content to be printed -- such as a renderable image
- * interface or a Java 2 printable interface.
+ * interface or a Java printable interface.
  * The doc flavor's MIME type is the special value 
  * <CODE>"application/x-java-jvm-local-objectref"</CODE> indicating the client 
  * will supply a reference to a Java object that implements the interface
@@ -365,7 +365,7 @@ import java.util.Map;
  * A carriage return (CR) character standing by itself means
  * "go to column 1 of the next line." 
  * <LI>
- * A line feed (CR) character standing by itself means
+ * A line feed (LF) character standing by itself means
  * "go to column 1 of the next line." 
  * <LI>
  * </UL>
@@ -381,7 +381,7 @@ import java.util.Map;
  * is not used in the Java Print Service (JPS) API 
  * for three reasons which are all rooted in allowing the JPS API to be
  * shared by other print services APIs which may need to run on Java profiles
- * which do not include all of the Java 2 Standard Edition.
+ * which do not include all of the Java Platform, Standard Edition.
  * <OL TYPE=1>
  * <LI>
  * The JPS API is designed to be used in Java profiles which do not support

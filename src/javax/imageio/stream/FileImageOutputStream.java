@@ -1,7 +1,7 @@
 /*
- * @(#)FileImageOutputStream.java	1.14 03/12/19
+ * @(#)FileImageOutputStream.java	1.17 06/01/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import com.sun.imageio.stream.CloseableDisposerRecord;
+import com.sun.imageio.stream.StreamFinalizer;
+import sun.java2d.Disposer;
 
 /**
  * An implementation of <code>ImageOutputStream</code> that writes its
@@ -23,6 +26,12 @@ import java.io.RandomAccessFile;
 public class FileImageOutputStream extends ImageOutputStreamImpl {
 
     private RandomAccessFile raf;
+
+    /** The referent to be registered with the Disposer. */
+    private final Object disposerReferent;
+
+    /** The DisposerRecord that closes the underlying RandomAccessFile. */
+    private final CloseableDisposerRecord disposerRecord;
 
     /**
      * Constructs a <code>FileImageOutputStream</code> that will write
@@ -58,6 +67,14 @@ public class FileImageOutputStream extends ImageOutputStreamImpl {
             throw new IllegalArgumentException("raf == null!");
         }
         this.raf = raf;
+
+        disposerRecord = new CloseableDisposerRecord(raf);
+        if (getClass() == FileImageOutputStream.class) {
+            disposerReferent = new Object();
+            Disposer.addRecord(disposerReferent, disposerRecord);
+        } else {
+            disposerReferent = new StreamFinalizer(this);
+        }
     }
 
     public int read() throws IOException {
@@ -81,15 +98,13 @@ public class FileImageOutputStream extends ImageOutputStreamImpl {
     }
 
     public void write(int b) throws IOException {
-        checkClosed();
-        flushBits();
+        flushBits(); // this will call checkClosed() for us
         raf.write(b);
         ++streamPos;
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        checkClosed();
-        flushBits();
+        flushBits(); // this will call checkClosed() for us
         raf.write(b, off, len);
         streamPos += len;
     }
@@ -126,6 +141,16 @@ public class FileImageOutputStream extends ImageOutputStreamImpl {
 
     public void close() throws IOException {
         super.close();
-        raf.close();
+        disposerRecord.dispose(); // this closes the RandomAccessFile
+        raf = null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void finalize() throws Throwable {
+        // Empty finalizer: for performance reasons we instead use the
+        // Disposer mechanism for ensuring that the underlying
+        // RandomAccessFile is closed prior to garbage collection
     }
 }

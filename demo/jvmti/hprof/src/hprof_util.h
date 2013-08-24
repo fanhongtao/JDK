@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_util.h	1.25 05/09/30
+ * @(#)hprof_util.h	1.29 06/01/28
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -76,24 +76,20 @@ JNIEnv *   getEnv(void);
 jobject    newGlobalReference(JNIEnv *env, jobject object);
 jobject    newWeakGlobalReference(JNIEnv *env, jobject object);
 void       deleteGlobalReference(JNIEnv *env, jobject object);
-jobject	   newLocalReference(JNIEnv *env, jobject object);
-void	   deleteLocalReference(JNIEnv *env, jobject object);
+jobject           newLocalReference(JNIEnv *env, jobject object);
+void           deleteLocalReference(JNIEnv *env, jobject object);
 void       deleteWeakGlobalReference(JNIEnv *env, jobject object);
 jclass     getObjectClass(JNIEnv *env, jobject object);
 jmethodID  getMethodID(JNIEnv *env, jclass clazz, const char* name, 
-			const char *sig);
+                        const char *sig);
 jclass     getSuperclass(JNIEnv *env, jclass klass);
-jvalue     getFieldValue(JNIEnv *env, jobject object, jfieldID field, 
-			char *field_sig);
-jvalue     getStaticFieldValue(JNIEnv *env, jclass klass, jfieldID field, 
-			char *field_sig);
 jmethodID  getStaticMethodID(JNIEnv *env, jclass clazz, const char* name, 
-			const char *sig);
+                        const char *sig);
 jfieldID   getStaticFieldID(JNIEnv *env, jclass clazz, const char* name, 
-			const char *sig);
+                        const char *sig);
 jclass     findClass(JNIEnv *env, const char *name);
 void       setStaticIntField(JNIEnv *env, jclass clazz, jfieldID field, 
-			jint value);
+                        jint value);
 jboolean   isSameObject(JNIEnv *env, jobject o1, jobject o2);
 void       pushLocalFrame(JNIEnv *env, jint capacity);
 void       popLocalFrame(JNIEnv *env, jobject ret);
@@ -101,34 +97,41 @@ jobject    exceptionOccurred(JNIEnv *env);
 void       exceptionDescribe(JNIEnv *env);
 void       exceptionClear(JNIEnv *env);
 void       registerNatives(JNIEnv *env, jclass clazz, 
-			JNINativeMethod *methods, jint count);
+                        JNINativeMethod *methods, jint count);
 
 /* More JVMTI support functions */
 char *    getErrorName(jvmtiError error_number);
+jvmtiPhase getPhase(void);
+char *    phaseString(jvmtiPhase phase);
 void      disposeEnvironment(void);
 jlong     getObjectSize(jobject object);
-jint      getClassStatus(jclass klass);
 jobject   getClassLoader(jclass klass);
+jint      getClassStatus(jclass klass);
 jlong     getTag(jobject object);
 void      setTag(jobject object, jlong tag);
 void      getObjectMonitorUsage(jobject object, jvmtiMonitorUsage *uinfo);
 void      getOwnedMonitorInfo(jthread thread, jobject **ppobjects, 
-			jint *pcount);
+                        jint *pcount);
 void      getSystemProperty(const char *name, char **value);
 void      getClassSignature(jclass klass, char**psignature, 
-			char **pgeneric_signature);
+                        char **pgeneric_signature);
 void      getSourceFileName(jclass klass, char** src_name_ptr);
+
+jvmtiPrimitiveType sigToPrimType(char *sig);
+int       sigToPrimSize(char *sig);
+char      primTypeToSigChar(jvmtiPrimitiveType primType);
+
 void      getAllClassFieldInfo(JNIEnv *env, jclass klass, 
-			jint* field_count_ptr, FieldInfo** fields_ptr);
+                        jint* field_count_ptr, FieldInfo** fields_ptr);
 void      getMethodName(jmethodID method, char** name_ptr, 
-			char** signature_ptr);
+                        char** signature_ptr);
 void      getMethodClass(jmethodID method, jclass *pclazz);
 jboolean  isMethodNative(jmethodID method);
 void      getPotentialCapabilities(jvmtiCapabilities *capabilities);
 void      addCapabilities(jvmtiCapabilities *capabilities);
 void      setEventCallbacks(jvmtiEventCallbacks *pcallbacks);
 void      setEventNotificationMode(jvmtiEventMode mode, jvmtiEvent event, 
-			jthread thread);
+                        jthread thread);
 void *    getThreadLocalStorage(jthread thread);
 void      setThreadLocalStorage(jthread thread, void *ptr);
 void      getThreadState(jthread thread, jint *threadState);
@@ -136,24 +139,25 @@ void      getThreadInfo(jthread thread, jvmtiThreadInfo *info);
 void      getThreadGroupInfo(jthreadGroup thread_group, jvmtiThreadGroupInfo *info);
 void      getLoadedClasses(jclass **ppclasses, jint *pcount);
 jint      getLineNumber(jmethodID method, jlocation location);
+jlong     getMaxMemory(JNIEnv *env);
 void      createAgentThread(JNIEnv *env, const char *name, 
                         jvmtiStartFunction func);
 jlong     getThreadCpuTime(jthread thread);
 void      getStackTrace(jthread thread, jvmtiFrameInfo *pframes, jint depth, 
-			jint *pcount);
+                        jint *pcount);
 void      getThreadListStackTraces(jint count, jthread *threads, 
-			jint depth, jvmtiStackInfo **stack_info);
+                        jint depth, jvmtiStackInfo **stack_info);
 void      getFrameCount(jthread thread, jint *pcount);
-void      iterateOverReachableObjects(jvmtiHeapRootCallback heap_root_callback,
-			jvmtiStackReferenceCallback stack_ref_callback,
-			jvmtiObjectReferenceCallback object_ref_callback,
-			void *user_data);
+void      followReferences(jvmtiHeapCallbacks *pHeapCallbacks, void *user_data);
 
 /* GC control */
 void      runGC(void);
 
 /* Get initial JVMTI environment */
 void      getJvmti(void);
+
+/* Get current runtime JVMTI version */
+jint      jvmtiVersion(void);
 
 /* Raw monitor functions */
 jrawMonitorID createRawMonitor(const char *str);

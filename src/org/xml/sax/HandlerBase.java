@@ -1,7 +1,7 @@
 // SAX default handler base class.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
-// $Id: HandlerBase.java,v 1.1.24.1 2004/05/01 08:34:39 jsuttor Exp $
+// $Id: HandlerBase.java,v 1.2 2005/06/10 03:50:47 jeffsuttor Exp $
 
 package org.xml.sax;
 
@@ -169,7 +169,7 @@ public class HandlerBase
      * Receive notification of the end of the document.
      *
      * <p>By default, do nothing.  Application writers may override this
-     * method in a subclass to take specific actions at the beginning
+     * method in a subclass to take specific actions at the end
      * of a document (such as finalising a tree or closing an output
      * file).</p>
      *

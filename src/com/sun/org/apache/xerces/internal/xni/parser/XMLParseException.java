@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001, 2002 The Apache Software Foundation.  
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001, 2002,2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.xni.parser;
@@ -67,11 +26,14 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  * 
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLParseException.java,v 1.4 2002/01/29 01:15:19 lehors Exp $
+ * @version $Id: XMLParseException.java,v 1.2.6.1 2005/09/06 08:31:43 neerajbj Exp $
  */
 public class XMLParseException
     extends XNIException {
 
+    /** Serialization version. */
+    static final long serialVersionUID = 1732959359448549967L;
+    
     //
     // Data
     //
@@ -93,6 +55,9 @@ public class XMLParseException
     
     /** Column number. */
     protected int fColumnNumber = -1;
+    
+    /** Character offset. */
+    protected int fCharacterOffset = -1;
 
     //
     // Constructors
@@ -108,6 +73,7 @@ public class XMLParseException
             fBaseSystemId = locator.getBaseSystemId();
             fLineNumber = locator.getLineNumber();
             fColumnNumber = locator.getColumnNumber();
+            fCharacterOffset = locator.getCharacterOffset();
         }
     } // <init>(XMLLocator,String)
 
@@ -115,12 +81,15 @@ public class XMLParseException
     public XMLParseException(XMLLocator locator,
                              String message, Exception exception) {
         super(message, exception);
-        fPublicId = locator.getPublicId();
-        fLiteralSystemId = locator.getLiteralSystemId();
-        fExpandedSystemId = locator.getExpandedSystemId();
-        fBaseSystemId = locator.getBaseSystemId();
-        fLineNumber = locator.getLineNumber();
-        fColumnNumber = locator.getColumnNumber();
+        if (locator != null) {
+            fPublicId = locator.getPublicId();
+            fLiteralSystemId = locator.getLiteralSystemId();
+            fExpandedSystemId = locator.getExpandedSystemId();
+            fBaseSystemId = locator.getBaseSystemId();
+            fLineNumber = locator.getLineNumber();
+            fColumnNumber = locator.getColumnNumber();
+            fCharacterOffset = locator.getCharacterOffset();
+        }
     } // <init>(XMLLocator,String,Exception)
 
     //
@@ -156,6 +125,11 @@ public class XMLParseException
     public int getColumnNumber() {
         return fColumnNumber;
     } // getRowNumber():int
+    
+    /** Returns the character offset. */
+    public int getCharacterOffset() {
+        return fCharacterOffset;
+    } // getCharacterOffset():int
 
     //
     // Object methods
@@ -165,10 +139,6 @@ public class XMLParseException
     public String toString() {
 
         StringBuffer str = new StringBuffer();
-        if (fPublicId != null) {
-            str.append(fPublicId);
-        }
-        str.append(':');
         if (fPublicId != null) {
             str.append(fPublicId);
         }
@@ -188,6 +158,8 @@ public class XMLParseException
         str.append(fLineNumber);
         str.append(':');
         str.append(fColumnNumber);
+        str.append(':');
+        str.append(fCharacterOffset);
         str.append(':');
         String message = getMessage();
         if (message == null) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Compiler.java,v 1.36 2004/02/17 04:32:49 minchau Exp $
+ * $Id: Compiler.java,v 1.2.4.1 2005/09/14 19:47:10 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.compiler;
 
@@ -33,6 +33,7 @@ import com.sun.org.apache.xpath.internal.Expression;
 import com.sun.org.apache.xpath.internal.axes.UnionPathIterator;
 import com.sun.org.apache.xpath.internal.axes.WalkerFactory;
 import com.sun.org.apache.xpath.internal.functions.FuncExtFunction;
+import com.sun.org.apache.xpath.internal.functions.FuncExtFunctionAvailable;
 import com.sun.org.apache.xpath.internal.functions.Function;
 import com.sun.org.apache.xpath.internal.functions.WrongNumberArgsException;
 import com.sun.org.apache.xpath.internal.objects.XNumber;
@@ -79,11 +80,15 @@ public class Compiler extends OpMap
    * @param locator The location object where the expression lives, which 
    *                may be null, but which, if not null, must be valid over 
    *                the long haul, in other words, it will not be cloned.
+   * @param fTable  The FunctionTable object where the xpath build-in 
+   *                functions are stored.
    */
-  public Compiler(ErrorListener errorHandler, SourceLocator locator)
+  public Compiler(ErrorListener errorHandler, SourceLocator locator, 
+            FunctionTable fTable)
   {
     m_errorHandler = errorHandler;
     m_locator = locator;
+    m_functionTable = fTable;
   }
 
   /**
@@ -98,11 +103,7 @@ public class Compiler extends OpMap
 
   /**
    * Execute the XPath object from a given opcode position.
-   * @param xctxt The execution context.
-   * @param context The current source tree context node.
    * @param opPos The current position in the xpath.m_opMap array.
-   * @param callback Interface that implements the processLocatedNode method.
-   * @param callbackInfo Object that will be passed to the processLocatedNode method.
    * @return The result of the XPath.
    *
    * @throws TransformerException if there is a syntax or other error.
@@ -618,6 +619,14 @@ public class Compiler extends OpMap
   }
 
   /**
+   * Get the function table  
+   */
+  FunctionTable getFunctionTable()
+  {
+    return m_functionTable;
+  }
+
+  /**
    * Compile a location path.  The LocPathIterator itself may create
    * {@link com.sun.org.apache.xpath.internal.axes.AxesWalker} children.
    * 
@@ -1017,7 +1026,15 @@ private static final boolean DEBUG = false;
 
     if (-1 != funcID)
     {
-      Function func = FunctionTable.getFunction(funcID);
+      Function func = m_functionTable.getFunction(funcID);
+      
+      /**
+       * It is a trick for function-available. Since the function table is an
+       * instance field, insert this table at compilation time for later usage
+       */
+      
+      if (func instanceof FuncExtFunctionAvailable)
+          ((FuncExtFunctionAvailable) func).setFunctionTable(m_functionTable);
 
       func.postCompileStep(this);
       
@@ -1037,7 +1054,7 @@ private static final boolean DEBUG = false;
       }
       catch (WrongNumberArgsException wnae)
       {
-        java.lang.String name = FunctionTable.getFunctionName(funcID);
+        java.lang.String name = m_functionTable.getFunctionName(funcID);
 
         m_errorHandler.fatalError( new TransformerException(
                   XSLMessages.createXPATHMessage(XPATHErrorResources.ER_ONLY_ALLOWS, 
@@ -1241,4 +1258,9 @@ private static final boolean DEBUG = false;
 
   /** The source locator for the expression being compiled.  May be null. */
   SourceLocator m_locator;
+  
+  /**
+   * The FunctionTable for all xpath build-in functions
+   */
+  private FunctionTable m_functionTable;
 }

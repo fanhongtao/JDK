@@ -1,7 +1,7 @@
 /*
- * @(#)ProcessEnvironment.java	1.5 04/04/05
+ * @(#)ProcessEnvironment.java	1.6 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@
  * think of using this class unless your method's name appears below.
  *
  * @author  Martin Buchholz
- * @version 1.5, 04/04/05
+ * @version 1.6, 05/11/17
  * @since   1.5
  */
 

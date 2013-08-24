@@ -1,403 +1,312 @@
 /*
- * @(#)GTKIconFactory.java	1.23 03/12/19
+ * @(#)GTKIconFactory.java	1.32 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import java.util.*;
 import javax.swing.plaf.synth.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import sun.swing.plaf.synth.*;
+import com.sun.java.swing.plaf.gtk.GTKConstants.ArrowType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.ExpanderStyle;
+import com.sun.java.swing.plaf.gtk.GTKConstants.Orientation;
+import com.sun.java.swing.plaf.gtk.GTKConstants.ShadowType;
 
 /**
- * @version 1.23, 12/19/03
+ * @version 1.32, 06/07/06
  */
 class GTKIconFactory {
-    // Tree icons
-    private static SynthIcon expandedIcon;
-    private static SynthIcon collapsedIcon;
+    private static final String RADIO_BUTTON_ICON    = "paintRadioButtonIcon";
+    private static final String CHECK_BOX_ICON       = "paintCheckBoxIcon";
+    private static final String MENU_ARROW_ICON      = "paintMenuArrowIcon";
+    private static final String MENU_ITEM_ARROW_ICON = "paintMenuItemArrowIcon";
+    private static final String CHECK_BOX_MENU_ITEM_ARROW_ICON =
+                                      "paintCheckBoxMenuItemArrowIcon";
+    private static final String CHECK_BOX_MENU_ITEM_CHECK_ICON =
+                                      "paintCheckBoxMenuItemCheckIcon";
+    private static final String RADIO_BUTTON_MENU_ITEM_ARROW_ICON =
+                                      "paintRadioButtonMenuItemArrowIcon";
+    private static final String RADIO_BUTTON_MENU_ITEM_CHECK_ICON =
+                                      "paintRadioButtonMenuItemCheckIcon";
+    private static final String TREE_EXPANDED_ICON = "paintTreeExpandedIcon";
+    private static final String TREE_COLLAPSED_ICON = "paintTreeCollapsedIcon";
+    private static final String ASCENDING_SORT_ICON = "paintAscendingSortIcon";
+    private static final String DESCENDING_SORT_ICON = "paintDescendingSortIcon";
+    private static final String TOOL_BAR_HANDLE_ICON = "paintToolBarHandleIcon";
+    
+    private static Map<String, DelegatingIcon> iconsPool = 
+            Collections.synchronizedMap(new HashMap<String, DelegatingIcon>());
+    
+    private static DelegatingIcon getIcon(String methodName) {
+        DelegatingIcon result = iconsPool.get(methodName);
+        if (result == null) {
+            if (methodName == TREE_COLLAPSED_ICON ||
+                methodName == TREE_EXPANDED_ICON)
+            {
+                result = new SynthExpanderIcon(methodName);
+                
+            } else if (methodName == TOOL_BAR_HANDLE_ICON) {
+                result = new ToolBarHandleIcon();
+                
+            } else if (methodName == MENU_ARROW_ICON) {
+                result = new MenuArrowIcon();
+                
+            } else {
+                result = new DelegatingIcon(methodName);
+            }
+            iconsPool.put(methodName, result);
+        }
+        return result;
+    }
+    
+    //
+    // Sort arrow
+    //
+    public static Icon getAscendingSortIcon() {
+        return getIcon(ASCENDING_SORT_ICON);
+    }
 
-    private static SynthIcon radioButtonIcon;
-
-    private static SynthIcon checkBoxIcon;
-
-    private static SynthIcon menuArrowIcon;
-    private static SynthIcon menuCheckIcon;
-
-    private static SynthIcon menuItemArrowIcon;
-    private static SynthIcon menuItemCheckIcon;
-
-    private static SynthIcon checkBoxMenuItemArrowIcon;
-    private static SynthIcon checkBoxMenuItemCheckIcon;
-
-    private static SynthIcon radioButtonMenuItemArrowIcon;
-    private static SynthIcon radioButtonMenuItemCheckIcon;
-
+    public static Icon getDescendingSortIcon() {
+        return getIcon(DESCENDING_SORT_ICON);
+    }
+    
     //
     // Tree methods
     // 
     public static SynthIcon getTreeExpandedIcon() {
-        if (expandedIcon == null) {
-            expandedIcon =
-                new SynthExpanderIcon("paintTreeExpandedIcon");
-        }
-        return expandedIcon;
-    }
-
-    public static void paintTreeExpandedIcon(SynthContext context, Graphics g,
-                                      int x, int y, int w, int h) {
-        ((GTKStyle)context.getStyle()).getEngine(context).paintExpander(
-               context, g, GTKLookAndFeel.synthStateToGTKState(
-               context.getRegion(), context.getComponentState()),
-               GTKConstants.EXPANDER_EXPANDED, "treeview", x, y, w, h);
+        return getIcon(TREE_EXPANDED_ICON);
     }
 
     public static SynthIcon getTreeCollapsedIcon() {
-        if (collapsedIcon == null) {
-            collapsedIcon =
-                new SynthExpanderIcon("paintTreeCollapsedIcon");
-        }
-        return collapsedIcon;
-    }
-
-
-    public static void paintTreeCollapsedIcon(SynthContext context, Graphics g,
-                                      int x, int y, int w, int h) {
-        ((GTKStyle)context.getStyle()).getEngine(context).paintExpander(
-               context, g, GTKLookAndFeel.synthStateToGTKState(
-               context.getRegion(), context.getComponentState()),
-               GTKConstants.EXPANDER_COLLAPSED, "treeview", x, y, w, h);
+        return getIcon(TREE_COLLAPSED_ICON);
     }
 
     //
     // Radio button
     //
     public static SynthIcon getRadioButtonIcon() {
-        if (radioButtonIcon == null) {
-            radioButtonIcon = new DelegatingIcon("paintRadioButtonIcon",
-                                                 13, 13);
-        }
-        return radioButtonIcon;
-    }
-
-    public static void paintRadioButtonIcon(SynthContext context, Graphics g,
-                                            int x, int y, int w, int h) {
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int state = context.getComponentState();
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(context.getRegion(),
-                                                           state);
-        int shadowType = GTKConstants.SHADOW_OUT;
-        // RadioButton painting appears to be special cased to pass
-        // SELECTED into the engine even though text colors are PRESSED.
-        if ((state & SynthConstants.SELECTED) != 0) {
-            gtkState = SynthConstants.SELECTED;
-        }
-        if (gtkState == SynthConstants.SELECTED) {
-            shadowType = GTKConstants.SHADOW_IN;
-        }
-        ((GTKStyle)context.getStyle()).getEngine(
-                context).paintOption(context, g, gtkState, shadowType,
-                    "radiobutton", x, y, w, h);
+        return getIcon(RADIO_BUTTON_ICON);
     }
 
     //
     // CheckBox
     //
     public static SynthIcon getCheckBoxIcon() {
-        if (checkBoxIcon == null) {
-            checkBoxIcon = new DelegatingIcon("paintCheckBoxIcon", 13, 13);
-        }
-        return checkBoxIcon;
-    }
-
-    public static void paintCheckBoxIcon(SynthContext context, Graphics g,
-                                         int x, int y, int w, int h) {
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int state = context.getComponentState();
-        int shadowType = GTKConstants.SHADOW_OUT;
-        if (((JCheckBox)context.getComponent()).isSelected()) {
-            shadowType = GTKConstants.SHADOW_IN;
-        }
-        ((GTKStyle)context.getStyle()).getEngine(
-                context).paintCheck(context, g,
-                GTKLookAndFeel.synthStateToGTKState(context.getRegion(),
-                context.getComponentState()), shadowType, "checkbutton",
-                x, y, w, h);
+        return getIcon(CHECK_BOX_ICON);
     }
 
     //
     // Menus
     // 
     public static SynthIcon getMenuArrowIcon() {
-        if (menuArrowIcon == null) {
-            menuArrowIcon = new DelegatingIcon("paintMenuArrowIcon", 13, 13);
-        }
-        return menuArrowIcon;
-    }
-
-    public static void paintMenuArrowIcon(SynthContext context, Graphics g,
-                                          int x, int y, int w, int h) {
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                context.getRegion(), context.getComponentState());
-        int shadow = GTKConstants.SHADOW_OUT;
-        if (gtkState == SynthConstants.MOUSE_OVER) {
-            shadow = GTKConstants.SHADOW_IN;
-        }
-        int arrowDir;
-        if (context.getComponent().getComponentOrientation().isLeftToRight()) {
-            arrowDir = GTKConstants.ARROW_RIGHT;
-        }
-        else {
-            arrowDir = GTKConstants.ARROW_LEFT;
-        }
-        style.getEngine(context).paintArrow(context, g, gtkState,
-             shadow, arrowDir, "menuitem", x + 3, y + 3, 7, 7);
+        return getIcon(MENU_ARROW_ICON);
     }
 
     public static SynthIcon getMenuItemArrowIcon() {
-        if (menuItemArrowIcon == null) {
-            menuItemArrowIcon = new DelegatingIcon("paintMenuItemArrowIcon",
-                                                   13, 13);
-        }
-        return menuItemArrowIcon;
-    }
-
-    public static void paintMenuItemArrowIcon(SynthContext context, Graphics g,
-                                          int x, int y, int w, int h) {
-        // Don't paint anything.  We are just reserving space so we align the
-        // menu items correctly.
+        return getIcon(MENU_ITEM_ARROW_ICON);
     }
 
     public static SynthIcon getCheckBoxMenuItemArrowIcon() {
-        if (checkBoxMenuItemArrowIcon == null) {
-            checkBoxMenuItemArrowIcon = new DelegatingIcon(
-                "paintCheckBoxMenuItemArrowIcon", 13, 13);
-        }
-        return checkBoxMenuItemArrowIcon;
-    }
-
-    public static void paintCheckBoxMenuItemArrowIcon(SynthContext context,
-                            Graphics g, int x, int y, int w, int h) {
-        // Don't paint anything.  We are just reserving space so we align the
-        // menu items correctly.
+        return getIcon(CHECK_BOX_MENU_ITEM_ARROW_ICON);
     }
 
     public static SynthIcon getCheckBoxMenuItemCheckIcon() {
-        if (checkBoxMenuItemCheckIcon == null) {
-            checkBoxMenuItemCheckIcon = new DelegatingIcon(
-                "paintCheckBoxMenuItemCheckIcon", 13, 13);
-        }
-        return checkBoxMenuItemCheckIcon;
-    }
-
-    public static void paintCheckBoxMenuItemCheckIcon(
-             SynthContext context, Graphics g, int x, int y, int w, int h) {
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int state = context.getComponentState();
-        int shadowType = GTKConstants.SHADOW_OUT;
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                                      context.getRegion(), state);
-        if ((state & SynthConstants.MOUSE_OVER) != 0) {
-            gtkState = SynthConstants.MOUSE_OVER;
-        }
-        if ((state & SynthConstants.SELECTED) != 0) {
-            shadowType = GTKConstants.SHADOW_IN;
-        }
-        style.getEngine(context).paintCheck(context, g, gtkState,
-                    shadowType, "check", x, y, w, h);
+        return getIcon(CHECK_BOX_MENU_ITEM_CHECK_ICON);
     }
 
     public static SynthIcon getRadioButtonMenuItemArrowIcon() {
-        if (radioButtonMenuItemArrowIcon == null) {
-            radioButtonMenuItemArrowIcon = new DelegatingIcon(
-                "paintRadioButtonMenuItemArrowIcon", 13, 13);
-        }
-        return radioButtonMenuItemArrowIcon;
-    }
-
-    public static void paintRadioButtonMenuItemArrowIcon(SynthContext context,
-                            Graphics g, int x, int y, int w, int h) {
-        // Don't paint anything.  We are just reserving space so we align the
-        // menu items correctly.
+        return getIcon(RADIO_BUTTON_MENU_ITEM_ARROW_ICON);
     }
 
     public static SynthIcon getRadioButtonMenuItemCheckIcon() {
-        if (radioButtonMenuItemCheckIcon == null) {
-            radioButtonMenuItemCheckIcon = new DelegatingIcon(
-                "paintRadioButtonMenuItemCheckIcon", 13, 13);
-        }
-        return radioButtonMenuItemCheckIcon;
-    }
-
-    public static void paintRadioButtonMenuItemCheckIcon(
-             SynthContext context, Graphics g, int x, int y, int w, int h) {
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int state = context.getComponentState();
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                                      context.getRegion(), state);
-        if ((state & SynthConstants.MOUSE_OVER) != 0) {
-            gtkState = SynthConstants.MOUSE_OVER;
-        }
-        int shadowType = GTKConstants.SHADOW_OUT;
-        if ((state & SynthConstants.SELECTED) != 0) {
-            shadowType = GTKConstants.SHADOW_IN;
-        }
-        ((GTKStyle)context.getStyle()).getEngine(
-                context).paintOption(context, g, gtkState, shadowType,
-                    "option", x, y, w, h);
+        return getIcon(RADIO_BUTTON_MENU_ITEM_CHECK_ICON);
     }
 
     //
     // ToolBar Handle
     // 
     public static SynthIcon getToolBarHandleIcon() {
-        return new ToolBarHandleIcon();
+        return getIcon(TOOL_BAR_HANDLE_ICON);
     }
 
-    public static void paintToolBarHandleIcon(SynthContext context,
-            Graphics g, int x, int y, int w, int h) {
-        int orientation =
-            ((JToolBar)context.getComponent()).getOrientation() ==
-                JToolBar.HORIZONTAL ?
-                    GTKConstants.HORIZONTAL : GTKConstants.VERTICAL;
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                context.getRegion(), context.getComponentState());
-        style.getEngine(context).paintHandle(context, g, gtkState,
-                    GTKConstants.SHADOW_OUT, "handlebox", x, y, w, h,
-                    orientation);
+    static void resetIcons() {
+        synchronized (iconsPool) {
+            for (DelegatingIcon di: iconsPool.values()) {
+                di.resetIconDimensions();
+            }
+        }
     }
-
-
+    
     private static class DelegatingIcon extends SynthIcon implements
                                    UIResource {
-        private static final Class[] PARAM_TYPES = new Class[] {
-            SynthContext.class, Graphics.class, int.class, int.class,
-            int.class, int.class };
-        private int width;
-        private int height;
-        private Object method;
+        static final int DEFAULT_ICON_DIMENSION = 13;
 
-        DelegatingIcon(String methodName, int width, int height) {
+        private static final Class[] PARAM_TYPES = new Class[] {
+            SynthContext.class, Graphics.class, int.class,
+            int.class, int.class, int.class, int.class
+        };
+
+        private Object method;
+        int iconDimension = -1;
+
+        DelegatingIcon(String methodName ){
             this.method = methodName;
-            this.width = width;
-            this.height = height;
         }
 
-        public void paintIcon(SynthContext context, Graphics g, int x, int y,
-                              int w, int h) {
+        public void paintIcon(SynthContext context, Graphics g,
+                              int x, int y, int w, int h) {
             if (context != null) {
-                try {
-                    getMethod().invoke(GTKIconFactory.class, new Object[] {
-                                context, g, new Integer(x), new Integer(y),
-                                new Integer(w), new Integer(h) });
-                } catch (IllegalAccessException iae) {
-                } catch (InvocationTargetException ite) {
-                }
+                GTKPainter.INSTANCE.paintIcon(context, g,
+                        getMethod(), x, y, w, h);
             }
         }
 
         public int getIconWidth(SynthContext context) {
-            return width;
+            return getIconDimension(context);
         }
 
         public int getIconHeight(SynthContext context) {
-            return height;
+            return getIconDimension(context);
         }
 
-        private Method getMethod() {
+        void resetIconDimensions() {
+            iconDimension = -1;
+        }
+
+        protected Method getMethod() {
             if (method instanceof String) {
-                Method[] methods = GTKIconFactory.class.getMethods();
-                try {
-                    method = GTKIconFactory.class.getMethod((String)method,
-                                                            PARAM_TYPES);
-                } catch (NoSuchMethodException nsme) {
-                    System.out.println("NSME: " + nsme);
-                }
+                method = resolveMethod((String)method);
             }
             return (Method)method;
         }
+
+        protected Class[] getMethodParamTypes() {
+            return PARAM_TYPES;
+        }
+        
+        private Method resolveMethod(String name) {
+            try {
+                return GTKPainter.class.getMethod(name, getMethodParamTypes());
+            } catch (NoSuchMethodException e) {
+                assert false;
+            }
+            return null;
+        }
+
+        int getIconDimension(SynthContext context) {
+            if (iconDimension >= 0) {
+                return iconDimension;
+            }
+            
+            if (context == null) {
+                return DEFAULT_ICON_DIMENSION;
+            }
+
+            Region region = context.getRegion();
+            GTKStyle style = (GTKStyle) context.getStyle();
+            Object propValue = style.getClassSpecificValue(region,
+                                                           "indicator-size");
+
+            if (propValue != null) {
+                iconDimension = ((Number)propValue).intValue();
+            } else if (region == Region.CHECK_BOX ||
+                       region == Region.RADIO_BUTTON) {
+                iconDimension = DEFAULT_ICON_DIMENSION;
+            } else {
+                return (iconDimension = DEFAULT_ICON_DIMENSION);
+            }
+            
+            if (region == Region.CHECK_BOX || region == Region.RADIO_BUTTON) {
+                propValue = style.getClassSpecificValue(region,
+                                                        "indicator-spacing");
+                if (propValue != null) {
+                    iconDimension += 2 * ((Number) propValue).intValue();
+                } else {
+                    iconDimension += 2 * 2;
+                }
+            } else if (region == Region.CHECK_BOX_MENU_ITEM ||
+                       region == Region.RADIO_BUTTON_MENU_ITEM) {
+                iconDimension++;
+            }
+            return iconDimension;
+        }
     }
 
-    private static class SynthExpanderIcon extends SynthIcon {
-        private static final Class[] PARAM_TYPES = new Class[] {
-            SynthContext.class, Graphics.class, int.class, int.class,
-            int.class, int.class };
-
-            private int width = -1;
-            private int height = -1;
-            private Object method;
-
+    private static class SynthExpanderIcon extends DelegatingIcon {
         SynthExpanderIcon(String method) {
-            this.method = method;
+            super(method);
         }
 
         public void paintIcon(SynthContext context, Graphics g, int x, int y,
                               int w, int h) {
             if (context != null) {
-                try {
-                    getMethod().invoke(GTKIconFactory.class, new Object[] {
-                                context, g, new Integer(x), new Integer(y),
-                                new Integer(w), new Integer(h) });
-                    updateSizeIfNecessary(context);
-                } catch (IllegalAccessException iae) {
-                } catch (InvocationTargetException ite) {
-                }
+                super.paintIcon(context, g, x, y, w, h);
+                updateSizeIfNecessary(context);
             }
         }
 
-        public int getIconWidth(SynthContext context) {
+        int getIconDimension(SynthContext context) {
             updateSizeIfNecessary(context);
-            return width;
-        }
-
-        public int getIconHeight(SynthContext context) {
-            updateSizeIfNecessary(context);
-            return height;
+            return (iconDimension == -1) ? DEFAULT_ICON_DIMENSION :
+                                           iconDimension;
         }
 
         private void updateSizeIfNecessary(SynthContext context) {
-            if (width == -1 && context != null) {
-                width = height = context.getStyle().getInt(context,
+            if (iconDimension == -1 && context != null) {
+                iconDimension = context.getStyle().getInt(context,
                         "Tree.expanderSize", 10);
             }
         }
-
-        private Method getMethod() {
-            if (method instanceof String) {
-                Method[] methods = GTKIconFactory.class.getMethods();
-                try {
-                    method = GTKIconFactory.class.getMethod((String)method,
-                                                            PARAM_TYPES);
-                } catch (NoSuchMethodException nsme) {
-                    System.out.println("NSME: " + nsme);
-                }
-            }
-            return (Method)method;
-        }
     }
-
 
     // GTK has a separate widget for the handle box, to mirror this
     // we create a unique icon per ToolBar and lookup the style for the
     // HandleBox.
-    private static class ToolBarHandleIcon extends SynthIcon {
+    private static class ToolBarHandleIcon extends DelegatingIcon {
+        private static final Class[] PARAM_TYPES = new Class[] {
+            SynthContext.class, Graphics.class, int.class,
+            int.class, int.class, int.class, int.class, Orientation.class,
+        };
+        
         private SynthStyle style;
+
+        public ToolBarHandleIcon() {
+            super(TOOL_BAR_HANDLE_ICON);
+        }
+
+        protected Class[] getMethodParamTypes() {
+            return PARAM_TYPES;
+        }
 
         public void paintIcon(SynthContext context, Graphics g, int x, int y,
                               int w, int h) {
-            if (context != null) {
-                context = getContext(context);
-                paintToolBarHandleIcon(context, g, x, y, w, h);
+            JToolBar toolbar = (JToolBar)context.getComponent();
+            Orientation orientation =
+                    (toolbar.getOrientation() == JToolBar.HORIZONTAL ?
+                        Orientation.HORIZONTAL : Orientation.VERTICAL);
+
+            if (style == null) {
+                style = SynthLookAndFeel.getStyleFactory().getStyle(
+                        context.getComponent(), GTKRegion.HANDLE_BOX);
             }
+            context = new SynthContext(toolbar, GTKRegion.HANDLE_BOX,
+                    style, SynthConstants.ENABLED);
+            
+            GTKPainter.INSTANCE.paintIcon(context, g,
+                    getMethod(), x, y, w, h, orientation);
         }
 
         public int getIconWidth(SynthContext context) {
+            if (context == null) {
+                return 10;
+            }
             if (((JToolBar)context.getComponent()).getOrientation() ==
                     JToolBar.HORIZONTAL) {
                 return 10;
@@ -407,6 +316,9 @@ class GTKIconFactory {
         }
 
         public int getIconHeight(SynthContext context) {
+            if (context == null) {
+                return 10;
+            }
             if (((JToolBar)context.getComponent()).getOrientation() ==
                     JToolBar.HORIZONTAL) {
                 return context.getComponent().getHeight();
@@ -414,15 +326,30 @@ class GTKIconFactory {
                 return 10;
             }
         }
+    }
+    
+    private static class MenuArrowIcon extends DelegatingIcon {
+        private static final Class[] PARAM_TYPES = new Class[] {
+            SynthContext.class, Graphics.class, int.class,
+            int.class, int.class, int.class, int.class, ArrowType.class,
+        };
 
-        private SynthContext getContext(SynthContext context) {
-            if (style == null) {
-                style = SynthLookAndFeel.getStyleFactory().getStyle(
-                             context.getComponent(), GTKRegion.HANDLE_BOX);
+        public MenuArrowIcon() {
+            super(MENU_ARROW_ICON);
+        }
+        
+        protected Class[] getMethodParamTypes() {
+            return PARAM_TYPES;
+        }
+        
+        public void paintIcon(SynthContext context, Graphics g, int x, int y,
+                              int w, int h) {
+            ArrowType arrowDir = ArrowType.RIGHT;
+            if (!context.getComponent().getComponentOrientation().isLeftToRight()) {
+                arrowDir = ArrowType.LEFT;
             }
-            return new SynthContext(context.getComponent(),
-                                    GTKRegion.HANDLE_BOX,
-                                    style, SynthConstants.ENABLED);
+            GTKPainter.INSTANCE.paintIcon(context, g,
+                    getMethod(), x, y, w, h, arrowDir);
         }
     }
 }

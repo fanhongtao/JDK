@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_md.h	1.15 05/01/04
+ * @(#)hprof_md.h	1.18 05/12/06
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@
 
 void    md_init(void);
 int     md_getpid(void);
+void    md_sleep(unsigned seconds);
 int     md_connect(char *hostname, unsigned short port);
 int     md_recv(int f, char *buf, int len, int option);
 int     md_shutdown(int filedes, int option);
@@ -51,7 +52,7 @@ void    md_close(int filedes);
 int 	md_send(int s, const char *msg, int len, int flags);
 int 	md_write(int filedes, const void *buf, int nbyte);
 int 	md_read(int filedes, void *buf, int nbyte);
-jint 	md_get_milliticks(void);
+jlong 	md_get_microsecs(void);
 jlong 	md_get_timemillis(void);
 jlong 	md_get_thread_cpu_timemillis(void);
 void 	md_get_prelude_path(char *path, int path_len, char *filename);

@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGFlip.java	1.25 04/07/26
+ * @(#)JPEGFlip.java	1.27 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)JPEGFlip.java	1.25 04/07/26
+ * @(#)JPEGFlip.java	1.27 06/08/29
  */
 
 package java2d.demos.Images;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import com.sun.image.codec.jpeg.*;
 import java.awt.image.BufferedImage;
@@ -59,7 +60,7 @@ public class JPEGFlip extends Surface {
     private static Image img;
 
     public JPEGFlip() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         img = getImage("duke.gif");
     }
 
@@ -77,7 +78,7 @@ public class JPEGFlip extends Surface {
         big.setBackground(getBackground());
         big.clearRect(0, 0, w, hh);
 
-        big.setColor(Color.green.darker());
+        big.setColor(GREEN.darker());
         GeneralPath p = new GeneralPath(GeneralPath.WIND_NON_ZERO);
         p.moveTo(- w / 2.0f, - hh / 8.0f);
         p.lineTo(+ w / 2.0f, - hh / 8.0f);
@@ -96,7 +97,7 @@ public class JPEGFlip extends Surface {
 
         g2.drawImage(bi, 0, 0, this);
         g2.setFont(new Font("Dialog", Font.PLAIN, 10));
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.drawString("BufferedImage", 4, 12);
 
 
@@ -119,13 +120,13 @@ public class JPEGFlip extends Surface {
             JPEGImageDecoder decoder = JPEGCodec.createJPEGDecoder(in);
             bi1 = decoder.decodeAsBufferedImage();
         } catch (Exception ex) {
-            g2.setColor(Color.red);
+            g2.setColor(RED);
             g2.drawString("write permissions on images/test.jpg?", 5, hh*2-5);
             return;
         }
 
         if (bi1 == null) {
-            g2.setColor(Color.red);
+            g2.setColor(RED);
             g2.drawString("decodeAsBufferedImage=null", 5, hh*2-5);
             return;
         }

@@ -1,27 +1,56 @@
 /*
- * @(#)SynthParser.java	1.15 04/04/16
+ * @(#)SynthParser.java	1.23 05/09/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
-import org.xml.sax.*;
-import java.awt.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.net.*;
-import java.text.*;
-import java.util.*;
-import java.util.regex.*;
-import javax.swing.*;
-import javax.swing.plaf.*;
-import javax.xml.parsers.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.regex.PatternSyntaxException;
+
+import javax.swing.ImageIcon;
+import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
+import javax.swing.UIDefaults;
+import javax.swing.plaf.ColorUIResource;
+import javax.swing.plaf.DimensionUIResource;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.InsetsUIResource;
+import javax.swing.plaf.UIResource;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.AttributeList;
+import org.xml.sax.HandlerBase;
+import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
 import com.sun.beans.ObjectHandler;
-import sun.swing.plaf.synth.*;
 
 /**
- * @version 1.15, 04/16/04
+ * @version 1.23, 09/12/05
  */
 class SynthParser extends HandlerBase {
     //
@@ -44,7 +73,6 @@ class SynthParser extends HandlerBase {
     private static final String ELEMENT_DEFAULTS_PROPERTY =
                                         "defaultsProperty";
     private static final String ELEMENT_INPUT_MAP = "inputMap";
-    private static final String ELEMENT_BACKGROUND_IMAGE = "backgroundImage";
 
     //
     // Known attribute names
@@ -70,6 +98,7 @@ class SynthParser extends HandlerBase {
     private static final String ATTRIBUTE_PAINT_CENTER = "paintCenter";
     private static final String ATTRIBUTE_METHOD = "method";
     private static final String ATTRIBUTE_DIRECTION = "direction";
+    private static final String ATTRIBUTE_CENTER = "center";
 
     /**
      * Lazily created, used for anything we don't understand.
@@ -118,12 +147,17 @@ class SynthParser extends HandlerBase {
     /**
      * Object references outside the scope of persistance.
      */
-    private Map _mapping;
+    private Map<String,Object> _mapping;
 
     /**
-     * Based used to resolve paths.
+     * Based URL used to resolve paths.
      */
-    private Class _resourceBase;
+    private URL _urlResourceBase;
+    
+    /**
+     * Based class used to resolve paths.
+     */
+    private Class<?> _classResourceBase;
 
     /**
      * List of ColorTypes. This is populated in startColorType.
@@ -146,7 +180,7 @@ class SynthParser extends HandlerBase {
     private java.util.List _statePainters;
 
     SynthParser() {
-        _mapping = new HashMap();
+        _mapping = new HashMap<String,Object>();
         _stateInfos = new ArrayList();
         _colorTypes = new ArrayList();
         _inputMapBindings = new ArrayList();
@@ -157,22 +191,32 @@ class SynthParser extends HandlerBase {
     /**
      * Parses a set of styles from <code>inputStream</code>, adding the
      * resulting styles to the passed in DefaultSynthStyleFactory.
+     * Resources are resolved either from a URL or from a Class. When calling
+     * this method, one of the URL or the Class must be null but not both at
+     * the same time.
      *
      * @param inputStream XML document containing the styles to read
      * @param factory DefaultSynthStyleFactory that new styles are added to
-     * @param resourceBase Class used to resolve any resources, such as Images
+     * @param urlResourceBase the URL used to resolve any resources, such as Images
+     * @param classResourceBase the Class used to resolve any resources, such as Images
      * @param defaultsMap Map that UIDefaults properties are placed in
      */
     public void parse(InputStream inputStream,
                       DefaultSynthStyleFactory factory,
-                      Class resourceBase, Map defaultsMap)
+                      URL urlResourceBase, Class<?> classResourceBase,
+                      Map defaultsMap)
                       throws ParseException, IllegalArgumentException {
-        if (inputStream == null || factory == null || resourceBase == null) {
+        if (inputStream == null || factory == null ||
+            (urlResourceBase == null && classResourceBase == null)) {
             throw new IllegalArgumentException(
-                "You must supply an InputStream;, Class and StyleFactory");
+                "You must supply an InputStream, StyleFactory and Class or URL");
         }
+        
+        assert(!(urlResourceBase != null && classResourceBase != null));
+        
         _factory = factory;
-        _resourceBase = resourceBase;
+        _classResourceBase = classResourceBase;
+        _urlResourceBase = urlResourceBase;
         _defaultsMap = defaultsMap;
         try {
             try {
@@ -198,7 +242,15 @@ class SynthParser extends HandlerBase {
      * Returns the path to a resource.
      */
     private URL getResource(String path) {
-        return _resourceBase.getResource(path);
+        if (_classResourceBase != null) {
+            return _classResourceBase.getResource(path);
+        } else {
+            try {
+                return new URL(_urlResourceBase, path);
+            } catch (MalformedURLException mue) {
+                return null;
+            }
+        }
     }
 
     /**
@@ -226,7 +278,25 @@ class SynthParser extends HandlerBase {
      */
     private ObjectHandler getHandler() {
         if (_handler == null) {
-            _handler = new ObjectHandler();
+            if (_urlResourceBase != null) {
+                // getHandler() is never called before parse() so it is safe
+                // to create a URLClassLoader with _resourceBase.
+                //
+                // getResource(".") is called to ensure we have the directory
+                // containing the resources in the case the resource base is a
+                // .class file.
+                URL[] urls = new URL[] { getResource(".") };
+                ClassLoader parent = Thread.currentThread().getContextClassLoader();
+                ClassLoader urlLoader = new URLClassLoader(urls, parent);
+                _handler = new ObjectHandler(null, urlLoader);
+            } else {
+                _handler = new ObjectHandler(null,
+                    _classResourceBase.getClassLoader());
+            }
+
+            for (String key : _mapping.keySet()) {
+                _handler.register(key, _mapping.get(key));
+            }
         }
         return _handler;
     }
@@ -271,7 +341,12 @@ class SynthParser extends HandlerBase {
                      (_handler != null && _handler.lookup(key) != null)) {
                 throw new SAXException("ID " + key + " is already defined");
             }
-            _mapping.put(key, value);
+            if (_handler != null) {
+                _handler.register(key, value);
+            }
+            else {
+                _mapping.put(key, value);
+            }
         }
     }
 
@@ -502,9 +577,37 @@ class SynthParser extends HandlerBase {
 
                 if (value.startsWith("#")) {
                     try {
-                        int rgba = Integer.decode(value).intValue();
-                        color = new ColorUIResource(new Color(
-                                              rgba, value.length() > 7));
+                        int argb;
+                        boolean hasAlpha;
+
+                        int length = value.length();
+                        if (length < 8) {
+                            // Just RGB, or some portion of it.
+                            argb = Integer.decode(value);
+                            hasAlpha = false;
+                        } else if (length == 8) {
+                            // Single character alpha: #ARRGGBB.
+                            argb = Integer.decode(value);
+                            hasAlpha = true;
+                        } else if (length == 9) {
+                            // Color has alpha and is of the form 
+                            // #AARRGGBB.
+                            // The following split decoding is mandatory due to
+                            // Integer.decode() behavior which won't decode
+                            // hexadecimal values higher than #7FFFFFFF.
+                            // Thus, when an alpha channel is detected, it is
+                            // decoded separately from the RGB channels.
+                            int rgb = Integer.decode('#' +
+                                                     value.substring(3, 9));
+                            int a = Integer.decode(value.substring(0, 3));
+                            argb = (a << 24) | rgb;
+                            hasAlpha = true;
+                        } else {
+                            throw new SAXException("Invalid Color value: "
+                                + value);
+                        }
+
+                        color = new ColorUIResource(new Color(argb, hasAlpha));
                     } catch (NumberFormatException nfe) {
                         throw new SAXException("Invalid Color value: " +value);
                     }
@@ -589,7 +692,7 @@ class SynthParser extends HandlerBase {
         Object value = null;
         Object key = null;
         // Type of the value: 0=idref, 1=boolean, 2=dimension, 3=insets,
-        // 4=integer
+        // 4=integer,5=string
         int iType = 0;
         String aValue = null;
 
@@ -611,6 +714,9 @@ class SynthParser extends HandlerBase {
                 }
                 else if (type.equals("INTEGER")) {
                     iType = 4;
+                }
+                else if (type.equals("STRING")) {
+                    iType = 5;
                 }
                 else {
                     throw new SAXException(property + " unknown type, use" +
@@ -652,6 +758,9 @@ class SynthParser extends HandlerBase {
                 } catch (NumberFormatException nfe) {
                     throw new SAXException(property + " invalid value");
                 }
+                break;
+            case 5: //string
+                value = aValue;
                 break;
             }
         }
@@ -790,6 +899,10 @@ class SynthParser extends HandlerBase {
         String method = null;
         String id = null;
         int direction = -1;
+        boolean center = false;
+
+        boolean stretchSpecified = false;
+        boolean paintCenterSpecified = false;
 
         for(int i = attributes.getLength() - 1; i >= 0; i--) {
             String key = attributes.getName(i);
@@ -799,7 +912,7 @@ class SynthParser extends HandlerBase {
                 id = value;
             }
             else if (key.equals(ATTRIBUTE_METHOD)) {
-                method = value;
+                method = value.toLowerCase(Locale.ENGLISH);
             }
             else if (key.equals(ATTRIBUTE_IDREF)) {
                 painter = (SynthPainter)lookup(value, SynthPainter.class);
@@ -817,9 +930,11 @@ class SynthParser extends HandlerBase {
             }
             else if (key.equals(ATTRIBUTE_PAINT_CENTER)) {
                 paintCenter = value.toLowerCase().equals("true");
+                paintCenterSpecified = true;
             }
             else if (key.equals(ATTRIBUTE_STRETCH)) {
                 stretch = value.toLowerCase().equals("true");
+                stretchSpecified = true;
             }
             else if (key.equals(ATTRIBUTE_DIRECTION)) {
                 value = value.toUpperCase().intern();
@@ -834,6 +949,18 @@ class SynthParser extends HandlerBase {
                 }
                 else if (value == "WEST") {
                     direction = SwingConstants.WEST;
+                }
+                else if (value == "TOP") {
+                    direction = SwingConstants.TOP;
+                }
+                else if (value == "LEFT") {
+                    direction = SwingConstants.LEFT;
+                }
+                else if (value == "BOTTOM") {
+                    direction = SwingConstants.BOTTOM;
+                }
+                else if (value == "RIGHT") {
+                    direction = SwingConstants.RIGHT;
                 }
                 else if (value == "HORIZONTAL") {
                     direction = SwingConstants.HORIZONTAL;
@@ -851,31 +978,58 @@ class SynthParser extends HandlerBase {
                     throw new SAXException(type + ": unknown direction");
                 }
             }
+            else if (key.equals(ATTRIBUTE_CENTER)) {
+                center = value.toLowerCase().equals("true");
+            }
         }
         if (painter == null) {
             if (type == ELEMENT_PAINTER) {
                 throw new SAXException(type + 
                              ": you must specify an idref");
             }
-            if (sourceInsets == null) {
+            if (sourceInsets == null && !center) {
                 throw new SAXException(
                              "property: you must specify sourceInsets");
             }
             if (path == null) {
                 throw new SAXException("property: you must specify a path");
             }
-            painter = new ImagePainter(!stretch, paintCenter, null,
-                     sourceInsets, destInsets, getResource(path));
+            if (center && (sourceInsets != null || destInsets != null ||
+                           paintCenterSpecified || stretchSpecified)) {
+                throw new SAXException("The attributes: sourceInsets, " +
+                                       "destinationInsets, paintCenter and stretch " +
+                                       " are not legal when center is true");
+            }
+            painter = new ImagePainter(!stretch, paintCenter,
+                     sourceInsets, destInsets, getResource(path), center);
         }
         register(id, painter);
         if (_stateInfo != null) {
-            _statePainters.add(new ParsedSynthStyle.PainterInfo(
-                                   method, painter, direction));
+            addPainterOrMerge(_statePainters, method, painter, direction);
         }
         else if (_style != null) {
-            _stylePainters.add(new ParsedSynthStyle.PainterInfo(
-                                   method, painter, direction));
+            addPainterOrMerge(_stylePainters, method, painter, direction);
         }
+    }
+
+    private void addPainterOrMerge(java.util.List painters, String method,
+                                   SynthPainter painter, int direction) {
+        ParsedSynthStyle.PainterInfo painterInfo;
+        painterInfo = new ParsedSynthStyle.PainterInfo(method,
+                                                       painter,
+                                                       direction);
+
+        for (Object infoObject: painters) {
+            ParsedSynthStyle.PainterInfo info;
+            info = (ParsedSynthStyle.PainterInfo) infoObject;
+
+            if (painterInfo.equalsPainter(info)) {
+                info.addPainter(painter);
+                return;
+            }
+        }
+
+        painters.add(painterInfo);
     }
 
     private void startImageIcon(AttributeList attributes) throws SAXException {

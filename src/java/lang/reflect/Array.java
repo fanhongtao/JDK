@@ -1,7 +1,7 @@
 /*
- * @(#)Array.java	1.21 04/04/20
+ * @(#)Array.java	1.24 06/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ class Array {
      * @return the new array
      * @exception NullPointerException if the specified
      * <code>componentType</code> parameter is null
-     * @exception IllegalArgumentException if componentType is Void.TYPE
+     * @exception IllegalArgumentException if componentType is {@link Void#TYPE}
      * @exception NegativeArraySizeException if the specified <code>length</code> 
      * is negative
      */
@@ -57,8 +57,8 @@ class Array {
      * with the specified component type and dimensions. 
      * If <code>componentType</code>
      * represents a non-array class or interface, the new array
-     * has <code>dimensions.length</code> dimensions and&nbsp;
-     * <code>componentType&nbsp;</code> as its component type. If
+     * has <code>dimensions.length</code> dimensions and
+     * <code>componentType</code> as its component type. If
      * <code>componentType</code> represents an array class, the
      * number of dimensions of the new array is equal to the sum
      * of <code>dimensions.length</code> and the number of
@@ -72,7 +72,7 @@ class Array {
      *
      * @param componentType the <code>Class</code> object representing the component
      * type of the new array
-     * @param dimensions an array of <code>int</code> types representing the dimensions of
+     * @param dimensions an array of <code>int</code> representing the dimensions of
      * the new array
      * @return the new array
      * @exception NullPointerException if the specified 
@@ -81,11 +81,11 @@ class Array {
      * argument is a zero-dimensional array, or if the number of
      * requested dimensions exceeds the limit on the number of array dimensions 
      * supported by the implementation (typically 255), or if componentType 
-     * is Void.TYPE.
+     * is {@link Void#TYPE}.
      * @exception NegativeArraySizeException if any of the components in
      * the specified <code>dimensions</code> argument is negative.
      */
-    public static Object newInstance(Class<?> componentType, int[] dimensions)
+    public static Object newInstance(Class<?> componentType, int... dimensions)
 	throws IllegalArgumentException, NegativeArraySizeException {
 	return multiNewArray(componentType, dimensions);
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)RepositoryId.java	1.36 05/01/04
+ * @(#)RepositoryId.java	1.35 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,8 +31,6 @@ import org.omg.CORBA.portable.IDLEntity;
 import com.sun.corba.se.impl.io.ObjectStreamClass;
 
 import javax.rmi.CORBA.Util;
-import sun.misc.SoftCache;
-import java.util.WeakHashMap;
 
 public class RepositoryId {
 	
@@ -77,12 +75,12 @@ public class RepositoryId {
 
     }
 
-    private static WeakHashMap classToRepStr = new WeakHashMap();
+    private static IdentityHashtable classToRepStr = new IdentityHashtable();
     private static IdentityHashtable classIDLToRepStr = new IdentityHashtable();
     private static IdentityHashtable classSeqToRepStr = new IdentityHashtable();
 
     private static IdentityHashtable repStrToByteArray = new IdentityHashtable();
-    private static SoftCache repStrToClass = new SoftCache();
+    private static Hashtable repStrToClass = new Hashtable();
 
     private String repId = null;
     private boolean isSupportedFormat = true;

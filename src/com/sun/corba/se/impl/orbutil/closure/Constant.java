@@ -1,7 +1,7 @@
 /*
- * @(#)Constant.java	1.7 04/06/21
+ * @(#)Constant.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

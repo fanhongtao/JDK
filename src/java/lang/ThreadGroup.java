@@ -1,13 +1,14 @@
 /*
- * @(#)ThreadGroup.java	1.63 04/06/17
+ * @(#)ThreadGroup.java	1.65 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 import sun.misc.VM;
 
 /**
@@ -21,7 +22,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.63, 06/17/04
+ * @version 1.65, 11/17/05
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -239,8 +240,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    }
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+                groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }
@@ -315,8 +315,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    result = nthreads;
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }
@@ -413,8 +412,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    if (recurse) {
 		ngroupsSnapshot = ngroups;
 		if (groups != null) {
-		    groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		    System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+                    groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 		} else {
 		    groupsSnapshot = null;
 		}
@@ -448,8 +446,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    }
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }
@@ -545,8 +542,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    if (recurse) {
 		ngroupsSnapshot = ngroups;
 		if (groups != null) {
-		    groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		    System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+                    groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 		} else {
 		    groupsSnapshot = null;
 		}
@@ -612,8 +608,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    }
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }
@@ -673,8 +668,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    }
 	}
 	for (int i = 0 ; i < ngroupsSnapshot ; i++)
@@ -715,8 +709,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    }
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }
@@ -751,8 +744,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    }
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }
@@ -785,9 +777,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    if (groups == null) {
 		groups = new ThreadGroup[4];
 	    } else if (ngroups == groups.length) {
-		ThreadGroup newgroups[] = new ThreadGroup[ngroups * 2];
-		System.arraycopy(groups, 0, newgroups, 0, ngroups);
-		groups = newgroups;
+		groups = Arrays.copyOf(groups, ngroups * 2);
 	    }
 	    groups[ngroups] = g;
 
@@ -858,9 +848,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    if (threads == null) {
 		threads = new Thread[4];
 	    } else if (nthreads == threads.length) {
-		Thread newthreads[] = new Thread[nthreads * 2];
-		System.arraycopy(threads, 0, newthreads, 0, nthreads);
-		threads = newthreads;
+                threads = Arrays.copyOf(threads, nthreads * 2);
 	    }
 	    threads[nthreads] = t;
 
@@ -927,8 +915,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	    }
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
-		groupsSnapshot = new ThreadGroup[ngroupsSnapshot];
-		System.arraycopy(groups, 0, groupsSnapshot, 0, ngroupsSnapshot);
+		groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);
 	    } else {
 		groupsSnapshot = null;
 	    }

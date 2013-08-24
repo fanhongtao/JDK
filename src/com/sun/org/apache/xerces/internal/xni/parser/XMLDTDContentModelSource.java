@@ -70,7 +70,7 @@ import com.sun.org.apache.xerces.internal.xni.XMLDTDContentModelHandler;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLDTDContentModelSource.java,v 1.4 2002/12/07 00:07:51 neilg Exp $
+ * @version $Id: XMLDTDContentModelSource.java,v 1.1.2.1 2005/08/01 03:36:17 jeffsuttor Exp $
  */
 public interface XMLDTDContentModelSource {
 

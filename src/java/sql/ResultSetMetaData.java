@@ -1,7 +1,7 @@
 /*
- * @(#)ResultSetMetaData.java	1.27 03/12/19
+ * @(#)ResultSetMetaData.java	1.33 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package java.sql;
  * </PRE>
  */
 
-public interface ResultSetMetaData {
+public interface ResultSetMetaData extends Wrapper {
 
     /**
      * Returns the number of columns in this <code>ResultSet</code> object.
@@ -35,7 +35,7 @@ public interface ResultSetMetaData {
     int getColumnCount() throws SQLException;
 
     /**
-     * Indicates whether the designated column is automatically numbered, thus read-only.
+     * Indicates whether the designated column is automatically numbered.
      *
      * @param column the first column is 1, the second is 2, ...
      * @return <code>true</code> if so; <code>false</code> otherwise
@@ -119,7 +119,10 @@ public interface ResultSetMetaData {
 
     /**
      * Gets the designated column's suggested title for use in printouts and
-     * displays.
+     * displays. The suggested title is usually specified by the SQL <code>AS</code> 
+     * clause.  If a SQL <code>AS</code> is not specified, the value returned from 
+     * <code>getColumnLabel</code> will be the same as the value returned by the 
+     * <code>getColumnName</code> method.
      *
      * @param column the first column is 1, the second is 2, ...
      * @return the suggested column title
@@ -146,7 +149,12 @@ public interface ResultSetMetaData {
     String getSchemaName(int column) throws SQLException;
 
     /**
-     * Get the designated column's number of decimal digits.
+     * Get the designated column's specified column size. 
+     * For numeric data, this is the maximum precision.  For character data, this is the length in characters. 
+     * For datetime datatypes, this is the length in characters of the String representation (assuming the 
+     * maximum allowed precision of the fractional seconds component). For binary data, this is the length in bytes.  For the ROWID datatype, 
+     * this is the length in bytes. 0 is returned for data types where the
+     * column size is not applicable.
      *
      * @param column the first column is 1, the second is 2, ...
      * @return precision
@@ -156,6 +164,7 @@ public interface ResultSetMetaData {
 
     /**
      * Gets the designated column's number of digits to right of the decimal point.
+     * 0 is returned for data types where the scale is not applicable.
      *
      * @param column the first column is 1, the second is 2, ...
      * @return scale

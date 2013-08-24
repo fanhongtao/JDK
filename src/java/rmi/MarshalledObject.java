@@ -1,13 +1,21 @@
 /*
- * @(#)MarshalledObject.java	1.33 03/12/19
+ * @(#)MarshalledObject.java	1.35 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamConstants;
+import java.io.OutputStream;
+import java.io.Serializable;
 import sun.rmi.server.MarshalInputStream;
 import sun.rmi.server.MarshalOutputStream;
 
@@ -35,12 +43,15 @@ import sun.rmi.server.MarshalOutputStream;
  * <p><code>MarshalledObject</code> facilitates passing objects in RMI calls
  * that are not automatically deserialized immediately by the remote peer.
  *
- * @version 1.33, 12/19/03
+ * @param <T> the type of the object contained in this
+ * <code>MarshalledObject</code>
+ *
+ * @version 1.35, 11/17/05
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2
  */
-public final class MarshalledObject implements Serializable {
+public final class MarshalledObject<T> implements Serializable {
     /**
      * @serial Bytes of serialized representation.  If <code>objBytes</code> is
      * <code>null</code> then the object marshalled was a <code>null</code>
@@ -77,9 +88,7 @@ public final class MarshalledObject implements Serializable {
      * serializable.
      * @since 1.2
      */
-    public MarshalledObject(Object obj)
-	throws java.io.IOException
-    {
+    public MarshalledObject(T obj) throws IOException {
 	if (obj == null) {
 	    hash = 13;
 	    return;
@@ -120,9 +129,7 @@ public final class MarshalledObject implements Serializable {
      * could not be found
      * @since 1.2
      */
-    public Object get()
-	throws java.io.IOException, java.lang.ClassNotFoundException
-    {
+    public T get() throws IOException, ClassNotFoundException {
 	if (objBytes == null)	// must have been a null object
 	    return null;
 
@@ -132,7 +139,7 @@ public final class MarshalledObject implements Serializable {
 	    (locBytes == null ? null : new ByteArrayInputStream(locBytes));
 	MarshalledObjectInputStream in =
 	    new MarshalledObjectInputStream(bin, lin);
-	Object obj = in.readObject();
+	T obj = (T) in.readObject();
 	in.close();
 	return obj;
     }

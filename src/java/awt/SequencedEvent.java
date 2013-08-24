@@ -1,7 +1,7 @@
 /*
- * @(#)SequencedEvent.java	1.10 03/12/19
+ * @(#)SequencedEvent.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,10 +22,15 @@ import sun.awt.SunToolkit;
  * before the wrapping SequencedEvent was able to be dispatched. In this case,
  * the nested event is never dispatched.
  *
- * @version 1.10, 12/19/03
+ * @version 1.12, 11/17/05
  * @author David Mendenhall
  */
 class SequencedEvent extends AWTEvent implements ActiveEvent {
+    /*
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = 547742659238625067L;
+
     private static final int ID =
 	java.awt.event.FocusEvent.FOCUS_LAST + 1;
     private static final LinkedList list = new LinkedList();

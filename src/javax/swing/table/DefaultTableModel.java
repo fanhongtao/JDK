@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableModel.java	1.39 03/12/19
+ * @(#)DefaultTableModel.java	1.43 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,6 +18,15 @@ import javax.swing.event.TableModelEvent;
  * uses a <code>Vector</code> of <code>Vectors</code> to store the
  * cell value objects.
  * <p>
+ * <strong>Warning:</strong> <code>DefaultTableModel</code> returns a
+ * column class of <code>Object</code>.  When
+ * <code>DefaultTableModel</code> is used with a
+ * <code>TableRowSorter</code> this will result in extensive use of
+ * <code>toString</code>, which for non-<code>String</code> data types
+ * is expensive.  If you use <code>DefaultTableModel</code> with a
+ * <code>TableRowSorter</code> you are strongly encouraged to override
+ * <code>getColumnClass</code> to return the appropriate type.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -27,7 +36,7 @@ import javax.swing.event.TableModelEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.39 12/19/03
+ * @version 1.43 04/07/06
  * @author Philip Milne
  *
  * @see TableModel
@@ -307,6 +316,7 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
      *  rows at index <code>rowCount</code> and greater are discarded. <p>
      *
      *  @see #setColumnCount
+     * @since 1.3
      */
     public void setRowCount(int rowCount) { 
 	setNumRows(rowCount); 
@@ -485,6 +495,7 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
      *  @param columnCount  the new number of columns in the model
      *
      *  @see #setColumnCount
+     * @since 1.3
      */
     public void setColumnCount(int columnCount) { 
 	columnIdentifiers.setSize(columnCount); 
@@ -582,13 +593,13 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
      * appropriate member in <code>columnIdentifiers</code>.
      * If <code>columnIdentifiers</code> does not have an entry 
      * for this index, returns the default
-     * name provided by the superclass
+     * name provided by the superclass.
      */
     public String getColumnName(int column) {
         Object id = null; 
 	// This test is to cover the case when 
 	// getColumnCount has been subclassed by mistake ... 
-	if (column < columnIdentifiers.size()) {  
+	if (column < columnIdentifiers.size() && (column >= 0)) {  
 	    id = columnIdentifiers.elementAt(column); 
 	}
         return (id == null) ? super.getColumnName(column) 

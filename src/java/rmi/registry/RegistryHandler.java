@@ -1,7 +1,7 @@
 /*
- * @(#)RegistryHandler.java	1.14 04/05/18
+ * @(#)RegistryHandler.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.rmi.UnknownHostException;
  * runtime in previous implementation versions.  It should never be accessed
  * by application code.
  *
- * @version 1.14, 05/18/04
+ * @version 1.15, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement

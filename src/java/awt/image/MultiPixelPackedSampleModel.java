@@ -1,7 +1,7 @@
 /*
- * @(#)MultiPixelPackedSampleModel.java	1.36 03/12/19
+ * @(#)MultiPixelPackedSampleModel.java	1.38 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -226,7 +226,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
 
     /** 
      * Returns the offset of pixel (x,&nbsp;y) in data array elements.
-     * @param x,&nbsp;y the specified pixel
+     * @param x the X coordinate of the specified pixel
+     * @param y the Y coordinate of the specified pixel
      * @return the offset of the specified pixel.
      */
     public int getOffset(int x, int y) {
@@ -322,7 +323,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * pixel located at (x,&nbsp;y).  An 
      * <code>ArrayIndexOutOfBoundsException</code> is thrown if the
      * coordinates are not in bounds.
-     * @param x,&nbsp;y the coordinates of the specified pixel
+     * @param x         the X coordinate of the specified pixel
+     * @param y         the Y coordinate of the specified pixel
      * @param b 	the band to return, which is assumed to be 0
      * @param data      the <code>DataBuffer</code> containing the image
      *			data
@@ -352,7 +354,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * <code>int</code> for input.
      * An <code>ArrayIndexOutOfBoundsException</code> is thrown if the
      * coordinates are not in bounds.
-     * @param x,&nbsp;y the coordinates of the specified pixel
+     * @param x the X coordinate of the specified pixel
+     * @param y the Y coordinate of the specified pixel
      * @param b the band to return, which is assumed to be 0
      * @param s the input sample as an <code>int</code>
      * @param data the <code>DataBuffer</code> where image data is stored
@@ -414,7 +417,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * <code>ArrayIndexOutOfBoundsException</code> is thrown if the
      * coordinates are not in bounds, or if <code>obj</code> is not 
      * <code>null</code> and is not large enough to hold the pixel data.
-     * @param x,&nbsp;y coordinates of the pixel location.
+     * @param x the X coordinate of the specified pixel
+     * @param y the Y coordinate of the specified pixel
      * @param obj a primitive array in which to return the pixel data or
      *		<code>null</code>.
      * @param data the <code>DataBuffer</code> containing the image data.
@@ -498,7 +502,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * of an <code>int</code> array.
      * <code>ArrayIndexOutOfBoundsException</code> is thrown if the
      * coordinates are not in bounds.
-     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param x the X coordinate of the specified pixel
+     * @param y the Y coordinate of the specified pixel
      * @param iArray the array containing the pixel to be returned or
      * 	<code>null</code>
      * @param data the <code>DataBuffer</code> where image data is stored
@@ -560,7 +565,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * <code>ArrayIndexOutOfBoundsException</code> is thrown if the
      * coordinates are not in bounds, or if <code>obj</code> is not large
      * enough to hold the pixel data.
-     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param x the X coordinate of the pixel location
+     * @param y the Y coordinate of the pixel location
      * @param obj a primitive array containing pixel data
      * @param data the <code>DataBuffer</code> containing the image data
      * @see #getDataElements(int, int, Object, DataBuffer)
@@ -609,7 +615,8 @@ public class MultiPixelPackedSampleModel extends SampleModel
      * <code>int</code> array for input.
      * <code>ArrayIndexOutOfBoundsException</code> is thrown if
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param x the X coordinate of the pixel location
+     * @param y the Y coordinate of the pixel location
      * @param iArray the input pixel in an <code>int</code> array
      * @param data the <code>DataBuffer</code> containing the image data
      * @see #getPixel(int, int, int[], DataBuffer)

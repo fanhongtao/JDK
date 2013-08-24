@@ -1,9 +1,9 @@
-/* 
- * @(#)SubjectDelegator.java	1.3 04/05/27
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+/*
+ * @(#)SubjectDelegator.java	1.5 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */ 
+ */
 
 package com.sun.jmx.remote.security;
 
@@ -31,7 +31,8 @@ public class SubjectDelegator {
        delegate to that subject, throw SecurityException.  */
     public synchronized AccessControlContext
 	delegatedContext(AccessControlContext authenticatedACC,
-			 Subject delegatedSubject)
+			 Subject delegatedSubject,
+			 boolean removeCallerContext)
 	    throws SecurityException {
 
 	if (principalsCache == null || accCache == null) {
@@ -66,8 +67,14 @@ public class SubjectDelegator {
 	// and store it in the cache
 	//
 	if (delegatedACC == null) {
-	    delegatedACC =
-		JMXSubjectDomainCombiner.getContext(delegatedSubject);
+	    if (removeCallerContext) {
+		delegatedACC =
+                    JMXSubjectDomainCombiner.getDomainCombinerContext(
+                                                              delegatedSubject);
+	    } else {
+		delegatedACC =
+		    JMXSubjectDomainCombiner.getContext(delegatedSubject);
+	    }
 	    accCache.put(delegatedSubject, delegatedACC);
 	}
 
@@ -92,5 +99,32 @@ public class SubjectDelegator {
 	AccessController.doPrivileged(action, authenticatedACC);
 
 	return delegatedACC;
+    }
+
+    /**
+     * Check if the connector server creator can assume the identity of each
+     * principal in the authenticated subject, i.e. check if the connector
+     * server creator codebase contains a subject delegation permission for
+     * each principal present in the authenticated subject.
+     *
+     * @return {@code true} if the connector server creator can delegate to all
+     * the authenticated principals in the subject. Otherwise, {@code false}.
+     */
+    public static synchronized boolean
+        checkRemoveCallerContext(Subject subject) {
+        try {
+            final Principal[] dp = (Principal[])
+                subject.getPrincipals().toArray(new Principal[0]);
+            for (int i = 0 ; i < dp.length ; i++) {
+                final String pname =
+                    dp[i].getClass().getName() + "." + dp[i].getName();
+                final Permission sdp =
+                    new SubjectDelegationPermission(pname);
+                AccessController.checkPermission(sdp);
+            }
+        } catch (SecurityException e) {
+            return false;
+        }
+        return true;
     }
 }

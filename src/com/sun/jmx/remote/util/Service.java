@@ -1,7 +1,7 @@
 /*
- * @(#)Service.java	1.5 03/12/19
+ * @(#)Service.java	1.7 05/12/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.jmx.remote.util;
@@ -137,7 +137,7 @@ public final class Service {
 
     /**
      * Parse a single line from the given configuration file, adding the name
-     * on the line to both the names list and the returned set iff the name is
+     * on the line to both the names list and the returned set if and only if the name is
      * not already a member of the returned set.
      */
     private static int parseLine(Class service, URL u, BufferedReader r, int lc,

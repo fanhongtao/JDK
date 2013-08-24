@@ -1,7 +1,7 @@
 /*
- * @(#)MetalSliderUI.java	1.36 05/10/31
+ * @(#)MetalSliderUI.java	1.36 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 10/31/05
+ * @version 1.36 11/30/05
  * @author Tom Santos
  */
 public class MetalSliderUI extends BasicSliderUI {
@@ -54,8 +54,18 @@ public class MetalSliderUI extends BasicSliderUI {
     protected static int trackWidth;
     protected static int tickLength;
     
+   /**
+    * A default horizontal thumb <code>Icon</code>. This field might not be
+    * used. To change the <code>Icon</code> used by this delgate directly set it
+    * using the <code>Slider.horizontalThumbIcon</code> UIManager property.
+    */
     protected static Icon horizThumbIcon;
     
+   /**
+    * A default vertical thumb <code>Icon</code>. This field might not be
+    * used. To change the <code>Icon</code> used by this delgate directly set it
+    * using the <code>Slider.verticalThumbIcon</code> UIManager property.
+    */
     protected static Icon vertThumbIcon;
 
     private static Icon SAFE_HORIZ_THUMB_ICON;

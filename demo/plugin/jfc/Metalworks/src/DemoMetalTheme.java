@@ -1,7 +1,7 @@
 /*
- * @(#)DemoMetalTheme.java	1.12 04/07/26
+ * @(#)DemoMetalTheme.java	1.13 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)DemoMetalTheme.java	1.12 04/07/26
+ * @(#)DemoMetalTheme.java	1.13 05/11/17
  */
 
 
@@ -50,7 +50,7 @@ import java.awt.*;
  * It's great for giving demos of your software to a group
  * where people will have trouble seeing what you're doing.
  *
- * @version 1.12 07/26/04
+ * @version 1.13 11/17/05
  * @author Steve Wilson
  */
 public class DemoMetalTheme extends DefaultMetalTheme {

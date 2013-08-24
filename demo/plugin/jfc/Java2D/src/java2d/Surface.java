@@ -1,7 +1,7 @@
 /*
- * @(#)Surface.java	1.51 04/07/26
+ * @(#)Surface.java	1.55 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Surface.java	1.48 03/01/23
+ * @(#)Surface.java	1.55 06/08/09
  */
 
 package java2d;
@@ -47,6 +47,8 @@ import java.awt.event.*;
 import javax.swing.JPanel;
 import javax.swing.RepaintManager;
 
+import static java.awt.RenderingHints.*;
+
 
 /**
  * Surface is the base class for the 2d rendering demos.  Demos must
@@ -56,8 +58,8 @@ import javax.swing.RepaintManager;
 public abstract class Surface extends JPanel implements Printable {
 
 
-    public Object AntiAlias = RenderingHints.VALUE_ANTIALIAS_ON;
-    public Object Rendering = RenderingHints.VALUE_RENDER_SPEED;
+    public Object AntiAlias = VALUE_ANTIALIAS_ON;
+    public Object Rendering = VALUE_RENDER_SPEED;
     public AlphaComposite composite;
     public Paint texture;
     public String perfStr;            // PerformanceMonitor
@@ -82,8 +84,7 @@ public abstract class Surface extends JPanel implements Printable {
     public Surface() {
         setDoubleBuffered(this instanceof AnimatingSurface);
         toolkit = getToolkit();
-        name = this.getClass().getName();
-        name = name.substring(name.indexOf(".", 7)+1);
+        name = this.getClass().getSimpleName();
         setImageType(0);
 
         // To launch an individual demo with the performance str output  :
@@ -125,16 +126,12 @@ public abstract class Surface extends JPanel implements Printable {
 
 
     public void setAntiAlias(boolean aa) {
-        AntiAlias = aa 
-            ? RenderingHints.VALUE_ANTIALIAS_ON
-            : RenderingHints.VALUE_ANTIALIAS_OFF;
+        AntiAlias = aa ? VALUE_ANTIALIAS_ON : VALUE_ANTIALIAS_OFF;
     }
 
 
     public void setRendering(boolean rd) {
-        Rendering = rd
-            ? RenderingHints.VALUE_RENDER_QUALITY
-            : RenderingHints.VALUE_RENDER_SPEED;
+        Rendering = rd ? VALUE_RENDER_QUALITY : VALUE_RENDER_SPEED;
     }
 
 
@@ -189,8 +186,6 @@ public abstract class Surface extends JPanel implements Printable {
         } else if (imgType == 17) {
             bi = createSGISurface(w, h, 16);
         }
-        biw = w;
-        bih = h;
         return bi;
     }
 
@@ -282,8 +277,8 @@ public abstract class Surface extends JPanel implements Printable {
         }
 
         g2.setBackground(getBackground());
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AntiAlias);
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, Rendering);
+        g2.setRenderingHint(KEY_ANTIALIASING, AntiAlias);
+        g2.setRenderingHint(KEY_RENDERING, Rendering);
 
         if (clearSurface || clearOnce) {
             g2.clearRect(0, 0, width, height);
@@ -334,15 +329,22 @@ public abstract class Surface extends JPanel implements Printable {
 
     public void paint(Graphics g) {
 
+        super.paint(g);
+
         Dimension d = getSize();
+
+        if(biw != d.width || bih != d.height) {
+            toBeInitialized = true;
+            biw = d.width;
+            bih = d.height;
+        }
 
         if (imageType == 1)
             bimg = null;
-        else if (bimg == null || biw != d.width || bih != d.height) {
+        else if(bimg == null || toBeInitialized) {
             bimg = createBufferedImage((Graphics2D)g,
                                        d.width, d.height, imageType-2);
             clearOnce = true;
-            toBeInitialized = true;
         }
 
         if (toBeInitialized) {
@@ -446,13 +448,10 @@ public abstract class Surface extends JPanel implements Printable {
 
         str = str.concat(" " + GlobalControls.screenCombo.getSelectedItem());
 
-        str = AntiAlias == RenderingHints.VALUE_ANTIALIAS_ON
-            ? str.concat(" ANTIALIAS_ON ") 
-            : str.concat(" ANTIALIAS_OFF ");
-
-        str = Rendering == RenderingHints.VALUE_RENDER_QUALITY
-            ? str.concat("RENDER_QUALITY ") 
-            : str.concat("RENDER_SPEED ");
+        str.concat((AntiAlias == VALUE_ANTIALIAS_ON  ) ? " ANTIALIAS_ON "
+                                                       : " ANTIALIAS_OFF ");
+        str.concat((Rendering == VALUE_RENDER_QUALITY) ? "RENDER_QUALITY "
+                                                       : "RENDER_SPEED ");
 
         if (texture != null) {
             str = str.concat("Texture ");
@@ -464,7 +463,7 @@ public abstract class Surface extends JPanel implements Printable {
 
         Runtime r = Runtime.getRuntime();
         r.gc();
-        float freeMemory = (float) r.freeMemory();
+        float  freeMemory = (float) r.freeMemory();
         float totalMemory = (float) r.totalMemory();
         str = str.concat(((totalMemory - freeMemory)/1024) + "K used");
         System.out.println(str);
@@ -475,9 +474,9 @@ public abstract class Surface extends JPanel implements Printable {
         final DemoPanel dp = new DemoPanel(surface);
         Frame f = new Frame("Java2D Demo - " + surface.name);
         f.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {System.exit(0);}
-            public void windowDeiconified(WindowEvent e) {  dp.start(); }
-            public void windowIconified(WindowEvent e) { dp.stop(); }
+            public void windowClosing    (WindowEvent e) { System.exit(0); }
+            public void windowDeiconified(WindowEvent e) { dp.start(); }
+            public void windowIconified  (WindowEvent e) { dp.stop(); }
         });
         f.add("Center", dp);
         f.pack();

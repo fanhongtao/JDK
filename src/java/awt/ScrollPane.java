@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPane.java	1.95 04/05/18
+ * @(#)ScrollPane.java	1.98 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -66,7 +66,7 @@ import java.io.IOException;
  * will change dynamically depending on whether the scrollbars are
  * currently visible or not.
  *
- * @version     1.95 05/18/04
+ * @version     1.98 04/07/06
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
@@ -737,6 +737,7 @@ public class ScrollPane extends Container implements Accessible {
      *
      * @return an AccessibleAWTScrollPane that serves as the 
      *         AccessibleContext of this ScrollPane
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -750,6 +751,7 @@ public class ScrollPane extends Container implements Accessible {
      * <code>ScrollPane</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to scroll pane user-interface 
      * elements.
+     * @since 1.3
      */
     protected class AccessibleAWTScrollPane extends AccessibleAWTContainer
     {
@@ -785,6 +787,10 @@ public class ScrollPane extends Container implements Accessible {
  * using JDK1.1
  */
 class PeerFixer implements AdjustmentListener, java.io.Serializable {
+    /*
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = 7051237413532574756L;
 
     PeerFixer(ScrollPane scroller) {
 	this.scroller = scroller;

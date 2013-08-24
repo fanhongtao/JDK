@@ -1,7 +1,7 @@
 /*
- * @(#)BoxLayout.java	1.34 03/12/19
+ * @(#)BoxLayout.java	1.37 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -115,7 +115,7 @@ import java.io.PrintStream;
  * @see JComponent#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version 1.34 12/19/03 
+ * @version 1.37 04/10/06 
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 
@@ -185,6 +185,33 @@ public class BoxLayout implements LayoutManager2, Serializable {
     }
 
     /**
+     * Returns the container that uses this layout manager.
+     *
+     * @return the container that uses this layout manager
+     *
+     * @since 1.6
+     */
+    public final Container getTarget() {
+        return this.target;
+    }
+
+    /**
+     * Returns the axis that was used to lay out components.
+     * Returns one of:
+     * <code>BoxLayout.X_AXIS</code>,
+     * <code>BoxLayout.Y_AXIS</code>,
+     * <code>BoxLayout.LINE_AXIS</code> or
+     * <code>BoxLayout.PAGE_AXIS</code>
+     *
+     * @return the axis that was used to lay out components
+     *
+     * @since 1.6
+     */
+    public final int getAxis() {
+        return this.axis;
+    }
+
+    /**
      * Indicates that a child has changed its layout related information,
      * and thus any cached calculations should be flushed.
      * <p>
@@ -213,6 +240,7 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @param comp the component
      */
     public void addLayoutComponent(String name, Component comp) {
+        invalidateLayout(comp.getParent());
     }
 
     /**
@@ -221,6 +249,7 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @param comp the component
      */
     public void removeLayoutComponent(Component comp) {
+        invalidateLayout(comp.getParent());
     }
 
     /**
@@ -230,6 +259,7 @@ public class BoxLayout implements LayoutManager2, Serializable {
      * @param constraints constraints
      */
     public void addLayoutComponent(Component comp, Object constraints) {
+        invalidateLayout(comp.getParent());
     }
 
     /**

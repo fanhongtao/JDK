@@ -1,7 +1,7 @@
 /*
- * @(#)FadeAnim.java	1.39 04/07/26
+ * @(#)FadeAnim.java	1.42 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)FadeAnim.java	1.35 03/01/23
+ * @(#)FadeAnim.java	1.42 06/08/29
  */
 
 package java2d.demos.Composite;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
@@ -63,7 +64,7 @@ public class FadeAnim extends AnimatingControlsSurface {
         int w = 10; int h = 10;
         BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         Graphics2D gi = bi.createGraphics();
-        Color oc = Color.blue; Color ic = Color.green;
+        Color oc = BLUE; Color ic = GREEN;
         gi.setPaint(new GradientPaint(0,0,oc,w*.35f,h*.35f,ic));
         gi.fillRect(0, 0, w/2, h/2);
         gi.setPaint(new GradientPaint(w,0,oc,w*.65f,h*.35f,ic));
@@ -87,15 +88,15 @@ public class FadeAnim extends AnimatingControlsSurface {
     private static String imgs[] = { 
                 "jumptojavastrip.png", "duke.gif", "star7.gif" };
     private static Paint paints[] = { 
-                Color.red, Color.blue, Color.green, Color.magenta, 
-                Color.orange, Color.pink, Color.cyan, texture,
-                Color.yellow, Color.lightGray, Color.white};
+                RED, BLUE, GREEN, MAGENTA, 
+                ORANGE, PINK, CYAN, texture,
+                YELLOW, LIGHT_GRAY, WHITE};
     private Vector vector = new Vector(20);
     private int numShapes, numStrings, numImages;
 
 
     public FadeAnim() {
-        setBackground(Color.black);
+        setBackground(BLACK);
         setStrings(2);
         setImages(3);
         setShapes(8);
@@ -127,7 +128,7 @@ public class FadeAnim extends AnimatingControlsSurface {
                     bimg.createGraphics().drawImage((Image) obj, 0, 0, null);
                     obj = bimg;
                 }
-                ObjectData od = new ObjectData(obj, Color.black);
+                ObjectData od = new ObjectData(obj, BLACK);
                 od.reset(d.width, d.height);
                 vector.addElement(od);
             }

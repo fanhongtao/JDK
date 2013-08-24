@@ -1,7 +1,7 @@
 /*
- * @(#)RMISecurityManager.java	1.31 03/12/19
+ * @(#)RMISecurityManager.java	1.32 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.security.*;
  * System.setSecurityManager(new SecurityManager());
  * </pre>
  *
- * @version 1.31, 12/19/03
+ * @version 1.32, 11/17/05
  * @author  Roger Riggs
  * @author  Peter Jones
  * @since JDK1.1

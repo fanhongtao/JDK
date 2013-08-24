@@ -1,7 +1,7 @@
 /*
- * @(#)FilterReader.java	1.17 03/12/19
+ * @(#)FilterReader.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.io;
  * should override some of these methods and may also provide
  * additional methods and fields.
  *
- * @version 	1.17, 03/12/19
+ * @version 	1.19, 05/11/17
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -29,7 +29,7 @@ public abstract class FilterReader extends Reader {
     protected Reader in;
 
     /**
-     * Create a new filtered reader.
+     * Creates a new filtered reader.
      *
      * @param in  a Reader object providing the underlying stream.
      * @throws NullPointerException if <code>in</code> is <code>null</code>
@@ -40,7 +40,7 @@ public abstract class FilterReader extends Reader {
     }
 
     /**
-     * Read a single character.
+     * Reads a single character.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -49,7 +49,7 @@ public abstract class FilterReader extends Reader {
     }
 
     /**
-     * Read characters into a portion of an array.
+     * Reads characters into a portion of an array.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -58,7 +58,7 @@ public abstract class FilterReader extends Reader {
     }
 
     /**
-     * Skip characters.
+     * Skips characters.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -67,7 +67,7 @@ public abstract class FilterReader extends Reader {
     }
 
     /**
-     * Tell whether this stream is ready to be read.
+     * Tells whether this stream is ready to be read.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -76,14 +76,14 @@ public abstract class FilterReader extends Reader {
     }
 
     /**
-     * Tell whether this stream supports the mark() operation.
+     * Tells whether this stream supports the mark() operation.
      */
     public boolean markSupported() {
 	return in.markSupported();
     }
 
     /**
-     * Mark the present position in the stream.
+     * Marks the present position in the stream.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -92,7 +92,7 @@ public abstract class FilterReader extends Reader {
     }
 
     /**
-     * Reset the stream.
+     * Resets the stream.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -100,11 +100,6 @@ public abstract class FilterReader extends Reader {
 	in.reset();
     }
 
-    /**
-     * Close the stream.
-     *
-     * @exception  IOException  If an I/O error occurs
-     */
     public void close() throws IOException {
 	in.close();
     }

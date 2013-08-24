@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FilterExprWalker.java,v 1.24 2004/02/17 04:32:08 minchau Exp $
+ * $Id: FilterExprWalker.java,v 1.2.4.2 2005/09/14 19:45:23 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -36,6 +36,7 @@ import com.sun.org.apache.xpath.internal.objects.XNodeSet;
  */
 public class FilterExprWalker extends AxesWalker
 {
+    static final long serialVersionUID = 5457182471424488375L;
 
   /**
    * Construct a FilterExprWalker using a LocPathIterator.
@@ -317,8 +318,6 @@ public class FilterExprWalker extends AxesWalker
 	 * each member.  If the called visitor method returns 
 	 * false, the subtree should not be called.
 	 * 
-	 * @param owner The owner of the visitor, where that path may be 
-	 *              rewritten if needed.
 	 * @param visitor The visitor whose appropriate method will be called.
 	 */
 	public void callPredicateVisitors(XPathVisitor visitor)

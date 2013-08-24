@@ -1,7 +1,7 @@
 /*
- * @(#)Statement.java	1.32 05/05/29
+ * @(#)Statement.java	1.31 06/05/23
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -29,7 +29,7 @@ import sun.reflect.misc.MethodUtil;
  *
  * @since 1.4
  *
- * @version 1.32 05/29/05
+ * @version 1.31 05/23/06
  * @author Philip Milne
  */
 public class Statement {
@@ -139,7 +139,6 @@ public class Statement {
         if (target == Class.class && methodName.equals("forName")) {
             return ObjectHandler.classForName((String)arguments[0]);
         }
-
         Class[] argClasses = new Class[arguments.length];
         for(int i = 0; i < arguments.length; i++) {
             argClasses[i] = (arguments[i] == null) ? null : arguments[i].getClass();

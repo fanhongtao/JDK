@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.122 05/06/06
+ * @(#)BasicPopupMenuUI.java	1.135 06/08/08
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,16 +32,21 @@ import java.util.*;
 import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
 
+import sun.awt.AppContext;
+
 /**
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.122 06/06/05
+ * @version 1.135 08/08/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
  */
 public class BasicPopupMenuUI extends PopupMenuUI {
+    static final StringBuilder MOUSE_GRABBER_KEY = new StringBuilder(
+                   "javax.swing.plaf.basic.BasicPopupMenuUI.MouseGrabber");
+
     protected JPopupMenu popupMenu = null;
     private transient PopupMenuListener popupMenuListener = null;
     private MenuKeyListener menuKeyListener = null;
@@ -56,10 +61,10 @@ public class BasicPopupMenuUI extends PopupMenuUI {
     }
 
     public BasicPopupMenuUI() {
-        BasicLookAndFeel.hasPopups = true;
+        BasicLookAndFeel.needsEventHelper = true;
         LookAndFeel laf = UIManager.getLookAndFeel();
         if (laf instanceof BasicLookAndFeel) {
-            ((BasicLookAndFeel)laf).createdPopup();
+            ((BasicLookAndFeel)laf).installAWTEventListener();
         }
     }
 
@@ -95,9 +100,15 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         }
         popupMenu.addMenuKeyListener(menuKeyListener);
 
-	if (mouseGrabber == null) {
-	    mouseGrabber = new MouseGrabber();
-	}
+        synchronized (MOUSE_GRABBER_KEY) { 
+            AppContext context = AppContext.getAppContext(); 
+            MouseGrabber mouseGrabber = (MouseGrabber)context.get(
+                                                     MOUSE_GRABBER_KEY);   
+            if (mouseGrabber == null) {    
+                mouseGrabber = new MouseGrabber();   
+                context.put(MOUSE_GRABBER_KEY, mouseGrabber);   
+            } 
+        }
 
         if (!menuKeyboardHelperInstalled) {
             if (menuKeyboardHelper == null) {
@@ -163,12 +174,6 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         if (menuKeyListener != null) {
             popupMenu.removeMenuKeyListener(menuKeyListener);
         }
-        if(mouseGrabber != null) {
-            MenuSelectionManager msm = MenuSelectionManager.defaultManager();
-            msm.removeChangeListener(mouseGrabber);
-            mouseGrabber.ungrabWindow();
-            mouseGrabber = null;
-        }
     }
 
     protected void uninstallKeyboardActions() {
@@ -188,24 +193,6 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 	}
 	
 	return me;
-    }
-
-    private static boolean doUnpostPopupOnDeactivation() {
-        if (!checkedUnpostPopup) {
-            Boolean b = java.security.AccessController.doPrivileged(
-                new java.security.PrivilegedAction <Boolean> () {
-                    public Boolean run() {
-                        String pKey =
-                            "sun.swing.unpostPopupsOnWindowDeactivation";
-                        String value = System.getProperty(pKey, "true");
-                        return Boolean.valueOf(value);
-                    }
-                }
-            );
-            unpostPopup = b.booleanValue();
-            checkedUnpostPopup = true;
-        }
-        return unpostPopup;
     }
 
     static JPopupMenu getLastPopup() {
@@ -300,12 +287,13 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         }
 
 	public void menuKeyPressed(MenuKeyEvent e) {
+            char keyChar = e.getKeyChar();
+
 	    // Handle the case for Escape or Enter...
-	    if (!Character.isLetterOrDigit(e.getKeyChar())) {
+	    if (!Character.isLetterOrDigit(keyChar)) {
 		return;
             }
 
-            int keyCode = e.getKeyCode();
             MenuSelectionManager manager = e.getMenuSelectionManager();
             MenuElement path[] = e.getPath();
             MenuElement items[] = popupMenu.getSubElements();
@@ -319,8 +307,9 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                     continue;
                 }
                 JMenuItem item = (JMenuItem)items[j];
+                int mnemonic = item.getMnemonic();
                 if (item.isEnabled() &&
-                    item.isVisible() && keyCode == item.getMnemonic()) {
+                    item.isVisible() && lower(keyChar) == lower(mnemonic)) {
                     if (matches == 0) {
                         firstMatch = j;
                         matches++;
@@ -369,6 +358,14 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 	}
 
 	public void menuKeyReleased(MenuKeyEvent e) {
+        }
+
+        private char lower(char keyChar) {
+            return Character.toLowerCase(keyChar);
+        }
+
+        private char lower(int mnemonic) {
+            return Character.toLowerCase((char) mnemonic);
         }
     }
 
@@ -622,12 +619,14 @@ public class BasicPopupMenuUI extends PopupMenuUI {
     private static MenuElement nextEnabledChild(MenuElement e[],
                                                 int fromIndex, int toIndex) {
 	for (int i=fromIndex; i<=toIndex; i++) {
-	    if (e[i] != null) {
-		Component comp = e[i].getComponent();
-		if (comp != null && comp.isEnabled() && comp.isVisible()) {
+            if (e[i] != null) {
+                Component comp = e[i].getComponent();
+                if ( comp != null 
+                        && (comp.isEnabled() || UIManager.getBoolean("MenuItem.disabledAreNavigable"))
+                        && comp.isVisible()) {
                     return e[i];
                 }
-	    }
+            }
 	}
 	return null;
     }
@@ -637,7 +636,9 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 	for (int i=fromIndex; i>=toIndex; i--) {
 	    if (e[i] != null) {
 		Component comp = e[i].getComponent();
-		if (comp != null && comp.isEnabled() && comp.isVisible()) {
+                if ( comp != null 
+                        && (comp.isEnabled() || UIManager.getBoolean("MenuItem.disabledAreNavigable"))
+                        && comp.isVisible()) {
                     return e[i];
                 }
 	    }
@@ -669,9 +670,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         return null;
     }
 
-    private transient static MouseGrabber mouseGrabber = null;
-
-    private static class MouseGrabber implements ChangeListener,
+    static class MouseGrabber implements ChangeListener,
         AWTEventListener, ComponentListener, WindowListener {
 
         Window grabbedWindow;
@@ -686,16 +685,23 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             }
         }
 
+        void uninstall() {
+            MenuSelectionManager.defaultManager().removeChangeListener(this);
+            ungrabWindow();
+            AppContext.getAppContext().put(MOUSE_GRABBER_KEY, null);
+        }
+
         void grabWindow(MenuElement[] newPath) {
             // A grab needs to be added
+            final Toolkit tk = Toolkit.getDefaultToolkit();
             java.security.AccessController.doPrivileged(
                 new java.security.PrivilegedAction() {
                     public Object run() {
-                        Toolkit.getDefaultToolkit()
-                            .addAWTEventListener(MouseGrabber.this,
+                        tk.addAWTEventListener(MouseGrabber.this,
                                 AWTEvent.MOUSE_EVENT_MASK |
                                 AWTEvent.MOUSE_MOTION_EVENT_MASK |
-                                AWTEvent.MOUSE_WHEEL_EVENT_MASK);
+                                AWTEvent.MOUSE_WHEEL_EVENT_MASK |
+                                AWTEvent.WINDOW_EVENT_MASK | sun.awt.SunToolkit.GRAB_EVENT_MASK);
                         return null;
                     }
                 }
@@ -705,29 +711,37 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             if (invoker instanceof JPopupMenu) {
                 invoker = ((JPopupMenu)invoker).getInvoker();
             }
-            grabbedWindow = invoker instanceof Window?
+            grabbedWindow = (invoker == null || invoker instanceof Window)?
                     (Window)invoker :
                     SwingUtilities.getWindowAncestor(invoker);
             if(grabbedWindow != null) {
-                grabbedWindow.addComponentListener(this);
-                grabbedWindow.addWindowListener(this);
+                if(tk instanceof sun.awt.SunToolkit) {
+                    ((sun.awt.SunToolkit)tk).grab(grabbedWindow);
+                } else {
+                    grabbedWindow.addComponentListener(this);
+                    grabbedWindow.addWindowListener(this);
+                }
             }
         }
 
         void ungrabWindow() {
+            final Toolkit tk = Toolkit.getDefaultToolkit();
             // The grab should be removed
              java.security.AccessController.doPrivileged(
                 new java.security.PrivilegedAction() {
                     public Object run() {
-                        Toolkit.getDefaultToolkit()
-                            .removeAWTEventListener(MouseGrabber.this);
+                        tk.removeAWTEventListener(MouseGrabber.this);
                         return null;
                     }
                 }
             );
             if(grabbedWindow != null) {
-                grabbedWindow.removeComponentListener(this);
-                grabbedWindow.removeWindowListener(this);
+                if(tk instanceof sun.awt.SunToolkit) {
+                    ((sun.awt.SunToolkit)tk).ungrab(grabbedWindow);
+                } else {
+                    grabbedWindow.removeComponentListener(this);
+                    grabbedWindow.removeWindowListener(this);
+                }
                 grabbedWindow = null;
             }
         }
@@ -748,6 +762,11 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         }
 
         public void eventDispatched(AWTEvent ev) {
+            if(ev instanceof sun.awt.UngrabEvent) {
+                // Popup should be canceled in case of ungrab event
+                cancelPopupMenu( );
+                return;
+            }
             switch (ev.getID()) {
             case MouseEvent.MOUSE_PRESSED:
                 Component src = (Component)ev.getSource();
@@ -775,12 +794,26 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 
             case MouseEvent.MOUSE_RELEASED:
                 src = (Component)ev.getSource();
+                if(!(src instanceof MenuElement)) {
+                    // Do not forward event to MSM, let component handle it
+                    break;
+                }
                 if(src instanceof JMenu || !(src instanceof JMenuItem)) {
                     MenuSelectionManager.defaultManager().
                         processMouseEvent((MouseEvent)ev);
                 }
                 break;
             case MouseEvent.MOUSE_DRAGGED:
+                src = (Component)ev.getSource();
+                if(!(src instanceof MenuElement)) {
+                    // For the MOUSE_DRAGGED event the src is
+                    // the Component in which mouse button was pressed. 
+                    // If the src is in popupMenu, 
+                    // do not forward event to MSM, let component handle it.
+                    if (isInPopup(src)) {
+                        break;
+                    }
+                }
                 MenuSelectionManager.defaultManager().
                     processMouseEvent((MouseEvent)ev);
                 break;
@@ -840,9 +873,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             cancelPopupMenu();
         }
         public void windowDeactivated(WindowEvent e) {
-            if(doUnpostPopupOnDeactivation()) {
-                cancelPopupMenu();
-            }
+            cancelPopupMenu();
         }
         public void windowOpened(WindowEvent e) {}
         public void windowDeiconified(WindowEvent e) {}
@@ -1021,16 +1052,12 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 return;
             }
 
-            if   (lastPathSelected.length != 0 && p.length != 0 ) {
+            if (lastPathSelected.length != 0 && p.length != 0 ) {
                 if (!checkInvokerEqual(p[0],lastPathSelected[0])) {
-                        removeItems();
-                        lastPathSelected = new MenuElement[0];
-                        }
-
-        	}
-
-
-
+                    removeItems();
+                    lastPathSelected = new MenuElement[0];
+                }
+            }
 
 	    if (lastPathSelected.length == 0 && p.length > 0) {
                 // menu posted

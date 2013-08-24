@@ -61,11 +61,13 @@ import com.sun.org.apache.bcel.internal.Constants;
  * byte code generating backend of a compiler. You can subclass it to
  * add your own create methods.
  *
- * @version $Id: InstructionFactory.java,v 1.1.1.1 2001/10/29 20:00:19 jvanzyl Exp $
+ * @version $Id: InstructionFactory.java,v 1.1.2.1 2005/07/31 23:45:04 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Constants
  */
-public class InstructionFactory implements InstructionConstants {
+public class InstructionFactory
+  implements InstructionConstants, java.io.Serializable
+{
   protected ClassGen        cg;
   protected ConstantPoolGen cp;
 
@@ -136,6 +138,26 @@ public class InstructionFactory implements InstructionConstants {
     il.append(new INVOKEVIRTUAL(println));
 
     return il;
+  }
+
+  /** Uses PUSH to push a constant value onto the stack.
+   * @param value must be of type Number, Boolean, Character or String
+   */
+  public Instruction createConstant(Object value) {
+    PUSH push;
+
+    if(value instanceof Number)
+      push = new PUSH(cp, (Number)value);
+    else if(value instanceof String)
+      push = new PUSH(cp, (String)value);
+    else if(value instanceof Boolean)
+      push = new PUSH(cp, (Boolean)value);
+    else if(value instanceof Character)
+      push = new PUSH(cp, (Character)value);
+    else
+      throw new ClassGenException("Illegal type: " + value.getClass());
+
+    return push.getInstruction();
   }
 
   private static class MethodObject {
@@ -505,6 +527,13 @@ public class InstructionFactory implements InstructionConstants {
       return new CHECKCAST(cp.addClass((ObjectType)t));
   }
 
+  public INSTANCEOF createInstanceOf(ReferenceType t) {
+    if(t instanceof ArrayType)
+      return new INSTANCEOF(cp.addArrayClass((ArrayType)t));
+    else
+      return new INSTANCEOF(cp.addClass((ObjectType)t));
+  }
+
   public NEW createNew(ObjectType t) {
     return new NEW(cp.addClass(t));
   }
@@ -514,8 +543,9 @@ public class InstructionFactory implements InstructionConstants {
   }
 
   /** Create new array of given size and type.
+   * @return an instruction that creates the corresponding array at runtime, i.e. is an AllocationInstruction
    */
-  public AllocationInstruction createNewArray(Type t, short dim) {
+  public Instruction createNewArray(Type t, short dim) {
     if(dim == 1) {
       if(t instanceof ObjectType)
 	return new ANEWARRAY(cp.addClass((ObjectType)t));
@@ -557,7 +587,7 @@ public class InstructionFactory implements InstructionConstants {
   }
 
   /** Create branch instruction by given opcode, except LOOKUPSWITCH and TABLESWITCH.
-   * For those you should use the SWITCH compeund instruction.
+   * For those you should use the SWITCH compound instruction.
    */
   public static BranchInstruction createBranchInstruction(short opcode, InstructionHandle target) {
     switch(opcode) {

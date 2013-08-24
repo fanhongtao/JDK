@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanPermission.java	1.22 03/12/19
+ * @(#)MBeanPermission.java	1.26 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -196,18 +196,6 @@ public class MBeanPermission extends Permission {
         UnregisterMBean;
 
     /**
-     * An ObjectName that matches any other.
-     */
-    private static final ObjectName allObjectNames;
-    static {
-	try {
-	    allObjectNames = new ObjectName("*:*");
-	} catch (MalformedObjectNameException e) {
-	    throw new IllegalArgumentException("can't happen");
-	}
-    }
-
-    /**
      * The actions string.
      */
     private String actions;
@@ -270,7 +258,11 @@ public class MBeanPermission extends Permission {
     private void parseName() {
 	String name = getName();
 
-	if (name.equals(""))
+	if (name == null)
+	    throw new IllegalArgumentException("MBeanPermission name " +
+					       "cannot be null");
+
+        if (name.equals(""))
 	    throw new IllegalArgumentException("MBeanPermission name " +
 					       "cannot be empty");
 
@@ -285,7 +277,7 @@ public class MBeanPermission extends Permission {
         if (openingBracket == -1) {
             // If "[on]" missing then ObjectName("*:*")
             //
-	    objectName = allObjectNames;
+	    objectName = ObjectName.WILDCARD;
         } else {
             if (!name.endsWith("]")) {
                 throw new IllegalArgumentException("MBeanPermission: " +
@@ -302,7 +294,7 @@ public class MBeanPermission extends Permission {
                     String on = name.substring(openingBracket + 1,
                                                name.length() - 1);
                     if (on.equals(""))
-			objectName = allObjectNames;
+			objectName = ObjectName.WILDCARD;
 		    else if (on.equals("-"))
 			objectName = null;
 		    else
@@ -954,7 +946,7 @@ public class MBeanPermission extends Permission {
                 switch(a[i-matchlen]) {
                 case ',':
                     seencomma = true;
-                    /*FALLTHROUGH*/
+		    break;
                 case ' ': case '\r': case '\n':
                 case '\f': case '\t':
                     break;

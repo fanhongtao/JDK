@@ -1,7 +1,7 @@
 /*
- * @(#)SynthPasswordFieldUI.java	1.7 04/03/19
+ * @(#)SynthPasswordFieldUI.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.plaf.*;
  * real text contained in the field.
  *
  * @author  Shannon Hickey
- * @version 1.7 03/19/04
+ * @version 1.8 11/17/05
  */
 class SynthPasswordFieldUI extends SynthTextFieldUI {
 

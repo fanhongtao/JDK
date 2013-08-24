@@ -1,7 +1,7 @@
 /*
- * @(#)PooledConnection.java	1.12 03/12/19
+ * @(#)PooledConnection.java	1.16 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,9 +33,10 @@ import java.sql.SQLException;
  * connection pool manager returns a <code>Connection</code> object that
  * is a handle to that physical connection.
  * If no <code>PooledConnection</code> object is available, the 
- * connection pool manager calls the <code>PooledConnection</code>
- * method <code>getConnection</code> to create a new physical connection and
- * returns a handle to it.
+ * connection pool manager calls the <code>ConnectionPoolDataSource</code>
+ * method <code>getPoolConnection</code> to create a new physical connection.  The
+ *  JDBC driver implementing <code>ConnectionPoolDataSource</code> creates a
+ *  new <code>PooledConnection</code> object and returns a handle to it.
  * <P>
  * When an application closes a connection, it calls the <code>Connection</code>
  * method <code>close</code>. When connection pooling is being done,
@@ -52,6 +53,19 @@ import java.sql.SQLException;
  * calls the <code>PooledConnection</code> method <code>close</code>.
  * This method is generally called to have an orderly shutdown of the server or
  * if a fatal error has made the connection unusable.
+ *
+ * <p>
+ * A connection pool manager is often also a statement pool manager, maintining
+ *  a pool of <code>PreparedStatement</code> objects. 
+ *  When an application closes a prepared statement, it calls the 
+ *  <code>PreparedStatement</code>
+ * method <code>close</code>. When <code>Statement</code> pooling is being done,
+ * the pool manager is notified because it has registered itself as
+ * a <code>StatementEventListener</code> object using the 
+ * <code>ConnectionPool</code> method <code>addStatementEventListener</code>.
+ *  Thus, when an application closes its  <code>PreparedStatement</code>,
+ * the underlying prepared statement is recycled rather than being closed.
+ * <P>
  *
  * @since 1.4 
  */
@@ -70,6 +84,9 @@ public interface PooledConnection {
    * @return  a <code>Connection</code> object that is a handle to
    *          this <code>PooledConnection</code> object
    * @exception SQLException if a database access error occurs
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
+   * @since 1.4
    */
   Connection getConnection() throws SQLException;
 
@@ -82,6 +99,9 @@ public interface PooledConnection {
    * information.
    *
    * @exception SQLException if a database access error occurs
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
+   * @since 1.4
    */
   void close() throws SQLException;
       
@@ -110,5 +130,31 @@ public interface PooledConnection {
    * @see #addConnectionEventListener
    */
   void removeConnectionEventListener(ConnectionEventListener listener);
+
+	/**
+	 * Registers a <code>StatementEventListener</code> with this <code>PooledConnection</code> object.  Components that 
+	 * wish to be notified when  <code>PreparedStatement</code>s created by the
+         * connection are closed or are detected to be invalid may use this method 
+         * to register a <code>StatementEventListener</code> with this <code>PooledConnection</code> object.
+	 * <p>
+	 * @param listener	an component which implements the <code>StatementEventListener</code> 
+	 * 					interface that is to be registered with this <code>PooledConnection</code> object
+	 * <p>
+	 * @since 1.6
+	 */
+	public void addStatementEventListener(StatementEventListener listener);
+	
+	/**
+	 * Removes the specified <code>StatementEventListener</code> from the list of 
+	 * components that will be notified when the driver detects that a 
+	 * <code>PreparedStatement</code> has been closed or is invalid.
+	 * <p> 
+	 * @param listener	the component which implements the
+	 * 					<code>StatementEventListener</code> interface that was previously 
+	 * 					registered with this <code>PooledConnection</code> object
+	 * <p>
+	 * @since 1.6
+	 */
+	public void removeStatementEventListener(StatementEventListener listener);
 
  } 

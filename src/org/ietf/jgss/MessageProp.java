@@ -1,7 +1,7 @@
 /*
- * @(#)MessageProp.java	1.9 03/12/19
+ * @(#)MessageProp.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ package org.ietf.jgss;
  * @see GSSContext#verifyMIC
  *
  * @author Mayank Upadhyay
- * @version 1.9, 12/19/03
+ * @version 1.10, 11/17/05
  * @since 1.4
  */
 public class MessageProp {

@@ -1,7 +1,7 @@
 /*
- * @(#)SocketPermission.java	1.59 04/02/12
+ * @(#)SocketPermission.java	1.60 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -110,7 +110,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.59 04/02/12
+ * @version 1.60 05/11/17
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -1050,7 +1050,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.59 02/12/04
+ * @version 1.60 11/17/05
  *
  * @author Roland Schemers
  *

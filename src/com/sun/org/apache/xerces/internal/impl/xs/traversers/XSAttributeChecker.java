@@ -1,65 +1,23 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright 2001-2004 The Apache Software Foundation.
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Copyright (c) 2001-2004 The Apache Software Foundation.  All rights
- * reserved.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *1
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.traversers;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -71,13 +29,13 @@ import com.sun.org.apache.xerces.internal.impl.xs.SchemaSymbols;
 import com.sun.org.apache.xerces.internal.impl.xs.XSAttributeDecl;
 import com.sun.org.apache.xerces.internal.impl.xs.XSGrammarBucket;
 import com.sun.org.apache.xerces.internal.impl.xs.XSWildcardDecl;
-import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.impl.xs.util.XInt;
 import com.sun.org.apache.xerces.internal.impl.xs.util.XIntPool;
 import com.sun.org.apache.xerces.internal.util.DOMUtil;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XMLSymbols;
 import com.sun.org.apache.xerces.internal.xni.QName;
+import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
@@ -100,8 +58,10 @@ import org.w3c.dom.Element;
  * - Should have the datatype validators return compiled value
  * - use symbol table instead of many hashtables
  *
+ * @xerces.internal
+ *
  * @author Sandy Gao, IBM
- * @version $Id: XSAttributeChecker.java,v 1.30 2004/01/29 20:32:05 sandygao Exp $
+ * @version $Id: XSAttributeChecker.java,v 1.5 2006/07/25 16:16:21 spericas Exp $
  */
 
 public class XSAttributeChecker {
@@ -136,7 +96,7 @@ public class XSAttributeChecker {
     public static final int ATTIDX_NAME            = ATTIDX_COUNT++;
     public static final int ATTIDX_NAMESPACE       = ATTIDX_COUNT++;
     public static final int ATTIDX_NAMESPACE_LIST  = ATTIDX_COUNT++;
-    public static final int ATTIDX_NILLABLE        = ATTIDX_COUNT++; 
+    public static final int ATTIDX_NILLABLE        = ATTIDX_COUNT++;
     public static final int ATTIDX_NONSCHEMA       = ATTIDX_COUNT++;
     public static final int ATTIDX_PROCESSCONTENTS = ATTIDX_COUNT++;
     public static final int ATTIDX_PUBLIC          = ATTIDX_COUNT++;
@@ -152,6 +112,7 @@ public class XSAttributeChecker {
     public static final int ATTIDX_VALUE           = ATTIDX_COUNT++;
     public static final int ATTIDX_ENUMNSDECLS     = ATTIDX_COUNT++;
     public static final int ATTIDX_VERSION         = ATTIDX_COUNT++;
+    public static final int ATTIDX_XML_LANG        = ATTIDX_COUNT++;
     public static final int ATTIDX_XPATH           = ATTIDX_COUNT++;
     public static final int ATTIDX_FROMDEFAULT     = ATTIDX_COUNT++;
     //public static final int ATTIDX_OTHERVALUES     = ATTIDX_COUNT++;
@@ -195,9 +156,10 @@ public class XSAttributeChecker {
     protected static final int DT_NCNAME           = 5;
     protected static final int DT_XPATH            = 6;
     protected static final int DT_XPATH1           = 7;
+    protected static final int DT_LANGUAGE         = 8;
 
     // used to store extra datatype validators
-    protected static final int DT_COUNT            = DT_XPATH1 + 1;
+    protected static final int DT_COUNT            = DT_LANGUAGE + 1;
     private static final XSSimpleType[] fExtraDVs = new XSSimpleType[DT_COUNT];
     static {
         // step 5: register all datatype validators for new types
@@ -218,6 +180,8 @@ public class XSAttributeChecker {
         fExtraDVs[DT_XPATH] = fExtraDVs[DT_STRING];
         // xpath = a subset of XPath expression
         fExtraDVs[DT_XPATH] = fExtraDVs[DT_STRING];
+        // language
+        fExtraDVs[DT_LANGUAGE] = (XSSimpleType)grammar.getGlobalTypeDecl(SchemaSymbols.ATTVAL_LANGUAGE);
     }
 
     protected static final int DT_BLOCK            = -1;
@@ -286,6 +250,7 @@ public class XSAttributeChecker {
         int ATT_VALUE_STR_N         = attCount++;
         int ATT_VALUE_WS_N          = attCount++;
         int ATT_VERSION_N           = attCount++;
+        int ATT_XML_LANG            = attCount++;
         int ATT_XPATH_R             = attCount++;
         int ATT_XPATH1_R            = attCount++;
 
@@ -470,6 +435,10 @@ public class XSAttributeChecker {
         allAttrs[ATT_VERSION_N]         =   new OneAttr(SchemaSymbols.ATT_VERSION,
                                                         DT_TOKEN,
                                                         ATTIDX_VERSION,
+                                                        null);
+        allAttrs[ATT_XML_LANG]          =   new OneAttr(SchemaSymbols.ATT_XML_LANG,
+                                                        DT_LANGUAGE,
+                                                        ATTIDX_XML_LANG,
                                                         null);
         allAttrs[ATT_XPATH_R]           =   new OneAttr(SchemaSymbols.ATT_XPATH,
                                                         DT_XPATH,
@@ -813,16 +782,17 @@ public class XSAttributeChecker {
         attrList = Container.getContainer(1);
         // source = anyURI
         attrList.put(SchemaSymbols.ATT_SOURCE, allAttrs[ATT_SOURCE_N]);
-        oneEle = new OneElement (attrList, false);
+        oneEle = new OneElement (attrList);
         fEleAttrsMapG.put(SchemaSymbols.ELT_APPINFO, oneEle);
         fEleAttrsMapL.put(SchemaSymbols.ELT_APPINFO, oneEle);
 
         // for element "documentation" - local
-        attrList = Container.getContainer(1);
+        attrList = Container.getContainer(2);
         // source = anyURI
         attrList.put(SchemaSymbols.ATT_SOURCE, allAttrs[ATT_SOURCE_N]);
-        // xml:lang = language ???
-        oneEle = new OneElement (attrList, false);
+        // xml:lang = language
+        attrList.put(SchemaSymbols.ATT_XML_LANG, allAttrs[ATT_XML_LANG]);
+        oneEle = new OneElement (attrList);
         fEleAttrsMapG.put(SchemaSymbols.ELT_DOCUMENTATION, oneEle);
         fEleAttrsMapL.put(SchemaSymbols.ELT_DOCUMENTATION, oneEle);
 
@@ -868,7 +838,7 @@ public class XSAttributeChecker {
         fEleAttrsMapL.put(SchemaSymbols.ELT_UNION, oneEle);
 
         // for element "schema" - global
-        attrList = Container.getContainer(7);
+        attrList = Container.getContainer(8);
         // attributeFormDefault = (qualified | unqualified) : unqualified
         attrList.put(SchemaSymbols.ATT_ATTRIBUTEFORMDEFAULT, allAttrs[ATT_ATTRIBUTE_FD_D]);
         // blockDefault = (#all | List of (substitution | extension | restriction | list | union))  : ''
@@ -883,7 +853,8 @@ public class XSAttributeChecker {
         attrList.put(SchemaSymbols.ATT_TARGETNAMESPACE, allAttrs[ATT_TARGET_N_N]);
         // version = token
         attrList.put(SchemaSymbols.ATT_VERSION, allAttrs[ATT_VERSION_N]);
-        // xml:lang = language ???
+        // xml:lang = language
+        attrList.put(SchemaSymbols.ATT_XML_LANG, allAttrs[ATT_XML_LANG]);
         oneEle = new OneElement (attrList);
         fEleAttrsMapG.put(SchemaSymbols.ELT_SCHEMA, oneEle);
 
@@ -1011,14 +982,14 @@ public class XSAttributeChecker {
     }
 
     /**
-     * check whether the specified element conforms to the attributes restriction
+     * Check whether the specified element conforms to the attributes restriction
      * an array of attribute values is returned. the caller must call
      * <code>returnAttrArray</code> to return that array.
      *
-     * @param element    - which element to check
-     * @param isGlobal   - whether a child of <schema> or <redefine>
-     * @param schemaDoc  - the document where the element lives in
-     * @return             an array containing attribute values
+     * @param element    which element to check
+     * @param isGlobal   whether a child of &lt;schema&gt; or &lt;redefine&gt;
+     * @param schemaDoc  the document where the element lives in
+     * @return           an array containing attribute values
      */
     public Object[] checkAttributes(Element element, boolean isGlobal,
                                     XSDocumentInfo schemaDoc) {
@@ -1026,17 +997,17 @@ public class XSAttributeChecker {
     }
 
     /**
-     * check whether the specified element conforms to the attributes restriction
+     * Check whether the specified element conforms to the attributes restriction
      * an array of attribute values is returned. the caller must call
      * <code>returnAttrArray</code> to return that array. This method also takes
      * an extra parameter: if the element is "enumeration", whether to make a
      * copy of the namespace context, so that the value can be resolved as a
      * QName later.
      *
-     * @param element    - which element to check
-     * @param isGlobal   - whether a child of <schema> or <redefine>
-     * @param schemaDoc  - the document where the element lives in
-     * @param enumAsQName- whether to tread enumeration value as QName
+     * @param element      which element to check
+     * @param isGlobal     whether a child of &lt;schema&gt; or &lt;redefine&gt;
+     * @param schemaDoc    the document where the element lives in
+     * @param enumAsQName  whether to tread enumeration value as QName
      * @return             an array containing attribute values
      */
     public Object[] checkAttributes(Element element, boolean isGlobal,
@@ -1094,7 +1065,7 @@ public class XSAttributeChecker {
         //Hashtable otherValues = new Hashtable();
         long fromDefault = 0;
         Container attrList = oneEle.attrList;
-        
+
         // clear the "seen" flag.
         System.arraycopy(fSeenTemp, 0, fSeen, 0, ATTIDX_COUNT);
 
@@ -1106,29 +1077,27 @@ public class XSAttributeChecker {
             // get the attribute name/value
             //String attrName = DOMUtil.getLocalName(sattr);
             String attrName = sattr.getName();
+            String attrURI = DOMUtil.getNamespaceURI(sattr);
             String attrVal = DOMUtil.getValue(sattr);
-
-            // we don't want to add namespace declarations to the non-schema attributes
-            if (attrName.startsWith("xmlns")) {
-                continue;
-            }
             
-            // skip anything starts with x/X m/M l/L
-            // add this to the list of "non-schema" attributes
-            if (attrName.toLowerCase(Locale.ENGLISH).startsWith("xml")) {
-                if(attrValues[ATTIDX_NONSCHEMA] == null) {
-                    // these are usually small
-                    attrValues[ATTIDX_NONSCHEMA] = new Vector(4,2);
+            if (attrName.startsWith("xml")) {
+                String attrPrefix = DOMUtil.getPrefix(sattr);
+                // we don't want to add namespace declarations to the non-schema attributes
+                if ("xmlns".equals(attrPrefix) || "xmlns".equals(attrName)) {
+                    continue;
                 }
-                ((Vector)attrValues[ATTIDX_NONSCHEMA]).addElement(attrName);
-                ((Vector)attrValues[ATTIDX_NONSCHEMA]).addElement(attrVal);
-                //otherValues.put(attrName, attrVal);
-                continue;
+                // Both <schema> and <documentation> may have an xml:lang attribute.
+                // Set the URI for this attribute to null so that we process it
+                // like any other schema attribute.
+                else if (SchemaSymbols.ATT_XML_LANG.equals(attrName) &&
+                        (SchemaSymbols.ELT_SCHEMA.equals(elName) ||
+                                SchemaSymbols.ELT_DOCUMENTATION.equals(elName))) {
+                    attrURI = null;
+                }
             }
 
             // for attributes with namespace prefix
             //
-            String attrURI = DOMUtil.getNamespaceURI(sattr);
             if (attrURI != null && attrURI.length() != 0) {
                 // attributes with schema namespace are not allowed
                 // and not allowed on "document" and "appInfo"
@@ -1235,17 +1204,23 @@ public class XSAttributeChecker {
         attrValues[ATTIDX_FROMDEFAULT] = new Long(fromDefault);
         //attrValues[ATTIDX_OTHERVALUES] = otherValues;
 
-        // maxOccurs
+        // Check that minOccurs isn't greater than maxOccurs.
+        // p-props-correct 2.1
         if (attrValues[ATTIDX_MAXOCCURS] != null) {
             int min = ((XInt)attrValues[ATTIDX_MINOCCURS]).intValue();
             int max = ((XInt)attrValues[ATTIDX_MAXOCCURS]).intValue();
-            
             if (max != SchemaSymbols.OCCURRENCE_UNBOUNDED) {
-                // if secure processing in effect, test maxOccurs for maximum
-                // maxOccurLimit
-                if (fSchemaHandler.fSecureProcessing != null) {
-					//Revisit :: IMO this is not right place to check
-					// maxOccurNodeLimit.
+                
+                // The maxOccurs restriction no longer applies to elements
+                // and wildcards. These are now validated using a constant
+                // space algorithm. The restriction still applies to model
+                // groups such as xs:sequence.
+                
+                String localName = element.getLocalName();
+                if (fSchemaHandler.fSecureProcessing != null &&
+                        !localName.equals("element") && !localName.equals("any")) {
+                    //Revisit :: IMO this is not right place to check
+                    // maxOccurNodeLimit.
                     int maxOccurNodeLimit = fSchemaHandler.fSecureProcessing.getMaxOccurNodeLimit();
                     if (max > maxOccurNodeLimit) {
                         reportSchemaError("maxOccurLimit", new Object[] {new Integer(maxOccurNodeLimit)}, element);
@@ -1255,10 +1230,8 @@ public class XSAttributeChecker {
 						//new Integer(maxOccurNodeLimit);
                         max = maxOccurNodeLimit;
                     } 
-                } 
-
-                // Check that minOccurs isn't greater than maxOccurs.
-                // p-props-correct 2.1
+                }
+                
                 if (min > max) {
                     reportSchemaError ("p-props-correct.2.1",
                                        new Object[] {elName, attrValues[ATTIDX_MINOCCURS], attrValues[ATTIDX_MAXOCCURS]},
@@ -1279,7 +1252,14 @@ public class XSAttributeChecker {
         // To validate these types, we don't actually need to normalize the
         // strings. We only need to remove the whitespace from both ends.
         // In some special cases (list types), StringTokenizer can correctly
-        // process the un-normalized whitespace.
+        // process the un-normalized whitespace.        
+        /**
+         * REVISIT: Trim removes all leading and trailing characters less
+         * than or equal to U+0020. This is okay for XML 1.0 since all
+         * of the valid characters in that range are white space but
+         * in XML 1.1 control chars are allowed. We shouldn't be trimming
+         * those. -- mrglavas
+         */
         String value = ivalue.trim();
         Object retValue = null;
         Vector memberType;
@@ -1346,7 +1326,7 @@ public class XSAttributeChecker {
                         choice |= XSConstants.DERIVATION_LIST;
                     }
                     else if (token.equals (SchemaSymbols.ATTVAL_UNION)) {
-                        choice |= XSConstants.DERIVATION_RESTRICTION;
+                        choice |= XSConstants.DERIVATION_UNION;
                     }
                     else {
                         throw new InvalidDatatypeValueException("cvc-datatype-valid.1.2.3", new Object[]{value, "(#all | List of (substitution | extension | restriction | list | union))"});
@@ -1409,12 +1389,7 @@ public class XSAttributeChecker {
                          XSConstants.DERIVATION_RESTRICTION|XSConstants.DERIVATION_LIST|
                          XSConstants.DERIVATION_UNION;
             }
-            else if (value.equals (SchemaSymbols.ATTVAL_LIST)) {
-                choice = XSConstants.DERIVATION_LIST;
-            }
-            else if (value.equals (SchemaSymbols.ATTVAL_UNION)) {
-                choice = XSConstants.DERIVATION_UNION;
-            } else {
+            else {
                 // use the default \t\r\n\f delimiters
                 StringTokenizer t = new StringTokenizer(value);
                 while (t.hasMoreTokens()) {
@@ -1552,7 +1527,7 @@ public class XSAttributeChecker {
                 retValue = INT_ANY_LIST;
 
                 fNamespaceList.removeAllElements();
-                
+
                 // tokenize
                 // use the default \t\r\n\f delimiters
                 StringTokenizer tokens = new StringTokenizer(value);
@@ -1785,8 +1760,8 @@ public class XSAttributeChecker {
 
         // mark this array as returned
         attrArray[ATTIDX_ISRETURNED] = Boolean.TRUE;
-        // better clear nonschema vector 
-        if(attrArray[ATTIDX_NONSCHEMA] != null) 
+        // better clear nonschema vector
+        if(attrArray[ATTIDX_NONSCHEMA] != null)
             ((Vector)attrArray[ATTIDX_NONSCHEMA]).clear();
         // and put it into the pool
         fArrayPool[--fPoolPos] = attrArray;

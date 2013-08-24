@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Operation.java,v 1.12 2004/02/17 04:35:12 minchau Exp $
+ * $Id: Operation.java,v 1.2.4.1 2005/09/14 21:31:42 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.operations;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class Operation extends Expression implements ExpressionOwner
 {
+    static final long serialVersionUID = -3037139537171050430L;
 
   /** The left operand expression.
    *  @serial */
@@ -162,7 +163,7 @@ public class Operation extends Expression implements ExpressionOwner
   }
 
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

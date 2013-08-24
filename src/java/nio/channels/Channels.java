@@ -1,7 +1,7 @@
 /*
- * @(#)Channels.java	1.23 03/12/19
+ * @(#)Channels.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import sun.nio.cs.StreamEncoder;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.23, 03/12/19
+ * @version 1.25, 05/11/17
  * @since 1.4
  */
 
@@ -157,11 +157,15 @@ public final class Channels {
      * @return  A new readable byte channel
      */
     public static ReadableByteChannel newChannel(final InputStream in) {
-        if (in instanceof FileInputStream) {
-            String inClass = in.getClass().toString();
-            if (inClass.equals("java.io.FileInputStream"))
-               return ((FileInputStream)in).getChannel();
+	if (in == null) {
+	    throw new NullPointerException();
+	}
+	
+	if (in instanceof FileInputStream &&
+	    FileInputStream.class.equals(in.getClass())) {
+	    return ((FileInputStream)in).getChannel();
         }
+
 	return new ReadableByteChannelImpl(in);
     }
 
@@ -230,11 +234,15 @@ public final class Channels {
      * @return  A new writable byte channel
      */
     public static WritableByteChannel newChannel(final OutputStream out) {
-        if (out instanceof FileOutputStream) {
-            String outClass = out.getClass().toString();
-            if (outClass.equals("java.io.FileOutputStream"))
+	if (out == null) {
+	    throw new NullPointerException();
+	}
+
+        if (out instanceof FileOutputStream &&
+	    FileOutputStream.class.equals(out.getClass())) {
                 return ((FileOutputStream)out).getChannel();
         }
+
 	return new WritableByteChannelImpl(out);
     }
 

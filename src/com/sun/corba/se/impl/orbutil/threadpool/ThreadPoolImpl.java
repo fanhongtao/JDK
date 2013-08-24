@@ -1,12 +1,9 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.impl.orbutil.threadpool;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import com.sun.corba.se.spi.orbutil.threadpool.NoSuchWorkQueueException;
 import com.sun.corba.se.spi.orbutil.threadpool.ThreadPool;
@@ -40,7 +37,7 @@ public class ThreadPoolImpl implements ThreadPool
     private int maxWorkerThreads = 0;
     
     // Inactivity timeout value for worker threads to exit and stop running
-    private long inactivityTimeout = ORBConstants.DEFAULT_INACTIVITY_TIMEOUT ;
+    private long inactivityTimeout;
     
     // Indicates if the threadpool is bounded or unbounded
     private boolean boundedThreadPool = false;
@@ -64,12 +61,13 @@ public class ThreadPoolImpl implements ThreadPool
     private MonitoredObject threadpoolMonitoredObject;
     
     // ThreadGroup in which threads should be created
-    private final ThreadGroup threadGroup ;
+    private ThreadGroup threadGroup ;
 
     /**
      * This constructor is used to create an unbounded threadpool
      */
     public ThreadPoolImpl(ThreadGroup tg, String threadpoolName) {
+        inactivityTimeout = ORBConstants.DEFAULT_INACTIVITY_TIMEOUT;
         maxWorkerThreads = Integer.MAX_VALUE;
         workQueue = new WorkQueueImpl(this);
 	threadGroup = tg ;
@@ -91,12 +89,11 @@ public class ThreadPoolImpl implements ThreadPool
     public ThreadPoolImpl(int minSize, int maxSize, long timeout, 
 					    String threadpoolName) 
     {
-        inactivityTimeout = timeout;
         minWorkerThreads = minSize;
         maxWorkerThreads = maxSize;
+        inactivityTimeout = timeout;
         boundedThreadPool = true;
         workQueue = new WorkQueueImpl(this);
-	threadGroup = Thread.currentThread().getThreadGroup() ;
 	name = threadpoolName;
         for (int i = 0; i < minWorkerThreads; i++) {
             createWorkerThread();
@@ -215,11 +212,12 @@ public class ThreadPoolImpl implements ThreadPool
      * available.
      */
     void createWorkerThread() {
+        WorkerThread thread;
+        
 	synchronized (lock) {
-	    final String name = getName() ;
-	      
 	    if (boundedThreadPool) {
 		if (currentThreadCount < maxWorkerThreads) {
+		    thread = new WorkerThread(threadGroup, getName());
 		    currentThreadCount++;
 		} else {
 		    // REVIST - Need to create a thread to monitor the
@@ -230,43 +228,26 @@ public class ThreadPoolImpl implements ThreadPool
 		    return;
 		}
 	    } else {
+		thread = new WorkerThread(threadGroup, getName());
 		currentThreadCount++;
 	    }
+	}
+        
+        // The thread must be set to a daemon thread so the
+        // VM can exit if the only threads left are PooledThreads
+        // or other daemons.  We don't want to rely on the
+        // calling thread always being a daemon.
 
-	    // If we get here, we need to create a thread.
-	    AccessController.doPrivileged( 
-		new PrivilegedAction() {
-		    public Object run() {
-			// Thread creation needs to be in a doPrivileged block
-			// for two reasons:
-			// 1. The creation of a thread in a specific ThreadGroup
-			//    is a privileged operation.  Lack of a doPrivileged
-			//    block here causes an AccessControlException 
-			//    (see bug 6268145).
-			// 2. We want to make sure that the permissions associated 
-			//    with this thread do NOT include the permissions of
-			//    the current thread that is calling this method.
-			//    This leads to problems in the app server where
-			//    some threads in the ThreadPool randomly get 
-			//    bad permissions, leading to unpredictable 
-			//    permission errors.
-			WorkerThread thread = new WorkerThread(threadGroup, name);
-			    
-			// The thread must be set to a daemon thread so the
-			// VM can exit if the only threads left are PooledThreads
-			// or other daemons.  We don't want to rely on the
-			// calling thread always being a daemon.
-			// Note that no exception is possible here since we
-			// are inside the doPrivileged block.
-			thread.setDaemon(true);
+        // Catch exceptions since setDaemon can cause a
+        // security exception to be thrown under netscape
+        // in the Applet mode
+        try {
+            thread.setDaemon(true);
+        } catch (Exception e) {
+	    // REVISIT - need to do some logging here
+	}
 
-			thread.start();
-			
-			return null ; 
-		    }
-		} 
-	    ) ;
-	} 
+        thread.start();
     }
     
     /** 

@@ -1,7 +1,7 @@
 /*
- * @(#)ImageInputStream.java	1.47 04/05/13
+ * @(#)ImageInputStream.java	1.49 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -854,18 +854,25 @@ public interface ImageInputStream extends DataInput {
      * <code>reset</code> may be nested arbitrarily.
      *
      * <p> Unlike the <code>mark</code> methods declared by the
-     * <code>Reader</code> <code>InputStream</code> interfaces, no
+     * <code>Reader</code> and <code>InputStream</code> interfaces, no
      * <code>readLimit</code> parameter is used.  An arbitrary amount
      * of data may be read following the call to <code>mark</code>.
      *
      * <p> The bit position used by the <code>readBits</code> method
      * is saved and restored by each pair of calls to
      * <code>mark</code> and <code>reset</code>.
+     *
+     * <p> Note that it is valid for an <code>ImageReader</code> to call
+     * <code>flushBefore</code> as part of a read operation.
+     * Therefore, if an application calls <code>mark</code> prior to
+     * passing that stream to an <code>ImageReader</code>, the application
+     * should not assume that the marked position will remain valid after
+     * the read operation has completed.
      */
     void mark();
 
     /**
-     * Returns the file pointer to its previous position, including
+     * Returns the stream pointer to its previous position, including
      * the bit offset, at the time of the most recent unmatched call
      * to <code>mark</code>.
      *
@@ -891,7 +898,7 @@ public interface ImageInputStream extends DataInput {
      * stream.
      *
      * @param pos a <code>long</code> containing the length of the
-     * file prefix that may be flushed.
+     * stream prefix that may be flushed.
      *
      * @exception IndexOutOfBoundsException if <code>pos</code> lies
      * in the flushed portion of the stream or past the current stream

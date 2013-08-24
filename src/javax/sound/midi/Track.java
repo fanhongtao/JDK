@@ -1,7 +1,7 @@
 /*
- * @(#)Track.java	1.22 03/12/19
+ * @(#)Track.java	1.24 06/07/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import com.sun.media.sound.MidiUtils;
  * @see Sequencer#setTrackMute
  * @see Sequencer#setTrackSolo
  *
- * @version 1.22, 03/12/19
+ * @version 1.24, 06/07/12
  * @author Kara Kytle
  * @author Florian Bomers
  */
@@ -107,6 +107,7 @@ public class Track {
 		    // since then it would appear in the set.
 		    eventsList.add(eotEvent);
 		    set.add(eotEvent);
+                    eventsCount = eventsList.size();
 		}
 
 		// first see if we are trying to add

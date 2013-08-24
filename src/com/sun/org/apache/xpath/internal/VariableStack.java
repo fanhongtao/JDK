@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/*
+ * $Id: VariableStack.java,v 1.2.4.1 2005/09/10 18:16:22 jeffsuttor Exp $
+ */
 package com.sun.org.apache.xpath.internal;
 
 import javax.xml.transform.TransformerException;
@@ -203,7 +205,7 @@ public class VariableStack implements Cloneable
 
   /**
    * Free up the stack frame that was last allocated with
-   * {@link link(int size)}.
+   * {@link #link(int size)}.
    */
   public  void unlink()
   {
@@ -213,7 +215,7 @@ public class VariableStack implements Cloneable
   
   /**
    * Free up the stack frame that was last allocated with
-   * {@link link(int size)}.
+   * {@link #link(int size)}.
    * @param currentFrame The current frame to set to 
    * after the unlink.
    */
@@ -464,14 +466,51 @@ public class VariableStack implements Cloneable
             throws javax.xml.transform.TransformerException
   {
 
-    // <<<<<<<   TIGER SPECIFIC CHANGE >>>>>>>>>
-    // As we are not supporting Xalan interpretive we are taking away the functionality
-    // dependent on XSLT interpretive Transformer. Only way supported is to use XSLTC 
-    // and the execution path needed for supporting standard XPath API defined by 
-    // JAXP 1.3 . This method is overridden in XPath implementation to support 
-    // standard XPath functionality with xpath package of Xalan   
+    // J2SE does not support Xalan interpretive
+  	/*    
+    com.sun.org.apache.xml.internal.utils.PrefixResolver prefixResolver =
+      xctxt.getNamespaceContext();
 
+    // Get the current ElemTemplateElement, which must be pushed in as the 
+    // prefix resolver, and then walk backwards in document order, searching 
+    // for an xsl:param element or xsl:variable element that matches our 
+    // qname.  If we reach the top level, use the StylesheetRoot's composed
+    // list of top level variables and parameters.
+
+    if (prefixResolver instanceof com.sun.org.apache.xalan.internal.templates.ElemTemplateElement)
+    {
+      
+      com.sun.org.apache.xalan.internal.templates.ElemVariable vvar;
+
+      com.sun.org.apache.xalan.internal.templates.ElemTemplateElement prev =
+        (com.sun.org.apache.xalan.internal.templates.ElemTemplateElement) prefixResolver;
+
+      if (!(prev instanceof com.sun.org.apache.xalan.internal.templates.Stylesheet))
+      {
+        while ( !(prev.getParentNode() instanceof com.sun.org.apache.xalan.internal.templates.Stylesheet) )
+        {
+          com.sun.org.apache.xalan.internal.templates.ElemTemplateElement savedprev = prev;
+
+          while (null != (prev = prev.getPreviousSiblingElem()))
+          {
+            if (prev instanceof com.sun.org.apache.xalan.internal.templates.ElemVariable)
+            {
+              vvar = (com.sun.org.apache.xalan.internal.templates.ElemVariable) prev;
+
+              if (vvar.getName().equals(qname))
+                return getLocalVariable(xctxt, vvar.getIndex());
+            }
+          }
+          prev = savedprev.getParentElem();
+        }
+      }
+
+      vvar = prev.getStylesheetRoot().getVariableOrParamComposed(qname);
+      if (null != vvar)
+        return getGlobalVariable(xctxt, vvar.getIndex());
+    }
+    */
+    
     throw new javax.xml.transform.TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VAR_NOT_RESOLVABLE, new Object[]{qname.toString()})); //"Variable not resolvable: " + qname);
   }
 }  // end VariableStack
-

@@ -1,7 +1,7 @@
 /*
- * @(#)ZipInputStream.java	1.37 04/06/11
+ * @(#)ZipInputStream.java	1.43 06/07/31
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,23 +18,24 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.37, 06/11/04
+ * @version	1.43, 07/31/06
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
     private ZipEntry entry;
+    private int flag;
     private CRC32 crc = new CRC32();
     private long remaining;
     private byte[] tmpbuf = new byte[512];
 
     private static final int STORED = ZipEntry.STORED;
     private static final int DEFLATED = ZipEntry.DEFLATED;
-    
+
     private boolean closed = false;
     // this flag is set to true after EOF has reached for
     // one entry
     private boolean entryEOF = false;
-    
+
     /**
      * Check to make sure that this stream has not been closed
      */
@@ -101,7 +102,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      *
      * @return     1 before EOF and 0 after EOF has reached for current entry.
      * @exception  IOException  if an I/O error occurs.
-     * 
+     *
      */
     public int available() throws IOException {
         ensureOpen();
@@ -113,13 +114,19 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
     }
 
     /**
-     * Reads from the current ZIP entry into an array of bytes. Blocks until
-     * some input is available.
+     * Reads from the current ZIP entry into an array of bytes.
+     * If <code>len</code> is not zero, the method
+     * blocks until some input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned.
      * @param b the buffer into which the data is read
-     * @param off the start offset of the data
+     * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes read
      * @return the actual number of bytes read, or -1 if the end of the
      *         entry is reached
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative,
+     * <code>len</code> is negative, or <code>len</code> is greater than
+     * <code>b.length - off</code>
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
      */
@@ -162,7 +169,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    remaining -= len;
 	    return len;
 	default:
-	    throw new InternalError("invalid compression method");
+	    throw new ZipException("invalid compression method");
 	}
     }
 
@@ -224,28 +231,24 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	}
 	// get the entry name and create the ZipEntry first
 	int len = get16(tmpbuf, LOCNAM);
-	if (len == 0) {
-	    throw new ZipException("missing entry name");
-	}
         int blen = b.length;
         if (len > blen) {
-            do 
+            do
                 blen = blen * 2;
-            while (len > blen); 
+            while (len > blen);
             b = new byte[blen];
-        } 
+        }
 	readFully(b, 0, len);
 	ZipEntry e = createZipEntry(getUTF8String(b, 0, len));
 	// now get the remaining fields for the entry
-	e.version = get16(tmpbuf, LOCVER);
-	e.flag = get16(tmpbuf, LOCFLG);
-	if ((e.flag & 1) == 1) {
+	flag = get16(tmpbuf, LOCFLG);
+	if ((flag & 1) == 1) {
 	    throw new ZipException("encrypted ZIP entry not supported");
 	}
 	e.method = get16(tmpbuf, LOCHOW);
 	e.time = get32(tmpbuf, LOCTIM);
-	if ((e.flag & 8) == 8) {
-	    /* EXT descriptor present */
+	if ((flag & 8) == 8) {
+	    /* "Data Descriptor" present */
 	    if (e.method != DEFLATED) {
 		throw new ZipException(
 			"only DEFLATED entries can have EXT descriptor");
@@ -259,7 +262,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	if (len > 0) {
 	    byte[] bb = new byte[len];
 	    readFully(bb, 0, len);
-	    e.extra = bb;
+	    e.setExtra(bb);
 	}
 	return e;
     }
@@ -348,8 +351,8 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	if (n > 0) {
 	    ((PushbackInputStream)in).unread(buf, len - n, n);
 	}
-	if ((e.flag & 8) == 8) {
-	    /* EXT descriptor present */
+	if ((flag & 8) == 8) {
+	    /* "Data Descriptor" present */
 	    readFully(tmpbuf, 0, EXTHDR);
 	    long sig = get32(tmpbuf, 0);
             if (sig != EXTSIG) { // no EXTSIG present
@@ -362,7 +365,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
                 e.crc = get32(tmpbuf, EXTCRC);
                 e.csize = get32(tmpbuf, EXTSIZ);
                 e.size = get32(tmpbuf, EXTLEN);
-            }  
+            }
 	}
 	if (e.size != inf.getBytesWritten()) {
 	    throw new ZipException(

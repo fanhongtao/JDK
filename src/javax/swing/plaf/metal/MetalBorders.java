@@ -1,7 +1,7 @@
 /*
- * @(#)MetalBorders.java	1.39 04/04/16
+ * @(#)MetalBorders.java	1.42 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * Factory object that can vend Borders appropriate for the metal L & F.
  * @author Steve Wilson
- * @version 1.39 04/16/04
+ * @version 1.42 11/17/05
  */
 
 public class MetalBorders {
@@ -756,17 +756,17 @@ public class MetalBorders {
 	        if ( ((JToolBar) c).getOrientation() == HORIZONTAL )
 		{
                     int shift = MetalLookAndFeel.usingOcean() ? -1 : 0;
-		    bumps.setBumpArea( 10, c.getSize().height - 4 );
+		    bumps.setBumpArea( 10, h - 4 );
                     if( MetalUtils.isLeftToRight(c) ) {
                         bumps.paintIcon( c, g, 2, 2 + shift );
                     } else {
-                        bumps.paintIcon( c, g, c.getBounds().width-12,
+                        bumps.paintIcon( c, g, w-12,
                                          2 + shift );
                     }
 	        }
 		else // vertical
 		{
-		    bumps.setBumpArea( c.getSize().width - 4, 10 );
+		    bumps.setBumpArea( w - 4, 10 );
 		    bumps.paintIcon( c, g, 2, 2 );
 	        }
 
@@ -953,14 +953,15 @@ public class MetalBorders {
 	    AbstractButton button = (AbstractButton)c;
 	    ButtonModel model = button.getModel();
             if (MetalLookAndFeel.usingOcean()) {
-                if(model.isArmed()) {
+                if(model.isArmed() || !button.isEnabled()) {
                     super.paintBorder(c, g, x, y, w, h);
                 }
                 else {
-                    MetalUtils.drawPressed3DBorder( g, x, y, w + 1, h + 1 );
-                }
-                return;
+                 g.setColor(MetalLookAndFeel.getControlDarkShadow()); 
+                 g.drawRect(0, 0, w - 1, h - 1);                 
             }
+            return;
+        }
 	    if (! c.isEnabled() ) {
 	        MetalUtils.drawDisabledBorder( g, x, y, w-1, h-1 );
 	    } else {

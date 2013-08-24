@@ -1,49 +1,49 @@
 /*
- * @(#)OpenMBeanParameterInfoSupport.java	3.28 03/12/19
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)OpenMBeanParameterInfoSupport.java	3.39 06/03/15
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
- 
+
 
 package javax.management.openmbean;
 
 
 // java import
 //
-import java.io.Serializable;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Collections;
-import java.lang.Comparable; // to be substituted for jdk1.1.x
-
-
-// jmx import
-//
+import javax.management.Descriptor;
+import javax.management.DescriptorRead;  // for Javadoc
+import javax.management.ImmutableDescriptor;
 import javax.management.MBeanParameterInfo;
 
+// OpenMBeanAttributeInfoSupport and this class are very similar
+// but can't easily be refactored because there's no multiple inheritance.
+// The best we can do for refactoring is to put a bunch of static methods
+// in OpenMBeanAttributeInfoSupport and import them here.
+import static javax.management.openmbean.OpenMBeanAttributeInfoSupport.*;
 
 /**
- * Describes a parameter used in one or more operations or constructors of an open MBean.
+ * Describes a parameter used in one or more operations or
+ * constructors of an open MBean.
  *
- * @version     3.28  03/12/19
+ * @version     3.39  06/03/15
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
  * @since.unbundled JMX 1.1
  */
-public class OpenMBeanParameterInfoSupport 
-    extends MBeanParameterInfo 
-    implements OpenMBeanParameterInfo, Serializable {
-    
-    
+public class OpenMBeanParameterInfoSupport
+    extends MBeanParameterInfo
+    implements OpenMBeanParameterInfo {
+
     /* Serial version */
     static final long serialVersionUID = -7235016873758443122L;
 
     /**
      * @serial The open mbean parameter's <i>open type</i>
      */
-    private OpenType    openType;
+    private OpenType<?>    openType;
 
     /**
      * @serial The open mbean parameter's default value
@@ -51,29 +51,33 @@ public class OpenMBeanParameterInfoSupport
     private Object      defaultValue    = null;
 
     /**
-     * @serial The open mbean parameter's legal values. This {@link Set} is unmodifiable
+     * @serial The open mbean parameter's legal values. This {@link
+     * Set} is unmodifiable
      */
-    private Set         legalValues     = null;  // to be constructed unmodifiable
+    private Set<?> legalValues     = null;  // to be constructed unmodifiable
 
     /**
      * @serial The open mbean parameter's min value
      */
-    private Comparable  minValue        = null;
+    private Comparable minValue        = null;
 
     /**
      * @serial The open mbean parameter's max value
      */
-    private Comparable  maxValue        = null;
+    private Comparable maxValue        = null;
 
 
+    // As this instance is immutable, these two values need only
+    // be calculated once.
     private transient Integer myHashCode = null;	// As this instance is immutable, these two values
     private transient String  myToString = null;	// need only be calculated once.
 
 
     /**
-     * Constructs an <tt>OpenMBeanParameterInfoSupport</tt> instance, which describes the parameter 
-     * used in one or more operations or constructors of a class of open MBeans,
-     * with the specified <var>name</var>, <var>openType</var> and <var>description</var>. 
+     * Constructs an {@code OpenMBeanParameterInfoSupport} instance,
+     * which describes the parameter used in one or more operations or
+     * constructors of a class of open MBeans, with the specified
+     * {@code name}, {@code openType} and {@code description}.
      *
      * @param name  cannot be a null or empty string.
      *
@@ -81,39 +85,82 @@ public class OpenMBeanParameterInfoSupport
      *
      * @param openType  cannot be null.
      *
-     * @throws IllegalArgumentException  if <var>name</var> or <var>description</var> are null or empty string,
-     *					 or <var>openType</var> is null.
+     * @throws IllegalArgumentException if {@code name} or {@code
+     * description} are null or empty string, or {@code openType} is
+     * null.
      */
-    public OpenMBeanParameterInfoSupport(String   name, 
-					 String   description,
-					 OpenType openType) {
+    public OpenMBeanParameterInfoSupport(String name,
+					 String description,
+					 OpenType<?> openType) {
+	this(name, description, openType, (Descriptor) null);
+    }
+
+    /**
+     * <p>Constructs an {@code OpenMBeanParameterInfoSupport} instance,
+     * which describes the parameter used in one or more operations or
+     * constructors of a class of open MBeans, with the specified
+     * {@code name}, {@code openType}, {@code description},
+     * and {@code descriptor}.</p>
+     *
+     * <p>The {@code descriptor} can contain entries that will define
+     * the values returned by certain methods of this class, as
+     * explained in the {@link <a href="package-summary.html#constraints">
+     * package description</a>}.
+     *
+     * @param name  cannot be a null or empty string.
+     *
+     * @param description  cannot be a null or empty string.
+     *
+     * @param openType  cannot be null.
+     *
+     * @param descriptor The descriptor for the parameter.  This may be null
+     * which is equivalent to an empty descriptor.
+     *
+     * @throws IllegalArgumentException if {@code name} or {@code
+     * description} are null or empty string, or {@code openType} is
+     * null, or the descriptor entries are invalid as described in the
+     * {@link <a href="package-summary.html#constraints">package
+     * description</a>}.
+     *
+     * @since 1.6
+     */
+    public OpenMBeanParameterInfoSupport(String name,
+					 String description,
+					 OpenType<?> openType,
+					 Descriptor descriptor) {
+	
 
 	// Construct parent's state
 	//
-	super(name, ( (openType==null) ? null : openType.getClassName() ), description);
-
-	// check parameters that should not be null or empty (unfortunately it is not done in superclass :-( ! )
-	//
-	if ( (name == null) || (name.trim().equals("")) ) {
-	    throw new IllegalArgumentException("Argument name cannot be null or empty.");
-	}
-	if ( (description == null) || (description.trim().equals("")) ) {
-	    throw new IllegalArgumentException("Argument description cannot be null or empty.");
-	}
-	if (openType == null) {
-	    throw new IllegalArgumentException("Argument openType cannot be null.");
-	}
+	super(name,
+	      (openType==null) ? null : openType.getClassName(),
+              description,
+	      ImmutableDescriptor.union(descriptor, openType.getDescriptor()));
 
 	// Initialize this instance's specific state
 	//
 	this.openType = openType;
+
+        descriptor = getDescriptor();  // replace null by empty
+	this.defaultValue = valueFrom(descriptor, "defaultValue", openType);
+	this.legalValues = valuesFrom(descriptor, "legalValues", openType);
+	this.minValue = comparableValueFrom(descriptor, "minValue", openType);
+	this.maxValue = comparableValueFrom(descriptor, "maxValue", openType);
+
+        try {
+            check(this);
+        } catch (OpenDataException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
 
     /**
-     * Constructs an <tt>OpenMBeanParameterInfoSupport</tt> instance, which describes the parameter 
-     * used in one or more operations or constructors of a class of open MBeans,
-     * with the specified <var>name</var>, <var>openType</var>, <var>description</var> and <var>defaultValue</var>. 
+     * Constructs an {@code OpenMBeanParameterInfoSupport} instance,
+     * which describes the parameter used in one or more operations or
+     * constructors of a class of open MBeans, with the specified
+     * {@code name}, {@code openType}, {@code description} and {@code
+     * defaultValue}.
      *
      * @param name  cannot be a null or empty string.
      *
@@ -121,53 +168,42 @@ public class OpenMBeanParameterInfoSupport
      *
      * @param openType  cannot be null.
      *
-     * @param defaultValue  must be a valid value for the <var>openType</var> specified for this parameter;
-     *			    default value not supported for <tt>ArrayType</tt> and <tt>TabularType</tt>;
-     *			    can be null, in which case it means that no default value is set.
+     * @param defaultValue must be a valid value for the {@code
+     * openType} specified for this parameter; default value not
+     * supported for {@code ArrayType} and {@code TabularType}; can be
+     * null, in which case it means that no default value is set.
      *
-     * @throws IllegalArgumentException  if <var>name</var> or <var>description</var> are null or empty string,
-     *					 or <var>openType</var> is null.
+     * @param <T> allows the compiler to check that the {@code defaultValue},
+     * if non-null, has the correct Java type for the given {@code openType}.
      *
-     * @throws OpenDataException  if <var>defaultValue</var> is not a valid value for the specified <var>openType</var>,
-     *				  or <var>defaultValue</var> is non null and 
-     *				  <var>openType</var> is an <tt>ArrayType</tt> or a <tt>TabularType</tt>.
+     * @throws IllegalArgumentException if {@code name} or {@code
+     * description} are null or empty string, or {@code openType} is
+     * null.
+     *
+     * @throws OpenDataException if {@code defaultValue} is not a
+     * valid value for the specified {@code openType}, or {@code
+     * defaultValue} is non null and {@code openType} is an {@code
+     * ArrayType} or a {@code TabularType}.
      */
-    public OpenMBeanParameterInfoSupport(String   name, 
-					 String   description, 
-					 OpenType openType, 
-					 Object   defaultValue) throws OpenDataException {
-
-	// First check and construct the part regarding name, openType and description
-	//
-	this(name, description, openType);
-
-	// Check and initialize defaultValue
-	//
-	if (defaultValue != null) {
-	    // Default value not supported for ArrayType and TabularType
-	    if ( (openType.isArray()) || (openType instanceof TabularType) ) {
-		throw new OpenDataException("Default value not supported for ArrayType and TabularType.");
-	    }
-	    // Check defaultValue's class
-	    if ( ! openType.isValue(defaultValue) ) {
-		throw new OpenDataException("Argument defaultValue's class [\""+ defaultValue.getClass().getName() +
-					    "\"] does not match the one defined in openType[\""+ openType.getClassName() +"\"].");
-	    }
-	    // Then initializes defaultValue:
-	    // no need to clone it: apart from arrays and TabularData, basic data types are immutable
-	    this.defaultValue = defaultValue;
-	}
+    public <T> OpenMBeanParameterInfoSupport(String   name,
+					     String   description,
+					     OpenType<T> openType,
+					     T        defaultValue)
+	    throws OpenDataException {
+	this(name, description, openType, defaultValue, (T[]) null);
     }
 
     /**
-     * Constructs an <tt>OpenMBeanParameterInfoSupport</tt> instance, which describes the parameter 
-     * used in one or more operations or constructors of a class of open MBeans,
-     * with the specified <var>name</var>, <var>openType</var>, <var>description</var>, 
-     * <var>defaultValue</var> and <var>legalValues</var>.
+     * <p>Constructs an {@code OpenMBeanParameterInfoSupport} instance,
+     * which describes the parameter used in one or more operations or
+     * constructors of a class of open MBeans, with the specified
+     * {@code name}, {@code openType}, {@code description}, {@code
+     * defaultValue} and {@code legalValues}.</p>
      *
-     * The contents of <var>legalValues</var> are internally dumped into an unmodifiable <tt>Set</tt>,
-     * so subsequent modifications of the array referenced by <var>legalValues</var> have no impact on 
-     * this <tt>OpenMBeanParameterInfoSupport</tt> instance.
+     * <p>The contents of {@code legalValues} are copied, so subsequent
+     * modifications of the array referenced by {@code legalValues}
+     * have no impact on this {@code OpenMBeanParameterInfoSupport}
+     * instance.</p>
      *
      * @param name  cannot be a null or empty string.
      *
@@ -175,79 +211,54 @@ public class OpenMBeanParameterInfoSupport
      *
      * @param openType  cannot be null.
      *
-     * @param defaultValue  must be a valid value for the <var>openType</var> specified for this parameter;
-     *			    default value not supported for <tt>ArrayType</tt> and <tt>TabularType</tt>;
-     *			    can be null, in which case it means that no default value is set.
+     * @param defaultValue must be a valid value for the {@code
+     * openType} specified for this parameter; default value not
+     * supported for {@code ArrayType} and {@code TabularType}; can be
+     * null, in which case it means that no default value is set.
      *
-     * @param legalValues   each contained value must be valid for the <var>openType</var> specified for this parameter;
-     *			    legal values not supported for <tt>ArrayType</tt> and <tt>TabularType</tt>;
-     *			    can be null or empty.
+     * @param legalValues each contained value must be valid for the
+     * {@code openType} specified for this parameter; legal values not
+     * supported for {@code ArrayType} and {@code TabularType}; can be
+     * null or empty.
      *
-     * @throws IllegalArgumentException  if <var>name</var> or <var>description</var> are null or empty string,
-     *					 or <var>openType</var> is null.
+     * @param <T> allows the compiler to check that the {@code
+     * defaultValue} and {@code legalValues}, if non-null, have the
+     * correct Java type for the given {@code openType}.
      *
-     * @throws OpenDataException  if <var>defaultValue</var> is not a valid value for the specified <var>openType</var>,
-     *				  or one value in <var>legalValues</var> is not valid for the specified <var>openType</var>,
-     *				  or <var>defaultValue</var> is non null and 
-     *				  <var>openType</var> is an <tt>ArrayType</tt> or a <tt>TabularType</tt>,
-     *				  or <var>legalValues</var> is non null and non empty and
-     *				  <var>openType</var> is an <tt>ArrayType</tt> or a <tt>TabularType</tt>,
-     *				  or <var>legalValues</var> is non null and non empty and
-     *				  <var>defaultValue</var> is not contained in <var>legalValues</var>.
+     * @throws IllegalArgumentException if {@code name} or {@code
+     * description} are null or empty string, or {@code openType} is
+     * null.
+     *
+     * @throws OpenDataException if {@code defaultValue} is not a
+     * valid value for the specified {@code openType}, or one value in
+     * {@code legalValues} is not valid for the specified {@code
+     * openType}, or {@code defaultValue} is non null and {@code
+     * openType} is an {@code ArrayType} or a {@code TabularType}, or
+     * {@code legalValues} is non null and non empty and {@code
+     * openType} is an {@code ArrayType} or a {@code TabularType}, or
+     * {@code legalValues} is non null and non empty and {@code
+     * defaultValue} is not contained in {@code legalValues}.
      */
-    public OpenMBeanParameterInfoSupport(String   name, 
-					 String   description, 
-					 OpenType openType, 
-					 Object   defaultValue,
-					 Object[] legalValues) throws OpenDataException {
-
-	// First check and construct the part regarding name, openType, description and defaultValue
-	//
-	this(name, description, openType, defaultValue);
-
-	// Check and initialize legalValues
-	//
-	if ( (legalValues != null) && (legalValues.length > 0) ) {
-	    // legalValues not supported for TabularType and arrays
-	    if ( (openType instanceof TabularType) || (openType.isArray()) ) {
-		throw new OpenDataException("Legal values not supported for TabularType and arrays");
-	    }
-	    // Check legalValues are valid with openType
-	    for (int i = 0; i < legalValues.length; i++ ) {
-		if ( ! openType.isValue(legalValues[i]) ) {
-		    throw new OpenDataException("Element legalValues["+ i +"]="+ legalValues[i] +
-						" is not a valid value for the specified openType ["+ openType.toString() +"].");
-		}
-	    }
-	    // dump the legalValues array content into a Set: ensures uniqueness of elements
-	    // (and we could not keep the array reference as array content could be modified by the caller)
-	    Set tmpSet = new HashSet(legalValues.length+1, 1);
-	    for (int i = 0; i < legalValues.length; i++ ) {
-		tmpSet.add(legalValues[i]);
-	    }
-	    // initializes legalValues as an unmodifiable Set
-	    this.legalValues = Collections.unmodifiableSet(tmpSet);
-	}
-
-	// Check that defaultValue is a legal value
-	//
-	if ( (this.hasDefaultValue()) && (this.hasLegalValues()) ) {
-	    if ( ! this.legalValues.contains(defaultValue) ) {
-		throw new OpenDataException("defaultValue is not contained in legalValues");
-	    }
-	}
-
+    public <T> OpenMBeanParameterInfoSupport(String   name,
+					     String   description,
+					     OpenType<T> openType,
+					     T        defaultValue,
+					     T[]      legalValues)
+	    throws OpenDataException {
+	this(name, description, openType,
+	     defaultValue, legalValues, null, null);
     }
 
 
     /**
-     * Constructs an <tt>OpenMBeanParameterInfoSupport</tt> instance, which describes the parameter 
-     * used in one or more operations or constructors of a class of open MBeans,
-     * with the specified <var>name</var>, <var>openType</var>, <var>description</var>, 
-     * <var>defaultValue</var>, <var>minValue</var> and <var>maxValue</var>.
+     * Constructs an {@code OpenMBeanParameterInfoSupport} instance,
+     * which describes the parameter used in one or more operations or
+     * constructors of a class of open MBeans, with the specified
+     * {@code name}, {@code openType}, {@code description}, {@code
+     * defaultValue}, {@code minValue} and {@code maxValue}.
      *
-     * It is possible to specify minimal and maximal values only for an open type 
-     * whose values are <tt>Comparable</tt>.
+     * It is possible to specify minimal and maximal values only for
+     * an open type whose values are {@code Comparable}.
      *
      * @param name  cannot be a null or empty string.
      *
@@ -255,148 +266,168 @@ public class OpenMBeanParameterInfoSupport
      *
      * @param openType  cannot be null.
      *
-     * @param defaultValue  must be a valid value for the <var>openType</var> specified for this parameter;
-     *			    default value not supported for <tt>ArrayType</tt> and <tt>TabularType</tt>;
-     *			    can be null, in which case it means that no default value is set.
+     * @param defaultValue must be a valid value for the {@code
+     * openType} specified for this parameter; default value not
+     * supported for {@code ArrayType} and {@code TabularType}; can be
+     * null, in which case it means that no default value is set.
      *
-     * @param minValue   must be valid for the <var>openType</var> specified for this parameter;
-     *			 can be null, in which case it means that no minimal value is set.
+     * @param minValue must be valid for the {@code openType}
+     * specified for this parameter; can be null, in which case it
+     * means that no minimal value is set.
      *
-     * @param maxValue   must be valid for the <var>openType</var> specified for this parameter;
-     *			 can be null, in which case it means that no maximal value is set.
+     * @param maxValue must be valid for the {@code openType}
+     * specified for this parameter; can be null, in which case it
+     * means that no maximal value is set.
      *
-     * @throws IllegalArgumentException  if <var>name</var> or <var>description</var> are null or empty string,
-     *					 or <var>openType</var> is null.
+     * @param <T> allows the compiler to check that the {@code
+     * defaultValue}, {@code minValue}, and {@code maxValue}, if
+     * non-null, have the correct Java type for the given {@code
+     * openType}.
      *
-     * @throws OpenDataException  if <var>defaultValue</var>, <var>minValue</var> or <var>maxValue</var>
-     *				  is not a valid value for the specified <var>openType</var>,
-     *				  or <var>defaultValue</var> is non null and 
-     *				  <var>openType</var> is an <tt>ArrayType</tt> or a <tt>TabularType</tt>,
-     *				  or both <var>minValue</var> and <var>maxValue</var> are non-null and
-     *				  <tt>minValue.compareTo(maxValue) > 0</tt> is <tt>true</tt>,
-     *				  or both <var>defaultValue</var> and <var>minValue</var> are non-null and
-     *				  <tt>minValue.compareTo(defaultValue) > 0</tt> is <tt>true</tt>,
-     *				  or both <var>defaultValue</var> and <var>maxValue</var> are non-null and
-     *				  <tt>defaultValue.compareTo(maxValue) > 0</tt> is <tt>true</tt>.
+     * @throws IllegalArgumentException if {@code name} or {@code
+     * description} are null or empty string, or {@code openType} is
+     * null.
+     *
+     * @throws OpenDataException if {@code defaultValue}, {@code
+     * minValue} or {@code maxValue} is not a valid value for the
+     * specified {@code openType}, or {@code defaultValue} is non null
+     * and {@code openType} is an {@code ArrayType} or a {@code
+     * TabularType}, or both {@code minValue} and {@code maxValue} are
+     * non-null and {@code minValue.compareTo(maxValue) > 0} is {@code
+     * true}, or both {@code defaultValue} and {@code minValue} are
+     * non-null and {@code minValue.compareTo(defaultValue) > 0} is
+     * {@code true}, or both {@code defaultValue} and {@code maxValue}
+     * are non-null and {@code defaultValue.compareTo(maxValue) > 0}
+     * is {@code true}.
      */
-    public OpenMBeanParameterInfoSupport(String     name, 
-					 String     description, 
-					 OpenType   openType, 
-					 Object     defaultValue,
-					 Comparable minValue,
-					 Comparable maxValue) throws OpenDataException {
+    public <T> OpenMBeanParameterInfoSupport(String     name,
+					     String     description,
+					     OpenType<T>   openType,
+					     T          defaultValue,
+					     Comparable<T> minValue,
+					     Comparable<T> maxValue)
+	    throws OpenDataException {
+	this(name, description, openType,
+	     defaultValue, null, minValue, maxValue);
+    }
 
-	// First check and construct the part regarding name, openType, description and defaultValue
-	//
-	this(name, description, openType, defaultValue);
+    private <T> OpenMBeanParameterInfoSupport(String name,
+					      String description,
+					      OpenType<T> openType,
+					      T defaultValue,
+					      T[] legalValues,
+					      Comparable<T> minValue,
+					      Comparable<T> maxValue)
+	    throws OpenDataException {
+	super(name,
+	      (openType == null) ? null : openType.getClassName(),
+              description,
+              makeDescriptor(openType,
+                             defaultValue, legalValues, minValue, maxValue));
 
-	// Check and initialize minValue 
-	//(note: no need to worry about Composite, Tabular and arrays as they are not Comparable)
-	//
-	if (minValue != null) {
-	    if ( ! openType.isValue(minValue) ) {
-		throw new OpenDataException("Argument minValue's class [\""+ minValue.getClass().getName() +
-					    "\"] does not match openType's definition [\""+ openType.getClassName() +"\"].");
-	    }
-	    // then initializes minValue 
-	    this.minValue = minValue;
-	}
+        this.openType = openType;
 
-	// Check and initialize maxValue 
-	//(note: no need to worry about Composite, Tabular and arrays as they are not Comparable)
-	//
-	if (maxValue != null) {
-	    if ( ! openType.isValue(maxValue) ) {
-		throw new OpenDataException("Argument maxValue's class [\""+ maxValue.getClass().getName() +
-					    "\"] does not match openType's definition [\""+ openType.getClassName() +"\"].");
-	    }
-	    // then initializes maxValue 
-	    this.maxValue = maxValue;
-	}
+        Descriptor d = getDescriptor();
+	this.defaultValue = defaultValue;
+	this.minValue = minValue;
+	this.maxValue = maxValue;
+        // We already converted the array into an unmodifiable Set
+        // in the descriptor.
+	this.legalValues = (Set<?>) d.getFieldValue("legalValues");
 
-	// Check that, if both specified, minValue <= maxValue
-	//
-	if (hasMinValue() && hasMaxValue()) {
-	    if (minValue.compareTo(maxValue) > 0) {
-		throw new OpenDataException("minValue cannot be greater than maxValue.");
-	    }
-	}
-
-	// Check that minValue <= defaultValue <= maxValue
-	//
-	if ( (this.hasDefaultValue()) && (this.hasMinValue()) ) {
-	    if (minValue.compareTo((Comparable)defaultValue) > 0) {
-		throw new OpenDataException("minValue cannot be greater than defaultValue.");
-	    }
-	}
-	if ( (this.hasDefaultValue()) && (this.hasMaxValue()) ) {
-	    if (((Comparable)defaultValue).compareTo(maxValue) > 0) {
-		throw new OpenDataException("defaultValue cannot be greater than maxValue.");
-	    }
-	}
+	check(this);
+    }
+    
+    /**
+     * An object serialized in a version of the API before Descriptors were
+     * added to this class will have an empty or null Descriptor.
+     * For consistency with our
+     * behavior in this version, we must replace the object with one
+     * where the Descriptors reflect the same values of openType, defaultValue,
+     * etc.
+     **/
+    private Object readResolve() {
+        if (getDescriptor().getFieldNames().length == 0) {
+            return new OpenMBeanParameterInfoSupport(
+                    name, description, openType,
+                    makeDescriptor(openType, defaultValue, legalValues,
+                                   minValue, maxValue));
+        } else
+            return this;
     }
 
     /**
-     * Returns the open type for the values of the parameter described by this <tt>OpenMBeanParameterInfoSupport</tt> instance.
+     * Returns the open type for the values of the parameter described
+     * by this {@code OpenMBeanParameterInfoSupport} instance.
      */
-    public OpenType getOpenType() { 
+    public OpenType<?> getOpenType() {
 	return openType;
     }
 
     /**
-     * Returns the default value for the parameter described by this <tt>OpenMBeanParameterInfoSupport</tt> instance,
-     * if specified, or <tt>null</tt> otherwise.
+     * Returns the default value for the parameter described by this
+     * {@code OpenMBeanParameterInfoSupport} instance, if specified,
+     * or {@code null} otherwise.
      */
     public Object getDefaultValue() {
 
 	// Special case for ArrayType and TabularType
 	// [JF] TODO: clone it so that it cannot be altered,
 	// [JF] TODO: if we decide to support defaultValue as an array itself.
-	// [JF] As of today (oct 2000) it is not supported so defaultValue is null for arrays. Nothing to do.
+	// [JF] As of today (oct 2000) it is not supported so
+	// defaultValue is null for arrays. Nothing to do.
 
 	return defaultValue;
     }
 
     /**
-     * Returns an unmodifiable Set of legal values for the parameter described by this <tt>OpenMBeanParameterInfoSupport</tt> instance,
-     * if specified, or <tt>null</tt> otherwise.
+     * Returns an unmodifiable Set of legal values for the parameter
+     * described by this {@code OpenMBeanParameterInfoSupport}
+     * instance, if specified, or {@code null} otherwise.
      */
-    public Set getLegalValues() {
+    public Set<?> getLegalValues() {
 
 	// Special case for ArrayType and TabularType
 	// [JF] TODO: clone values so that they cannot be altered,
 	// [JF] TODO: if we decide to support LegalValues as an array itself.
-	// [JF] As of today (oct 2000) it is not supported so legalValues is null for arrays. Nothing to do.
+	// [JF] As of today (oct 2000) it is not supported so
+	// legalValues is null for arrays. Nothing to do.
 
 	// Returns our legalValues Set (set was constructed unmodifiable)
 	return (legalValues);
     }
 
     /**
-     * Returns the minimal value for the parameter described by this <tt>OpenMBeanParameterInfoSupport</tt> instance,
-     * if specified, or <tt>null</tt> otherwise.
+     * Returns the minimal value for the parameter described by this
+     * {@code OpenMBeanParameterInfoSupport} instance, if specified,
+     * or {@code null} otherwise.
      */
-    public Comparable getMinValue() {
+    public Comparable<?> getMinValue() {
 
-	// Note: only comparable values have a minValue, so that's not the case of arrays and tabulars (always null).
+	// Note: only comparable values have a minValue, so that's not
+	// the case of arrays and tabulars (always null).
 
 	return minValue;
     }
 
     /**
-     * Returns the maximal value for the parameter described by this <tt>OpenMBeanParameterInfoSupport</tt> instance,
-     * if specified, or <tt>null</tt> otherwise.
+     * Returns the maximal value for the parameter described by this
+     * {@code OpenMBeanParameterInfoSupport} instance, if specified,
+     * or {@code null} otherwise.
      */
-    public Comparable getMaxValue() {
+    public Comparable<?> getMaxValue() {
 
-	// Note: only comparable values have a maxValue, so that's not the case of arrays and tabulars (always null).
+	// Note: only comparable values have a maxValue, so that's not
+	// the case of arrays and tabulars (always null).
 
 	return maxValue;
     }
 
     /**
-     * Returns <tt>true</tt> if this <tt>OpenMBeanParameterInfoSupport</tt> instance specifies a non-null default value 
-     * for the described parameter, <tt>false</tt> otherwise.
+     * Returns {@code true} if this {@code
+     * OpenMBeanParameterInfoSupport} instance specifies a non-null
+     * default value for the described parameter, {@code false}
+     * otherwise.
      */
     public boolean hasDefaultValue() {
 
@@ -404,8 +435,10 @@ public class OpenMBeanParameterInfoSupport
     }
 
     /**
-     * Returns <tt>true</tt> if this <tt>OpenMBeanParameterInfoSupport</tt> instance specifies a non-null set of legal values
-     * for the described parameter, <tt>false</tt> otherwise.
+     * Returns {@code true} if this {@code
+     * OpenMBeanParameterInfoSupport} instance specifies a non-null
+     * set of legal values for the described parameter, {@code false}
+     * otherwise.
      */
     public boolean hasLegalValues() {
 
@@ -413,8 +446,10 @@ public class OpenMBeanParameterInfoSupport
     }
 
     /**
-     * Returns <tt>true</tt> if this <tt>OpenMBeanParameterInfoSupport</tt> instance specifies a non-null minimal value 
-     * for the described parameter, <tt>false</tt> otherwise.
+     * Returns {@code true} if this {@code
+     * OpenMBeanParameterInfoSupport} instance specifies a non-null
+     * minimal value for the described parameter, {@code false}
+     * otherwise.
      */
     public boolean hasMinValue() {
 
@@ -422,8 +457,10 @@ public class OpenMBeanParameterInfoSupport
     }
 
     /**
-     * Returns <tt>true</tt> if this <tt>OpenMBeanParameterInfoSupport</tt> instance specifies a non-null maximal value 
-     * for the described parameter, <tt>false</tt> otherwise.
+     * Returns {@code true} if this {@code
+     * OpenMBeanParameterInfoSupport} instance specifies a non-null
+     * maximal value for the described parameter, {@code false}
+     * otherwise.
      */
     public boolean hasMaxValue() {
 
@@ -432,40 +469,20 @@ public class OpenMBeanParameterInfoSupport
 
 
     /**
-     * Tests whether <var>obj</var> is a valid value for the parameter
-     * described by this <code>OpenMBeanParameterInfo</code> instance.
+     * Tests whether {@code obj} is a valid value for the parameter
+     * described by this {@code OpenMBeanParameterInfo} instance.
      *
      * @param obj the object to be tested.
      *
-     * @return <code>true</code> if <var>obj</var> is a valid value
+     * @return {@code true} if {@code obj} is a valid value
      * for the parameter described by this
-     * <code>OpenMBeanParameterInfo</code> instance,
-     * <code>false</code> otherwise.
+     * {@code OpenMBeanParameterInfo} instance,
+     * {@code false} otherwise.
      */
     public boolean isValue(Object obj) {
-
-	boolean result;
-
-	if ( hasDefaultValue() && obj == null ) {
-	    result = true;
-	} 
-	else if ( ! openType.isValue(obj) ) {
-	    result = false;
-	}
-	else if ( hasLegalValues() && ! legalValues.contains(obj) ) {
-	    result = false;
-	}
-	else if ( hasMinValue() && (minValue.compareTo(obj)>0) ) {
-	    result = false;
-	}
-	else if ( hasMaxValue() && (maxValue.compareTo(obj)<0) ) {
-	    result = false;
-	}
-	else {
-	    result = true;
-	}
-
-	return result;
+	return OpenMBeanAttributeInfoSupport.isValue(this, obj);
+        // compiler bug? should be able to omit class name here
+        // also below in toString and hashCode
     }
 
 
@@ -473,187 +490,114 @@ public class OpenMBeanParameterInfoSupport
 
 
     /**
-     * Compares the specified <var>obj</var> parameter with this <code>OpenMBeanParameterInfoSupport</code> instance for equality. 
-     * <p>
-     * Returns <tt>true</tt> if and only if all of the following statements are true:
+     * <p>Compares the specified {@code obj} parameter with this {@code
+     * OpenMBeanParameterInfoSupport} instance for equality.</p>
+     *
+     * <p>Returns {@code true} if and only if all of the following
+     * statements are true:
+     *
      * <ul>
-     * <li><var>obj</var> is non null,</li>
-     * <li><var>obj</var> also implements the <code>OpenMBeanParameterInfo</code> interface,</li>
+     * <li>{@code obj} is non null,</li>
+     * <li>{@code obj} also implements the {@code OpenMBeanParameterInfo}
+     * interface,</li>
      * <li>their names are equal</li>
      * <li>their open types are equal</li>
      * <li>their default, min, max and legal values are equal.</li>
      * </ul>
-     * This ensures that this <tt>equals</tt> method works properly for <var>obj</var> parameters which are
-     * different implementations of the <code>OpenMBeanParameterInfo</code> interface.
-     * <br>&nbsp;
-     * @param  obj  the object to be compared for equality with this <code>OpenMBeanParameterInfoSupport</code> instance;
-     * 
-     * @return  <code>true</code> if the specified object is equal to this <code>OpenMBeanParameterInfoSupport</code> instance.
+     * This ensures that this {@code equals} method works properly for
+     * {@code obj} parameters which are different implementations of
+     * the {@code OpenMBeanParameterInfo} interface.
+     *
+     * <p>If {@code obj} also implements {@link DescriptorRead}, then its
+     * {@link DescriptorRead#getDescriptor() getDescriptor()} method must
+     * also return the same value as for this object.</p>
+     *
+     * @param obj the object to be compared for equality with this
+     * {@code OpenMBeanParameterInfoSupport} instance.
+     *
+     * @return {@code true} if the specified object is equal to this
+     * {@code OpenMBeanParameterInfoSupport} instance.
      */
-    public boolean equals(Object obj) { 
-
-	// if obj is null, return false
-	//
-	if (obj == null) {
+    public boolean equals(Object obj) {
+	if (!(obj instanceof OpenMBeanParameterInfo))
 	    return false;
-	}
-
-	// if obj is not a OpenMBeanParameterInfo, return false
-	//
-	OpenMBeanParameterInfo other;
-	try {
-	    other = (OpenMBeanParameterInfo) obj;
-	} catch (ClassCastException e) {
-	    return false;
-	}
-
-	// Now, really test for equality between this OpenMBeanParameterInfo implementation and the other:
-	//
+        
+        OpenMBeanParameterInfo other = (OpenMBeanParameterInfo) obj;
 	
-	// their Name should be equal
-	if ( ! this.getName().equals(other.getName()) ) {
-	    return false;
-	}
-
-	// their OpenType should be equal
-	if ( ! this.getOpenType().equals(other.getOpenType()) ) {
-	    return false;
-	}
-
-	// their DefaultValue should be equal
-	if (this.hasDefaultValue()) {
-	    if ( ! this.defaultValue.equals(other.getDefaultValue()) ) {
-		return false;
-	    }
-	} else {
-	    if (other.hasDefaultValue()) {
-		return false;
-	    }
-	}
-       
-	// their MinValue should be equal
-	if (this.hasMinValue()) {
-	    if ( ! this.minValue.equals(other.getMinValue()) ) {
-		return false;
-	    }
-	} else {
-	    if (other.hasMinValue()) {
-		return false;
-	    }
-	}
-       
-	// their MaxValue should be equal
-	if (this.hasMaxValue()) {
-	    if ( ! this.maxValue.equals(other.getMaxValue()) ) {
-		return false;
-	    }
-	} else {
-	    if (other.hasMaxValue()) {
-		return false;
-	    }
-	}
-       
-	// their LegalValues should be equal
-	if (this.hasLegalValues()) {
-	    if ( ! this.legalValues.equals(other.getLegalValues()) ) {
-		return false;
-	    }
-	} else {
-	    if (other.hasLegalValues()) {
-		return false;
-	    }
-	}
-       
-	// All tests for equality were successfull
-	//
-	return true;
+        return equal(this, other);
     }
 
     /**
-     * Returns the hash code value for this <code>OpenMBeanParameterInfoSupport</code> instance. 
-     * <p>
-     * The hash code of an <code>OpenMBeanParameterInfoSupport</code> instance is the sum of the hash codes
-     * of all elements of information used in <code>equals</code> comparisons 
-     * (ie: its name, its <i>open type</i>, and its default, min, max and legal values). 
-     * <p>
-     * This ensures that <code> t1.equals(t2) </code> implies that <code> t1.hashCode()==t2.hashCode() </code> 
-     * for any two <code>OpenMBeanParameterInfoSupport</code> instances <code>t1</code> and <code>t2</code>, 
-     * as required by the general contract of the method
-     * {@link Object#hashCode() Object.hashCode()}.
-     * <p>
-     * However, note that another instance of a class implementing the <code>OpenMBeanParameterInfo</code> interface
-     * may be equal to this <code>OpenMBeanParameterInfoSupport</code> instance as defined by {@link #equals(java.lang.Object)}, 
-     * but may have a different hash code if it is calculated differently.
-     * <p>
-     * As <code>OpenMBeanParameterInfoSupport</code> instances are immutable, the hash code for this instance is calculated once,
-     * on the first call to <code>hashCode</code>, and then the same value is returned for subsequent calls.
+     * <p>Returns the hash code value for this {@code
+     * OpenMBeanParameterInfoSupport} instance.</p>
      *
-     * @return  the hash code value for this <code>OpenMBeanParameterInfoSupport</code> instance
+     * <p>The hash code of an {@code OpenMBeanParameterInfoSupport}
+     * instance is the sum of the hash codes of all elements of
+     * information used in {@code equals} comparisons (ie: its name,
+     * its <i>open type</i>, its default, min, max and legal
+     * values, and its Descriptor).
+     *
+     * <p>This ensures that {@code t1.equals(t2)} implies that {@code
+     * t1.hashCode()==t2.hashCode()} for any two {@code
+     * OpenMBeanParameterInfoSupport} instances {@code t1} and {@code
+     * t2}, as required by the general contract of the method {@link
+     * Object#hashCode() Object.hashCode()}.
+     *
+     * <p>However, note that another instance of a class implementing
+     * the {@code OpenMBeanParameterInfo} interface may be equal to
+     * this {@code OpenMBeanParameterInfoSupport} instance as defined
+     * by {@link #equals(java.lang.Object)}, but may have a different
+     * hash code if it is calculated differently.
+     *
+     * <p>As {@code OpenMBeanParameterInfoSupport} instances are
+     * immutable, the hash code for this instance is calculated once,
+     * on the first call to {@code hashCode}, and then the same value
+     * is returned for subsequent calls.
+     *
+     * @return the hash code value for this {@code
+     * OpenMBeanParameterInfoSupport} instance
      */
     public int hashCode() {
 
-	// Calculate the hash code value if it has not yet been done (ie 1st call to hashCode())
+	// Calculate the hash code value if it has not yet been done
+	// (ie 1st call to hashCode())
 	//
-	if (myHashCode == null) {
-	    int value = 0;
-	    value += this.getName().hashCode();
-	    value += this.openType.hashCode();
-	    if (this.hasDefaultValue()) {
-		value += this.defaultValue.hashCode();
-	    }
-	    if (this.hasMinValue()) {
-		value += this.minValue.hashCode();
-	    }
-	    if (this.hasMaxValue()) {
-		value += this.maxValue.hashCode();
-	    }
-	    if (this.hasLegalValues()) {
-		value += this.legalValues.hashCode();
-	    }
-	    myHashCode = new Integer(value);
-	}
-	
+	if (myHashCode == null) 
+            myHashCode = OpenMBeanAttributeInfoSupport.hashCode(this);
+
 	// return always the same hash code for this instance (immutable)
 	//
 	return myHashCode.intValue();
     }
 
     /**
-     * Returns a string representation of this <code>OpenMBeanParameterInfoSupport</code> instance. 
+     * Returns a string representation of this
+     * {@code OpenMBeanParameterInfoSupport} instance.
      * <p>
-     * The string representation consists of the name of this class (ie <code>javax.management.openmbean.OpenMBeanParameterInfoSupport</code>), 
-     * the string representation of the name and open type of the described parameter, 
-     * and the string representation of its default, min, max and legal values.
+     * The string representation consists of the name of this class (i.e.
+     * {@code javax.management.openmbean.OpenMBeanParameterInfoSupport}),
+     * the string representation of the name and open type of the described
+     * parameter, the string representation of its default, min, max and legal
+     * values and the string representation of its descriptor.
      * <p>
-     * As <code>OpenMBeanParameterInfoSupport</code> instances are immutable, the string representation for this instance is calculated once,
-     * on the first call to <code>toString</code>, and then the same value is returned for subsequent calls.
-     * 
-     * @return  a string representation of this <code>OpenMBeanParameterInfoSupport</code> instance
+     * As {@code OpenMBeanParameterInfoSupport} instances are immutable,
+     * the string representation for this instance is calculated once,
+     * on the first call to {@code toString}, and then the same value
+     * is returned for subsequent calls.
+     *
+     * @return a string representation of this
+     * {@code OpenMBeanParameterInfoSupport} instance.
      */
-    public String toString() { 
+    public String toString() {
 
-	// Calculate the hash code value if it has not yet been done (ie 1st call to hashCode())
+	// Calculate the string value if it has not yet been done (ie
+	// 1st call to toString())
 	//
-	if (myToString == null) {
-	    myToString = new StringBuffer()
-		.append(this.getClass().getName())
-		.append("(name=")
-		.append(this.getName())
-		.append(",openType=")
-		.append(this.openType.toString())
-		.append(",default=")
-		.append(String.valueOf(this.defaultValue))
-		.append(",min=")
-		.append(String.valueOf(this.minValue))
-		.append(",max=")
-		.append(String.valueOf(this.maxValue))
-		.append(",legals=")
-		.append(String.valueOf(this.legalValues))
-		.append(")")
-		.toString();
-	}
-	
-	// return always the same string representation for this instance (immutable)
+	if (myToString == null) 
+            myToString = OpenMBeanAttributeInfoSupport.toString(this);
+
+	// return always the same string representation for this
+	// instance (immutable)
 	//
 	return myToString;
     }

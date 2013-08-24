@@ -1,7 +1,7 @@
 /*
- * @(#)FocusListener.java	1.15 03/12/19
+ * @(#)FocusListener.java	1.17 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,10 +25,9 @@ import java.util.EventListener;
  * @see FocusAdapter
  * @see FocusEvent
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/focuslistener.html">Tutorial: Writing a Focus Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.15 12/19/03
+ * @version 1.17 04/13/06
  * @since 1.1
  */
 public interface FocusListener extends EventListener {

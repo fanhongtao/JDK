@@ -1,10 +1,28 @@
-// $Id: DocumentBuilderFactory.java,v 1.39.16.1 2004/07/17 00:22:03 jsuttor Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)DocumentBuilderFactory.java	1.39 04/07/27
+ * $Id: DocumentBuilderFactory.java,v 1.5 2005/11/03 19:34:14 jeffsuttor Exp $
+ * @(#)DocumentBuilderFactory.java	1.50 06/06/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.parsers;
@@ -15,8 +33,11 @@ import javax.xml.validation.Schema;
  * Defines a factory API that enables applications to obtain a
  * parser that produces DOM object trees from XML documents.
  *
- * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.39.16.1 $, $Date: 2004/07/17 00:22:03 $
+ * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @author <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
+ *
+ * @version $Revision: 1.5 $, $Date: 2005/11/03 19:34:14 $
+
  */
 
 public abstract class DocumentBuilderFactory {
@@ -33,6 +54,10 @@ public abstract class DocumentBuilderFactory {
     
     private boolean canonicalState = false;
     
+    /**
+     * <p>Protected constructor to prevent instantiation.
+     * Use {@link #newInstance()}.</p>
+     */
     protected DocumentBuilderFactory () {
     }
 
@@ -81,7 +106,7 @@ public abstract class DocumentBuilderFactory {
      * <h2>Tip for Trouble-shooting</h2>
      * <p>Setting the <code>jaxp.debug</code> system property will cause
      * this method to print a lot of debug messages
-     * to <tt>System.err</tt> about what it is doing and where it is looking at.</p>
+     * to <code>System.err</code> about what it is doing and where it is looking at.</p>
      * 
      * <p> If you have problems loading {@link DocumentBuilder}s, try:</p>
      * <pre>
@@ -90,8 +115,8 @@ public abstract class DocumentBuilderFactory {
      * 
      * @return New instance of a <code>DocumentBuilderFactory</code>
      *
-     * @exception FactoryConfigurationError if the implementation is not
-     * available or cannot be instantiated.
+     * @throws FactoryConfigurationError if the implementation is not
+     *   available or cannot be instantiated.
      */
     public static DocumentBuilderFactory newInstance() {
         try {
@@ -108,12 +133,57 @@ public abstract class DocumentBuilderFactory {
     }
 
     /**
+     * <p>Obtain a new instance of a <code>DocumentBuilderFactory</code> from class name.
+     * This function is useful when there are multiple providers in the classpath.
+     * It gives more control to the application as it can specify which provider
+     * should be loaded.</p>
+     *
+     * <p>Once an application has obtained a reference to a <code>DocumentBuilderFactory</code> 
+     * it can use the factory to configure and obtain parser instances.</p>
+     * 
+     * 
+     * <h2>Tip for Trouble-shooting</h2>
+     * <p>Setting the <code>jaxp.debug</code> system property will cause
+     * this method to print a lot of debug messages
+     * to <code>System.err</code> about what it is doing and where it is looking at.</p>
+     * 
+     * <p> If you have problems try:</p>
+     * <pre>
+     * java -Djaxp.debug=1 YourProgram ....
+     * </pre>
+     * 
+     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.parsers.DocumentBuilderFactory</code>.
+     *
+     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>  
+     *                     current <code>Thread</code>'s context classLoader is used to load the factory class.
+     *
+     * @return New instance of a <code>DocumentBuilderFactory</code>
+     *
+     * @throws FactoryConfigurationError if <code>factoryClassName</code> is <code>null</code>, or 
+     *                                   the factory class cannot be loaded, instantiated. 
+     *
+     * @see #newInstance()
+     *
+     * @since 1.6
+     */
+    public static DocumentBuilderFactory newInstance(String factoryClassName, ClassLoader classLoader){
+        try {
+            //do not fallback if given classloader can't find the class, throw exception
+            return (DocumentBuilderFactory) FactoryFinder.newInstance(factoryClassName, classLoader, false);
+        } catch (FactoryFinder.ConfigurationError e) {
+            throw new FactoryConfigurationError(e.getException(),
+                                                e.getMessage());
+        }        
+    }
+
+    /**
      * Creates a new instance of a {@link javax.xml.parsers.DocumentBuilder}
      * using the currently configured parameters.
      *
-     * @exception ParserConfigurationException if a DocumentBuilder
-     * cannot be created which satisfies the configuration requested.
      * @return A new instance of a DocumentBuilder.
+     *
+     * @throws ParserConfigurationException if a DocumentBuilder
+     *   cannot be created which satisfies the configuration requested.
      */
     
     public abstract DocumentBuilder newDocumentBuilder()
@@ -143,15 +213,14 @@ public abstract class DocumentBuilderFactory {
      * <a href="http://www.w3.org/TR/REC-xml#proc-types">a validating
      * parser</a> as defined in the XML recommendation.
      * In other words, it essentially just controls the DTD validation.
-     * (except the legacy two properties defined in JAXP 1.2.
-     * See <a href="#validationCompatibility">here</a> for more details.)
+     * (except the legacy two properties defined in JAXP 1.2.)
      * </p>
      * 
      * <p>
      * To use modern schema languages such as W3C XML Schema or
      * RELAX NG instead of DTD, you can configure your parser to be
      * a non-validating parser by leaving the {@link #setValidating(boolean)}
-     * method <tt>false</tt>, then use the {@link #setSchema(Schema)}
+     * method <code>false</code>, then use the {@link #setSchema(Schema)}
      * method to associate a schema to a parser.
      * </p>
      * 
@@ -300,10 +369,12 @@ public abstract class DocumentBuilderFactory {
     /**
      * Allows the user to set specific attributes on the underlying
      * implementation.
+     *
      * @param name The name of the attribute.
      * @param value The value of the attribute.
-     * @exception IllegalArgumentException thrown if the underlying
-     * implementation doesn't recognize the attribute.
+     *
+     * @throws IllegalArgumentException thrown if the underlying
+     *   implementation doesn't recognize the attribute.
      */
     public abstract void setAttribute(String name, Object value)
                 throws IllegalArgumentException;
@@ -311,10 +382,13 @@ public abstract class DocumentBuilderFactory {
     /**
      * Allows the user to retrieve specific attributes on the underlying
      * implementation.
+     *
      * @param name The name of the attribute.
+     *
      * @return value The value of the attribute.
-     * @exception IllegalArgumentException thrown if the underlying
-     * implementation doesn't recognize the attribute.
+     *
+     * @throws IllegalArgumentException thrown if the underlying
+     *   implementation doesn't recognize the attribute.
      */
     public abstract Object getAttribute(String name)
                 throws IllegalArgumentException;
@@ -325,9 +399,9 @@ public abstract class DocumentBuilderFactory {
 	 * <p>
 	 * Feature names are fully qualified {@link java.net.URI}s.
 	 * Implementations may define their own features.
-	 * An {@link ParserConfigurationException} is thrown if this <code>DocumentBuilderFactory</code> or the
+	 * A {@link ParserConfigurationException} is thrown if this <code>DocumentBuilderFactory</code> or the
 	 * <code>DocumentBuilder</code>s it creates cannot support the feature.
-	 * It is possible for an <code>DocumentBuilderFactory</code> to expose a feature value but be unable to change its state.
+	 * It is possible for a <code>DocumentBuilderFactory</code> to expose a feature value but be unable to change its state.
 	 * </p>
 	 * 
 	 * <p>
@@ -393,19 +467,16 @@ public abstract class DocumentBuilderFactory {
     /**
      * Gets the {@link Schema} object specified through
      * the {@link #setSchema(Schema schema)} method.
-     * 
-     * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
-     * 
+     *
      * @return
      *      the {@link Schema} object that was last set through
      *      the {@link #setSchema(Schema)} method, or null
-     *      if the method was not invoked since a {@link SAXParserFactory}
+     *      if the method was not invoked since a {@link DocumentBuilderFactory}
      *      is created.
-     * 
+     *
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method.
+     *
      * @since 1.5
      */
     public Schema getSchema() {
@@ -440,10 +511,10 @@ public abstract class DocumentBuilderFactory {
      * down to the application.
      * 
      * <p>When errors are found by the validator, the parser is responsible
-     * to report them to the user-specified {@link org.w3c.dom.DOMErrorHandler}
+     * to report them to the user-specified {@link org.xml.sax.ErrorHandler}
      * (or if the error handler is not set, ignore them or throw them), just
      * like any other errors found by the parser itself.
-     * In other words, if the user-specified {@link org.w3c.dom.DOMErrorHandler}
+     * In other words, if the user-specified {@link org.xml.sax.ErrorHandler}
      * is set, it must receive those errors, and if not, they must be
      * treated according to the implementation specific
      * default error handling rules.
@@ -459,7 +530,7 @@ public abstract class DocumentBuilderFactory {
      * 
      * <p>
      * This processing will take effect even if
-     * the {@link #isValidating()} method returns <tt>false</tt>.
+     * the {@link #isValidating()} method returns <code>false</code>.
      * 
      * <p>It is an error to use
      * the <code>http://java.sun.com/xml/jaxp/properties/schemaSource</code>
@@ -470,19 +541,20 @@ public abstract class DocumentBuilderFactory {
      *
      *  
      * <h4>Note for implmentors</h4>
+     *
      * <p>
      * A parser must be able to work with any {@link Schema}
      * implementation. However, parsers and schemas are allowed
      * to use implementation-specific custom mechanisms
      * as long as they yield the result described in the specification.
-     * 
-     * @param schema <code>Schema</code> to use or <code>null</code> to remove a schema.
-     * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
-     * 
+     * </p>
+     *
+     * @param schema <code>Schema</code> to use or <code>null</code>
+     *   to remove a schema.
+     *
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method.
+     *
      * @since 1.5
      */
     public void setSchema(Schema schema) {
@@ -508,12 +580,10 @@ public abstract class DocumentBuilderFactory {
      * 
      * @param state Set XInclude processing to <code>true</code> or
      *   <code>false</code>
-     * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
-     * 
+     *
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method.
+     *
      * @since 1.5
      */
     public void setXIncludeAware(final boolean state) {
@@ -530,12 +600,10 @@ public abstract class DocumentBuilderFactory {
      * <p>Get state of XInclude processing.</p>
      * 
      * @return current state of XInclude processing
-     * 
-     * @throws UnsupportedOperationException
-     *      For backward compatibility, when implementations for
-     *      earlier versions of JAXP is used, this exception will be
-     *      thrown.
-     * 
+     *
+     * @throws UnsupportedOperationException When implementation does not
+     *   override this method.
+     *
      * @since 1.5
      */
     public boolean isXIncludeAware() {

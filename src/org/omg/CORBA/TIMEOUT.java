@@ -1,7 +1,7 @@
 /*
- * @(#)TIMEOUT.java	1.2 04/03/15
+ * @(#)TIMEOUT.java	1.4 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package org.omg.CORBA;
  * specified time-to-live period has been exceeded. It is a standard system
  * exception because time-to-live QoS can be applied to any invocation.
  *
- * @see <A href="../../../../guide/idl/jidlExceptions.html">documentation on
+ * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  *      Java&nbsp;IDL exceptions</A>
  * @version 1.0, 03/05/2004
  * @since   J2SE 1.5

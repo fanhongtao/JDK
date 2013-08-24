@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryUsage.java	1.16 04/05/25
+ * @(#)MemoryUsage.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -85,7 +85,7 @@ import sun.management.MemoryUsageCompositeData;
  * with attributes as specified in the {@link #from from} method. 
  *
  * @author   Mandy Chung
- * @version 1.16, 05/25/04
+ * @version 1.17, 11/17/05
  * @since   1.5
  */
 public class MemoryUsage {

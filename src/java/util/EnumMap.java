@@ -1,12 +1,14 @@
 /*
- * @(#)EnumMap.java	1.11 05/09/02
+ * @(#)EnumMap.java	1.16 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
+
 import java.util.Map.Entry;
+import sun.misc.SharedSecrets;
 
 /**
  * A specialized {@link Map} implementation for use with enum type keys.  All
@@ -40,19 +42,20 @@ import java.util.Map.Entry;
  * unsynchronized access:
  *
  * <pre>
- *     Map&lt;EnumKey, V&gt; m = Collections.synchronizedMap(new EnumMap(...));
+ *     Map&lt;EnumKey, V&gt; m
+ *         = Collections.synchronizedMap(new EnumMap&lt;EnumKey, V&gt;(...));
  * </pre>
  *
  * <p>Implementation note: All basic operations execute in constant time.
  * They are likely (though not guaranteed) to be faster than their
  * {@link HashMap} counterparts.
  *
- * <p>This class is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <p>This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @author Josh Bloch
- * @version 1.11, 09/02/05
+ * @version 1.16, 04/21/06
  * @see EnumSet
  * @since 1.5
  */
@@ -106,7 +109,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
      */
     public EnumMap(Class<K> keyType) {
         this.keyType = keyType;
-        keyUniverse = keyType.getEnumConstants();
+        keyUniverse = getKeyUniverse(keyType);
         vals = new Object[keyUniverse.length];
     }
 
@@ -147,7 +150,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
             if (m.isEmpty())
                 throw new IllegalArgumentException("Specified map is empty");
             keyType = m.keySet().iterator().next().getDeclaringClass();
-            keyUniverse = keyType.getEnumConstants();
+            keyUniverse = getKeyUniverse(keyType);
             vals = new Object[keyUniverse.length];
             putAll(m);
         }
@@ -199,12 +202,19 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Returns the value to which this map maps the specified key, or null
-     * if this map contains no mapping for the specified key.
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
      *
-     * @param key the key whose associated value is to be returned
-     * @return the value to which this map maps the specified key, or null
-     *     if this map contains no mapping for the specified key
+     * <p>More formally, if this map contains a mapping from a key
+     * {@code k} to a value {@code v} such that {@code (key == k)},
+     * then this method returns {@code v}; otherwise it returns
+     * {@code null}.  (There can be at most one such mapping.)
+     *
+     * <p>A return value of {@code null} does not <i>necessarily</i>
+     * indicate that the map contains no mapping for the key; it's also
+     * possible that the map explicitly maps the key to {@code null}.
+     * The {@link #containsKey containsKey} operation may be used to
+     * distinguish these two cases.
      */
     public V get(Object key) {
         return (isValidKey(key) ?
@@ -220,7 +230,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
      *
      * @param key the key with which the specified value is to be associated
      * @param value the value to be associated with the specified key
-     * 
+     *
      * @return the previous value associated with specified key, or
      *     <tt>null</tt> if there was no mapping for key.  (A <tt>null</tt>
      *     return can also indicate that the map previously associated
@@ -458,6 +468,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
         public Object[] toArray() {
             return fillEntryArray(new Object[size]);
         }
+	@SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
 	    int size = size();
 	    if (a.length < size)
@@ -647,6 +658,15 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
             throw new ClassCastException(keyClass + " != " + keyType);
     }
 
+    /**
+     * Returns all of the values comprising K.
+     * The result is uncloned, cached, and shared by all callers.
+     */
+    private static <K extends Enum<K>> K[] getKeyUniverse(Class<K> keyType) {
+        return SharedSecrets.getJavaLangAccess()
+					.getEnumConstantsShared(keyType);
+    }
+
     private static final long serialVersionUID = 458661240069192865L;
 
     /**
@@ -684,7 +704,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
         // Read in the key type and any hidden stuff
         s.defaultReadObject();
 
-        keyUniverse = keyType.getEnumConstants();
+        keyUniverse = getKeyUniverse(keyType);
         vals = new Object[keyUniverse.length];
 
         // Read in size (number of Mappings)

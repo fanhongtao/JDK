@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeSortRecordGenerator.java,v 1.7 2004/02/16 22:26:44 minchau Exp $
+ * $Id: NodeSortRecordGenerator.java,v 1.2.4.1 2005/09/05 11:23:42 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;

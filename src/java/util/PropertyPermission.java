@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyPermission.java	1.33 03/12/19
+ * @(#)PropertyPermission.java	1.35 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.33 03/12/19
+ * @version 1.35 06/04/21
  *
  * @author Roland Schemers
  * @since 1.2
@@ -138,6 +138,10 @@ public final class PropertyPermission extends BasicPermission {
      *
      * @param name the name of the PropertyPermission.
      * @param actions the actions string.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty or if
+     * <code>actions</code> is invalid.
      */
 
     public PropertyPermission(String name, String actions)
@@ -408,7 +412,7 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.33, 12/19/03
+ * @version 1.35, 04/21/06
  *
  * @author Roland Schemers
  *

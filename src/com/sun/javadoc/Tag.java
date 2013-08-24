@@ -1,11 +1,14 @@
 /*
  * @(#)Tag.java	1.12 02/10/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.javadoc;
+
+import java.text.BreakIterator;
+import java.util.Locale;
 
 /**
  * Represents a simple documentation tag, such as @since, @author, @version.
@@ -122,8 +125,7 @@ public interface Tag {
      * &lt;hr&gt;  &lt;pre&gt;  or &lt;/pre&gt;.
      * If the locale is not English, the sentence end will be
      * determined by
-     * {@link java.text.BreakIterator#getSentenceInstance(Locale) 
-     * java.text.BreakIterator.getSentenceInstance(Locale)}.
+     * {@link BreakIterator#getSentenceInstance(Locale)}.
      *
      * @return an array of {@link Tag} objects representing the 
      *         first sentence of the comment

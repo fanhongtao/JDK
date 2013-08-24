@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToSAXHandler.java,v 1.10 2004/02/17 04:18:18 minchau Exp $
+ * $Id: ToSAXHandler.java,v 1.2.4.1 2005/09/22 11:03:15 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -28,10 +28,14 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
 
 /**
- * @author Santiago Pericas-Geertsen
- * @author G. Todd Miller 
+ * This class is used to provide a base behavior to be inherited
+ * by other To...SAXHandler serializers.
+ * 
+ * This class is not a public API.
+ * 
+ * @xsl.usage internal
  */
-abstract public class ToSAXHandler extends SerializerBase 
+public abstract class ToSAXHandler extends SerializerBase 
 {
     public ToSAXHandler()
     {
@@ -105,11 +109,11 @@ abstract public class ToSAXHandler extends SerializerBase
     /**
      * Receive notification of character data.
      *
-     * @param chars The string of characters to process.
+     * @param characters The string of characters to process.
      *
      * @throws org.xml.sax.SAXException
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#characters(String)
+     * @see ExtendedContentHandler#characters(String)
      */
     public void characters(String characters) throws SAXException
     {
@@ -125,20 +129,11 @@ abstract public class ToSAXHandler extends SerializerBase
     /**
      * Receive notification of a comment.
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedLexicalHandler#comment(String)
+     * @see ExtendedLexicalHandler#comment(String)
      */
     public void comment(String comment) throws SAXException
     {
-
-        // Close any open element before emitting comment
-        if (m_elemContext.m_startTagOpen)
-        {
-            closeStartTag();
-        }
-        else if (m_cdataTagOpen)
-        {
-            closeCDATA();
-        }
+        flushPending();
 
         // Ignore if a lexical handler has not been set
         if (m_lexHandler != null)
@@ -182,15 +177,6 @@ abstract public class ToSAXHandler extends SerializerBase
      * SAX method additional namespace or attribute information can occur before
      * or after this call, that is associated with this element.
      *
-     *
-     * @param namespaceURI The Namespace URI, or the empty string if the
-     *        element has no Namespace URI or if Namespace
-     *        processing is not being performed.
-     * @param localName The local name (without prefix), or the
-     *        empty string if Namespace processing is not being
-     *        performed.
-     * @param name The element type name.
-     * @param atts The attributes attached to the element, if any.
      * @throws org.xml.sax.SAXException Any SAX exception, possibly
      *            wrapping another exception.
      * @see org.xml.sax.ContentHandler#startElement
@@ -228,7 +214,7 @@ abstract public class ToSAXHandler extends SerializerBase
 
     /**
      * Sets the SAX ContentHandler.
-     * @param m_saxHandler The ContentHandler to set
+     * @param _saxHandler The ContentHandler to set
      */
     public void setContentHandler(ContentHandler _saxHandler)
     {
@@ -244,7 +230,7 @@ abstract public class ToSAXHandler extends SerializerBase
     /**
      * Does nothing. The setting of CDATA section elements has an impact on
      * stream serializers.
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setCdataSectionElements(java.util.Vector)
+     * @see SerializationHandler#setCdataSectionElements(java.util.Vector)
      */
     public void setCdataSectionElements(Vector URI_and_localNames)
     {
@@ -320,7 +306,7 @@ abstract public class ToSAXHandler extends SerializerBase
      * @param localName the element name, but without prefix (optional)
      * @param qName the element name, with prefix, if any (required)
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#startElement(String, String, String)
+     * @see ExtendedContentHandler#startElement(String, String, String)
      */
     public void startElement(String uri, String localName, String qName)
         throws SAXException {
@@ -337,9 +323,9 @@ abstract public class ToSAXHandler extends SerializerBase
     /**
      * An element starts, but attributes are not fully known yet.
      *
-     * @param elementName the element name, with prefix (if any).
+     * @param qName the element name, with prefix (if any).
 
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#startElement(String)
+     * @see ExtendedContentHandler#startElement(String)
      */
     public void startElement(String qName) throws SAXException {
         if (m_state != null) {
@@ -414,7 +400,7 @@ abstract public class ToSAXHandler extends SerializerBase
      * (mostly for performance reasons).
      * 
      * @return true if the class was successfuly reset.
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#reset()
+     * @see Serializer#reset()
      */
     public boolean reset()
     {

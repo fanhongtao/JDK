@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToTextSAXHandler.java,v 1.5 2004/02/17 04:18:18 minchau Exp $
+ * $Id: ToTextSAXHandler.java,v 1.3 2005/09/28 13:49:08 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -31,19 +31,18 @@ import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
 
 /**
- * @author minchau
- *
- * To change this generated comment edit the template variable "typecomment":
- * Window>Preferences>Java>Templates.
- * To enable and disable the creation of type comments go to
- * Window>Preferences>Java>Code Generation.
- * @author Santiago Pericas-Geertsen
+ * This class converts SAX-like event to SAX events for
+ * xsl:output method "text". 
+ * 
+ * This class is only to be used internally. This class is not a public API.
+ * 
+ * @xsl.usage internal
  */
-public class ToTextSAXHandler extends ToSAXHandler 
+public final class ToTextSAXHandler extends ToSAXHandler 
 {
     /**
      * From XSLTC
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#endElement(String)
+     * @see ExtendedContentHandler#endElement(String)
      */
     public void endElement(String elemName) throws SAXException
     {
@@ -93,7 +92,7 @@ public class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputFormat()
+     * @see Serializer#getOutputFormat()
      */
     public Properties getOutputFormat()
     {
@@ -101,7 +100,7 @@ public class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputStream()
+     * @see Serializer#getOutputStream()
      */
     public OutputStream getOutputStream()
     {
@@ -109,7 +108,7 @@ public class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getWriter()
+     * @see Serializer#getWriter()
      */
     public Writer getWriter()
     {
@@ -126,7 +125,7 @@ public class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#reset()
+     * @see Serializer#reset()
      */
     public boolean reset()
     {
@@ -134,14 +133,14 @@ public class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.DOMSerializer#serialize(Node)
+     * @see DOMSerializer#serialize(Node)
      */
     public void serialize(Node node) throws IOException
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setEscaping(boolean)
+     * @see SerializationHandler#setEscaping(boolean)
      */
     public boolean setEscaping(boolean escape)
     {
@@ -149,42 +148,43 @@ public class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setIndent(boolean)
+     * @see SerializationHandler#setIndent(boolean)
      */
     public void setIndent(boolean indent)
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputFormat(Properties)
+     * @see Serializer#setOutputFormat(Properties)
      */
     public void setOutputFormat(Properties format)
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputStream(OutputStream)
+     * @see Serializer#setOutputStream(OutputStream)
      */
     public void setOutputStream(OutputStream output)
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setWriter(Writer)
+     * @see Serializer#setWriter(Writer)
      */
     public void setWriter(Writer writer)
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#addAttribute(String, String, String, String, String)
+     * @see ExtendedContentHandler#addAttribute(String, String, String, String, String)
      */
     public void addAttribute(
         String uri,
         String localName,
         String rawName,
         String type,
-        String value)
+        String value,
+        boolean XSLAttribute)
     {
     }
 
@@ -255,6 +255,7 @@ public class ToTextSAXHandler extends ToSAXHandler
      */
     public void setDocumentLocator(Locator arg0)
     {
+        super.setDocumentLocator(arg0);
     }
 
     /**
@@ -310,7 +311,7 @@ public class ToTextSAXHandler extends ToSAXHandler
 
     /**
      * From XSLTC
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#startElement(String)
+     * @see ExtendedContentHandler#startElement(String)
      */
     public void startElement(
     String elementNamespaceURI,
@@ -342,7 +343,7 @@ public class ToTextSAXHandler extends ToSAXHandler
  
     /**
 	 *	
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#characters(String)
+     * @see ExtendedContentHandler#characters(String)
      */
     public void characters(String characters) 
     throws SAXException 

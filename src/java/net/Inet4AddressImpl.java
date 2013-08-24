@@ -1,7 +1,7 @@
 /*
- * @(#)Inet4AddressImpl.java	1.4 03/12/19
+ * @(#)Inet4AddressImpl.java	1.6 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 class Inet4AddressImpl implements InetAddressImpl {
     public native String getLocalHostName() throws UnknownHostException;
-    public native byte[][]
+    public native InetAddress[]
         lookupAllHostAddr(String hostname) throws UnknownHostException;
     public native String getHostByAddr(byte[] addr) throws UnknownHostException;
     private native boolean isReachable0(byte[] addr, int timeout, byte[] ifaddr, int ttl) throws IOException;

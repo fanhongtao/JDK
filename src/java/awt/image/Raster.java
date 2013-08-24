@@ -1,7 +1,7 @@
 /*
- * @(#)Raster.java	1.61 03/12/19
+ * @(#)Raster.java	1.64 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1199,7 +1199,7 @@ public class Raster {
      *         <code>rect.x + rect.width</code> or
      *         <code>rect.y + rect.height</code> results in integer
      *         overflow
-     * @throws NullPointerException if <code>rect<code> is null
+     * @throws NullPointerException if <code>rect</code> is null
      */
     public WritableRaster createCompatibleWritableRaster(Rectangle rect) {
         if (rect == null) {
@@ -1213,7 +1213,9 @@ public class Raster {
      * Create a compatible WritableRaster with the specified
      * location (minX, minY) and size (width, height), a
      * new SampleModel, and a new initialized DataBuffer.
-     * @param x,&nbsp;y the coordinates of the upper-left corner of
+     * @param x the X coordinate of the upper-left corner of
+     *        the <code>WritableRaster</code>
+     * @param y the Y coordinate of the upper-left corner of
      *        the <code>WritableRaster</code>
      * @param w the specified width of the <code>WritableRaster</code>
      * @param h the specified height of the <code>WritableRaster</code>
@@ -1237,7 +1239,9 @@ public class Raster {
      * will possess a reference to the current Raster, accessible
      * through its getParent() method.
      * 
-     * @param childMinX,&nbsp;childMinY coordinates of the upper-left 
+     * @param childMinX the X coordinate of the upper-left 
+     *        corner of the new <code>Raster</code>
+     * @param childMinY the Y coordinate of the upper-left 
      *        corner of the new <code>Raster</code>
      * @return a new <code>Raster</code> with the same size, SampleModel, 
      *         and DataBuffer as this <code>Raster</code>, but with the
@@ -1282,11 +1286,15 @@ public class Raster {
      * this method should be called with childMinX equal to parentX,
      * childMinY equal to parentY, and bandList equal to null.
      *
-     * @param parentX,&nbsp;parentY coordinates of the upper-left corner 
+     * @param parentX The X coordinate of the upper-left corner 
+     *        in this Raster's coordinates
+     * @param parentY The Y coordinate of the upper-left corner 
      *        in this Raster's coordinates
      * @param width      Width of the region starting at (parentX, parentY)
      * @param height     Height of the region starting at (parentX, parentY).
-     * @param childMinX,&nbsp;childMinY coordinates of the upper-left corner 
+     * @param childMinX The X coordinate of the upper-left corner 
+     *                   of the returned Raster
+     * @param childMinY The Y coordinate of the upper-left corner 
      *                   of the returned Raster
      * @param bandList   Array of band indices, or null to use all bands
      * @return a new <code>Raster</code>.
@@ -1445,7 +1453,8 @@ public class Raster {
      * A ClassCastException will be thrown if the input object is non null
      * and references anything other than an array of TransferType.
      * @see java.awt.image.SampleModel#getDataElements(int, int, Object, DataBuffer)
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x        The X coordinate of the pixel location
+     * @param y        The Y coordinate of the pixel location
      * @param outData  An object reference to an array of type defined by
      *                 getTransferType() and length getNumDataElements(). 
      *                 If null, an array of appropriate type and size will be
@@ -1476,7 +1485,8 @@ public class Raster {
      * A ClassCastException will be thrown if the input object is non null
      * and references anything other than an array of TransferType.
      * @see java.awt.image.SampleModel#getDataElements(int, int, int, int, Object, DataBuffer)
-     * @param x,&nbsp;y   the coordinates of the upper-left pixel location
+     * @param x    The X coordinate of the upper-left pixel location
+     * @param y    The Y coordinate of the upper-left pixel location
      * @param w    Width of the pixel rectangle
      * @param h   Height of the pixel rectangle
      * @param outData  An object reference to an array of type defined by
@@ -1500,7 +1510,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x The X coordinate of the pixel location
+     * @param y The Y coordinate of the pixel location
      * @param iArray An optionally preallocated int array
      * @return the samples for the specified pixel.
      *
@@ -1519,7 +1530,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x The X coordinate of the pixel location
+     * @param y The Y coordinate of the pixel location
      * @param fArray An optionally preallocated float array
      * @return the samples for the specified pixel.
      *
@@ -1537,7 +1549,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x The X coordinate of the pixel location
+     * @param y The Y coordinate of the pixel location
      * @param dArray An optionally preallocated double array
      * @return the samples for the specified pixel.
      *
@@ -1556,7 +1569,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y   the coordinates of the upper-left pixel location
+     * @param x      The X coordinate of the upper-left pixel location
+     * @param y      The Y coordinate of the upper-left pixel location
      * @param w      Width of the pixel rectangle
      * @param h      Height of the pixel rectangle
      * @param iArray An optionally pre-allocated int array
@@ -1577,7 +1591,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x        The X coordinate of the pixel location
+     * @param y        The Y coordinate of the pixel location
      * @param w        Width of the pixel rectangle
      * @param h        Height of the pixel rectangle
      * @param fArray   An optionally pre-allocated float array
@@ -1599,7 +1614,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y   the coordinates of the upper-left pixel location
+     * @param x        The X coordinate of the upper-left pixel location
+     * @param y        The Y coordinate of the upper-left pixel location
      * @param w        Width of the pixel rectangle
      * @param h        Height of the pixel rectangle
      * @param dArray   An optionally pre-allocated double array
@@ -1622,7 +1638,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x        The X coordinate of the pixel location
+     * @param y        The Y coordinate of the pixel location
      * @param b        The band to return
      * @return the sample in the specified band for the pixel at the
      *         specified coordinate.
@@ -1642,7 +1659,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x        The X coordinate of the pixel location
+     * @param y        The Y coordinate of the pixel location
      * @param b        The band to return
      * @return the sample in the specified band for the pixel at the
      *         specified coordinate.
@@ -1662,7 +1680,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the pixel location
+     * @param x        The X coordinate of the pixel location
+     * @param y        The Y coordinate of the pixel location
      * @param b        The band to return
      * @return the sample in the specified band for the pixel at the
      *         specified coordinate.
@@ -1682,7 +1701,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y    the coordinates of the upper-left pixel location
+     * @param x        The X coordinate of the upper-left pixel location
+     * @param y        The Y coordinate of the upper-left pixel location
      * @param w        Width of the pixel rectangle
      * @param h        Height of the pixel rectangle
      * @param b        The band to return
@@ -1708,7 +1728,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y   the coordinates of the upper-left pixel location
+     * @param x        The X coordinate of the upper-left pixel location
+     * @param y        The Y coordinate of the upper-left pixel location
      * @param w        Width of the pixel rectangle
      * @param h        Height of the pixel rectangle
      * @param b        The band to return
@@ -1733,7 +1754,8 @@ public class Raster {
      * An ArrayIndexOutOfBoundsException may be thrown
      * if the coordinates are not in bounds.  However, explicit bounds
      * checking is not guaranteed.
-     * @param x,&nbsp;y   the coordinates of the upper-left pixel location
+     * @param x        The X coordinate of the upper-left pixel location
+     * @param y        The Y coordinate of the upper-left pixel location
      * @param w        Width of the pixel rectangle
      * @param h        Height of the pixel rectangle
      * @param b        The band to return

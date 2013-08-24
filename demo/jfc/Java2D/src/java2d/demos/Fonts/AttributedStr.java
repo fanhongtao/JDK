@@ -1,7 +1,7 @@
 /*
- * @(#)AttributedStr.java	1.12 04/07/26
+ * @(#)AttributedStr.java	1.15 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)AttributedStr.java	1.12 04/07/26
+ * @(#)AttributedStr.java	1.15 06/08/29
  */
 
 package java2d.demos.Fonts;
@@ -52,6 +52,9 @@ import java.text.AttributedString;
 import java.text.AttributedCharacterIterator;
 import java2d.Surface;
 
+import static java.awt.Font.*;
+import static java.awt.font.TextAttribute.*;
+
 
 /**
  * Demonstrates how to build an AttributedString and then render the
@@ -59,58 +62,59 @@ import java2d.Surface;
  */
 public class AttributedStr extends Surface {
 
-    static Color black = new Color(20, 20, 20); 
-    static Color blue = new Color(94, 105, 176); 
+    static Color black  = new Color( 20,  20,  20); 
+    static Color blue   = new Color( 94, 105, 176); 
     static Color yellow = new Color(255, 255, 140);
-    static Color red = new Color(149, 43, 42);
-    static Color white = new Color(240, 240, 255); 
+    static Color red    = new Color(149,  43,  42);
+    static Color white  = new Color(240, 240, 255); 
     static String text = "  A quick brown  fox  jumped  over the lazy duke  ";
     static AttributedString as = new AttributedString(text);
     static AttributedCharacterIterator aci; 
     static {
         Shape shape = new Ellipse2D.Double(0,25,12,12);
-	ShapeGraphicAttribute sga = new ShapeGraphicAttribute(shape, GraphicAttribute.TOP_ALIGNMENT, false);
-	as.addAttribute(TextAttribute.CHAR_REPLACEMENT, sga, 0, 1);
+        ShapeGraphicAttribute sga = new
+            ShapeGraphicAttribute(shape, GraphicAttribute.TOP_ALIGNMENT, false);
+        as.addAttribute(CHAR_REPLACEMENT, sga, 0, 1);
 
 
-        Font font = new Font("sanserif", Font.BOLD | Font.ITALIC, 20);
+        Font font = new Font("sanserif", BOLD|ITALIC, 20);
         int index = text.indexOf("quick");
-        as.addAttribute(TextAttribute.FONT, font, index, index+5);
+        as.addAttribute(FONT, font, index, index+5);
 
         index = text.indexOf("brown");
-        font = new Font("serif", Font.BOLD, 20);
-        as.addAttribute(TextAttribute.FONT, font, index, index+5);
-        as.addAttribute(TextAttribute.FOREGROUND, red, index, index+5);
+        font = new Font("serif", BOLD, 20);
+        as.addAttribute(FONT,       font, index, index+5);
+        as.addAttribute(FOREGROUND, red,  index, index+5);
 
         index = text.indexOf("fox");
         AffineTransform fontAT = new AffineTransform();
         fontAT.rotate(Math.toRadians(10));
-        Font fx = new Font("serif", Font.BOLD, 30).deriveFont(fontAT);
-        as.addAttribute(TextAttribute.FONT, fx, index, index+1);
-        as.addAttribute(TextAttribute.FONT, fx, index+1, index+2);
-        as.addAttribute(TextAttribute.FONT, fx, index+2, index+3);
+        Font fx = new Font("serif", BOLD, 30).deriveFont(fontAT);
+        as.addAttribute(FONT, fx, index,   index+1);
+        as.addAttribute(FONT, fx, index+1, index+2);
+        as.addAttribute(FONT, fx, index+2, index+3);
 
         fontAT.setToRotation(Math.toRadians(-4));
         fx = font.deriveFont(fontAT);
         index = text.indexOf("jumped");
-        as.addAttribute(TextAttribute.FONT, fx, index, index+6);
+        as.addAttribute(FONT, fx, index, index+6);
 
-        font = new Font("serif", Font.BOLD | Font.ITALIC, 30);
+        font = new Font("serif", BOLD|ITALIC, 30);
         index = text.indexOf("over");
-        as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, index, index+4);
-        as.addAttribute(TextAttribute.FOREGROUND, white, index, index+4);
-        as.addAttribute(TextAttribute.FONT, font, index, text.length());
+        as.addAttribute(UNDERLINE, UNDERLINE_ON, index, index+4);
+        as.addAttribute(FOREGROUND, white, index, index+4);
+        as.addAttribute(FONT, font, index, text.length());
 
-        font = new Font("dialog", Font.PLAIN, 20);
+        font = new Font("dialog", PLAIN, 20);
         int i = text.indexOf("duke");
-        as.addAttribute(TextAttribute.FONT, font, index, i-1);
+        as.addAttribute(FONT, font, index, i-1);
 
         BufferedImage bi = new BufferedImage(4,4,BufferedImage.TYPE_INT_ARGB);
         bi.setRGB(0, 0, 0xffffffff); 
         TexturePaint tp = new TexturePaint(bi,new Rectangle(0,0,4,4));
-        as.addAttribute(TextAttribute.BACKGROUND, tp, i, i+4);
-        font = new Font("serif", Font.BOLD, 40);
-        as.addAttribute(TextAttribute.FONT, font, i, i+4);
+        as.addAttribute(BACKGROUND, tp, i, i+4);
+        font = new Font("serif", BOLD, 40);
+        as.addAttribute(FONT, font, i, i+4);
     }
 
 
@@ -119,21 +123,23 @@ public class AttributedStr extends Surface {
 
         Font font = getFont("A.ttf");
         if (font != null) {
-            font = font.deriveFont(Font.PLAIN, 70);
+            font = font.deriveFont(PLAIN, 70);
         } else {
-            font = new Font("serif", Font.PLAIN, 50);
+            font = new Font("serif", PLAIN, 50);
         }
         int index = text.indexOf("A")+1;
-        as.addAttribute(TextAttribute.FONT, font, 0, index);
-        as.addAttribute(TextAttribute.FOREGROUND, white, 0, index);
+        as.addAttribute(FONT, font, 0, index);
+        as.addAttribute(FOREGROUND, white, 0, index);
 
-        font = new Font("dialog", Font.PLAIN, 40);
+        font = new Font("dialog", PLAIN, 40);
         int size = getFontMetrics(font).getHeight();
-        BufferedImage bi = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bi =
+                new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D big = bi.createGraphics();
         big.drawImage(getImage("snooze.gif"), 0, 0, size, size, null);
-	ImageGraphicAttribute iga = new ImageGraphicAttribute(bi, GraphicAttribute.TOP_ALIGNMENT);
-	as.addAttribute(TextAttribute.CHAR_REPLACEMENT, iga, text.length()-1, text.length());
+        ImageGraphicAttribute iga =
+                new ImageGraphicAttribute(bi, GraphicAttribute.TOP_ALIGNMENT);
+        as.addAttribute(CHAR_REPLACEMENT, iga, text.length()-1, text.length());
 
         aci = as.getIterator();
     }
@@ -150,7 +156,7 @@ public class AttributedStr extends Surface {
 
         g2.setColor(white);
         String s = "AttributedString LineBreakMeasurer";
-        Font font = new Font("serif", Font.PLAIN, 12);
+        Font font = new Font("serif", PLAIN, 12);
         TextLayout tl = new TextLayout(s, font, frc);
         
         tl.draw(g2, 5, y += (float) tl.getBounds().getHeight());

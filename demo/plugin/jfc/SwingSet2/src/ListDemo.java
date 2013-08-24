@@ -1,7 +1,7 @@
 /*
- * @(#)ListDemo.java	1.14 04/07/26
+ * @(#)ListDemo.java	1.17 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ListDemo.java	1.14 04/07/26
+ * @(#)ListDemo.java	1.17 05/11/17
  */
 
 
@@ -64,7 +64,7 @@ import java.net.*;
  * kept for the list data, rather it is generated
  * on the fly as only those elements are needed.
  *
- * @version 1.14 07/26/04
+ * @version 1.17 11/17/05
  * @author Jeff Dinkins
  */
 public class ListDemo extends DemoModule {
@@ -127,9 +127,7 @@ public class ListDemo extends DemoModule {
 	listPanel.add(Box.createRigidArea(VGAP10));
 
 	// Add the control panel (holds the prefix/suffix list and prefix/suffix checkboxes)
-	JPanel controlPanel = createControlPanel();
 	centerPanel.add(createControlPanel());
-
 
 	// create prefixes and suffixes
 	addPrefix("Tera", true);  
@@ -235,31 +233,40 @@ public class ListDemo extends DemoModule {
 	controlPanel.add(suffixPanel);
 	return controlPanel;
     }
+    
+    private FocusListener listFocusListener = new FocusAdapter() { 
+        public void focusGained(FocusEvent e) {
+            JComponent c = (JComponent)e.getComponent();
+            c.scrollRectToVisible(new Rectangle(0, 0, c.getWidth(), c.getHeight())); 
+        }
+    };
 
     public void addPrefix(String prefix, boolean selected) {
 	if(prefixAction == null) {
 	    prefixAction = new UpdatePrefixListAction(listModel);
 	}
-	JCheckBox cb = (JCheckBox) prefixList.add(new JCheckBox(prefix));
+	final JCheckBox cb = (JCheckBox) prefixList.add(new JCheckBox(prefix));
 	checkboxes.addElement(cb);
 	cb.setSelected(selected);
 	cb.addActionListener(prefixAction);
 	if(selected) {
 	    listModel.addPrefix(prefix);
 	}
+        cb.addFocusListener(listFocusListener);
     }
 
     public void addSuffix(String suffix, boolean selected) {
 	if(suffixAction == null) {
 	    suffixAction = new UpdateSuffixListAction(listModel);
 	}
-	JCheckBox cb = (JCheckBox) suffixList.add(new JCheckBox(suffix));
+	final JCheckBox cb = (JCheckBox) suffixList.add(new JCheckBox(suffix));
 	checkboxes.addElement(cb);
 	cb.setSelected(selected);
 	cb.addActionListener(suffixAction);
 	if(selected) {
 	    listModel.addSuffix(suffix);
 	}
+        cb.addFocusListener(listFocusListener);
     }
 
     class UpdatePrefixListAction extends AbstractAction {
@@ -378,6 +385,4 @@ public class ListDemo extends DemoModule {
 	    return retValue;
         }
     }
-
-
 }

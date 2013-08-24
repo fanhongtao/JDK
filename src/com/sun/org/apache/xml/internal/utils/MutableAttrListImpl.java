@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MutableAttrListImpl.java,v 1.7 2004/02/17 04:21:14 minchau Exp $
+ * $Id: MutableAttrListImpl.java,v 1.2.4.1 2005/09/15 08:15:47 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -30,6 +30,7 @@ import org.xml.sax.helpers.AttributesImpl;
 public class MutableAttrListImpl extends AttributesImpl
         implements Serializable
 {
+    static final long serialVersionUID = 6289452013442934470L;
 
 /**
  * Construct a new, empty AttributesImpl object.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeIteratorBase.java,v 1.10 2004/02/16 22:54:59 minchau Exp $
+ * $Id: NodeIteratorBase.java,v 1.2.4.1 2005/09/06 09:37:02 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;

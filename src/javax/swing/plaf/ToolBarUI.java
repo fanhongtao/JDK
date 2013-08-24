@@ -1,7 +1,7 @@
 /*
- * @(#)ToolBarUI.java	1.14 03/12/19
+ * @(#)ToolBarUI.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import javax.swing.JToolBar;
 /**
  * Pluggable look and feel interface for JToolBar.
  *
- * @version 1.14 12/19/03
+ * @version 1.15 11/17/05
  * @author Georges Saab
  */
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SymbolTable.java,v 1.11 2004/02/16 22:25:10 minchau Exp $
+ * $Id: SymbolTable.java,v 1.5 2005/09/28 13:48:16 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -43,6 +43,7 @@ final class SymbolTable {
     private Hashtable _aliases = null;
     private Hashtable _excludedURI = null;
     private Hashtable _decimalFormats = null;
+    private Hashtable _keys = null;
 
     public DecimalFormatting getDecimalFormatting(QName name) {
 	if (_decimalFormats == null) return null;
@@ -54,6 +55,16 @@ final class SymbolTable {
 	_decimalFormats.put(name, symbols);
     }
 
+    public Key getKey(QName name) {
+	if (_keys == null) return null;
+	return (Key) _keys.get(name);
+    }
+
+    public void addKey(QName name, Key key) {
+	if (_keys == null) _keys = new Hashtable();
+	_keys.put(name, key);
+    }
+    
     public Stylesheet addStylesheet(QName name, Stylesheet node) {
 	return (Stylesheet)_stylesheets.put(name, node);
     }

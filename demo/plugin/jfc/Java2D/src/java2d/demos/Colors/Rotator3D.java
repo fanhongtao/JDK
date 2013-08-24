@@ -1,7 +1,7 @@
 /*
- * @(#)Rotator3D.java	1.15 04/07/26
+ * @(#)Rotator3D.java	1.18 06/08/24
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,13 +35,15 @@
  */
 
 /*
- * @(#)Rotator3D.java	1.15 04/07/26
+ * @(#)Rotator3D.java	1.18 06/08/24
  */
 
 package java2d.demos.Colors;
 
 import java.awt.*;
 import java2d.AnimatingSurface;
+
+import static java.lang.Math.*;
 
 
 /**
@@ -79,12 +81,12 @@ public class Rotator3D extends AnimatingSurface {
     private static final double[][][] points = 
            { 
         // Points for solid cube & polygonal faces cube
-            {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, 
-             {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, 
-             {0, 0, 1}, {0, 0, -1}, {1, 1, 0}, {1, 1, 1}, {0, 1, 1}, 
-             {-1, 1, 1}, {-1, 1, 0}, {-1, 1, -1}, {0, 1, -1}, {1, 1, -1}, 
-             {1, -1, 0}, {1, -1, 1}, {0, -1, 1}, {-1, -1, 1}, {-1, -1, 0}, 
-             {-1, -1, -1}, {0, -1, -1}, {1, -1, -1}},
+            {{ 1,  0,  0}, {-1,  0,  0}, { 0,  1,  0}, { 0, -1,  0}, { 0,  0,  1}, 
+             { 0,  0, -1}, { 1,  0,  0}, {-1,  0,  0}, { 0,  1,  0}, { 0, -1,  0}, 
+             { 0,  0,  1}, { 0,  0, -1}, { 1,  1,  0}, { 1,  1,  1}, { 0,  1,  1}, 
+             {-1,  1,  1}, {-1,  1,  0}, {-1,  1, -1}, { 0,  1, -1}, { 1,  1, -1}, 
+             { 1, -1,  0}, { 1, -1,  1}, { 0, -1,  1}, {-1, -1,  1}, {-1, -1,  0}, 
+             {-1, -1, -1}, { 0, -1, -1}, { 1, -1, -1}},
         // Points for octahedron
             {{0, 0, 1}, {0, 0, -1}, {-0.8165, 0.4714, 0.33333},
              {0.8165, -0.4714, -0.33333}, {0.8165, 0.4714, 0.33333},
@@ -124,18 +126,18 @@ public class Rotator3D extends AnimatingSurface {
 
 
     public void step(int w, int h) {
-        for (int i = objs.length; i-- > 0; ) {
-            if (objs[i] != null) {
-                objs[i].step(w, h);
+        for (Objects3D obj : objs) {
+            if (obj != null) {
+                obj.step(w, h);
             }
         }
     }
 
 
     public void render(int w, int h, Graphics2D g2) {
-        for (int i = objs.length; i-- > 0; ) {
-            if (objs[i] != null) {
-                objs[i].render(g2);
+        for (Objects3D obj : objs) {
+            if (obj != null) {
+                obj.render(g2);
             }
         }
     }
@@ -191,77 +193,73 @@ public class Objects3D {
         npoint = points.length;
         nface = faces.length;
 
-        x = w * Math.random();
-        y = h * Math.random();
+        x = w * random();
+        y = h * random();
 
-        ix = Math.random() > 0.5 ? ix : -ix;
-        iy = Math.random() > 0.5 ? iy : -iy;
+        ix = random() > 0.5 ? ix : -ix;
+        iy = random() > 0.5 ? iy : -iy;
 
         rotPts = new double[npoint][3];
         scrPts = new int[npoint][2];
                     
         for (int i = 0; i < ncolour; i++) {
-            // white
-            colours[i][0]= new Color(255 -(ncolour-1-i)*100/ncolour,
-                255 -(ncolour-1-i)*100/ncolour,255 -(ncolour-1-i)*100/ncolour);
-            // red
-            colours[i][1]= new Color(255 -(ncolour-1-i)*100/ncolour,0,0);
-            // green
-            colours[i][2]= new Color(0,255 -(ncolour-1-i)*100/ncolour,0);
-            // blue
-            colours[i][3]= new Color(0,0,255 -(ncolour-1-i)*100/ncolour);
-            // yellow
-            colours[i][4]= new Color(255 -(ncolour-1-i)*100/ncolour,
-                255 -(ncolour-1-i)*100/ncolour,0);
-            // cyan
-            colours[i][5]= new Color(0, 255 -(ncolour-1-i)*100/ncolour,
-                255 -(ncolour-1-i)*100/ncolour);
-            // magenta
-            colours[i][6]= new Color(255 -(ncolour-1-i)*100/ncolour, 0,
-                255 -(ncolour-1-i)*100/ncolour);
+            int x = 255 - (ncolour - i - 1)*100/ncolour;
+            Color[] c = {
+                new Color(x,x,x), // white
+                new Color(x,0,0), // red
+                new Color(0,x,0), // green
+                new Color(0,0,x), // blue
+                new Color(x,x,0), // yellow
+                new Color(0,x,x), // cyan
+                new Color(x,0,x)  // magenta
+            };
+            colours[i] = c;
         }
 
-        double len = Math.sqrt(lightvec[0]*lightvec[0] + 
-                               lightvec[1]*lightvec[1] + 
-                               lightvec[2]*lightvec[2]);
+        double len = sqrt(lightvec[0]*lightvec[0] + 
+                          lightvec[1]*lightvec[1] + 
+                          lightvec[2]*lightvec[2]);
         lightvec[0] = lightvec[0]/len;
         lightvec[1] = lightvec[1]/len;
         lightvec[2] = lightvec[2]/len;
 
         double max = 0;
         for (int i = 0; i < npoint; i++) {
-            len = Math.sqrt(points[i][0]*points[i][0] + 
-                    points[i][1]*points[i][1] + points[i][2]*points[i][2]);
+            len = sqrt(points[i][0]*points[i][0] + 
+                       points[i][1]*points[i][1] +
+                       points[i][2]*points[i][2]);
             if (len >max) {
                 max = len;
             }
         }
    
         for (int i = 0; i < nface; i++) {
-            len = Math.sqrt(points[i][0]*points[i][0] + 
-                    points[i][1]*points[i][1] + points[i][2]*points[i][2]);
+            len = sqrt(points[i][0]*points[i][0] + 
+                       points[i][1]*points[i][1] +
+                       points[i][2]*points[i][2]);
             points[i][0] = points[i][0]/len;
             points[i][1] = points[i][1]/len;
             points[i][2] = points[i][2]/len;
         }
 
         orient = new Matrix3D();
-        tmp = new Matrix3D();
-        tmp2 = new Matrix3D();
-        tmp3 = new Matrix3D();
-        tmp.Rotation(2,0,Math.PI/50);
+        tmp    = new Matrix3D();
+        tmp2   = new Matrix3D();
+        tmp3   = new Matrix3D();
+        tmp.Rotation(2,0,PI/50);
         CalcScrPts((double) w/3,(double) h/3, 0);
 
-        scale = Math.min(w/3/max/1.2, h/3/max/1.2);
+        scale = min(w/3/max/1.2, h/3/max/1.2);
         scaleAmt = scale;
-        scale *= Math.random() * 1.5;
+        scale *= random() * 1.5;
         scaleDirection = scaleAmt < scale ? DOWN : UP;
     }
 
  
     private Color getColour(int f,int index) {
-        colour = (int)((rotPts[f][0]*lightvec[0]+ rotPts[f][1]*lightvec[1] 
-                    + rotPts[f][2]*lightvec[2])*ncolour); 
+        colour = (int)((rotPts[f][0]*lightvec[0] +
+                        rotPts[f][1]*lightvec[1] +
+                        rotPts[f][2]*lightvec[2])  * ncolour); 
         if (colour < 0) {
             colour = 0;
         }
@@ -274,15 +272,18 @@ public class Objects3D {
 
     private void CalcScrPts(double x, double y, double z) {
         for (p = 0; p < npoint; p++) {
-            rotPts[p][2] = points[p][0]*orient.M[2][0] + 
-                           points[p][1]*orient.M[2][1] +
-                           points[p][2]*orient.M[2][2];
-            rotPts[p][0] = points[p][0]*orient.M[0][0] + 
-                           points[p][1]*orient.M[0][1] +
-                           points[p][2]*orient.M[0][2];
-            rotPts[p][1] = -points[p][0]*orient.M[1][0] - 
-                           points[p][1]*orient.M[1][1] -
-                           points[p][2]*orient.M[1][2];
+
+            rotPts[p][2] =   points[p][0]*orient.M[2][0]
+                           + points[p][1]*orient.M[2][1]
+                           + points[p][2]*orient.M[2][2];
+
+            rotPts[p][0] =   points[p][0]*orient.M[0][0]
+                           + points[p][1]*orient.M[0][1]
+                           + points[p][2]*orient.M[0][2];
+
+            rotPts[p][1] = - points[p][0]*orient.M[1][0]
+                           - points[p][1]*orient.M[1][1]
+                           - points[p][2]*orient.M[1][2];
         }
         for (p = nface; p < npoint; p++) {
             rotPts[p][2] += z;
@@ -294,9 +295,9 @@ public class Objects3D {
 
 
     private boolean faceUp(int f) {
-        return (rotPts[f][0]*rotPts[nface+f][0] + 
-                rotPts[f][1]*rotPts[nface+f][1] + 
-                rotPts[f][2]*(rotPts[nface+f][2]-Zeye) < 0);
+        return (rotPts[f][0] * rotPts[nface+f][0] + 
+                rotPts[f][1] * rotPts[nface+f][1] + 
+                rotPts[f][2] *(rotPts[nface+f][2]-Zeye) < 0);
     }
     
 
@@ -309,7 +310,7 @@ public class Objects3D {
         }
         if (x-scale < 0) {
             x = 2+scale;
-            ix = w/100 + Math.random()*3;
+            ix = w/100 + random()*3;
         }
         if (y > h-scale) {
             y = h-scale-2;
@@ -317,15 +318,15 @@ public class Objects3D {
         }
         if (y-scale < 0) {
             y = 2+scale;
-            iy = h/100 + Math.random()*3;
+            iy = h/100 + random()*3;
         }
 
-        angle += Math.random() * 0.15;
+        angle += random() * 0.15;
         tmp3.Rotation(1, 2, angle);
-        tmp2.Rotation(1, 0, angle*Math.sqrt(2)/2);
-        tmp.Rotation(0, 2, angle*Math.PI/4);
+        tmp2.Rotation(1, 0, angle*sqrt(2)/2);
+        tmp.Rotation(0, 2, angle*PI/4);
         orient.M = tmp3.Times(tmp2.Times(tmp.M));
-        bounce = Math.abs(Math.cos(0.5*(angle)))*2-1;
+        bounce = abs(cos(0.5*(angle)))*2-1;
 
         if (scale > scaleAmt*1.4) {
             scaleDirection = DOWN;
@@ -334,10 +335,10 @@ public class Objects3D {
             scaleDirection = UP;
         }
         if (scaleDirection == UP) {
-            scale += Math.random();
+            scale += random();
         }
         if (scaleDirection == DOWN) {
-            scale -= Math.random();
+            scale -= random();
         }
 
         CalcScrPts(x, y, bounce);
@@ -388,10 +389,10 @@ public class Matrix3D {
                 }
             }
         }
-        M[i][i] = Math.cos(angle);
-        M[j][j] = Math.cos(angle);
-        M[i][j] = Math.sin(angle);
-        M[j][i] = -Math.sin(angle);
+        M[i][i] =  cos(angle);
+        M[j][j] =  cos(angle);
+        M[i][j] =  sin(angle);
+        M[j][i] = -sin(angle);
     }
 
     public double[][] Times(double[][] N) {

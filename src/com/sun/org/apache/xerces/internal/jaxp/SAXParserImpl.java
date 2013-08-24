@@ -1,80 +1,56 @@
 /*
- *
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2000-2004 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, Sun Microsystems, Inc., 
- * http://www.sun.com.  For more information on the Apache Software 
- * Foundation, please see <http://www.apache.org/>.
+ * Copyright 2000-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.jaxp;
 
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
-import com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser;
-import com.sun.org.apache.xerces.internal.parsers.JAXPConfiguration;
+import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
+import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator;
+import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
+import com.sun.org.apache.xerces.internal.jaxp.validation.XSGrammarPoolContainer;
+import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
+import com.sun.org.apache.xerces.internal.util.SecurityManager;
+import com.sun.org.apache.xerces.internal.xni.XMLDocumentHandler;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLComponent;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDFilter;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
+import com.sun.org.apache.xerces.internal.xs.AttributePSVI;
+import com.sun.org.apache.xerces.internal.xs.ElementPSVI;
+import com.sun.org.apache.xerces.internal.xs.PSVIProvider;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.Parser;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
-import com.sun.org.apache.xerces.internal.util.SecurityManager;
-import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
-import com.sun.org.apache.xerces.internal.xni.XNIException;
-import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
 
 /**
  * This is the implementation specific class for the
@@ -83,127 +59,138 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
  * @author Rajiv Mordani
  * @author Edwin Goei
  * 
- * @version $Id: SAXParserImpl.java,v 1.23 2004/02/24 23:15:58 mrglavas Exp $
+ * @version $Id: SAXParserImpl.java,v 1.2.6.1 2005/09/05 11:01:30 sunithareddy Exp $
  */
 public class SAXParserImpl extends javax.xml.parsers.SAXParser
-    implements JAXPConstants {
+    implements JAXPConstants, PSVIProvider {
+    
+    /** Feature identifier: namespaces. */
+    private static final String NAMESPACES_FEATURE =
+        Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
+    
+    /** Feature identifier: namespace prefixes. */
+    private static final String NAMESPACE_PREFIXES_FEATURE =
+        Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACE_PREFIXES_FEATURE;
+    
+    /** Feature identifier: validation. */
+    private static final String VALIDATION_FEATURE =
+        Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
+    
+    /** Feature identifier: XML Schema validation */
+    private static final String XMLSCHEMA_VALIDATION_FEATURE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE;
+    
+    /** Feature identifier: XInclude processing */
+    private static final String XINCLUDE_FEATURE = 
+        Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FEATURE;
+    
+    /** Property identifier: security manager. */
+    private static final String SECURITY_MANAGER =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
 
-        // Should XMLParserConfiguration have reset, ? we have reset at component level
-    private final JAXPConfiguration parserConfiguration;
-	private final AbstractSAXParser xmlReader;
+    private JAXPSAXParser xmlReader;
     private String schemaLanguage = null;     // null means DTD
     private final Schema grammar;
-    private final SecurityManager secureProcessing;
-    private boolean isXIncludeAware;
-   	private boolean enableSecureProcessing = true; 
-
-    //we have to keep the reference to features and SAXParserFactory so that 
-    //we can set the SAXParser to the same state when it 
-    //was createed from the factory.
-    private Hashtable features;
-    private SAXParserFactory spf;
     
-    private Hashtable parserFeatures = new Hashtable();
+    private XMLComponent fSchemaValidator;
+    private XMLComponentManager fSchemaValidatorComponentManager;
+    private ValidationManager fSchemaValidationManager;
     
-    public boolean isXIncludeAware() {
-        return isXIncludeAware;
-    }
+    /** Initial ErrorHandler */
+    private final ErrorHandler fInitErrorHandler;
     
-
+    /** Initial EntityResolver */
+    private final EntityResolver fInitEntityResolver;
+    
     /**
      * Create a SAX parser with the associated features
      * @param features Hashtable of SAX features, may be null
      */
-    SAXParserImpl(SAXParserFactory spfactory, Hashtable factoryfeatures)
-        throws SAXException
-    {
-        this.spf = spfactory ;
-        this.features = factoryfeatures;
-        // inherit 
-		secureProcessing = new SecurityManager();
-        this.grammar = spf.getSchema();        
-        parserConfiguration = new JAXPConfiguration(grammar);
-        xmlReader = new com.sun.org.apache.xerces.internal.parsers.SAXParser(parserConfiguration);
-        
-        //initialize the feature as per factory settings..
-        init();
-    }
-
-    /** Reset this instance back to factory settings */
-    void resetSettings() throws SAXNotSupportedException, SAXNotRecognizedException {
-        Enumeration keys  = parserFeatures.keys();        
-        
-        while(keys.hasMoreElements()){
-            String propertyId = (String)keys.nextElement();
-            Object value = parserFeatures.get(propertyId);
-            if(value instanceof Boolean){
-                //System.out.println("Remvoing feature = " + propertyId + " with value = " + parserConfiguration.getFeatureDefaultValue(propertyId));
-                //this means it is a feature, we have to get default value from the configuration
-                xmlReader.setFeature(propertyId, parserConfiguration.getFeatureDefaultValue(propertyId));
-            }
-            else{//it's a property
-                //System.out.println("Remvoing property = " + propertyId);
-                //null value should delete the property from underlying implementation.
-                xmlReader.setProperty(propertyId, null);
-            }
-        }
-        //clear the hashtable once we have removed all the properties.
-        parserFeatures.clear();
-        
+    SAXParserImpl(SAXParserFactoryImpl spf, Hashtable features) 
+        throws SAXException {
+        this(spf, features, false);
     }
     
-    //initialize the features as per factory settings.
-    void init() throws SAXNotSupportedException, SAXNotRecognizedException {
-                
-        schemaLanguage = null ;
-        this.isXIncludeAware = spf.isXIncludeAware();
-		if(features != null ){
-       		Object tmpValue = features.get(Constants.FEATURE_SECURE_PROCESSING);
-			if( tmpValue != null ) 
-				enableSecureProcessing = ((Boolean)tmpValue).booleanValue();
-		}
-		
-		if(enableSecureProcessing){
-        	try {
-            	setProperty(Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY, secureProcessing);
-            } catch (SAXNotRecognizedException sex) {
-                sex.printStackTrace();
-            } catch (SAXNotSupportedException se) {
-                se.printStackTrace();
-            }
+    /**
+     * Create a SAX parser with the associated features
+     * @param features Hashtable of SAX features, may be null
+     */
+    SAXParserImpl(SAXParserFactoryImpl spf, Hashtable features, boolean secureProcessing)
+        throws SAXException
+    {
+        // Instantiate a SAXParser directly and not through SAX so that we use the right ClassLoader
+        xmlReader = new JAXPSAXParser(this);
+
+        // JAXP "namespaceAware" == SAX Namespaces feature
+        // Note: there is a compatibility problem here with default values:
+        // JAXP default is false while SAX 2 default is true!
+        xmlReader.setFeature0(NAMESPACES_FEATURE, spf.isNamespaceAware());
+
+        // SAX "namespaces" and "namespace-prefixes" features should not
+        // both be false.  We make them opposite for backward compatibility
+        // since JAXP 1.0 apps may want to receive xmlns* attributes.
+        xmlReader.setFeature0(NAMESPACE_PREFIXES_FEATURE, !spf.isNamespaceAware());
+        
+        // Avoid setting the XInclude processing feature if the value is false.
+        // This will keep the configuration from throwing an exception if it
+        // does not support XInclude.
+        if (spf.isXIncludeAware()) {
+            xmlReader.setFeature0(XINCLUDE_FEATURE, true);
         }
         
-		xmlReader.setFeature(
-                Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_AWARE,
-                isXIncludeAware);
+        // If the secure processing feature is on set a security manager.
+        if (secureProcessing) {
+            xmlReader.setProperty0(SECURITY_MANAGER, new SecurityManager());
+        }
+        
+        // Set application's features, followed by validation features.
+        setFeatures(features);
         
         // If validating, provide a default ErrorHandler that prints
         // validation errors with a warning telling the user to set an
         // ErrorHandler.
         if (spf.isValidating()) {
-            xmlReader.setErrorHandler(new DefaultValidationErrorHandler());
+            fInitErrorHandler = new DefaultValidationErrorHandler();
+            xmlReader.setErrorHandler(fInitErrorHandler);
         }
-
-        xmlReader.setFeature(Constants.SAX_FEATURE_PREFIX +
-                             Constants.VALIDATION_FEATURE, spf.isValidating());
-
-        // JAXP "namespaceAware" == SAX Namespaces feature
-        // Note: there is a compatibility problem here with default values:
-        // JAXP default is false while SAX 2 default is true!
-        xmlReader.setFeature(Constants.SAX_FEATURE_PREFIX +
-                             Constants.NAMESPACES_FEATURE,
-                             spf.isNamespaceAware());
-
-        // SAX "namespaces" and "namespace-prefixes" features should not
-        // both be false.  We make them opposite for backward compatibility
-        // since JAXP 1.0 apps may want to receive xmlns* attributes.
-        xmlReader.setFeature(Constants.SAX_FEATURE_PREFIX +
-                             Constants.NAMESPACE_PREFIXES_FEATURE,
-                             !spf.isNamespaceAware());
-        setFeatures(features);
+        else {
+            fInitErrorHandler = xmlReader.getErrorHandler();
+        }
+        xmlReader.setFeature0(VALIDATION_FEATURE, spf.isValidating());
         
-    }//init()
-    
+        // Get the Schema object from the factory
+        this.grammar = spf.getSchema();
+        if (grammar != null) {
+            XMLParserConfiguration config = xmlReader.getXMLParserConfiguration();
+            XMLComponent validatorComponent = null;
+            /** For Xerces grammars, use built-in schema validator. **/
+            if (grammar instanceof XSGrammarPoolContainer) {
+                validatorComponent = new XMLSchemaValidator();
+                fSchemaValidationManager = new ValidationManager();
+                XMLDTDFilter entityHandler = new UnparsedEntityHandler(fSchemaValidationManager);
+                config.setDTDHandler(entityHandler);
+                entityHandler.setDTDHandler(xmlReader);
+                xmlReader.setDTDSource(entityHandler);
+                fSchemaValidatorComponentManager = new SchemaValidatorConfiguration(config, 
+                        (XSGrammarPoolContainer) grammar, fSchemaValidationManager);
+            }
+            /** For third party grammars, use the JAXP validator component. **/
+            else {
+                validatorComponent = new JAXPValidatorComponent(grammar.newValidatorHandler());
+                fSchemaValidatorComponentManager = config;
+            }
+            config.addRecognizedFeatures(validatorComponent.getRecognizedFeatures());
+            config.addRecognizedProperties(validatorComponent.getRecognizedProperties());
+            config.setDocumentHandler((XMLDocumentHandler) validatorComponent);
+            ((XMLDocumentSource)validatorComponent).setDocumentHandler(xmlReader);
+            xmlReader.setDocumentSource((XMLDocumentSource) validatorComponent);
+            fSchemaValidator = validatorComponent;
+        }
+        
+        // Initial EntityResolver
+        fInitEntityResolver = xmlReader.getEntityResolver();
+    }
+
     /**
      * Set any features of our XMLReader based on any features set on the
      * SAXParserFactory.
@@ -212,59 +199,22 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
      * JAXP specific feature names, eg. SAXParserFactory.isValidating()
      */
     private void setFeatures(Hashtable features)
-        throws SAXNotSupportedException, SAXNotRecognizedException
-    {
+        throws SAXNotSupportedException, SAXNotRecognizedException {
         if (features != null) {
             for (Enumeration e = features.keys(); e.hasMoreElements();) {
                 String feature = (String)e.nextElement();
                 boolean value = ((Boolean)features.get(feature)).booleanValue();
-				if(!feature.equals(Constants.FEATURE_SECURE_PROCESSING))
-                	xmlReader.setFeature(feature, value);
+                xmlReader.setFeature0(feature, value);
             }
         }
     }
-    
-    /**
-     * @deprecated
-     */
-    public org.xml.sax.Parser getParser() throws SAXException {
-        return xmlReader;
+
+    public Parser getParser() throws SAXException {
+        // Xerces2 AbstractSAXParser implements SAX1 Parser
+        // assert(xmlReader instanceof Parser);
+        return (Parser) xmlReader;
     }
 
-    /**
-	  * <p>Reset this <code>DocumentBuilder</code> to its original configuration.</p>
-	  * 
-	  * <p><code>DocumentBuilder</code> is reset to the same state as when it was created with
-	  * {@link DocumentBuilderFactory#newDocumentBuilder()}.
-	  * <code>reset()</code> is designed to allow the reuse of existing <code>DocumentBuilder</code>s
-	  * thus saving resources associated with the creation of new <code>DocumentBuilder</code>s.</p>
-	  * 
-	  * <p>The reset <code>DocumentBuilder</code> is not guaranteed to have the same {@link EntityResolver} or {@link ErrorHandler}
-	  * <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.  It is guaranteed to have a functionally equal
-	  * <code>EntityResolver</code> and <code>ErrorHandler</code>.</p>
-	  * 
-	  * @since 1.5
-	  */
-
-    public void reset(){
-        if(xmlReader != null){
-            try{
-                xmlReader.reset();
-                //set the object back to its factory settings
-                resetSettings();
-                
-            }
-            //xxx: underlying implementation reset throws XNIException what should we do in this case ?
-            //if there was any propery that is not being supported
-            //exception would have been thrown when setting it on the underlying implementation.
-            catch(XNIException ex){
-                //coninue.
-            }
-            catch(SAXException sax){}
-        }
-    }
-
-    
     /**
      * Returns the XMLReader that is encapsulated by the implementation of
      * this class.
@@ -275,19 +225,32 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
 
     public boolean isNamespaceAware() {
         try {
-            return xmlReader.getFeature(Constants.SAX_FEATURE_PREFIX +
-                                        Constants.NAMESPACES_FEATURE);
-        } catch (SAXException x) {
+            return xmlReader.getFeature(NAMESPACES_FEATURE);
+        } 
+        catch (SAXException x) {
             throw new IllegalStateException(x.getMessage());
         }
     }
 
     public boolean isValidating() {
         try {
-            return xmlReader.getFeature(Constants.SAX_FEATURE_PREFIX +
-                                        Constants.VALIDATION_FEATURE);
-        } catch (SAXException x) {
+            return xmlReader.getFeature(VALIDATION_FEATURE);
+        } 
+        catch (SAXException x) {
             throw new IllegalStateException(x.getMessage());
+        }
+    }
+    
+    /**
+     * Gets the XInclude processing mode for this parser
+     * @return the state of XInclude processing mode
+     */
+    public boolean isXIncludeAware() {
+        try {
+            return xmlReader.getFeature(XINCLUDE_FEATURE);
+        }
+        catch (SAXException exc) {
+            return false;
         }
     }
 
@@ -296,104 +259,8 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
      * org.xml.sax.XMLReader.
      */
     public void setProperty(String name, Object value)
-        throws SAXNotRecognizedException, SAXNotSupportedException
-    {
-        // the spec says if a schema is given via SAXParserFactory
-        // the JAXP 1.2 properties shouldn't be allowed. So
-        // reject them first.
-        if(grammar!=null) {
-            if (JAXP_SCHEMA_LANGUAGE.equals(name)
-            ||  JAXP_SCHEMA_SOURCE.equals(name)) {
-                throw new SAXNotSupportedException(
-                    SAXMessageFormatter.formatMessage(null, "schema-already-specified", null));
-            }
-        }
-        
-        if (JAXP_SCHEMA_LANGUAGE.equals(name)) {
-            // JAXP 1.2 support            
-            if ( W3C_XML_SCHEMA.equals(value) ) {
-                //None of the properties will take effect till the setValidating(true) has been called                                                        
-                if( isValidating() ) {
-                    schemaLanguage = W3C_XML_SCHEMA;
-                    xmlReader.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_VALIDATION_FEATURE,
-                                     true);
-                    //also set the schema full checking to true.
-                    xmlReader.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_FULL_CHECKING,
-                                     true);
-                    //add this among the list of parser  features since this is added 
-                    //on the parser instance and should be set to default value during 
-                    //reset.
-                    parserFeatures.put(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_VALIDATION_FEATURE, new Boolean(true));
-                    parserFeatures.put(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_FULL_CHECKING, new Boolean(true));
-                                     
-                    // this will allow the parser not to emit DTD-related
-                    // errors, as the spec demands
-                    xmlReader.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
-                    parserFeatures.put(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
-                    
-                }
-                else{
-                    //System.out.println("Property = " + name + "is not set");
-                }
-                
-            } else if (value == null) {
-                schemaLanguage = null;
-                xmlReader.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_VALIDATION_FEATURE,
-                                     false);
-                parserFeatures.put(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_VALIDATION_FEATURE,
-                                     new Boolean(false));
-                
-            } else {
-                // REVISIT: It would be nice if we could format this message
-                // using a user specified locale as we do in the underlying
-                // XMLReader -- mrglavas
-                throw new SAXNotSupportedException(
-                    SAXMessageFormatter.formatMessage(null, "schema-not-supported", null));
-            }
-        } 
-        else if(JAXP_SCHEMA_SOURCE.equals(name)) {
-            //If we are not validating then don't check for  JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCED            
-            if ( isValidating() ) {
-                String val = (String)getProperty(JAXP_SCHEMA_LANGUAGE);
-                if ( val != null && W3C_XML_SCHEMA.equals(val) ) {
-                    xmlReader.setProperty(name, value);
-                    parserFeatures.put(name, value);
-                }
-                else {
-                    throw new SAXNotSupportedException(
-                        SAXMessageFormatter.formatMessage(null, 
-                        "jaxp-order-not-supported", 
-                        new Object[] {JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCE}));
-                }
-            }
-		}
-		/*else if(name.equlas(Constants.ENTITY_EXPANSION_LIMIT)){
-			String elimit = (String)value;
-			if(elimit != null && elimit != ""){
-				int val = Integer.parseInt(elimit);
-				secureProcessing.setEntityExpansionLimit(val);
-			}
-		}else if(name.equals(Constants.MAX_OCCUR_LIMIT)) {
-			String mlimit = (String)value;
-			if(mlimit != null && mlimit != ""){
-				int val = Integer.parseInt(mlimit);
-				secureProcessing.setMaxOccurNodeLimit(val);
-			}
-		}*/
-        else if(value instanceof Boolean){
-            //assume feature
-            xmlReader.setFeature(name,((Boolean)value).booleanValue());
-            parserFeatures.put(name, value);
-        }else{
-            xmlReader.setProperty(name, value);
-            parserFeatures.put(name, value);
-        }
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        xmlReader.setProperty(name, value);
     }
 
     /**
@@ -401,31 +268,345 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
      * implementation of org.xml.sax.XMLReader.
      */
     public Object getProperty(String name)
-        throws SAXNotRecognizedException, SAXNotSupportedException
-    {
-        // TODO: reroute those properties to use new JAXP1.3 API. -KK
-        if (JAXP_SCHEMA_LANGUAGE.equals(name)) {
-            // JAXP 1.2 support
-            return schemaLanguage;
-        } else {
-            return xmlReader.getProperty(name);
-        }
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        return xmlReader.getProperty(name);
     }
-
     
-    public Schema getSchema(){
+    public Schema getSchema() {
         return grammar;
     }
     
-    /**
-     * <p>Return True if secure processing in effect.</p>
-     * Defaults to <code>false</code>.</p>
-     *
-     * @return state of Schema Caching
+    public void reset() {
+        try {
+            /** Restore initial values of features and properties. **/
+            xmlReader.restoreInitState();
+        } 
+        catch (SAXException exc) {
+            // This should never happen. We only store recognized
+            // features and properties in the hash maps. For now
+            // just ignore it.
+        }
+        /** Restore various handlers. **/
+        xmlReader.setContentHandler(null);
+        xmlReader.setDTDHandler(null);
+        if (xmlReader.getErrorHandler() != fInitErrorHandler) {
+            xmlReader.setErrorHandler(fInitErrorHandler);
+        }
+        if (xmlReader.getEntityResolver() != fInitEntityResolver) {
+            xmlReader.setEntityResolver(fInitEntityResolver);
+        }
+    }
+    
+    /*
+     * PSVIProvider methods
      */
-    public boolean isSecureProcessing(){
-        return secureProcessing!=null;
+
+    public ElementPSVI getElementPSVI() {
+        return ((PSVIProvider)xmlReader).getElementPSVI();
     }
 
+    public AttributePSVI getAttributePSVI(int index) {
+        return ((PSVIProvider)xmlReader).getAttributePSVI(index);
+    }
+
+    public AttributePSVI getAttributePSVIByName(String uri, String localname) {
+        return ((PSVIProvider)xmlReader).getAttributePSVIByName(uri, localname);
+    }
     
+    /**
+     * Extension of SAXParser. This class tracks changes to 
+     * features and properties to allow the parser to be reset to
+     * its initial state.
+     */
+    public static class JAXPSAXParser extends com.sun.org.apache.xerces.internal.parsers.SAXParser {
+        
+        private HashMap fInitFeatures = new HashMap();
+        private HashMap fInitProperties = new HashMap();
+        private SAXParserImpl fSAXParser;
+
+        public JAXPSAXParser() {
+            super();
+        }
+        
+        JAXPSAXParser(SAXParserImpl saxParser) {
+            super();
+            fSAXParser = saxParser;
+        }
+        
+        /**
+         * Override SAXParser's setFeature method to track the initial state
+         * of features. This keeps us from affecting the performance of the
+         * SAXParser when it is created with XMLReaderFactory.
+         */
+        public synchronized void setFeature(String name, boolean value)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            if (name == null) {
+                // TODO: Add localized error message.
+                throw new NullPointerException(); 
+            }
+            if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+                try {
+                    setProperty(SECURITY_MANAGER, value ? new SecurityManager() : null);
+                }
+                catch (SAXNotRecognizedException exc) {
+                    // If the property is not supported 
+                    // re-throw the exception if the value is true.
+                    if (value) {
+                        throw exc;
+                    }
+                }
+                catch (SAXNotSupportedException exc) {
+                    // If the property is not supported 
+                    // re-throw the exception if the value is true.
+                    if (value) {
+                        throw exc;
+                    }
+                }
+                return;
+            }
+            if (!fInitFeatures.containsKey(name)) {
+                boolean current = super.getFeature(name);
+                fInitFeatures.put(name, current ? Boolean.TRUE : Boolean.FALSE); 
+            }
+            /** Forward feature to the schema validator if there is one. **/
+            if (fSAXParser != null && fSAXParser.fSchemaValidator != null) {
+                setSchemaValidatorFeature(name, value);
+            }
+            super.setFeature(name, value);               
+        }
+        
+        public synchronized boolean getFeature(String name)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            if (name == null) {
+                // TODO: Add localized error message.
+                throw new NullPointerException(); 
+            }
+            if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+                try {
+                    return (super.getProperty(SECURITY_MANAGER) != null);
+                }
+                // If the property is not supported the value must be false.
+                catch (SAXException exc) {
+                    return false;
+                }
+            }
+            return super.getFeature(name);
+        }
+        
+        /**
+         * Override SAXParser's setProperty method to track the initial state
+         * of properties. This keeps us from affecting the performance of the
+         * SAXParser when it is created with XMLReaderFactory.
+         */
+        public synchronized void setProperty(String name, Object value)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            if (name == null) {
+                // TODO: Add localized error message.
+                throw new NullPointerException(); 
+            }
+            if (fSAXParser != null) {
+                // JAXP 1.2 support
+                if (JAXP_SCHEMA_LANGUAGE.equals(name)) {
+                    // The spec says if a schema is given via SAXParserFactory
+                    // the JAXP 1.2 properties shouldn't be allowed.
+                    if (fSAXParser.grammar != null) {
+                        throw new SAXNotSupportedException(
+                                SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), "schema-already-specified", new Object[] {name}));
+                    }
+                    if ( W3C_XML_SCHEMA.equals(value) ) {
+                        //None of the properties will take effect till the setValidating(true) has been called                                                        
+                        if( fSAXParser.isValidating() ) {
+                            fSAXParser.schemaLanguage = W3C_XML_SCHEMA;
+                            setFeature(XMLSCHEMA_VALIDATION_FEATURE, true);
+                            // this will allow the parser not to emit DTD-related
+                            // errors, as the spec demands
+                            if (!fInitProperties.containsKey(JAXP_SCHEMA_LANGUAGE)) {
+                                fInitProperties.put(JAXP_SCHEMA_LANGUAGE, super.getProperty(JAXP_SCHEMA_LANGUAGE));
+                            }
+                            super.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+                        }
+                        
+                    } 
+                    else if (value == null) {
+                        fSAXParser.schemaLanguage = null;
+                        setFeature(XMLSCHEMA_VALIDATION_FEATURE, false);
+                    } 
+                    else {
+                        // REVISIT: It would be nice if we could format this message
+                        // using a user specified locale as we do in the underlying
+                        // XMLReader -- mrglavas
+                        throw new SAXNotSupportedException(
+                            SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), "schema-not-supported", null));
+                    }
+                    return;
+                } 
+                else if (JAXP_SCHEMA_SOURCE.equals(name)) {
+                    // The spec says if a schema is given via SAXParserFactory
+                    // the JAXP 1.2 properties shouldn't be allowed.
+                    if (fSAXParser.grammar != null) {
+                        throw new SAXNotSupportedException(
+                                SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), "schema-already-specified", new Object[] {name}));
+                    }
+                    String val = (String)getProperty(JAXP_SCHEMA_LANGUAGE);
+                    if ( val != null && W3C_XML_SCHEMA.equals(val) ) {
+                        if (!fInitProperties.containsKey(JAXP_SCHEMA_SOURCE)) {
+                            fInitProperties.put(JAXP_SCHEMA_SOURCE, super.getProperty(JAXP_SCHEMA_SOURCE));
+                        }
+                        super.setProperty(name, value);
+                    }
+                    else {
+                        throw new SAXNotSupportedException(
+                            SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                            "jaxp-order-not-supported", 
+                            new Object[] {JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCE}));
+                    }
+                    return;
+                }
+            }
+            if (!fInitProperties.containsKey(name)) {
+                fInitProperties.put(name, super.getProperty(name));
+            }
+            /** Forward property to the schema validator if there is one. **/
+            if (fSAXParser != null && fSAXParser.fSchemaValidator != null) {
+                setSchemaValidatorProperty(name, value);
+            }
+            super.setProperty(name, value);
+        }
+        
+        public synchronized Object getProperty(String name)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            if (name == null) {
+                // TODO: Add localized error message.
+                throw new NullPointerException();
+            }
+            if (fSAXParser != null && JAXP_SCHEMA_LANGUAGE.equals(name)) {
+                // JAXP 1.2 support
+                return fSAXParser.schemaLanguage;
+            }
+            return super.getProperty(name);
+        }
+        
+        synchronized void restoreInitState()
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            Iterator iter;
+            if (!fInitFeatures.isEmpty()) {
+                iter = fInitFeatures.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iter.next();
+                    String name = (String) entry.getKey();
+                    boolean value = ((Boolean) entry.getValue()).booleanValue();
+                    super.setFeature(name, value);
+                }
+                fInitFeatures.clear();
+            }
+            if (!fInitProperties.isEmpty()) {
+                iter = fInitProperties.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iter.next();
+                    String name = (String) entry.getKey();
+                    Object value = entry.getValue();
+                    super.setProperty(name, value);
+                }
+                fInitProperties.clear();
+            }
+        }
+        
+        public void parse(InputSource inputSource)
+            throws SAXException, IOException {
+            if (fSAXParser != null && fSAXParser.fSchemaValidator != null) {
+                if (fSAXParser.fSchemaValidationManager != null) {
+                    fSAXParser.fSchemaValidationManager.reset();
+                }
+                resetSchemaValidator();
+            }
+            super.parse(inputSource);
+        }
+        
+        public void parse(String systemId) 
+            throws SAXException, IOException {
+            if (fSAXParser != null && fSAXParser.fSchemaValidator != null) {
+                if (fSAXParser.fSchemaValidationManager != null) {
+                    fSAXParser.fSchemaValidationManager.reset();
+                }
+                resetSchemaValidator();
+            }
+            super.parse(systemId);
+        }
+        
+        XMLParserConfiguration getXMLParserConfiguration() {
+            return fConfiguration;
+        }
+        
+        void setFeature0(String name, boolean value)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            super.setFeature(name, value);
+        }
+        
+        boolean getFeature0(String name)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            return super.getFeature(name);
+        }
+        
+        void setProperty0(String name, Object value)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            super.setProperty(name, value);
+        }
+        
+        Object getProperty0(String name)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            return super.getProperty(name);
+        }
+        
+        private void setSchemaValidatorFeature(String name, boolean value)
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            try {
+                fSAXParser.fSchemaValidator.setFeature(name, value);
+            }
+            // This should never be thrown from the schema validator.
+            catch (XMLConfigurationException e) {
+                String identifier = e.getIdentifier();
+                if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+                    throw new SAXNotRecognizedException(
+                        SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                        "feature-not-recognized", new Object [] {identifier}));
+                }
+                else {
+                    throw new SAXNotSupportedException(
+                        SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                        "feature-not-supported", new Object [] {identifier}));
+                }
+            }
+        }
+        
+        private void setSchemaValidatorProperty(String name, Object value) 
+            throws SAXNotRecognizedException, SAXNotSupportedException {
+            try {
+                fSAXParser.fSchemaValidator.setProperty(name, value);
+            }
+            // This should never be thrown from the schema validator.
+            catch (XMLConfigurationException e) {
+                String identifier = e.getIdentifier();
+                if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+                    throw new SAXNotRecognizedException(
+                        SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                        "property-not-recognized", new Object [] {identifier}));
+                }
+                else {
+                    throw new SAXNotSupportedException(
+                        SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
+                        "property-not-supported", new Object [] {identifier}));
+                }
+            }
+        }
+        
+        private void resetSchemaValidator() throws SAXException {
+            try {
+                fSAXParser.fSchemaValidator.reset(fSAXParser.fSchemaValidatorComponentManager);
+            }
+            // This should never be thrown from the schema validator.
+            catch (XMLConfigurationException e) {
+                throw new SAXException(e);
+            }
+        }
+    }
 }

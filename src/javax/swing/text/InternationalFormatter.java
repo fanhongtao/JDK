@@ -1,7 +1,7 @@
 /*
- * @(#)InternationalFormatter.java	1.17 04/05/12
+ * @(#)InternationalFormatter.java	1.19 06/02/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -1033,51 +1033,54 @@ public class InternationalFormatter extends DefaultFormatter {
         }
 
         public void actionPerformed(ActionEvent ae) {
-            if (getAllowsInvalid()) {
-                // This will work if the currently edited value is valid.
-                updateMask();
-            }
+        
+            if (getFormattedTextField().isEditable()) {
+                if (getAllowsInvalid()) {
+                    // This will work if the currently edited value is valid.
+                    updateMask();
+                }
 
-            boolean validEdit = false;
+                boolean validEdit = false;
 
-            if (isValidMask()) {
-                int start = getFormattedTextField().getSelectionStart();
+                if (isValidMask()) {
+                    int start = getFormattedTextField().getSelectionStart();
 
-                if (start != -1) {
-                    AttributedCharacterIterator iterator = getIterator();
+                    if (start != -1) {
+                        AttributedCharacterIterator iterator = getIterator();
 
-                    iterator.setIndex(start);
+                        iterator.setIndex(start);
 
-                    Map attributes = iterator.getAttributes();
-                    Object field = getAdjustField(start, attributes);
+                        Map attributes = iterator.getAttributes();
+                        Object field = getAdjustField(start, attributes);
 
-                    if (canIncrement(field, start)) {
-                        try {
-                            Object value = stringToValue(
-                                         getFormattedTextField().getText());
-                            int fieldTypeCount = getFieldTypeCountTo(
-                                                        field, start);
+                        if (canIncrement(field, start)) {
+                            try {
+                                Object value = stringToValue(
+                                        getFormattedTextField().getText());
+                                int fieldTypeCount = getFieldTypeCountTo(
+                                        field, start);
 
-                            value = adjustValue(value, attributes,
-                                                field, direction);
-                            if (value != null && isValidValue(value, false)) {
-                                resetValue(value);
-                                updateMask();
+                                value = adjustValue(value, attributes,
+                                        field, direction);
+                                if (value != null && isValidValue(value, false)) {
+                                    resetValue(value);
+                                    updateMask();
 
-                                if (isValidMask()) {
-                                    selectField(field, fieldTypeCount);
+                                    if (isValidMask()) {
+                                        selectField(field, fieldTypeCount);
+                                    }
+                                    validEdit = true;
                                 }
-                                validEdit = true;
                             }
+                            catch (ParseException pe) { }
+                            catch (BadLocationException ble) { }
                         }
-                        catch (ParseException pe) { }
-                        catch (BadLocationException ble) { }
                     }
                 }
+                if (!validEdit) {
+                    invalidEdit();
+                }
             }
-            if (!validEdit) {
-                invalidEdit();
-            }
-        }        
+        }
     }
 }

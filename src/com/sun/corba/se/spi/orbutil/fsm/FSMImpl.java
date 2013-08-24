@@ -1,7 +1,7 @@
 /*
- * @(#)FSMImpl.java	1.13 03/12/19
+ * @(#)FSMImpl.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import com.sun.corba.se.spi.orbutil.fsm.FSM ;
  * using a state engine.  It may be used as a base class, in which case
  * the guards and actions have access to the derived class.
  *
- * @version @(#)FSMImpl.java	1.13 03/12/19
+ * @version @(#)FSMImpl.java	1.14 05/11/17
  * @author Ken Cavanaugh
  */
 public class FSMImpl implements FSM

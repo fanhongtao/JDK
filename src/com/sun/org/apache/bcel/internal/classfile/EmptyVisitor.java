@@ -64,7 +64,7 @@ import com.sun.org.apache.bcel.internal.*;
  * By courtesy of David Spencer.
  *
  * @see DescendingVisitor
- * @version $Id: EmptyVisitor.java,v 1.1.1.1 2001/10/29 20:00:00 jvanzyl Exp $
+ * @version $Id: EmptyVisitor.java,v 1.1.2.1 2005/07/31 23:46:31 jeffsuttor Exp $
  * 
  */
 public class EmptyVisitor implements Visitor {
@@ -96,6 +96,7 @@ public class EmptyVisitor implements Visitor {
   public void visitLocalVariable(LocalVariable obj) {}
   public void visitLocalVariableTable(LocalVariableTable obj) {}
   public void visitMethod(Method obj) {}
+  public void visitSignature(Signature obj) {}
   public void visitSourceFile(SourceFile obj) {}
   public void visitSynthetic(Synthetic obj) {}
   public void visitUnknown(Unknown obj) {}

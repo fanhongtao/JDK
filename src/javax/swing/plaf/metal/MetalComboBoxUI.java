@@ -1,7 +1,7 @@
 /*
- * @(#)MetalComboBoxUI.java	1.49 04/05/18
+ * @(#)MetalComboBoxUI.java	1.53 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.beans.*;
  *
  * @see MetalComboBoxEditor
  * @see MetalComboBoxButton
- * @version 1.49 05/18/04
+ * @version 1.53 11/17/05
  * @author Tom Santos
  */
 public class MetalComboBoxUI extends BasicComboBoxUI {
@@ -60,9 +60,16 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         // This is really only called if we're using ocean.
         if (MetalLookAndFeel.usingOcean()) {
             bounds.x += 2;
-            bounds.y += 2;
             bounds.width -= 3;
-            bounds.height -= 4;
+            if (arrowButton != null) {
+                Insets buttonInsets = arrowButton.getInsets();
+                bounds.y += buttonInsets.top;
+                bounds.height -= (buttonInsets.top + buttonInsets.bottom);
+            }
+            else {
+                bounds.y += 2;
+                bounds.height -= 4;
+            }
             super.paintCurrentValue(g, bounds, hasFocus);
         }
         else if (g == null || bounds == null) {
@@ -89,11 +96,48 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
             g.setColor(MetalLookAndFeel.getControlShadow());
             g.drawRect(bounds.x + 1, bounds.y + 1, bounds.width - 2,
                        bounds.height - 3);
+            if (hasFocus && !isPopupVisible(comboBox) &&
+                    arrowButton != null) {
+                g.setColor(listBox.getSelectionBackground());
+                Insets buttonInsets = arrowButton.getInsets();
+                if (buttonInsets.top > 2) {
+                    g.fillRect(bounds.x + 2, bounds.y + 2, bounds.width - 3,
+                               buttonInsets.top - 2);
+                }
+                if (buttonInsets.bottom > 2) {
+                    g.fillRect(bounds.x + 2, bounds.y + bounds.height -
+                               buttonInsets.bottom, bounds.width - 3,
+                               buttonInsets.bottom - 2);
+                }
+            }
         }
         else if (g == null || bounds == null) {
             throw new NullPointerException(
                 "Must supply a non-null Graphics and Rectangle");
         }
+    }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        int baseline;
+        if (MetalLookAndFeel.usingOcean()) {
+            height -= 4;
+            baseline = super.getBaseline(c, width, height);
+            if (baseline >= 0) {
+                baseline += 2;
+            }
+        }
+        else {
+            baseline = super.getBaseline(c, width, height);
+        }
+        return baseline;
     }
 
     protected ComboBoxEditor createEditor() {
@@ -148,11 +192,13 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
             String propertyName = e.getPropertyName();
 
             if ( propertyName == "editable" ) {
-		MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
-		button.setIconOnly( comboBox.isEditable() ||
+                if(arrowButton instanceof MetalComboBoxButton) {
+		            MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
+		            button.setIconOnly( comboBox.isEditable() ||
                                     MetalLookAndFeel.usingOcean() );
-		comboBox.repaint();
-                updateButtonForOcean(button);
+                }
+		        comboBox.repaint();
+                updateButtonForOcean(arrowButton);
             } else if ( propertyName == "background" ) {
                 Color color = (Color)e.getNewValue();
                 arrowButton.setBackground(color);
@@ -204,13 +250,9 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         }
 
         if (arrowButton != null) {
-            if (MetalLookAndFeel.usingOcean() &&
-                                (arrowButton instanceof MetalComboBoxButton)) {
-                Icon icon = ((MetalComboBoxButton)arrowButton).getComboIcon();
-                Insets buttonInsets = arrowButton.getInsets();
+            if (MetalLookAndFeel.usingOcean() ) {
                 Insets insets = comboBox.getInsets();
-                int buttonWidth = icon.getIconWidth() + buttonInsets.left +
-                                  buttonInsets.right;
+                int buttonWidth = arrowButton.getMinimumSize().width;
 		arrowButton.setBounds(MetalUtils.isLeftToRight(comboBox)
 				? (comboBox.getWidth() - insets.right - buttonWidth)
 				: insets.left,
@@ -267,17 +309,14 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         Dimension size = null;
 
         if ( !comboBox.isEditable() &&
-             arrowButton != null &&
-             arrowButton instanceof MetalComboBoxButton ) {
-
-            MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
-            Insets buttonInsets = button.getInsets();
+             arrowButton != null) {
+            Insets buttonInsets = arrowButton.getInsets();
             Insets insets = comboBox.getInsets();
 
             size = getDisplaySize();
             size.width += insets.left + insets.right;
-            size.width += buttonInsets.left + buttonInsets.right;
-            size.width += buttonInsets.right + button.getComboIcon().getIconWidth();
+            size.width += buttonInsets.right;
+            size.width += arrowButton.getMinimumSize().width;
             size.height += insets.top + insets.bottom;
             size.height += buttonInsets.top + buttonInsets.bottom;
         }

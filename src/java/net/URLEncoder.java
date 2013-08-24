@@ -1,7 +1,7 @@
 /*
- * @(#)URLEncoder.java	1.30 04/05/18
+ * @(#)URLEncoder.java	1.32 06/04/22
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,10 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.io.CharArrayWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException ;
 import java.util.BitSet;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -56,7 +60,7 @@ import sun.security.action.GetPropertyAction;
  * character @ is encoded as one byte 40 (hex).
  *
  * @author  Herb Jellinek
- * @version 1.30, 05/18/04
+ * @version 1.32, 04/22/06
  * @since   JDK1.0
  */
 public class URLEncoder {
@@ -181,14 +185,22 @@ public class URLEncoder {
 	throws UnsupportedEncodingException {
 
 	boolean needToChange = false;
-	boolean wroteUnencodedChar = false; 
-	int maxBytesPerChar = 10; // rather arbitrary limit, but safe for now
         StringBuffer out = new StringBuffer(s.length());
-	ByteArrayOutputStream buf = new ByteArrayOutputStream(maxBytesPerChar);
+	Charset charset;
+	CharArrayWriter charArrayWriter = new CharArrayWriter();
 
-	OutputStreamWriter writer = new OutputStreamWriter(buf, enc);
+	if (enc == null)
+	    throw new NullPointerException("charsetName");
 
-	for (int i = 0; i < s.length(); i++) {
+	try {
+	    charset = Charset.forName(enc);
+	} catch (IllegalCharsetNameException e) {
+            throw new UnsupportedEncodingException(enc);
+        } catch (UnsupportedCharsetException e) {
+	    throw new UnsupportedEncodingException(enc);
+	}
+
+	for (int i = 0; i < s.length();) {
 	    int c = (int) s.charAt(i);
 	    //System.out.println("Examining character: " + c);
 	    if (dontNeedEncoding.get(c)) {
@@ -198,15 +210,11 @@ public class URLEncoder {
 		}
 		//System.out.println("Storing: " + c);
 		out.append((char)c);
-		wroteUnencodedChar = true;
+		i++;
 	    } else {
 		// convert to external encoding before hex conversion
-		try {
-		    if (wroteUnencodedChar) { // Fix for 4407610
-		    	writer = new OutputStreamWriter(buf, enc);
-			wroteUnencodedChar = false;
-		    }
-		    writer.write(c);
+		do {
+		    charArrayWriter.write(c);
 		    /*
 		     * If this character represents the start of a Unicode
 		     * surrogate pair, then pass in two characters. It's not
@@ -232,17 +240,17 @@ public class URLEncoder {
 				  + Integer.toHexString(d) 
 				  + " is low surrogate");
 				*/
-				writer.write(d);
+			        charArrayWriter.write(d);
 				i++;
 			    }
 			}
-		    }
-		    writer.flush();
-		} catch(IOException e) {
-		    buf.reset();
-		    continue;
-		}
-		byte[] ba = buf.toByteArray();
+		    } 
+		    i++;
+		} while (i < s.length() && !dontNeedEncoding.get((c = (int) s.charAt(i))));
+
+		charArrayWriter.flush();
+		String str = new String(charArrayWriter.toCharArray());
+		byte[] ba = str.getBytes(charset);
 		for (int j = 0; j < ba.length; j++) {
 		    out.append('%');
 		    char ch = Character.forDigit((ba[j] >> 4) & 0xF, 16);
@@ -258,7 +266,7 @@ public class URLEncoder {
 		    }
 		    out.append(ch);
 		}
-		buf.reset();
+		charArrayWriter.reset();
 		needToChange = true;
 	    }
 	}

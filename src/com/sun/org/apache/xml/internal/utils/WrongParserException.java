@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WrongParserException.java,v 1.4 2004/02/17 04:21:14 minchau Exp $
+ * $Id: WrongParserException.java,v 1.2.4.1 2005/09/15 08:16:00 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -25,6 +25,7 @@ package com.sun.org.apache.xml.internal.utils;
  */
 public class WrongParserException extends RuntimeException
 {
+    static final long serialVersionUID = 6481643018533043846L;
 
   /**
    * Create a WrongParserException object.

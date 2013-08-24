@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnionPattern.java,v 1.13 2004/02/17 04:35:37 minchau Exp $
+ * $Id: UnionPattern.java,v 1.2.4.1 2005/09/15 00:21:15 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.patterns;
 
@@ -31,6 +31,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class UnionPattern extends Expression
 {
+    static final long serialVersionUID = -6670449967116905820L;
 
   /** Array of the contained step patterns to be tested.
    *  @serial  */
@@ -167,7 +168,7 @@ public class UnionPattern extends Expression
   }
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

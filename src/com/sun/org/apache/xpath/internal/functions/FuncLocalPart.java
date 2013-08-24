@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncLocalPart.java,v 1.10 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncLocalPart.java,v 1.2.4.1 2005/09/14 20:18:44 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.objects.XString;
  */
 public class FuncLocalPart extends FunctionDef1Arg
 {
+    static final long serialVersionUID = 7591798770325814746L;
 
   /**
    * Execute the function.  The function must return

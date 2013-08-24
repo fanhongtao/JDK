@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMNamedNodeMap.java,v 1.8 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMNamedNodeMap.java,v 1.2.4.1 2005/09/15 08:15:03 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -89,9 +89,7 @@ public class DTMNamedNodeMap implements NamedNodeMap
 
   /**
    * Retrieves a node specified by name.
-   * @param nameThe <code>nodeName</code> of a node to retrieve.
-   *
-   * @param name Name of the item being requested.
+   * @param name The <code>nodeName</code> of a node to retrieve.
    * @return A <code>Node</code> (of any type) with the specified
    *   <code>nodeName</code>, or <code>null</code> if it does not identify
    *   any node in this map.
@@ -99,7 +97,7 @@ public class DTMNamedNodeMap implements NamedNodeMap
   public Node getNamedItem(String name)
   {
 
-    for (int n = dtm.getFirstAttribute(element); n != -1;
+    for (int n = dtm.getFirstAttribute(element); n != DTM.NULL;
             n = dtm.getNextAttribute(n))
     {
       if (dtm.getNodeName(n).equals(name))
@@ -113,8 +111,6 @@ public class DTMNamedNodeMap implements NamedNodeMap
    * Returns the <code>index</code>th item in the map. If <code>index</code>
    * is greater than or equal to the number of nodes in this map, this
    * returns <code>null</code>.
-   * @param indexIndex into this map.
-   *
    * @param i The index of the requested item.
    * @return The node at the <code>index</code>th position in the map, or
    *   <code>null</code> if that is not a valid index.
@@ -198,7 +194,22 @@ public class DTMNamedNodeMap implements NamedNodeMap
    */
   public Node getNamedItemNS(String namespaceURI, String localName)
   {
-    throw new DTMException(DTMException.NOT_SUPPORTED_ERR);
+       Node retNode = null;
+       for (int n = dtm.getFirstAttribute(element); n != DTM.NULL;
+                       n = dtm.getNextAttribute(n))
+       {
+         if (localName.equals(dtm.getLocalName(n)))
+         {
+           String nsURI = dtm.getNamespaceURI(n); 
+           if ((namespaceURI == null && nsURI == null)
+                  || (namespaceURI != null && namespaceURI.equals(nsURI)))
+           {
+             retNode = dtm.getNode(n);
+             break;
+           }
+         }
+       }
+       return retNode;
   }
 
   /**
@@ -261,7 +272,7 @@ public class DTMNamedNodeMap implements NamedNodeMap
    */
   public class DTMException extends org.w3c.dom.DOMException
   {
-
+          static final long serialVersionUID = -8290238117162437678L;
     /**
      * Constructs a DOM/DTM exception.
      *

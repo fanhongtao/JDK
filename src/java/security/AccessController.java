@@ -1,7 +1,7 @@
 /*
- * @(#)AccessController.java	1.55 04/05/05
+ * @(#)AccessController.java	1.59 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -222,7 +222,7 @@ import sun.security.util.Debug;
  * 
  * @see AccessControlContext
  *
- * @version 1.55 04/05/05
+ * @version 1.59 05/11/17
  * @author Li Gong 
  * @author Roland Schemers
  */
@@ -238,9 +238,12 @@ public final class AccessController {
      * Performs the specified <code>PrivilegedAction</code> with privileges
      * enabled. The action is performed with <i>all</i> of the permissions 
      * possessed by the caller's protection domain.
-     * <p>
-     * If the action's <code>run</code> method throws an (unchecked) exception,
-     * it will propagate through this method.
+     * 
+     * <p> If the action's <code>run</code> method throws an (unchecked)
+     * exception, it will propagate through this method.
+     *
+     * <p> Note that any DomainCombiner associated with the current
+     * AccessControlContext will be ignored while the action is performed.
      *
      * @param action the action to be performed.
      *
@@ -250,9 +253,43 @@ public final class AccessController {
      *
      * @see #doPrivileged(PrivilegedAction,AccessControlContext)
      * @see #doPrivileged(PrivilegedExceptionAction)
+     * @see #doPrivilegedWithCombiner(PrivilegedAction)
+     * @see java.security.DomainCombiner
      */
 
     public static native <T> T doPrivileged(PrivilegedAction<T> action);
+
+    /**
+     * Performs the specified <code>PrivilegedAction</code> with privileges
+     * enabled. The action is performed with <i>all</i> of the permissions 
+     * possessed by the caller's protection domain.
+     *
+     * <p> If the action's <code>run</code> method throws an (unchecked)
+     * exception, it will propagate through this method.
+     *
+     * <p> This method preserves the current AccessControlContext's
+     * DomainCombiner (which may be null) while the action is performed.
+     *
+     * @param action the action to be performed.
+     *
+     * @return the value returned by the action's <code>run</code> method.
+     *
+     * @exception NullPointerException if the action is <code>null</code>
+     *
+     * @see #doPrivileged(PrivilegedAction)
+     * @see java.security.DomainCombiner
+     *
+     * @since 1.6
+     */
+    public static <T> T doPrivilegedWithCombiner(PrivilegedAction<T> action) {
+
+	DomainCombiner dc = null;
+	AccessControlContext acc = getStackAccessControlContext();
+	if (acc == null || (dc = acc.getAssignedCombiner()) == null) {
+	    return AccessController.doPrivileged(action);
+	}
+	return AccessController.doPrivileged(action, preserveCombiner(dc));
+    }
 
 
     /**
@@ -289,9 +326,12 @@ public final class AccessController {
      * Performs the specified <code>PrivilegedExceptionAction</code> with
      * privileges enabled.  The action is performed with <i>all</i> of the 
      * permissions possessed by the caller's protection domain.
-     * <p>
-     * If the action's <code>run</code> method throws an <i>unchecked</i>
+     *
+     * <p> If the action's <code>run</code> method throws an <i>unchecked</i>
      * exception, it will propagate through this method.
+     *
+     * <p> Note that any DomainCombiner associated with the current
+     * AccessControlContext will be ignored while the action is performed.
      *
      * @param action the action to be performed
      *
@@ -303,10 +343,75 @@ public final class AccessController {
      * 
      * @see #doPrivileged(PrivilegedAction)
      * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
+     * @see #doPrivilegedWithCombiner(PrivilegedExceptionAction)
+     * @see java.security.DomainCombiner
      */
     public static native <T> T
 	doPrivileged(PrivilegedExceptionAction<T> action)
 	throws PrivilegedActionException;
+    
+
+    /**
+     * Performs the specified <code>PrivilegedExceptionAction</code> with
+     * privileges enabled.  The action is performed with <i>all</i> of the 
+     * permissions possessed by the caller's protection domain.
+     *
+     * <p> If the action's <code>run</code> method throws an <i>unchecked</i>
+     * exception, it will propagate through this method.
+     *
+     * <p> This method preserves the current AccessControlContext's
+     * DomainCombiner (which may be null) while the action is performed.
+     *
+     * @param action the action to be performed.
+     *
+     * @return the value returned by the action's <code>run</code> method
+     *
+     * @exception PrivilegedActionException if the specified action's
+     *         <code>run</code> method threw a <i>checked</i> exception
+     * @exception NullPointerException if the action is <code>null</code>
+     * 
+     * @see #doPrivileged(PrivilegedAction)
+     * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
+     * @see java.security.DomainCombiner
+     *
+     * @since 1.6
+     */
+    public static <T> T doPrivilegedWithCombiner
+	(PrivilegedExceptionAction<T> action) throws PrivilegedActionException {
+
+	DomainCombiner dc = null;
+	AccessControlContext acc = getStackAccessControlContext();
+	if (acc == null || (dc = acc.getAssignedCombiner()) == null) {
+	    return AccessController.doPrivileged(action);
+	}
+	return AccessController.doPrivileged(action, preserveCombiner(dc));
+    }
+
+    /**
+     * preserve the combiner across the doPrivileged call
+     */
+    private static AccessControlContext preserveCombiner
+					(DomainCombiner combiner) {
+
+	/**
+	 * callerClass[0] = Reflection.getCallerClass
+	 * callerClass[1] = AccessController.preserveCombiner
+	 * callerClass[2] = AccessController.doPrivileged
+	 * callerClass[3] = caller
+	 */
+	final Class callerClass = sun.reflect.Reflection.getCallerClass(3);
+	ProtectionDomain callerPd = (ProtectionDomain)doPrivileged
+	    (new PrivilegedAction() {
+	    public Object run() {
+		return callerClass.getProtectionDomain();
+	    }
+	});
+
+	// perform 'combine' on the caller of doPrivileged,
+	// even if the caller is from the bootclasspath
+	ProtectionDomain[] pds = new ProtectionDomain[] {callerPd};
+	return new AccessControlContext(combiner.combine(pds, null), combiner);
+    }
 
 
     /**
@@ -389,7 +494,7 @@ public final class AccessController {
     /** 
      * Determines whether the access request indicated by the
      * specified permission should be allowed or denied, based on
-     * the security policy currently in effect. 
+     * the current AccessControlContext and security policy.
      * This method quietly returns if the access request
      * is permitted, or throws a suitable AccessControlException otherwise. 
      *
@@ -408,16 +513,30 @@ public final class AccessController {
 	//System.err.println("checkPermission "+perm);
 	//Thread.currentThread().dumpStack();
 
+	if (perm == null) {
+	    throw new NullPointerException("permission can't be null");
+	}
+
 	AccessControlContext stack = getStackAccessControlContext();
 	// if context is null, we had privileged system code on the stack.
 	if (stack == null) {
 	    Debug debug = AccessControlContext.getDebug();
+	    boolean dumpDebug = false;
 	    if (debug != null) {
-		if (Debug.isOn("stack"))
-		    Thread.currentThread().dumpStack();
-		if (Debug.isOn("domain")) {
-		    debug.println("domain (context is null)");
-		}
+		dumpDebug = !Debug.isOn("codebase=");
+		dumpDebug &= !Debug.isOn("permission=") ||
+		    Debug.isOn("permission=" + perm.getClass().getCanonicalName());
+	    }
+
+	    if (dumpDebug && Debug.isOn("stack")) {
+		Thread.currentThread().dumpStack();
+	    }
+
+	    if (dumpDebug && Debug.isOn("domain")) {
+		debug.println("domain (context is null)");
+	    }
+
+	    if (dumpDebug) {
 		debug.println("access allowed "+perm);
 	    }
 	    return;
@@ -425,6 +544,5 @@ public final class AccessController {
 
 	AccessControlContext acc = stack.optimize();
 	acc.checkPermission(perm);
-
     }
 }

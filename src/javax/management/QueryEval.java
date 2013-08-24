@@ -1,7 +1,7 @@
 /*
- * @(#)QueryEval.java	4.24 04/02/10
+ * @(#)QueryEval.java	4.26 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,8 @@ public abstract class QueryEval implements Serializable   {
     /* Serial version */
     private static final long serialVersionUID = 2675899265640874796L;
 
-    private static ThreadLocal server = new InheritableThreadLocal();
+    private static ThreadLocal<MBeanServer> server =
+	new InheritableThreadLocal<MBeanServer>();
     
     /**
      * <p>Sets the MBean server on which the query is to be performed.
@@ -60,6 +61,6 @@ public abstract class QueryEval implements Serializable   {
      * @since.unbundled JMX 1.2
      */
     public static MBeanServer getMBeanServer() {
-	return (MBeanServer) server.get();
+	return server.get();
     }
 }

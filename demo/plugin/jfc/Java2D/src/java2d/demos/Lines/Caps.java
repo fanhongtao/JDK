@@ -1,7 +1,7 @@
 /*
- * @(#)Caps.java	1.23 04/07/26
+ * @(#)Caps.java	1.27 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,18 +35,21 @@
  */
 
 /*
- * @(#)Caps.java	1.23 04/07/26
+ * @(#)Caps.java	1.27 06/08/29
  */
 
 
 package java2d.demos.Lines;
 
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import java2d.Surface;
+
+import static java.awt.BasicStroke.*;
 
 
 /**
@@ -54,22 +57,21 @@ import java2d.Surface;
  */
 public class Caps extends Surface {
 
-    private static int cap[] = { BasicStroke.CAP_BUTT,
-        BasicStroke.CAP_ROUND, BasicStroke.CAP_SQUARE };
+    private static int     cap[] = {  CAP_BUTT,   CAP_ROUND,   CAP_SQUARE  };
     private static String desc[] = { "Butt Cap", "Round Cap", "Square Cap" };
 
 
     public Caps() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
     public void render(int w, int h, Graphics2D g2) {
         FontRenderContext frc = g2.getFontRenderContext();
         Font font = g2.getFont();
-        g2.setColor(Color.black);
-        for (int i=0; i < 3; i++) {
-            g2.setStroke(new BasicStroke(15, cap[i], BasicStroke.JOIN_MITER));
+        g2.setColor(BLACK);
+        for (int i=0; i < cap.length; i++) {
+            g2.setStroke(new BasicStroke(15, cap[i], JOIN_MITER));
             g2.draw(new Line2D.Float(w/4,(i+1)*h/4,w-w/4,(i+1)*h/4));
             TextLayout tl = new TextLayout(desc[i], font, frc);
             tl.draw(g2,(float)(w/2-tl.getBounds().getWidth()/2),(i+1)*h/4-10);

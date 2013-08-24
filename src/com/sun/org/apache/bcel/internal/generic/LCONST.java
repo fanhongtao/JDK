@@ -57,9 +57,9 @@ package com.sun.org.apache.bcel.internal.generic;
 /** 
  * LCONST - Push 0 or 1, other values cause an exception
  *
- * <PRE>Stack: ... -&gt; ..., <i></PRE>
+ * <PRE>Stack: ... -&gt; ..., </PRE>
  *
- * @version $Id: LCONST.java,v 1.1.1.1 2001/10/29 20:00:21 jvanzyl Exp $
+ * @version $Id: LCONST.java,v 1.1.2.1 2005/07/31 23:45:52 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LCONST extends Instruction
@@ -92,7 +92,6 @@ public class LCONST extends Instruction
   public Type getType(ConstantPoolGen cp) {
     return Type.LONG;
   }
-
 
   /**
    * Call corresponding visitor method(s). The order is:

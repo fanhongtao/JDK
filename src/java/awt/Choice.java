@@ -1,7 +1,7 @@
 /*
- * @(#)Choice.java	1.89 04/05/18
+ * @(#)Choice.java	1.93 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the <code>Choice</code>.
  * <p>
- * @version	1.89 05/18/04
+ * @version	1.93 07/11/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -294,6 +294,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * then the first item in the choice becomes the
      * selected item.  Otherwise, the currently selected
      * item remains selected (and the selected index is
+     * updated accordingly).
      * @param      position the position of the item
      * @throws IndexOutOfBoundsException if the specified 
      * 		position is out of bounds
@@ -449,6 +450,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * to user input, but not in response to calls to <code>select</code>.
      * If l is <code>null</code>, no exception is thrown and no action
      * is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      * @param         l    the item listener
      * @see           #removeItemListener
      * @see           #getItemListeners
@@ -470,6 +473,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * item events from this <code>Choice</code> menu.
      * If l is <code>null</code>, no exception is thrown and no
      * action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      * @param         l    the item listener
      * @see           #addItemListener
      * @see           #getItemListeners
@@ -710,6 +715,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      *
      * @return an <code>AccessibleAWTChoice</code> that serves as the 
      *         <code>AccessibleContext</code> of this <code>Choice</code>
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -722,6 +728,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * This class implements accessibility support for the 
      * <code>Choice</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to choice user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTChoice extends AccessibleAWTComponent
         implements AccessibleAction

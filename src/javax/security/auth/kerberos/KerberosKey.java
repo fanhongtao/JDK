@@ -1,12 +1,13 @@
 /*
- * @(#)KerberosKey.java	1.17 04/01/13
+ * @(#)KerberosKey.java	1.20 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
 package javax.security.auth.kerberos;
 
+import java.util.Arrays;
 import javax.crypto.SecretKey;
 import javax.security.auth.Destroyable;
 import javax.security.auth.DestroyFailedException;
@@ -34,7 +35,7 @@ import javax.security.auth.DestroyFailedException;
  * {@link javax.security.auth.kerberos.ServicePermission ServicePermission}.
  *
  * @author Mayank Upadhyay
- * @version 1.17, 01/13/04
+ * @version 1.20, 04/21/06
  * @since 1.4
  */
 public class KerberosKey implements SecretKey, Destroyable {
@@ -153,7 +154,7 @@ public class KerberosKey implements SecretKey, Destroyable {
      * Returns the standard algorithm name for this key. For 
      * example, "DES" would indicate that this key is a DES key. 
      * See Appendix A in the <a href= 
-     * "../../../../../guide/security/CryptoSpec.html#AppA"> 
+     * "../../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA"> 
      * Java Cryptography Architecture API Specification &amp; Reference
      * </a> 
      * for information about standard algorithm names.
@@ -209,11 +210,76 @@ public class KerberosKey implements SecretKey, Destroyable {
 	return destroyed;
     }
    
-   public String toString() {
-
+    public String toString() {
+        if (destroyed) {
+            return "Destroyed Principal";
+        }
 	return "Kerberos Principal " + principal.toString() +
 		"Key Version " + versionNum +
 		"key "	+ key.toString();
-   }
+    }
+    
+    /**
+     * Returns a hashcode for this KerberosKey. 
+     * 
+     * @return a hashCode() for the <code>KerberosKey</code>
+     * @since 1.6
+     */
+    public int hashCode() {
+        int result = 17;
+        if (isDestroyed()) {
+            return result;
+        }
+        result = 37 * result + Arrays.hashCode(getEncoded());
+        result = 37 * result + getKeyType();
+        if (principal != null) {
+            result = 37 * result + principal.hashCode();
+        }
+        return result * 37 + versionNum;
+    }
 
+    /**
+     * Compares the specified Object with this KerberosKey for equality.
+     * Returns true if the given object is also a 
+     * <code>KerberosKey</code> and the two
+     * <code>KerberosKey</code> instances are equivalent. 
+     *
+     * @param other the Object to compare to
+     * @return true if the specified object is equal to this KerberosKey,
+     * false otherwise. NOTE: Returns false if either of the KerberosKey
+     * objects has been destroyed.
+     * @since 1.6
+     */
+    public boolean equals(Object other) {
+
+	if (other == this)
+	    return true;
+
+	if (! (other instanceof KerberosKey)) {
+	    return false;
+	} 
+        
+        KerberosKey otherKey = ((KerberosKey) other);
+        if (isDestroyed() || otherKey.isDestroyed()) {
+            return false;
+        }
+
+        if (versionNum != otherKey.getVersionNumber() ||
+                getKeyType() != otherKey.getKeyType() ||
+                !Arrays.equals(getEncoded(), otherKey.getEncoded())) {
+            return false;
+        }
+
+        if (principal == null) {
+            if (otherKey.getPrincipal() != null) {
+                return false;
+            }
+        } else {
+            if (!principal.equals(otherKey.getPrincipal())) {
+                return false;
+            }
+        }
+
+        return true;            
+    }
 }

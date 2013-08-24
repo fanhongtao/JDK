@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2004 The Apache Software Foundation.
+ * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncExtFunctionAvailable.java,v 1.11 2004/02/17 04:34:00 minchau Exp $
+ * $Id: FuncExtFunctionAvailable.java,v 1.2.4.1 2005/09/14 20:05:08 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
 import com.sun.org.apache.xalan.internal.templates.Constants;
 import com.sun.org.apache.xpath.internal.ExtensionsProvider;
 import com.sun.org.apache.xpath.internal.XPathContext;
-import com.sun.org.apache.xpath.internal.compiler.Keywords;
+import com.sun.org.apache.xpath.internal.compiler.FunctionTable;
 import com.sun.org.apache.xpath.internal.objects.XBoolean;
 import com.sun.org.apache.xpath.internal.objects.XObject;
 
@@ -31,6 +31,9 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncExtFunctionAvailable extends FunctionOneArg
 {
+    static final long serialVersionUID = 5118814314918592241L;
+    
+    transient private FunctionTable m_functionTable = null;
 
   /**
    * Execute the function.  The function must return
@@ -69,7 +72,8 @@ public class FuncExtFunctionAvailable extends FunctionOneArg
     {
       try
       {
-        return Keywords.functionAvailable(methName) ? XBoolean.S_TRUE : XBoolean.S_FALSE;
+        if (null == m_functionTable) m_functionTable = new FunctionTable();
+        return m_functionTable.functionAvailable(methName) ? XBoolean.S_TRUE : XBoolean.S_FALSE;
       }
       catch (Exception e)
       {
@@ -83,5 +87,16 @@ public class FuncExtFunctionAvailable extends FunctionOneArg
       return extProvider.functionAvailable(namespace, methName)
              ? XBoolean.S_TRUE : XBoolean.S_FALSE;
     }
+  }
+  
+  /**
+   * The function table is an instance field. In order to access this instance 
+   * field during evaluation, this method is called at compilation time to
+   * insert function table information for later usage. It should only be used
+   * during compiling of XPath expressions.
+   * @param aTable an instance of the function table
+   */
+  public void setFunctionTable(FunctionTable aTable){
+          m_functionTable = aTable;
   }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)RunWindow.java	1.27 04/07/26
+ * @(#)RunWindow.java	1.34 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)RunWindow.java	1.27 04/07/26
+ * @(#)RunWindow.java	1.34 06/08/29
  */
 
 package java2d;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -59,7 +60,7 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
     static int delay = 10;
     static int numRuns = 20;
     static boolean exit;
-    static JCheckBox zoomCB = new JCheckBox("Zoom");
+    static JCheckBox  zoomCB = new JCheckBox("Zoom");
     static JCheckBox printCB = new JCheckBox("Print");
     static boolean buffersFlag;
     static int bufBeg, bufEnd;
@@ -79,7 +80,7 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
         Font font = new Font("serif", Font.PLAIN, 10);
 
         runB = new JButton("Run");
-        runB.setBackground(Color.green);
+        runB.setBackground(GREEN);
         runB.addActionListener(this);
         runB.setMinimumSize(new Dimension(70,30));
         Java2Demo.addToGridBag(this, runB, 0, 0, 1, 1, 0.0, 0.0);
@@ -90,11 +91,10 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
         Java2Demo.addToGridBag(this, pb, 1, 0, 2, 1, 1.0, 0.0);
 
         JPanel p1 = new JPanel(new GridLayout(2,2));
-
         JPanel p2 = new JPanel();
         JLabel l = new JLabel("Runs:");
         l.setFont(font);
-        l.setForeground(Color.black);
+        l.setForeground(BLACK);
         p2.add(l);
         p2.add(runsTextField = new JTextField(String.valueOf(numRuns)));
         runsTextField.setPreferredSize(new Dimension(30,20));
@@ -103,7 +103,7 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
         p2 = new JPanel();
         l = new JLabel("Delay:");
         l.setFont(font);
-        l.setForeground(Color.black);
+        l.setForeground(BLACK);
         p2.add(l);
         p2.add(delayTextField = new JTextField(String.valueOf(delay)));
         delayTextField.setPreferredSize(new Dimension(30,20));
@@ -128,12 +128,17 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
         } else if (e.getSource().equals(runsTextField)) {
             numRuns = Integer.parseInt(runsTextField.getText().trim());
         } else if (e.getActionCommand() == "Run") {
-            runB.setText("Stop");
-            runB.setBackground(Color.red);
-            start();
+            doRunAction();
         } else if (e.getActionCommand() == "Stop") {
             stop();
         }
+    }
+
+
+    public void doRunAction() {
+        runB.setText("Stop");
+        runB.setBackground(RED);
+        start();
     }
 
 
@@ -155,41 +160,48 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
 
 
     public void sleepPerTab() {
-        for (int j = 0; j < delay+1 && thread != null; j++) {
-            for (int k = 0; k < 10 && thread != null; k++) {
+        for     (int j = 0; j < delay+1 && thread != null; j++) {
+            for (int k = 0; k < 10      && thread != null; k++) {
                 try {
                     thread.sleep(100);
                 } catch (Exception e) { }
             }
-            pb.setValue(pb.getValue() + 1);
-            pb.repaint();
+            Runnable pbUpdateRunnable = new Runnable() {
+                public void run() {
+                    pb.setValue(pb.getValue() + 1);
+                }
+            };
+            SwingUtilities.invokeLater(pbUpdateRunnable);
         }
     }
 
 
-    private void printDemo(DemoGroup dg) {
-        if (!Java2Demo.controls.toolBarCB.isSelected()) {
-            Java2Demo.controls.toolBarCB.setSelected(true);
-            dg.revalidate();
-            try { thread.sleep(2000); } catch (Exception e) { }
-        }
-        JPanel p = dg.getPanel();
-        for (int j = 0; j < p.getComponentCount(); j++) {
-            DemoPanel dp = (DemoPanel) p.getComponent(j);
-            if (dp.tools != null) {
-               if (dp.surface.animating != null) {
-                   if (dp.surface.animating.thread != null) {
-                       dp.tools.startStopB.doClick();
-                       try { thread.sleep(999); } catch (Exception e) {}
-                   }
-               }
-               dp.tools.printB.doClick();
-               try { thread.sleep(999); } catch (Exception e) {}
+    private void printDemo(final DemoGroup dg) {
+        Runnable printDemoRunnable = new Runnable() {
+            public void run() {
+                if (!Java2Demo.controls.toolBarCB.isSelected()) {
+                    Java2Demo.controls.toolBarCB.setSelected(true);
+                    dg.invalidate();
+                }
+                for (Component comp : dg.getPanel().getComponents()) {
+                    DemoPanel dp = (DemoPanel) comp;
+                    if (dp.tools != null) {
+                        if (dp.surface.animating != null) {
+                            if (dp.surface.animating.thread != null) {
+                                dp.tools.startStopB.doClick();
+                            }
+                        }
+                        dp.tools.printB.doClick();
+                    }
+                }
             }
-        }
+        };
+        invokeAndWait(printDemoRunnable);
     }
 
-
+    private DemoGroup dg = null;
+    private DemoPanel dp = null;
+    
     public void run() {
 
         System.out.println("\nJava2D Demo RunWindow : " + 
@@ -205,46 +217,72 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
             Date d = new Date();
             System.out.print("#" + runNum + " " + d.toString() + ", ");
             r.gc();
-            float freeMemory = (float) r.freeMemory();
+            float  freeMemory = (float) r.freeMemory();
             float totalMemory = (float) r.totalMemory();
             System.out.println(((totalMemory - freeMemory)/1024) + "K used");
 
             for (int i = 0; i < Java2Demo.tabbedPane.getTabCount() && thread != null; i++) {
-                pb.setValue(0);
-                pb.setMaximum(delay);
-                DemoGroup dg = null;
-                if (i != 0) {
-                    dg = Java2Demo.group[i-1];
-                    dg.invalidate();
-                }
-                Java2Demo.tabbedPane.setSelectedIndex(i);
-                if (i != 0 && (zoomCB.isSelected() || buffersFlag)) {
-                    DemoPanel dp = (DemoPanel) dg.getPanel().getComponent(0);
-                    if (dg.tabbedPane == null && dp.surface != null) {
-                        dg.mouseClicked(new MouseEvent(dp.surface, MouseEvent.MOUSE_CLICKED, 0, 0, 10, 10, 1, false));
-                        try {thread.sleep(999);} catch (Exception e) {}
-                    }
-                    for (int j = 1; j < dg.tabbedPane.getTabCount() && thread != null; j++) {
+                
+                final int mainTabIndex = i;
+                Runnable initDemoRunnable = new Runnable() {
+                    public void run() {
                         pb.setValue(0);
                         pb.setMaximum(delay);
-                        dg.tabbedPane.setSelectedIndex(j);
-                        JPanel p = dg.getPanel();
+                        if (mainTabIndex != 0) {
+                            dg = Java2Demo.group[mainTabIndex-1];
+                            dg.invalidate();
+                        }
+                        Java2Demo.tabbedPane.setSelectedIndex(mainTabIndex);
+                    }
+                };
+                invokeAndWait(initDemoRunnable);
+                
+                if (i != 0 && (zoomCB.isSelected() || buffersFlag)) {
+                    dp = (DemoPanel) dg.getPanel().getComponent(0);
+                    if (dg.tabbedPane == null && dp.surface != null) {
+                        Runnable mouseClickedRunnable = new Runnable() {
+                            public void run() {
+                                dg.mouseClicked(new MouseEvent(dp.surface, MouseEvent.MOUSE_CLICKED, 0, 0, 10, 10, 1, false));
+                            }
+                        };
+                        invokeAndWait(mouseClickedRunnable);
+                    }
+                    for (int j = 1; j < dg.tabbedPane.getTabCount() && thread != null; j++) {
+                        
+                        final int subTabIndex = j;
+                        
+                        Runnable initPanelRunnable = new Runnable() {
+                            public void run() {
+                                pb.setValue(0);
+                                pb.setMaximum(delay);
+                                dg.tabbedPane.setSelectedIndex(subTabIndex);
+                            }
+                        };
+                        invokeAndWait(initPanelRunnable);
+                        
+                        final JPanel p = dg.getPanel();
                         if (buffersFlag && p.getComponentCount() == 1) {
                             dp = (DemoPanel) p.getComponent(0);
                             if (dp.surface.animating != null) {
                                 dp.surface.animating.stop();
                             }
                             for (int k = bufBeg; k <= bufEnd && thread != null; k++) {
-                                 dp.tools.cloneB.doClick();
-                                 try {thread.sleep(500);} catch (Exception e) {}
-                                 int n = p.getComponentCount();
-                                 DemoPanel clone = (DemoPanel)p.getComponent(n-1);
-                                 if (clone.surface.animating != null) {
-                                     clone.surface.animating.stop();
-                                 }
-                                 clone.tools.issueRepaint = true;
-                                 clone.tools.screenCombo.setSelectedIndex(k);
-                                 clone.tools.issueRepaint = false;
+                                
+                                final int cloneIndex = k;
+                                Runnable cloneRunnable = new Runnable() {
+                                    public void run(){
+                                        dp.tools.cloneB.doClick();
+                                        int n = p.getComponentCount();
+                                        DemoPanel clone = (DemoPanel)p.getComponent(n-1);
+                                        if (clone.surface.animating != null) {
+                                            clone.surface.animating.stop();
+                                        }
+                                        clone.tools.issueRepaint = true;
+                                        clone.tools.screenCombo.setSelectedIndex(cloneIndex);
+                                        clone.tools.issueRepaint = false;
+                                    }
+                                };
+                                invokeAndWait(cloneRunnable);
                             }
                         }
                         if (printCB.isSelected()) {
@@ -267,9 +305,25 @@ public class RunWindow extends JPanel implements Runnable, ActionListener {
                 }
             }
         }
+        Runnable resetRunnable = new Runnable() {
+            public void run() {
+                runB.setText("Run");
+                runB.setBackground(GREEN);
+                pb.setValue(0);
+            }
+        };
+        invokeAndWait(resetRunnable);
+        
         thread = null;
-        runB.setText("Run");
-        runB.setBackground(Color.green);
-        pb.setValue(0);
+        dg = null;
+        dp = null;
+    }
+    private static void invokeAndWait(Runnable run) {
+        try {
+            SwingUtilities.invokeAndWait(run);
+        }catch(Exception e){
+            System.err.println("ERROR invokeAndWait : " + e);
+            e.printStackTrace();
+        }
     }
 }

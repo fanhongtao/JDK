@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SAX2RTFDTM.java,v 1.9 2004/02/17 04:07:37 minchau Exp $
+ * $Id: SAX2RTFDTM.java,v 1.2.4.1 2005/09/15 08:15:13 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref.sax2dtm;
 
@@ -156,7 +156,6 @@ public class SAX2RTFDTM extends SAX2DTM
    * construction has ended? I think not, given that it may have been
    * tail-pruned.
    *
-   *  @param nodeHandle the id of the node.
    *  @return int Node handle of Document node, or null if this DTM does not
    *  contain an "active" document.
    * */

@@ -1,7 +1,7 @@
 /*
- * @(#)DataInputStream.java	1.71 04/05/28
+ * @(#)DataInputStream.java	1.77 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,9 +12,13 @@ package java.io;
  * types from an underlying input stream in a machine-independent
  * way. An application uses a data output stream to write data that
  * can later be read by a data input stream.
+ * <p>
+ * DataInputStream is not necessarily safe for multithreaded access.
+ * Thread safety is optional and is the responsibility of users of
+ * methods in this class.
  *
  * @author  Arthur van Hoff
- * @version 1.71, 05/28/04
+ * @version 1.77, 06/07/06
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -59,10 +63,6 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * elements <code>b[k]</code> through <code>b[b.length-1]</code> 
      * unaffected. 
      * 
-     * <p>If the first byte cannot be read for any reason other than end of 
-     * file, then an <code>IOException</code> is thrown. In particular, an 
-     * <code>IOException</code> is thrown if the input stream has been closed. 
-     * 
      * <p>The <code>read(b)</code> method has the same effect as: 
      * <blockquote><pre>
      * read(b, 0, b.length) 
@@ -72,7 +72,10 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end
      *             of the stream has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException if the first byte cannot be read for any reason
+     * other than end of file, the stream has been closed and the underlying
+     * input stream does not support reading after close, or another I/O
+     * error occurs.
      * @see        java.io.FilterInputStream#in
      * @see        java.io.InputStream#read(byte[], int, int)
      */
@@ -89,14 +92,6 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *
      * <p> This method blocks until input data is available, end of file is
      * detected, or an exception is thrown.
-     *
-     * <p> If <code>b</code> is <code>null</code>, a
-     * <code>NullPointerException</code> is thrown.
-     *
-     * <p> If <code>off</code> is negative, or <code>len</code> is negative, or
-     * <code>off+len</code> is greater than the length of the array
-     * <code>b</code>, then an <code>IndexOutOfBoundsException</code> is
-     * thrown.
      *
      * <p> If <code>len</code> is zero, then no bytes are read and
      * <code>0</code> is returned; otherwise, there is an attempt to read at
@@ -116,17 +111,20 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * <code>b[off]</code> and elements <code>b[off+len]</code> through
      * <code>b[b.length-1]</code> are unaffected.
      *
-     * <p> If the first byte cannot be read for any reason other than end of
-     * file, then an <code>IOException</code> is thrown. In particular, an
-     * <code>IOException</code> is thrown if the input stream has been closed.
-     *
      * @param      b     the buffer into which the data is read.
-     * @param      off   the start offset of the data.
+     * @param off the start offset in the destination array <code>b</code>
      * @param      len   the maximum number of bytes read.
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end
      *             of the stream has been reached.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
+     * @exception  IOException if the first byte cannot be read for any reason
+     * other than end of file, the stream has been closed and the underlying
+     * input stream does not support reading after close, or another I/O
+     * error occurs.
      * @see        java.io.FilterInputStream#in
      * @see        java.io.InputStream#read(byte[], int, int)
      */
@@ -144,8 +142,10 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *
      * @param      b   the buffer into which the data is read.
      * @exception  EOFException  if this input stream reaches the end before
-     *               reading all the bytes.
-     * @exception  IOException   if an I/O error occurs.
+     *             reading all the bytes.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final void readFully(byte b[]) throws IOException {
@@ -165,7 +165,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @param      len   the number of bytes to read.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading all the bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final void readFully(byte b[], int off, int len) throws IOException {
@@ -184,13 +186,15 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * See the general contract of the <code>skipBytes</code>
      * method of <code>DataInput</code>.
      * <p>
-     * Bytes
-     * for this operation are read from the contained
+     * Bytes for this operation are read from the contained
      * input stream.
      *
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException  if the contained input stream does not support
+     *		   seek, or the stream has been closed and
+     *		   the contained input stream does not support 
+     *		   reading after close, or another I/O error occurs.
      */
     public final int skipBytes(int n) throws IOException {
 	int total = 0;
@@ -207,13 +211,14 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * See the general contract of the <code>readBoolean</code>
      * method of <code>DataInput</code>.
      * <p>
-     * Bytes
-     * for this operation are read from the contained
+     * Bytes for this operation are read from the contained
      * input stream.
      *
      * @return     the <code>boolean</code> value read.
      * @exception  EOFException  if this input stream has reached the end.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final boolean readBoolean() throws IOException {
@@ -234,7 +239,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @return     the next byte of this input stream as a signed 8-bit
      *             <code>byte</code>.
      * @exception  EOFException  if this input stream has reached the end.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final byte readByte() throws IOException {
@@ -255,7 +262,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @return     the next byte of this input stream, interpreted as an
      *             unsigned 8-bit number.
      * @exception  EOFException  if this input stream has reached the end.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see         java.io.FilterInputStream#in
      */
     public final int readUnsignedByte() throws IOException {
@@ -277,7 +286,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             signed 16-bit number.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading two bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final short readShort() throws IOException {
@@ -299,8 +310,10 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @return     the next two bytes of this input stream, interpreted as an
      *             unsigned 16-bit integer.
      * @exception  EOFException  if this input stream reaches the end before
-     *               reading two bytes.
-     * @exception  IOException   if an I/O error occurs.
+     *             reading two bytes.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final int readUnsignedShort() throws IOException {
@@ -319,11 +332,13 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * for this operation are read from the contained
      * input stream.
      *
-     * @return     the next two bytes of this input stream as a Unicode
-     *             character.
+     * @return     the next two bytes of this input stream, interpreted as a
+     *		   <code>char</code>.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading two bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final char readChar() throws IOException {
@@ -346,7 +361,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             <code>int</code>.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading four bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final int readInt() throws IOException {
@@ -373,14 +390,16 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             <code>long</code>.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading eight bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
     public final long readLong() throws IOException {
         readFully(readBuffer, 0, 8);
         return (((long)readBuffer[0] << 56) +
                 ((long)(readBuffer[1] & 255) << 48) +
-                ((long)(readBuffer[2] & 255) << 40) +
+		((long)(readBuffer[2] & 255) << 40) +
                 ((long)(readBuffer[3] & 255) << 32) +
                 ((long)(readBuffer[4] & 255) << 24) +
                 ((readBuffer[5] & 255) << 16) +
@@ -400,7 +419,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             <code>float</code>.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading four bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.DataInputStream#readInt()
      * @see        java.lang.Float#intBitsToFloat(int)
      */
@@ -420,7 +441,9 @@ class DataInputStream extends FilterInputStream implements DataInput {
      *             <code>double</code>.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading eight bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @see        java.io.DataInputStream#readLong()
      * @see        java.lang.Double#longBitsToDouble(long)
      */
@@ -513,7 +536,9 @@ loop:	while (true) {
      * @return     a Unicode string.
      * @exception  EOFException  if this input stream reaches the end before
      *               reading all the bytes.
-     * @exception  IOException   if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @exception  UTFDataFormatException if the bytes do not represent a valid
      *             modified UTF-8 encoding of a string.
      * @see        java.io.DataInputStream#readUTF(java.io.DataInput)
@@ -536,7 +561,9 @@ loop:	while (true) {
      * @return     a Unicode string.
      * @exception  EOFException            if the input stream reaches the end
      *               before all the bytes.
-     * @exception  IOException             if an I/O error occurs.
+     * @exception  IOException   the stream has been closed and the contained
+     * 		   input stream does not support reading after close, or
+     * 		   another I/O error occurs.
      * @exception  UTFDataFormatException  if the bytes do not represent a
      *               valid modified UTF-8 encoding of a Unicode string.
      * @see        java.io.DataInputStream#readUnsignedShort()

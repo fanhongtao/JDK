@@ -1,7 +1,7 @@
 /*
- * @(#)Text.java	1.32 04/07/26
+ * @(#)Text.java	1.35 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Text.java	1.29 03/10/26
+ * @(#)Text.java	1.35 06/08/29
  */
 
 package java2d.demos.Clipping;
@@ -52,6 +52,8 @@ import javax.swing.*;
 import java2d.ControlsSurface;
 import java2d.CustomControls;
 
+import static java.awt.Color.*;
+
 
 /**
  * Clipping an image, lines, text, texture and gradient with text.
@@ -63,9 +65,9 @@ public class Text extends ControlsSurface {
     static {
         BufferedImage bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
         Graphics2D big = bi.createGraphics();
-        big.setBackground(Color.yellow);
+        big.setBackground(YELLOW);
         big.clearRect(0,0,5,5);
-        big.setColor(Color.red);
+        big.setColor(RED);
         big.fillRect(0,0,3,3);
         texture = new TexturePaint(bi,new Rectangle(0,0,5,5));
     }
@@ -75,7 +77,7 @@ public class Text extends ControlsSurface {
 
 
     public Text() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         img = getImage("clouds.jpg");
         setControls(new Component[] { new DemoControls(this) });
     }
@@ -104,9 +106,9 @@ public class Text extends ControlsSurface {
         }
 
         if (clipType.equals("Lines")) {
-            g2.setColor(Color.black);
+            g2.setColor(BLACK);
             g2.fill(r);
-            g2.setColor(Color.yellow);
+            g2.setColor(YELLOW);
             g2.setStroke(new BasicStroke(1.5f));
             for (int j = r.y; j < r.y + r.height; j=j+3) {
                 Line2D line = new Line2D.Float( (float) r.x, (float) j,
@@ -119,12 +121,12 @@ public class Text extends ControlsSurface {
             g2.setPaint(texture);
             g2.fill(r);
         } else if (clipType.equals("GP")) {
-            g2.setPaint(new GradientPaint(0,0,Color.blue,w,h,Color.yellow));
+            g2.setPaint(new GradientPaint(0,0,BLUE,w,h,YELLOW));
             g2.fill(r);
         } else if (clipType.equals("Text")) {
-            g2.setColor(Color.black);
+            g2.setColor(BLACK);
             g2.fill(shape.getBounds());
-            g2.setColor(Color.cyan);
+            g2.setColor(CYAN);
             f = new Font("serif",Font.BOLD,10);
             tl = new TextLayout("java", f, frc);
             sw = tl.getBounds().getWidth();
@@ -142,7 +144,7 @@ public class Text extends ControlsSurface {
         }
         g2.setClip(new Rectangle(0, 0, w, h));
 
-        g2.setColor(Color.gray);
+        g2.setColor(GRAY);
         g2.draw(shape);
     }
 
@@ -162,12 +164,12 @@ public class Text extends ControlsSurface {
             this.demo = demo;
             add(toolbar = new JToolBar());
             toolbar.setFloatable(false);
-            addTool("Clip", true);
-            addTool("Lines", true);
+            addTool("Clip",  true );
+            addTool("Lines", true );
             addTool("Image", false);
-            addTool("TP", false);
-            addTool("GP", false);
-            addTool("Text", false);
+            addTool("TP",    false);
+            addTool("GP",    false);
+            addTool("Text" , false);
         }
 
         public void addTool(String str, boolean state) {
@@ -178,8 +180,8 @@ public class Text extends ControlsSurface {
             int width = b.getPreferredSize().width;
             Dimension prefSize = new Dimension(width, 21);
             b.setPreferredSize(prefSize);
-            b.setMaximumSize(prefSize);
-            b.setMinimumSize(prefSize);
+            b.setMaximumSize(  prefSize);
+            b.setMinimumSize(  prefSize);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -187,9 +189,8 @@ public class Text extends ControlsSurface {
                 JToggleButton b = (JToggleButton) e.getSource();
                 demo.doClip = b.isSelected();
             } else {
-                for (int i = 1; i < toolbar.getComponentCount(); i++) {
-                    JToggleButton b = (JToggleButton) toolbar.getComponentAtIndex(i);
-                    b.setSelected(false);
+                for(Component comp : toolbar.getComponents()) {
+                    ((JToggleButton) comp).setSelected(false);
                 }
                 JToggleButton b = (JToggleButton) e.getSource();
                 b.setSelected(true);

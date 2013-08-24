@@ -1,7 +1,7 @@
 /*
- * @(#)MouseListener.java	1.17 03/12/19
+ * @(#)MouseListener.java	1.19 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,12 +29,11 @@ import java.util.EventListener;
  * the <code>MouseEvent</code> is passed to it.
  *
  * @author Carl Quinn
- * @version 1.17, 12/19/03
+ * @version 1.19, 04/13/06
  *
  * @see MouseAdapter
  * @see MouseEvent
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/mouselistener.html">Tutorial: Writing a Mouse Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @since 1.1
  */

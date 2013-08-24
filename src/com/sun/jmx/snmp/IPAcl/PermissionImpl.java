@@ -1,10 +1,10 @@
 /*
  * @(#)file      PermissionImpl.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.10
- * @(#)date      04/09/15
+ * @(#)version   4.11
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -21,7 +21,7 @@ import java.io.Serializable;
  * Permission is represented as a String.
  *
  * @see java.security.acl.Permission
- * @version     4.10     12/19/03
+ * @version     4.11     11/17/05
  * @author      Sun Microsystems, Inc
  */
 

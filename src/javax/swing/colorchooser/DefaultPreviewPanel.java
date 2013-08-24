@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultPreviewPanel.java	1.13 03/12/19
+ * @(#)DefaultPreviewPanel.java	1.16 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 
 /**
@@ -32,7 +32,7 @@ import com.sun.java.swing.SwingUtilities2;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 12/19/03
+ * @version 1.16 11/30/05
  * @author Steve Wilson
  * @see JColorChooser
  */
@@ -44,7 +44,7 @@ class DefaultPreviewPanel extends JPanel {
   
 
     private int textGap = 5;
-    private Font font = new Font("Dialog", Font.PLAIN, 12);
+    private Font font = new Font(Font.DIALOG, Font.PLAIN, 12);
     private String sampleText = UIManager.getString("ColorChooser.sampleText");
 
     private int swatchWidth = 50;

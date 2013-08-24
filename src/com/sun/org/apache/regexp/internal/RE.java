@@ -1,297 +1,235 @@
+/*
+ * Copyright 1999-2004 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.sun.org.apache.regexp.internal;
 
-/*
- * ====================================================================
- * 
- * The Apache Software License, Version 1.1
- *
- * Copyright (c) 1999 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:  
- *       "This product includes software developed by the 
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- *
- * 4. The names "The Jakarta Project", "Jakarta-Regexp", and "Apache Software
- *    Foundation" must not be used to endorse or promote products derived
- *    from this software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache"
- *    nor may "Apache" appear in their names without prior written
- *    permission of the Apache Group.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
- *
- */ 
- 
+import java.io.Serializable;
 import java.util.Vector;
 
 /**
- * RE is an efficient, lightweight regular expression evaluator/matcher class.
- * Regular expressions are pattern descriptions which enable sophisticated matching of
- * strings.  In addition to being able to match a string against a pattern, you
- * can also extract parts of the match.  This is especially useful in text parsing!
- * Details on the syntax of regular expression patterns are given below.
+ * RE is an efficient, lightweight regular expression evaluator/matcher
+ * class. Regular expressions are pattern descriptions which enable
+ * sophisticated matching of strings.  In addition to being able to
+ * match a string against a pattern, you can also extract parts of the
+ * match.  This is especially useful in text parsing! Details on the
+ * syntax of regular expression patterns are given below.
  *
  * <p>
- *
- * To compile a regular expression (RE), you can simply construct an RE matcher
- * object from the string specification of the pattern, like this:
+ * To compile a regular expression (RE), you can simply construct an RE
+ * matcher object from the string specification of the pattern, like this:
  *
  * <pre>
- *
- *     RE r = new RE("a*b");
- *
+ *  RE r = new RE("a*b");
  * </pre>
  *
  * <p>
- *
  * Once you have done this, you can call either of the RE.match methods to
  * perform matching on a String.  For example:
  *
  * <pre>
- *
- *     boolean matched = r.match("aaaab");
- *
+ *  boolean matched = r.match("aaaab");
  * </pre>
  *
  * will cause the boolean matched to be set to true because the
  * pattern "a*b" matches the string "aaaab".
  *
  * <p>
- * If you were interested in the <i>number</i> of a's which matched the first
- * part of our example expression, you could change the expression to
+ * If you were interested in the <i>number</i> of a's which matched the
+ * first part of our example expression, you could change the expression to
  * "(a*)b".  Then when you compiled the expression and matched it against
  * something like "xaaaab", you would get results like this:
  *
  * <pre>
+ *  RE r = new RE("(a*)b");                  // Compile expression
+ *  boolean matched = r.match("xaaaab");     // Match against "xaaaab"
  *
- *     RE r = new RE("(a*)b");                  // Compile expression
- *     boolean matched = r.match("xaaaab");     // Match against "xaaaab"
+ *  String wholeExpr = r.getParen(0);        // wholeExpr will be 'aaaab'
+ *  String insideParens = r.getParen(1);     // insideParens will be 'aaaa'
  *
- * <br>
+ *  int startWholeExpr = r.getParenStart(0); // startWholeExpr will be index 1
+ *  int endWholeExpr = r.getParenEnd(0);     // endWholeExpr will be index 6
+ *  int lenWholeExpr = r.getParenLength(0);  // lenWholeExpr will be 5
  *
- *     String wholeExpr = r.getParen(0);        // wholeExpr will be 'aaaab'
- *     String insideParens = r.getParen(1);     // insideParens will be 'aaaa'
- *
- * <br>
- *
- *     int startWholeExpr = getParenStart(0);   // startWholeExpr will be index 1
- *     int endWholeExpr = getParenEnd(0);       // endWholeExpr will be index 6
- *     int lenWholeExpr = getParenLength(0);    // lenWholeExpr will be 5
- *
- * <br>
- *
- *     int startInside = getParenStart(1);      // startInside will be index 1
- *     int endInside = getParenEnd(1);          // endInside will be index 5
- *     int lenInside = getParenLength(1);       // lenInside will be 4
- *
+ *  int startInside = r.getParenStart(1);    // startInside will be index 1
+ *  int endInside = r.getParenEnd(1);        // endInside will be index 5
+ *  int lenInside = r.getParenLength(1);     // lenInside will be 4
  * </pre>
  *
- * You can also refer to the contents of a parenthesized expression within
- * a regular expression itself.  This is called a 'backreference'.  The first
- * backreference in a regular expression is denoted by \1, the second by \2
- * and so on.  So the expression:
+ * You can also refer to the contents of a parenthesized expression
+ * within a regular expression itself.  This is called a
+ * 'backreference'.  The first backreference in a regular expression is
+ * denoted by \1, the second by \2 and so on.  So the expression:
  *
  * <pre>
- *
- *     ([0-9]+)=\1
- *
+ *  ([0-9]+)=\1
  * </pre>
  *
  * will match any string of the form n=n (like 0=0 or 2=2).
  *
  * <p>
- *
  * The full regular expression syntax accepted by RE is described here:
  *
  * <pre>
  *
- * <br>
- *
  *  <b><font face=times roman>Characters</font></b>
  *
- * <br>
- *
- *    <i>unicodeChar</i>          Matches any identical unicode character
+ *    <i>unicodeChar</i>   Matches any identical unicode character
  *    \                    Used to quote a meta-character (like '*')
  *    \\                   Matches a single '\' character
  *    \0nnn                Matches a given octal character
  *    \xhh                 Matches a given 8-bit hexadecimal character
- *    \\uhhhh               Matches a given 16-bit hexadecimal character
+ *    \\uhhhh              Matches a given 16-bit hexadecimal character
  *    \t                   Matches an ASCII tab character
  *    \n                   Matches an ASCII newline character
  *    \r                   Matches an ASCII return character
  *    \f                   Matches an ASCII form feed character
  *
- * <br>
  *
  *  <b><font face=times roman>Character Classes</font></b>
- *
- * <br>
  *
  *    [abc]                Simple character class
  *    [a-zA-Z]             Character class with ranges
  *    [^abc]               Negated character class
+ * </pre>
  *
+ * <b>NOTE:</b> Incomplete ranges will be interpreted as &quot;starts
+ * from zero&quot; or &quot;ends with last character&quot;.
  * <br>
+ * I.e. [-a] is the same as [\\u0000-a], and [a-] is the same as [a-\\uFFFF],
+ * [-] means &quot;all characters&quot;.
+ *
+ * <pre>
  *
  *  <b><font face=times roman>Standard POSIX Character Classes</font></b>
  *
- * <br>
- *
- *    [:alnum:]            Alphanumeric characters. 
- *    [:alpha:]            Alphabetic characters. 
- *    [:blank:]            Space and tab characters. 
- *    [:cntrl:]            Control characters. 
- *    [:digit:]            Numeric characters. 
- *    [:graph:]            Characters that are printable and are also visible. (A space is printable, but not visible, while an `a' is both.) 
- *    [:lower:]            Lower-case alphabetic characters. 
- *    [:print:]            Printable characters (characters that are not control characters.) 
- *    [:punct:]            Punctuation characters (characters that are not letter, digits, control characters, or space characters). 
- *    [:space:]            Space characters (such as space, tab, and formfeed, to name a few). 
- *    [:upper:]            Upper-case alphabetic characters. 
+ *    [:alnum:]            Alphanumeric characters.
+ *    [:alpha:]            Alphabetic characters.
+ *    [:blank:]            Space and tab characters.
+ *    [:cntrl:]            Control characters.
+ *    [:digit:]            Numeric characters.
+ *    [:graph:]            Characters that are printable and are also visible.
+ *                         (A space is printable, but not visible, while an
+ *                         `a' is both.)
+ *    [:lower:]            Lower-case alphabetic characters.
+ *    [:print:]            Printable characters (characters that are not
+ *                         control characters.)
+ *    [:punct:]            Punctuation characters (characters that are not letter,
+ *                         digits, control characters, or space characters).
+ *    [:space:]            Space characters (such as space, tab, and formfeed,
+ *                         to name a few).
+ *    [:upper:]            Upper-case alphabetic characters.
  *    [:xdigit:]           Characters that are hexadecimal digits.
- *         
- * <br>
+ *
  *
  *  <b><font face=times roman>Non-standard POSIX-style Character Classes</font></b>
- *
- * <br>
  *
  *    [:javastart:]        Start of a Java identifier
  *    [:javapart:]         Part of a Java identifier
  *
- * <br>
- *         
+ *
  *  <b><font face=times roman>Predefined Classes</font></b>
  *
- * <br>
+ *    .         Matches any character other than newline
+ *    \w        Matches a "word" character (alphanumeric plus "_")
+ *    \W        Matches a non-word character
+ *    \s        Matches a whitespace character
+ *    \S        Matches a non-whitespace character
+ *    \d        Matches a digit character
+ *    \D        Matches a non-digit character
  *
- *    .                    Matches any character other than newline
- *    \w                   Matches a "word" character (alphanumeric plus "_")
- *    \W                   Matches a non-word character
- *    \s                   Matches a whitespace character
- *    \S                   Matches a non-whitespace character
- *    \d                   Matches a digit character
- *    \D                   Matches a non-digit character
- *
- * <br>
  *
  *  <b><font face=times roman>Boundary Matchers</font></b>
  *
- * <br>
+ *    ^         Matches only at the beginning of a line
+ *    $         Matches only at the end of a line
+ *    \b        Matches only at a word boundary
+ *    \B        Matches only at a non-word boundary
  *
- *    ^                    Matches only at the beginning of a line
- *    $                    Matches only at the end of a line
- *    \b                   Matches only at a word boundary
- *    \B                   Matches only at a non-word boundary
- *
- * <br>
  *
  *  <b><font face=times roman>Greedy Closures</font></b>
  *
- * <br>
+ *    A*        Matches A 0 or more times (greedy)
+ *    A+        Matches A 1 or more times (greedy)
+ *    A?        Matches A 1 or 0 times (greedy)
+ *    A{n}      Matches A exactly n times (greedy)
+ *    A{n,}     Matches A at least n times (greedy)
+ *    A{n,m}    Matches A at least n but not more than m times (greedy)
  *
- *    A*                   Matches A 0 or more times (greedy)
- *    A+                   Matches A 1 or more times (greedy)
- *    A?                   Matches A 1 or 0 times (greedy)
- *    A{n}                 Matches A exactly n times (greedy)
- *    A{n,}                Matches A at least n times (greedy)
- *    A{n,m}               Matches A at least n but not more than m times (greedy)
- *
- * <br>
  *
  *  <b><font face=times roman>Reluctant Closures</font></b>
  *
- * <br>
+ *    A*?       Matches A 0 or more times (reluctant)
+ *    A+?       Matches A 1 or more times (reluctant)
+ *    A??       Matches A 0 or 1 times (reluctant)
  *
- *    A*?                  Matches A 0 or more times (reluctant)
- *    A+?                  Matches A 1 or more times (reluctant)
- *    A??                  Matches A 0 or 1 times (reluctant)
- *
- * <br>
  *
  *  <b><font face=times roman>Logical Operators</font></b>
  *
- * <br>
+ *    AB        Matches A followed by B
+ *    A|B       Matches either A or B
+ *    (A)       Used for subexpression grouping
+ *   (?:A)      Used for subexpression clustering (just like grouping but
+ *              no backrefs)
  *
- *    AB                   Matches A followed by B
- *    A|B                  Matches either A or B
- *    (A)                  Used for subexpression grouping
- *
- * <br>
  *
  *  <b><font face=times roman>Backreferences</font></b>
  *
- * <br>
- *
- *    \1                   Backreference to 1st parenthesized subexpression
- *    \2                   Backreference to 2nd parenthesized subexpression
- *    \3                   Backreference to 3rd parenthesized subexpression
- *    \4                   Backreference to 4th parenthesized subexpression
- *    \5                   Backreference to 5th parenthesized subexpression
- *    \6                   Backreference to 6th parenthesized subexpression
- *    \7                   Backreference to 7th parenthesized subexpression
- *    \8                   Backreference to 8th parenthesized subexpression
- *    \9                   Backreference to 9th parenthesized subexpression
- *
- * <br>
- *
+ *    \1    Backreference to 1st parenthesized subexpression
+ *    \2    Backreference to 2nd parenthesized subexpression
+ *    \3    Backreference to 3rd parenthesized subexpression
+ *    \4    Backreference to 4th parenthesized subexpression
+ *    \5    Backreference to 5th parenthesized subexpression
+ *    \6    Backreference to 6th parenthesized subexpression
+ *    \7    Backreference to 7th parenthesized subexpression
+ *    \8    Backreference to 8th parenthesized subexpression
+ *    \9    Backreference to 9th parenthesized subexpression
  * </pre>
  *
  * <p>
- *
- * All closure operators (+, *, ?, {m,n}) are greedy by default, meaning that they
- * match as many elements of the string as possible without causing the overall
- * match to fail.  If you want a closure to be reluctant (non-greedy), you can
- * simply follow it with a '?'.  A reluctant closure will match as few elements
- * of the string as possible when finding matches.  {m,n} closures don't currently
+ * All closure operators (+, *, ?, {m,n}) are greedy by default, meaning
+ * that they match as many elements of the string as possible without
+ * causing the overall match to fail.  If you want a closure to be
+ * reluctant (non-greedy), you can simply follow it with a '?'.  A
+ * reluctant closure will match as few elements of the string as
+ * possible when finding matches.  {m,n} closures don't currently
  * support reluctancy.
  *
  * <p>
+ * <b><font face="times roman">Line terminators</font></b>
+ * <br>
+ * A line terminator is a one- or two-character sequence that marks
+ * the end of a line of the input character sequence. The following
+ * are recognized as line terminators:
+ * <ul>
+ * <li>A newline (line feed) character ('\n'),</li>
+ * <li>A carriage-return character followed immediately by a newline character ("\r\n"),</li>
+ * <li>A standalone carriage-return character ('\r'),</li>
+ * <li>A next-line character ('\u0085'),</li>
+ * <li>A line-separator character ('\u2028'), or</li>
+ * <li>A paragraph-separator character ('\u2029).</li>
+ * </ul>
  *
- * RE runs programs compiled by the RECompiler class.  But the RE matcher class
- * does not include the actual regular expression compiler for reasons of
- * efficiency.  In fact, if you want to pre-compile one or more regular expressions,
- * the 'recompile' class can be invoked from the command line to produce compiled
- * output like this:
+ * <p>
+ * RE runs programs compiled by the RECompiler class.  But the RE
+ * matcher class does not include the actual regular expression compiler
+ * for reasons of efficiency.  In fact, if you want to pre-compile one
+ * or more regular expressions, the 'recompile' class can be invoked
+ * from the command line to produce compiled output like this:
  *
  * <pre>
- *
  *    // Pre-compiled regular expression "a*b"
  *    char[] re1Instructions =
  *    {
@@ -302,43 +240,47 @@ import java.util.Vector;
  *        0x0000,
  *    };
  *
- *    <br>
  *
  *    REProgram re1 = new REProgram(re1Instructions);
- *
  * </pre>
  *
- * You can then construct a regular expression matcher (RE) object from the pre-compiled
- * expression re1 and thus avoid the overhead of compiling the expression at runtime.
- * If you require more dynamic regular expressions, you can construct a single RECompiler
- * object and re-use it to compile each expression.  Similarly, you can change the
- * program run by a given matcher object at any time.  However, RE and RECompiler are
- * not threadsafe (for efficiency reasons, and because requiring thread safety in this
- * class is deemed to be a rare requirement), so you will need to construct a separate
- * compiler or matcher object for each thread (unless you do thread synchronization
- * yourself).
+ * You can then construct a regular expression matcher (RE) object from
+ * the pre-compiled expression re1 and thus avoid the overhead of
+ * compiling the expression at runtime. If you require more dynamic
+ * regular expressions, you can construct a single RECompiler object and
+ * re-use it to compile each expression. Similarly, you can change the
+ * program run by a given matcher object at any time. However, RE and
+ * RECompiler are not threadsafe (for efficiency reasons, and because
+ * requiring thread safety in this class is deemed to be a rare
+ * requirement), so you will need to construct a separate compiler or
+ * matcher object for each thread (unless you do thread synchronization
+ * yourself). Once expression compiled into the REProgram object, REProgram
+ * can be safely shared across multiple threads and RE objects.
  *
- * </pre>
  * <br><p><br>
  *
- * <font color=red>
+ * <font color="red">
  * <i>ISSUES:</i>
  *
  * <ul>
- *  <li>com.weusours.util.re is not currently compatible with all standard POSIX regcomp flags
- *  <li>com.weusours.util.re does not support POSIX equivalence classes ([=foo=] syntax) (I18N/locale issue)
- *  <li>com.weusours.util.re does not support nested POSIX character classes (definitely should, but not completely trivial)
- *  <li>com.weusours.util.re Does not support POSIX character collation concepts ([.foo.] syntax) (I18N/locale issue)
- *  <li>Should there be different matching styles (simple, POSIX, Perl etc?)
- *  <li>Should RE support character iterators (for backwards RE matching!)?
- *  <li>Should RE support reluctant {m,n} closures (does anyone care)?
+ *  <li>com.weusours.util.re is not currently compatible with all
+ *      standard POSIX regcomp flags</li>
+ *  <li>com.weusours.util.re does not support POSIX equivalence classes
+ *      ([=foo=] syntax) (I18N/locale issue)</li>
+ *  <li>com.weusours.util.re does not support nested POSIX character
+ *      classes (definitely should, but not completely trivial)</li>
+ *  <li>com.weusours.util.re Does not support POSIX character collation
+ *      concepts ([.foo.] syntax) (I18N/locale issue)</li>
+ *  <li>Should there be different matching styles (simple, POSIX, Perl etc?)</li>
+ *  <li>Should RE support character iterators (for backwards RE matching!)?</li>
+ *  <li>Should RE support reluctant {m,n} closures (does anyone care)?</li>
  *  <li>Not *all* possibilities are considered for greediness when backreferences
  *      are involved (as POSIX suggests should be the case).  The POSIX RE
  *      "(ac*)c*d[ac]*\1", when matched against "acdacaa" should yield a match
  *      of acdacaa where \1 is "a".  This is not the case in this RE package,
  *      and actually Perl doesn't go to this extent either!  Until someone
  *      actually complains about this, I'm not sure it's worth "fixing".
- *      If it ever is fixed, test #137 in RETest.txt should be updated.
+ *      If it ever is fixed, test #137 in RETest.txt should be updated.</li>
  * </ul>
  *
  * </font>
@@ -347,9 +289,10 @@ import java.util.Vector;
  * @see RECompiler
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
- * @version $Id: RE.java,v 1.6 2000/08/22 17:19:38 jon Exp $
+ * @author <a href="mailto:ts@sch-fer.de">Tobias Sch&auml;fer</a>
+ * @version $Id: RE.java,v 1.1.2.1 2005/08/01 00:02:55 jeffsuttor Exp $
  */
-public class RE
+public class RE implements Serializable
 {
     /**
      * Specifies normal, case-sensitive matching behaviour.
@@ -397,7 +340,9 @@ public class RE
     static final char OP_MAYBE            = '?';  // node            optional closure
     static final char OP_ESCAPE           = '\\'; // escape          special escape code char class (escape is E_* code)
     static final char OP_OPEN             = '(';  // number          nth opening paren
+    static final char OP_OPEN_CLUSTER     = '<';  //                 opening cluster
     static final char OP_CLOSE            = ')';  // number          nth closing paren
+    static final char OP_CLOSE_CLUSTER    = '>';  //                 closing cluster
     static final char OP_BACKREF          = '#';  // number          reference nth already matched parenthesized string
     static final char OP_GOTO             = 'G';  //                 nothing but a (back-)pointer
     static final char OP_NOTHING          = 'N';  //                 match null string such as in '(a|)'
@@ -418,7 +363,7 @@ public class RE
 
     // Posix character classes
     static final char POSIX_CLASS_ALNUM   = 'w';  // Alphanumerics
-    static final char POSIX_CLASS_ALPHA   = 'a';  // Alphabetics 
+    static final char POSIX_CLASS_ALPHA   = 'a';  // Alphabetics
     static final char POSIX_CLASS_BLANK   = 'b';  // Blanks
     static final char POSIX_CLASS_CNTRL   = 'c';  // Control characters
     static final char POSIX_CLASS_DIGIT   = 'd';  // Digits
@@ -434,7 +379,7 @@ public class RE
 
     // Limits
     static final int maxNode  = 65536;            // Maximum number of nodes in a program
-    static final int maxParen = 16;               // Number of paren pairs (only 9 can be backrefs)
+    static final int MAX_PAREN = 16;              // Number of paren pairs (only 9 can be backrefs)
 
     // Node layout constants
     static final int offsetOpcode = 0;            // Opcode offset (first character)
@@ -442,34 +387,32 @@ public class RE
     static final int offsetNext   = 2;            // Next index offset (third char)
     static final int nodeSize     = 3;            // Node size (in chars)
 
-    /** Line Separator */
-    static final String NEWLINE = System.getProperty("line.separator");
-
     // State of current program
     REProgram program;                            // Compiled regular expression 'program'
-    CharacterIterator search;                                // The string being matched against
-    int idx;                                      // Current index in string being searched
+    transient CharacterIterator search;           // The string being matched against
     int matchFlags;                               // Match behaviour flags
+    int maxParen = MAX_PAREN;
 
     // Parenthesized subexpressions
-    int parenCount;                               // Number of subexpressions matched (num open parens + 1)
-    int start0;                                   // Cache of start[0]
-    int end0;                                     // Cache of start[0]
-    int start1;                                   // Cache of start[1]
-    int end1;                                     // Cache of start[1]
-    int start2;                                   // Cache of start[2]
-    int end2;                                     // Cache of start[2]
-    int[] startn;                                 // Lazy-alloced array of sub-expression starts
-    int[] endn;                                   // Lazy-alloced array of sub-expression ends
+    transient int parenCount;                     // Number of subexpressions matched (num open parens + 1)
+    transient int start0;                         // Cache of start[0]
+    transient int end0;                           // Cache of start[0]
+    transient int start1;                         // Cache of start[1]
+    transient int end1;                           // Cache of start[1]
+    transient int start2;                         // Cache of start[2]
+    transient int end2;                           // Cache of start[2]
+    transient int[] startn;                       // Lazy-alloced array of sub-expression starts
+    transient int[] endn;                         // Lazy-alloced array of sub-expression ends
 
     // Backreferences
-    int[] startBackref;                           // Lazy-alloced array of backref starts
-    int[] endBackref;                             // Lazy-alloced array of backref ends
+    transient int[] startBackref;                 // Lazy-alloced array of backref starts
+    transient int[] endBackref;                   // Lazy-alloced array of backref ends
 
     /**
      * Constructs a regular expression matcher from a String by compiling it
      * using a new instance of RECompiler.  If you will be compiling many
      * expressions, you may prefer to use a single RECompiler object instead.
+     *
      * @param pattern The regular expression pattern to compile.
      * @exception RESyntaxException Thrown if the regular expression has invalid syntax.
      * @see RECompiler
@@ -484,6 +427,7 @@ public class RE
      * Constructs a regular expression matcher from a String by compiling it
      * using a new instance of RECompiler.  If you will be compiling many
      * expressions, you may prefer to use a single RECompiler object instead.
+     *
      * @param pattern The regular expression pattern to compile.
      * @param matchFlags The matching style
      * @exception RESyntaxException Thrown if the regular expression has invalid syntax.
@@ -500,15 +444,14 @@ public class RE
      * Construct a matcher for a pre-compiled regular expression from program
      * (bytecode) data.  Permits special flags to be passed in to modify matching
      * behaviour.
+     *
      * @param program Compiled regular expression program (see RECompiler and/or recompile)
      * @param matchFlags One or more of the RE match behaviour flags (RE.MATCH_*):
      *
      * <pre>
-     *
      *   MATCH_NORMAL              // Normal (case-sensitive) matching
      *   MATCH_CASEINDEPENDENT     // Case folded comparisons
      *   MATCH_MULTILINE           // Newline matches as BOL/EOL
-     *
      * </pre>
      *
      * @see RECompiler
@@ -524,6 +467,7 @@ public class RE
     /**
      * Construct a matcher for a pre-compiled regular expression from program
      * (bytecode) data.
+     *
      * @param program Compiled regular expression program
      * @see RECompiler
      * @see recompile
@@ -544,6 +488,7 @@ public class RE
 
     /**
      * Converts a 'simplified' regular expression to a full regular expression
+     *
      * @param pattern The pattern to convert
      * @return The full regular expression
      */
@@ -586,13 +531,10 @@ public class RE
      * @param matchFlags One or more of the RE match behaviour flags (RE.MATCH_*):
      *
      * <pre>
-     *
      *   MATCH_NORMAL              // Normal (case-sensitive) matching
      *   MATCH_CASEINDEPENDENT     // Case folded comparisons
      *   MATCH_MULTILINE           // Newline matches as BOL/EOL
-     *
      * </pre>
-     *
      */
     public void setMatchFlags(int matchFlags)
     {
@@ -604,15 +546,12 @@ public class RE
      * @return Current match behaviour flags (RE.MATCH_*).
      *
      * <pre>
-     *
      *   MATCH_NORMAL              // Normal (case-sensitive) matching
      *   MATCH_CASEINDEPENDENT     // Case folded comparisons
      *   MATCH_MULTILINE           // Newline matches as BOL/EOL
-     *
      * </pre>
      *
      * @see #setMatchFlags
-     *
      */
     public int getMatchFlags()
     {
@@ -621,6 +560,7 @@ public class RE
 
     /**
      * Sets the current regular expression program used by this matcher object.
+     *
      * @param program Regular expression program compiled by RECompiler.
      * @see RECompiler
      * @see REProgram
@@ -629,10 +569,16 @@ public class RE
     public void setProgram(REProgram program)
     {
         this.program = program;
+        if (program != null && program.maxParens != -1) {
+            this.maxParen = program.maxParens;
+        } else {
+            this.maxParen = MAX_PAREN;
+        }
     }
 
     /**
      * Returns the current regular expression program in use by this matcher object.
+     *
      * @return Regular expression program
      * @see #setProgram
      */
@@ -643,6 +589,7 @@ public class RE
 
     /**
      * Returns the number of parenthesized subexpressions available after a successful match.
+     *
      * @return Number of available parenthesized subexpressions
      */
     public int getParenCount()
@@ -652,6 +599,7 @@ public class RE
 
     /**
      * Gets the contents of a parenthesized subexpression after a successful match.
+     *
      * @param which Nesting level of subexpression
      * @return String
      */
@@ -667,8 +615,9 @@ public class RE
 
     /**
      * Returns the start index of a given paren level.
+     *
      * @param which Nesting level of subexpression
-     * @return String index 
+     * @return String index
      */
     public final int getParenStart(int which)
     {
@@ -678,13 +627,13 @@ public class RE
             {
                 case 0:
                     return start0;
-                    
+
                 case 1:
                     return start1;
-                    
+
                 case 2:
                     return start2;
-                    
+
                 default:
                     if (startn == null)
                     {
@@ -698,8 +647,9 @@ public class RE
 
     /**
      * Returns the end index of a given paren level.
+     *
      * @param which Nesting level of subexpression
-     * @return String index 
+     * @return String index
      */
     public final int getParenEnd(int which)
     {
@@ -709,13 +659,13 @@ public class RE
             {
                 case 0:
                     return end0;
-                    
+
                 case 1:
                     return end1;
-                    
+
                 case 2:
                     return end2;
-                    
+
                 default:
                     if (endn == null)
                     {
@@ -729,6 +679,7 @@ public class RE
 
     /**
      * Returns the length of a given paren level.
+     *
      * @param which Nesting level of subexpression
      * @return Number of characters in the parenthesized subexpression
      */
@@ -743,6 +694,7 @@ public class RE
 
     /**
      * Sets the start of a paren level
+     *
      * @param which Which paren level
      * @param i Index in input array
      */
@@ -755,15 +707,15 @@ public class RE
                 case 0:
                     start0 = i;
                     break;
-                    
+
                 case 1:
                     start1 = i;
                     break;
-                    
+
                 case 2:
                     start2 = i;
                     break;
-                    
+
                 default:
                     if (startn == null)
                     {
@@ -777,6 +729,7 @@ public class RE
 
     /**
      * Sets the end of a paren level
+     *
      * @param which Which paren level
      * @param i Index in input array
      */
@@ -789,15 +742,15 @@ public class RE
                 case 0:
                     end0 = i;
                     break;
-                    
+
                 case 1:
                     end1 = i;
                     break;
-                    
+
                 case 2:
                     end2 = i;
                     break;
-                    
+
                 default:
                     if (endn == null)
                     {
@@ -813,6 +766,7 @@ public class RE
      * Throws an Error representing an internal error condition probably resulting
      * from a bug in the regular expression compiler (or possibly data corruption).
      * In practice, this should be very rare.
+     *
      * @param s Error description
      */
     protected void internalError(String s) throws Error
@@ -839,10 +793,11 @@ public class RE
 
     /**
      * Try to match a string against a subset of nodes in the program
+     *
      * @param firstNode Node to start at in program
-     * @param lastNode Last valid node (used for matching a subexpression without
-     * matching the rest of the program as well).
-     * @param idxStart Starting position in character array
+     * @param lastNode  Last valid node (used for matching a subexpression without
+     *                  matching the rest of the program as well).
+     * @param idxStart  Starting position in character array
      * @return Final input array index if match succeeded.  -1 if not.
      */
     protected int matchNodes(int firstNode, int lastNode, int idxStart)
@@ -946,6 +901,11 @@ public class RE
                     }
                     return idxNew;
 
+                case OP_OPEN_CLUSTER:
+                case OP_CLOSE_CLUSTER:
+                    // starting or ending the matching of a subexpression which has no backref.
+                    return matchNodes( next, maxNode, idx );
+
                 case OP_BACKREF:
                     {
                         // Get the start and end of the backref
@@ -974,26 +934,14 @@ public class RE
                         }
 
                         // Case fold the backref?
-                        if ((matchFlags & MATCH_CASEINDEPENDENT) != 0)
+                        final boolean caseFold =
+                            ((matchFlags & MATCH_CASEINDEPENDENT) != 0);
+                        // Compare backref to input
+                        for (int i = 0; i < l; i++)
                         {
-                            // Compare backref to input, case-folding as we go
-                            for (int i = 0; i < l; i++)
+                            if (compareChars(search.charAt(idx++), search.charAt(s + i), caseFold) != 0)
                             {
-                                if (Character.toLowerCase(search.charAt(idx++)) != Character.toLowerCase(search.charAt(s + i)))
-                                {
-                                    return -1;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // Compare backref to input
-                            for (int i = 0; i < l; i++)
-                            {
-                                if (search.charAt(idx++) != search.charAt(s + i))
-                                {
-                                    return -1;
-                                }
+                                return -1;
                             }
                         }
                     }
@@ -1027,7 +975,7 @@ public class RE
                         if ((matchFlags & MATCH_MULTILINE) == MATCH_MULTILINE)
                         {
                             // Give up if we're not at the end of a line
-                            if (! isNewline(idx)) {
+                            if (!isNewline(idx)) {
                                 return -1;
                             } else {
                                 break;
@@ -1046,7 +994,7 @@ public class RE
                         case E_NBOUND:
                         case E_BOUND:
                             {
-                                char cLast = ((idx == getParenStart(0)) ? '\n' : search.charAt(idx - 1));
+                                char cLast = ((idx == 0) ? '\n' : search.charAt(idx - 1));
                                 char cNext = ((search.isEnd(idx)) ? '\n' : search.charAt(idx));
                                 if ((Character.isLetterOrDigit(cLast) == Character.isLetterOrDigit(cNext)) == (opdata == E_BOUND))
                                 {
@@ -1069,12 +1017,14 @@ public class RE
                                 return -1;
                             }
 
+                            char c = search.charAt(idx);
+
                             // Switch on escape
                             switch (opdata)
                             {
                                 case E_ALNUM:
                                 case E_NALNUM:
-                                    if (!(Character.isLetterOrDigit(search.charAt(idx)) == (opdata == E_ALNUM)))
+                                    if (!((Character.isLetterOrDigit(c) || c == '_') == (opdata == E_ALNUM)))
                                     {
                                         return -1;
                                     }
@@ -1082,7 +1032,7 @@ public class RE
 
                                 case E_DIGIT:
                                 case E_NDIGIT:
-                                    if (!(Character.isDigit(search.charAt(idx)) == (opdata == E_DIGIT)))
+                                    if (!(Character.isDigit(c) == (opdata == E_DIGIT)))
                                     {
                                         return -1;
                                     }
@@ -1090,7 +1040,7 @@ public class RE
 
                                 case E_SPACE:
                                 case E_NSPACE:
-                                    if (!(Character.isWhitespace(search.charAt(idx)) == (opdata == E_SPACE)))
+                                    if (!(Character.isWhitespace(c) == (opdata == E_SPACE)))
                                     {
                                         return -1;
                                     }
@@ -1106,24 +1056,23 @@ public class RE
 
                 case OP_ANY:
 
-                    if((matchFlags & MATCH_SINGLELINE) == MATCH_SINGLELINE) {
+                    if ((matchFlags & MATCH_SINGLELINE) == MATCH_SINGLELINE) {
                         // Match anything
-                        if(search.isEnd(idx))
+                        if (search.isEnd(idx))
                         {
                             return -1;
                         }
-                        idx++;
-                        break;
                     }
                     else
                     {
                         // Match anything but a newline
-                        if (search.isEnd(idx) || search.charAt(idx++) == '\n')
+                        if (search.isEnd(idx) || isNewline(idx))
                         {
                             return -1;
                         }
-                        break;
                     }
+                    idx++;
+                    break;
 
                 case OP_ATOM:
                     {
@@ -1144,24 +1093,14 @@ public class RE
                         }
 
                         // Match atom differently depending on casefolding flag
-                        if ((matchFlags & MATCH_CASEINDEPENDENT) != 0)
+                        final boolean caseFold =
+                            ((matchFlags & MATCH_CASEINDEPENDENT) != 0);
+
+                        for (int i = 0; i < lenAtom; i++)
                         {
-                            for (int i = 0; i < lenAtom; i++)
+                            if (compareChars(search.charAt(idx++), instruction[startAtom + i], caseFold) != 0)
                             {
-                                if (Character.toLowerCase(search.charAt(idx++)) != Character.toLowerCase(instruction[startAtom + i]))
-                                {
-                                    return -1;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < lenAtom; i++)
-                            {
-                                if (search.charAt(idx++) != instruction[startAtom + i])
-                                {
-                                    return -1;
-                                }
+                                return -1;
                             }
                         }
                     }
@@ -1174,7 +1113,7 @@ public class RE
                         {
                             return -1;
                         }
-                        
+
                         switch (opdata)
                         {
                             case POSIX_CLASS_ALNUM:
@@ -1183,42 +1122,42 @@ public class RE
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_ALPHA:
                                 if (!Character.isLetter(search.charAt(idx)))
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_DIGIT:
                                 if (!Character.isDigit(search.charAt(idx)))
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_BLANK: // JWL - bugbug: is this right??
                                 if (!Character.isSpaceChar(search.charAt(idx)))
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_SPACE:
                                 if (!Character.isWhitespace(search.charAt(idx)))
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_CNTRL:
                                 if (Character.getType(search.charAt(idx)) != Character.CONTROL)
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_GRAPH: // JWL - bugbug???
                                 switch (Character.getType(search.charAt(idx)))
                                 {
@@ -1227,33 +1166,33 @@ public class RE
                                     case Character.MODIFIER_SYMBOL:
                                     case Character.OTHER_SYMBOL:
                                         break;
-                                        
+
                                     default:
                                         return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_LOWER:
                                 if (Character.getType(search.charAt(idx)) != Character.LOWERCASE_LETTER)
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_UPPER:
                                 if (Character.getType(search.charAt(idx)) != Character.UPPERCASE_LETTER)
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_PRINT:
                                 if (Character.getType(search.charAt(idx)) == Character.CONTROL)
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_PUNCT:
                             {
                                 int type = Character.getType(search.charAt(idx));
@@ -1265,7 +1204,7 @@ public class RE
                                     case Character.CONNECTOR_PUNCTUATION:
                                     case Character.OTHER_PUNCTUATION:
                                         break;
-                                        
+
                                     default:
                                         return -1;
                                 }
@@ -1283,14 +1222,14 @@ public class RE
                                 }
                             }
                             break;
-                            
+
                             case POSIX_CLASS_JSTART:
                                 if (!Character.isJavaIdentifierStart(search.charAt(idx)))
                                 {
                                     return -1;
                                 }
                                 break;
-                                
+
                             case POSIX_CLASS_JPART:
                                 if (!Character.isJavaIdentifierPart(search.charAt(idx)))
                                 {
@@ -1302,7 +1241,7 @@ public class RE
                                 internalError("Bad posix class");
                                 break;
                         }
-                    
+
                         // Matched.
                         idx++;
                     }
@@ -1319,34 +1258,18 @@ public class RE
                         // Get character to match against character class and maybe casefold
                         char c = search.charAt(idx);
                         boolean caseFold = (matchFlags & MATCH_CASEINDEPENDENT) != 0;
-                        if (caseFold)
-                        {
-                            c = Character.toLowerCase(c);
-                        }
-
                         // Loop through character class checking our match character
                         int idxRange = node + nodeSize;
                         int idxEnd = idxRange + (opdata * 2);
                         boolean match = false;
-                        for (int i = idxRange; i < idxEnd; )
+                        for (int i = idxRange; !match && i < idxEnd; )
                         {
                             // Get start, end and match characters
                             char s = instruction[i++];
                             char e = instruction[i++];
 
-                            // Fold ends of range and match character
-                            if (caseFold)
-                            {
-                                s = Character.toLowerCase(s);
-                                e = Character.toLowerCase(e);
-                            }
-
-                            // If the match character is in range, break out
-                            if (c >= s && c <= e)
-                            {
-                                match = true;
-                                break;
-                            }
+                            match = ((compareChars(c, s, caseFold) >= 0)
+                                     && (compareChars(c, e, caseFold) <= 0));
                         }
 
                         // Fail if we didn't match the character class
@@ -1377,7 +1300,7 @@ public class RE
                         {
                             return idxNew;
                         }
-                        
+
                         // Go to next branch (if any)
                         nextBranch = (short)instruction[node + offsetNext];
                         node += nextBranch;
@@ -1419,6 +1342,7 @@ public class RE
      * Match the current regular expression program against the current
      * input string, starting at index i of the input string.  This method
      * is only meant for internal use.
+     *
      * @param i The input string index to start matching at
      * @return True if the input matched the expression
      */
@@ -1459,11 +1383,12 @@ public class RE
     /**
      * Matches the current regular expression program against a character array,
      * starting at a given index.
+     *
      * @param search String to match against
      * @param i Index to start searching at
      * @return True if string matched
      */
-    public boolean match(String search, int i) 
+    public boolean match(String search, int i)
     {
         return match(new StringCharacterIterator(search), i);
     }
@@ -1471,6 +1396,7 @@ public class RE
     /**
      * Matches the current regular expression program against a character array,
      * starting at a given index.
+     *
      * @param search String to match against
      * @param i Index to start searching at
      * @return True if string matched
@@ -1507,44 +1433,25 @@ public class RE
             // Prefix-anchored matching is possible
             boolean caseIndependent = (matchFlags & MATCH_CASEINDEPENDENT) != 0;
             char[] prefix = program.prefix;
-            for ( ;! search.isEnd(i + prefix.length - 1); i++)
+            for ( ; !search.isEnd(i + prefix.length - 1); i++)
             {
-                // If the first character of the prefix matches
-                boolean match = false;
-                if (caseIndependent)
-                    match = Character.toLowerCase(search.charAt(i)) == Character.toLowerCase(prefix[0]);
-                else
-                    match = search.charAt(i) == prefix[0];
-                if (match)
+                int j = i;
+                int k = 0;
+
+                boolean match;
+                do {
+                    // If there's a mismatch of any character in the prefix, give up
+                    match = (compareChars(search.charAt(j++), prefix[k++], caseIndependent) == 0);
+                } while (match && k < prefix.length);
+
+                // See if the whole prefix string matched
+                if (k == prefix.length)
                 {
-                    // Save first character position
-                    int firstChar = i++;
-                    int k;
-                    for (k = 1; k < prefix.length; )
+                    // We matched the full prefix at firstChar, so try it
+                    if (matchAt(i))
                     {
-                        // If there's a mismatch of any character in the prefix, give up
-                        if (caseIndependent)
-                            match = Character.toLowerCase(search.charAt(i++)) == Character.toLowerCase(prefix[k++]);
-                        else
-                            match = search.charAt(i++) == prefix[k++];
-                        if (!match)
-                        {
-                            break;
-                        }
+                        return true;
                     }
-
-                    // See if the whole prefix string matched
-                    if (k == prefix.length)
-                    {
-                        // We matched the full prefix at firstChar, so try it
-                        if (matchAt(firstChar))
-                        {
-                            return true;
-                        }
-                    }
-
-                    // Match failed, reset i to continue the search
-                    i = firstChar;
                 }
             }
             return false;
@@ -1553,6 +1460,7 @@ public class RE
 
     /**
      * Matches the current regular expression program against a String.
+     *
      * @param search String to match against
      * @return True if string matched
      */
@@ -1567,6 +1475,11 @@ public class RE
      * Given a regular expression of "[ab]+" and a string to split of
      * "xyzzyababbayyzabbbab123", the result would be the array of Strings
      * "[xyzzy, yyz, 123]".
+     *
+     * <p>Please note that the first string in the resulting array may be an empty
+     * string. This happens when the very first character of input string is
+     * matched by the pattern.
+     *
      * @param s String to split on this regular exression
      * @return Array of strings
      */
@@ -1620,13 +1533,18 @@ public class RE
      * Flag bit that indicates that subst should replace all occurrences of this
      * regular expression.
      */
-    public static final int REPLACE_ALL          = 0x0000;
+    public static final int REPLACE_ALL            = 0x0000;
 
     /**
      * Flag bit that indicates that subst should only replace the first occurrence
      * of this regular expression.
      */
-    public static final int REPLACE_FIRSTONLY    = 0x0001;
+    public static final int REPLACE_FIRSTONLY      = 0x0001;
+
+    /**
+     * Flag bit that indicates that subst should replace backreferences
+     */
+    public static final int REPLACE_BACKREFERENCES = 0x0002;
 
     /**
      * Substitutes a string for this regular expression in another string.
@@ -1634,6 +1552,7 @@ public class RE
      * Given a regular expression of "a*b", a String to substituteIn of
      * "aaaabfooaaabgarplyaaabwackyb" and the substitution String "-", the
      * resulting String returned by subst would be "-foo-garply-wacky-".
+     *
      * @param substituteIn String to substitute within
      * @param substitution String to substitute for all matches of this regular expression.
      * @return The string substituteIn with zero or more occurrences of the current
@@ -1652,12 +1571,23 @@ public class RE
      * Given a regular expression of "a*b", a String to substituteIn of
      * "aaaabfooaaabgarplyaaabwackyb" and the substitution String "-", the
      * resulting String returned by subst would be "-foo-garply-wacky-".
+     * <p>
+     * It is also possible to reference the contents of a parenthesized expression
+     * with $0, $1, ... $9. A regular expression of "http://[\\.\\w\\-\\?/~_@&=%]+",
+     * a String to substituteIn of "visit us: http://www.apache.org!" and the
+     * substitution String "&lt;a href=\"$0\"&gt;$0&lt;/a&gt;", the resulting String
+     * returned by subst would be
+     * "visit us: &lt;a href=\"http://www.apache.org\"&gt;http://www.apache.org&lt;/a&gt;!".
+     * <p>
+     * <i>Note:</i> $0 represents the whole match.
+     *
      * @param substituteIn String to substitute within
      * @param substitution String to substitute for matches of this regular expression
      * @param flags One or more bitwise flags from REPLACE_*.  If the REPLACE_FIRSTONLY
      * flag bit is set, only the first occurrence of this regular expression is replaced.
      * If the bit is not set (REPLACE_ALL), all occurrences of this pattern will be
-     * replaced.
+     * replaced. If the flag REPLACE_BACKREFERENCES is set, all backreferences will
+     * be processed.
      * @return The string substituteIn with zero or more occurrences of the current
      * regular expression replaced with the substitution String (if this regular
      * expression object doesn't match at any position, the original String is returned
@@ -1678,13 +1608,60 @@ public class RE
             // Append string before match
             ret.append(substituteIn.substring(pos, getParenStart(0)));
 
-            // Append substitution
-            ret.append(substitution);
+            if ((flags & REPLACE_BACKREFERENCES) != 0)
+            {
+                // Process backreferences
+                int lCurrentPosition = 0;
+                int lLastPosition = -2;
+                int lLength = substitution.length();
+                boolean bAddedPrefix = false;
+
+                while ((lCurrentPosition = substitution.indexOf("$", lCurrentPosition)) >= 0)
+                {
+                    if ((lCurrentPosition == 0 || substitution.charAt(lCurrentPosition - 1) != '\\')
+                        && lCurrentPosition+1 < lLength)
+                    {
+                        char c = substitution.charAt(lCurrentPosition + 1);
+                        if (c >= '0' && c <= '9')
+                        {
+                            if (bAddedPrefix == false)
+                            {
+                                // Append everything between the beginning of the
+                                // substitution string and the current $ sign
+                                ret.append(substitution.substring(0, lCurrentPosition));
+                                bAddedPrefix = true;
+                            }
+                            else
+                            {
+                                // Append everything between the last and the current $ sign
+                                ret.append(substitution.substring(lLastPosition + 2, lCurrentPosition));
+                            }
+
+                            // Append the parenthesized expression
+                            // Note: if a parenthesized expression of the requested
+                            // index is not available "null" is added to the string
+                            ret.append(getParen(c - '0'));
+                            lLastPosition = lCurrentPosition;
+                        }
+                    }
+
+                    // Move forward, skipping past match
+                    lCurrentPosition++;
+                }
+
+                // Append everything after the last $ sign
+                ret.append(substitution.substring(lLastPosition + 2, lLength));
+            }
+            else
+            {
+                // Append substitution without processing backreferences
+                ret.append(substitution);
+            }
 
             // Move forward, skipping past match
             int newpos = getParenEnd(0);
 
-            // We always want to make progress! 
+            // We always want to make progress!
             if (newpos == pos)
             {
                 newpos++;
@@ -1706,17 +1683,18 @@ public class RE
             ret.append(substituteIn.substring(pos));
         }
 
-        // Return string buffer as string 
+        // Return string buffer as string
         return ret.toString();
-    }  
+    }
 
     /**
      * Returns an array of Strings, whose toString representation matches a regular
      * expression. This method works like the Perl function of the same name.  Given
      * a regular expression of "a*b" and an array of String objects of [foo, aab, zzz,
      * aaaab], the array of Strings returned by grep would be [aab, aaaab].
-     * @param search Array of Objects to search 
-     * @return Array of Objects whose toString value matches this regular expression.
+     *
+     * @param search Array of Objects to search
+     * @return Array of Strings whose toString() value matches this regular expression.
      */
     public String[] grep(Object[] search)
     {
@@ -1742,22 +1720,38 @@ public class RE
         return ret;
     }
 
-    /** @return true if at the i-th position in the 'search' a newline ends */
-    private boolean isNewline(int i) {
+    /**
+     * @return true if character at i-th position in the <code>search</code> string is a newline
+     */
+    private boolean isNewline(int i)
+    {
+        char nextChar = search.charAt(i);
 
-        if (i < NEWLINE.length() - 1) {
-            return false;
-        }
-
-        if (search.charAt(i) == '\n') {
+        if (nextChar == '\n' || nextChar == '\r' || nextChar == '\u0085'
+            || nextChar == '\u2028' || nextChar == '\u2029')
+        {
             return true;
         }
 
-        for (int j = NEWLINE.length() - 1; j >= 0; j--, i--) {
-            if (NEWLINE.charAt(j) != search.charAt(i)) {
-                return false;
-            }
+        return false;
+    }
+
+    /**
+     * Compares two characters.
+     *
+     * @param c1 first character to compare.
+     * @param c2 second character to compare.
+     * @param caseIndependent whether comparision is case insensitive or not.
+     * @return negative, 0, or positive integer as the first character
+     *         less than, equal to, or greater then the second.
+     */
+    private int compareChars(char c1, char c2, boolean caseIndependent)
+    {
+        if (caseIndependent)
+        {
+            c1 = Character.toLowerCase(c1);
+            c2 = Character.toLowerCase(c2);
         }
-        return true;
+        return ((int)c1 - (int)c2);
     }
 }

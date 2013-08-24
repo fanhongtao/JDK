@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextFieldUI.java	1.95 03/12/19
+ * @(#)BasicTextFieldUI.java	1.98 06/04/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -32,7 +32,7 @@ import sun.swing.DefaultLookup;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.95 12/19/03
+ * @version 1.98 04/20/06
  */
 public class BasicTextFieldUI extends BasicTextUI {
 
@@ -51,53 +51,6 @@ public class BasicTextFieldUI extends BasicTextUI {
      */
     public BasicTextFieldUI() {
 	super();
-    }
-
-    public void installUI(JComponent c) {
-        super.installUI(c);
-	updateBackground((JTextComponent)c);
-    }
-
-    /**
-     * This method gets called when a bound property is changed
-     * on the associated JTextComponent.  This is a hook
-     * which UI implementations may change to reflect how the
-     * UI displays bound properties of JTextComponent subclasses.
-     *
-     * @param evt the property change event
-     */
-    protected void propertyChange(PropertyChangeEvent evt) {
-	if (evt.getPropertyName().equals("editable") ||
-	    evt.getPropertyName().equals("enabled")) {
-
-	    updateBackground((JTextComponent)evt.getSource());
-	}
-    }
-
-    private void updateBackground(JTextComponent c) {
-	Color background = c.getBackground();
-	if (background instanceof UIResource) {
-	    Color newColor = null;
-	    String prefix = getPropertyPrefix();
-	    if (!c.isEnabled()) {
-		newColor = DefaultLookup.getColor(c, this,
-						  prefix + ".disabledBackground",
-						  null);
-	    }
-	    if (newColor == null && !c.isEditable()) {
-		newColor = DefaultLookup.getColor(c, this,
-						  prefix + ".inactiveBackground",
-						  null);
-	    }
-	    if (newColor == null) {
-		newColor = DefaultLookup.getColor(c, this,
-						  prefix + ".background",
-						  null);
-	    }
-	    if (newColor != null && newColor != background) {
-		c.setBackground(newColor);
-	    }
-	}
     }
 
     /**
@@ -120,7 +73,7 @@ public class BasicTextFieldUI extends BasicTextUI {
     public View create(Element elem) {
 	Document doc = elem.getDocument();
 	Object i18nFlag = doc.getProperty("i18n"/*AbstractDocument.I18NProperty*/);
-	if ((i18nFlag != null) && i18nFlag.equals(Boolean.TRUE)) {
+	if (Boolean.TRUE.equals(i18nFlag)) {
 	    // To support bidirectional text, we build a more heavyweight
 	    // representation of the field.
 	    String kind = elem.getName();
@@ -135,6 +88,62 @@ public class BasicTextFieldUI extends BasicTextUI {
 	}
 	return new FieldView(elem);
     }
+
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        super.getBaseline(c, width, height);
+        View rootView = getRootView((JTextComponent)c);
+        if (rootView.getViewCount() > 0) {
+            Insets insets = c.getInsets();
+            height = height - insets.top - insets.bottom;
+            if (height > 0) {
+                int baseline = insets.top;
+                View fieldView = rootView.getView(0);
+                int vspan = (int)fieldView.getPreferredSpan(View.Y_AXIS);
+                if (height != vspan) {
+                    int slop = height - vspan;
+                    baseline += slop / 2;
+                }
+                if (fieldView instanceof I18nFieldView) {
+                    int fieldBaseline = BasicHTML.getBaseline(
+                            fieldView, width - insets.left - insets.right,
+                            height);
+                    if (fieldBaseline < 0) {
+                        return -1;
+                    }
+                    baseline += fieldBaseline;
+                }
+                else {
+                    FontMetrics fm = c.getFontMetrics(c.getFont());
+                    baseline += fm.getAscent();
+                }
+                return baseline;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        return Component.BaselineResizeBehavior.CENTER_OFFSET;
+    }
+
 
     /**
      * A field view that support bidirectional text via the

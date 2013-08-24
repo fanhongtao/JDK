@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_string.c	1.12 04/07/27
+ * @(#)hprof_string.c	1.14 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -62,7 +62,7 @@ StringIndex
 string_find_or_create(const char *str)
 {
     return table_find_or_create_entry(gdata->string_table, 
-		(void*)str, strlen(str)+1, NULL, NULL);
+		(void*)str, (int)strlen(str)+1, NULL, NULL);
 }
 
 static void

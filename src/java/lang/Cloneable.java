@@ -1,7 +1,7 @@
 /*
- * @(#)Cloneable.java	1.16 04/01/17
+ * @(#)Cloneable.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ package java.lang;
  * reflectively, there is no guarantee that it will succeed.
  *
  * @author  unascribed
- * @version 1.16, 01/17/04
+ * @version 1.17, 11/17/05
  * @see     java.lang.CloneNotSupportedException
  * @see     java.lang.Object#clone()
  * @since   JDK1.0

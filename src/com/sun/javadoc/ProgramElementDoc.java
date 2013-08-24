@@ -1,7 +1,7 @@
 /*
  * @(#)ProgramElementDoc.java	1.8 02/10/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,6 @@ public interface ProgramElementDoc extends Doc {
      * <p>
      * For the method <code>bar()</code> in class <code>Foo</code>
      * in the unnamed package, return "Foo.bar".
-     * </pre>
      *
      * @return the qualified name of the program element as a String.
      */

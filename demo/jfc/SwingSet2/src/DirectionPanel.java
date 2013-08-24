@@ -1,7 +1,7 @@
 /*
- * @(#)DirectionPanel.java	1.7 04/07/26
+ * @(#)DirectionPanel.java	1.8 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)DirectionPanel.java	1.7 04/07/26
+ * @(#)DirectionPanel.java	1.8 05/11/17
  */
 
 import javax.swing.*;
@@ -47,7 +47,7 @@ import java.util.*;
 
 
 /**
- * @version 1.7 07/26/04
+ * @version 1.8 11/17/05
  * @author Jeff Dinkins
  * @author Chester Rose
  * @author Brian Beck

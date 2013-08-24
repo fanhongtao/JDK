@@ -1,7 +1,7 @@
 /*
- * @(#)Context.java	1.12 04/07/16
+ * @(#)Context.java	1.14 06/07/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -214,11 +214,6 @@ import java.util.Hashtable;
  * collects and uses all of these export lists when searching for factory
  * classes.
  *
- * <p>
- * Application resource files are available beginning with the Java 2
- * Platform, except that the file in
- * <i>java.home</i><tt>/lib</tt> may be used on earlier Java platforms as well.
- *
  * <h5>Search Algorithm for Properties</h5>
  *
  * When JNDI constructs an initial context, the context's environment
@@ -261,7 +256,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.12 04/07/16
+ * @version 1.14 06/07/19
  *
  * @since 1.3
  */

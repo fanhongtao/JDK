@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_io.c	1.48 04/07/27
+ * @(#)hprof_io.c	1.56 05/12/06
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -74,349 +74,15 @@
  */
 
 #include "hprof.h"
+
+typedef TableIndex HprofId;
+
 #include "hprof_ioname.h"
+#include "hprof_b_spec.h"
 
-/* HPROF version */
+static int type_size[ /*HprofType*/ ] =  HPROF_TYPE_SIZES;
 
-#define HPROF_HEADER "JAVA PROFILE 1.0.1" /* Breaks test b4500875 if changed */
-
-/* -------------------------------------------------------------------- */
-/* -------------------------------------------------------------------- */
-/* -------------------------------------------------------------------- */
-
-/*
- * hprof binary format: (result either written to a file or sent over
- * the network).
- * 
- * WARNING: This format is still under development, and is subject to
- * change without notice.
- *
- *  header    "JAVA PROFILE 1.0.1" (0-terminated)
- *  u4        size of identifiers. Identifiers are used to represent
- *            UTF8 strings, objects, stack traces, etc. They usually
- *            have the same size as host pointers. For example, on
- *            Solaris and Win32, the size is 4.
- * u4         high word 
- * u4         low word    number of milliseconds since 0:00 GMT, 1/1/70
- * [record]*  a sequence of records.
- */
-
-/*
- * Record format:
- *
- * u1         a TAG denoting the type of the record
- * u4         number of *microseconds* since the time stamp in the
- *            header. (wraps around in a little more than an hour)
- * u4         number of bytes *remaining* in the record. Note that
- *            this number excludes the tag and the length field itself.
- * [u1]*      BODY of the record (a sequence of bytes)
- */
-
-/*
- * The following TAGs are supported:
- *
- * TAG           BODY       notes
- *----------------------------------------------------------
- * HPROF_UTF8               a UTF8-encoded name  
- *
- *               id         name ID
- *               [u1]*      UTF8 characters (no trailing zero)
- *
- * HPROF_LOAD_CLASS         a newly loaded class
- *
- *                u4        class serial number (> 0)
- *                id        class object ID
- *                u4        stack trace serial number
- *                id        class name ID
- *
- * HPROF_UNLOAD_CLASS       an unloading class
- *
- *                u4        class serial_number
- *
- * HPROF_FRAME              a Java stack frame
- *
- *                id        stack frame ID
- *                id        method name ID
- *                id        method signature ID
- *                id        source file name ID
- *                u4        class serial number
- *                i4        line number. >0: normal
- *                                       -1: unknown
- *                                       -2: compiled method
- *                                       -3: native method
- *
- * HPROF_TRACE              a Java stack trace
- *
- *               u4         stack trace serial number
- *               u4         thread serial number
- *               u4         number of frames
- *               [id]*      stack frame IDs
- *
- *
- * HPROF_ALLOC_SITES        a set of heap allocation sites, obtained after GC
- *
- *               u2         flags 0x0001: incremental vs. complete
- *                                0x0002: sorted by allocation vs. live
- *                                0x0004: whether to force a GC
- *               u4         cutoff ratio
- *               u4         total live bytes
- *               u4         total live instances
- *               u8         total bytes allocated
- *               u8         total instances allocated
- *               u4         number of sites that follow
- *               [u1        is_array: 0:  normal object
- *                                    2:  object array
- *                                    4:  boolean array
- *                                    5:  char array
- *                                    6:  float array
- *                                    7:  double array
- *                                    8:  byte array
- *                                    9:  short array
- *                                    10: int array
- *                                    11: long array
- *                u4        class serial number (may be zero during startup)
- *                u4        stack trace serial number
- *                u4        number of bytes alive
- *                u4        number of instances alive
- *                u4        number of bytes allocated
- *                u4]*      number of instance allocated
- *
- * HPROF_START_THREAD       a newly started thread.
- *
- *               u4         thread serial number (> 0)
- *               id         thread object ID
- *               u4         stack trace serial number
- *               id         thread name ID
- *               id         thread group name ID
- *               id         thread group parent name ID
- *
- * HPROF_END_THREAD         a terminating thread. 
- *
- *               u4         thread serial number
- *
- * HPROF_HEAP_SUMMARY       heap summary
- *
- *               u4         total live bytes
- *               u4         total live instances
- *               u8         total bytes allocated
- *               u8         total instances allocated
- *
- * HPROF_HEAP_DUMP          denote a heap dump
- *
- *               [heap dump sub-records]*
- *
- *                          There are four kinds of heap dump sub-records:
- *
- *               u1         sub-record type
- *
- *               HPROF_GC_ROOT_UNKNOWN         unknown root
- *
- *                          id         object ID
- *
- *               HPROF_GC_ROOT_THREAD_OBJ      thread object
- *
- *                          id         thread object ID  (may be 0 for a
- *                                     thread newly attached through JNI)
- *                          u4         thread sequence number
- *                          u4         stack trace sequence number
- *
- *               HPROF_GC_ROOT_JNI_GLOBAL      JNI global ref root
- *
- *                          id         object ID
- *                          id         JNI global ref ID
- *
- *               HPROF_GC_ROOT_JNI_LOCAL       JNI local ref
- *
- *                          id         object ID
- *                          u4         thread serial number
- *                          u4         frame # in stack trace (-1 for empty)
- *
- *               HPROF_GC_ROOT_JAVA_FRAME      Java stack frame
- *
- *                          id         object ID
- *                          u4         thread serial number
- *                          u4         frame # in stack trace (-1 for empty)
- *
- *               HPROF_GC_ROOT_NATIVE_STACK    Native stack
- *
- *                          id         object ID
- *                          u4         thread serial number
- *
- *               HPROF_GC_ROOT_STICKY_CLASS    System class
- *
- *                          id         object ID
- *
- *               HPROF_GC_ROOT_THREAD_BLOCK    Reference from thread block
- *
- *                          id         object ID
- *                          u4         thread serial number
- *
- *               HPROF_GC_ROOT_MONITOR_USED    Busy monitor
- *
- *                          id         object ID
- *
- *               HPROF_GC_CLASS_DUMP           dump of a class object
- *
- *                          id         class object ID
- *                          u4         stack trace serial number
- *                          id         super class object ID
- *                          id         class loader object ID
- *                          id         signers object ID
- *                          id         protection domain object ID
- *                          id         reserved
- *                          id         reserved
- *
- *                          u4         instance size (in bytes)
- *
- *                          u2         size of constant pool
- *                          [u2,       constant pool index,
- *                           ty,       type 
- *                                     2:  object
- *                                     4:  boolean
- *                                     5:  char
- *                                     6:  float
- *                                     7:  double
- *                                     8:  byte
- *                                     9:  short
- *                                     10: int
- *                                     11: long
- *                           vl]*      and value
- *
- *                          u2         number of static fields
- *                          [id,       static field name,
- *                           ty,       type,
- *                           vl]*      and value
- *
- *                          u2         number of inst. fields (not inc. super)
- *                          [id,       instance field name,
- *                           ty]*      type
- *
- *               HPROF_GC_INSTANCE_DUMP        dump of a normal object
- *
- *                          id         object ID
- *                          u4         stack trace serial number
- *                          id         class object ID
- *                          u4         number of bytes that follow
- *                          [vl]*      instance field values (class, followed
- *                                     by super, super's super ...)
- *
- *               HPROF_GC_OBJ_ARRAY_DUMP       dump of an object array
- *
- *                          id         array object ID
- *                          u4         stack trace serial number
- *                          u4         number of elements
- *                          id         element class ID
- *                          [id]*      elements
- *
- *               HPROF_GC_PRIM_ARRAY_DUMP      dump of a primitive array
- *
- *                          id         array object ID
- *                          u4         stack trace serial number
- *                          u4         number of elements
- *                          u1         element type
- *                                     4:  boolean array
- *                                     5:  char array
- *                                     6:  float array
- *                                     7:  double array
- *                                     8:  byte array
- *                                     9:  short array
- *                                     10: int array
- *                                     11: long array
- *                          [u1]*      elements
- *
- * HPROF_CPU_SAMPLES        a set of sample traces of running threads
- *
- *                u4        total number of samples
- *                u4        # of traces
- *               [u4        # of samples
- *                u4]*      stack trace serial number
- *
- * HPROF_CONTROL_SETTINGS   the settings of on/off switches
- *
- *                u4        0x00000001: alloc traces on/off
- *                          0x00000002: cpu sampling on/off
- *                u2        stack trace depth
- *
- */
-
-typedef enum HprofTag {
-    HPROF_UTF8                    = 0x01,
-    HPROF_LOAD_CLASS              = 0x02,
-    HPROF_UNLOAD_CLASS            = 0x03,
-    HPROF_FRAME                   = 0x04,
-    HPROF_TRACE                   = 0x05,
-    HPROF_ALLOC_SITES             = 0x06,
-    HPROF_HEAP_SUMMARY            = 0x07,
-    HPROF_START_THREAD            = 0x0A,
-    HPROF_END_THREAD              = 0x0B,
-    HPROF_HEAP_DUMP               = 0x0C,
-    HPROF_CPU_SAMPLES             = 0x0D,
-    HPROF_CONTROL_SETTINGS        = 0x0E
-} HprofTag;
-
-/* 
- * Heap dump constants
- */
-
-typedef enum HprofGcTag {
-    HPROF_GC_ROOT_UNKNOWN       = 0xFF,
-    HPROF_GC_ROOT_JNI_GLOBAL    = 0x01,
-    HPROF_GC_ROOT_JNI_LOCAL     = 0x02,
-    HPROF_GC_ROOT_JAVA_FRAME    = 0x03,
-    HPROF_GC_ROOT_NATIVE_STACK  = 0x04,
-    HPROF_GC_ROOT_STICKY_CLASS  = 0x05,
-    HPROF_GC_ROOT_THREAD_BLOCK  = 0x06,
-    HPROF_GC_ROOT_MONITOR_USED  = 0x07,
-    HPROF_GC_ROOT_THREAD_OBJ    = 0x08,
-    HPROF_GC_CLASS_DUMP         = 0x20,
-    HPROF_GC_INSTANCE_DUMP      = 0x21,
-    HPROF_GC_OBJ_ARRAY_DUMP     = 0x22,
-    HPROF_GC_PRIM_ARRAY_DUMP    = 0x23
-} HprofGcTag;
-
-enum HprofType {
-	HPROF_ARRAY_OBJECT 	= 1,
-	HPROF_NORMAL_OBJECT 	= 2,
-	HPROF_BOOLEAN 		= 4,
-	HPROF_CHAR 		= 5,
-	HPROF_FLOAT 		= 6,
-	HPROF_DOUBLE 		= 7,
-	HPROF_BYTE 		= 8,
-	HPROF_SHORT 		= 9,
-	HPROF_INT 		= 10,
-	HPROF_LONG 		= 11
-};
-typedef unsigned char HprofType;
-
-static int type_size[ /*HprofType*/ ] = 
-	{ 
-		/*Object?*/	sizeof(ObjectIndex), 
-		/*Object?*/	sizeof(ObjectIndex), 
-		/*Array*/	sizeof(ObjectIndex), 
-		/*Object?*/	sizeof(ObjectIndex), 
-	  	/*jboolean*/ 	1, 	
-		/*jchar*/ 	2, 
-		/*jfloat*/ 	4, 
-		/*jdouble*/ 	8, 
-		/*jbyte*/	1, 
-		/*jshort*/	2, 
-		/*jint*/	4, 
-		/*jlong*/	8 
-	};
-
-#define _STR(arg) #arg
-#define STR(arg) _STR(arg)
-#define CHECK_FOR_ERROR(condition) \
-	( (condition) ? \
-	  (void)0 : \
-	  HPROF_ERROR(JNI_TRUE, #condition) )
-#define CHECK_SERIAL_NO(name, sno) \
-	CHECK_FOR_ERROR( (sno) >= gdata->name##_serial_number_start  && \
-		      (sno) <  gdata->name##_serial_number_counter)
-#define CHECK_CLASS_SERIAL_NO(sno) CHECK_SERIAL_NO(class,sno)
-#define CHECK_THREAD_SERIAL_NO(sno) CHECK_SERIAL_NO(thread,sno)
-#define CHECK_TRACE_SERIAL_NO(sno) CHECK_SERIAL_NO(trace,sno)
-#define CHECK_OBJECT_SERIAL_NO(sno) CHECK_SERIAL_NO(object,sno)
+static void dump_heap_segment_and_reset(jlong segment_size);
 
 static void
 not_implemented(void)
@@ -430,44 +96,6 @@ get_name_index(char *name)
         return ioname_find_or_create(name, NULL);
     }
     return 0;
-}
-
-static void *
-get_binary_file_image(char *filename, int *pnbytes)
-{
-    unsigned char *image;
-    int            fd;
-    jlong          nbytes;
-    int            nread;
-
-    *pnbytes = 0;
-    fd = md_open_binary(filename);
-    CHECK_FOR_ERROR(fd>=0);
-    if ( (nbytes = md_seek(fd, (jlong)-1)) == (jlong)-1 ) {
-	HPROF_ERROR(JNI_TRUE, "Cannot md_seek() to end of file");
-    }
-    CHECK_FOR_ERROR(((jint)nbytes)>512);
-    if ( md_seek(fd, (jlong)0) != (jlong)0 ) {
-	HPROF_ERROR(JNI_TRUE, "Cannot md_seek() to start of file");
-    }
-    image = HPROF_MALLOC(((jint)nbytes)+1);
-    CHECK_FOR_ERROR(image!=NULL);
-
-    /* Read the entire file image into memory */
-    nread = md_read(fd, image, (jint)nbytes);
-    if ( nread <= 0 ) {
-	HPROF_ERROR(JNI_TRUE, "System read failed.");
-    }
-    CHECK_FOR_ERROR(((jint)nbytes)==nread);
-    md_close(fd);
-    *pnbytes = (jint)nbytes;
-    return image;
-}
-
-static int
-type_is_primitive(HprofType kind)
-{
-    return ( kind >= HPROF_BOOLEAN );
 }
 
 static char *
@@ -499,7 +127,7 @@ signature_to_name(char *sig)
 		return name;
 	    case JVM_SIGNATURE_ARRAY:
 		basename = signature_to_name(sig+1);
-		len = strlen(basename);
+		len = (int)strlen(basename);
 		name_len = len+2;
 		name = HPROF_MALLOC(name_len+1);
 		(void)memcpy(name, basename, len);
@@ -554,10 +182,19 @@ signature_to_name(char *sig)
     }
 
     /* Simple basename */
-    name_len = strlen(basename);
+    name_len = (int)strlen(basename);
     name = HPROF_MALLOC(name_len+1);
     (void)strcpy(name, basename);
     return name;
+}
+
+static int
+size_from_field_info(int size)
+{
+    if ( size == 0 ) {
+        size = (int)sizeof(HprofId);
+    }
+    return size;
 }
 
 static void
@@ -612,64 +249,6 @@ type_array(const char *sig, HprofType *kind, jint *elem_size)
             type_from_signature(sig+1, kind, elem_size);
 	    break;
     }
-}
-
-static void 
-read_raw(unsigned char **pp, unsigned char *buf, int len) 
-{
-    while ( len > 0 ) {
-	*buf = **pp;
-	buf++;
-	(*pp)++;
-	len--;
-    }
-}
-
-static unsigned 
-read_u1(unsigned char **pp) 
-{
-    unsigned char b;
-    
-    read_raw(pp, &b, 1);
-    return b;
-}
-
-static unsigned 
-read_u2(unsigned char **pp) 
-{
-    unsigned short s;
-
-    read_raw(pp, (void*)&s, 2);
-    return md_htons(s);
-}
-
-static unsigned 
-read_u4(unsigned char **pp) 
-{
-    unsigned int u;
-
-    read_raw(pp, (void*)&u, 4);
-    return md_htonl(u);
-}
-
-static jlong 
-read_u8(unsigned char **pp) 
-{
-    unsigned int high;
-    unsigned int low;
-    jlong        x;
-
-    high = read_u4(pp);
-    low  = read_u4(pp);
-    x = high;
-    x = (x << 32) | low;
-    return x;
-}
-
-static unsigned 
-read_id(unsigned char **pp) 
-{
-    return read_u4(pp);
 }
 
 static void
@@ -734,19 +313,6 @@ heap_flush(void)
     }
 }
 
-static void
-check_flush(void)
-{
-    if ( gdata->check_fd < 0 ) {
-	return;
-    }
-    if (gdata->check_buffer_index) {
-        system_write(gdata->check_fd, gdata->check_buffer, gdata->check_buffer_index,
-				JNI_FALSE);
-        gdata->check_buffer_index = 0;
-    }
-}
-
 static void 
 write_raw(void *buf, int len)
 {
@@ -790,7 +356,7 @@ write_u1(unsigned char i)
 }
 
 static void
-write_id(ObjectIndex i)
+write_id(HprofId i)
 {
     write_u4(i);
 }
@@ -798,7 +364,7 @@ write_id(ObjectIndex i)
 static void 
 write_current_ticks(void)
 {
-    write_u4(md_get_milliticks() * 1000 - gdata->micro_sec_ticks);
+    write_u4((jint)(md_get_microsecs() - gdata->micro_sec_ticks));
 }
 
 static void 
@@ -810,9 +376,9 @@ write_header(unsigned char type, jint length)
 }
 
 static void
-write_index_id(TableIndex index)
+write_index_id(HprofId index)
 {
-    write_id((ObjectIndex)index);
+    write_id(index);
 }
 
 static IoNameIndex
@@ -830,8 +396,8 @@ write_name_first(char *name)
         if ( new_one ) {
             int      len;
 
-            len = strlen(name);
-            write_header(HPROF_UTF8, len + (jint)sizeof(ObjectIndex));
+            len = (int)strlen(name);
+            write_header(HPROF_UTF8, len + (jint)sizeof(HprofId));
             write_index_id(name_index);
             write_raw(name, len);
     
@@ -849,7 +415,7 @@ write_printf(char *fmt, ...)
     va_start(args, fmt);
     (void)md_vsnprintf(buf, sizeof(buf), fmt, args);
     buf[sizeof(buf)-1] = 0;
-    write_raw(buf, strlen(buf));
+    write_raw(buf, (int)strlen(buf));
     va_end(args);
 }
 
@@ -915,16 +481,42 @@ heap_u1(unsigned char i)
     heap_raw(&i, (jint)sizeof(unsigned char));
 }
 
+/* Write out the first byte of a heap tag */
 static void
-heap_id(ObjectIndex i)
+heap_tag(unsigned char tag)
+{
+    jlong pos;
+   
+    /* Current position in virtual heap dump file */
+    pos = gdata->heap_write_count + (jlong)gdata->heap_buffer_index;
+    if ( gdata->segmented == JNI_TRUE ) { /* 1.0.2 */
+	if ( pos >= gdata->maxHeapSegment ) {
+            /* Flush all bytes to the heap dump file */
+            heap_flush();
+            
+            /* Send out segment (up to last tag written out) */
+            dump_heap_segment_and_reset(gdata->heap_last_tag_position);
+
+	    /* Get new current position */
+            pos = gdata->heap_write_count + (jlong)gdata->heap_buffer_index;
+	}
+    }
+    /* Save position of this tag */
+    gdata->heap_last_tag_position = pos;
+    /* Write out this tag */
+    heap_u1(tag);
+}
+
+static void
+heap_id(HprofId i)
 {
     heap_u4(i);
 }
 
 static void
-heap_index_id(TableIndex index)
+heap_index_id(HprofId index)
 {
-    heap_id((ObjectIndex)index);
+    heap_id(index);
 }
 
 static void
@@ -941,27 +533,37 @@ heap_printf(char *fmt, ...)
     va_start(args, fmt);
     (void)md_vsnprintf(buf, sizeof(buf), fmt, args);
     buf[sizeof(buf)-1] = 0;
-    heap_raw(buf, strlen(buf));
+    heap_raw(buf, (int)strlen(buf));
     va_end(args);
 }
 
 static void
 heap_element(HprofType kind, jint size, jvalue value)
 {
-    if ( !type_is_primitive(kind) ) {
-	heap_id((ObjectIndex)value.i);
+    if ( !HPROF_TYPE_IS_PRIMITIVE(kind) ) {
+	HPROF_ASSERT(size==4);
+	heap_id((HprofId)value.i);
     } else {
 	switch ( size ) {
 	    case 8:
+	        HPROF_ASSERT(size==8);
+	        HPROF_ASSERT(kind==HPROF_LONG || kind==HPROF_DOUBLE);
 		heap_u8(value.j);
 		break;
 	    case 4:
+	        HPROF_ASSERT(size==4);
+	        HPROF_ASSERT(kind==HPROF_INT || kind==HPROF_FLOAT);
 		heap_u4(value.i);
 		break;
 	    case 2:
+	        HPROF_ASSERT(size==2);
+	        HPROF_ASSERT(kind==HPROF_SHORT || kind==HPROF_CHAR);
 		heap_u2(value.s);
 		break;
 	    case 1:
+	        HPROF_ASSERT(size==1);
+	        HPROF_ASSERT(kind==HPROF_BOOLEAN || kind==HPROF_BYTE);
+		HPROF_ASSERT(kind==HPROF_BOOLEAN?(value.b==0 || value.b==1):1);
 		heap_u1(value.b);
 		break;
 	    default:
@@ -971,554 +573,73 @@ heap_element(HprofType kind, jint size, jvalue value)
     }
 }
 
+/* Dump out all elements of an array, objects in jvalues, prims packed */
 static void
-heap_elements(HprofType kind, jint num_elements, jint elem_size, jvalue *values)
+heap_elements(HprofType kind, jint num_elements, jint elem_size, void *elements)
 {
-    int i;
-    
-    for (i = 0; i < num_elements; i++) {  
-	heap_element(kind, elem_size, values[i]);
+    int     i;
+    jvalue  val;
+    static jvalue empty_val;
+
+    if ( num_elements == 0 ) {
+	return;
     }
-}
 
-/* Checking function for binary format */
-
-static jlong
-read_val(unsigned char **pp, HprofType ty)
-{
-    jlong val;
-    
-    switch ( ty ) {
+    switch ( kind ) {
 	case 0:
 	case HPROF_ARRAY_OBJECT: 
 	case HPROF_NORMAL_OBJECT: 
-	    val = read_id(pp);
+	    for (i = 0; i < num_elements; i++) {  
+		val   = empty_val;
+		val.i = ((ObjectIndex*)elements)[i];
+		heap_element(kind, elem_size, val);
+	    }
 	    break;
 	case HPROF_BYTE: 
 	case HPROF_BOOLEAN:
-	    val = read_u1(pp);
+	    HPROF_ASSERT(elem_size==1);
+	    for (i = 0; i < num_elements; i++) {  
+		val   = empty_val;
+		val.b = ((jboolean*)elements)[i];
+		heap_element(kind, elem_size, val);
+	    }
 	    break;
 	case HPROF_CHAR: 
 	case HPROF_SHORT:
-	    val = read_u2(pp);
+	    HPROF_ASSERT(elem_size==2);
+	    for (i = 0; i < num_elements; i++) {  
+		val   = empty_val;
+		val.s = ((jshort*)elements)[i];
+		heap_element(kind, elem_size, val);
+	    }
 	    break;
 	case HPROF_FLOAT: 
 	case HPROF_INT:
-	    val = read_u4(pp);
+	    HPROF_ASSERT(elem_size==4);
+	    for (i = 0; i < num_elements; i++) {  
+		val   = empty_val;
+		val.i = ((jint*)elements)[i];
+		heap_element(kind, elem_size, val);
+	    }
 	    break;
 	case HPROF_DOUBLE: 
 	case HPROF_LONG:
-	    val = read_u8(pp);
+	    HPROF_ASSERT(elem_size==8);
+	    for (i = 0; i < num_elements; i++) {  
+		val   = empty_val;
+		val.j = ((jlong*)elements)[i];
+		heap_element(kind, elem_size, val);
+	    }
 	    break;
-	default:
-	    HPROF_ERROR(JNI_TRUE, "bad type number");
-	    val = 0;
-	    break;
     }
-    return val;
-}
-
-static void 
-check_raw(void *buf, int len)
-{
-    if ( gdata->check_fd < 0 ) {
-	return;
-    }
-
-    if ( len <= 0 ) {
-	return;
-    }
-
-    if (gdata->check_buffer_index + len > gdata->check_buffer_size) {
-        check_flush();
-        if (len > gdata->check_buffer_size) {
-            system_write(gdata->check_fd, buf, len, JNI_FALSE);
-            return;
-        }
-    }
-    (void)memcpy(gdata->check_buffer + gdata->check_buffer_index, buf, len);
-    gdata->check_buffer_index += len;
-}
-
-static void 
-check_printf(char *fmt, ...)
-{
-    char buf[1024];
-    va_list args;
-   
-    if ( gdata->check_fd < 0 ) {
-	return;
-    }
-
-    va_start(args, fmt);
-    (void)md_vsnprintf(buf, sizeof(buf), fmt, args);
-    buf[sizeof(buf)-1] = 0;
-    check_raw(buf, strlen(buf));
-    va_end(args);
-}
-
-static int
-check_heap_tags(unsigned char *pstart, int nbytes)
-{
-    int nrecords;
-    unsigned char *p;
-    
-    nrecords = 0;
-    p = pstart;
-    while ( p < (pstart+nbytes) ) {
-	unsigned tag;
-	HprofType ty;
-	unsigned id, id2, fr;
-	int num_elements;
-	SerialNumber trace_serial_num;
-	SerialNumber thread_serial_num;
-	char *label;
-	int npos;
-        int i;
-	unsigned inst_size;
-	
-	nrecords++;
-	/*LINTED*/
-	npos = (int)(p - pstart);
-        tag = read_u1(&p);
-    #define CASE_HEAP(name) case name: label = #name;
-	switch ( tag ) {
-	    CASE_HEAP(HPROF_GC_ROOT_UNKNOWN)
-		id = read_id(&p);
-                check_printf("H#%d@%d %s: id=0x%x\n", 
-			nrecords, npos, label, id);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_JNI_GLOBAL)
-		id = read_id(&p);
-		id2 = read_id(&p);
-                check_printf("H#%d@%d %s: id=0x%x, id2=0x%x\n", 
-			nrecords, npos, label, id, id2);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_JNI_LOCAL)
-		id = read_id(&p);
-		thread_serial_num = read_u4(&p);
-		fr = read_u4(&p);
-                check_printf("H#%d@%d %s: id=0x%x, thread_serial_num=%u, fr=0x%x\n", 
-			nrecords, npos, label, id, thread_serial_num, fr);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_JAVA_FRAME)
-		id = read_id(&p);
-		thread_serial_num = read_u4(&p);
-		fr = read_u4(&p);
-                check_printf("H#%d@%d %s: id=0x%x, thread_serial_num=%u, fr=0x%x\n", 
-			nrecords, npos, label, id, thread_serial_num, fr);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_NATIVE_STACK)
-		id = read_id(&p);
-		thread_serial_num = read_u4(&p);
-                check_printf("H#%d@%d %s: id=0x%x, thread_serial_num=%u\n", 
-			nrecords, npos, label, id, thread_serial_num);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_STICKY_CLASS)
-		id = read_id(&p);
-                check_printf("H#%d@%d %s: id=0x%x\n", 
-			nrecords, npos, label, id);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_THREAD_BLOCK)
-		id = read_id(&p);
-		thread_serial_num = read_u4(&p);
-                check_printf("H#%d@%d %s: id=0x%x, thread_serial_num=%u\n", 
-			nrecords, npos, label, id, thread_serial_num);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_MONITOR_USED)
-		id = read_id(&p);
-                check_printf("H#%d@%d %s: id=0x%x\n", 
-			nrecords, npos, label, id);
-		break;
-	    CASE_HEAP(HPROF_GC_ROOT_THREAD_OBJ)
-		id = read_id(&p);
-		thread_serial_num = read_u4(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-                check_printf("H#%d@%d %s: id=0x%x, thread_serial_num=%u, trace_serial_num=%u\n", 
-			nrecords, npos, label, id, thread_serial_num, trace_serial_num);
-		break;
-	    CASE_HEAP(HPROF_GC_CLASS_DUMP)
-		id = read_id(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-                check_printf("H#%d@%d %s: id=0x%x, trace_serial_num=%u\n", 
-			nrecords, npos, label, id, trace_serial_num);
-		{
-		    unsigned su, ld, si, pr, re1, re2;
-		    
-		    su = read_id(&p);
-		    ld = read_id(&p);
-		    si = read_id(&p);
-		    pr = read_id(&p);
-		    re1 = read_id(&p);
-		    re2 = read_id(&p);
-		    check_printf("  su=0x%x, ld=0x%x, si=0x%x, pr=0x%x, re1=0x%x, re2=0x%x\n", 
-			su, ld, si, pr, re1, re2);
-		}
-		inst_size = read_u4(&p);
-		check_printf("  instance_size=%d\n", inst_size); 
-		
-		num_elements = read_u2(&p);
-		for(i=0; i<num_elements; i++) {
-		    HprofType ty;
-		    unsigned cpi;
-		    jlong val;
-		    
-		    cpi = read_u2(&p);
-		    ty = read_u1(&p);
-		    val = read_val(&p, ty);
-		    check_printf("  constant_pool %d: "
-				 "cpi=%d, ty=%d, val=0x%x%08x\n", 
-				i, cpi, ty, jlong_high(val), jlong_low(val));
-		}
-		
-		num_elements = read_u2(&p);
-		check_printf("  static_field_count=%d\n", num_elements);
-		for(i=0; i<num_elements; i++) {
-		    HprofType ty;
-		    unsigned id;
-		    jlong val;
-		    
-		    id = read_id(&p);
-		    ty = read_u1(&p);
-		    val = read_val(&p, ty);
-		    check_printf("  static_field %d: "
-				 "id=0x%x, ty=%d, val=0x%x%08x\n", 
-				i, id, ty, jlong_high(val), jlong_low(val));
-		}
-		
-		num_elements = read_u2(&p);
-		check_printf("  instance_field_count=%d\n", num_elements);
-		for(i=0; i<num_elements; i++) {
-		    HprofType ty;
-		    unsigned id;
-		    
-		    id = read_id(&p);
-		    ty = read_u1(&p);
-                    check_printf("  instance_field %d: id=0x%x, ty=%d\n", 
-				i, id, ty);
-		}
-		break;
-	    CASE_HEAP(HPROF_GC_INSTANCE_DUMP)
-		id = read_id(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		id2 = read_id(&p);
-		num_elements = read_u4(&p);
-                check_printf("H#%d@%d %s: id=0x%x, trace_serial_num=%u,"
-			     " cid=0x%x, nbytes=%d\n", 
-			    nrecords, npos, label, id, trace_serial_num, 
-			    id2, num_elements);
-		check_printf("  ");
-		for(i=0; i<num_elements; i++) {
-                    check_printf("%02x", read_u1(&p));
-		    if ( ( i % 4 ) == 3 ) {
-                        check_printf(" ");
-		    }
-		    if ( ( i % 32 ) == 31 && i != (num_elements-1) ) {
-                        check_printf("\n");
-		        check_printf("  ");
-		    }
-		}
-		check_printf("\n");
-		break;
-	    CASE_HEAP(HPROF_GC_OBJ_ARRAY_DUMP)
-		id = read_id(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		num_elements = read_u4(&p);
-		id2 = read_id(&p);
-                check_printf("H#%d@%d %s: id=0x%x, trace_serial_num=%u, nelems=%d, eid=0x%x\n", 
-				nrecords, npos, label, id, trace_serial_num, num_elements, id2);
-		for(i=0; i<num_elements; i++) {
-		    unsigned id;
-		    
-		    id = read_id(&p);
-                    check_printf("  [%d]: id=0x%x\n", i, id);
-		}
-		break;
-	    CASE_HEAP(HPROF_GC_PRIM_ARRAY_DUMP)
-		id = read_id(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		num_elements = read_u4(&p);
-		ty = read_u1(&p);
-                check_printf("H#%d@%d %s: id=0x%x, trace_serial_num=%u, nelems=%d, ty=%d\n", 
-				nrecords, npos, label, id, trace_serial_num, num_elements, ty);
-		HPROF_ASSERT(type_is_primitive(ty));
-		for(i=0; i<num_elements; i++) {
-		    jlong val;
-		    
-		    val = read_val(&p, ty);
-                    check_printf("  [%d]: val=0x%x%08x\n", i, 
-					jlong_high(val), jlong_low(val));
-		}
-		break;
-	    default:
-                label = "UNKNOWN";
-		check_printf("H#%d@%d %s: ERROR!\n", 
-				nrecords, npos, label);
-		HPROF_ERROR(JNI_TRUE, "unknown heap record type");
-		break;
-	}
-    }
-    CHECK_FOR_ERROR(p==pstart+nbytes);
-    return nrecords;
-}
-
-static int 
-check_tags(unsigned char *pstart, int nbytes)
-{
-    unsigned char *p;
-    int      nrecord;
-
-    p = pstart;
-    check_printf("\nCHECK TAGS: starting\n");
-    
-    nrecord = 0;
-    while ( p < (pstart+nbytes) ) {
-	unsigned tag;
-	unsigned size;
-	int nheap_records;
-	int npos;
-	char *label;
-	int i;
-	int id, ty, nm, sg, so, li, num_elements, gr, gn;
-	SerialNumber trace_serial_num;
-	SerialNumber thread_serial_num;
-	SerialNumber class_serial_num;
-	unsigned flags;
-	unsigned depth;
-	float cutoff;
-	unsigned temp;
-	jint nblive ;
-	jint nilive ;
-	jlong tbytes;
-	jlong tinsts;
-	jint total_samples ;
-	jint trace_count ;
-	
-	nrecord++;
-	/*LINTED*/
-	npos = (int)(p - pstart);
-	tag = read_u1(&p);
-	(void)read_u4(&p); /* microsecs */
-	size = read_u4(&p);
-	#define CASE_TAG(name) case name: label = #name;
-	switch ( tag ) {
-            CASE_TAG(HPROF_UTF8)
-		CHECK_FOR_ERROR(size>=4);
-	        id = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, name_id=0x%x, \"", 
-				nrecord, npos, label, size, id);
-		check_raw(p, size-4);
-		check_printf("\"\n");
-		p += (size-4);
-		break;
-            CASE_TAG(HPROF_LOAD_CLASS)
-		CHECK_FOR_ERROR(size==4*4);
-                class_serial_num = read_u4(&p);
-                CHECK_CLASS_SERIAL_NO(class_serial_num);
-		id = read_u4(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		nm = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, class_serial_num=%u,"
-			     " id=0x%x, trace_serial_num=%u, name_id=0x%x\n", 
-				nrecord, npos, label, size, class_serial_num, 
-				id, trace_serial_num, nm);
-		break;
-            CASE_TAG(HPROF_UNLOAD_CLASS)
-		CHECK_FOR_ERROR(size==4);
-                class_serial_num = read_u4(&p);
-                CHECK_CLASS_SERIAL_NO(class_serial_num);
-		check_printf("#%d@%d: %s, sz=%d, class_serial_num=%u\n", 
-				nrecord, npos, label, size, class_serial_num);
-		break;
-            CASE_TAG(HPROF_FRAME)
-		CHECK_FOR_ERROR(size==6*4);
-		id = read_u4(&p);
-		nm = read_u4(&p);
-		sg = read_u4(&p);
-		so = read_u4(&p);
-		class_serial_num = read_u4(&p);
-                CHECK_CLASS_SERIAL_NO(class_serial_num);
-		li = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, id=0x%x, name_id=0x%x,"
-			     " sig_id=0x%x, source_id=0x%x,"
-			     " class_serial_num=%u, lineno=%d\n", 
-				nrecord, npos, label, size, id, nm, sg, 
-				so, class_serial_num, li);
-		break;
-            CASE_TAG(HPROF_TRACE)
-		CHECK_FOR_ERROR(size>=3*4);
-                trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		thread_serial_num = read_u4(&p); /* Can be 0 */
-		num_elements = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, trace_serial_num=%u,"
-			     " thread_serial_num=%u, nelems=%d [", 
-				nrecord, npos, label, size, 
-				trace_serial_num, thread_serial_num, num_elements);
-	        for(i=0; i< num_elements; i++) {
-		    check_printf("0x%x,", read_u4(&p));
-		}
-		check_printf("]\n");
-		break;
-            CASE_TAG(HPROF_ALLOC_SITES)
-		CHECK_FOR_ERROR(size>=2+4*4+2*8);
-		flags = read_u2(&p);
-		temp  = read_u4(&p);
-		cutoff = *((float*)&temp);
-		nblive = read_u4(&p);
-		nilive = read_u4(&p);
-		tbytes = read_u8(&p);
-		tinsts = read_u8(&p);
-		num_elements     = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, flags=0x%x, cutoff=%g,"
-			     " nblive=%d, nilive=%d, tbytes=(%d,%d),"
-			     " tinsts=(%d,%d), num_elements=%d\n", 
-				nrecord, npos, label, size,
-				flags, cutoff, nblive, nilive, 
-				jlong_high(tbytes), jlong_low(tbytes),
-				jlong_high(tinsts), jlong_low(tinsts),
-				num_elements);
-	        for(i=0; i< num_elements; i++) {
-		    ty = read_u1(&p);
-		    class_serial_num = read_u4(&p);
-                    CHECK_CLASS_SERIAL_NO(class_serial_num);
-		    trace_serial_num = read_u4(&p);
-                    CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		    nblive = read_u4(&p);
-		    nilive = read_u4(&p);
-		    tbytes = read_u4(&p);
-		    tinsts = read_u4(&p);
-		    check_printf("\t %d: ty=%d, class_serial_num=%u,"
-				 " trace_serial_num=%u, nblive=%d, nilive=%d,"
-				 " tbytes=%d, tinsts=%d\n",
-				 i, ty, class_serial_num, trace_serial_num,
-				 nblive, nilive, (jint)tbytes, (jint)tinsts);
-	        }
-		break;
-            CASE_TAG(HPROF_HEAP_SUMMARY)
-		CHECK_FOR_ERROR(size==2*4+2*8);
-		nblive = read_u4(&p);
-		nilive = read_u4(&p);
-		tbytes = read_u8(&p);
-		tinsts = read_u8(&p);
-		check_printf("#%d@%d: %s, sz=%d,"
-			     " nblive=%d, nilive=%d, tbytes=(%d,%d),"
-			     " tinsts=(%d,%d)\n", 
-				nrecord, npos, label, size,
-				nblive, nilive, 
-				jlong_high(tbytes), jlong_low(tbytes),
-				jlong_high(tinsts), jlong_low(tinsts));
-		break;
-            CASE_TAG(HPROF_START_THREAD)
-		CHECK_FOR_ERROR(size==6*4);
-                thread_serial_num = read_u4(&p);
-                CHECK_THREAD_SERIAL_NO(thread_serial_num);
-		id = read_u4(&p);
-		trace_serial_num = read_u4(&p);
-                CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		nm = read_u4(&p);
-		gr = read_u4(&p);
-		gn = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, thread_serial_num=%u,"
-			     " id=0x%x, trace_serial_num=%u, nm=0x%x,"
-			     " gr=0x%x, gn=0x%x\n", 
-				nrecord, npos, label, size, 
-				thread_serial_num, id, trace_serial_num, 
-				nm, gr, gn);
-		break;
-            CASE_TAG(HPROF_END_THREAD)
-		CHECK_FOR_ERROR(size==4);
-                thread_serial_num = read_u4(&p);
-                CHECK_THREAD_SERIAL_NO(thread_serial_num);
-		check_printf("#%d@%d: %s, sz=%d, thread_serial_num=%u\n", 
-				nrecord, npos, label, size, thread_serial_num);
-		break;
-            CASE_TAG(HPROF_HEAP_DUMP)
-		check_printf("#%d@%d: BEGIN: %s, sz=%d\n", 
-				nrecord, npos, label, size);
-	        nheap_records = check_heap_tags(p, size);
-		check_printf("#%d@%d: END: %s, sz=%d, nheap_recs=%d\n", 
-				nrecord, npos, label, size, nheap_records);
-	        p += size;
-		break;
-            CASE_TAG(HPROF_CPU_SAMPLES)
-		CHECK_FOR_ERROR(size>=2*4);
-		total_samples = read_u4(&p);
-		trace_count = read_u4(&p);
-		check_printf("#%d@%d: %s, sz=%d, total_samples=%d,"
-			     " trace_count=%d\n", 
-				nrecord, npos, label, size,
-				total_samples, trace_count);
-	        for(i=0; i< trace_count; i++) {
-		    num_elements = read_u4(&p);
-		    trace_serial_num = read_u4(&p);
-                    CHECK_TRACE_SERIAL_NO(trace_serial_num);
-		    check_printf("\t %d: samples=%d, trace_serial_num=%u\n",
-				 trace_serial_num, num_elements);
-	        }
-		break;
-            CASE_TAG(HPROF_CONTROL_SETTINGS)
-		CHECK_FOR_ERROR(size==4+2);
-		flags = read_u4(&p);
-		depth = read_u2(&p);
-		check_printf("#%d@%d: %s, sz=%d, flags=0x%x, depth=%d\n", 
-				nrecord, npos, label, size, flags, depth);
-		break;
-            default:
-                label = "UNKNOWN";
-		check_printf("#%d@%d: %s, sz=%d\n", 
-				nrecord, npos, label, size);
-		HPROF_ERROR(JNI_TRUE, "unknown record type");
-		p += size;
-		break;
-	}
-        CHECK_FOR_ERROR(p<=(pstart+nbytes));
-    }
-    check_flush();
-    CHECK_FOR_ERROR(p==(pstart+nbytes));
-    return nrecord;
 }
 
 /* ------------------------------------------------------------------ */
 
 void 
-io_check_binary_file(char *filename)
-{
-    unsigned char *image;
-    unsigned char *p;
-    unsigned       idsize;
-    int            nbytes;
-    int            nrecords;
-
-    image = get_binary_file_image(filename, &nbytes);
-    if ( image == NULL ) {
-        check_printf("No file image: %s\n", filename);
-	return;
-    }
-    p = image;
-    CHECK_FOR_ERROR(strcmp((char*)p, "JAVA PROFILE 1.0.1")==0);
-    check_printf("Filename=%s, nbytes=%d, header=\"%s\"\n", 
-			filename, nbytes, p);
-    p+=(strlen((char*)p)+1);
-    idsize = read_u4(&p);
-    CHECK_FOR_ERROR(idsize==sizeof(ObjectIndex));
-    (void)read_u4(&p);
-    (void)read_u4(&p);
-    /* LINTED */
-    nrecords = check_tags(p, nbytes - ( p - image ) );
-    check_printf("#%d total records found in %d bytes\n", nrecords, nbytes);
-    HPROF_FREE(image);
-}
-
-void 
 io_flush(void)
 {
+    HPROF_ASSERT(gdata->header!=NULL);
     write_flush();
 }
 
@@ -1530,6 +651,7 @@ io_setup(void)
     gdata->write_buffer_index = 0;
     
     gdata->heap_write_count = (jlong)0;
+    gdata->heap_last_tag_position = (jlong)0;
     gdata->heap_buffer_size = FILE_IO_BUFFER_SIZE;
     gdata->heap_buffer = HPROF_MALLOC(gdata->heap_buffer_size);
     gdata->heap_buffer_index = 0;
@@ -1557,6 +679,7 @@ io_cleanup(void)
 	HPROF_FREE(gdata->heap_buffer);
     }
     gdata->heap_write_count = (jlong)0;
+    gdata->heap_last_tag_position = (jlong)0;
     gdata->heap_buffer_size = 0;
     gdata->heap_buffer = NULL;
     gdata->heap_buffer_index = 0;
@@ -1576,6 +699,7 @@ io_cleanup(void)
 void
 io_write_file_header(void)
 {
+    HPROF_ASSERT(gdata->header!=NULL);
     if (gdata->output_format == 'b') {
         jint settings;
         jlong t;
@@ -1589,8 +713,8 @@ io_write_file_header(void)
         }
         t = md_get_timemillis();
         
-        write_raw(HPROF_HEADER, strlen(HPROF_HEADER) + 1);
-        write_u4((jint)sizeof(ObjectIndex));
+        write_raw(gdata->header, (int)strlen(gdata->header) + 1);
+        write_u4((jint)sizeof(HprofId));
         write_u8(t);
         
         write_header(HPROF_CONTROL_SETTINGS, 4 + 2);
@@ -1598,47 +722,53 @@ io_write_file_header(void)
         write_u2((unsigned short)gdata->max_trace_depth);
     
     } else if ((!gdata->cpu_timing) || (!gdata->old_timing_format)) {
-        /* We don't want the prelude file for the old prof output format */
-        time_t t;
-        char prelude_file[FILENAME_MAX];
-        int prelude_fd;
+	/* We don't want the prelude file for the old prof output format */
+	time_t t;
+	char prelude_file[FILENAME_MAX];
+	int prelude_fd;
 	int nbytes;
-        
-        t = time(0);
+	
+	t = time(0);
 
-        md_get_prelude_path(prelude_file, sizeof(prelude_file), PRELUDE_FILE);
+	md_get_prelude_path(prelude_file, sizeof(prelude_file), PRELUDE_FILE);
 
-        prelude_fd = md_open(prelude_file);
-        if (prelude_fd < 0) {
-            char buf[FILENAME_MAX+80];
-            
-            (void)md_snprintf(buf, sizeof(buf), "Can't open %s", prelude_file);
-            buf[sizeof(buf)-1] = 0;
-            HPROF_ERROR(JNI_TRUE, buf);
-        }
-        
-        write_printf("%s, created %s\n", HPROF_HEADER, ctime(&t));
-        
-        do {
-            char buf[1024]; /* File is small, small buffer ok here */
-            
-            nbytes = md_read(prelude_fd, buf, sizeof(buf));
+	prelude_fd = md_open(prelude_file);
+	if (prelude_fd < 0) {
+	    char buf[FILENAME_MAX+80];
+	    
+	    (void)md_snprintf(buf, sizeof(buf), "Can't open %s", prelude_file);
+	    buf[sizeof(buf)-1] = 0;
+	    HPROF_ERROR(JNI_TRUE, buf);
+	}
+	
+	write_printf("%s, created %s\n", gdata->header, ctime(&t));
+	
+	do {
+	    char buf[1024]; /* File is small, small buffer ok here */
+	    
+	    nbytes = md_read(prelude_fd, buf, sizeof(buf));
 	    if ( nbytes < 0 ) {
 		system_error("read", nbytes, errno);
-                break;
+		break;
 	    }
-            if (nbytes == 0) {
-                break;
-            }
-            write_raw(buf, nbytes);
-        } while ( nbytes > 0 );
+	    if (nbytes == 0) {
+		break;
+	    }
+	    write_raw(buf, nbytes);
+	} while ( nbytes > 0 );
 
-        md_close(prelude_fd);
-        
-        write_printf("\n--------\n\n");
+	md_close(prelude_fd);
+	
+	write_printf("\n--------\n\n");
 	
 	write_flush();
     }
+}
+
+void
+io_write_file_footer(void)
+{
+    HPROF_ASSERT(gdata->header!=NULL);
 }
 
 void
@@ -1653,7 +783,7 @@ io_write_class_load(SerialNumber class_serial_num, ObjectIndex index,
 
 	class_name = signature_to_name(sig);
         name_index = write_name_first(class_name);
-        write_header(HPROF_LOAD_CLASS, (2 * (jint)sizeof(ObjectIndex)) + (4 * 2));
+        write_header(HPROF_LOAD_CLASS, (2 * (jint)sizeof(HprofId)) + (4 * 2));
         write_u4(class_serial_num);
         write_index_id(index);
         write_u4(trace_serial_num);
@@ -1663,7 +793,7 @@ io_write_class_load(SerialNumber class_serial_num, ObjectIndex index,
 }
 
 void
-io_write_class_unload(SerialNumber class_serial_num)
+io_write_class_unload(SerialNumber class_serial_num, ObjectIndex index)
 {
     CHECK_CLASS_SERIAL_NO(class_serial_num);
     if (gdata->output_format == 'b') {
@@ -1764,7 +894,7 @@ io_write_thread_start(SerialNumber thread_serial_num,
         tname_index = write_name_first(thread_name);
         gname_index = write_name_first(thread_group_name);
         pname_index = write_name_first(thread_parent_name);
-        write_header(HPROF_START_THREAD, ((jint)sizeof(ObjectIndex) * 4) + (4 * 2));
+        write_header(HPROF_START_THREAD, ((jint)sizeof(HprofId) * 4) + (4 * 2));
         write_u4(thread_serial_num);
         write_index_id(thread_obj_id);
         write_u4(trace_serial_num);
@@ -1773,11 +903,11 @@ io_write_thread_start(SerialNumber thread_serial_num,
         write_index_id(pname_index);
     
     } else if ( (!gdata->cpu_timing) || (!gdata->old_timing_format)) {
-        /* We don't want thread info for the old prof output format */
-        write_printf("THREAD START "
-                     "(obj=%x, id = %d, name=\"%s\", group=\"%s\")\n",
-                     thread_obj_id, thread_serial_num,
-                     (thread_name==NULL?"":thread_name), 
+	/* We don't want thread info for the old prof output format */
+	write_printf("THREAD START "
+		     "(obj=%x, id = %d, name=\"%s\", group=\"%s\")\n",
+		     thread_obj_id, thread_serial_num,
+		     (thread_name==NULL?"":thread_name), 
 		     (thread_group_name==NULL?"":thread_group_name));
     }
 }
@@ -1791,14 +921,15 @@ io_write_thread_end(SerialNumber thread_serial_num)
         write_u4(thread_serial_num);
     
     } else if ( (!gdata->cpu_timing) || (!gdata->old_timing_format)) {
-        /* we don't want thread info for the old prof output format */
-        write_printf("THREAD END (id = %d)\n", thread_serial_num);
+	/* we don't want thread info for the old prof output format */
+	write_printf("THREAD END (id = %d)\n", thread_serial_num);
     }
 }
 
 void
-io_write_frame(FrameIndex index, char *mname, char *msig, char *sname,
-	    SerialNumber class_serial_num, jint lineno)
+io_write_frame(FrameIndex index, SerialNumber frame_serial_num,
+	       char *mname, char *msig, char *sname,
+	       SerialNumber class_serial_num, jint lineno)
 {
     CHECK_CLASS_SERIAL_NO(class_serial_num);
     if (gdata->output_format == 'b') {
@@ -1810,7 +941,7 @@ io_write_frame(FrameIndex index, char *mname, char *msig, char *sname,
         msig_index  = write_name_first(msig);
         sname_index = write_name_first(sname);
 
-        write_header(HPROF_FRAME, ((jint)sizeof(ObjectIndex) * 4) + (4 * 2));
+        write_header(HPROF_FRAME, ((jint)sizeof(HprofId) * 4) + (4 * 2));
         write_index_id(index);
         write_index_id(mname_index);
         write_index_id(msig_index);
@@ -1822,11 +953,11 @@ io_write_frame(FrameIndex index, char *mname, char *msig, char *sname,
 
 void
 io_write_trace_header(SerialNumber trace_serial_num, 
-			SerialNumber thread_serial_num, jint n_frames)
+		SerialNumber thread_serial_num, jint n_frames, char *phase_str)
 {
     CHECK_TRACE_SERIAL_NO(trace_serial_num);
     if (gdata->output_format == 'b') {
-        write_header(HPROF_TRACE, ((jint)sizeof(ObjectIndex) * n_frames) + (4 * 3));
+        write_header(HPROF_TRACE, ((jint)sizeof(HprofId) * n_frames) + (4 * 3));
         write_u4(trace_serial_num);
         write_u4(thread_serial_num);
         write_u4(n_frames);
@@ -1835,6 +966,9 @@ io_write_trace_header(SerialNumber trace_serial_num,
         if (thread_serial_num) {
             write_printf(" (thread=%d)", thread_serial_num);
         }
+        if ( phase_str != NULL ) {
+	    write_printf(" (from %s phase of JVM)", phase_str);
+	}
         write_printf("\n");
         if (n_frames == 0) {
             write_printf("\t<empty>\n");
@@ -1843,8 +977,9 @@ io_write_trace_header(SerialNumber trace_serial_num,
 }
 
 void
-io_write_trace_elem(FrameIndex frame_index, char *csig, char *mname,
-		    char *sname, jint lineno)
+io_write_trace_elem(SerialNumber trace_serial_num, FrameIndex frame_index, 
+		    SerialNumber frame_serial_num,
+		    char *csig, char *mname, char *sname, jint lineno)
 {
     if (gdata->output_format == 'b') {
         write_index_id(frame_index);
@@ -1875,7 +1010,8 @@ io_write_trace_elem(FrameIndex frame_index, char *csig, char *mname,
 }
 
 void
-io_write_trace_footer(void)
+io_write_trace_footer(SerialNumber trace_serial_num,
+		SerialNumber thread_serial_num, jint n_frames)
 {
 }
 
@@ -2244,7 +1380,7 @@ io_heap_root_thread_object(ObjectIndex thread_obj_id,
     CHECK_THREAD_SERIAL_NO(thread_serial_num);
     CHECK_TRACE_SERIAL_NO(trace_serial_num);
     if (gdata->output_format == 'b') {
-	 heap_u1(HPROF_GC_ROOT_THREAD_OBJ);
+	 heap_tag(HPROF_GC_ROOT_THREAD_OBJ);
 	 heap_id(thread_obj_id);
 	 heap_u4(thread_serial_num);
 	 heap_u4(trace_serial_num);
@@ -2258,7 +1394,7 @@ void
 io_heap_root_unknown(ObjectIndex obj_id)
 {
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_UNKNOWN);
+	heap_tag(HPROF_GC_ROOT_UNKNOWN);
 	heap_id(obj_id);
     } else {
 	heap_printf("ROOT %x (kind=<unknown>)\n", obj_id);
@@ -2271,7 +1407,7 @@ io_heap_root_jni_global(ObjectIndex obj_id, SerialNumber gref_serial_num,
 {
     CHECK_TRACE_SERIAL_NO(trace_serial_num);
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_JNI_GLOBAL);
+	heap_tag(HPROF_GC_ROOT_JNI_GLOBAL);
 	heap_id(obj_id);
 	heap_id(gref_serial_num);
     } else {
@@ -2287,7 +1423,7 @@ io_heap_root_jni_local(ObjectIndex obj_id, SerialNumber thread_serial_num,
 {
     CHECK_THREAD_SERIAL_NO(thread_serial_num);
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_JNI_LOCAL);
+	heap_tag(HPROF_GC_ROOT_JNI_LOCAL);
 	heap_id(obj_id);
 	heap_u4(thread_serial_num);
 	heap_u4(frame_depth);
@@ -2299,10 +1435,10 @@ io_heap_root_jni_local(ObjectIndex obj_id, SerialNumber thread_serial_num,
 }
 
 void
-io_heap_root_system_class(ObjectIndex obj_id, char *sig)
+io_heap_root_system_class(ObjectIndex obj_id, char *sig, SerialNumber class_serial_num)
 {
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_STICKY_CLASS);
+	heap_tag(HPROF_GC_ROOT_STICKY_CLASS);
 	heap_id(obj_id);
     } else {
 	char *class_name;
@@ -2318,7 +1454,7 @@ void
 io_heap_root_monitor(ObjectIndex obj_id)
 {
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_MONITOR_USED);
+	heap_tag(HPROF_GC_ROOT_MONITOR_USED);
 	heap_id(obj_id);
     } else {
 	heap_printf("ROOT %x (kind=<busy monitor>)\n", obj_id);
@@ -2330,7 +1466,7 @@ io_heap_root_thread(ObjectIndex obj_id, SerialNumber thread_serial_num)
 {
     CHECK_THREAD_SERIAL_NO(thread_serial_num);
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_THREAD_BLOCK);
+	heap_tag(HPROF_GC_ROOT_THREAD_BLOCK);
 	heap_id(obj_id);
 	heap_u4(thread_serial_num);
     } else {
@@ -2345,7 +1481,7 @@ io_heap_root_java_frame(ObjectIndex obj_id, SerialNumber thread_serial_num,
 {
     CHECK_THREAD_SERIAL_NO(thread_serial_num);
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_JAVA_FRAME);
+	heap_tag(HPROF_GC_ROOT_JAVA_FRAME);
 	heap_id(obj_id);
 	heap_u4(thread_serial_num);
 	heap_u4(frame_depth);
@@ -2361,7 +1497,7 @@ io_heap_root_native_stack(ObjectIndex obj_id, SerialNumber thread_serial_num)
 {
     CHECK_THREAD_SERIAL_NO(thread_serial_num);
     if (gdata->output_format == 'b') {
-	heap_u1(HPROF_GC_ROOT_NATIVE_STACK);
+	heap_tag(HPROF_GC_ROOT_NATIVE_STACK);
 	heap_id(obj_id);
 	heap_u4(thread_serial_num);
     } else {
@@ -2411,21 +1547,20 @@ io_heap_class_dump(ClassIndex cnum, char *sig, ObjectIndex class_id,
 
 	/* These do NOT go into the heap output */
 	for ( i = 0 ; i < n_fields ; i++ ) {
-	    char *field_name;
+	    if ( fields[i].cnum == cnum && 
+		 is_static_field(fields[i].modifiers) ) {
+	        char *field_name;
 	    
-	    field_name = string_get(fields[i].name_index);
-	    if ( is_static_field(fields[i].modifiers) ) {
+	        field_name = string_get(fields[i].name_index);
 		(void)write_name_first(field_name);
 		n_static_fields++;
 	    } 
 	    if ( is_inst_field(fields[i].modifiers) ) {
-		HprofType kind;
-		jint size;
-
-		type_from_signature(string_get(fields[i].sig_index), 
-				    &kind, &size);
-		inst_size += size;
+		inst_size += size_from_field_info(fields[i].primSize);
 		if ( fields[i].cnum == cnum ) {
+		    char *field_name;
+		
+		    field_name = string_get(fields[i].name_index);
 		    (void)write_name_first(field_name);
 		    n_inst_fields++;
 		}
@@ -2436,14 +1571,16 @@ io_heap_class_dump(ClassIndex cnum, char *sig, ObjectIndex class_id,
 	 *   through the fields, matches what is saved away with this
 	 *   class.
 	 */
-	saved_inst_size = class_get_inst_size(cnum);
-	if ( saved_inst_size == -1 ) {
-	    class_set_inst_size(cnum, inst_size);
-	} else if ( saved_inst_size != inst_size ) {
-	    HPROF_ERROR(JNI_TRUE, "Mis-match on instance size in class dump");
+	if ( size >= 0 ) {
+	    saved_inst_size = class_get_inst_size(cnum);
+	    if ( saved_inst_size == -1 ) {
+	        class_set_inst_size(cnum, inst_size);
+	    } else if ( saved_inst_size != inst_size ) {
+	        HPROF_ERROR(JNI_TRUE, "Mis-match on instance size in class dump");
+	    }
 	}
 
-	heap_u1(HPROF_GC_CLASS_DUMP);
+	heap_tag(HPROF_GC_CLASS_DUMP);
 	heap_id(class_id);
 	heap_u4(trace_serial_num);
 	heap_id(super_id);
@@ -2463,12 +1600,14 @@ io_heap_class_dump(ClassIndex cnum, char *sig, ObjectIndex class_id,
 			    &kind, &size);
 	    heap_u2((unsigned short)(cpool[i].constant_pool_index));
 	    heap_u1(kind);
+            HPROF_ASSERT(!HPROF_TYPE_IS_PRIMITIVE(kind));
 	    heap_element(kind, size, cpool[i].value);
 	}
 	
 	heap_u2((unsigned short)n_static_fields);
 	for ( i = 0 ; i < n_fields ; i++ ) {
-	    if ( is_static_field(fields[i].modifiers) ) {
+	    if ( fields[i].cnum == cnum && 
+		 is_static_field(fields[i].modifiers) ) {
 	        char *field_name;
 		HprofType kind;
 		jint size;
@@ -2484,8 +1623,8 @@ io_heap_class_dump(ClassIndex cnum, char *sig, ObjectIndex class_id,
 	
 	heap_u2((unsigned short)n_inst_fields); /* Does not include super class */
 	for ( i = 0 ; i < n_fields ; i++ ) {
-	    if ( is_inst_field(fields[i].modifiers) && 
-		 fields[i].cnum == cnum ) {
+	    if ( fields[i].cnum == cnum &&
+		 is_inst_field(fields[i].modifiers) ) {
 		HprofType kind;
 		jint size;
 		char *field_name;
@@ -2518,13 +1657,14 @@ io_heap_class_dump(ClassIndex cnum, char *sig, ObjectIndex class_id,
 	    heap_printf("\tdomain\t\t%x\n", domain_id);
 	}
 	for ( i = 0 ; i < n_fields ; i++ ) {
-	    if ( is_static_field(fields[i].modifiers) ) {
+	    if ( fields[i].cnum == cnum &&
+	         is_static_field(fields[i].modifiers) ) {
 		HprofType kind;
 		jint size;
 		
 		type_from_signature(string_get(fields[i].sig_index), 
 				&kind, &size);
-		if ( !type_is_primitive(kind) ) {
+		if ( !HPROF_TYPE_IS_PRIMITIVE(kind) ) {
 		    if (fvalues[i].i != 0 ) {
 	                char *field_name;
 	    
@@ -2535,35 +1675,51 @@ io_heap_class_dump(ClassIndex cnum, char *sig, ObjectIndex class_id,
 		}
 	    }
 	}
+	for ( i = 0 ; i < n_cpool ; i++ ) {
+	    HprofType kind;
+	    jint size;
+
+	    type_from_signature(string_get(cpool[i].sig_index), &kind, &size);
+	    if ( !HPROF_TYPE_IS_PRIMITIVE(kind) ) {
+		if (cpool[i].value.i != 0 ) {
+		    heap_printf("\tconstant pool entry %d\t%x\n", 
+			    cpool[i].constant_pool_index, cpool[i].value.i);
+		}
+	    }
+	}
     }
 }
 
 /* Dump the instance fields in the right order. */
-static void
+static int
 dump_instance_fields(ClassIndex cnum, 
 		     FieldInfo *fields, jvalue *fvalues, jint n_fields)
 {
     ClassIndex super_cnum;
     int        i;
+    int        nbytes;
 
     HPROF_ASSERT(cnum!=0);
 
+    nbytes = 0;
     for (i = 0; i < n_fields; i++) {
-	if ( fields[i].cnum == cnum && is_inst_field(fields[i].modifiers) ) {
+	if ( fields[i].cnum == cnum && 
+	     is_inst_field(fields[i].modifiers) ) {
 	    HprofType kind;
 	    int size;
     
 	    type_from_signature(string_get(fields[i].sig_index), 
 			    &kind, &size);
 	    heap_element(kind, size, fvalues[i]);
+	    nbytes += size;
 	}
     }
 
     super_cnum = class_get_super(cnum);
     if ( super_cnum != 0 ) {
-        dump_instance_fields(super_cnum, fields, fvalues, n_fields);
+        nbytes += dump_instance_fields(super_cnum, fields, fvalues, n_fields);
     }
-
+    return nbytes;
 }
 
 void
@@ -2577,18 +1733,13 @@ io_heap_instance_dump(ClassIndex cnum, ObjectIndex obj_id,
 	jint inst_size;
 	jint saved_inst_size;
 	int  i;
+	int  nbytes;
 
 	inst_size = 0;
 	for (i = 0; i < n_fields; i++) {
 	    if ( is_inst_field(fields[i].modifiers) ) {
-		HprofType kind;
-		int       size;
-	    
-		type_from_signature(string_get(fields[i].sig_index), 
-				&kind, &size);
-		inst_size += size;
+		inst_size += size_from_field_info(fields[i].primSize);
 	    }
-	    
 	}
 	
 	/* Verify that the instance size we have calculated as we went
@@ -2602,14 +1753,15 @@ io_heap_instance_dump(ClassIndex cnum, ObjectIndex obj_id,
 	    HPROF_ERROR(JNI_TRUE, "Mis-match on instance size in instance dump");
 	}
 	
-	heap_u1(HPROF_GC_INSTANCE_DUMP);
+	heap_tag(HPROF_GC_INSTANCE_DUMP);
 	heap_id(obj_id);
 	heap_u4(trace_serial_num);
 	heap_id(class_id);
 	heap_u4(inst_size); /* Must match inst_size in class dump */
 	
         /* Order must be class, super, super's super, ... */
-	dump_instance_fields(cnum, fields, fvalues, n_fields);
+	nbytes = dump_instance_fields(cnum, fields, fvalues, n_fields);
+	HPROF_ASSERT(nbytes==inst_size);
     } else {
 	char * class_name;
 	int i;
@@ -2626,7 +1778,7 @@ io_heap_instance_dump(ClassIndex cnum, ObjectIndex obj_id,
 
 		type_from_signature(string_get(fields[i].sig_index), 
 			    &kind, &size);
-		if ( !type_is_primitive(kind) ) {
+		if ( !HPROF_TYPE_IS_PRIMITIVE(kind) ) {
 		    if (fvalues[i].i != 0 ) {
 			char *sep;
 			ObjectIndex val_id;
@@ -2634,7 +1786,7 @@ io_heap_instance_dump(ClassIndex cnum, ObjectIndex obj_id,
 		    
 			field_name = string_get(fields[i].name_index);
 			val_id =  (ObjectIndex)(fvalues[i].i);
-			sep = strlen(field_name) < 8 ? "\t" : "";
+			sep = (int)strlen(field_name) < 8 ? "\t" : "";
 			heap_printf("\t%s\t%s%x\n", field_name, sep, val_id);
 		    }
 		}
@@ -2645,19 +1797,19 @@ io_heap_instance_dump(ClassIndex cnum, ObjectIndex obj_id,
 
 void
 io_heap_object_array(ObjectIndex obj_id, SerialNumber trace_serial_num, 
-		jint size, jint num_elements, ObjectIndex class_id, 
-		jvalue *values, char *sig)
+		jint size, jint num_elements, char *sig, ObjectIndex *values,
+		ObjectIndex class_id)
 {
     CHECK_TRACE_SERIAL_NO(trace_serial_num);
     if (gdata->output_format == 'b') {
 
-	heap_u1(HPROF_GC_OBJ_ARRAY_DUMP);
+	heap_tag(HPROF_GC_OBJ_ARRAY_DUMP);
 	heap_id(obj_id);
 	heap_u4(trace_serial_num);
 	heap_u4(num_elements);
 	heap_id(class_id);
 	heap_elements(HPROF_NORMAL_OBJECT, num_elements, 
-		(jint)sizeof(ObjectIndex), values);
+		(jint)sizeof(HprofId), (void*)values);
     } else {
 	char *name;
 	int i;
@@ -2669,7 +1821,7 @@ io_heap_object_array(ObjectIndex obj_id, SerialNumber trace_serial_num,
 	for (i = 0; i < num_elements; i++) {  
 	    ObjectIndex id;
 	    
-	    id = (ObjectIndex)values[i].i;
+	    id = values[i];
 	    if (id != 0) {
 		heap_printf("\t[%u]\t\t%x\n", i, id);
 	    }
@@ -2679,9 +1831,8 @@ io_heap_object_array(ObjectIndex obj_id, SerialNumber trace_serial_num,
 }
 
 void
-io_heap_prim_array(ObjectIndex obj_id, jint size, 
-			SerialNumber trace_serial_num, 
-			jint num_elements, char *sig, jvalue *values)
+io_heap_prim_array(ObjectIndex obj_id, SerialNumber trace_serial_num, 
+	      jint size, jint num_elements, char *sig, void *elements)
 {
     CHECK_TRACE_SERIAL_NO(trace_serial_num);
     if (gdata->output_format == 'b') {
@@ -2689,12 +1840,13 @@ io_heap_prim_array(ObjectIndex obj_id, jint size,
 	jint  esize;
 
 	type_array(sig, &kind, &esize);
-	heap_u1(HPROF_GC_PRIM_ARRAY_DUMP);
+        HPROF_ASSERT(HPROF_TYPE_IS_PRIMITIVE(kind));
+	heap_tag(HPROF_GC_PRIM_ARRAY_DUMP);
 	heap_id(obj_id);
 	heap_u4(trace_serial_num);
 	heap_u4(num_elements);
 	heap_u1(kind);
-	heap_elements(kind, num_elements, esize, values);
+	heap_elements(kind, num_elements, esize, elements);
     } else {
 	char *name;
 
@@ -2705,33 +1857,15 @@ io_heap_prim_array(ObjectIndex obj_id, jint size,
     }
 }
 
-void
-io_heap_footer(void)
+/* Move file bytes into supplied raw interface */
+static void
+write_raw_from_file(int fd, jlong byteCount, void (*raw_interface)(void *,int))
 {
     char *buf;
     int   buf_len;
-    jlong bytes_written;
-    int   nbytes;
     int   left;
-    int   fd;
-    
-    HPROF_ASSERT(gdata->heap_fd >= 0);
-    
-    /* Flush all bytes to the heap dump file */
-    heap_flush();
-    
-    /* We kept track of how many bytes we wrote out. */
-    bytes_written = gdata->heap_write_count;
- 
-    /* Re-open in proper way, binary vs. ascii is important */
-    if (gdata->output_format == 'b') {
-	/* Write header for binary heap dump (don't know size until now) */
-	write_header(HPROF_HEAP_DUMP, (jint)bytes_written);
-        
-	fd = md_open_binary(gdata->heapfilename);
-    } else {
-        fd = md_open(gdata->heapfilename);
-    }
+    int   nbytes;
+
     HPROF_ASSERT(fd >= 0);
 
     /* Move contents of this file into output file. */
@@ -2740,7 +1874,7 @@ io_heap_footer(void)
     HPROF_ASSERT(buf!=NULL);
 
     /* Keep track of how many we have left */
-    left = (int)bytes_written;
+    left = (int)byteCount;
     do {
 	int count;
 
@@ -2755,7 +1889,7 @@ io_heap_footer(void)
 	    break;
 	}
 	if ( nbytes > 0 ) {
-	    write_raw(buf, nbytes);
+	    (*raw_interface)(buf, nbytes);
 	    left -= nbytes;
 	}
     } while ( left > 0 );
@@ -2763,21 +1897,82 @@ io_heap_footer(void)
     if (left > 0 && nbytes == 0) {
 	HPROF_ERROR(JNI_TRUE, "File size is smaller than bytes written");
     }
-    
     HPROF_FREE(buf);
-    md_close(fd);
+}
 
-    /* Clear the byte counte and reset the file. */
-    gdata->heap_write_count = (jlong)0;
+/* Write out a heap segment, and copy remainder to top of file. */
+static void
+dump_heap_segment_and_reset(jlong segment_size)
+{
+    int   fd;
+    char *last_chunk;
+    jlong last_chunk_len;
+    
+    HPROF_ASSERT(gdata->heap_fd >= 0);
+    
+    /* Flush all bytes to the heap dump file */
+    heap_flush();
+    
+    /* Last segment? */
+    last_chunk_len = gdata->heap_write_count - segment_size;
+    HPROF_ASSERT(last_chunk_len>=0);
+ 
+    /* Re-open in proper way, binary vs. ascii is important */
+    if (gdata->output_format == 'b') {
+        int   tag;
+
+	if ( gdata->segmented == JNI_TRUE ) { /* 1.0.2 */
+	    tag = HPROF_HEAP_DUMP_SEGMENT; /* 1.0.2 */
+	} else {
+	    tag = HPROF_HEAP_DUMP; /* Just one segment */
+            HPROF_ASSERT(last_chunk_len==0);
+	}
+	
+	/* Write header for binary heap dump (don't know size until now) */
+	write_header(tag, (jint)segment_size);
+        
+	fd = md_open_binary(gdata->heapfilename);
+    } else {
+        fd = md_open(gdata->heapfilename);
+    }
+
+    /* Move file bytes into hprof dump file */
+    write_raw_from_file(fd, segment_size, &write_raw);
+    
+    /* Clear the byte count and reset the heap file. */
     if ( md_seek(gdata->heap_fd, (jlong)0) != (jlong)0 ) {
 	HPROF_ERROR(JNI_TRUE, "Cannot seek to beginning of heap info file");
     }
-  
-    /* For ascii mode, write out the final message */
-    if (gdata->output_format != 'b') {
-	write_printf("HEAP DUMP END\n");
-    }
-     
+    gdata->heap_write_count = (jlong)0;
+    gdata->heap_last_tag_position = (jlong)0;
+
+    /* Move trailing bytes from heap dump file to beginning of file */
+    if ( last_chunk_len > 0 ) {
+        write_raw_from_file(fd, last_chunk_len, &heap_raw);
+    } 
+
+    /* Close the temp file handle */
+    md_close(fd);
 }
 
+void
+io_heap_footer(void)
+{
+    HPROF_ASSERT(gdata->heap_fd >= 0);
+    
+    /* Flush all bytes to the heap dump file */
+    heap_flush();
+    
+    /* Send out the last (or maybe only) segment */
+    dump_heap_segment_and_reset(gdata->heap_write_count);
+
+    /* Write out the last tag */
+    if (gdata->output_format != 'b') {
+	write_printf("HEAP DUMP END\n");
+    } else {
+	if ( gdata->segmented == JNI_TRUE ) { /* 1.0.2 */
+	    write_header(HPROF_HEAP_DUMP_END, 0);
+	}
+    }
+}
 

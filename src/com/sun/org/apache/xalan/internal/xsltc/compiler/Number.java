@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Number.java,v 1.14 2004/02/24 02:58:42 zongaro Exp $
+ * $Id: Number.java,v 1.2.4.1 2005/09/21 09:40:51 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -34,7 +34,7 @@ import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import com.sun.org.apache.bcel.internal.generic.INVOKESTATIC;
 import com.sun.org.apache.bcel.internal.generic.INVOKEVIRTUAL;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
-import com.sun.org.apache.bcel.internal.generic.L2I;
+import com.sun.org.apache.bcel.internal.generic.D2I;
 import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.bcel.internal.generic.PUSH;
@@ -511,15 +511,16 @@ final class Number extends Instruction implements Closure {
 	    compileDefault(classGen, methodGen);
 	    _value.translate(classGen, methodGen);
 
-	    // Round the number to the nearest integer
-	    index = cpg.addMethodref(MATH_CLASS, "round", "(D)J");
+	    // Using java.lang.Math.floor(number + 0.5) to return a double value
+            il.append(new PUSH(cpg, 0.5));
+            il.append(DADD);
+	    index = cpg.addMethodref(MATH_CLASS, "floor", "(D)D");
 	    il.append(new INVOKESTATIC(index));
-	    il.append(new L2I());
 
 	    // Call setValue on the node counter
 	    index = cpg.addMethodref(NODE_COUNTER, 
 				     "setValue", 
-				     "(I)" + NODE_COUNTER_SIG);
+				     "(D)" + NODE_COUNTER_SIG);
 	    il.append(new INVOKEVIRTUAL(index));
 	}
 	else if (isDefault()) {

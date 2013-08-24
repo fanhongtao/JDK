@@ -1,7 +1,7 @@
 /*
- * @(#)PerformanceMonitor.java	1.35 04/07/26
+ * @(#)PerformanceMonitor.java	1.39 06/08/25
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)PerformanceMonitor.java	1.35 04/07/26
+ * @(#)PerformanceMonitor.java	1.39 06/08/25
  */
 
 
@@ -122,13 +122,11 @@ public class PerformanceMonitor extends JPanel {
     
     
         public void setSurfaceState() {
-            if (panel == null) {
-                return;
-            }
-            Component cmps[] = panel.getComponents();
-            for (int i = 0; i < cmps.length; i++) {
-                if (((DemoPanel) cmps[i]).surface != null) {
-                    ((DemoPanel) cmps[i]).surface.setMonitor(thread != null);
+            if (panel != null) {
+                for (Component comp : panel.getComponents()) {
+                    if (((DemoPanel) comp).surface != null) {
+                        ((DemoPanel) comp).surface.setMonitor(thread != null);
+                    }
                 }
             }
         }
@@ -149,27 +147,35 @@ public class PerformanceMonitor extends JPanel {
                 } catch (InterruptedException e) { return; }
             }
     
-            Dimension d = getSize();
-            bimg = (BufferedImage) createImage(d.width, d.height);
-            Graphics2D big = bimg.createGraphics();
-            big.setFont(font);
-            FontMetrics fm = big.getFontMetrics();
-            int ascent = fm.getAscent();
-            int descent = fm.getDescent();
-            setSurfaceState();
-    
+            Dimension d = new Dimension(0, 0);
+            Graphics2D big = null;
+            FontMetrics fm = null;
+            int ascent  = 0;
+            int descent = 0;
+            
             while (thread == me && isShowing()) {
+
+                if (getWidth() != d.width || getHeight() != d.height) {
+                    d = getSize();
+                    bimg = (BufferedImage) createImage(d.width, d.height);
+                    big = bimg.createGraphics();
+                    big.setFont(font);
+                    fm = big.getFontMetrics();
+                    ascent  = fm.getAscent();
+                    descent = fm.getDescent();
+                    setSurfaceState();
+                }
+
                 big.setBackground(getBackground());
                 big.clearRect(0, 0, d.width, d.height);
                 if (panel == null) {
                     continue;
                 }
-                Component cmps[] = panel.getComponents();
                 big.setColor(Color.green);
                 int ssH = 1;
-                for (int i = 0; i < cmps.length; i++) {
-                    if (((DemoPanel) cmps[i]).surface != null) {
-                        String pStr = ((DemoPanel) cmps[i]).surface.perfStr;
+                for (Component comp : panel.getComponents()) {
+                    if (((DemoPanel) comp).surface != null) {
+                        String pStr = ((DemoPanel) comp).surface.perfStr;
                         if (pStr != null) {
                             ssH += ascent;
                             big.drawString(pStr, 4, ssH+1);

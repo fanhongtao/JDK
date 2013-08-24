@@ -1,7 +1,7 @@
 /*
- * @(#)InetAddress.java	1.109 04/04/19 
+ * @(#)InetAddress.java	1.115 06/07/26 
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -103,24 +103,24 @@ import sun.net.spi.nameservice.*;
  * the host associated with the IP address is returned.
  *
  * <p> The InetAddress class provides methods to resolve host names to
- * their IP addresses and vise versa.
+ * their IP addresses and vice versa.
  *
  * <h4> InetAddress Caching </h4>
  *
  * The InetAddress class has a cache to store successful as well as
- * unsuccessful host name resolutions. The positive caching is there
- * to guard against DNS spoofing attacks; while the negative caching
- * is used to improve performance.
+ * unsuccessful host name resolutions. 
  *
- * <p> By default, the result of positive host name resolutions are
- * cached forever, because there is no general rule to decide when it
- * is safe to remove cache entries. The result of unsuccessful host
+ * <p> By default, when a security manager is installed, in order to
+ * protect against DNS spoofing attacks,
+ * the result of positive host name resolutions are
+ * cached forever. When a security manager is not installed, the default
+ * behavior is to cache entries for a finite (implementation dependent)
+ * period of time. The result of unsuccessful host
  * name resolution is cached for a very short period of time (10
  * seconds) to improve performance.
  *
- * <p> Under certain circumstances where it can be determined that DNS
- * spoofing attacks are not possible, a Java security property can be
- * set to a different Time-to-live (TTL) value for positive
+ * <p> If the default behavior is not desired, then a Java security property
+ * can be set to a different Time-to-live (TTL) value for positive
  * caching. Likewise, a system admin can configure a different
  * negative caching TTL value when needed.
  *
@@ -129,10 +129,11 @@ import sun.net.spi.nameservice.*;
  * 
  * <blockquote>
  * <dl>
- * <dt><b>networkaddress.cache.ttl</b> (default: -1)</dt>
+ * <dt><b>networkaddress.cache.ttl</b></dt>
  * <dd>Indicates the caching policy for successful name lookups from
  * the name service. The value is specified as as integer to indicate
- * the number of seconds to cache the successful lookup.
+ * the number of seconds to cache the successful lookup. The default
+ * setting is to cache for an implementation specific period of time.
  * <p>
  * A value of -1 indicates "cache forever".
  * </dd>
@@ -150,7 +151,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.109, 04/19/04
+ * @version 1.115, 07/26/06
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -637,11 +638,9 @@ class InetAddress implements java.io.Serializable {
     /*
      * Cached addresses - our own litle nis, not!
      */
-    private static Cache addressCache =
-        new Cache(InetAddressCachePolicy.get());
+    private static Cache addressCache = new Cache(Cache.Type.Positive);
 
-    private static Cache negativeCache =
-        new Cache(InetAddressCachePolicy.getNegative());
+    private static Cache negativeCache = new Cache(Cache.Type.Negative);
 
     private static boolean addressCacheInit = false;
 
@@ -670,15 +669,25 @@ class InetAddress implements java.io.Serializable {
      * at creation time.
      */
     static final class Cache {
-	private int policy;
 	private LinkedHashMap cache; 
+	private Type type;
+
+	enum Type {Positive, Negative};
 
 	/**
-	 * Create cache with specific policy 
+	 * Create cache 
 	 */
-	public Cache(int policy) {
-	    this.policy = policy;
+	public Cache(Type type) {
+	    this.type = type;
 	    cache = new LinkedHashMap();
+	}
+
+	private int getPolicy() {
+	    if (type == Type.Positive) {
+		return InetAddressCachePolicy.get();
+	    } else {
+		return InetAddressCachePolicy.getNegative();
+	    }
 	}
 
 	/**
@@ -687,6 +696,7 @@ class InetAddress implements java.io.Serializable {
 	 * replaced.
 	 */
 	public Cache put(String host, Object address) {
+	    int policy = getPolicy();
 	    if (policy == InetAddressCachePolicy.NEVER) {
                 return this;
 	    }
@@ -737,6 +747,7 @@ class InetAddress implements java.io.Serializable {
 	 * return its CacheEntry, or null if not found.
 	 */
 	public CacheEntry get(String host) {
+	    int policy = getPolicy();
 	    if (policy == InetAddressCachePolicy.NEVER) {
 		return null;
 	    }
@@ -833,7 +844,7 @@ class InetAddress implements java.io.Serializable {
 		if (provider.equals("default")) {
 		    // initialize the default name service
 		    nameService = new NameService() {
-			public byte[][] lookupAllHostAddr(String host) 
+			public InetAddress[] lookupAllHostAddr(String host) 
 			    throws UnknownHostException {
 			    return impl.lookupAllHostAddr(host);
 			}
@@ -1122,11 +1133,7 @@ class InetAddress implements java.io.Serializable {
 
 	/* If no entry in cache, then do the host lookup */
 	if (obj == null) {
-	    try {
-	        obj = getAddressFromNameService(host);
-	    } catch (UnknownHostException uhe) {
-		throw new UnknownHostException(host + ": " + uhe.getMessage());
-	    }
+	    obj = getAddressFromNameService(host);
 	}
 
 	if (obj == unknown_array) 
@@ -1172,25 +1179,20 @@ class InetAddress implements java.io.Serializable {
 		 * constructor.  if you do you will still be
 		 * allocating space when the lookup fails.
 		 */
-		byte[][] byte_array;
-		byte_array = nameService.lookupAllHostAddr(host);
-		InetAddress[] addr_array =
-		    new InetAddress[byte_array.length];
-
-		for (int i = 0; i < byte_array.length; i++) {
-		    byte addr[] = byte_array[i];
-		    if (addr.length == Inet4Address.INADDRSZ) {
-			addr_array[i] = new Inet4Address(host, addr);
-		    } else {
-			addr_array[i] = new Inet6Address(host, addr, -1);
-		    }
-		}
-		obj = addr_array;
+		 
+		obj = nameService.lookupAllHostAddr(host);
 		success = true;
 	    } catch (UnknownHostException uhe) {
-		obj  = unknown_array; 
-		success = false;
-		throw uhe;
+		if (host.equalsIgnoreCase("localhost")) {
+		    InetAddress[] local = new InetAddress[] { impl.loopbackAddress() };
+		    obj = local;
+		    success = true;
+		}
+		else {
+		    obj  = unknown_array; 
+		    success = false;
+		    throw uhe;
+		}
 	    } finally {
 		// Cache the address.
 		cacheAddress(host, obj, success);
@@ -1297,6 +1299,11 @@ class InetAddress implements java.io.Serializable {
 	    if (security != null) {
 		security.checkConnect(local, -1);
 	    }
+
+	    if (local.equals("localhost")) {
+		return impl.loopbackAddress();
+	    }
+
 	    // we are calling getAddressFromNameService directly
 	    // to avoid getting localHost from cache 
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Character.java	1.31 04/09/14
+ * @(#)Character.java	1.35 06/05/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -86,7 +86,7 @@ import java.util.Locale;
  * (a CJK ideograph).
  * </ul>
  *
- * <p>In the J2SE API documentation, <em>Unicode code point</em> is
+ * <p>In the Java SE API documentation, <em>Unicode code point</em> is
  * used for character values in the range between U+0000 and U+10FFFF,
  * and <em>Unicode code unit</em> is used for 16-bit
  * <code>char</code> values that are code units of the <em>UTF-16</em>
@@ -2193,7 +2193,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      * is in the supplementary character range. The method call is
      * equivalent to the expression:
      * <blockquote><pre>
-     * codePoint >= 0x10000 && codePoint <= 0x10ffff
+     * codePoint >= 0x10000 && codePoint <= 0x10FFFF
      * </pre></blockquote>
      *
      * @param  codePoint the character (Unicode code point) to be tested
@@ -3646,6 +3646,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      * @see     java.lang.Character#isJavaIdentifierPart(char)
      * @see     java.lang.Character#isLetter(char)
      * @see     java.lang.Character#isUnicodeIdentifierStart(char)
+     * @see     javax.lang.model.SourceVersion#isIdentifier(CharSequence)
      * @since   1.1
      */
     public static boolean isJavaIdentifierStart(char ch) {
@@ -3674,6 +3675,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      * @see     java.lang.Character#isJavaIdentifierPart(int)
      * @see     java.lang.Character#isLetter(int)
      * @see     java.lang.Character#isUnicodeIdentifierStart(int)
+     * @see     javax.lang.model.SourceVersion#isIdentifier(CharSequence)
      * @since   1.5
      */
     public static boolean isJavaIdentifierStart(int codePoint) {
@@ -3752,6 +3754,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      * @see     java.lang.Character#isJavaIdentifierStart(char)
      * @see     java.lang.Character#isLetterOrDigit(char)
      * @see     java.lang.Character#isUnicodeIdentifierPart(char)
+     * @see     javax.lang.model.SourceVersion#isIdentifier(CharSequence)
      * @since   1.1
      */
     public static boolean isJavaIdentifierPart(char ch) {
@@ -3784,6 +3787,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      * @see     java.lang.Character#isJavaIdentifierStart(int)
      * @see     java.lang.Character#isLetterOrDigit(int)
      * @see     java.lang.Character#isUnicodeIdentifierPart(int)
+     * @see     javax.lang.model.SourceVersion#isIdentifier(CharSequence)
      * @since   1.5
      */
     public static boolean isJavaIdentifierPart(int codePoint) {
@@ -5179,7 +5183,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      * #DIRECTIONALITY_UNDEFINED}.
      *
      * @param   codePoint the character (Unicode code point) for which
-     *          the directionality property * is requested.
+     *          the directionality property is requested.
      * @return the directionality property of the character.
      *
      * @see Character#DIRECTIONALITY_UNDEFINED DIRECTIONALITY_UNDEFINED

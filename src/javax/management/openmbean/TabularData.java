@@ -1,7 +1,7 @@
 /*
- * @(#)TabularData.java	3.19 04/02/10
+ * @(#)TabularData.java	3.21 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,6 @@ package javax.management.openmbean;
 
 // java import
 //
-import java.io.Serializable;
-import java.util.Map;
 import java.util.Set;
 import java.util.Collection;
 
@@ -24,7 +22,7 @@ import java.util.Collection;
  * The <tt>TabularData</tt> interface specifies the behavior of a specific type of complex <i>open data</i> objects
  * which represent <i>tabular data</i> structures.
  *
- * @version     3.19  04/02/10
+ * @version     3.21  05/11/17
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
@@ -214,21 +212,29 @@ public interface TabularData /*extends Map*/ {
 
 
     /**
-     * Returns a set view of the keys (ie the index values) of the <tt>CompositeData</tt> values (ie the rows) 
-     * contained in this <tt>TabularData</tt> instance. The returned Set can then be used to iterate over the keys.
+     * Returns a set view of the keys (ie the index values) of the
+     * {@code CompositeData} values (ie the rows) contained in this
+     * {@code TabularData} instance. The returned {@code Set} is a
+     * {@code Set<List<?>>} but is declared as a {@code Set<?>} for
+     * compatibility reasons. The returned set can be used to iterate
+     * over the keys.
      *
-     * @return a set view of the index values used in this <tt>TabularData</tt> instance.
+     * @return a set view ({@code Set<List<?>>}) of the index values
+     * used in this {@code TabularData} instance.
      */
-    public Set keySet();
+    public Set<?> keySet();
 
     /**
-     * Returns a collection view of the <tt>CompositeData</tt> values (ie the rows) 
-     * contained in this <tt>TabularData</tt> instance. 
-     * The returned collection can then be used to iterate over the values.
+     * Returns a collection view of the {@code CompositeData} values
+     * (ie the rows) contained in this {@code TabularData} instance.
+     * The returned {@code Collection} is a {@code Collection<CompositeData>}
+     * but is declared as a {@code Collection<?>} for compatibility reasons.
+     * The returned collection can be used to iterate over the values.
      *
-     * @return a collection view of the rows contained in this <tt>TabularData</tt> instance.
+     * @return a collection view ({@code Collection<CompositeData>})
+     * of the rows contained in this {@code TabularData} instance.
      */
-    public Collection values();
+    public Collection<?> values();
 
 
 

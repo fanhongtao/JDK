@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_util.c	1.51 05/09/30
+ * @(#)hprof_util.c	1.57 06/01/28
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -66,17 +66,17 @@ getEnv(void)
     jint    res;
     
     res = JVM_FUNC_PTR(gdata->jvm,GetEnv)
-		     (gdata->jvm, (void **)&env, JNI_VERSION_1_2);
+                     (gdata->jvm, (void **)&env, JNI_VERSION_1_2);
     if (res != JNI_OK) {
         char buf[256];
 
         (void)md_snprintf(buf, sizeof(buf),
                 "Unable to access JNI Version 1.2 (0x%x),"
-                " is your J2SE a 1.5 or newer version?"
+                " is your JDK a 5.0 or newer version?"
                 " JNIEnv's GetEnv() returned %d",
                JNI_VERSION_1_2, res);
         buf[sizeof(buf)-1] = 0;
-	HPROF_ERROR(JNI_FALSE, buf);
+        HPROF_ERROR(JNI_FALSE, buf);
         error_exit_process(1); /* Kill entire process, no core dump */
     }
     return env;
@@ -94,7 +94,7 @@ jvmtiAllocate(int size)
     HPROF_ASSERT(size>=0);
     ptr = NULL;
     if ( size == 0 ) {
-	return ptr;
+        return ptr;
     }
     error = JVMTI_FUNC_PTR(gdata->jvmti,Allocate)
                 (gdata->jvmti, (jlong)size, &ptr);
@@ -110,11 +110,11 @@ jvmtiDeallocate(void *ptr)
     if ( ptr != NULL ) {
         jvmtiError error;
 
-	error = JVMTI_FUNC_PTR(gdata->jvmti,Deallocate)
-		    (gdata->jvmti, (unsigned char*)ptr);
-	if ( error != JVMTI_ERROR_NONE ) {
-	    HPROF_JVMTI_ERROR(error, "Cannot deallocate jvmti memory");
-	}
+        error = JVMTI_FUNC_PTR(gdata->jvmti,Deallocate)
+                    (gdata->jvmti, (unsigned char*)ptr);
+        if ( error != JVMTI_ERROR_NONE ) {
+            HPROF_JVMTI_ERROR(error, "Cannot deallocate jvmti memory");
+        }
     }
 }
 
@@ -128,11 +128,11 @@ hprof_debug_malloc(int size, char *file, int line)
     HPROF_ASSERT(size>0);
     
     rawMonitorEnter(gdata->debug_malloc_lock); {
-	ptr = debug_malloc(size, file, line);
+        ptr = debug_malloc(size, file, line);
     } rawMonitorExit(gdata->debug_malloc_lock);
     
     if ( ptr == NULL ) {
-	HPROF_ERROR(JNI_TRUE, "Cannot allocate malloc memory");
+        HPROF_ERROR(JNI_TRUE, "Cannot allocate malloc memory");
     }
     return ptr;
 }
@@ -172,7 +172,7 @@ hprof_free(void *ptr)
 /* ------------------------------------------------------------------- */
 /* JVMTI Version functions */
 
-static jint
+jint
 jvmtiVersion(void)
 {
     if (gdata->cachedJvmtiVersion == 0) {
@@ -213,12 +213,6 @@ static jboolean
 compatible_versions(jint major_runtime,     jint minor_runtime,
                     jint major_compiletime, jint minor_compiletime)
 {
-#if 1 /* FIXUP: We allow version 0 to be compatible with anything */
-    /* Special check for FCS of 1.0. */
-    if ( major_runtime == 0 || major_compiletime == 0 ) {
-        return JNI_TRUE;
-    }
-#endif
     /* Runtime major version must match. */
     if ( major_runtime != major_compiletime ) {
         return JNI_FALSE;
@@ -253,15 +247,15 @@ void
 rawMonitorEnter(jrawMonitorID m)
 {
     jvmtiError error;
-	
+        
     error = JVMTI_FUNC_PTR(gdata->jvmti,RawMonitorEnter)
-		(gdata->jvmti, m);
+                (gdata->jvmti, m);
     if ( error == JVMTI_ERROR_WRONG_PHASE ) {
-	/* Treat this as ok, after agent shutdown CALLBACK code may call this */
-	error = JVMTI_ERROR_NONE;
+        /* Treat this as ok, after agent shutdown CALLBACK code may call this */
+        error = JVMTI_ERROR_NONE;
     }
     if ( error != JVMTI_ERROR_NONE ) {
-	HPROF_JVMTI_ERROR(error, "Cannot enter with raw monitor");
+        HPROF_JVMTI_ERROR(error, "Cannot enter with raw monitor");
     }
 }
 
@@ -295,13 +289,13 @@ rawMonitorExit(jrawMonitorID m)
     jvmtiError error;
 
     error = JVMTI_FUNC_PTR(gdata->jvmti,RawMonitorExit)
-		(gdata->jvmti, m);
+                (gdata->jvmti, m);
     if ( error == JVMTI_ERROR_WRONG_PHASE ) {
-	/* Treat this as ok, after agent shutdown CALLBACK code may call this */
-	error = JVMTI_ERROR_NONE;
+        /* Treat this as ok, after agent shutdown CALLBACK code may call this */
+        error = JVMTI_ERROR_NONE;
     }
     if ( error != JVMTI_ERROR_NONE ) {
-	HPROF_JVMTI_ERROR(error, "Cannot exit with raw monitor");
+        HPROF_JVMTI_ERROR(error, "Cannot exit with raw monitor");
     }
 }
 
@@ -312,12 +306,10 @@ destroyRawMonitor(jrawMonitorID m)
 
     error = JVMTI_FUNC_PTR(gdata->jvmti,DestroyRawMonitor)
                 (gdata->jvmti, m);
-#if 1 /* FIXUP: Remove this code when JVMTI allows this after VM_DEATH */
     if ( error == JVMTI_ERROR_WRONG_PHASE ) {
-	/* Treat this as ok */
-	error = JVMTI_ERROR_NONE;
+        /* Treat this as ok */
+        error = JVMTI_ERROR_NONE;
     }
-#endif
     if ( error != JVMTI_ERROR_NONE ) {
         HPROF_JVMTI_ERROR(error, "Cannot destroy raw monitor");
     }
@@ -444,100 +436,6 @@ getSuperclass(JNIEnv *env, jclass klass)
     return super_klass;
 }
 
-jvalue
-getFieldValue(JNIEnv *env, jobject object, jfieldID field, char *field_sig)
-/* WARNING: Must be called inside WITH_LOCAL_REFS */
-{
-    jvalue value;
-    static jvalue empty_value;
-    
-    value = empty_value;
-    HPROF_ASSERT(env!=NULL);
-    HPROF_ASSERT(object!=NULL);
-    switch ( field_sig[0] ) {
-	case JVM_SIGNATURE_CLASS:
-	case JVM_SIGNATURE_ENUM:
-	case JVM_SIGNATURE_ARRAY:
-            value.l = JNI_FUNC_PTR(env,GetObjectField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_BYTE:
-            value.b = JNI_FUNC_PTR(env,GetByteField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_CHAR:
-            value.c = JNI_FUNC_PTR(env,GetCharField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_FLOAT:
-            value.f = JNI_FUNC_PTR(env,GetFloatField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_DOUBLE:
-            value.d = JNI_FUNC_PTR(env,GetDoubleField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_INT:
-            value.i = JNI_FUNC_PTR(env,GetIntField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_LONG:
-            value.j = JNI_FUNC_PTR(env,GetLongField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_SHORT:
-            value.s = JNI_FUNC_PTR(env,GetShortField)(env, object, field);
-	    break;
-	case JVM_SIGNATURE_BOOLEAN:
-            value.z = JNI_FUNC_PTR(env,GetBooleanField)(env, object, field);
-	    break;
-	default:
-	    HPROF_ASSERT(0);
-	    break;
-    }
-    return value;
-}
-
-jvalue
-getStaticFieldValue(JNIEnv *env, jclass klass, jfieldID field, char *field_sig)
-/* WARNING: Must be called inside WITH_LOCAL_REFS */
-{
-    jvalue value;
-    static jvalue empty_value;
-    
-    value = empty_value;
-    HPROF_ASSERT(env!=NULL);
-    HPROF_ASSERT(klass!=NULL);
-    switch ( field_sig[0] ) {
-	case JVM_SIGNATURE_CLASS:
-	case JVM_SIGNATURE_ENUM:
-	case JVM_SIGNATURE_ARRAY:
-            value.l = JNI_FUNC_PTR(env,GetStaticObjectField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_BYTE:
-            value.b = JNI_FUNC_PTR(env,GetStaticByteField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_CHAR:
-            value.c = JNI_FUNC_PTR(env,GetStaticCharField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_FLOAT:
-            value.f = JNI_FUNC_PTR(env,GetStaticFloatField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_DOUBLE:
-            value.d = JNI_FUNC_PTR(env,GetStaticDoubleField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_INT:
-            value.i = JNI_FUNC_PTR(env,GetStaticIntField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_LONG:
-            value.j = JNI_FUNC_PTR(env,GetStaticLongField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_SHORT:
-            value.s = JNI_FUNC_PTR(env,GetStaticShortField)(env, klass, field);
-	    break;
-	case JVM_SIGNATURE_BOOLEAN:
-            value.z = JNI_FUNC_PTR(env,GetStaticBooleanField)(env, klass, field);
-	    break;
-	default:
-	    HPROF_ASSERT(0);
-	    break;
-    }
-    return value;
-}
-
 jmethodID
 getStaticMethodID(JNIEnv *env, jclass clazz, const char *name, const char *sig)
 {
@@ -617,6 +515,34 @@ setStaticIntField(JNIEnv *env, jclass clazz, jfieldID field, jint value)
     } END_CHECK_EXCEPTIONS;
 }
 
+static jobject
+callStaticObjectMethod(JNIEnv *env, jclass klass, jmethodID method)
+{
+    jobject x;
+    
+    HPROF_ASSERT(env!=NULL);
+    HPROF_ASSERT(klass!=NULL);
+    HPROF_ASSERT(method!=NULL);
+    CHECK_EXCEPTIONS(env) {
+        x = JNI_FUNC_PTR(env,CallStaticObjectMethod)(env, klass, method);
+    } END_CHECK_EXCEPTIONS;
+    return x;
+}
+
+static jlong
+callLongMethod(JNIEnv *env, jobject object, jmethodID method)
+{
+    jlong x;
+    
+    HPROF_ASSERT(env!=NULL);
+    HPROF_ASSERT(object!=NULL);
+    HPROF_ASSERT(method!=NULL);
+    CHECK_EXCEPTIONS(env) {
+        x = JNI_FUNC_PTR(env,CallLongMethod)(env, object, method);
+    } END_CHECK_EXCEPTIONS;
+    return x;
+}
+
 static void
 callVoidMethod(JNIEnv *env, jobject object, jmethodID method, jboolean arg)
 {
@@ -677,10 +603,10 @@ pushLocalFrame(JNIEnv *env, jint capacity)
     CHECK_EXCEPTIONS(env) {
         jint ret;
         
-	ret = JNI_FUNC_PTR(env,PushLocalFrame)(env, capacity);
-	if ( ret != 0 ) {
-	    HPROF_ERROR(JNI_TRUE, "JNI PushLocalFrame returned non-zero");
-	}
+        ret = JNI_FUNC_PTR(env,PushLocalFrame)(env, capacity);
+        if ( ret != 0 ) {
+            HPROF_ERROR(JNI_TRUE, "JNI PushLocalFrame returned non-zero");
+        }
     } END_CHECK_EXCEPTIONS;
 }
 
@@ -692,13 +618,13 @@ popLocalFrame(JNIEnv *env, jobject result)
     HPROF_ASSERT(env!=NULL);
     ret = JNI_FUNC_PTR(env,PopLocalFrame)(env, result);
     if ( (result != NULL && ret == NULL) || (result == NULL && ret != NULL) ) {
-	HPROF_ERROR(JNI_TRUE, "JNI PopLocalFrame returned wrong object");
+        HPROF_ERROR(JNI_TRUE, "JNI PopLocalFrame returned wrong object");
     }
 }
 
 void
 registerNatives(JNIEnv *env, jclass clazz, 
-			JNINativeMethod *methods, jint count)
+                        JNINativeMethod *methods, jint count)
 {
     jint ret;
     
@@ -724,6 +650,34 @@ getErrorName(jvmtiError error_number)
     (void)JVMTI_FUNC_PTR(gdata->jvmti,GetErrorName)
                         (gdata->jvmti, error_number, &error_name);
     return error_name;
+}
+
+jvmtiPhase
+getPhase(void)
+{
+    jvmtiPhase phase;
+    
+    phase = 0;
+    (void)JVMTI_FUNC_PTR(gdata->jvmti,GetPhase)(gdata->jvmti, &phase);
+    return phase;
+}
+
+char *
+phaseString(jvmtiPhase phase)
+{
+    switch ( phase ) {
+        case JVMTI_PHASE_ONLOAD:
+            return "onload";
+        case JVMTI_PHASE_PRIMORDIAL:
+            return "primordial";
+        case JVMTI_PHASE_START:
+            return "start";
+        case JVMTI_PHASE_LIVE:
+            return "live";
+        case JVMTI_PHASE_DEAD:
+            return "dead";
+    }
+    return "unknown";
 }
 
 void
@@ -765,22 +719,6 @@ isInterface(jclass klass)
     return answer;
 }
 
-static jboolean 
-isArrayClass(jclass klass)
-{
-    jvmtiError error;
-    jboolean   answer;
-    
-    HPROF_ASSERT(klass!=NULL);
-    answer = JNI_FALSE;
-    error = JVMTI_FUNC_PTR(gdata->jvmti,IsArrayClass)
-                        (gdata->jvmti, klass, &answer);
-    if ( error != JVMTI_ERROR_NONE ) {
-        HPROF_JVMTI_ERROR(error, "Cannot call IsArrayClass");
-    }
-    return answer;
-}
-
 jint
 getClassStatus(jclass klass)
 {
@@ -791,13 +729,11 @@ getClassStatus(jclass klass)
     status = 0;
     error = JVMTI_FUNC_PTR(gdata->jvmti,GetClassStatus)
                         (gdata->jvmti, klass, &status);
-#if 1 /* FIXUP: Remove this code when JVMTI allows this anytime */
     if ( error == JVMTI_ERROR_WRONG_PHASE ) {
-	/* Treat this as ok */
-	error = JVMTI_ERROR_NONE;
-	status = 0;
+        /* Treat this as ok */
+        error = JVMTI_ERROR_NONE;
+        status = 0;
     }
-#endif
     if ( error != JVMTI_ERROR_NONE ) {
         HPROF_JVMTI_ERROR(error, "Cannot get class status");
     }
@@ -915,7 +851,7 @@ getClassSignature(jclass klass, char** psignature, char **pgeneric_signature)
     if ( pgeneric_signature != NULL ) {
         *pgeneric_signature = generic_signature;
     } else {
-	jvmtiDeallocate(generic_signature);
+        jvmtiDeallocate(generic_signature);
     }
 }
 
@@ -930,7 +866,7 @@ getSourceFileName(jclass klass, char** pname)
                         (gdata->jvmti, klass, pname);
     if ( error == JVMTI_ERROR_ABSENT_INFORMATION ) {
         error = JVMTI_ERROR_NONE;
-	*pname = NULL;
+        *pname = NULL;
     }
     if ( error != JVMTI_ERROR_NONE ) {
         HPROF_JVMTI_ERROR(error, "Cannot get source file name");
@@ -941,13 +877,32 @@ static void
 getClassFields(jclass klass, jint* pn_fields, jfieldID** pfields)
 {
     jvmtiError error;
+    jint       status;
    
     HPROF_ASSERT(klass!=NULL);
     *pn_fields = 0;
     *pfields      = NULL;
-    if ( isArrayClass(klass) ) {
-	return;
+    
+    /* Get class status */
+    status = getClassStatus(klass);
+    
+    /* Arrays have no fields */
+    if ( status & JVMTI_CLASS_STATUS_ARRAY ) {
+        return;
     }
+
+    /* Primitives have no fields */
+    if ( status & JVMTI_CLASS_STATUS_PRIMITIVE ) {
+        return;
+    }
+   
+    /* If the class is not prepared, we have a problem? */
+    if ( !(status & JVMTI_CLASS_STATUS_PREPARED) ) {
+        HPROF_ERROR(JNI_FALSE, "Class not prepared when needing fields");
+        return;
+    }
+
+    /* Now try and get all the fields */
     error         = JVMTI_FUNC_PTR(gdata->jvmti,GetClassFields)
                         (gdata->jvmti, klass, pn_fields, pfields);
     if ( error != JVMTI_ERROR_NONE ) {
@@ -974,7 +929,7 @@ getFieldModifiers(jclass klass, jfieldID field)
 
 static void 
 getFieldName(jclass klass, jfieldID field, char** pname, char** psignature,
-			char **pgeneric_signature)
+                        char **pgeneric_signature)
 {
     jvmtiError error;
     char *generic_signature;
@@ -988,7 +943,7 @@ getFieldName(jclass klass, jfieldID field, char** pname, char** psignature,
         HPROF_JVMTI_ERROR(error, "Cannot get field name");
     }
     if ( pgeneric_signature != NULL ) {
-	*pgeneric_signature = generic_signature;
+        *pgeneric_signature = generic_signature;
     } else {
         jvmtiDeallocate(generic_signature);
     }
@@ -996,7 +951,7 @@ getFieldName(jclass klass, jfieldID field, char** pname, char** psignature,
 
 static void      
 getImplementedInterfaces(jclass klass, jint* pn_interfaces,
-			jclass** pinterfaces)
+                        jclass** pinterfaces)
 /* WARNING: Must be called inside WITH_LOCAL_REFS */
 {
     jvmtiError error;
@@ -1024,12 +979,122 @@ get_cnum(JNIEnv *env, jclass klass)
     getClassSignature(klass, &sig, NULL);
     cnum = class_find_or_create(sig, loader_index);
     jvmtiDeallocate(sig);
+    (void)class_new_classref(env, cnum, klass);
     return cnum;
 }
 
+/* From primitive type, get signature letter */
+char
+primTypeToSigChar(jvmtiPrimitiveType primType)
+{
+    char sig_ch;
+
+    sig_ch = 0;
+    switch ( primType ) {
+        case JVMTI_PRIMITIVE_TYPE_BYTE:
+            sig_ch = JVM_SIGNATURE_BYTE;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_CHAR:
+            sig_ch = JVM_SIGNATURE_CHAR;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_FLOAT:
+            sig_ch = JVM_SIGNATURE_FLOAT;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_DOUBLE:
+            sig_ch = JVM_SIGNATURE_DOUBLE;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_INT:
+            sig_ch = JVM_SIGNATURE_INT;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_LONG:
+            sig_ch = JVM_SIGNATURE_LONG;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_SHORT:
+            sig_ch = JVM_SIGNATURE_SHORT;
+            break;
+        case JVMTI_PRIMITIVE_TYPE_BOOLEAN:
+            sig_ch = JVM_SIGNATURE_BOOLEAN;
+            break;
+        default:
+            sig_ch = 0;
+            break;
+    }
+    return sig_ch;
+}
+
+/* From signature, get primitive type */
+jvmtiPrimitiveType
+sigToPrimType(char *sig)
+{
+    jvmtiPrimitiveType primType;
+    
+    primType = 0;
+    if ( sig == NULL || sig[0] == 0 ) {
+        return primType;
+    }
+    switch ( sig[0] ) {
+        case JVM_SIGNATURE_BYTE:
+            primType =  JVMTI_PRIMITIVE_TYPE_BYTE;
+            break;
+        case JVM_SIGNATURE_CHAR:
+            primType =  JVMTI_PRIMITIVE_TYPE_CHAR;
+            break;
+        case JVM_SIGNATURE_FLOAT:
+            primType =  JVMTI_PRIMITIVE_TYPE_FLOAT;
+            break;
+        case JVM_SIGNATURE_DOUBLE:
+            primType =  JVMTI_PRIMITIVE_TYPE_DOUBLE;
+            break;
+        case JVM_SIGNATURE_INT:
+            primType =  JVMTI_PRIMITIVE_TYPE_INT;
+            break;
+        case JVM_SIGNATURE_LONG:
+            primType =  JVMTI_PRIMITIVE_TYPE_LONG;
+            break;
+        case JVM_SIGNATURE_SHORT:
+            primType =  JVMTI_PRIMITIVE_TYPE_SHORT;
+            break;
+        case JVM_SIGNATURE_BOOLEAN:
+            primType =  JVMTI_PRIMITIVE_TYPE_BOOLEAN;
+            break;
+    }
+    return primType;
+}
+
+/* From signature, get primitive size */
+int
+sigToPrimSize(char *sig)
+{
+    unsigned size;
+    
+    size = 0;
+    if ( sig == NULL || sig[0] == 0 ) {
+        return size;
+    }
+    switch ( sig[0] ) {
+        case JVM_SIGNATURE_BYTE:
+        case JVM_SIGNATURE_BOOLEAN:
+            size =  1;
+            break;
+        case JVM_SIGNATURE_CHAR:
+        case JVM_SIGNATURE_SHORT:
+            size =  2;
+            break;
+        case JVM_SIGNATURE_FLOAT:
+        case JVM_SIGNATURE_INT:
+            size =  4;
+            break;
+        case JVM_SIGNATURE_DOUBLE:
+        case JVM_SIGNATURE_LONG:
+            size =  8;
+            break;
+    }
+    return size;
+}
+
 static void 
-add_class_fields(JNIEnv *env, ClassIndex cnum, jclass klass, 
-		Stack *field_list, Stack *class_list)
+add_class_fields(JNIEnv *env, ClassIndex top_cnum, ClassIndex cnum, 
+                jclass klass, Stack *field_list, Stack *class_list)
 /* WARNING: Must be called inside WITH_LOCAL_REFS */
 {
     jclass     *interfaces;
@@ -1038,63 +1103,96 @@ add_class_fields(JNIEnv *env, ClassIndex cnum, jclass klass,
     jint        n_fields;
     int         i;
     int         depth;
+    int         skip_static_field_names;
+    jint        status;
 
     HPROF_ASSERT(env!=NULL);
     HPROF_ASSERT(klass!=NULL);
     HPROF_ASSERT(field_list!=NULL);
     HPROF_ASSERT(class_list!=NULL);
+
+    /* If not the initial class, we can skip the static fields (perf issue) */
+    skip_static_field_names = (cnum != top_cnum);
+
+    /* Get class status */
+    status = getClassStatus(klass);
     
-    if ( isArrayClass(klass) || 
-	 !(getClassStatus(klass) & JVMTI_CLASS_STATUS_PREPARED) ) {
-	return;
+    /* Arrays have no fields */
+    if ( status & JVMTI_CLASS_STATUS_ARRAY ) {
+        return;
+    }
+
+    /* Primitives have no fields */
+    if ( status & JVMTI_CLASS_STATUS_PRIMITIVE ) {
+        return;
+    }
+
+    /* If the class is not prepared, we have a problem? */
+    if ( !(status & JVMTI_CLASS_STATUS_PREPARED) ) {
+        char *sig;
+        
+        getClassSignature(klass, &sig, NULL);
+        debug_message("Class signature is: %s\n", sig);
+        HPROF_ERROR(JNI_FALSE, "Class not prepared when needing all fields");
+        jvmtiDeallocate(sig);
+        return;
     }
 
     /* See if class already processed */
     depth = stack_depth(class_list);
     for ( i = depth-1 ; i >= 0 ; i-- ) {
-	if ( isSameObject(env, klass, *(jclass*)stack_element(class_list, i)) ) {
-	    return;
-	}
+        if ( isSameObject(env, klass, *(jclass*)stack_element(class_list, i)) ) {
+            return;
+        }
     }
     
     /* Class or Interface, do implemented interfaces recursively */
     getImplementedInterfaces(klass, &n_interfaces, &interfaces);
     for ( i = 0 ; i < n_interfaces ; i++ ) {
-	add_class_fields(env, get_cnum(env, interfaces[i]), interfaces[i], 
-				field_list, class_list);
+        add_class_fields(env, top_cnum,
+                         get_cnum(env, interfaces[i]), interfaces[i], 
+                         field_list, class_list);
     }
     jvmtiDeallocate(interfaces);
-
+    
     /* Begin graph traversal, go up super chain recursively */
     if ( !isInterface(klass) ) {
-	jclass super_klass;
-	
-	super_klass = getSuperclass(env, klass);
-	if ( super_klass != NULL ) {
-	    add_class_fields(env, get_cnum(env, super_klass), super_klass, 
-				field_list, class_list);
-	}
+        jclass super_klass;
+        
+        super_klass = getSuperclass(env, klass);
+        if ( super_klass != NULL ) {
+            add_class_fields(env, top_cnum,
+                             get_cnum(env, super_klass), super_klass, 
+                             field_list, class_list);
+        }
     }
     
+
     /* Only now we add klass to list so we don't repeat it later */
     stack_push(class_list, &klass);
 
     /* Now actually add the fields for this klass */
     getClassFields(klass, &n_fields, &idlist);
     for ( i = 0 ; i < n_fields ; i++ ) {
-        char *field_name;
-        char *field_sig;
-	FieldInfo finfo;
-	static FieldInfo empty_finfo;
+        FieldInfo        finfo;
+        static FieldInfo empty_finfo;
 
-	finfo = empty_finfo;
-        getFieldName(klass, idlist[i], &field_name, &field_sig, NULL);
-        finfo.cnum       = cnum;
-        finfo.name_index = string_find_or_create(field_name);
-        finfo.sig_index  = string_find_or_create(field_sig);
-        jvmtiDeallocate(field_name);
-        jvmtiDeallocate(field_sig);
+        finfo           = empty_finfo;
+        finfo.cnum      = cnum;
         finfo.modifiers = getFieldModifiers(klass, idlist[i]);
+        if ( ( finfo.modifiers & JVM_ACC_STATIC ) == 0 ||
+             !skip_static_field_names ) {
+            char *field_name;
+            char *field_sig;
+            
+            getFieldName(klass, idlist[i], &field_name, &field_sig, NULL);
+            finfo.name_index = string_find_or_create(field_name);
+            finfo.sig_index  = string_find_or_create(field_sig);
+            finfo.primType   = sigToPrimType(field_sig);
+            finfo.primSize   = sigToPrimSize(field_sig);
+            jvmtiDeallocate(field_name);
+            jvmtiDeallocate(field_sig);
+        }
         stack_push(field_list, &finfo);
     }
     jvmtiDeallocate(idlist);
@@ -1102,7 +1200,7 @@ add_class_fields(JNIEnv *env, ClassIndex cnum, jclass klass,
 
 void 
 getAllClassFieldInfo(JNIEnv *env, jclass klass, 
-		jint* pn_fields, FieldInfo** pfields)
+                jint* pn_fields, FieldInfo** pfields)
 {
     ClassIndex cnum;
     
@@ -1110,22 +1208,22 @@ getAllClassFieldInfo(JNIEnv *env, jclass klass,
     *pn_fields    = 0;
     
     WITH_LOCAL_REFS(env, 1) {
-	Stack *class_list;
-	Stack *field_list;
-	int    nbytes;
+        Stack *class_list;
+        Stack *field_list;
+        int    nbytes;
 
         cnum          = get_cnum(env, klass);
-	class_list    = stack_init( 16,  16, (int)sizeof(jclass));
-	field_list    = stack_init(128, 128, (int)sizeof(FieldInfo));
-	add_class_fields(env, cnum, klass, field_list, class_list);
-	*pn_fields    = stack_depth(field_list);
-	if ( (*pn_fields) > 0 ) {
-	    nbytes        = (*pn_fields) * (int)sizeof(FieldInfo);
-	    *pfields      = (FieldInfo*)HPROF_MALLOC(nbytes);
-	    (void)memcpy(*pfields, stack_element(field_list, 0), nbytes);
-	}
-	stack_term(field_list);
-	stack_term(class_list);
+        class_list    = stack_init( 16,  16, (int)sizeof(jclass));
+        field_list    = stack_init(128, 128, (int)sizeof(FieldInfo));
+        add_class_fields(env, cnum, cnum, klass, field_list, class_list);
+        *pn_fields    = stack_depth(field_list);
+        if ( (*pn_fields) > 0 ) {
+            nbytes        = (*pn_fields) * (int)sizeof(FieldInfo);
+            *pfields      = (FieldInfo*)HPROF_MALLOC(nbytes);
+            (void)memcpy(*pfields, stack_element(field_list, 0), nbytes);
+        }
+        stack_term(field_list);
+        stack_term(class_list);
     } END_WITH_LOCAL_REFS;
 }
 
@@ -1227,13 +1325,11 @@ getThreadLocalStorage(jthread thread)
     ptr = NULL;
     error = JVMTI_FUNC_PTR(gdata->jvmti,GetThreadLocalStorage)
                 (gdata->jvmti, thread, &ptr);
-#if 1 /* FIXUP: Remove this code when JVMTI allows this anytime */
     if ( error == JVMTI_ERROR_WRONG_PHASE ) {
-	/* Treat this as ok */
-	error = JVMTI_ERROR_NONE;
-	ptr = NULL;
+        /* Treat this as ok */
+        error = JVMTI_ERROR_NONE;
+        ptr = NULL;
     }
-#endif
     if ( error != JVMTI_ERROR_NONE ) {
         HPROF_JVMTI_ERROR(error, "Cannot get thread local storage");
     }
@@ -1248,12 +1344,10 @@ setThreadLocalStorage(jthread thread, void *ptr)
     HPROF_ASSERT(thread!=NULL);
     error = JVMTI_FUNC_PTR(gdata->jvmti,SetThreadLocalStorage)
                 (gdata->jvmti, thread, (const void *)ptr);
-#if 1 /* FIXUP: Remove this code when JVMTI allows this anytime */
     if ( error == JVMTI_ERROR_WRONG_PHASE ) {
-	/* Treat this as ok */
-	error = JVMTI_ERROR_NONE;
+        /* Treat this as ok */
+        error = JVMTI_ERROR_NONE;
     }
-#endif
     if ( error != JVMTI_ERROR_NONE ) {
         HPROF_JVMTI_ERROR(error, "Cannot set thread local storage");
     }
@@ -1322,7 +1416,7 @@ getLoadedClasses(jclass **ppclasses, jint *pcount)
 
 static void
 getLineNumberTable(jmethodID method, jvmtiLineNumberEntry **ppentries,
-		jint *pcount)
+                jint *pcount)
 {
     jvmtiError error;
     
@@ -1330,11 +1424,11 @@ getLineNumberTable(jmethodID method, jvmtiLineNumberEntry **ppentries,
     *ppentries = NULL;
     *pcount    = 0;
     error = JVMTI_FUNC_PTR(gdata->jvmti,GetLineNumberTable)
-		(gdata->jvmti, method, pcount, ppentries);
+                (gdata->jvmti, method, pcount, ppentries);
     if ( error == JVMTI_ERROR_ABSENT_INFORMATION ) {
         error = JVMTI_ERROR_NONE;
-	*ppentries = NULL;
-	*pcount    = 0;
+        *ppentries = NULL;
+        *pcount    = 0;
     }
     if ( error != JVMTI_ERROR_NONE ) {
         HPROF_JVMTI_ERROR(error, "Cannot get source line numbers");
@@ -1354,7 +1448,7 @@ map_loc2line(jlocation location, jvmtiLineNumberEntry *table, jint count)
 
     line_number = -1;
     if ( count == 0 ) {
-	return line_number;
+        return line_number;
     }
     
     /* Do a binary search */
@@ -1378,7 +1472,7 @@ map_loc2line(jlocation location, jvmtiLineNumberEntry *table, jint count)
     /* Now start the table search */
     for ( i = start ; i < count ; i++ ) {
         if ( location < table[i].start_location ) {
-	    HPROF_ASSERT( ((int)location) < ((int)table[i].start_location) );
+            HPROF_ASSERT( ((int)location) < ((int)table[i].start_location) );
             break;
         }
         line_number = table[i].line_number;
@@ -1396,8 +1490,8 @@ getLineNumber(jmethodID method, jlocation location)
     
     HPROF_ASSERT(method!=NULL);
     if ( location < 0 ) {
-	HPROF_ASSERT(location > -4);
-	return (jint)location;
+        HPROF_ASSERT(location > -4);
+        return (jint)location;
     }
     lineno = -1;
 
@@ -1406,6 +1500,30 @@ getLineNumber(jmethodID method, jlocation location)
     jvmtiDeallocate(line_table);
     
     return lineno;
+}
+
+jlong
+getMaxMemory(JNIEnv *env)
+{
+    jlong max;
+    
+    HPROF_ASSERT(env!=NULL);
+    
+    max = (jlong)0;
+    WITH_LOCAL_REFS(env, 1) {
+        jclass          clazz;
+        jmethodID       getRuntime;
+        jobject         runtime;
+        jmethodID       maxMemory;
+        
+        clazz      = findClass(env, "java/lang/Runtime");
+        getRuntime = getStaticMethodID(env, clazz, "getRuntime", 
+                                       "()Ljava/lang/Runtime;");
+        runtime    = callStaticObjectMethod(env, clazz, getRuntime);
+        maxMemory  = getMethodID(env, clazz, "maxMemory", "()J");
+        max        = callLongMethod(env, runtime, maxMemory);
+    } END_WITH_LOCAL_REFS;
+    return max;    
 }
 
 void
@@ -1430,7 +1548,7 @@ createAgentThread(JNIEnv *env, const char *name, jvmtiStartFunction func)
         systemThreadGroup       = NULL;
         groups                  = NULL;
         clazz                   = class_get_class(env, gdata->thread_cnum);
-	HPROF_ASSERT(clazz!=NULL);
+        HPROF_ASSERT(clazz!=NULL);
         threadConstructor       = getMethodID(env, clazz, "<init>", 
                         "(Ljava/lang/ThreadGroup;Ljava/lang/String;)V");
         threadSetDaemon         = getMethodID(env, clazz, "setDaemon", 
@@ -1442,7 +1560,7 @@ createAgentThread(JNIEnv *env, const char *name, jvmtiStartFunction func)
             if ( groupCount > 0 ) {
                 systemThreadGroup = groups[0];
             }
-	    jvmtiDeallocate(groups);
+            jvmtiDeallocate(groups);
             
             nameString  = newStringUTF(env, name);
             HPROF_ASSERT(nameString!=NULL);
@@ -1453,11 +1571,11 @@ createAgentThread(JNIEnv *env, const char *name, jvmtiStartFunction func)
            
             error = JVMTI_FUNC_PTR(gdata->jvmti,RunAgentThread)
                 (gdata->jvmti, thread, func, NULL, JVMTI_THREAD_MAX_PRIORITY);
-	
-	    /* After the thread is running... */
+        
+            /* After the thread is running... */
 
-	    /* Make sure the TLS table has this thread as an agent thread */
-	    tls_agent_thread(env, thread);
+            /* Make sure the TLS table has this thread as an agent thread */
+            tls_agent_thread(env, thread);
         }
     } END_WITH_LOCAL_REFS;
     
@@ -1494,7 +1612,7 @@ getFrameCount(jthread thread, jint *pcount)
     error = JVMTI_FUNC_PTR(gdata->jvmti,GetFrameCount)
             (gdata->jvmti, thread, pcount);
     if ( error != JVMTI_ERROR_NONE ) {
-	*pcount = 0;
+        *pcount = 0;
     }
 }
 
@@ -1506,25 +1624,25 @@ getStackTrace(jthread thread, jvmtiFrameInfo *pframes, jint depth, jint *pcount)
 
     HPROF_ASSERT(thread!=NULL);
     HPROF_ASSERT(pframes!=NULL);
-    HPROF_ASSERT(depth > 0);
+    HPROF_ASSERT(depth >= 0);
     HPROF_ASSERT(pcount!=NULL);
     *pcount = 0;
     error = JVMTI_FUNC_PTR(gdata->jvmti,GetStackTrace)
             (gdata->jvmti, thread, 0, depth, pframes, pcount);
     if ( error != JVMTI_ERROR_NONE ) {
-	*pcount = 0;
+        *pcount = 0;
     }
 }
 
 void      
 getThreadListStackTraces(jint count, jthread *threads, 
-			jint depth, jvmtiStackInfo **stack_info)
+                        jint depth, jvmtiStackInfo **stack_info)
 {
     jvmtiError error;
 
     HPROF_ASSERT(threads!=NULL);
     HPROF_ASSERT(stack_info!=NULL);
-    HPROF_ASSERT(depth > 0);
+    HPROF_ASSERT(depth >= 0);
     HPROF_ASSERT(count > 0);
     *stack_info = NULL;
     error = JVMTI_FUNC_PTR(gdata->jvmti,GetThreadListStackTraces)
@@ -1535,18 +1653,14 @@ getThreadListStackTraces(jint count, jthread *threads,
 }
 
 void      
-iterateOverReachableObjects(jvmtiHeapRootCallback heap_root_callback,
-		jvmtiStackReferenceCallback stack_ref_callback,
-		jvmtiObjectReferenceCallback object_ref_callback,
-		void *user_data)
+followReferences(jvmtiHeapCallbacks *pHeapCallbacks, void *user_data)
 {
     jvmtiError error;
 
-    error = JVMTI_FUNC_PTR(gdata->jvmti,IterateOverReachableObjects)
-            (gdata->jvmti, heap_root_callback, stack_ref_callback,
-		object_ref_callback, user_data);
+    error = JVMTI_FUNC_PTR(gdata->jvmti,FollowReferences)
+            (gdata->jvmti, 0, NULL, NULL, pHeapCallbacks, user_data);
     if ( error != JVMTI_ERROR_NONE ) {
-        HPROF_JVMTI_ERROR(error, "Cannot iterate over reachable objects");
+        HPROF_JVMTI_ERROR(error, "Cannot follow references");
     }
 }
 
@@ -1581,11 +1695,11 @@ getJvmti(void)
 
         (void)md_snprintf(buf, sizeof(buf),
                 "Unable to access JVMTI Version 1 (0x%x),"
-                " is your J2SE a 1.5 or newer version?"
+                " is your JDK a 5.0 or newer version?"
                 " JNIEnv's GetEnv() returned %d",
                JVMTI_VERSION_1, res);
         buf[sizeof(buf)-1] = 0;
-	HPROF_ERROR(JNI_FALSE, buf);
+        HPROF_ERROR(JNI_FALSE, buf);
         error_exit_process(1); /* Kill entire process, no core dump */
     }
     gdata->jvmti = jvmti;
@@ -1614,7 +1728,7 @@ getJvmti(void)
                jvmtiCompileTimeMinorVersion,
                jvmtiCompileTimeMicroVersion);
         buf[sizeof(buf)-1] = 0;
-	HPROF_ERROR(JNI_FALSE, buf);
+        HPROF_ERROR(JNI_FALSE, buf);
         error_exit_process(1); /* Kill entire process, no core dump wanted */
     }
 }

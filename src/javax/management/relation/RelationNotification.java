@@ -1,7 +1,7 @@
 /*
- * @(#)RelationNotification.java	1.31 03/12/19
+ * @(#)RelationNotification.java	1.37 05/12/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,6 +31,8 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * Service, or a role is updated in a relation, or a relation is removed from
  * the Relation Service.
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-6871117877523310399L</code>.
+ * 
  * @since 1.5
  */
 public class RelationNotification extends Notification {
@@ -74,22 +76,28 @@ public class RelationNotification extends Notification {
     // Actual serial version and serial form
     private static final long serialVersionUID;
     /**
-     * @serialField relationId String Relation identifier of created/removed/updated relation
-     * @serialField relationTypeName String Relation type name of created/removed/updated relation
-     * @serialField relationObjName ObjectName {@link ObjectName} of the relation MBean of created/removed/updated relation
-     *              (only if the relation is represented by an MBean)
-     * @serialField unregisterMBeanList List List of {@link ObjectName}s of referenced MBeans to be unregistered due to
-     *              relation removal
+     * @serialField relationId String Relation identifier of
+     * created/removed/updated relation
+     * @serialField relationTypeName String Relation type name of
+     * created/removed/updated relation
+     * @serialField relationObjName ObjectName {@link ObjectName} of
+     * the relation MBean of created/removed/updated relation (only if
+     * the relation is represented by an MBean)
+     * @serialField unregisterMBeanList List List of {@link
+     * ObjectName}s of referenced MBeans to be unregistered due to
+     * relation removal
      * @serialField roleName String Name of updated role (only for role update)
-     * @serialField oldRoleValue List Old role value ({@link ArrayList} of {@link ObjectName}s) (only for role update)
-     * @serialField newRoleValue List New role value ({@link ArrayList} of {@link ObjectName}s) (only for role update)
+     * @serialField oldRoleValue List Old role value ({@link
+     * ArrayList} of {@link ObjectName}s) (only for role update)
+     * @serialField newRoleValue List New role value ({@link
+     * ArrayList} of {@link ObjectName}s) (only for role update)
      */
     private static final ObjectStreamField[] serialPersistentFields;
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK : Too bad, no compat with 1.0
@@ -158,7 +166,7 @@ public class RelationNotification extends Notification {
      * @serial List of {@link ObjectName}s of referenced MBeans to be unregistered due to
      *         relation removal
      */
-    private List unregisterMBeanList = null;
+    private List<ObjectName> unregisterMBeanList = null;
 
     /**
      * @serial Name of updated role (only for role update)
@@ -168,12 +176,12 @@ public class RelationNotification extends Notification {
     /** 
      * @serial Old role value ({@link ArrayList} of {@link ObjectName}s) (only for role update)
      */
-    private List oldRoleValue = null;
+    private List<ObjectName> oldRoleValue = null;
 
     /**
      * @serial New role value ({@link ArrayList} of {@link ObjectName}s) (only for role update)
      */
-    private List newRoleValue = null;
+    private List<ObjectName> newRoleValue = null;
 
     //
     // Constructors
@@ -184,22 +192,24 @@ public class RelationNotification extends Notification {
      * object created internally in the Relation Service, or an MBean added as a
      * relation) or for a relation removal from the Relation Service.
      *
-     * @param theNtfType  type of the notification; either:
+     * @param notifType  type of the notification; either:
      * <P>- RELATION_BASIC_CREATION
      * <P>- RELATION_MBEAN_CREATION
      * <P>- RELATION_BASIC_REMOVAL
      * <P>- RELATION_MBEAN_REMOVAL
-     * @param theSrcObj  source object, sending the notification. Will always
-     * be a RelationService object.
-     * @param TheSeqNbr  sequence number to identify the notification
-     * @param theTimeStamp  time stamp
-     * @param theMsg  human-readable message describing the notification
-     * @param theRelId  relation id identifying the relation in the Relation
+     * @param sourceObj  source object, sending the notification.  This is either
+     * an ObjectName or a RelationService object.  In the latter case it must be
+     * the MBean emitting the notification; the MBean Server will rewrite the
+     * source to be the ObjectName under which that MBean is registered.
+     * @param sequence  sequence number to identify the notification
+     * @param timeStamp  time stamp
+     * @param message  human-readable message describing the notification
+     * @param id  relation id identifying the relation in the Relation
      * Service
-     * @param theRelTypeName  name of the relation type
-     * @param theRelObjName  ObjectName of the relation object if it is an MBean
+     * @param typeName  name of the relation type
+     * @param objectName  ObjectName of the relation object if it is an MBean
      * (null for relations internally handled by the Relation Service)
-     * @param theUnregMBeanList  list of ObjectNames of referenced MBeans
+     * @param unregMBeanList  list of ObjectNames of referenced MBeans
      * expected to be unregistered due to relation removal (only for removal,
      * due to CIM qualifiers, can be null)
      *
@@ -213,30 +223,30 @@ public class RelationNotification extends Notification {
      * <P>- no relation id
      * <P>- no relation type name
      */
-    public RelationNotification(String theNtfType,
-				Object theSrcObj,
-				long TheSeqNbr,
-				long theTimeStamp,
-				String theMsg,
-				String theRelId,
-				String theRelTypeName,
-				ObjectName theRelObjName,
-				List theUnregMBeanList)
+    public RelationNotification(String notifType,
+				Object sourceObj,
+				long sequence,
+				long timeStamp,
+				String message,
+				String id,
+				String typeName,
+				ObjectName objectName,
+				List<ObjectName> unregMBeanList)
 	throws IllegalArgumentException {
 
-	super(theNtfType, theSrcObj, TheSeqNbr, theTimeStamp, theMsg);
+	super(notifType, sourceObj, sequence, timeStamp, message);
 
 	// Can throw IllegalArgumentException
 	initMembers(1,
-		    theNtfType,
-		    theSrcObj,
-		    TheSeqNbr,
-		    theTimeStamp,
-		    theMsg,
-		    theRelId,
-		    theRelTypeName,
-		    theRelObjName,
-		    theUnregMBeanList,
+		    notifType,
+		    sourceObj,
+		    sequence,
+		    timeStamp,
+		    message,
+		    id,
+		    typeName,
+		    objectName,
+		    unregMBeanList,
 		    null,
 		    null,
 		    null);
@@ -246,55 +256,57 @@ public class RelationNotification extends Notification {
     /**
      * Creates a notification for a role update in a relation.
      *
-     * @param theNtfType  type of the notification; either:
+     * @param notifType  type of the notification; either:
      * <P>- RELATION_BASIC_UPDATE
      * <P>- RELATION_MBEAN_UPDATE
-     * @param theSrcObj  source object, sending the notification. Will always
-     * be a RelationService object.
-     * @param TheSeqNbr  sequence number to identify the notification
-     * @param theTimeStamp  time stamp
-     * @param theMsg  human-readable message describing the notification
-     * @param theRelId  relation id identifying the relation in the Relation
+     * @param sourceObj  source object, sending the notification. This is either
+     * an ObjectName or a RelationService object.  In the latter case it must be
+     * the MBean emitting the notification; the MBean Server will rewrite the
+     * source to be the ObjectName under which that MBean is registered.
+     * @param sequence  sequence number to identify the notification
+     * @param timeStamp  time stamp
+     * @param message  human-readable message describing the notification
+     * @param id  relation id identifying the relation in the Relation
      * Service
-     * @param theRelTypeName  name of the relation type
-     * @param theRelObjName  ObjectName of the relation object if it is an MBean
+     * @param typeName  name of the relation type
+     * @param objectName  ObjectName of the relation object if it is an MBean
      * (null for relations internally handled by the Relation Service)
-     * @param theRoleName  name of the updated role
-     * @param theNewRoleValue  new value (List of ObjectName objects)
-     * @param theOldRoleValue  old value (List of ObjectName objects)
+     * @param name  name of the updated role
+     * @param newValue  new role value (List of ObjectName objects)
+     * @param oldValue  old role value (List of ObjectName objects)
      *
      * @exception IllegalArgumentException  if null parameter
      */
-    public RelationNotification(String theNtfType,
-				Object theSrcObj,
-				long TheSeqNbr,
-				long theTimeStamp,
-				String theMsg,
-				String theRelId,
-				String theRelTypeName,
-				ObjectName theRelObjName,
-				String theRoleName,
-				List theNewRoleValue,
-				List theOldRoleValue
+    public RelationNotification(String notifType,
+				Object sourceObj,
+				long sequence,
+				long timeStamp,
+				String message,
+				String id,
+				String typeName,
+				ObjectName objectName,
+				String name,
+				List<ObjectName> newValue,
+				List<ObjectName> oldValue
 				)
-	throws IllegalArgumentException {
+	    throws IllegalArgumentException {
 
-	super(theNtfType, theSrcObj, TheSeqNbr, theTimeStamp, theMsg);
+	super(notifType, sourceObj, sequence, timeStamp, message);
 
 	// Can throw IllegalArgumentException
 	initMembers(2,
-		    theNtfType,
-		    theSrcObj,
-		    TheSeqNbr,
-		    theTimeStamp,
-		    theMsg,
-		    theRelId,
-		    theRelTypeName,
-		    theRelObjName,
+		    notifType,
+		    sourceObj,
+		    sequence,
+		    timeStamp,
+		    message,
+		    id,
+		    typeName,
+		    objectName,
 		    null,
-		    theRoleName,
-		    theNewRoleValue,
-		    theOldRoleValue);
+		    name,
+		    newValue,
+		    oldValue);
 	return;
     }
 
@@ -317,7 +329,7 @@ public class RelationNotification extends Notification {
      * @return the relation type name.
      */
     public String getRelationTypeName() {
-	return  relationTypeName;
+	return relationTypeName;
     }
 
     /**
@@ -336,12 +348,12 @@ public class RelationNotification extends Notification {
      *
      * @return a {@link List} of {@link ObjectName}.
      */
-    public List getMBeansToUnregister() {
-	List result = null;
+    public List<ObjectName> getMBeansToUnregister() {
+	List<ObjectName> result = null;
 	if (unregisterMBeanList != null) {
-	    result = (List)((ArrayList)unregisterMBeanList).clone();
+	    result = new ArrayList<ObjectName>(unregisterMBeanList);
 	} else {
-	    result = Collections.EMPTY_LIST;
+	    result = Collections.emptyList();
 	}
 	return result;
     }
@@ -364,12 +376,12 @@ public class RelationNotification extends Notification {
      *
      * @return the old value of the updated role.
      */
-    public List getOldRoleValue() {
-	List result = null;
+    public List<ObjectName> getOldRoleValue() {
+	List<ObjectName> result = null;
 	if (oldRoleValue != null) {
-	    result = (List)((ArrayList)oldRoleValue).clone();
+	    result = new ArrayList<ObjectName>(oldRoleValue);
 	} else {
-	    result = Collections.EMPTY_LIST;
+	    result = Collections.emptyList();
 	}
 	return result;
     }
@@ -379,12 +391,12 @@ public class RelationNotification extends Notification {
      *
      * @return the new value of the updated role.
      */
-    public List getNewRoleValue() {
-	List result = null;
+    public List<ObjectName> getNewRoleValue() {
+	List<ObjectName> result = null;
 	if (newRoleValue != null) {
-	    result = (List)((ArrayList)newRoleValue).clone();
+	    result = new ArrayList<ObjectName>(newRoleValue);
 	} else {
-	    result = Collections.EMPTY_LIST;
+	    result = Collections.emptyList();
 	}
 	return result;
     }
@@ -393,10 +405,10 @@ public class RelationNotification extends Notification {
     // Misc
     //
 
-    // Initialises members
+    // Initializes members
     //
-    // -param theNtfKind  1 for creation/removal, 2 for update
-    // -param theNtfType  type of the notification; either:
+    // -param notifKind  1 for creation/removal, 2 for update
+    // -param notifType  type of the notification; either:
     //  - RELATION_BASIC_UPDATE
     //  - RELATION_MBEAN_UPDATE
     //  for an update, or:
@@ -405,21 +417,21 @@ public class RelationNotification extends Notification {
     //  - RELATION_BASIC_REMOVAL
     //  - RELATION_MBEAN_REMOVAL
     //  for a creation or removal
-    // -param theSrcObj  source object, sending the notification. Will always
+    // -param sourceObj  source object, sending the notification. Will always
     //  be a RelationService object.
-    // -param TheSeqNbr  sequence number to identify the notification
-    // -param theTimeStamp  time stamp
-    // -param theMsg  human-readable message describing the notification
-    // -param theRelId  relation id identifying the relation in the Relation
+    // -param sequence  sequence number to identify the notification
+    // -param timeStamp  time stamp
+    // -param message  human-readable message describing the notification
+    // -param id  relation id identifying the relation in the Relation
     //  Service
-    // -param theRelTypeName  name of the relation type
-    // -param theRelObjName  ObjectName of the relation object if it is an MBean
+    // -param typeName  name of the relation type
+    // -param objectName  ObjectName of the relation object if it is an MBean
     //  (null for relations internally handled by the Relation Service)
-    // -param theUnregMBeanList  list of ObjectNames of MBeans expected to be
+    // -param unregMBeanList  list of ObjectNames of MBeans expected to be
     //  removed due to relation removal
-    // -param theRoleName  name of the updated role
-    // -param theNewRoleValue  new value (List of ObjectName objects)
-    // -param theOldRoleValue  old value (List of ObjectName objects)
+    // -param name  name of the updated role
+    // -param newValue  new value (List of ObjectName objects)
+    // -param oldValue  old value (List of ObjectName objects)
     //
     // -exception IllegalArgumentException  if:
     //  - no value for the notification type
@@ -431,83 +443,83 @@ public class RelationNotification extends Notification {
     //  - no role name (for role update)
     //  - no role old value (for role update)
     //  - no role new value (for role update)
-    private void initMembers(int theNtfKind,
-			     String theNtfType,
-			     Object theSrcObj,
-			     long TheSeqNbr,
-			     long theTimeStamp,
-			     String theMsg,
-			     String theRelId,
-			     String theRelTypeName,
-			     ObjectName theRelObjName,
-			     List theUnregMBeanList,
-			     String theRoleName,
-			     List theNewRoleValue,
-			     List theOldRoleValue)
-	throws IllegalArgumentException {
+    private void initMembers(int notifKind,
+			     String notifType,
+			     Object sourceObj,
+			     long sequence,
+			     long timeStamp,
+			     String message,
+			     String id,
+			     String typeName,
+			     ObjectName objectName,
+			     List<ObjectName> unregMBeanList,
+			     String name,
+			     List<ObjectName> newValue,
+			     List<ObjectName> oldValue)
+	    throws IllegalArgumentException {
 
-      boolean badInitFlg = false;
+	boolean badInitFlg = false;
 
-      if (theNtfType == null ||	  
-	  theSrcObj == null ||
-	  (!(theSrcObj instanceof RelationService)) ||
-	  theRelId == null ||
-	  theRelTypeName == null) {
+	if (notifType == null ||	  
+	    sourceObj == null ||
+	    (!(sourceObj instanceof RelationService) &&
+             !(sourceObj instanceof ObjectName)) ||
+	    id == null ||
+	    typeName == null) {
 
-	  badInitFlg = true;
-      }
+	    badInitFlg = true;
+	}
 
-      if (theNtfKind == 1) {
+	if (notifKind == 1) {
 
-       if ((!(theNtfType.equals(RelationNotification.RELATION_BASIC_CREATION)))
-	   &&
-	   (!(theNtfType.equals(RelationNotification.RELATION_MBEAN_CREATION)))
-	   &&
-	   (!(theNtfType.equals(RelationNotification.RELATION_BASIC_REMOVAL)))
-	   &&
-	   (!(theNtfType.equals(RelationNotification.RELATION_MBEAN_REMOVAL)))
-	   ) {
+	    if ((!(notifType.equals(RelationNotification.RELATION_BASIC_CREATION)))
+		&&
+		(!(notifType.equals(RelationNotification.RELATION_MBEAN_CREATION)))
+		&&
+		(!(notifType.equals(RelationNotification.RELATION_BASIC_REMOVAL)))
+		&&
+		(!(notifType.equals(RelationNotification.RELATION_MBEAN_REMOVAL)))
+		) {
 
-	      // Creation/removal
-	      badInitFlg = true;
-         }
+		// Creation/removal
+		badInitFlg = true;
+	    }
 
-       } else if (theNtfKind == 2) {
+	} else if (notifKind == 2) {
 
-       if (((!(theNtfType.equals(RelationNotification.RELATION_BASIC_UPDATE)))
-	    &&
-	    (!(theNtfType.equals(RelationNotification.RELATION_MBEAN_UPDATE))))
-	   || theRoleName == null ||
-	   theOldRoleValue == null ||
-	   theNewRoleValue == null) {
+	    if (((!(notifType.equals(RelationNotification.RELATION_BASIC_UPDATE)))
+		 &&
+		 (!(notifType.equals(RelationNotification.RELATION_MBEAN_UPDATE))))
+		|| name == null ||
+		oldValue == null ||
+		newValue == null) {
 
-	   // Role update
-	   badInitFlg = true;
-       }
-      }
+		// Role update
+		badInitFlg = true;
+	    }
+	}
 
-    if (badInitFlg) {
-	// Revisit [cebro] Localize message
-	String excMsg = "Invalid parameter.";
-	throw new IllegalArgumentException(excMsg);
-    }
+	if (badInitFlg) {
+	    String excMsg = "Invalid parameter.";
+	    throw new IllegalArgumentException(excMsg);
+	}
 
-    relationId = theRelId;
-    relationTypeName = theRelTypeName;
-    relationObjName = theRelObjName;
-    if (theUnregMBeanList != null) {
-	unregisterMBeanList = new ArrayList(theUnregMBeanList);
-    }
-    if (theRoleName != null) {
-	roleName = theRoleName;
-    }
-    if (theOldRoleValue != null) {
-	oldRoleValue = new ArrayList(theOldRoleValue);
-    }
-    if (theNewRoleValue != null) {
-	newRoleValue = new ArrayList(theNewRoleValue);
-    }
-    return;
+	relationId = id;
+	relationTypeName = typeName;
+	relationObjName = objectName;
+	if (unregMBeanList != null) {
+	    unregisterMBeanList = new ArrayList<ObjectName>(unregMBeanList);
+	}
+	if (name != null) {
+	    roleName = name;
+	}
+	if (oldValue != null) {
+	    oldRoleValue = new ArrayList<ObjectName>(oldValue);
+	}
+	if (newValue != null) {
+	    newRoleValue = new ArrayList<ObjectName>(newValue);
+	}
+	return;
     }
 
     /**
@@ -520,12 +532,12 @@ public class RelationNotification extends Notification {
         // Read an object serialized in the old serial form
         //
         ObjectInputStream.GetField fields = in.readFields();
-	newRoleValue = (List) fields.get("myNewRoleValue", null);
+	newRoleValue = (List<ObjectName>) fields.get("myNewRoleValue", null);
 	if (fields.defaulted("myNewRoleValue"))
         {
           throw new NullPointerException("newRoleValue");
         }
-	oldRoleValue = (List) fields.get("myOldRoleValue", null);
+	oldRoleValue = (List<ObjectName>) fields.get("myOldRoleValue", null);
 	if (fields.defaulted("myOldRoleValue"))
         {
           throw new NullPointerException("oldRoleValue");
@@ -550,7 +562,8 @@ public class RelationNotification extends Notification {
         {
           throw new NullPointerException("roleName");
         }
-	unregisterMBeanList = (List) fields.get("myUnregMBeanList", null);
+	unregisterMBeanList =
+	    (List<ObjectName>) fields.get("myUnregMBeanList", null);
 	if (fields.defaulted("myUnregMBeanList"))
         {
           throw new NullPointerException("unregisterMBeanList");

@@ -1,7 +1,7 @@
 /*
- * @(#)SerialFieldTag.java	1.9 04/05/05
+ * @(#)SerialFieldTag.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,7 @@ public interface SerialFieldTag extends Tag, Comparable<Object> {
      *		is less than, equal to, or greater than the given Object.
      * @exception ClassCastException the specified Object's type prevents it
      *		  from being compared to this Object.
-     * @since JDK1.2
+     * @since 1.2
      */
     public int compareTo(Object obj);
 }

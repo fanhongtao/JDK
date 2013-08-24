@@ -1,7 +1,7 @@
 /*
- * @(#)PKIXCertPathChecker.java	1.7 03/12/19
+ * @(#)PKIXCertPathChecker.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ import java.util.Set;
  * @see PKIXParameters 
  * @see PKIXBuilderParameters
  *
- * @version 	1.7 12/19/03
+ * @version 	1.8 11/17/05
  * @since	1.4
  * @author	Yassir Elley
  * @author	Sean Mullan

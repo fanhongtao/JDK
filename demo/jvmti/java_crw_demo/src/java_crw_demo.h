@@ -1,7 +1,7 @@
 /*
- * @(#)java_crw_demo.h	1.15 04/09/17
+ * @(#)java_crw_demo.h	1.17 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,6 +38,10 @@
 #define JAVA_CRW_DEMO_H
 
 #include <jni.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* This callback is used to notify the caller of a fatal error. */
 
@@ -180,6 +184,10 @@ JNIEXPORT char * JNICALL java_crw_demo_classname(
          const unsigned char *file_image, 
 	 long file_len, 
 	 FatalErrorHandler fatal_error_handler);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif
 

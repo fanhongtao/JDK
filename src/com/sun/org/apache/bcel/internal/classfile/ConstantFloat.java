@@ -62,7 +62,7 @@ import java.io.*;
  * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class 
  * and represents a reference to a float object.
  *
- * @version $Id: ConstantFloat.java,v 1.1.1.1 2001/10/29 19:59:58 jvanzyl Exp $
+ * @version $Id: ConstantFloat.java,v 1.1.2.1 2005/07/31 23:46:29 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */
@@ -88,7 +88,7 @@ public final class ConstantFloat extends Constant implements ConstantObject {
    * Initialize instance from file data.
    *
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   ConstantFloat(DataInputStream file) throws IOException
   {    
@@ -108,7 +108,7 @@ public final class ConstantFloat extends Constant implements ConstantObject {
    * Dump constant float to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

@@ -1,7 +1,7 @@
 /*
- * @(#)Referenceable.java	1.7 03/12/19
+ * @(#)Referenceable.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package javax.naming;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author R. Vasudevan
-  * @version 1.7 03/12/19
+  * @version 1.8 05/11/17
   *
   * @see Context#bind
   * @see javax.naming.spi.NamingManager#getObjectInstance

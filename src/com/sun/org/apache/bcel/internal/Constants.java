@@ -57,7 +57,7 @@ package com.sun.org.apache.bcel.internal;
 /**
  * Constants for the project, mostly defined in the JVM specification.
  *
- * @version $Id: Constants.java,v 1.1.1.1 2001/10/29 19:59:56 jvanzyl Exp $
+ * @version $Id: Constants.java,v 1.1.2.1 2005/07/31 23:46:56 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public interface Constants {
@@ -100,11 +100,11 @@ public interface Constants {
   // Applies to classes compiled by new compilers only
   public final static short ACC_SUPER        = 0x0020;
 
-  public final static short MAX_ACC_FLAG     = ACC_ABSTRACT;
+  public final static short MAX_ACC_FLAG     = ACC_STRICT;
 
   public final static String[] ACCESS_NAMES = {
     "public", "private", "protected", "static", "final", "synchronized",
-    "volatile", "transient", "native", "interface", "abstract"
+    "volatile", "transient", "native", "interface", "abstract", "strictfp"
   };
 
   /** Tags in constant pool to denote type of constant.
@@ -420,12 +420,29 @@ public interface Constants {
   public static final byte T_UNKNOWN   = 15;
   public static final byte T_ADDRESS   = 16;
 
+  /** The primitive type names corresponding to the T_XX constants,
+   * e.g., TYPE_NAMES[T_INT] = "int"
+   */
   public static final String[] TYPE_NAMES = {
     ILLEGAL_TYPE, ILLEGAL_TYPE,  ILLEGAL_TYPE, ILLEGAL_TYPE,
     "boolean", "char", "float", "double", "byte", "short", "int", "long",
     "void", "array", "object", "unknown" // Non-standard
   };
 
+  /** The primitive class names corresponding to the T_XX constants,
+   * e.g., CLASS_TYPE_NAMES[T_INT] = "java.lang.Integer"
+   */
+  public static final String[] CLASS_TYPE_NAMES = {
+    ILLEGAL_TYPE, ILLEGAL_TYPE,  ILLEGAL_TYPE, ILLEGAL_TYPE,
+    "java.lang.Boolean", "java.lang.Character", "java.lang.Float",
+    "java.lang.Double", "java.lang.Byte", "java.lang.Short",
+    "java.lang.Integer", "java.lang.Long", "java.lang.Void",
+    ILLEGAL_TYPE, ILLEGAL_TYPE,  ILLEGAL_TYPE
+  };
+
+  /** The signature characters corresponding to primitive types,
+   * e.g., SHORT_TYPE_NAMES[T_INT] = "I"
+   */
   public static final String[] SHORT_TYPE_NAMES = {
     ILLEGAL_TYPE, ILLEGAL_TYPE,  ILLEGAL_TYPE, ILLEGAL_TYPE,
     "Z", "C", "F", "D", "B", "S", "I", "J",

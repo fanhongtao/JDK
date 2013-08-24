@@ -1,7 +1,7 @@
 /*
- * @(#)SynthToggleButtonUI.java	1.6 03/12/19
+ * @(#)SynthToggleButtonUI.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -17,7 +17,7 @@ import javax.swing.text.View;
 /**
  * Synth's ToggleButtonUI.
  * <p>
- * @version 1.6, 12/19/03
+ * @version 1.7, 11/17/05
  * @author Jeff Dinkins
  */
 class SynthToggleButtonUI extends SynthButtonUI {

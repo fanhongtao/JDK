@@ -1,7 +1,7 @@
 /*
- * @(#)GIFImageMetadata.java	1.28 03/12/19
+ * @(#)GIFImageMetadata.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.metadata.IIOInvalidTreeException;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.metadata.IIOMetadataFormat;
@@ -21,7 +22,7 @@ import org.w3c.dom.Node;
 /**
  * @version 0.5
  */
-public class GIFImageMetadata extends IIOMetadata {
+public class GIFImageMetadata extends GIFMetadata {
 
     // package scope
     static final String
@@ -80,8 +81,21 @@ public class GIFImageMetadata extends IIOMetadata {
     // List of byte[]
     public List comments = null; // new ArrayList();
 
+    protected GIFImageMetadata(boolean standardMetadataFormatSupported,
+                               String nativeMetadataFormatName,
+                               String nativeMetadataFormatClassName,
+                               String[] extraMetadataFormatNames,
+                               String[] extraMetadataFormatClassNames)
+    {
+        super(standardMetadataFormatSupported,
+              nativeMetadataFormatName,
+              nativeMetadataFormatClassName,
+              extraMetadataFormatNames,
+              extraMetadataFormatClassNames);
+    }
+    
     public GIFImageMetadata() {
-        super(true,
+        this(true,
               nativeMetadataFormatName,
               "com.sun.imageio.plugins.gif.GIFImageMetadataFormat",
               null, null);
@@ -395,11 +409,19 @@ public class GIFImageMetadata extends IIOMetadata {
         return transparency_node;
     }
 
-    public void setFromTree(String formatName, Node root) {
+    public void setFromTree(String formatName, Node root) 
+        throws IIOInvalidTreeException
+    {
         throw new IllegalStateException("Metadata is read-only!");
     }
 
-    public void mergeTree(String formatName, Node root) {
+    protected void mergeNativeTree(Node root) throws IIOInvalidTreeException
+    {
+        throw new IllegalStateException("Metadata is read-only!");
+    }
+
+    protected void mergeStandardTree(Node root) throws IIOInvalidTreeException
+    {
         throw new IllegalStateException("Metadata is read-only!");
     }
 

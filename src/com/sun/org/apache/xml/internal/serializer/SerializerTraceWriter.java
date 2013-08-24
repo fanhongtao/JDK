@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializerTraceWriter.java,v 1.2 2004/02/17 04:18:18 minchau Exp $
+ * $Id: SerializerTraceWriter.java,v 1.2.4.1 2005/09/15 08:15:25 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 
 /**
@@ -36,9 +37,10 @@ import java.io.Writer;
  * and the underlying writer may not be UTF-8 encoding. There may also be
  * encoding differences.  So the main pupose of this class is to provide a
  * resonable facsimile of the true output.
- *
+ * 
+ * @xsl.usage internal
  */
-public class SerializerTraceWriter extends Writer
+final class SerializerTraceWriter extends Writer implements WriterChain
 {
 
     /** The real writer to immediately write to.
@@ -315,4 +317,23 @@ public class SerializerTraceWriter extends Writer
         }
     }
 
+    /**
+     * Get the writer that this one directly wraps.
+     */
+    public Writer getWriter()
+    {
+        return m_writer;
+    }
+
+    /**
+     * Get the OutputStream that is the at the end of the
+     * chain of writers.
+     */
+    public OutputStream getOutputStream()
+    {
+        OutputStream retval = null;
+        if (m_writer instanceof WriterChain)
+            retval = ((WriterChain) m_writer).getOutputStream();
+        return retval;
+    }
 }

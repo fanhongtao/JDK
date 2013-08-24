@@ -1,7 +1,7 @@
 /*
- * @(#)JLabel.java	1.116 04/04/02
+ * @(#)JLabel.java	1.125 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,6 +65,11 @@ import java.util.*;
  * in <em>The Java Tutorial</em>
  * for further documentation.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -78,7 +83,7 @@ import java.util.*;
  *   attribute: isContainer false
  * description: A component that displays a short string and an icon.
  * 
- * @version 1.116 04/02/04
+ * @version 1.125 08/08/06
  * @author Hans Muller
  */
 public class JLabel extends JComponent implements SwingConstants, Accessible
@@ -516,7 +521,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
      * the text was 'Save As', with a mnemonic of 'a', and you wanted the 'A'
      * to be decorated, as 'Save <u>A</u>s', you would have to invoke
      * <code>setDisplayedMnemonicIndex(5)</code> after invoking
-     * <code>setMnemonic(KeyEvent.VK_A)</code>.
+     * <code>setDisplayedMnemonic(KeyEvent.VK_A)</code>.
      *
      * @since 1.4
      * @param index Index into the String to underline
@@ -795,6 +800,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
         verticalTextPosition = checkVerticalKey(textPosition,
                                                 "verticalTextPosition");
         firePropertyChange("verticalTextPosition", old, verticalTextPosition);
+        revalidate();
         repaint();
     }
 
@@ -850,6 +856,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
                                                 "horizontalTextPosition");
         firePropertyChange("horizontalTextPosition",
                            old, horizontalTextPosition);
+        revalidate();
         repaint();
     }
 
@@ -1052,15 +1059,18 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
          * @see AccessibleContext#setAccessibleName
          */
         public String getAccessibleName() {
-            if (accessibleName != null) {
-                return accessibleName;
-            } else {
-                if (JLabel.this.getText() == null) {
-                    return super.getAccessibleName();
-                } else {
-                    return JLabel.this.getText();
-                }
+            String name = accessibleName;
+
+            if (name == null) {
+                name = (String)getClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY);
             }
+            if (name == null) {
+                name = JLabel.this.getText();
+            }
+            if (name == null) {
+                name = super.getAccessibleName();
+            }
+            return name;
         }
 
         /**
@@ -1077,6 +1087,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	/**
 	 * Get the AccessibleIcons associated with this object if one
 	 * or more exist.  Otherwise return null.
+	 * @since 1.3
 	 */
 	public AccessibleIcon [] getAccessibleIcon() {
             Icon icon = getIcon();
@@ -1094,6 +1105,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
          * Get the AccessibleRelationSet associated with this object if one
          * exists.  Otherwise return null.
          * @see AccessibleRelation
+         * @since 1.3
          */
         public AccessibleRelationSet getAccessibleRelationSet() {
 	    // Check where the AccessibleContext's relation
@@ -1133,6 +1145,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * @param p the Point in local coordinates
 	 * @return the zero-based index of the character under Point p; if 
 	 * Point is invalid returns -1.
+         * @since 1.3
 	 */
 	public int getIndexAtPoint(Point p) {
 	    View view = (View) JLabel.this.getClientProperty("html");
@@ -1159,6 +1172,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * @param i the index into the String
 	 * @return the screen coordinates of the character's the bounding box,
 	 * if index is invalid returns an empty rectangle.
+         * @since 1.3
 	 */
 	public Rectangle getCharacterBounds(int i) {
 	    View view = (View) JLabel.this.getClientProperty("html");
@@ -1185,6 +1199,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * Return the number of characters (valid indicies) 
 	 *
 	 * @return the number of characters
+         * @since 1.3
 	 */
 	public int getCharCount() {
 	    View view = (View) JLabel.this.getClientProperty("html");
@@ -1204,6 +1219,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * Note: That to the right of the caret will have the same index
 	 * value as the offset (the caret is between two characters).
 	 * @return the zero-based offset of the caret.
+         * @since 1.3
 	 */
 	public int getCaretPosition() {
 	    // There is no caret.
@@ -1218,6 +1234,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
          * @param index an index within the text >= 0
          * @return the letter, word, or sentence,
          *   null for an invalid index or part
+         * @since 1.3
          */
         public String getAtIndex(int part, int index) {
             if (index < 0 || index >= getCharCount()) {
@@ -1264,6 +1281,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
          * @param index an index within the text >= 0
          * @return the letter, word, or sentence, null for an invalid
          *  index or part
+         * @since 1.3
          */
         public String getAfterIndex(int part, int index) {
             if (index < 0 || index >= getCharCount()) {
@@ -1303,11 +1321,11 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 			BreakIterator.getSentenceInstance(getLocale());
                     sentence.setText(s);
                     int start = sentence.following(index);
-		    if (start == BreakIterator.DONE || start >= s.length()) {
+		    if (start == BreakIterator.DONE || start > s.length()) {
 			return null;
 		    }
 		    int end = sentence.following(start);
-		    if (end == BreakIterator.DONE || end >= s.length()) {
+		    if (end == BreakIterator.DONE || end > s.length()) {
 			return null;
 		    }
                     return s.substring(start, end);
@@ -1327,6 +1345,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
          * @param index an index within the text >= 0
          * @return the letter, word, or sentence, null for an invalid index
          *  or part
+         * @since 1.3
          */
         public String getBeforeIndex(int part, int index) {
             if (index < 0 || index > getCharCount()-1) {
@@ -1383,6 +1402,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 *
 	 * @param i the zero-based index into the text 
 	 * @return the AttributeSet of the character
+         * @since 1.3
 	 */
 	public AttributeSet getCharacterAttribute(int i) {
 	    View view = (View) JLabel.this.getClientProperty("html");
@@ -1405,6 +1425,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * a caret, the start and end offsets will be the same.
 	 *
 	 * @return the index into the text of the start of the selection
+         * @since 1.3
 	 */
 	public int getSelectionStart() {
 	    // Text cannot be selected.
@@ -1417,6 +1438,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * a caret, the start and end offsets will be the same.
 	 *
 	 * @return the index into teh text of the end of the selection
+         * @since 1.3
 	 */
 	public int getSelectionEnd() {
 	    // Text cannot be selected.
@@ -1427,6 +1449,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * Returns the portion of the text that is selected. 
 	 *
 	 * @return the String portion of the text that is selected
+         * @since 1.3
 	 */
 	public String getSelectedText() {
 	    // Text cannot be selected.
@@ -1474,13 +1497,9 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	    paintViewR.width = JLabel.this.getWidth() - (paintViewInsets.left + paintViewInsets.right);
 	    paintViewR.height = JLabel.this.getHeight() - (paintViewInsets.top + paintViewInsets.bottom);
 	    
-            Graphics g = JLabel.this.getGraphics();
-            if (g == null) {
-                return null;
-            }
 	    String clippedText = SwingUtilities.layoutCompoundLabel(
 	        (JComponent)JLabel.this,
-		g.getFontMetrics(),
+                getFontMetrics(getFont()),
 		text,
 		icon,
 		JLabel.this.getVerticalAlignment(),
@@ -1511,6 +1530,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 *
 	 * @return the tool tip text, if supported, of the object; 
 	 * otherwise, null
+	 * @since 1.4
 	 */
 	public String getToolTipText() {
 	    return JLabel.this.getToolTipText();
@@ -1521,6 +1541,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 *
 	 * @return the titled border text, if supported, of the object; 
 	 * otherwise, null
+	 * @since 1.4
 	 */
 	public String getTitledBorderText() {
 	    return super.getTitledBorderText();
@@ -1532,6 +1553,7 @@ public class JLabel extends JComponent implements SwingConstants, Accessible
 	 * @return the key bindings, if supported, of the object; 
 	 * otherwise, null
 	 * @see AccessibleKeyBinding
+	 * @since 1.4
 	 */
 	public AccessibleKeyBinding getAccessibleKeyBinding() {
 	    int mnemonic = JLabel.this.getDisplayedMnemonic();

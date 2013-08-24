@@ -1,7 +1,7 @@
 /*
- * @(#)Closeable.java	1.4 03/12/19
+ * @(#)Closeable.java	1.5 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.io.IOException;
  * The close method is invoked to release resources that the object is 
  * holding (such as open files).
  *
- * @version 1.4 03/12/19
+ * @version 1.5 05/11/17
  * @since 1.5
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Canvas.java	1.35 04/03/16
+ * @(#)Canvas.java	1.39 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -20,7 +20,7 @@ import javax.accessibility.*;
  * component. The <code>paint</code> method must be overridden 
  * in order to perform custom graphics on the canvas.
  *
- * @version 	1.35 03/16/04
+ * @version 	1.39 04/07/06
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -167,6 +167,10 @@ public class Canvas extends Component implements Accessible {
     }
     
     /**
+     * Returns the <code>BufferStrategy</code> used by this component.  This
+     * method will return null if a <code>BufferStrategy</code> has not yet
+     * been created or has been disposed.
+     *
      * @return the buffer strategy used by this component
      * @see #createBufferStrategy
      * @since 1.4
@@ -188,6 +192,7 @@ public class Canvas extends Component implements Accessible {
      *
      * @return an AccessibleAWTCanvas that serves as the 
      *         AccessibleContext of this Canvas
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -200,6 +205,7 @@ public class Canvas extends Component implements Accessible {
      * This class implements accessibility support for the 
      * <code>Canvas</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to canvas user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTCanvas extends AccessibleAWTComponent
     {

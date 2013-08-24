@@ -1,7 +1,7 @@
 /*
- * @(#)DestroyFailedException.java	1.8 03/12/19
+ * @(#)DestroyFailedException.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package javax.security.auth;
  * the <code>Destroyable</code> interface when the <code>destroy</code>
  * method fails.
  *
- * @version 1.8, 12/19/03
+ * @version 1.9, 11/17/05
  */
 public class DestroyFailedException extends Exception {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFocusTraversalPolicy.java	1.5 03/12/19
+ * @(#)DefaultFocusTraversalPolicy.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -43,7 +43,7 @@ import java.awt.peer.ComponentPeer;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.5, 12/19/03
+ * @version 1.7, 11/17/05
  *
  * @see Container#getComponents
  * @see Component#isFocusable
@@ -53,6 +53,10 @@ import java.awt.peer.ComponentPeer;
 public class DefaultFocusTraversalPolicy
     extends ContainerOrderFocusTraversalPolicy
 {
+    /*
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = 8876966522510157497L;
 
     /**
      * Determines whether a Component is an acceptable choice as the new

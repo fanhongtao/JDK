@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DescendantIterator.java,v 1.22 2004/02/17 04:32:08 minchau Exp $
+ * $Id: DescendantIterator.java,v 1.2.4.2 2005/09/14 19:45:21 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -37,6 +37,7 @@ import com.sun.org.apache.xpath.internal.patterns.NodeTest;
  */
 public class DescendantIterator extends LocPathIterator
 {
+    static final long serialVersionUID = -1190338607743976938L;
   /**
    * Create a DescendantIterator object.
    *
@@ -124,11 +125,6 @@ public class DescendantIterator extends LocPathIterator
   /**
    * Create a DescendantIterator object.
    *
-   * @param compiler A reference to the Compiler that contains the op map.
-   * @param opPos The position within the op map, which contains the
-   * location path expression for this itterator.
-   *
-   * @throws javax.xml.transform.TransformerException
    */
   public DescendantIterator()
   {
@@ -256,7 +252,7 @@ public class DescendantIterator extends LocPathIterator
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)
@@ -270,8 +266,8 @@ public class DescendantIterator extends LocPathIterator
     // System.out.println("what: ");
     // NodeTest.debugWhatToShow(what);
     if(DTMFilter.SHOW_ALL == what
-       || localName == NodeTest.WILD
-       || namespace == NodeTest.WILD)
+       || NodeTest.WILD.equals(localName)
+       || NodeTest.WILD.equals(namespace))
     {
       m_extendedTypeID = 0;
     }

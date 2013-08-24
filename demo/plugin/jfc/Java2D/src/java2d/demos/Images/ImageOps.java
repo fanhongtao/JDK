@@ -1,7 +1,7 @@
 /*
- * @(#)ImageOps.java	1.32 04/07/26
+ * @(#)ImageOps.java	1.34 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ImageOps.java	1.29 03/01/23
+ * @(#)ImageOps.java	1.34 06/08/09
  */
 
 package java2d.demos.Images;
@@ -190,14 +190,14 @@ public class ImageOps extends ControlsSurface implements ChangeListener {
             this.demo = demo;
             add(imgCombo = new JComboBox());
             imgCombo.setFont(font);
-            for (int i = 0; i < ImageOps.imgName.length; i++) {
-                imgCombo.addItem(ImageOps.imgName[i]);
+            for (String name : ImageOps.imgName) {
+                imgCombo.addItem(name);
             }
             imgCombo.addActionListener(this);
             add(opsCombo = new JComboBox());
             opsCombo.setFont(font);
-            for (int i = 0; i < ImageOps.opsName.length; i++) {
-                opsCombo.addItem(ImageOps.opsName[i]);
+            for (String name : ImageOps.opsName) {
+                opsCombo.addItem(name);
             }
             opsCombo.addActionListener(this);
         }

@@ -61,11 +61,13 @@ import  java.io.*;
  * This class represents a local variable within a method. It contains its
  * scope, name, signature and index on the method's frame.
  *
- * @version $Id: LocalVariable.java,v 1.1.1.1 2001/10/29 20:00:02 jvanzyl Exp $
+ * @version $Id: LocalVariable.java,v 1.1.2.1 2005/07/31 23:46:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     LocalVariableTable
  */
-public final class LocalVariable implements Constants, Cloneable, Node {
+public final class LocalVariable
+  implements Constants, Cloneable, Node, Serializable
+{
   private int start_pc;        // Range in which the variable is valid
   private int length;
   private int name_index;      // Index in constant pool of variable name
@@ -88,7 +90,7 @@ public final class LocalVariable implements Constants, Cloneable, Node {
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   LocalVariable(DataInputStream file, ConstantPool constant_pool)
        throws IOException
@@ -133,7 +135,7 @@ public final class LocalVariable implements Constants, Cloneable, Node {
    * Dump local variable to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

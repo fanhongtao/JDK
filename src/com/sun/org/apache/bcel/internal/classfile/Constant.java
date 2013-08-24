@@ -62,10 +62,10 @@ import  java.io.*;
  * in the constant pool of a class file. The classes keep closely to
  * the JVM specification.
  *
- * @version $Id: Constant.java,v 1.1.1.1 2001/10/29 19:59:58 jvanzyl Exp $
+ * @version $Id: Constant.java,v 1.1.2.1 2005/07/31 23:46:35 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
-public abstract class Constant implements Cloneable, Node {
+public abstract class Constant implements Cloneable, Node, Serializable {
   /* In fact this tag is redundant since we can distinguish different
    * `Constant' objects by their type, i.e., via `instanceof'. In some
    * places we will use the tag for switch()es anyway.
@@ -124,7 +124,7 @@ public abstract class Constant implements Cloneable, Node {
    * @return Constant object
    */
   static final Constant readConstant(DataInputStream file)
-    throws IOException, ClassFormatError
+    throws IOException, ClassFormatException
   {
     byte b = file.readByte(); // Read tag byte
 
@@ -142,7 +142,7 @@ public abstract class Constant implements Cloneable, Node {
     case Constants.CONSTANT_NameAndType:        return new ConstantNameAndType(file);
     case Constants.CONSTANT_Utf8:               return new ConstantUtf8(file);
     default:                          
-      throw new ClassFormatError("Invalid byte tag in constant pool: " + b);
+      throw new ClassFormatException("Invalid byte tag in constant pool: " + b);
     }
   }    
 }

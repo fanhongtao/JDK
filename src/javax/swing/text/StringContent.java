@@ -1,7 +1,7 @@
 /*
- * @(#)StringContent.java	1.44 03/12/19
+ * @(#)StringContent.java	1.45 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -31,7 +31,7 @@ import javax.swing.SwingUtilities;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.44 12/19/03
+ * @version 1.45 11/17/05
  */
 public final class StringContent implements AbstractDocument.Content, Serializable {
 

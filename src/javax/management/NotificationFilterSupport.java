@@ -1,7 +1,7 @@
 /*
- * @(#)NotificationFilterSupport.java	4.25 03/12/19
+ * @(#)NotificationFilterSupport.java	4.28 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import java.util.Vector;
  *
  * @since 1.5
  */
-public class NotificationFilterSupport implements NotificationFilter, java.io.Serializable { 
+public class NotificationFilterSupport implements NotificationFilter {
 
     /* Serial version */
     private static final long serialVersionUID = 6579080007561786969L;
@@ -49,7 +49,7 @@ public class NotificationFilterSupport implements NotificationFilter, java.io.Se
      * @serial {@link Vector} that contains the enabled notification types.
      *         The default value is an empty vector.
      */
-    private List enabledTypes = new Vector();
+    private List<String> enabledTypes = new Vector<String>();
 
   
     /**
@@ -69,8 +69,7 @@ public class NotificationFilterSupport implements NotificationFilter, java.io.Se
             return false;
         }        
         try {
-            for (Iterator i = enabledTypes.iterator(); i.hasNext(); ) {
-                String prefix = (String)i.next();                
+	    for (String prefix : enabledTypes) {
                 if (type.startsWith(prefix)) {
                     return true;
                 }
@@ -107,10 +106,11 @@ public class NotificationFilterSupport implements NotificationFilter, java.io.Se
      * @param prefix The prefix.
      * @exception java.lang.IllegalArgumentException The prefix parameter is null.
      */  
-    public synchronized void enableType(String prefix) throws java.lang.IllegalArgumentException {
+    public synchronized void enableType(String prefix)
+	    throws IllegalArgumentException {
         
         if (prefix == null) {
-            throw new java.lang.IllegalArgumentException("The prefix cannot be null.");
+            throw new IllegalArgumentException("The prefix cannot be null.");
         }
         if (!enabledTypes.contains(prefix)) {
             enabledTypes.add(prefix);
@@ -141,8 +141,8 @@ public class NotificationFilterSupport implements NotificationFilter, java.io.Se
      *
      * @return The list containing all the enabled notification types.
      */
-    public synchronized Vector getEnabledTypes() {
-        return (Vector)enabledTypes;
+    public synchronized Vector<String> getEnabledTypes() {
+        return (Vector<String>)enabledTypes;
     }
       
 }

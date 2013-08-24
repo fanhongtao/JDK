@@ -1,7 +1,7 @@
 /*
- * @(#)ExceptionListener.java	1.6 03/12/19
+ * @(#)ExceptionListener.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -11,7 +11,7 @@ package java.beans;
  * 
  * @since 1.4
  *
- * @version 1.6 12/19/03
+ * @version 1.7 11/17/05
  * @author Philip Milne
  */        
 public interface ExceptionListener { 

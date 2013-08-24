@@ -1,7 +1,7 @@
 /*
- * @(#)KeyRep.java	1.7 04/04/20
+ * @(#)KeyRep.java	1.10 06/04/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import javax.crypto.spec.SecretKeySpec;
  *
  * Note that a serialized Key may contain sensitive information
  * which should not be exposed in untrusted environments.  See the
- * <a href="../../../guide/serialization/spec/security.html">
+ * <a href="../../../platform/serialization/spec/security.html">
  * Security Appendix</a>
  * of the Serialization Specification for more information.
  *
@@ -33,7 +33,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @see java.security.spec.X509EncodedKeySpec
  * @see java.security.spec.PKCS8EncodedKeySpec
  *
- * @version 1.7, 04/04/20
+ * @version 1.10, 06/04/24
  * @since 1.5
  */
 
@@ -143,7 +143,7 @@ public class KeyRep implements Serializable {
      *
      * @return the resolved Key object
      *
-     * @exception NotSerializableException if the Type/format
+     * @exception ObjectStreamException if the Type/format
      *	combination is unrecognized, if the algorithm, key format, or
      *	encoded key bytes are unrecognized/invalid, of if the
      *	resolution of the key fails for any reason

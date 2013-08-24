@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IntVector.java,v 1.8 2004/02/17 04:21:14 minchau Exp $
+ * $Id: IntVector.java,v 1.2.4.1 2005/09/15 08:15:45 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -169,7 +169,7 @@ public class IntVector implements Cloneable
   /**
    * Append several slots onto the vector, but do not set the values.
    *
-   * @param value Int to add to the list 
+   * @param numberOfElements Int to add to the list 
    */
   public final void addElements(int numberOfElements)
   {
@@ -297,7 +297,7 @@ public class IntVector implements Cloneable
    * The index must be a value greater than or equal to 0 and less
    * than the current size of the vector.
    *
-   * @param node object to set
+   * @param value object to set
    * @param index Index of where to set the object
    */
   public final void setElementAt(int value, int index)

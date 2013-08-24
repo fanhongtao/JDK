@@ -1,7 +1,7 @@
 /*
- * @(#)StringCharBuffer.java	1.17 03/12/19
+ * @(#)StringCharBuffer.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,9 +24,23 @@ class StringCharBuffer					// package-private
     }
 
     public CharBuffer slice() {
-	return new StringCharBuffer(str, position(), limit());
+	return new StringCharBuffer(str,
+				    -1,
+				    0, 
+				    this.remaining(),
+				    this.remaining(),
+				    this.position());
     }
 
+    private StringCharBuffer(CharSequence s,
+			     int mark,
+			     int pos,
+			     int limit,
+			     int cap,
+			     int offset) {
+	super(mark, pos, limit, cap, null, offset);
+	str = s;
+    }
 
     private StringCharBuffer(CharSequence s, int mark,
 			     int pos, int limit, int cap)

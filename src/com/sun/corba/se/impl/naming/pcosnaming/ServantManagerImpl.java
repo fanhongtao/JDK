@@ -1,11 +1,11 @@
 /*
- * @(#)ServantManagerImpl.java	1.12 03/12/19
+ * @(#)ServantManagerImpl.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
- * @(#)ServantManagerImpl.java	1.12 03/12/19
+ * @(#)ServantManagerImpl.java	1.13 05/11/17
  *
  * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road,
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.

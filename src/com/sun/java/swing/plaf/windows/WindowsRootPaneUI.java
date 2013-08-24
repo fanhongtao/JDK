@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsRootPaneUI.java	1.15 04/04/16
+ * @(#)WindowsRootPaneUI.java	1.18 06/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ import javax.swing.plaf.basic.ComboPopup;
  * Windows implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.15 04/16/04
+ * @version 1.18 01/23/06
  * @author Mark Davidson
  * @since 1.4
  */
@@ -73,12 +73,12 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
             } else if(path.length > 0) { // We are in ComboBox
                 menuCanceledOnPress = false;
                 WindowsLookAndFeel.setMnemonicHidden(false);
-                WindowsUtils.repaintMnemonicsInWindow(winAncestor);
+                WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 ev.consume();
             } else {
                 menuCanceledOnPress = false;
 	        WindowsLookAndFeel.setMnemonicHidden(false);
-                WindowsUtils.repaintMnemonicsInWindow(winAncestor);
+                WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 JMenuBar mbar = root != null ? root.getJMenuBar() : null;
                 if(mbar == null && winAncestor instanceof JFrame) {
                     mbar = ((JFrame)winAncestor).getJMenuBar();
@@ -93,7 +93,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
         void altReleased(KeyEvent ev) {
             if (menuCanceledOnPress) {
 	        WindowsLookAndFeel.setMnemonicHidden(true);
-                WindowsUtils.repaintMnemonicsInWindow(winAncestor);
+                WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 return;
             }
 
@@ -115,18 +115,22 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
                     msm.setSelectedPath(path);
                 } else if(!WindowsLookAndFeel.isMnemonicHidden()) {
                     WindowsLookAndFeel.setMnemonicHidden(true);
-                    WindowsUtils.repaintMnemonicsInWindow(winAncestor);
+                    WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 }
             } else {
                 if((msm.getSelectedPath())[0] instanceof ComboPopup) {
                     WindowsLookAndFeel.setMnemonicHidden(true);
-                    WindowsUtils.repaintMnemonicsInWindow(winAncestor);
+                    WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 }
             }
 
         }
 
         public boolean postProcessKeyEvent(KeyEvent ev) {
+            if(ev.isConsumed()) {
+                // do not manage consumed event
+                return false;
+            }
             if (ev.getKeyCode() == KeyEvent.VK_ALT) {
                 root = SwingUtilities.getRootPane(ev.getComponent());
                 winAncestor = (root == null ? null : 
@@ -147,7 +151,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
                         MenuElement[] path = msm.getSelectedPath();
                         if (path.length <= 0) {
                             WindowsLookAndFeel.setMnemonicHidden(true);
-                            WindowsUtils.repaintMnemonicsInWindow(winAncestor);
+                            WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                         }
                     }
                     altKeyPressed = false;

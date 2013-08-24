@@ -71,8 +71,10 @@ package com.sun.org.apache.xerces.internal.impl.dtd.models;
  *
  * Note that the code that uses this class will never perform operations
  * on sets of different sizes, so that check does not have to be made here.
+ * 
+ * @xerces.internal
  *
- * @version $Id: CMStateSet.java,v 1.3 2002/01/29 01:15:10 lehors Exp $
+ * @version $Id: CMStateSet.java,v 1.1.2.1 2005/08/01 03:34:25 jeffsuttor Exp $
  */
 // made this class public so it can be accessed by
 // the XS content models from the schema package -neilg.

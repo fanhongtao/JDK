@@ -1,7 +1,7 @@
 /*
- * @(#)TargetDataLine.java	1.20 03/12/19
+ * @(#)TargetDataLine.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ package javax.sound.sampled;
  * the oldest queued data is discarded and replaced by new data.
  * 
  * @author Kara Kytle
- * @version 1.20 03/12/19
+ * @version 1.21 05/11/17
  * @see Mixer
  * @see DataLine
  * @see SourceDataLine

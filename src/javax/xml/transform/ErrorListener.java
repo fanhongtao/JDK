@@ -1,9 +1,28 @@
-// $Id: ErrorListener.java,v 1.2 2003/09/19 10:10:13 jsuttor Exp $
 /*
- * @(#)ErrorListener.java	1.12 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
+
+/*
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)ErrorListener.java	1.21 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.transform;
@@ -79,11 +98,13 @@ public interface ErrorListener {
     /**
      * <p>Receive notification of a non-recoverable error.</p>
      *
-     * <p>The <code>Transformer</code> must continue to try and provide normal
-     * transformation after invoking this method.  It should still be possible for the
-     * application to process the document through to the end if no other errors
-     * are encountered, but there is no guarantee that the output will be
-     * useable.</p>
+     * <p>The processor may choose to continue, but will not normally
+     * proceed to a successful completion.</p>
+     *
+     * <p>The method should throw an exception if it is unable to
+     * process the error, or if it wishes execution to terminate
+     * immediately. The processor will not necessarily honor this
+     * request.</p>
      *
      * @param exception The error information encapsulated in a
      *    <code>TransformerException</code>.

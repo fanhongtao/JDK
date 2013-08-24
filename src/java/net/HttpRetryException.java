@@ -1,7 +1,7 @@
 /*
- * @(#)HttpRetryException.java	1.1 04/04/20
+ * @(#)HttpRetryException.java	1.2 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.io.IOException;
  * being enabled.
  *
  * @author  Michael McMahon
- * @version 1.1, 04/20/04
+ * @version 1.2, 11/17/05
  * @since   1.5
  */
 public 

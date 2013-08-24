@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncLast.java,v 1.15 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncLast.java,v 1.2.4.1 2005/09/14 20:18:43 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -32,6 +32,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncLast extends Function
 {
+    static final long serialVersionUID = 9205812403085432943L;
   
   private boolean m_isTopLevel;
   

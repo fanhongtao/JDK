@@ -1,13 +1,14 @@
 /*
- * @(#)Handler.java	1.17 04/01/12
+ * @(#)Handler.java	1.21 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
 package java.util.logging;
 
+import java.io.UnsupportedEncodingException;
 /**
  * A <tt>Handler</tt> object takes log messages from a <tt>Logger</tt> and
  * exports them.  It might for example, write them to a console
@@ -23,7 +24,7 @@ package java.util.logging;
  * <tt>Handler</tt> class.
  *
  *
- * @version 1.17, 01/12/04
+ * @version 1.21, 04/07/06
  * @since 1.4
  */
 
@@ -124,8 +125,13 @@ public abstract class Handler {
 			throws SecurityException, java.io.UnsupportedEncodingException {
 	checkAccess();
 	if (encoding != null) {
-	    // Check the encoding exists.
-	    sun.io.CharToByteConverter.getConverter(encoding);
+	    try {
+	        if(!java.nio.charset.Charset.isSupported(encoding)) {
+	            throw new UnsupportedEncodingException(encoding);
+	        }	 	
+	    } catch (java.nio.charset.IllegalCharsetNameException e) {
+	        throw new UnsupportedEncodingException(encoding);
+	    }
 	}
 	this.encoding = encoding;
     }
@@ -159,7 +165,7 @@ public abstract class Handler {
     /**
      * Get the current <tt>Filter</tt> for this <tt>Handler</tt>.
      *
-     * @return  a </tt>Filter</tt> object (may be null)
+     * @return  a <tt>Filter</tt> object (may be null)
      */
     public Filter getFilter() {
 	return filter;

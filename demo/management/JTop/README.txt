@@ -3,6 +3,11 @@ which has remote management enabled.  JTop demonstrates the use of
 the java.lang.management API to obtain the CPU consumption for 
 each thread.
 
+JTop is also a JConsole Plugin.  See below for details.
+
+JTop Standalone GUI
+===================
+
 JTop first establishes a connection to a JMX agent in a remote
 application with a JMX service URL:
    service:jmx:rmi:///jndi/rmi://<hostName>:<portNum>/jmxrmi
@@ -36,7 +41,21 @@ These instructions assume that this installation's version of the java
 command is in your path.  If it isn't, then you should either
 specify the complete path to the java command or update your
 PATH environment variable as described in the installation
-instructions for the Java SDK.
+instructions for the Java(TM) SDK.
 
-Please refer to http://java.sun.com/j2se/1.5.0/docs/guide/management/
-for details.
+JTop JConsole Plugin
+====================
+
+JTop is a JConsole Plugin which adds a "JTop" tab to JConsole.
+
+To run JConsole with the JTop plugin 
+------------------------------------
+    jconsole -pluginpath <JDK_HOME>/demo/management/JTop/JTop.jar
+
+
+To compile
+----------
+    javac -classpath <JDK_HOME>/lib/jconsole.jar JTopPlugin.java
+ 
+com.sun.tools.jconsole API is in jconsole.jar which is needed
+in the classpath for compilation.

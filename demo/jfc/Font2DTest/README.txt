@@ -7,14 +7,14 @@ To run Font2DTest:
     or 
 % appletviewer Font2DTest.html
 
-These instructions assume that this installation's versions of the java
+These instructions assume that the 1.5 versions of the java
 and appletviewer commands are in your path.  If they aren't,
 then you should either specify the complete path to the commands
 or update your PATH environment variable as described in the
-installation instructions for the Java 2 SDK.
+installation instructions for the Java(TM) SE Development Kit.
 
 To view Font2DTest within a web browser with Java Plugin,
-load Font2DTestPlugin.html.
+load Font2DTest.html.
 
 If you wish to modify any of the source code, you may want to extract
 the contents of the Font2DTest.jar file by executing this command:
@@ -50,6 +50,17 @@ be used to render the text to the screen (or to be printed out).
 Tips on usage 
 ----------------------------------------------------------------------- 
 
+- The "Font" combobox will show a tick mark if some of the characters in 
+selected unicode range can be displayed by this font. No tick is shown, 
+if none of the characters can be displayed. A tooltip is shown with this 
+information. This indication is available only if "Unicode Range" is 
+selected in "Text to use" combobox.
+
+This feature is enabled by default. For disabling this feature, use 
+command line flag -disablecandisplaycheck or -dcdc.
+
+java -jar Font2DTest.jar -dcdc
+
 - For the "Font Size" field to have an effect, it is necessary to press
 ENTER when finished inputting data in those fields.
 
@@ -73,7 +84,7 @@ bar due to design restrictions)
 - If font size is too large to fit a character, then a message will
 inform that smaller font size or larger canvas size is needed.
 
-- Custom Unicode Range can be displayed by selecting "Other..."
+- Custom Unicode Range can be displayed by selecting "Custom..."
 at the bottom of the Unicode Range menu. This will bring up
 a dialog box to specify the starting and ending index
 of the unicode characters to be drawn.

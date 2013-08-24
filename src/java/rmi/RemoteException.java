@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteException.java	1.24 03/12/19
+ * @(#)RemoteException.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ package java.rmi;
  * instance of <code>RemoteException</code> always throws {@link
  * IllegalStateException}.
  *
- * @version 1.24, 12/19/03
+ * @version 1.25, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

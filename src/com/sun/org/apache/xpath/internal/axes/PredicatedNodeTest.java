@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: PredicatedNodeTest.java,v 1.15 2004/02/17 04:32:08 minchau Exp $
+ * $Id: PredicatedNodeTest.java,v 1.2.4.2 2005/09/14 19:45:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -31,6 +31,7 @@ import com.sun.org.apache.xpath.internal.patterns.NodeTest;
 
 public abstract class PredicatedNodeTest extends NodeTest implements SubContextList
 {
+    static final long serialVersionUID = -6193530757296377351L;
 
   /**
    * Construct an AxesWalker using a LocPathIterator.
@@ -540,8 +541,6 @@ public abstract class PredicatedNodeTest extends NodeTest implements SubContextL
 	 * each member.  If the called visitor method returns 
 	 * false, the subtree should not be called.
 	 * 
-	 * @param owner The owner of the visitor, where that path may be 
-	 *              rewritten if needed.
 	 * @param visitor The visitor whose appropriate method will be called.
 	 */
 	public void callPredicateVisitors(XPathVisitor visitor)

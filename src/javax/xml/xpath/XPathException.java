@@ -1,10 +1,28 @@
-// $Id: XPathException.java,v 1.14.12.2 2004/06/15 00:07:08 rameshm Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)XPathException.java	1.8 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)XPathException.java	1.16 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.xpath;
@@ -16,7 +34,7 @@ import java.io.PrintWriter;
  *
  * @author  <a href="Norman.Walsh@Sun.com">Norman Walsh</a>
  * @author <a href="mailto:Jeff.Suttor@Sun.COM">Jeff Suttor</a>
- * @version $Revision: 1.14.12.2 $, $Date: 2004/06/15 00:07:08 $
+ * @version $Revision: 1.2 $, $Date: 2005/06/10 03:50:44 $
  * @since 1.5
  */
 public class XPathException extends Exception {
@@ -29,13 +47,18 @@ public class XPathException extends Exception {
     private static final long serialVersionUID = -1837080260374986980L;
 
     /**
-     * <p>Constructs a new <code>XPathException</code> with the specified detail <code>message</code>.</p>
+     * <p>Constructs a new <code>XPathException</code>
+     * with the specified detail <code>message</code>.</p>
      *
      * <p>The <code>cause</code> is not initialized.</p>
      *
-     * <p>If <code>message</code> is <code>null</code>, then a <code>NullPointerException</code> is thrown.</p>
+     * <p>If <code>message</code> is <code>null</code>,
+     * then a <code>NullPointerException</code> is thrown.</p>
      *
      * @param message The detail message.
+     *
+     * @throws NullPointerException When <code>message</code> is
+     *   <code>null</code>.
      */
     public XPathException(String message) {
         super(message);
@@ -46,9 +69,11 @@ public class XPathException extends Exception {
     }
 
     /**
-     * <p>Constructs a new <code>XPathException</code> with the specified <code>cause</code>.</p>
+     * <p>Constructs a new <code>XPathException</code>
+     * with the specified <code>cause</code>.</p>
      *
-     * <p>If <code>cause</code> is <code>null</code>, then a <code>NullPointerException</code> is thrown.</p>
+     * <p>If <code>cause</code> is <code>null</code>,
+     * then a <code>NullPointerException</code> is thrown.</p>
      *
      * @param cause The cause.
      *
@@ -61,26 +86,45 @@ public class XPathException extends Exception {
             throw new NullPointerException ( "cause can't be null");
         }
     }
-    
+
+    /**
+     * <p>Get the cause of this XPathException.</p>
+     *
+     * @return Cause of this XPathException.
+     */
     public Throwable getCause() {
         return cause;
     }
 
-    public void printStackTrace( java.io.PrintStream s ) {
-        if( getCause() != null ) {
+    /**
+     * <p>Print stack trace to specified <code>PrintStream</code>.</p>
+     *
+     * @param s Print stack trace to this <code>PrintStream</code>.
+     */
+    public void printStackTrace(java.io.PrintStream s) {
+        if (getCause() != null) {
             getCause().printStackTrace(s);
           s.println("--------------- linked to ------------------");
         }
 
         super.printStackTrace(s);
     }
- 
+
+    /**
+     * <p>Print stack trace to <code>System.err</code>.</p>
+     */
     public void printStackTrace() {
         printStackTrace(System.err);
     }
 
+    /**
+     * <p>Print stack trace to specified <code>PrintWriter</code>.</p>
+     *
+     * @param s Print stack trace to this <code>PrintWriter</code>.
+     */
     public void printStackTrace(PrintWriter s) {
-        if( getCause() != null ) {
+
+        if (getCause() != null) {
             getCause().printStackTrace(s);
           s.println("--------------- linked to ------------------");
         }

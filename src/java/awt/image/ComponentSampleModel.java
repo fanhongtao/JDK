@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentSampleModel.java	1.44 03/12/19
+ * @(#)ComponentSampleModel.java	1.46 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -425,7 +425,8 @@ public class ComponentSampleModel extends SampleModel
      * <pre>
      *        data.getElem(csm.getOffset(x, y));
      * </pre>
-     * @param x,&nbsp;y the location of the pixel
+     * @param x the X location of the pixel
+     * @param y the Y location of the pixel
      * @return the offset for the first band of the specified pixel.
      */
     public int getOffset(int x, int y) {
@@ -440,7 +441,8 @@ public class ComponentSampleModel extends SampleModel
      * <pre>
      *       data.getElem(csm.getOffset(x, y, b));
      * </pre>
-     * @param x,&nbsp;y the location of the specified pixel
+     * @param x the X location of the specified pixel
+     * @param y the Y location of the specified pixel
      * @param b the specified band
      * @return the offset for the specified band of the specified pixel.
      */
@@ -554,7 +556,8 @@ public class ComponentSampleModel extends SampleModel
      * <code>null</code> and is not large enough to hold
      * the pixel data.
      *
-     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param x         the X coordinate of the pixel location
+     * @param y         the Y coordinate of the pixel location
      * @param obj       if non-<code>null</code>, a primitive array
      *                  in which to return the pixel data 
      * @param data      the <code>DataBuffer</code> containing the image data
@@ -672,7 +675,8 @@ public class ComponentSampleModel extends SampleModel
      * one sample per array element.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         the X coordinate of the pixel location
+     * @param y         the Y coordinate of the pixel location
      * @param iArray    If non-null, returns the samples in this array
      * @param data      The DataBuffer containing the image data
      * @return the samples of the specified pixel.
@@ -706,7 +710,8 @@ public class ComponentSampleModel extends SampleModel
      * an int array, one sample per array element.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y  the coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle  
      * @param iArray    If non-null, returns the samples in this array
@@ -748,7 +753,8 @@ public class ComponentSampleModel extends SampleModel
      * located at (x,y).
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y  the coordinates of the pixel location
+     * @param x         the X coordinate of the pixel location
+     * @param y         the Y coordinate of the pixel location
      * @param b         the band to return
      * @param data      the <code>DataBuffer</code> containing the image data
      * @return the sample in a specified band for the specified pixel
@@ -771,7 +777,8 @@ public class ComponentSampleModel extends SampleModel
      * for the pixel located at (x,y) as a float.
      * An <code>ArrayIndexOutOfBoundsException</code> might be 
      * thrown if the coordinates are not in bounds.
-     * @param x,&nbsp;y  The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to return
      * @param data      The DataBuffer containing the image data
      * @return a float value representing the sample in the specified
@@ -795,7 +802,8 @@ public class ComponentSampleModel extends SampleModel
      * for a pixel located at (x,y) as a double.
      * An <code>ArrayIndexOutOfBoundsException</code> might be 
      * thrown if the coordinates are not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to return
      * @param data      The DataBuffer containing the image data
      * @return a double value representing the sample in the specified
@@ -819,7 +827,8 @@ public class ComponentSampleModel extends SampleModel
      * of pixels in an int array, one sample per data array element.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y the coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         the width of the pixel rectangle
      * @param h         the height of the pixel rectangle
      * @param b         the band to return
@@ -888,7 +897,8 @@ public class ComponentSampleModel extends SampleModel
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if
      * the coordinates are not in bounds, or if <code>obj</code> is not large 
      * enough to hold the pixel data.
-     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param x         the X coordinate of the pixel location
+     * @param y         the Y coordinate of the pixel location
      * @param obj       a primitive array containing pixel data
      * @param data      the DataBuffer containing the image data
      * @see #getDataElements(int, int, Object, DataBuffer)
@@ -964,7 +974,8 @@ public class ComponentSampleModel extends SampleModel
      * samples for input.  An <code>ArrayIndexOutOfBoundsException</code>
      * might be thrown if the coordinates are
      * not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param iArray    The input samples in an int array
      * @param data      The DataBuffer containing the image data
      * @see #getPixel(int, int, int[], DataBuffer)
@@ -986,7 +997,8 @@ public class ComponentSampleModel extends SampleModel
      * one sample per array element.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
      * coordinates are not in bounds.
-     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle
      * @param iArray    The input samples in an int array
@@ -1021,7 +1033,8 @@ public class ComponentSampleModel extends SampleModel
      * in the <code>DataBuffer</code> using an int for input.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
      * coordinates are not in bounds.
-     * @param x,&nbsp;y the coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         the band to set
      * @param s         the input sample as an int 
      * @param data      the DataBuffer containing the image data
@@ -1043,7 +1056,8 @@ public class ComponentSampleModel extends SampleModel
      * in the <code>DataBuffer</code> using a float for input.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to set
      * @param s         The input sample as a float
      * @param data      The DataBuffer containing the image data
@@ -1067,7 +1081,8 @@ public class ComponentSampleModel extends SampleModel
      * in the <code>DataBuffer</code> using a double for input.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if 
      * the coordinates are not in bounds.
-     * @param x,&nbsp;y The coordinates of the pixel location
+     * @param x         The X coordinate of the pixel location
+     * @param y         The Y coordinate of the pixel location
      * @param b         The band to set
      * @param s         The input sample as a double
      * @param data      The DataBuffer containing the image data
@@ -1091,7 +1106,8 @@ public class ComponentSampleModel extends SampleModel
      * of pixels from an int array containing one sample per data array element.
      * An <code>ArrayIndexOutOfBoundsException</code> might be thrown if the 
      * coordinates are not in bounds.
-     * @param x,&nbsp;y The coordinates of the upper left pixel location
+     * @param x         The X coordinate of the upper left pixel location
+     * @param y         The Y coordinate of the upper left pixel location
      * @param w         The width of the pixel rectangle
      * @param h         The height of the pixel rectangle
      * @param b         The band to set

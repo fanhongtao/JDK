@@ -1,7 +1,7 @@
 /*
- * @(#)SerialClob.java	1.11 04/08/10
+ * @(#)SerialClob.java	1.16 06/08/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -109,7 +109,7 @@ public class SerialClob implements Clob, Serializable, Cloneable {
      *     <code>SerialClob</code> object is to be constructed; cannot be null
      * @throws SerialException if an error occurs during serialization
      * @throws SQLException if a SQL error occurs in capturing the CLOB;
-     *     if the <code>Clob</code> object is a null; or if at least one of the 
+     *     if the <code>Clob</code> object is a null; or if both the 
      *     <code>Clob.getCharacterStream()</code> and <code>Clob.getAsciiStream()</code>
      *     methods on the <code>Clob</code> return a null
      * @see java.sql.Clob
@@ -127,15 +127,13 @@ public class SerialClob implements Clob, Serializable, Cloneable {
         int offset = 0;
         
         BufferedReader reader;
-        
-        if (clob.getCharacterStream() == null ||  clob.getAsciiStream() == null) {
+        if ( (((reader = new BufferedReader(clob.getCharacterStream())) == null)) && 
+            (clob.getAsciiStream() == null)) {
             throw new SQLException("Invalid Clob object. Calls to getCharacterStream " +
-                "or getAsciiStream return null which cannot be serialized.");
+                "and getAsciiStream return null which cannot be serialized.");
         }
         
         try {
-	    reader = new BufferedReader(clob.getCharacterStream());
-            
             do {
                 read = reader.read(buf, offset, (int)(len - offset));
                 offset += read;
@@ -184,7 +182,7 @@ public class SerialClob implements Clob, Serializable, Cloneable {
      *
      * @return a <code>java.io.InputStream</code> object containing
      *     this <code>SerialClob</code> object's data
-     * @throws SerialException if this <code>SerialClob<code> object was not instantiated
+     * @throws SerialException if this <code>SerialClob</code> object was not instantiated
      *     with a <code>Clob</code> object
      * @throws SQLException if there is an error accessing the 
      *     <code>CLOB</code> value represented by the <code>Clob</code> object that was
@@ -487,8 +485,15 @@ public class SerialClob implements Clob, Serializable, Cloneable {
               
          }  
     }
-    
 
+
+    public Reader getCharacterStream(long pos, long length) throws SQLException {
+        throw new java.lang.UnsupportedOperationException("Not supported");
+    }
+
+    public void free() throws SQLException {
+        throw new java.lang.UnsupportedOperationException("Not supported");
+    }
 
     /**
 	 * The identifier that assists in the serialization of this <code>SerialClob</code>

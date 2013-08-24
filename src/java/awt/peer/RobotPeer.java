@@ -1,7 +1,7 @@
 /*
- * @(#)RobotPeer.java	1.9 03/12/19
+ * @(#)RobotPeer.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.awt.*;
  * java.awt.* hierarchy; it is not to be considered public and is subject
  * to change.
  *
- * @version 	1.9, 12/19/03
+ * @version 	1.10, 11/17/05
  * @author 	Robi Khan
  */
 public interface RobotPeer

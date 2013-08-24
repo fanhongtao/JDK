@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsPopupMenuUI.java	1.21 04/04/16
+ * @(#)WindowsPopupMenuUI.java	1.23 06/01/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -75,7 +75,7 @@ public class WindowsPopupMenuUI extends BasicPopupMenuUI {
                     if (repaintRoot != null) {
                         Window win =
                             SwingUtilities.getWindowAncestor(repaintRoot);
-                        WindowsUtils.repaintMnemonicsInWindow(win);
+                        WindowsGraphicsUtils.repaintMnemonicsInWindow(win);
                     }
                 }
             } else {

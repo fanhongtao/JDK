@@ -1,7 +1,7 @@
 /*
- * @(#)Formatter.java	1.16 03/12/19
+ * @(#)Formatter.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.util.logging;
  * and tail strings around a set of formatted records. The getHeader
  * and getTail methods can be used to obtain these strings.
  *
- * @version 1.16, 12/19/03
+ * @version 1.17, 11/17/05
  * @since 1.4
  */
 

@@ -1,7 +1,7 @@
 /*
- * @(#)TransformAnim.java	1.38 04/07/26
+ * @(#)TransformAnim.java	1.41 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)TransformAnim.java	1.35 03/10/26
+ * @(#)TransformAnim.java	1.41 06/08/29
  */
 
 package java2d.demos.Transforms;
@@ -52,6 +52,9 @@ import java2d.AnimatingControlsSurface;
 import java2d.CustomControls;
 import javax.swing.plaf.metal.MetalBorders.ButtonBorder;
 
+import static java.awt.Color.*;
+import static java.awt.Font.*;
+
 /**
  * Animation of shapes, text and images rotating, scaling and translating
  * around a canvas.
@@ -64,28 +67,26 @@ public class TransformAnim extends AnimatingControlsSurface {
         Graphics2D gi = bi.createGraphics();
         gi.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                             RenderingHints.VALUE_ANTIALIAS_ON);
-        gi.setColor(Color.red);
+        gi.setColor(RED);
         gi.fillOval(0,0,9,9);
         texture = new TexturePaint(bi,new Rectangle(0,0,10,10));
     }
 
     private static BasicStroke bs = new BasicStroke(6); 
     private static Font fonts[] = {
-                new Font("Times New Roman", Font.PLAIN, 48),
-                new Font("serif", Font.BOLD + Font.ITALIC, 24),
-                new Font("Courier", Font.BOLD, 36),
-                new Font("Arial", Font.BOLD + Font.ITALIC, 64),
-                new Font("Helvetica", Font.PLAIN, 52)};
+                new Font("Times New Roman", PLAIN,       48),
+                new Font("serif",           BOLD|ITALIC, 24),
+                new Font("Courier",         BOLD,        36),
+                new Font("Arial",           BOLD|ITALIC, 64),
+                new Font("Helvetica",       PLAIN,       52)};
     private static String strings[] = {
-                "Transformation", "Rotate", "Translate",
-                "Shear", "Scale" };
+                "Transformation", "Rotate", "Translate", "Shear", "Scale" };
     private static String imgs[] = { "duke.gif" };
     private static Paint paints[] = { 
-                Color.red, Color.blue, texture, Color.green, Color.magenta, 
-                Color.orange, Color.pink, Color.cyan, 
+                RED, BLUE, texture, GREEN, MAGENTA, ORANGE, PINK, CYAN, 
                 new Color(0, 255, 0, 128), new Color(0, 0, 255, 128), 
-                Color.yellow, Color.lightGray, Color.white};
-    private Vector vector = new Vector(13);
+                YELLOW, LIGHT_GRAY, WHITE};
+    private Vector<ObjData> objDatas = new Vector<ObjData>(13);
     private int numShapes, numStrings, numImages;
     protected boolean doRotate = true;
     protected boolean doTranslate = true;
@@ -94,7 +95,7 @@ public class TransformAnim extends AnimatingControlsSurface {
 
 
     public TransformAnim() {
-        setBackground(Color.black);
+        setBackground(BLACK);
         setStrings(1);
         setImages(2);
         setShapes(10);
@@ -105,22 +106,22 @@ public class TransformAnim extends AnimatingControlsSurface {
 
     public void setImages(int num) {
         if (num < numImages) {
-            Vector v = new Vector(vector.size());
-            for (int i = 0; i < vector.size(); i++) {
-                if (((ObjectData) vector.get(i)).object instanceof Image) {
-                    v.addElement(vector.get(i));
+            Vector<ObjData> v = new Vector<ObjData>(objDatas.size());
+            for (ObjData objData : objDatas) {
+                if (objData.object instanceof Image) {
+                    v.addElement(objData);
                 }
             }
-            vector.removeAll(v);
+            objDatas.removeAll(v);
             v.setSize(num);
-            vector.addAll(v);
+            objDatas.addAll(v);
         } else {
             Dimension d = getSize();
             for (int i = numImages; i < num; i++) {
                 Object obj = getImage(imgs[i % imgs.length]);
-                ObjectData od = new ObjectData(obj, Color.black);
-                od.reset(d.width, d.height);
-                vector.addElement(od);
+                ObjData objData = new ObjData(obj, BLACK);
+                objData.reset(d.width, d.height);
+                objDatas.addElement(objData);
             }
         }
         numImages = num;
@@ -129,24 +130,24 @@ public class TransformAnim extends AnimatingControlsSurface {
 
     public void setStrings(int num) {
         if (num < numStrings) {
-            Vector v = new Vector(vector.size());
-            for (int i = 0; i < vector.size(); i++) {
-                if (((ObjectData) vector.get(i)).object instanceof TextData) {
-                    v.addElement(vector.get(i));
+            Vector<ObjData> v = new Vector<ObjData>(objDatas.size());
+            for (ObjData objData : objDatas) {
+                if (objData.object instanceof TextData) {
+                    v.addElement(objData);
                 }
             }
-            vector.removeAll(v);
+            objDatas.removeAll(v);
             v.setSize(num);
-            vector.addAll(v);
+            objDatas.addAll(v);
         } else {
             Dimension d = getSize();
             for (int i = numStrings; i < num; i++) {
-                int j = i % fonts.length;
+                int j = i %   fonts.length;
                 int k = i % strings.length;
                 Object obj = new TextData(strings[k], fonts[j]); 
-                ObjectData od = new ObjectData(obj, paints[i%paints.length]);
-                od.reset(d.width, d.height);
-                vector.addElement(od);
+                ObjData objData = new ObjData(obj, paints[i%paints.length]);
+                objData.reset(d.width, d.height);
+                objDatas.addElement(objData);
             }
         }
         numStrings = num;
@@ -155,15 +156,15 @@ public class TransformAnim extends AnimatingControlsSurface {
 
     public void setShapes(int num) {
         if (num < numShapes) {
-            Vector v = new Vector(vector.size());
-            for (int i = 0; i < vector.size(); i++) {
-                if (((ObjectData) vector.get(i)).object instanceof Shape) {
-                    v.addElement(vector.get(i));
+            Vector<ObjData> v = new Vector<ObjData>(objDatas.size());
+            for (ObjData objData : objDatas) {
+                if (objData.object instanceof Shape) {
+                    v.addElement(objData);
                 }
             }
-            vector.removeAll(v);
+            objDatas.removeAll(v);
             v.setSize(num);
-            vector.addAll(v);
+            objDatas.addAll(v);
         } else {
             Dimension d = getSize();
             for (int i = numShapes; i < num; i++) {
@@ -177,9 +178,9 @@ public class TransformAnim extends AnimatingControlsSurface {
                     case 5 : obj = new CubicCurve2D.Double(); break;
                     case 6 : obj = new QuadCurve2D.Double(); break;
                 }
-                ObjectData od = new ObjectData(obj, paints[i%paints.length]);
-                od.reset(d.width, d.height);
-                vector.addElement(od);
+                ObjData objData = new ObjData(obj, paints[i%paints.length]);
+                objData.reset(d.width, d.height);
+                objDatas.addElement(objData);
             }
         } 
         numShapes = num;
@@ -187,36 +188,35 @@ public class TransformAnim extends AnimatingControlsSurface {
         
 
     public void reset(int w, int h) {
-        for (int i = 0; i < vector.size(); i++) {
-            ((ObjectData) vector.get(i)).reset(w, h);
+        for (ObjData objData : objDatas) {
+            objData.reset(w, h);
         }
     }
 
 
     public void step(int w, int h) {
-        for (int i = 0; i < vector.size(); i++) {
-            ((ObjectData) vector.get(i)).step(w, h, this);
+        for (ObjData objData : objDatas) {
+            objData.step(w, h, this);
         }
     }
 
 
     public void render(int w, int h, Graphics2D g2) {
-        for (int i = 0; i < vector.size(); i++) {
-            ObjectData od = (ObjectData) vector.get(i);
-            g2.setTransform(od.at);
-            g2.setPaint(od.paint);
-            if (od.object instanceof Image) {
-                g2.drawImage((Image) od.object, 0, 0, this);
-            } else if (od.object instanceof TextData) {
-                g2.setFont(((TextData) od.object).font);
-                g2.drawString(((TextData) od.object).string, 0, 0);
-            } else if (od.object instanceof QuadCurve2D 
-                    || od.object instanceof CubicCurve2D) 
+        for (ObjData objData : objDatas) {
+            g2.setTransform(objData.at);
+            g2.setPaint(objData.paint);
+            if (objData.object instanceof Image) {
+                g2.drawImage((Image) objData.object, 0, 0, this);
+            } else if (objData.object instanceof TextData) {
+                g2.setFont(((TextData) objData.object).font);
+                g2.drawString(((TextData) objData.object).string, 0, 0);
+            } else if (objData.object instanceof  QuadCurve2D 
+                    || objData.object instanceof CubicCurve2D) 
             {
                 g2.setStroke(bs);
-                g2.draw((Shape) od.object);
-            } else if (od.object instanceof Shape) {
-                g2.fill((Shape) od.object);
+                g2.draw((Shape) objData.object);
+            } else if (objData.object instanceof Shape) {
+                g2.fill((Shape) objData.object);
             }
         }
     }
@@ -239,10 +239,10 @@ public class TransformAnim extends AnimatingControlsSurface {
     }
 
 
-    static class ObjectData extends Object {
+    static class ObjData extends Object {
         Object object;
         Paint paint;
-        static final int UP = 0;
+        static final int UP   = 0;
         static final int DOWN = 1;
         double x, y;
         double ix=5, iy=3;
@@ -252,7 +252,7 @@ public class TransformAnim extends AnimatingControlsSurface {
         AffineTransform at = new AffineTransform();
 
 
-        public ObjectData(Object object, Paint paint) {
+        public ObjData(Object object, Paint paint) {
             this.object = object;
             this.paint = paint;
             rotate = (int)(Math.random() * 360);
@@ -348,7 +348,7 @@ public class TransformAnim extends AnimatingControlsSurface {
                 at.shear(shear, shear);
             }
         }
-    } // End ObjectData class
+    } // End ObjData class
 
 
 

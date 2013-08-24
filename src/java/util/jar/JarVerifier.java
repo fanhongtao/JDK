@@ -1,7 +1,7 @@
 /*
- * @(#)JarVerifier.java	1.37 05/05/27
+ * @(#)JarVerifier.java	1.38 05/12/01
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.37 05/05/27
+ * @version 	1.38 05/12/01
  * @author	Roland Schemers
  */
 class JarVerifier {
@@ -199,6 +199,7 @@ class JarVerifier {
 	    JarEntry je = mev.getEntry();
 	    if ((je != null) && (je.signers == null)) {
 		je.signers = mev.verify(verifiedSigners, sigFileSigners);
+		je.certs = mapSignersToCertArray(je.signers);
 	    }
 	} else {
 
@@ -300,8 +301,26 @@ class JarVerifier {
      */
     public java.security.cert.Certificate[] getCerts(String name)
     {
-	CodeSigner[] signers = getCodeSigners(name);
-	// Extract the certs in each code signer's cert chain
+	return mapSignersToCertArray(getCodeSigners(name));
+    }
+
+    /**
+     * return an array of CodeSigner objects for
+     * the given file in the jar. this array is not cloned.
+     *
+     */
+    public CodeSigner[] getCodeSigners(String name)
+    {
+	return (CodeSigner[])verifiedSigners.get(name);
+    }
+
+    /*
+     * Convert an array of signers into an array of concatenated certificate 
+     * arrays.
+     */
+    private static java.security.cert.Certificate[] mapSignersToCertArray(
+	CodeSigner[] signers) {
+
 	if (signers != null) {
 	    ArrayList certChains = new ArrayList();
 	    for (int i = 0; i < signers.length; i++) {
@@ -316,17 +335,6 @@ class JarVerifier {
 	}
 	return null;
     }
-
-    /**
-     * return an array of CodeSigner objects for
-     * the given file in the jar. this array is not cloned.
-     *
-     */
-    public CodeSigner[] getCodeSigners(String name)
-    {
-	return (CodeSigner[])verifiedSigners.get(name);
-    }
-
 
     /**
      * returns true if there no files to verify.

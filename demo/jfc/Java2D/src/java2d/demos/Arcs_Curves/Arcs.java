@@ -1,7 +1,7 @@
 /*
- * @(#)Arcs.java	1.23 04/07/26
+ * @(#)Arcs.java	1.26 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Arcs.java	1.23 04/07/26
+ * @(#)Arcs.java	1.26 06/08/29
  */
 
 package java2d.demos.Arcs_Curves;
@@ -46,6 +46,8 @@ import java.awt.geom.Arc2D;
 import java.awt.geom.AffineTransform;
 import java2d.AnimatingSurface;
 
+import static java.awt.Color.*;
+
 
 /**
  * Arc2D Open, Chord & Pie arcs; Animated Pie Arc.
@@ -53,12 +55,14 @@ import java2d.AnimatingSurface;
 public class Arcs extends AnimatingSurface {
 
     private static String types[] = {"Arc2D.OPEN","Arc2D.CHORD","Arc2D.PIE"};
-    private static final int CLOSE = 0;
-    private static final int OPEN = 1;
-    private static final int FORWARD = 0;
+
+    private static final int CLOSE    = 0;
+    private static final int OPEN     = 1;
+
+    private static final int FORWARD  = 0;
     private static final int BACKWARD = 1;
-    private static final int DOWN = 2;
-    private static final int UP = 3;
+    private static final int DOWN     = 2;
+    private static final int UP       = 3;
 
     private int aw, ah; // animated arc width & height
     private int x, y;
@@ -69,7 +73,7 @@ public class Arcs extends AnimatingSurface {
 
 
     public Arcs() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -81,14 +85,10 @@ public class Arcs extends AnimatingSurface {
 
     public void step(int w, int h) {
       // Compute direction
-        if (x+aw >= w-5 && direction == FORWARD)
-            direction = DOWN;
-        if (y+ah >= h-5 && direction == DOWN)
-            direction = BACKWARD;
-        if (x-aw <= 5 && direction == BACKWARD)
-            direction = UP;
-        if (y-ah <= 5 && direction == UP)
-            direction = FORWARD;
+        if (x+aw >= w-5 && direction == FORWARD ) direction = DOWN;
+        if (y+ah >= h-5 && direction == DOWN    ) direction = BACKWARD;
+        if (x-aw <=   5 && direction == BACKWARD) direction = UP;
+        if (y-ah <=   5 && direction == UP      ) direction = FORWARD;
 
       // compute angle start & extent
         if (mouth == CLOSE) {
@@ -120,18 +120,18 @@ public class Arcs extends AnimatingSurface {
 
     public void render(int w, int h, Graphics2D g2) {
 
-        g2.setStroke(new BasicStroke(5.0f));
       // Draw Arcs
+        g2.setStroke(new BasicStroke(5.0f));
         for (int i = 0; i < types.length; i++) {
             Arc2D arc = new Arc2D.Float(i);
             arc.setFrame((i+1)*w*.2, (i+1)*h*.2, w*.17, h*.17);
             arc.setAngleStart(45);
             arc.setAngleExtent(270);
-            g2.setColor(Color.blue);
+            g2.setColor(BLUE);
             g2.draw(arc);
-            g2.setColor(Color.gray);
+            g2.setColor(GRAY);
             g2.fill(arc);
-            g2.setColor(Color.black);
+            g2.setColor(BLACK);
             g2.drawString(types[i], (int)((i+1)*w*.2), (int)((i+1)*h*.2-3));
         }
 
@@ -142,11 +142,11 @@ public class Arcs extends AnimatingSurface {
         pieArc.setAngleExtent(angleExtent);
         AffineTransform at = AffineTransform.getTranslateInstance(x, y);
         switch (direction) {
-            case DOWN : at.rotate(Math.toRadians(90)); break;
+            case DOWN     : at.rotate(Math.toRadians( 90)); break;
             case BACKWARD : at.rotate(Math.toRadians(180)); break;
-            case UP : at.rotate(Math.toRadians(270));
+            case UP       : at.rotate(Math.toRadians(270));
         }
-        g2.setColor(Color.blue);
+        g2.setColor(BLUE);
         g2.fill(at.createTransformedShape(pieArc));
     }
 

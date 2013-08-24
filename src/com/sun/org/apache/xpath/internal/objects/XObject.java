@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XObject.java,v 1.25 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XObject.java,v 1.2.4.1 2005/09/14 20:34:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -45,6 +45,7 @@ import org.w3c.dom.traversal.NodeIterator;
  */
 public class XObject extends Expression implements Serializable, Cloneable
 {
+    static final long serialVersionUID = -821887098985662951L;
 
   /**
    * The java object which this object wraps.
@@ -726,7 +727,7 @@ public class XObject extends Expression implements Serializable, Cloneable
   }
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnionPathExpr.java,v 1.10 2004/02/16 22:25:10 minchau Exp $
+ * $Id: UnionPathExpr.java,v 1.2.4.1 2005/09/12 11:34:14 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -31,7 +31,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 
 /**
@@ -72,7 +72,7 @@ final class UnionPathExpr extends Expression {
 		    _components[0] = step;
 		}
 		// Check if the union contains a reverse iterator
-		if (Axis.isReverse[axis]) _reverse = true;
+        if (Axis.isReverse(axis)) _reverse = true;
 	    }
 	}
 	// No need to reverse anything if another expression lies on top of this

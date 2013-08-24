@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPath.java,v 1.30 2004/02/17 04:30:02 minchau Exp $
+ * $Id: XPath.java,v 1.2.4.1 2005/09/15 01:41:57 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -42,10 +42,23 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class XPath implements Serializable, ExpressionOwner
 {
+    static final long serialVersionUID = 3976493477939110553L;
 
   /** The top of the expression tree. 
    *  @serial */
   private Expression m_mainExp;
+  
+  /**
+   * The function table for xpath build-in functions
+   */
+  private transient FunctionTable m_funcTable = null;
+
+  /**
+   * initial the function table
+   */
+  private void initFunctionTable(){
+  	      m_funcTable = new FunctionTable();
+  }
 
   /**
    * Get the raw Expression object that this class wraps.
@@ -149,14 +162,15 @@ public class XPath implements Serializable, ExpressionOwner
           String exprString, SourceLocator locator, PrefixResolver prefixResolver, int type,
           ErrorListener errorListener)
             throws javax.xml.transform.TransformerException
-  {      
+  { 
+    initFunctionTable();     
     if(null == errorListener)
       errorListener = new com.sun.org.apache.xml.internal.utils.DefaultErrorHandler();
     
     m_patternString = exprString;
 
     XPathParser parser = new XPathParser(errorListener, locator);
-    Compiler compiler = new Compiler(errorListener, locator);
+    Compiler compiler = new Compiler(errorListener, locator, m_funcTable);
 
     if (SELECT == type)
       parser.initXPath(compiler, exprString, prefixResolver);
@@ -164,6 +178,58 @@ public class XPath implements Serializable, ExpressionOwner
       parser.initMatchPattern(compiler, exprString, prefixResolver);
     else
       throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_CANNOT_DEAL_XPATH_TYPE, new Object[]{Integer.toString(type)})); //"Can not deal with XPath type: " + type);
+
+    // System.out.println("----------------");
+    Expression expr = compiler.compile(0);
+
+    // System.out.println("expr: "+expr);
+    this.setExpression(expr);
+    
+    if((null != locator) && locator instanceof ExpressionNode)
+    {
+    	expr.exprSetParent((ExpressionNode)locator);
+    }
+
+  }
+
+  /**
+   * Construct an XPath object.  
+   *
+   * (Needs review -sc) This method initializes an XPathParser/
+   * Compiler and compiles the expression.
+   * @param exprString The XPath expression.
+   * @param locator The location of the expression, may be null.
+   * @param prefixResolver A prefix resolver to use to resolve prefixes to 
+   *                       namespace URIs.
+   * @param type one of {@link #SELECT} or {@link #MATCH}.
+   * @param errorListener The error listener, or null if default should be used.
+   *
+   * @throws javax.xml.transform.TransformerException if syntax or other error.
+   */
+  public XPath(
+          String exprString, SourceLocator locator, 
+          PrefixResolver prefixResolver, int type,
+          ErrorListener errorListener, FunctionTable aTable)
+            throws javax.xml.transform.TransformerException
+  { 
+    m_funcTable = aTable;     
+    if(null == errorListener)
+      errorListener = new com.sun.org.apache.xml.internal.utils.DefaultErrorHandler();
+    
+    m_patternString = exprString;
+
+    XPathParser parser = new XPathParser(errorListener, locator);
+    Compiler compiler = new Compiler(errorListener, locator, m_funcTable);
+
+    if (SELECT == type)
+      parser.initXPath(compiler, exprString, prefixResolver);
+    else if (MATCH == type)
+      parser.initMatchPattern(compiler, exprString, prefixResolver);
+    else
+      throw new RuntimeException(XSLMessages.createXPATHMessage(
+            XPATHErrorResources.ER_CANNOT_DEAL_XPATH_TYPE, 
+            new Object[]{Integer.toString(type)})); 
+            //"Can not deal with XPath type: " + type);
 
     // System.out.println("----------------");
     Expression expr = compiler.compile(0);
@@ -207,7 +273,8 @@ public class XPath implements Serializable, ExpressionOwner
    */
   public XPath(Expression expr)
   {  
-    this.setExpression(expr);   
+    this.setExpression(expr);
+    initFunctionTable();   
   }
   
   /**
@@ -436,17 +503,6 @@ public class XPath implements Serializable, ExpressionOwner
     // return XPath.MATCH_SCORE_NONE;
   }
 
-  /**
-   * Install a built-in function.
-   * @param name The unqualified name of the function; not currently used.
-   * @param funcIndex The index of the function in the table.
-   * @param func An Implementation of an XPath Function object.
-   * @return the position of the function in the internal index.
-   */
-  public void installFunction(String name, int funcIndex, Function func)
-  {
-    FunctionTable.installFunction(func, funcIndex);
-  }
 
   /**
    * Warn the user of an problem.

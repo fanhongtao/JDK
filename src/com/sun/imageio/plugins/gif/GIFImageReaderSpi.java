@@ -1,7 +1,7 @@
 /*
- * @(#)GIFImageReaderSpi.java	1.19 03/12/19
+ * @(#)GIFImageReaderSpi.java	1.22 05/12/15
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ public class GIFImageReaderSpi extends ImageReaderSpi {
 
     private static final String version = "1.0";
 
-    private static final String[] names = { "gif" };
+    private static final String[] names = { "gif", "GIF" };
 
     private static final String[] suffixes = { "gif" };
 
@@ -34,7 +34,9 @@ public class GIFImageReaderSpi extends ImageReaderSpi {
     private static final String readerClassName =
         "com.sun.imageio.plugins.gif.GIFImageReader";
 
-    private static final String[] writerSpiNames = null;
+    private static final String[] writerSpiNames = {
+        "com.sun.imageio.plugins.gif.GIFImageWriterSpi"
+    };
 
     public GIFImageReaderSpi() {
         super(vendorName,

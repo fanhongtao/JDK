@@ -1,10 +1,28 @@
-// $Id: XPathExpression.java,v 1.10.16.1 2004/07/01 17:49:23 ndw Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)XPathExpression.java	1.6 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
+ * @(#)XPathExpression.java	1.15 05/11/17
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.xpath;
@@ -15,7 +33,8 @@ import javax.xml.namespace.QName;
 /**
  * <p><code>XPathExpression</code> provides access to compiled XPath expressions.</p>
  *
- * <table id="XPathExpression-evaluation" border="1" cellpadding="2">
+ * <a name="XPathExpression-evaluation"/>
+ * <table border="1" cellpadding="2">
  *   <thead>
  *     <tr>
  *       <th colspan="2">Evaluation of XPath Expressions.</th>
@@ -64,9 +83,17 @@ import javax.xml.namespace.QName;
  *    </tr>
  * </table>
  *
+ * <p>An XPath expression is not thread-safe and not reentrant.
+ * In other words, it is the application's responsibility to make
+ * sure that one {@link XPathExpression} object is not used from
+ * more than one thread at any given time, and while the <code>evaluate</code>
+ * method is invoked, applications may not recursively call
+ * the <code>evaluate</code> method.
+ * <p>
+ *
  * @author  <a href="mailto:Norman.Walsh@Sun.com">Norman Walsh</a>
  * @author  <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.10.16.1 $, $Date: 2004/07/01 17:49:23 $
+ * @version $Revision: 1.4 $, $Date: 2005/10/13 17:00:49 $
  * @see <a href="http://www.w3.org/TR/xpath#section-Expressions">XML Path Language (XPath) Version 1.0, Expressions</a>
  * @since 1.5
  */
@@ -86,7 +113,7 @@ public interface XPathExpression {
      * context.
      * If <code>returnType</code> is <code>null</code>, then a <code>NullPointerException</code> is thrown.</p> 
      *
-     * @param item The starting context (node or node list, for example).
+     * @param item The starting context (a node, for example).
      * @param returnType The desired return type.
      * 
      * @return The <code>Object</code> that is the result of evaluating the expression and converting the result to
@@ -112,7 +139,7 @@ public interface XPathExpression {
      * <code>item</code>, an empty document will be used for the
      * context.
      *
-     * @param item The starting context (node or node list, for example).
+     * @param item The starting context (a node, for example).
      * 
      * @return The <code>String</code> that is the result of evaluating the expression and converting the result to a 
      *   <code>String</code>.

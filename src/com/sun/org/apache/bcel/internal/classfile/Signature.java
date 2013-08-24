@@ -61,7 +61,7 @@ import  java.io.*;
  * This class is derived from <em>Attribute</em> and represents a reference
  * to a <href="http://wwwipd.ira.uka.de/~pizza/gj/">GJ</a> attribute.
  *
- * @version $Id: Signature.java,v 1.1.1.1 2001/10/29 20:00:03 jvanzyl Exp $
+ * @version $Id: Signature.java,v 1.1.2.1 2005/07/31 23:46:34 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -82,7 +82,7 @@ public final class Signature extends Attribute {
    * @param length Content length in bytes
    * @param file Input stream
    * @param constant_pool Array of constants
-   * @throw IOException
+   * @throws IOException
    */
   Signature(int name_index, int length, DataInputStream file,
 	   ConstantPool constant_pool) throws IOException
@@ -112,13 +112,14 @@ public final class Signature extends Attribute {
    */
    public void accept(Visitor v) {
      System.err.println("Visiting non-standard Signature object");
+     v.visitSignature(this);
    }
    
   /**
    * Dump source file attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

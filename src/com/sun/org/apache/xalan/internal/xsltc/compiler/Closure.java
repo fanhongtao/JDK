@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Closure.java,v 1.3 2004/02/16 22:24:29 minchau Exp $
+ * $Id: Closure.java,v 1.2.4.1 2005/09/01 12:01:23 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

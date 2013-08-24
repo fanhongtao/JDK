@@ -1,7 +1,7 @@
 /*
- * @(#)StreamCloser.java	1.1 05/08/10
+ * @(#)StreamCloser.java	1.3 05/12/01
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,18 +15,18 @@ import javax.imageio.stream.ImageInputStream;
 /**
  * This class provide means to properly close hanging 
  * image input/output streams on VM shutdown.
- * This might be usefull for proper cleanup such as removal 
+ * This might be useful for proper cleanup such as removal 
  * of temporary files.
  *
  * Addition of stream do not prevent it from being garbage collected
  * if no other references to it exists. Stream can be closed 
- * explicitly without removal from StremCloser queue. 
+ * explicitly without removal from StreamCloser queue. 
  * Explicit removal from the queue only helps to save some memory. 
  */
 public class StreamCloser {
 
-    private static WeakHashMap<ImageInputStream, Object> toCloseQueue = null;
-    private static Thread streamCloser = null;
+    private static WeakHashMap<ImageInputStream, Object> toCloseQueue;
+    private static Thread streamCloser;
 
     public static void addToQueue(ImageInputStream iis) {
         synchronized (StreamCloser.class) {
@@ -44,7 +44,10 @@ public class StreamCloser {
                             synchronized (StreamCloser.class) {
                                 Set<ImageInputStream> set =
                                     toCloseQueue.keySet();
-                                ImageInputStream[] streams = 
+                                // Make a copy of the set in order to avoid
+                                // concurrent modification (the is.close()
+                                // will in turn call removeFromQueue())
+                                ImageInputStream[] streams =
                                     new ImageInputStream[set.size()];
                                 streams = set.toArray(streams);
                                 for (ImageInputStream is : streams) {
@@ -82,8 +85,10 @@ public class StreamCloser {
     }
 
     public static void removeFromQueue(ImageInputStream iis) {
-        if (toCloseQueue != null) {
-            toCloseQueue.remove(iis);
+        synchronized (StreamCloser.class) {
+            if (toCloseQueue != null) {
+                toCloseQueue.remove(iis);
+            }
         }
     }
 }

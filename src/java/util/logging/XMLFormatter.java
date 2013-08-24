@@ -1,7 +1,7 @@
 /*
- * @(#)XMLFormatter.java	1.24 04/01/12
+ * @(#)XMLFormatter.java	1.26 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.*;
  * but it is recommended that it normally be used with UTF-8.  The
  * character encoding can be set on the output Handler.
  *
- * @version 1.24, 01/12/04
+ * @version 1.26, 11/17/05
  * @since 1.4
  */
 
@@ -214,7 +214,7 @@ public class XMLFormatter extends Formatter {
 
 	if (encoding == null) {
 	    // Figure out the default encoding.
-	    encoding = sun.io.Converters.getDefaultEncodingName();
+	    encoding = java.nio.charset.Charset.defaultCharset().name();
 	}
 	// Try to map the encoding name to a canonical name.
 	try {

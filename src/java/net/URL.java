@@ -1,7 +1,7 @@
 /*
- * @(#)URL.java	1.130 04/08/25
+ * @(#)URL.java	1.134 06/04/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,16 +22,16 @@ import sun.security.util.SecurityConstants;
  * such as a query to a database or to a search engine. More
  * information on the types of URLs and their formats can be found at:
  * <blockquote>
- *     <a href="http://archive.ncsa.uiuc.edu/SDG/Software/Mosaic/Demo/url-primer.html">
- *    <i>http://archive.ncsa.uiuc.edu/SDG/Software/Mosaic/Demo/url-primer.html</i></a>
+ *     <a href="http://www.socs.uts.edu.au/MosaicDocs-old/url-primer.html">
+ *    <i>http://www.socs.uts.edu.au/MosaicDocs-old/url-primer.html</i></a>
  * </blockquote>
  * <p>
  * In general, a URL can be broken into several parts. The previous
  * example of a URL indicates that the protocol to use is
  * <code>http</code> (HyperText Transfer Protocol) and that the
  * information resides on a host machine named
- * <code>www.ncsa.uiuc.edu</code>. The information on that host
- * machine is named <code>/SDG/Software/Mosaic/Demo/url-primer.html</code>. The exact
+ * <code>www.socs.uts.edu.au</code>. The information on that host
+ * machine is named <code>/MosaicDocs-old/url-primer.html</code>. The exact
  * meaning of this name on the host machine is both protocol
  * dependent and host dependent. The information normally resides in
  * a file, but it could be generated on the fly. This component of
@@ -44,7 +44,7 @@ import sun.security.util.SecurityConstants;
  * <code>http</code> is <code>80</code>. An alternative port could be
  * specified as:
  * <blockquote><pre>
- *     http://archive.ncsa.uiuc.edu:80/SDG/Software/Mosaic/Demo/url-primer.html
+ *     http://www.socs.uts.edu.au:80/MosaicDocs-old/url-primer.html
  * </pre></blockquote>
  * <p>
  * The syntax of <code>URL</code> is defined by  <a
@@ -110,7 +110,7 @@ import sun.security.util.SecurityConstants;
  * as the encoding scheme defined in RFC2396.
  *
  * @author  James Gosling
- * @version 1.130, 08/25/04
+ * @version 1.134, 04/14/06
  * @since JDK1.0 
  */
 public final class URL implements java.io.Serializable {
@@ -539,7 +539,7 @@ public final class URL implements java.io.Serializable {
 	    if ((context != null) && ((newProtocol == null) ||
 			    newProtocol.equalsIgnoreCase(context.protocol))) {
                 // inherit the protocol handler from the context
-		// if not specified to the contructor
+		// if not specified to the constructor
 		if (handler == null) {
 		    handler = context.handler;
 		}
@@ -724,6 +724,7 @@ public final class URL implements java.io.Serializable {
      *
      * @return  the userInfo part of this <code>URL</code>, or 
      * <CODE>null</CODE> if one does not exist
+     * @since 1.3
      */
     public String getUserInfo() {
 	return userInfo;
@@ -755,6 +756,7 @@ public final class URL implements java.io.Serializable {
      * then -1 is returned.
      *
      * @return  the port number
+     * @since 1.4
      */
     public int getDefaultPort() {
 	return handler.getDefaultPort();

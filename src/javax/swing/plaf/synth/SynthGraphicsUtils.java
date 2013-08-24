@@ -1,12 +1,12 @@
 /*
- * @(#)SynthGraphicsUtils.java	1.16 03/12/19
+ * @(#)SynthGraphicsUtils.java	1.19 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicHTML;
@@ -16,7 +16,7 @@ import sun.swing.plaf.synth.*;
 /**
  * Wrapper for primitive graphics calls.
  *
- * @version 1.16, 12/19/03
+ * @version 1.19, 11/30/05
  * @since 1.5
  * @author Scott Violet
  */
@@ -56,6 +56,50 @@ public class SynthGraphicsUtils {
     public void drawLine(SynthContext context, Object paintKey,
                          Graphics g, int x1, int y1, int x2, int y2) {
         g.drawLine(x1, y1, x2, y2);
+    }
+    
+    /**
+     * Draws a line between the two end points.
+     * <p>This implementation supports only one line style key,
+     * <code>"dashed"</code>. The <code>"dashed"</code> line style is applied
+     * only to vertical and horizontal lines.
+     * <p>Specifying <code>null</code> or any key different from
+     * <code>"dashed"</code> will draw solid lines.
+     *
+     * @param context identifies hosting region
+     * @param paintKey identifies the portion of the component being asked
+     *                 to paint, may be null
+     * @param g Graphics object to paint to
+     * @param x1 x origin
+     * @param y1 y origin
+     * @param x2 x destination
+     * @param y2 y destination
+     * @param styleKey identifies the requested style of the line (e.g. "dashed")
+     * @since 1.6
+     */
+    public void drawLine(SynthContext context, Object paintKey,
+                         Graphics g, int x1, int y1, int x2, int y2,
+                         Object styleKey) {
+        if ("dashed".equals(styleKey)) {
+            // draw vertical line
+            if (x1 == x2) {
+                y1 += (y1 % 2);
+
+                for (int y = y1; y <= y2; y+=2) {
+                    g.drawLine(x1, y, x2, y);
+                }
+            // draw horizontal line
+            } else if (y1 == y2) {
+                x1 += (x1 % 2);
+
+                for (int x = x1; x <= x2; x+=2) {
+                    g.drawLine(x, y1, x, y2);
+                }
+            // oblique lines are not supported
+            }
+        } else {
+            drawLine(context, paintKey, g, x1, y1, x2, y2);
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)Compiler.java	1.20 04/05/05
+ * @(#)Compiler.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package java.lang;
  * <p>
  * When the Java Virtual Machine first starts, it determines if the
  * system property <code>java.compiler</code> exists. (System
- * properties are accessible through <code>getProperty</code>  and ,
+ * properties are accessible through <code>getProperty</code>,
  * a method defined by the <code>System</code> class.) If so, it is
  * assumed to be the name of a library (with a platform-dependent
  * exact location and type); the <code>loadLibrary</code> method in
@@ -26,7 +26,7 @@ package java.lang;
  * If no compiler is available, these methods do nothing.
  *
  * @author  Frank Yellin
- * @version 1.20, 05/05/04
+ * @version 1.22, 11/17/05
  * @see     java.lang.System#getProperty(java.lang.String)
  * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
  * @see     java.lang.System#loadLibrary(java.lang.String)

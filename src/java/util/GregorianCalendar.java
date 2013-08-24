@@ -1,7 +1,7 @@
 /*
- * @(#)GregorianCalendar.java	1.90 06/07/31
+ * @(#)GregorianCalendar.java	1.92 06/06/20
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -275,7 +275,7 @@ import sun.util.calendar.ZoneInfo;
  * </blockquote>
  *
  * @see          TimeZone
- * @version      1.90
+ * @version      1.92
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1133,14 +1133,14 @@ public class GregorianCalendar extends Calendar {
 		    }
 		    time = calsys.getTime(d);
 		}
-		int hourOfDay = d.getHours(); 
-		internalSet(field, hourOfDay % unit); 
-		if (field == HOUR) { 
-		    internalSet(HOUR_OF_DAY, hourOfDay); 
-		} else { 
-		    internalSet(AM_PM, hourOfDay / 12); 
-		    internalSet(HOUR, hourOfDay % 12); 
-		} 
+		int hourOfDay = d.getHours();
+		internalSet(field, hourOfDay % unit);
+		if (field == HOUR) {
+		    internalSet(HOUR_OF_DAY, hourOfDay);
+		} else {
+		    internalSet(AM_PM, hourOfDay / 12);
+		    internalSet(HOUR, hourOfDay % 12);
+		}
 
 		// Time zone offset and/or daylight saving might have changed.
 		int zoneOffset = d.getZoneOffset();
@@ -1422,7 +1422,7 @@ public class GregorianCalendar extends Calendar {
      * taking into consideration the current values of the
      * {@link Calendar#getFirstDayOfWeek() getFirstDayOfWeek},
      * {@link Calendar#getMinimalDaysInFirstWeek() getMinimalDaysInFirstWeek},
-     * {@link #getGregorianChange(Date) getGregorianChange} and
+     * {@link #getGregorianChange() getGregorianChange} and
      * {@link Calendar#getTimeZone() getTimeZone} methods.
      *
      * @param field the calendar field.
@@ -1445,7 +1445,7 @@ public class GregorianCalendar extends Calendar {
      * taking into consideration the current values of the
      * {@link Calendar#getFirstDayOfWeek() getFirstDayOfWeek},
      * {@link Calendar#getMinimalDaysInFirstWeek() getMinimalDaysInFirstWeek},
-     * {@link #getGregorianChange(Date) getGregorianChange} and
+     * {@link #getGregorianChange() getGregorianChange} and
      * {@link Calendar#getTimeZone() getTimeZone} methods.
      *
      * @param field the calendar field.
@@ -1493,7 +1493,7 @@ public class GregorianCalendar extends Calendar {
      * taking into consideration the current values of the
      * {@link Calendar#getFirstDayOfWeek() getFirstDayOfWeek},
      * {@link Calendar#getMinimalDaysInFirstWeek() getMinimalDaysInFirstWeek},
-     * {@link #getGregorianChange(Date) getGregorianChange} and
+     * {@link #getGregorianChange() getGregorianChange} and
      * {@link Calendar#getTimeZone() getTimeZone} methods.
      *
      * @param field the calendar field.
@@ -1522,7 +1522,7 @@ public class GregorianCalendar extends Calendar {
      * taking into consideration the current values of the
      * {@link Calendar#getFirstDayOfWeek() getFirstDayOfWeek},
      * {@link Calendar#getMinimalDaysInFirstWeek() getMinimalDaysInFirstWeek},
-     * {@link #getGregorianChange(Date) getGregorianChange} and
+     * {@link #getGregorianChange() getGregorianChange} and
      * {@link Calendar#getTimeZone() getTimeZone} methods.
      *
      * @param field the calendar field
@@ -1561,7 +1561,7 @@ public class GregorianCalendar extends Calendar {
      * values of the
      * {@link Calendar#getFirstDayOfWeek() getFirstDayOfWeek},
      * {@link Calendar#getMinimalDaysInFirstWeek() getMinimalDaysInFirstWeek},
-     * {@link #getGregorianChange(Date) getGregorianChange} and
+     * {@link #getGregorianChange() getGregorianChange} and
      * {@link Calendar#getTimeZone() getTimeZone} methods.
      *
      * <p>For example, if the Gregorian change date is January 10,
@@ -1601,7 +1601,7 @@ public class GregorianCalendar extends Calendar {
      * values of the
      * {@link Calendar#getFirstDayOfWeek() getFirstDayOfWeek},
      * {@link Calendar#getMinimalDaysInFirstWeek() getMinimalDaysInFirstWeek},
-     * {@link #getGregorianChange(Date) getGregorianChange} and
+     * {@link #getGregorianChange() getGregorianChange} and
      * {@link Calendar#getTimeZone() getTimeZone} methods.
      * For example, if the date of this instance is February 1, 2004,
      * the actual maximum value of the <code>DAY_OF_MONTH</code> field
@@ -1984,8 +1984,8 @@ public class GregorianCalendar extends Calendar {
 	    // Determine which calendar fields need to be computed.
 	    mask = getSetStateFields();
 	    int fieldMask = ~mask & ALL_FIELDS;
-	    // We have to call computeFields(int, int) in case calsys == null
-	    // in order to set calsys and cdate. (6263644)
+	    // We have to call computTime in case calsys == null in
+	    // order to set calsys and cdate. (6263644)
 	    if (fieldMask != 0 || calsys == null) {
 		mask |= computeFields(fieldMask,
 				      mask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK));

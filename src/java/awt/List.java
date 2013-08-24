@@ -1,7 +1,7 @@
 /*
- * @(#)List.java	1.106 04/05/18
+ * @(#)List.java	1.110 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -81,7 +81,7 @@ import javax.accessibility.*;
  * For multiple-selection scrolling lists, it is considered a better
  * user interface to use an external gesture (such as clicking on a
  * button) to trigger the action.
- * @version 	1.106, 05/18/04
+ * @version 	1.110, 07/11/06
  * @author 	Sami Shaio
  * @see         java.awt.event.ItemEvent
  * @see         java.awt.event.ItemListener
@@ -832,6 +832,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * in response to calls to <code>select</code> or <code>deselect</code>.
      * If listener <code>l</code> is <code>null</code>,
      * no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         l the item listener
      * @see           #removeItemListener
@@ -855,6 +857,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * receives item events from this list.
      * If listener <code>l</code> is <code>null</code>,
      * no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         	l the item listener
      * @see           	#addItemListener
@@ -896,6 +900,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * <p>
      * If listener <code>l</code> is <code>null</code>,
      * no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         l the action listener
      * @see           #removeActionListener
@@ -918,6 +924,8 @@ public class List extends Component implements ItemSelectable, Accessible {
      * occur when a user double-clicks on a list item.
      * If listener <code>l</code> is <code>null</code>,
      * no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         	l     the action listener
      * @see           	#addActionListener
@@ -1240,6 +1248,7 @@ public class List extends Component implements ItemSelectable, Accessible {
      *
      * @return an <code>AccessibleAWTList</code> that serves as the 
      *         <code>AccessibleContext</code> of this <code>List</code>
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1252,6 +1261,7 @@ public class List extends Component implements ItemSelectable, Accessible {
      * This class implements accessibility support for the 
      * <code>List</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to list user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTList extends AccessibleAWTComponent
         implements AccessibleSelection, ItemListener, ActionListener
@@ -1447,6 +1457,7 @@ public class List extends Component implements ItemSelectable, Accessible {
         * List children.  It provides an implementation of the 
         * Java Accessibility API appropriate to list children 
 	* user-interface elements.
+	* @since 1.3
         */
         protected class AccessibleAWTListChild extends AccessibleAWTComponent
             implements Accessible
@@ -1629,7 +1640,10 @@ public class List extends Component implements ItemSelectable, Accessible {
 
 	    /**
 	     * Set the Cursor of this object.
-	     *
+             * <p>
+             * The method may have no visual effect if the Java platform
+             * implementation and/or the native system do not support
+             * changing the mouse cursor shape.
 	     * @param cursor the new Cursor for the object
 	     * @see #getCursor
 	     */

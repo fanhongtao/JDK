@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SecuritySupport12.java,v 1.1.1.1 2004/02/26 11:39:47 vk112360 Exp $
+ * $Id: SecuritySupport12.java,v 1.2.4.1 2005/09/15 08:14:56 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.dtm;

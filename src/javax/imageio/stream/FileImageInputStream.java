@@ -1,7 +1,7 @@
 /*
- * @(#)FileImageInputStream.java	1.21 03/12/19
+ * @(#)FileImageInputStream.java	1.23 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import com.sun.imageio.stream.CloseableDisposerRecord;
+import com.sun.imageio.stream.StreamFinalizer;
+import sun.java2d.Disposer;
 
 /**
  * An implementation of <code>ImageInputStream</code> that gets its
@@ -24,6 +27,12 @@ import java.io.RandomAccessFile;
 public class FileImageInputStream extends ImageInputStreamImpl {
 
     private RandomAccessFile raf;
+
+    /** The referent to be registered with the Disposer. */
+    private final Object disposerReferent;
+
+    /** The DisposerRecord that closes the underlying RandomAccessFile. */
+    private final CloseableDisposerRecord disposerRecord;
 
     /**
      * Constructs a <code>FileImageInputStream</code> that will read
@@ -45,10 +54,7 @@ public class FileImageInputStream extends ImageInputStreamImpl {
      */
     public FileImageInputStream(File f)
         throws FileNotFoundException, IOException {
-        if (f == null) {
-            throw new IllegalArgumentException("f == null!");
-        }
-        this.raf = new RandomAccessFile(f, "r");
+        this(f == null ? null : new RandomAccessFile(f, "r"));
     }
 
     /**
@@ -69,6 +75,14 @@ public class FileImageInputStream extends ImageInputStreamImpl {
             throw new IllegalArgumentException("raf == null!");
         }
         this.raf = raf;
+
+        disposerRecord = new CloseableDisposerRecord(raf);
+        if (getClass() == FileImageInputStream.class) {
+            disposerReferent = new Object();
+            Disposer.addRecord(disposerReferent, disposerRecord);
+        } else {
+            disposerReferent = new StreamFinalizer(this);
+        }
     }
 
     public int read() throws IOException {
@@ -119,6 +133,16 @@ public class FileImageInputStream extends ImageInputStreamImpl {
 
     public void close() throws IOException {
         super.close();
-        raf.close();
+        disposerRecord.dispose(); // this closes the RandomAccessFile
+        raf = null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void finalize() throws Throwable {
+        // Empty finalizer: for performance reasons we instead use the
+        // Disposer mechanism for ensuring that the underlying
+        // RandomAccessFile is closed prior to garbage collection
     }
 }

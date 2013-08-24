@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultButtonModel.java	1.45 04/05/05
+ * @(#)DefaultButtonModel.java	1.49 06/05/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -20,34 +20,44 @@ import javax.swing.event.*;
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
  * appropriate for short term storage or RMI between applications running
- * the same version of Swing.  As of 1.4, support for long term storage
+ * the same version of Swing. As of 1.4, support for long term storage
  * of all JavaBeans<sup><font size="-2">TM</font></sup>
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.45 05/05/04
+ * @version 1.49 05/25/06
  * @author Jeff Dinkins
  */
 public class DefaultButtonModel implements ButtonModel, Serializable {
 
+    /** The bitmask used to store the state of the button. */
     protected int stateMask = 0;
+    
+    /** The action command string fired by the button. */
     protected String actionCommand = null;
+    
+    /** The button group that the button belongs to. */
     protected ButtonGroup group = null;
-        
+
+    /** The button's mnemonic. */
     protected int mnemonic = 0;
 
     /**
      * Only one <code>ChangeEvent</code> is needed per button model
-     * instance since the
-     * event's only state is the source property.  The source of events
-     * generated is always "this".
+     * instance since the event's only state is the source property.
+     * The source of events generated is always "this".
      */
     protected transient ChangeEvent changeEvent = null;
+
+    /** Stores the listeners on this model. */
     protected EventListenerList listenerList = new EventListenerList();
-    
-        
+
+    // controls the usage of the MenuItem.disabledAreNavigable UIDefaults 
+    // property in the setArmed() method
+    private boolean menuItem = false;
+
     /**
-     * Constructs a default <code>JButtonModel</code>.
+     * Constructs a <code>DefaultButtonModel</code>.
      *
      */
     public DefaultButtonModel() {
@@ -56,117 +66,100 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }
         
     /**
-     * Indicates partial commitment towards choosing the
-     * button.
+     * Identifies the "armed" bit in the bitmask, which
+     * indicates partial commitment towards choosing/triggering
+     * the button.
      */
     public final static int ARMED = 1 << 0;
         
     /**
-     * Indicates that the button has been selected. Only needed for
-     * certain types of buttons - such as RadioButton or Checkbox.
+     * Identifies the "selected" bit in the bitmask, which
+     * indicates that the button has been selected. Only needed for
+     * certain types of buttons - such as radio button or check box.
      */
     public final static int SELECTED = 1 << 1;
         
     /**
-     * Indicates that the button has been "pressed"
-     * (typically, when the mouse is released).
+     * Identifies the "pressed" bit in the bitmask, which
+     * indicates that the button is pressed.
      */
     public final static int PRESSED = 1 << 2;
         
     /**
-     * Indicates that the button can be selected by
+     * Identifies the "enabled" bit in the bitmask, which
+     * indicates that the button can be selected by
      * an input device (such as a mouse pointer).
      */
     public final static int ENABLED = 1 << 3;
 
     /**
-     * Indicates that the mouse is over the button.
+     * Identifies the "rollover" bit in the bitmask, which
+     * indicates that the mouse is over the button.
      */
     public final static int ROLLOVER = 1 << 4;
         
     /**
-     * Sets the <code>actionCommand</code> string that gets sent as
-     * part of the event when the button is pressed.
-     *
-     * @param actionCommand the <code>String</code> that identifies
-     * the generated event
+     * {@inheritDoc}
      */
     public void setActionCommand(String actionCommand) {
         this.actionCommand = actionCommand;
     }
         
     /**
-     * Returns the action command for this button. 
-     *
-     * @return the <code>String</code> that identifies the generated event
-     * @see #setActionCommand
+     * {@inheritDoc}
      */
     public String getActionCommand() {
         return actionCommand;
     }
 
     /**
-     * Indicates partial commitment towards pressing the
-     * button. 
-     *
-     * @return true if the button is armed, and ready to be pressed
-     * @see #setArmed
+     * {@inheritDoc}
      */
     public boolean isArmed() {
         return (stateMask & ARMED) != 0;
     }
         
     /**
-     * Indicates if the button has been selected. Only needed for
-     * certain types of buttons - such as RadioButton or Checkbox.
-     *
-     * @return true if the button is selected
+     * {@inheritDoc}
      */
     public boolean isSelected() {
         return (stateMask & SELECTED) != 0;
     }
         
     /**
-     * Indicates whether the button can be selected or pressed by
-     * an input device (such as a mouse pointer). (Checkbox-buttons
-     * are selected, regular buttons are "pressed".)
-     *
-     * @return true if the button is enabled, and therefore
-     *         selectable (or pressable)
+     * {@inheritDoc}
      */
     public boolean isEnabled() {
         return (stateMask & ENABLED) != 0;
     }
         
     /**
-     * Indicates whether button has been pressed.
-     *
-     * @return true if the button has been pressed
+     * {@inheritDoc}
      */
     public boolean isPressed() {
         return (stateMask & PRESSED) != 0;
     }
         
     /**
-     * Indicates that the mouse is over the button.
-     *
-     * @return true if the mouse is over the button
+     * {@inheritDoc}
      */
     public boolean isRollover() {
         return (stateMask & ROLLOVER) != 0;
     }
         
     /**
-     * Marks the button as "armed". If the mouse button is
-     * released while it is over this item, the button's action event
-     * fires. If the mouse button is released elsewhere, the
-     * event does not fire and the button is disarmed.
-     * 
-     * @param b true to arm the button so it can be selected
+     * {@inheritDoc}
      */
     public void setArmed(boolean b) {
-        if((isArmed() == b) || !isEnabled()) {
-            return;
+        if(isMenuItem() && 
+                UIManager.getBoolean("MenuItem.disabledAreNavigable")) {
+            if ((isArmed() == b)) {
+                return;
+            }
+        } else {
+            if ((isArmed() == b) || !isEnabled()) {
+                return;
+            }
         }
             
         if (b) {
@@ -179,10 +172,7 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }
 
     /**
-     * Enables or disables the button.
-     * 
-     * @param b true to enable the button
-     * @see #isEnabled
+     * {@inheritDoc}
      */
     public void setEnabled(boolean b) {
         if(isEnabled() == b) {
@@ -203,10 +193,7 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }
         
     /**
-     * Selects or deselects the button.
-     *
-     * @param b true selects the button,
-     *          false deselects the button
+     * {@inheritDoc}
      */
     public void setSelected(boolean b) {
         if (this.isSelected() == b) {
@@ -231,10 +218,7 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
         
         
     /**
-     * Sets the button to pressed or unpressed.
-     * 
-     * @param b true to set the button to "pressed"
-     * @see #isPressed
+     * {@inheritDoc}
      */
     public void setPressed(boolean b) {
         if((isPressed() == b) || !isEnabled()) {
@@ -266,10 +250,7 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }   
 
     /**
-     * Sets or clears the button's rollover state
-     * 
-     * @param b true to turn on rollover
-     * @see #isRollover
+     * {@inheritDoc}
      */
     public void setRollover(boolean b) {
         if((isRollover() == b) || !isEnabled()) {
@@ -286,10 +267,7 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }
 
     /**
-     * Sets the keyboard mnemonic (shortcut key or
-     * accelerator key) for this button.
-     *
-     * @param key an int specifying the accelerator key
+     * {@inheritDoc}
      */
     public void setMnemonic(int key) {
 	mnemonic = key;
@@ -297,28 +275,21 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }
 
     /**
-     * Gets the keyboard mnemonic for this model
-     *
-     * @return an int specifying the accelerator key
-     * @see #setMnemonic
+     * {@inheritDoc}
      */
     public int getMnemonic() {
 	return mnemonic;
     }
 
     /**
-     * Adds a <code>ChangeListener</code> to the button.
-     *
-     * @param l the listener to add
+     * {@inheritDoc}
      */
     public void addChangeListener(ChangeListener l) {
         listenerList.add(ChangeListener.class, l);
     }
     
     /**
-     * Removes a <code>ChangeListener</code> from the button.
-     *
-     * @param l the listener to remove
+     * {@inheritDoc}
      */
     public void removeChangeListener(ChangeListener l) {
         listenerList.remove(ChangeListener.class, l);
@@ -365,18 +336,14 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }   
     
     /**
-     * Adds an <code>ActionListener</code> to the button.
-     *
-     * @param l the listener to add
+     * {@inheritDoc}
      */
     public void addActionListener(ActionListener l) {
         listenerList.add(ActionListener.class, l);
     }
         
     /**
-     * Removes an <code>ActionListener</code> from the button.
-     *
-     * @param l the listener to remove
+     * {@inheritDoc}
      */
     public void removeActionListener(ActionListener l) {
         listenerList.remove(ActionListener.class, l);
@@ -423,18 +390,14 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }   
 
     /**
-     * Adds an <code>ItemListener</code> to the button.
-     *
-     * @param l the listener to add
+     * {@inheritDoc}
      */
     public void addItemListener(ItemListener l) {
         listenerList.add(ItemListener.class, l);
     }
         
     /**
-     * Removes an <code>ItemListener</code> from the button.
-     *
-     * @param l the listener to remove
+     * {@inheritDoc}
      */
     public void removeItemListener(ItemListener l) {
         listenerList.remove(ItemListener.class, l);
@@ -526,22 +489,18 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
     }
 
     /**
-     * Identifies the group this button belongs to --
-     * needed for radio buttons, which are mutually
-     * exclusive within their group.
-     *
-     * @param group the <code>ButtonGroup</code> this button belongs to
+     * {@inheritDoc}
      */
     public void setGroup(ButtonGroup group) {
         this.group = group;
     }
 
     /**
-     * Returns the group that this button belongs to.
+     * Returns the group that the button belongs to.
      * Normally used with radio buttons, which are mutually
      * exclusive within their group.
      *
-     * @return a <code>ButtonGroup</code> that this button belongs to
+     * @return the <code>ButtonGroup</code> that the button belongs to
      *
      * @since 1.3
      */
@@ -549,4 +508,11 @@ public class DefaultButtonModel implements ButtonModel, Serializable {
         return group;
     }
 
+    boolean isMenuItem() {
+        return menuItem;
+    }
+
+    void setMenuItem(boolean menuItem) {
+        this.menuItem = menuItem;
+    }
 }

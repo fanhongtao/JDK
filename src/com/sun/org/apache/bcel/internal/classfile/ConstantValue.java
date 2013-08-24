@@ -62,7 +62,7 @@ import  java.io.*;
  * value, i.e., a default value for initializing a class field.
  * This class is instantiated by the <em>Attribute.readAttribute()</em> method.
  *
- * @version $Id: ConstantValue.java,v 1.1.1.1 2001/10/29 20:00:00 jvanzyl Exp $
+ * @version $Id: ConstantValue.java,v 1.1.2.1 2005/07/31 23:46:34 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -120,7 +120,7 @@ public final class ConstantValue extends Attribute {
    * Dump constant value attribute to file stream on binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {
@@ -142,8 +142,7 @@ public final class ConstantValue extends Attribute {
   /**
    * @return String representation of constant value.
    */ 
-  public final String toString() throws InternalError
-  {
+  public final String toString() {
     Constant c = constant_pool.getConstant(constantvalue_index);
 	
     String   buf;
@@ -158,39 +157,14 @@ public final class ConstantValue extends Attribute {
     case Constants.CONSTANT_String:  
       i   = ((ConstantString)c).getStringIndex();
       c   = constant_pool.getConstant(i, Constants.CONSTANT_Utf8);
-      buf = "\"" + convertString(((ConstantUtf8)c).getBytes()) + "\"";
+      buf = "\"" + Utility.convertString(((ConstantUtf8)c).getBytes()) + "\"";
       break;
-    default: throw new InternalError("Type of ConstValue invalid: " + c);
+
+    default:
+      throw new IllegalStateException("Type of ConstValue invalid: " + c);
     }
 
     return buf;
-  }
-
-  /**
-   * Escape all occurences of newline chars '\n', quotes \", etc.
-   */
-  private static final String convertString(String label) {
-    char[]       ch  = label.toCharArray();
-    StringBuffer buf = new StringBuffer();
-
-    for(int i=0; i < ch.length; i++) {
-      switch(ch[i]) {
-      case '\n':
-	buf.append("\\n"); break;
-      case '\r':
-	buf.append("\\r"); break;
-      case '\"':
-	buf.append("\\\""); break;
-      case '\'':
-	buf.append("\\'"); break;
-      case '\\':
-	buf.append("\\\\"); break;
-      default:
-	buf.append(ch[i]); break;
-      }
-    }
-
-    return buf.toString();
   }
 
   /**

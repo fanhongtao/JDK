@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2004 The Apache Software Foundation.
+ * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 /*
- * $Id: FilterExpr.java,v 1.11 2004/02/16 22:24:29 minchau Exp $
+ * $Id: FilterExpr.java,v 1.2.4.1 2005/09/12 10:22:50 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
 
 import java.util.Vector;
 
+import com.sun.org.apache.bcel.internal.generic.ALOAD;
+import com.sun.org.apache.bcel.internal.generic.ASTORE;
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 import com.sun.org.apache.bcel.internal.generic.INVOKESPECIAL;
 import com.sun.org.apache.bcel.internal.generic.INVOKESTATIC;
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
+import com.sun.org.apache.bcel.internal.generic.LocalVariableGen;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
@@ -33,6 +37,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeSetType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ReferenceType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 
 /**
  * @author Jacek Ambroziak
@@ -146,19 +151,43 @@ class FilterExpr extends Expression {
 						  CURRENT_NODE_LIST_FILTER_SIG +
 						  NODE_SIG+TRANSLET_SIG+")V");
 
-	    Predicate predicate = (Predicate)_predicates.lastElement();
-	    _predicates.remove(predicate);
+            // Backwards branches are prohibited if an uninitialized object is
+            // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
+            // We don't know whether this code might contain backwards branches,
+            // so we mustn't create the new object until after we've created
+            // the suspect arguments to its constructor.  Instead we calculate
+            // the values of the arguments to the constructor first, store them
+            // in temporary variables, create the object and reload the
+            // arguments from the temporaries to avoid the problem.
+
+            // Remove the next predicate to be translated
+            Predicate predicate = (Predicate)_predicates.lastElement();
+            _predicates.remove(predicate);
+
+            // Translate the rest of the predicates from right to left
+            translatePredicates(classGen, methodGen);
+
+            LocalVariableGen nodeIteratorTemp =
+                methodGen.addLocalVariable("filter_expr_tmp1",
+                                           Util.getJCRefType(NODE_ITERATOR_SIG),
+                                           il.getEnd(), null);
+            il.append(new ASTORE(nodeIteratorTemp.getIndex()));
+
+            predicate.translate(classGen, methodGen);
+            LocalVariableGen filterTemp =
+                methodGen.addLocalVariable("filter_expr_tmp2",
+                              Util.getJCRefType(CURRENT_NODE_LIST_FILTER_SIG),
+                              il.getEnd(), null);
+            il.append(new ASTORE(filterTemp.getIndex()));
 
             // Create a CurrentNodeListIterator
             il.append(new NEW(cpg.addClass(CURRENT_NODE_LIST_ITERATOR)));
             il.append(DUP);
             
-            // Translate the rest of the predicates from right to left
-            translatePredicates(classGen, methodGen);
-            
             // Initialize CurrentNodeListIterator
+            il.append(new ALOAD(nodeIteratorTemp.getIndex()));
             il.append(ICONST_1);
-            predicate.translate(classGen, methodGen);
+            il.append(new ALOAD(filterTemp.getIndex()));
             il.append(methodGen.loadCurrentNode());
             il.append(classGen.loadTranslet());
             il.append(new INVOKESPECIAL(initCNLI));

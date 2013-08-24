@@ -1,7 +1,7 @@
 /*
- * @(#)Region.java	1.30 04/02/19
+ * @(#)Region.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
@@ -45,7 +45,7 @@ import java.util.*;
  * &lt;bind style="splitPaneStyle" type="region" key="SplitPane"/>
  * </pre>
  *
- * @version 1.30, 02/19/04
+ * @version 1.31, 11/17/05
  * @since 1.5
  * @author Scott Violet
  */

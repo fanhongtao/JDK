@@ -1,7 +1,7 @@
 /*
- * @(#)Agent.cpp	1.7 04/07/27
+ * @(#)Agent.cpp	1.9 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -42,6 +42,8 @@
 #include "jni.h"
 #include "jvmti.h"
 
+#include "agent_util.h"
+
 #include "Monitor.hpp"
 #include "Thread.hpp"
 #include "Agent.hpp"
@@ -52,16 +54,19 @@
 Thread *
 Agent::get_thread(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 {
-    Thread *t;
+    jvmtiError err;
+    Thread    *t;
 
     /* This should always be in the Thread Local Storage */
     t = NULL;
-    jvmti->GetThreadLocalStorage(thread, (void**)&t);
+    err = jvmti->GetThreadLocalStorage(thread, (void**)&t);
+    check_jvmti_error(jvmti, err, "get thread local storage");
     if ( t == NULL ) {
 	/* This jthread has never been seen before? */
-	fprintf(stdout, "WARNING: Never before seen jthread?\n");
+	stdout_message("WARNING: Never before seen jthread?\n");
 	t = new Thread(jvmti, env, thread);
-	jvmti->SetThreadLocalStorage(thread, (const void*)t);
+	err = jvmti->SetThreadLocalStorage(thread, (const void*)t);
+        check_jvmti_error(jvmti, err, "set thread local storage");
     }
     return t;
 }
@@ -70,10 +75,13 @@ Agent::get_thread(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 Monitor *
 Agent::get_monitor(jvmtiEnv *jvmti, JNIEnv *env, jobject object)
 {
-    Monitor *m;
+    jvmtiError err;
+    Monitor   *m;
 
     /* We use tags to track these, the tag is the Monitor pointer */
-    jvmti->RawMonitorEnter(lock); {
+    err = jvmti->RawMonitorEnter(lock); {
+	check_jvmti_error(jvmti, err, "raw monitor enter");
+	
 	/* The raw monitor enter/exit protects us from creating two
 	 *   instances for the same object.
 	 */
@@ -81,72 +89,90 @@ Agent::get_monitor(jvmtiEnv *jvmti, JNIEnv *env, jobject object)
 
 	m   = NULL;
 	tag = (jlong)0;
-	jvmti->GetTag(object, &tag);
+	err = jvmti->GetTag(object, &tag);
+	check_jvmti_error(jvmti, err, "get tag");
 	/*LINTED*/
 	m = (Monitor *)(void *)(ptrdiff_t)tag;
 	if ( m == NULL ) {
 	    m = new Monitor(jvmti, env, object);
 	    /*LINTED*/
 	    tag = (jlong)(ptrdiff_t)(void *)m;
-	    jvmti->SetTag(object, tag);
+	    err = jvmti->SetTag(object, tag);
+	    check_jvmti_error(jvmti, err, "set tag");
 	    /* Save monitor on list */
 	    monitor_list = (Monitor**)realloc((void*)monitor_list, 
 				(monitor_count+1)*(int)sizeof(Monitor*));
 	    monitor_list[monitor_count++] = m;
 	}
-    } jvmti->RawMonitorExit(lock);
+    } err = jvmti->RawMonitorExit(lock);
+    check_jvmti_error(jvmti, err, "raw monitor exit");
     
     return m;
 }
 
 /* VM initialization and VM death calls to Agent */
-Agent::Agent(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) {
-    fprintf(stdout, "Agent created..\n");
-    fprintf(stdout, "VMInit...\n");
+Agent::Agent(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) 
+{
+    jvmtiError err;
+    
+    stdout_message("Agent created..\n");
+    stdout_message("VMInit...\n");
     /* Create a Monitor lock to use */
-    jvmti->CreateRawMonitor("waiters Agent lock", &lock);
+    err = jvmti->CreateRawMonitor("waiters Agent lock", &lock);
+    check_jvmti_error(jvmti, err, "create raw monitor");
     /* Start monitor list */
     monitor_count = 0;
     monitor_list  = (Monitor**)malloc((int)sizeof(Monitor*));
 }
-Agent::~Agent() {
-    fprintf(stdout, "Agent reclaimed..\n");
-    fflush(stdout);
+
+Agent::~Agent() 
+{
+    stdout_message("Agent reclaimed..\n");
 }
-void Agent::vm_death(jvmtiEnv *jvmti, JNIEnv *env) {
+
+void Agent::vm_death(jvmtiEnv *jvmti, JNIEnv *env) 
+{
+    jvmtiError err;
+    
     /* Delete all Monitors we allocated */
     for ( int i = 0; i < (int)monitor_count; i++ ) {
 	delete monitor_list[i];
     }
     free(monitor_list);
     /* Destroy the Monitor lock to use */
-    jvmti->DestroyRawMonitor(lock);
+    err = jvmti->DestroyRawMonitor(lock);
+    check_jvmti_error(jvmti, err, "destroy raw monitor");
     /* Print death message */
-    fprintf(stdout, "VMDeath...\n");
-    fflush(stdout);
+    stdout_message("VMDeath...\n");
 }
 
 /* Thread start event, setup a new thread */
-void Agent::thread_start(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) {
-    Thread *t;
+void Agent::thread_start(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) 
+{
+    jvmtiError err;
+    Thread    *t;
 
     /* Allocate a new Thread instance, put it in the Thread Local
      *    Storage for easy access later.
      */
     t = new Thread(jvmti, env, thread);
-    jvmti->SetThreadLocalStorage(thread, (const void*)t);
+    err = jvmti->SetThreadLocalStorage(thread, (const void*)t);
+    check_jvmti_error(jvmti, err, "set thread local storage");
 }
 
 
 /* Thread end event, we need to reclaim the space */
-void Agent::thread_end(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) {
-    Thread *t;
+void Agent::thread_end(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) 
+{
+    jvmtiError err;
+    Thread    *t;
    
     /* Find the thread */
     t = get_thread(jvmti, env, thread);
 
     /* Clear out the Thread Local Storage */
-    jvmti->SetThreadLocalStorage(thread, (const void*)NULL);
+    err = jvmti->SetThreadLocalStorage(thread, (const void*)NULL);
+    check_jvmti_error(jvmti, err, "set thread local storage");
 
     /* Reclaim the C++ object space */
     delete t;
@@ -154,7 +180,8 @@ void Agent::thread_end(jvmtiEnv *jvmti, JNIEnv *env, jthread thread) {
 
 /* Monitor contention begins for a thread. */
 void Agent::monitor_contended_enter(jvmtiEnv* jvmti, JNIEnv *env, 
-	     jthread thread, jobject object) {
+	     jthread thread, jobject object) 
+{
     get_monitor(jvmti, env, object)->contended();
     get_thread(jvmti, env, thread)->
 		monitor_contended_enter(jvmti, env, thread, object);
@@ -162,13 +189,15 @@ void Agent::monitor_contended_enter(jvmtiEnv* jvmti, JNIEnv *env,
 
 /* Monitor contention ends for a thread. */
 void Agent::monitor_contended_entered(jvmtiEnv* jvmti, JNIEnv *env,
-	       jthread thread, jobject object) {
+	       jthread thread, jobject object) 
+{
     /* Do nothing for now */
 }
 
 /* Monitor wait begins for a thread. */
 void Agent::monitor_wait(jvmtiEnv* jvmti, JNIEnv *env, 
-	     jthread thread, jobject object, jlong timeout) {
+	     jthread thread, jobject object, jlong timeout) 
+{
     get_monitor(jvmti, env, object)->waited();
     get_thread(jvmti, env, thread)->
 		monitor_wait(jvmti, env, thread, object, timeout);
@@ -176,7 +205,8 @@ void Agent::monitor_wait(jvmtiEnv* jvmti, JNIEnv *env,
 
 /* Monitor wait ends for a thread. */
 void Agent::monitor_waited(jvmtiEnv* jvmti, JNIEnv *env,
-	       jthread thread, jobject object, jboolean timed_out) {
+	       jthread thread, jobject object, jboolean timed_out) 
+{
     if ( timed_out ) {
 	get_monitor(jvmti, env, object)->timeout();
     }
@@ -185,7 +215,8 @@ void Agent::monitor_waited(jvmtiEnv* jvmti, JNIEnv *env,
 }
 
 /* A tagged object has been freed */
-void Agent::object_free(jvmtiEnv* jvmti, jlong tag) {
+void Agent::object_free(jvmtiEnv* jvmti, jlong tag) 
+{
     /* We just cast the tag to a C++ pointer and delete it.
      *   we know it can only be a Monitor *.
      */

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLReaderManager.java,v 1.2 2004/02/17 04:21:14 minchau Exp $
+ * $Id: XMLReaderManager.java,v 1.2.4.1 2005/09/15 08:16:02 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -73,7 +73,7 @@ public class XMLReaderManager {
      * Retrieves a cached XMLReader for this thread, or creates a new
      * XMLReader, if the existing reader is in use.  When the caller no
      * longer needs the reader, it must release it with a call to
-     * {@link releaseXMLReader}.
+     * {@link #releaseXMLReader}.
      */
     public synchronized XMLReader getXMLReader() throws SAXException {
         XMLReader reader;
@@ -151,9 +151,9 @@ public class XMLReaderManager {
      */
     public synchronized void releaseXMLReader(XMLReader reader) {
         // If the reader that's being released is the cached reader
-        // for this thread, mark it as no longer being in use.
-        if (m_readers.get() == reader) {
-            m_inUse.put(reader, Boolean.FALSE);
+        // for this thread, remove it from the m_isUse list.
+        if (m_readers.get() == reader && reader != null) {
+            m_inUse.remove(reader);
         }
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StringLengthCall.java,v 1.5 2004/02/16 22:24:29 minchau Exp $
+ * $Id: StringLengthCall.java,v 1.2.4.1 2005/09/05 09:08:46 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

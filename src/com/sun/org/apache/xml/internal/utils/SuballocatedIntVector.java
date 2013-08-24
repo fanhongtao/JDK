@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SuballocatedIntVector.java,v 1.10 2004/02/17 04:21:14 minchau Exp $
+ * $Id: SuballocatedIntVector.java,v 1.3 2005/09/28 13:49:22 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -224,7 +224,7 @@ public class SuballocatedIntVector
    * Append several slots onto the vector, but do not set the values.
    * Note: "Not Set" means the value is unspecified.
    *
-   * @param value Int to add to the list 
+   * @param numberOfElements Int to add to the list 
    */
   private  void addElements(int numberOfElements)
   {
@@ -338,7 +338,7 @@ public class SuballocatedIntVector
    * index is shifted downward to have an index one smaller than
    * the value it had previously.
    *
-   * @param i index of where to remove and int
+   * @param at index of where to remove and int
    */
   private  void removeElementAt(int at)
   {
@@ -379,8 +379,8 @@ public class SuballocatedIntVector
    * The index must be a value greater than or equal to 0 and less
    * than the current size of the vector.
    *
-   * @param node object to set
-   * @param index Index of where to set the object
+   * @param value object to set
+   * @param at    Index of where to set the object
    */
   public void setElementAt(int value, int at)
   {
@@ -421,10 +421,10 @@ public class SuballocatedIntVector
    * exception (see below), may return zero, or (if setSize has previously
    * been used) may return stale data.
    *
-   * @throw ArrayIndexOutOfBoundsException if the index was _clearly_
+   * @throws ArrayIndexOutOfBoundsException if the index was _clearly_
    * unreasonable (negative, or past the highest block).
    *
-   * @throw NullPointerException if the index points to a block that could
+   * @throws NullPointerException if the index points to a block that could
    * have existed (based on the highest index used) but has never had anything
    * set into it.
    * %REVIEW% Could add a catch to create the block in that case, or return 0.

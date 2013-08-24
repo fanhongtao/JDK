@@ -1,7 +1,7 @@
 /*
- * @(#)Member.java	1.16 04/02/19
+ * @(#)Member.java	1.18 06/06/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ interface Member {
      * @return an object representing the declaring class of the
      * underlying member
      */
-    public Class getDeclaringClass();
+    public Class<?> getDeclaringClass();
 
     /**
      * Returns the simple name of the underlying member or constructor

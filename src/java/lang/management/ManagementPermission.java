@@ -1,7 +1,7 @@
 /*
- * @(#)ManagementPermission.java	1.3 03/12/19
+ * @(#)ManagementPermission.java	1.5 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ at the permission allows, and associated risks">
  * the security policy file.
  *
  * @author  Mandy Chung
- * @version 1.3, 12/19/03 
+ * @version 1.5, 04/21/06 
  * @since   1.5
  *
  * @see java.security.BasicPermission
@@ -71,7 +71,9 @@ public final class ManagementPermission extends java.security.BasicPermission {
      * Constructs a ManagementPermission with the specified name.
      *
      * @param name Permission name. Must be either "monitor" or "control".
-     * @throws IllegalArgumentException if the name argument is invalid.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty or invalid.
      */
     public ManagementPermission(String name) {
         super(name);
@@ -85,7 +87,10 @@ public final class ManagementPermission extends java.security.BasicPermission {
      *
      * @param name Permission name. Must be either "monitor" or "control".
      * @param actions Must be either null or the empty string.
-     * @throws IllegalArgumentException if arguments are invalid.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty or
+     * if arguments are invalid.
      */
     public ManagementPermission(String name, String actions) 
         throws IllegalArgumentException {

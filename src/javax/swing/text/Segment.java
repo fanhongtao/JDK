@@ -1,7 +1,7 @@
 /*
- * @(#)Segment.java	1.22 03/12/19
+ * @(#)Segment.java	1.25 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -21,9 +21,9 @@ import java.text.CharacterIterator;
  * copying text into a string.
  *
  * @author  Timothy Prinzing
- * @version 1.22 12/19/03
+ * @version 1.25 04/07/06
  */
-public class Segment implements Cloneable, CharacterIterator {
+public class Segment implements Cloneable, CharacterIterator, CharSequence {
 
     /**
      * This is the array containing the text of
@@ -111,6 +111,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * position.
      * @return the first character in the text, or DONE if the text is empty
      * @see #getBeginIndex
+     * @since 1.3
      */
     public char first() {
 	pos = offset;
@@ -125,6 +126,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * and returns the character at that position.
      * @return the last character in the text, or DONE if the text is empty
      * @see #getEndIndex
+     * @since 1.3
      */
     public char last() {
 	pos = offset + count;
@@ -140,6 +142,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * @return the character at the current position or DONE if the current
      * position is off the end of the text.
      * @see #getIndex
+     * @since 1.3
      */
     public char current() {
 	if (count != 0 && pos < offset + count) {
@@ -155,6 +158,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * a value of DONE is returned.
      * @return the character at the new position or DONE if the new
      * position is off the end of the text range.
+     * @since 1.3
      */
     public char next() {
 	pos += 1;
@@ -172,6 +176,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * remains at getBeginIndex() and a value of DONE is returned.
      * @return the character at the new position or DONE if the current
      * position is equal to getBeginIndex().
+     * @since 1.3
      */
     public char previous() {
 	if (pos == offset) {
@@ -188,6 +193,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * getBeginIndex() to getEndIndex().  An IllegalArgumentException is thrown
      * if an invalid value is supplied.
      * @return the character at the specified position or DONE if the specified position is equal to getEndIndex()
+     * @since 1.3
      */
     public char setIndex(int position) {
 	int end = offset + count;
@@ -204,6 +210,7 @@ public class Segment implements Cloneable, CharacterIterator {
     /**
      * Returns the start index of the text.
      * @return the index at which the text begins.
+     * @since 1.3
      */
     public int getBeginIndex() {
 	return offset;
@@ -213,6 +220,7 @@ public class Segment implements Cloneable, CharacterIterator {
      * Returns the end index of the text.  This index is the index of the first
      * character following the end of the text.
      * @return the index after the last character in the text
+     * @since 1.3
      */
     public int getEndIndex() {
 	return offset + count;
@@ -221,11 +229,55 @@ public class Segment implements Cloneable, CharacterIterator {
     /**
      * Returns the current index.
      * @return the current index.
+     * @since 1.3
      */
     public int getIndex() {
 	return pos;
     }
 
+    // --- CharSequence methods -------------------------------------
+    
+    /** 
+     * {@inheritDoc} 
+     * @since 1.6
+     */
+    public char charAt(int index) {
+        if (index < 0 
+            || index >= count) {
+            throw new StringIndexOutOfBoundsException(index);
+        }
+        return array[offset + index];
+    }
+
+    /** 
+     * {@inheritDoc} 
+     * @since 1.6
+     */
+    public int length() {
+        return count;
+    }
+
+    /** 
+     * {@inheritDoc} 
+     * @since 1.6
+     */
+    public CharSequence subSequence(int start, int end) {
+        if (start < 0) {
+            throw new StringIndexOutOfBoundsException(start);
+        }
+        if (end > count) {
+            throw new StringIndexOutOfBoundsException(end);
+        }
+        if (start > end) {
+            throw new StringIndexOutOfBoundsException(end - start);
+        }
+        Segment segment = new Segment();
+        segment.array = this.array;
+        segment.offset = this.offset + start;
+        segment.count = end - start;
+        return segment;
+    }
+    
     /**
      * Creates a shallow copy.
      *

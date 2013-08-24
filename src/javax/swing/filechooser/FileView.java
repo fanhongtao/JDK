@@ -1,7 +1,7 @@
 /*
- * @(#)FileView.java	1.19 04/06/28
+ * @(#)FileView.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import javax.swing.*;
  *
  * @see javax.swing.JFileChooser
  *
- * @version 1.19 06/28/04
+ * @version 1.20 11/17/05
  * @author Jeff Dinkins
  *
  */

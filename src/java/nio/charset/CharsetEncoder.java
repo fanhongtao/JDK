@@ -1,7 +1,7 @@
 /*
- * @(#)Charset-X-Coder.java	1.42 05/03/03
+ * @(#)Charset-X-Coder.java	1.46 06/08/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,14 +98,14 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * specific charset, which is a concrete subclass of this class, need only
  * implement the abstract {@link #encodeLoop encodeLoop} method, which
  * encapsulates the basic encoding loop.  A subclass that maintains internal
- * state should, additionally, override the {@link #flush flush} and {@link
- * #reset reset} methods.
+ * state should, additionally, override the {@link #implFlush implFlush} and
+ * {@link #implReset implReset} methods.
  *
  * <p> Instances of this class are not safe for use by multiple concurrent
  * threads.  </p>
  *
  *
- * @version 1.42, 05/03/03
+ * @version 1.46, 06/08/07
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
@@ -246,7 +246,7 @@ public abstract class CharsetEncoder {
 
      *         The new replacement; must not be <tt>null</tt>, must have
      *         non-zero length, must not be longer than the value returned by
-     *         the {@link #maxBytesPerChar maxBytesPerChar} method, and
+     *         the {@link #maxBytesPerChar() maxBytesPerChar} method, and
      *         must be {@link #isLegalReplacement </code>legal<code>}
 
      *
@@ -316,10 +316,8 @@ public abstract class CharsetEncoder {
 	    dec.reset();
 	}
 	ByteBuffer bb = ByteBuffer.wrap(repl);
-	// We need to perform double, not float, arithmetic; otherwise
-	// we lose low order bits when src is larger than 2**24.
 	CharBuffer cb = CharBuffer.allocate((int)(bb.remaining()
-						  * (double)dec.maxCharsPerByte()));
+						  * dec.maxCharsPerByte()));
 	CoderResult cr = dec.decode(bb, cb, true);
 	return !cr.isError();
     }
@@ -450,14 +448,16 @@ public abstract class CharsetEncoder {
      * <ul>
      *
      *   <li><p> {@link CoderResult#UNDERFLOW} indicates that as much of the
-     *   input buffer as possible has been encoded.  If there are no characters
-     *   remaining and the invoker has no further input then the encoding
-     *   operation is complete.  Otherwise there is insufficient input for the
-     *   operation to proceed, so this method should be invoked again with
-     *   further input.  </p></li>
+     *   input buffer as possible has been encoded.  If there is no further
+     *   input then the invoker can proceed to the next step of the
+     *   <a href="#steps">encoding operation</a>.  Otherwise this method
+     *   should be invoked again with further input.  </p></li>
      *
-     *   <li><p> {@link CoderResult#OVERFLOW} indicates that the output buffer
-     *   is full.  This method should be invoked again with a non-full output
+     *   <li><p> {@link CoderResult#OVERFLOW} indicates that there is
+     *   insufficient space in the output buffer to encode any more characters.
+     *   This method should be invoked again with an output buffer that has
+     *   more {@linkplain Buffer#remaining remaining} bytes. This is
+     *   typically done by draining any encoded bytes from the output
      *   buffer.  </p></li>
      *
      *   <li><p> A {@link CoderResult#malformedForLength
@@ -465,7 +465,7 @@ public abstract class CharsetEncoder {
      *   error has been detected.  The malformed characters begin at the input
      *   buffer's (possibly incremented) position; the number of malformed
      *   characters may be determined by invoking the result object's {@link
-     *   CoderResult#length length} method.  This case applies only if the
+     *   CoderResult#length() length} method.  This case applies only if the
      *   {@link #onMalformedInput </code>malformed action<code>} of this encoder
      *   is {@link CodingErrorAction#REPORT}; otherwise the malformed input
      *   will be ignored or replaced, as requested.  </p></li>
@@ -475,7 +475,7 @@ public abstract class CharsetEncoder {
      *   unmappable-character error has been detected.  The characters that
      *   encode the unmappable character begin at the input buffer's (possibly
      *   incremented) position; the number of such characters may be determined
-     *   by invoking the result object's {@link CoderResult#length length}
+     *   by invoking the result object's {@link CoderResult#length() length}
      *   method.  This case applies only if the {@link #onUnmappableCharacter
      *   </code>unmappable action<code>} of this encoder is {@link
      *   CodingErrorAction#REPORT}; otherwise the unmappable character will be
@@ -608,6 +608,9 @@ public abstract class CharsetEncoder {
      * more room, in order to complete the current <a href="#steps">encoding
      * operation</a>.
      *
+     * <p> If this encoder has already been flushed then invoking this method
+     * has no effect.
+     *
      * <p> This method invokes the {@link #implFlush implFlush} method to
      * perform the actual flushing operation.  </p>
      *
@@ -619,17 +622,24 @@ public abstract class CharsetEncoder {
      *
      * @throws  IllegalStateException
      *          If the previous step of the current encoding operation was an
-     *          invocation neither of the {@link #reset reset} method nor of
+     *          invocation neither of the {@link #flush flush} method nor of
      *          the three-argument {@link
      *          #encode(CharBuffer,ByteBuffer,boolean) encode} method
      *          with a value of <tt>true</tt> for the <tt>endOfInput</tt>
      *          parameter
      */
     public final CoderResult flush(ByteBuffer out) {
-	if (state != ST_END)
+	if (state == ST_END) {
+	    CoderResult cr = implFlush(out);
+	    if (cr.isUnderflow())
+		state = ST_FLUSHED;
+	    return cr;
+	}
+
+	if (state != ST_FLUSHED)
 	    throwIllegalStateException(state, ST_FLUSHED);
-	state = ST_FLUSHED;
-	return implFlush(out);
+
+	return CoderResult.UNDERFLOW; // Already flushed
     }
 
     /**
@@ -749,19 +759,19 @@ public abstract class CharsetEncoder {
 	int n = (int)(in.remaining() * averageBytesPerChar());
 	ByteBuffer out = ByteBuffer.allocate(n);
 
-	if (n == 0)
+	if ((n == 0) && (in.remaining() == 0))
 	    return out;
 	reset();
 	for (;;) {
-	    CoderResult cr;
-	    if (in.hasRemaining())
-		cr = encode(in, out, true);
-	    else
+	    CoderResult cr = in.hasRemaining() ?
+		encode(in, out, true) : CoderResult.UNDERFLOW;
+	    if (cr.isUnderflow())
 		cr = flush(out);
+
 	    if (cr.isUnderflow())
 		break;
 	    if (cr.isOverflow()) {
-		n *= 2;
+		n = 2*n + 1;	// Ensure progress; n might be 0!
 		ByteBuffer o = ByteBuffer.allocate(n);
 		out.flip();
 		o.put(out);

@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * DUP2_X2 - Duplicate two top operand stack words and put four down
  * <PRE>Stack: ..., word4, word3, word2, word1 -&gt; ..., word2, word1, word4, word3, word2, word1</PRE>
  *
- * @version $Id: DUP2_X2.java,v 1.1.1.1 2001/10/29 20:00:10 jvanzyl Exp $
+ * @version $Id: DUP2_X2.java,v 1.1.2.1 2005/07/31 23:45:03 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class DUP2_X2 extends StackInstruction {

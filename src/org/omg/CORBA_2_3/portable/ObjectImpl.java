@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectImpl.java	1.13 03/12/19
+ * @(#)ObjectImpl.java	1.14 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -24,7 +24,7 @@ import org.omg.CORBA_2_3.portable.Delegate;
  *
  * @see org.omg.CORBA.portable.ObjectImpl
  * @author  OMG
- * @version 1.13 12/19/03
+ * @version 1.14 11/17/05
  * @since   JDK1.2
  */
 

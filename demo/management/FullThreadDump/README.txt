@@ -1,5 +1,10 @@
 FullThreadDump demonstrates the use of the java.lang.management API 
-to print the full thread dump.
+to print the full thread dump.  JDK 6 defines a new API to dump
+the information about monitors and java.util.concurrent ownable
+synchronizers.
+
+This demo also illustrates how to monitor JDK 5 and JDK 6 VMs with
+two versions of APIs.
 
 It contains two parts: 
 a) Local monitoring within the application
@@ -12,17 +17,21 @@ To run the demo
 ---------------
 a) Local Monitoring
 
-   java -jar <JDK_HOME>/demo/management/FullThreadDump/FullThreadDump.jar 
+   java -cp <JDK_HOME>/demo/management/FullThreadDump/FullThreadDump.jar Deadlock
+
+   This will dump the stack trace and then detect deadlocks locally
+   within the application.
 
 b) Remote Monitoring
 
-  (1) Start the application with the JMX agent - here's an example of 
-      how the Java2D is started
+  (1) Start the Deadlock application (or any other application) 
+      with the JMX agent as follows:
    
       java -Dcom.sun.management.jmxremote.port=1090
            -Dcom.sun.management.jmxremote.ssl=false
            -Dcom.sun.management.jmxremote.authenticate=false
-           -jar <JDK_HOME>/demo/jfc/Java2D/Java2Demo.jar
+           -cp <JDK_HOME>/demo/management/FullThreadDump/FullThreadDump.jar
+           Deadlock
 
       This instruction uses the Sun's built-in support to enable a JMX agent.
       You can programmatically start a JMX agent with the RMI connector
@@ -31,14 +40,13 @@ b) Remote Monitoring
 
   (2) Run FullThreadDump 
 
-      java -cp <JDK_HOME>/demo/management/FullThreadDump/FullThreadDump.jar \
-	  FullThreadDump localhost:1090
+      java -jar <JDK_HOME>/demo/management/FullThreadDump/FullThreadDump.jar \
+	  localhost:1090
 
+      This will dump the stack trace and then print out the deadlocked threads.
+      
 These instructions assume that this installation's version of the java
 command is in your path.  If it isn't, then you should either
 specify the complete path to the java command or update your
 PATH environment variable as described in the installation
-instructions for the Java 2 SDK.
-
-Please refer to http://java.sun.com/j2se/1.5.0/docs/guide/management/
-for details.
+instructions for the Java(TM) SDK.

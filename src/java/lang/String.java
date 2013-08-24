@@ -1,7 +1,7 @@
 /*
- * @(#)String.java	1.189 05/10/21
+ * @(#)String.java	1.204 06/06/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,9 @@ package java.lang;
 import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Formatter;
 import java.util.Locale;
@@ -48,7 +50,7 @@ import java.util.regex.PatternSyntaxException;
  * individual characters of the sequence, for comparing strings, for
  * searching strings, for extracting substrings, and for creating a
  * copy of a string with all characters translated to uppercase or to
- * lowercase. Case mapping is based on the Unicode Standard version 
+ * lowercase. Case mapping is based on the Unicode Standard version
  * specified by the {@link java.lang.Character Character} class.
  * <p>
  * The Java language provides special support for the string
@@ -79,7 +81,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.189, 10/21/05
+ * @version 1.204, 06/09/06
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuilder
@@ -121,9 +123,9 @@ public final class String
         new ObjectStreamField[0];
 
     /**
-     * Initializes a newly created <code>String</code> object so that it
-     * represents an empty character sequence.  Note that use of this 
-     * constructor is unnecessary since Strings are immutable. 
+     * Initializes a newly created {@code String} object so that it represents
+     * an empty character sequence.  Note that use of this constructor is
+     * unnecessary since Strings are immutable.
      */
     public String() {
 	this.offset = 0;
@@ -132,13 +134,14 @@ public final class String
     }
 
     /**
-     * Initializes a newly created <code>String</code> object so that it
-     * represents the same sequence of characters as the argument; in other
-     * words, the newly created string is a copy of the argument string. Unless 
-     * an explicit copy of <code>original</code> is needed, use of this 
-     * constructor is unnecessary since Strings are immutable. 
+     * Initializes a newly created {@code String} object so that it represents
+     * the same sequence of characters as the argument; in other words, the
+     * newly created string is a copy of the argument string. Unless an
+     * explicit copy of {@code original} is needed, use of this constructor is
+     * unnecessary since Strings are immutable.
      *
-     * @param   original   a <code>String</code>.
+     * @param  original
+     *         A {@code String}
      */
     public String(String original) {
 	int size = original.count;
@@ -148,8 +151,8 @@ public final class String
  	    // The array representing the String is bigger than the new
  	    // String itself.  Perhaps this constructor is being called
  	    // in order to trim the baggage, so make a copy of the array.
-	    v = new char[size];
- 	    System.arraycopy(originalValue, original.offset, v, 0, size);
+            int off = original.offset;
+            v = Arrays.copyOfRange(originalValue, off, off+size);
  	} else {
  	    // The array representing the String is the same
  	    // size as the String, so no point in making a copy.
@@ -161,38 +164,41 @@ public final class String
     }
 
     /**
-     * Allocates a new <code>String</code> so that it represents the
-     * sequence of characters currently contained in the character array
-     * argument. The contents of the character array are copied; subsequent
-     * modification of the character array does not affect the newly created
-     * string.
+     * Allocates a new {@code String} so that it represents the sequence of
+     * characters currently contained in the character array argument. The
+     * contents of the character array are copied; subsequent modification of
+     * the character array does not affect the newly created string.
      *
-     * @param  value   the initial value of the string.
+     * @param  value
+     *         The initial value of the string
      */
     public String(char value[]) {
 	int size = value.length;
-	char[] v = new char[size];
-	System.arraycopy(value, 0, v, 0, size);
 	this.offset = 0;
 	this.count = size;
-	this.value = v;
+	this.value = Arrays.copyOf(value, size);
     }
 
     /**
-     * Allocates a new <code>String</code> that contains characters from
-     * a subarray of the character array argument. The <code>offset</code>
-     * argument is the index of the first character of the subarray and
-     * the <code>count</code> argument specifies the length of the
-     * subarray. The contents of the subarray are copied; subsequent
-     * modification of the character array does not affect the newly
-     * created string.
+     * Allocates a new {@code String} that contains characters from a subarray
+     * of the character array argument. The {@code offset} argument is the
+     * index of the first character of the subarray and the {@code count}
+     * argument specifies the length of the subarray. The contents of the
+     * subarray are copied; subsequent modification of the character array does
+     * not affect the newly created string.
      *
-     * @param      value    array that is the source of characters.
-     * @param      offset   the initial offset.
-     * @param      count    the length.
-     * @exception  IndexOutOfBoundsException  if the <code>offset</code>
-     *               and <code>count</code> arguments index characters outside
-     *               the bounds of the <code>value</code> array.
+     * @param  value
+     *         Array that is the source of characters
+     *
+     * @param  offset
+     *         The initial offset
+     *
+     * @param  count
+     *         The length
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If the {@code offset} and {@code count} arguments index
+     *          characters outside the bounds of the {@code value} array
      */
     public String(char value[], int offset, int count) {
         if (offset < 0) {
@@ -205,32 +211,38 @@ public final class String
         if (offset > value.length - count) {
             throw new StringIndexOutOfBoundsException(offset + count);
         }
-        char[] v = new char[count];
-        System.arraycopy(value, offset, v, 0, count);
         this.offset = 0;
         this.count = count;
-        this.value = v;
+        this.value = Arrays.copyOfRange(value, offset, offset+count);
     }
 
     /**
-     * Allocates a new <code>String</code> that contains characters
-     * from a subarray of the Unicode code point array argument. The
-     * <code>offset</code> argument is the index of the first code
-     * point of the subarray and the <code>count</code> argument
-     * specifies the length of the subarray. The contents of the
-     * subarray are converted to <code>char</code>s; subsequent
-     * modification of the <code>int</code> array does not affect the
-     * newly created string.
+     * Allocates a new {@code String} that contains characters from a subarray
+     * of the Unicode code point array argument. The {@code offset} argument
+     * is the index of the first code point of the subarray and the
+     * {@code count} argument specifies the length of the subarray. The
+     * contents of the subarray are converted to {@code char}s; subsequent
+     * modification of the {@code int} array does not affect the newly created
+     * string.
      *
-     * @param codePoints array that is the source of Unicode code points.
-     * @param offset     the initial offset.
-     * @param count      the length.
-     * @exception IllegalArgumentException if any invalid Unicode code point
-     * is found in <code>codePoints</code>
-     * @exception  IndexOutOfBoundsException  if the <code>offset</code>
-     *               and <code>count</code> arguments index characters outside
-     *               the bounds of the <code>codePoints</code> array.
-     * @since 1.5
+     * @param  codePoints
+     *         Array that is the source of Unicode code points
+     *
+     * @param  offset
+     *         The initial offset
+     *
+     * @param  count
+     *         The length
+     *
+     * @throws  IllegalArgumentException
+     *          If any invalid Unicode code point is found in {@code
+     *          codePoints}
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If the {@code offset} and {@code count} arguments index
+     *          characters outside the bounds of the {@code codePoints} array
+     *
+     * @since  1.5
      */
     public String(int[] codePoints, int offset, int count) {
         if (offset < 0) {
@@ -264,10 +276,9 @@ public final class String
 		} else {
 		    expansion *= 2;
 		}
-		char[] tmp = new char[Math.min(v.length+expansion, count*2)];
-		margin = (tmp.length - v.length) - (count - i);
-		System.arraycopy(v, 0, tmp, 0, j);
-		v = tmp;
+                int newLen = Math.min(v.length+expansion, count*2);
+		margin = (newLen - v.length) - (count - i);
+                v = Arrays.copyOf(v, newLen);
 	    }
 	    if (c < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
 		v[j++] = (char) c;
@@ -285,32 +296,43 @@ public final class String
     }
 
     /**
-     * Allocates a new <code>String</code> constructed from a subarray
-     * of an array of 8-bit integer values.
-     * <p>
-     * The <code>offset</code> argument is the index of the first byte
-     * of the subarray, and the <code>count</code> argument specifies the
-     * length of the subarray.
-     * <p>
-     * Each <code>byte</code> in the subarray is converted to a
-     * <code>char</code> as specified in the method above.
+     * Allocates a new {@code String} constructed from a subarray of an array
+     * of 8-bit integer values.
+     *
+     * <p> The {@code offset} argument is the index of the first byte of the
+     * subarray, and the {@code count} argument specifies the length of the
+     * subarray.
+     *
+     * <p> Each {@code byte} in the subarray is converted to a {@code char} as
+     * specified in the method above.
      *
      * @deprecated This method does not properly convert bytes into characters.
      * As of JDK&nbsp;1.1, the preferred way to do this is via the
-     * <code>String</code> constructors that take a charset name or that use
-     * the platform's default charset.
+     * {@code String} constructors that take a {@link
+     * java.nio.charset.Charset}, charset name, or that use the platform's
+     * default charset.
      *
-     * @param      ascii     the bytes to be converted to characters.
-     * @param      hibyte    the top 8 bits of each 16-bit Unicode character.
-     * @param      offset    the initial offset.
-     * @param      count     the length.
-     * @exception  IndexOutOfBoundsException  if the <code>offset</code>
-     *               or <code>count</code> argument is invalid.
-     * @see        java.lang.String#String(byte[], int)
-     * @see        java.lang.String#String(byte[], int, int, java.lang.String)
-     * @see        java.lang.String#String(byte[], int, int)
-     * @see        java.lang.String#String(byte[], java.lang.String)
-     * @see        java.lang.String#String(byte[])
+     * @param  ascii
+     *         The bytes to be converted to characters
+     *
+     * @param  hibyte
+     *         The top 8 bits of each 16-bit Unicode code unit
+     *
+     * @param  offset
+     *         The initial offset
+     * @param  count
+     *         The length
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If the {@code offset} or {@code count} argument is invalid
+     *
+     * @see  #String(byte[], int)
+     * @see  #String(byte[], int, int, java.lang.String)
+     * @see  #String(byte[], int, int, java.nio.charset.Charset)
+     * @see  #String(byte[], int, int)
+     * @see  #String(byte[], java.lang.String)
+     * @see  #String(byte[], java.nio.charset.Charset)
+     * @see  #String(byte[])
      */
     @Deprecated
     public String(byte ascii[], int hibyte, int offset, int count) {
@@ -333,26 +355,34 @@ public final class String
     }
 
     /**
-     * Allocates a new <code>String</code> containing characters
-     * constructed from an array of 8-bit integer values. Each character
-     * <i>c</i>in the resulting string is constructed from the
-     * corresponding component <i>b</i> in the byte array such that:
-     * <p><blockquote><pre>
+     * Allocates a new {@code String} containing characters constructed from
+     * an array of 8-bit integer values. Each character <i>c</i>in the
+     * resulting string is constructed from the corresponding component
+     * <i>b</i> in the byte array such that:
+     *
+     * <blockquote><pre>
      *     <b><i>c</i></b> == (char)(((hibyte &amp; 0xff) &lt;&lt; 8)
      *                         | (<b><i>b</i></b> &amp; 0xff))
      * </pre></blockquote>
      *
-     * @deprecated This method does not properly convert bytes into characters.
-     * As of JDK&nbsp;1.1, the preferred way to do this is via the
-     * <code>String</code> constructors that take a charset name or
-     * that use the platform's default charset.
+     * @deprecated  This method does not properly convert bytes into
+     * characters.  As of JDK&nbsp;1.1, the preferred way to do this is via the
+     * {@code String} constructors that take a {@link
+     * java.nio.charset.Charset}, charset name, or that use the platform's
+     * default charset.
      *
-     * @param      ascii    the bytes to be converted to characters.
-     * @param      hibyte   the top 8 bits of each 16-bit Unicode character.
-     * @see        java.lang.String#String(byte[], int, int, java.lang.String)
-     * @see        java.lang.String#String(byte[], int, int)
-     * @see        java.lang.String#String(byte[], java.lang.String)
-     * @see        java.lang.String#String(byte[])
+     * @param  ascii
+     *         The bytes to be converted to characters
+     *
+     * @param  hibyte
+     *         The top 8 bits of each 16-bit Unicode code unit
+     *
+     * @see  #String(byte[], int, int, java.lang.String)
+     * @see  #String(byte[], int, int, java.nio.charset.Charset)
+     * @see  #String(byte[], int, int)
+     * @see  #String(byte[], java.lang.String)
+     * @see  #String(byte[], java.nio.charset.Charset)
+     * @see  #String(byte[])
      */
     @Deprecated
     public String(byte ascii[], int hibyte) {
@@ -373,28 +403,37 @@ public final class String
     }
 
     /**
-     * Constructs a new <tt>String</tt> by decoding the specified subarray of
-     * bytes using the specified charset.  The length of the new
-     * <tt>String</tt> is a function of the charset, and hence may not be equal
-     * to the length of the subarray.
+     * Constructs a new {@code String} by decoding the specified subarray of
+     * bytes using the specified charset.  The length of the new {@code String}
+     * is a function of the charset, and hence may not be equal to the length
+     * of the subarray.
      *
      * <p> The behavior of this constructor when the given bytes are not valid
      * in the given charset is unspecified.  The {@link
      * java.nio.charset.CharsetDecoder} class should be used when more control
      * over the decoding process is required.
      *
-     * @param  bytes   the bytes to be decoded into characters
-     * @param  offset  the index of the first byte to decode
-     * @param  length  the number of bytes to decode
-     * @param  charsetName  the name of a supported
-     *                 {@link java.nio.charset.Charset </code>charset<code>}
+     * @param  bytes
+     *         The bytes to be decoded into characters
+     *
+     * @param  offset
+     *         The index of the first byte to decode
+     *
+     * @param  length
+     *         The number of bytes to decode
+
+     * @param  charsetName
+     *         The name of a supported {@linkplain java.nio.charset.Charset
+     *         charset}
+     *
      * @throws  UnsupportedEncodingException
-     *          if the named charset is not supported
+     *          If the named charset is not supported
+     *
      * @throws  IndexOutOfBoundsException
-     *          if the <tt>offset</tt> and <tt>length</tt> arguments
-     *          index characters outside the bounds of the <tt>bytes</tt>
-     *          array
-     * @since JDK1.1
+     *          If the {@code offset} and {@code length} arguments index
+     *          characters outside the bounds of the {@code bytes} array
+     *
+     * @since  JDK1.1
      */
     public String(byte bytes[], int offset, int length, String charsetName)
 	throws UnsupportedEncodingException
@@ -409,23 +448,67 @@ public final class String
     }
 
     /**
-     * Constructs a new <tt>String</tt> by decoding the specified array of
-     * bytes using the specified charset.  The length of the new
-     * <tt>String</tt> is a function of the charset, and hence may not be equal
-     * to the length of the byte array.
+     * Constructs a new {@code String} by decoding the specified subarray of
+     * bytes using the specified {@linkplain java.nio.charset.Charset charset}.
+     * The length of the new {@code String} is a function of the charset, and
+     * hence may not be equal to the length of the subarray.
+     *
+     * <p> This method always replaces malformed-input and unmappable-character
+     * sequences with this charset's default replacement string.  The {@link
+     * java.nio.charset.CharsetDecoder} class should be used when more control
+     * over the decoding process is required.
+     *
+     * @param  bytes
+     *         The bytes to be decoded into characters
+     *
+     * @param  offset
+     *         The index of the first byte to decode
+     *
+     * @param  length
+     *         The number of bytes to decode
+     *
+     * @param  charset
+     *         The {@linkplain java.nio.charset.Charset charset} to be used to
+     *         decode the {@code bytes}
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If the {@code offset} and {@code length} arguments index
+     *          characters outside the bounds of the {@code bytes} array
+     *
+     * @since  1.6
+     */
+    public String(byte bytes[], int offset, int length, Charset charset) {
+	if (charset == null)
+	    throw new NullPointerException("charset");
+	checkBounds(bytes, offset, length);
+	char[] v = StringCoding.decode(charset, bytes, offset, length);
+	this.offset = 0;
+	this.count = v.length;
+	this.value = v;
+    }
+
+    /**
+     * Constructs a new {@code String} by decoding the specified array of bytes
+     * using the specified {@linkplain java.nio.charset.Charset charset}.  The
+     * length of the new {@code String} is a function of the charset, and hence
+     * may not be equal to the length of the byte array.
      *
      * <p> The behavior of this constructor when the given bytes are not valid
      * in the given charset is unspecified.  The {@link
      * java.nio.charset.CharsetDecoder} class should be used when more control
      * over the decoding process is required.
      *
-     * @param  bytes   the bytes to be decoded into characters
-     * @param  charsetName  the name of a supported
-     *                 {@link java.nio.charset.Charset </code>charset<code>}
+     * @param  bytes
+     *         The bytes to be decoded into characters
      *
-     * @exception  UnsupportedEncodingException
-     *             If the named charset is not supported
-     * @since      JDK1.1
+     * @param  charsetName
+     *         The name of a supported {@linkplain java.nio.charset.Charset
+     *         charset}
+     *
+     * @throws  UnsupportedEncodingException
+     *          If the named charset is not supported
+     *
+     * @since  JDK1.1
      */
     public String(byte bytes[], String charsetName)
 	throws UnsupportedEncodingException
@@ -434,9 +517,33 @@ public final class String
     }
 
     /**
-     * Constructs a new <tt>String</tt> by decoding the specified subarray of
+     * Constructs a new {@code String} by decoding the specified array of
+     * bytes using the specified {@linkplain java.nio.charset.Charset charset}.
+     * The length of the new {@code String} is a function of the charset, and
+     * hence may not be equal to the length of the byte array.
+     *
+     * <p> This method always replaces malformed-input and unmappable-character
+     * sequences with this charset's default replacement string.  The {@link
+     * java.nio.charset.CharsetDecoder} class should be used when more control
+     * over the decoding process is required.
+     *
+     * @param  bytes
+     *         The bytes to be decoded into characters
+     *
+     * @param  charset
+     *         The {@linkplain java.nio.charset.Charset charset} to be used to
+     *         decode the {@code bytes}
+     *
+     * @since  1.6
+     */
+    public String(byte bytes[], Charset charset) {
+	this(bytes, 0, bytes.length, charset);
+    }
+
+    /**
+     * Constructs a new {@code String} by decoding the specified subarray of
      * bytes using the platform's default charset.  The length of the new
-     * <tt>String</tt> is a function of the charset, and hence may not be equal
+     * {@code String} is a function of the charset, and hence may not be equal
      * to the length of the subarray.
      *
      * <p> The behavior of this constructor when the given bytes are not valid
@@ -444,13 +551,19 @@ public final class String
      * java.nio.charset.CharsetDecoder} class should be used when more control
      * over the decoding process is required.
      *
-     * @param  bytes   the bytes to be decoded into characters
-     * @param  offset  the index of the first byte to decode
-     * @param  length  the number of bytes to decode
-     * @throws IndexOutOfBoundsException
-     *         if the <code>offset</code> and the <code>length</code>
-     *         arguments index characters outside the bounds of the
-     *         <code>bytes</code> array
+     * @param  bytes
+     *         The bytes to be decoded into characters
+     *
+     * @param  offset
+     *         The index of the first byte to decode
+     *
+     * @param  length
+     *         The number of bytes to decode
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If the {@code offset} and the {@code length} arguments index
+     *          characters outside the bounds of the {@code bytes} array
+     *
      * @since  JDK1.1
      */
     public String(byte bytes[], int offset, int length) {
@@ -462,17 +575,19 @@ public final class String
     }
 
     /**
-     * Constructs a new <tt>String</tt> by decoding the specified array of
-     * bytes using the platform's default charset.  The length of the new
-     * <tt>String</tt> is a function of the charset, and hence may not be equal
-     * to the length of the byte array.
+     * Constructs a new {@code String} by decoding the specified array of bytes
+     * using the platform's default charset.  The length of the new {@code
+     * String} is a function of the charset, and hence may not be equal to the
+     * length of the byte array.
      *
      * <p> The behavior of this constructor when the given bytes are not valid
      * in the default charset is unspecified.  The {@link
      * java.nio.charset.CharsetDecoder} class should be used when more control
      * over the decoding process is required.
      *
-     * @param  bytes   the bytes to be decoded into characters
+     * @param  bytes
+     *         The bytes to be decoded into characters
+     *
      * @since  JDK1.1
      */
     public String(byte bytes[]) {
@@ -481,11 +596,12 @@ public final class String
 
     /**
      * Allocates a new string that contains the sequence of characters
-     * currently contained in the string buffer argument. The contents of
-     * the string buffer are copied; subsequent modification of the string
-     * buffer does not affect the newly created string.
+     * currently contained in the string buffer argument. The contents of the
+     * string buffer are copied; subsequent modification of the string buffer
+     * does not affect the newly created string.
      *
-     * @param   buffer   a <code>StringBuffer</code>.
+     * @param  buffer
+     *         A {@code StringBuffer}
      */
     public String(StringBuffer buffer) {
         String result = buffer.toString();
@@ -496,17 +612,18 @@ public final class String
 
     /**
      * Allocates a new string that contains the sequence of characters
-     * currently contained in the string builder argument. The contents of
-     * the string builder are copied; subsequent modification of the string
-     * builder does not affect the newly created string.
+     * currently contained in the string builder argument. The contents of the
+     * string builder are copied; subsequent modification of the string builder
+     * does not affect the newly created string.
      *
-     * <p>This constructor is provided to ease migration to
-     * <code>StringBuilder</code>. Obtaining a string from a string builder
-     * via the <code>toString</code> method is likely to run faster and is
-     * generally preferred.
+     * <p> This constructor is provided to ease migration to {@code
+     * StringBuilder}. Obtaining a string from a string builder via the {@code
+     * toString} method is likely to run faster and is generally preferred.
      *
-     * @param   builder   a <code>StringBuilder</code>
-     * @since 1.5
+     * @param   builder
+     *          A {@code StringBuilder}
+     *
+     * @since  1.5
      */
     public String(StringBuilder builder) {
         String result = builder.toString();
@@ -525,14 +642,26 @@ public final class String
 
     /**
      * Returns the length of this string.
-     * The length is equal to the number of 16-bit
-     * Unicode characters in the string.
+     * The length is equal to the number of <a href="Character.html#unicode">Unicode
+     * code units</a> in the string.
      *
      * @return  the length of the sequence of characters represented by this
      *          object.
      */
     public int length() {
         return count;
+    }
+
+    /**
+     * Returns <tt>true</tt> if, and only if, {@link #length()} is <tt>0</tt>.
+     *
+     * @return <tt>true</tt> if {@link #length()} is <tt>0</tt>, otherwise
+     * <tt>false</tt>
+     *
+     * @since 1.6
+     */
+    public boolean isEmpty() {
+	return count == 0;
     }
 
     /**
@@ -616,7 +745,7 @@ public final class String
         if ((i < 0) || (i >= count)) {
             throw new StringIndexOutOfBoundsException(index);
         }
-        return Character.codePointBeforeImpl(value, offset + index, offset); 
+        return Character.codePointBeforeImpl(value, offset + index, offset);
     }
 
     /**
@@ -672,7 +801,7 @@ public final class String
 	    throw new IndexOutOfBoundsException();
 	}
 	return Character.offsetByCodePointsImpl(value, offset, count,
-						offset+index, codePointOffset);
+						offset+index, codePointOffset) - offset;
     }
 
     /**
@@ -728,41 +857,47 @@ public final class String
     }
 
     /**
-     * Copies characters from this string into the destination byte
-     * array. Each byte receives the 8 low-order bits of the
-     * corresponding character. The eight high-order bits of each character
-     * are not copied and do not participate in the transfer in any way.
-     * <p>
-     * The first character to be copied is at index <code>srcBegin</code>;
-     * the last character to be copied is at index <code>srcEnd-1</code>.
-     * The total number of characters to be copied is
-     * <code>srcEnd-srcBegin</code>. The characters, converted to bytes,
-     * are copied into the subarray of <code>dst</code> starting at index
-     * <code>dstBegin</code> and ending at index:
-     * <p><blockquote><pre>
+     * Copies characters from this string into the destination byte array. Each
+     * byte receives the 8 low-order bits of the corresponding character. The
+     * eight high-order bits of each character are not copied and do not
+     * participate in the transfer in any way.
+     *
+     * <p> The first character to be copied is at index {@code srcBegin}; the
+     * last character to be copied is at index {@code srcEnd-1}.  The total
+     * number of characters to be copied is {@code srcEnd-srcBegin}. The
+     * characters, converted to bytes, are copied into the subarray of {@code
+     * dst} starting at index {@code dstBegin} and ending at index:
+     *
+     * <blockquote><pre>
      *     dstbegin + (srcEnd-srcBegin) - 1
      * </pre></blockquote>
      *
-     * @deprecated This method does not properly convert characters into bytes.
-     * As of JDK&nbsp;1.1, the preferred way to do this is via the
-     * <code>getBytes()</code> method, which uses the platform's default
-     * charset.
+     * @deprecated  This method does not properly convert characters into
+     * bytes.  As of JDK&nbsp;1.1, the preferred way to do this is via the
+     * {@link #getBytes()} method, which uses the platform's default charset.
      *
-     * @param      srcBegin   index of the first character in the string
-     *                        to copy.
-     * @param      srcEnd     index after the last character in the string
-     *                        to copy.
-     * @param      dst        the destination array.
-     * @param      dstBegin   the start offset in the destination array.
-     * @exception IndexOutOfBoundsException if any of the following
-     *            is true:
-     *           <ul><li><code>srcBegin</code> is negative
-     *           <li><code>srcBegin</code> is greater than <code>srcEnd</code>
-     *           <li><code>srcEnd</code> is greater than the length of this
-     *            String
-     *           <li><code>dstBegin</code> is negative
-     *           <li><code>dstBegin+(srcEnd-srcBegin)</code> is larger than
-     *            <code>dst.length</code></ul>
+     * @param  srcBegin
+     *         Index of the first character in the string to copy
+     *
+     * @param  srcEnd
+     *         Index after the last character in the string to copy
+     *
+     * @param  dst
+     *         The destination array
+     *
+     * @param  dstBegin
+     *         The start offset in the destination array
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If any of the following is true:
+     *          <ul>
+     *            <li> {@code srcBegin} is negative
+     *            <li> {@code srcBegin} is greater than {@code srcEnd}
+     *            <li> {@code srcEnd} is greater than the length of this String
+     *            <li> {@code dstBegin} is negative
+     *            <li> {@code dstBegin+(srcEnd-srcBegin)} is larger than {@code
+     *                 dst.length}
+     *          </ul>
      */
     @Deprecated
     public void getBytes(int srcBegin, int srcEnd, byte dst[], int dstBegin) {
@@ -786,8 +921,8 @@ public final class String
     }
 
     /**
-     * Encodes this <tt>String</tt> into a sequence of bytes using the
-     * named charset, storing the result into a new byte array.
+     * Encodes this {@code String} into a sequence of bytes using the named
+     * charset, storing the result into a new byte array.
      *
      * <p> The behavior of this method when this string cannot be encoded in
      * the given charset is unspecified.  The {@link
@@ -795,15 +930,15 @@ public final class String
      * over the encoding process is required.
      *
      * @param  charsetName
-     *         the name of a supported
-     *         {@link java.nio.charset.Charset </code>charset<code>}
+     *         The name of a supported {@linkplain java.nio.charset.Charset
+     *         charset}
      *
      * @return  The resultant byte array
      *
-     * @exception  UnsupportedEncodingException
-     *             If the named charset is not supported
+     * @throws  UnsupportedEncodingException
+     *          If the named charset is not supported
      *
-     * @since      JDK1.1
+     * @since  JDK1.1
      */
     public byte[] getBytes(String charsetName)
 	throws UnsupportedEncodingException
@@ -813,7 +948,30 @@ public final class String
     }
 
     /**
-     * Encodes this <tt>String</tt> into a sequence of bytes using the
+     * Encodes this {@code String} into a sequence of bytes using the given
+     * {@linkplain java.nio.charset.Charset charset}, storing the result into a
+     * new byte array.
+     *
+     * <p> This method always replaces malformed-input and unmappable-character
+     * sequences with this charset's default replacement byte array.  The
+     * {@link java.nio.charset.CharsetEncoder} class should be used when more
+     * control over the encoding process is required.
+     *
+     * @param  charset
+     *         The {@linkplain java.nio.charset.Charset} to be used to encode
+     *         the {@code String}
+     *
+     * @return  The resultant byte array
+     *
+     * @since  1.6
+     */
+    public byte[] getBytes(Charset charset) {
+	if (charset == null) throw new NullPointerException();
+	return StringCoding.encode(charset, value, offset, count);
+    }
+
+    /**
+     * Encodes this {@code String} into a sequence of bytes using the
      * platform's default charset, storing the result into a new byte array.
      *
      * <p> The behavior of this method when this string cannot be encoded in
@@ -830,17 +988,19 @@ public final class String
     }
 
     /**
-     * Compares this string to the specified object.
-     * The result is <code>true</code> if and only if the argument is not
-     * <code>null</code> and is a <code>String</code> object that represents
-     * the same sequence of characters as this object.
+     * Compares this string to the specified object.  The result is {@code
+     * true} if and only if the argument is not {@code null} and is a {@code
+     * String} object that represents the same sequence of characters as this
+     * object.
      *
-     * @param   anObject   the object to compare this <code>String</code>
-     *                     against.
-     * @return  <code>true</code> if the <code>String </code>are equal;
-     *          <code>false</code> otherwise.
-     * @see     java.lang.String#compareTo(java.lang.String)
-     * @see     java.lang.String#equalsIgnoreCase(java.lang.String)
+     * @param  anObject
+     *         The object to compare this {@code String} against
+     *
+     * @return  {@code true} if the given object represents a {@code String}
+     *          equivalent to this string, {@code false} otherwise
+     *
+     * @see  #compareTo(String)
+     * @see  #equalsIgnoreCase(String)
      */
     public boolean equals(Object anObject) {
 	if (this == anObject) {
@@ -865,15 +1025,18 @@ public final class String
     }
 
     /**
-     * Returns <tt>true</tt> if and only if this <tt>String</tt> represents
-     * the same sequence of characters as the specified <tt>StringBuffer</tt>.
+     * Compares this string to the specified {@code StringBuffer}.  The result
+     * is {@code true} if and only if this {@code String} represents the same
+     * sequence of characters as the specified {@code StringBuffer}.
      *
-     * @param   sb         the <tt>StringBuffer</tt> to compare to.
-     * @return  <tt>true</tt> if and only if this <tt>String</tt> represents
-     *          the same sequence of characters as the specified
-     *          <tt>StringBuffer</tt>, otherwise <tt>false</tt>.
-     * @throws NullPointerException if <code>sb</code> is <code>null</code>
-     * @since 1.4
+     * @param  sb
+     *         The {@code StringBuffer} to compare this {@code String} against
+     *
+     * @return  {@code true} if this {@code String} represents the same
+     *          sequence of characters as the specified {@code StringBuffer},
+     *          {@code false} otherwise
+     *
+     * @since  1.4
      */
     public boolean contentEquals(StringBuffer sb) {
         synchronized(sb) {
@@ -882,15 +1045,18 @@ public final class String
     }
 
     /**
-     * Returns <tt>true</tt> if and only if this <tt>String</tt> represents
-     * the same sequence of char values as the specified sequence.
+     * Compares this string to the specified {@code CharSequence}.  The result
+     * is {@code true} if and only if this {@code String} represents the same
+     * sequence of char values as the specified sequence.
      *
-     * @param   cs         the sequence to compare to.
-     * @return  <tt>true</tt> if and only if this <tt>String</tt> represents
-     *          the same sequence of char values as the specified
-     *          sequence, otherwise <tt>false</tt>.
-     * @throws NullPointerException if <code>cs</code> is <code>null</code>
-     * @since 1.5
+     * @param  cs
+     *         The sequence to compare this {@code String} against
+     *
+     * @return  {@code true} if this {@code String} represents the same
+     *          sequence of char values as the specified sequence, {@code
+     *          false} otherwise
+     *
+     * @since  1.5
      */
     public boolean contentEquals(CharSequence cs) {
         if (count != cs.length())
@@ -923,28 +1089,32 @@ public final class String
     }
 
     /**
-     * Compares this <code>String</code> to another <code>String</code>,
-     * ignoring case considerations.  Two strings are considered equal
-     * ignoring case if they are of the same length, and corresponding
-     * characters in the two strings are equal ignoring case.
-     * <p>
-     * Two characters <code>c1</code> and <code>c2</code> are considered
-     * the same, ignoring case if at least one of the following is true:
-     * <ul><li>The two characters are the same (as compared by the
-     * <code>==</code> operator).
-     * <li>Applying the method {@link java.lang.Character#toUpperCase(char)}
-     * to each character produces the same result.
-     * <li>Applying the method {@link java.lang.Character#toLowerCase(char)}
-     * to each character produces the same result.</ul>
+     * Compares this {@code String} to another {@code String}, ignoring case
+     * considerations.  Two strings are considered equal ignoring case if they
+     * are of the same length and corresponding characters in the two strings
+     * are equal ignoring case.
      *
-     * @param   anotherString   the <code>String</code> to compare this
-     *                          <code>String</code> against.
-     * @return  <code>true</code> if the argument is not <code>null</code>
-     *          and the <code>String</code>s are equal,
-     *          ignoring case; <code>false</code> otherwise.
-     * @see     #equals(Object)
-     * @see     java.lang.Character#toLowerCase(char)
-     * @see java.lang.Character#toUpperCase(char)
+     * <p> Two characters {@code c1} and {@code c2} are considered the same
+     * ignoring case if at least one of the following is true:
+     * <ul>
+     *   <li> The two characters are the same (as compared by the
+     *        {@code ==} operator)
+     *   <li> Applying the method {@link
+     *        java.lang.Character#toUpperCase(char)} to each character
+     *        produces the same result
+     *   <li> Applying the method {@link
+     *        java.lang.Character#toLowerCase(char)} to each character
+     *        produces the same result
+     * </ul>
+     *
+     * @param  anotherString
+     *         The {@code String} to compare this {@code String} against
+     *
+     * @return  {@code true} if the argument is not {@code null} and it
+     *          represents an equivalent {@code String} ignoring case; {@code
+     *          false} otherwise
+     *
+     * @see  #equals(Object)
      */
     public boolean equalsIgnoreCase(String anotherString) {
         return (this == anotherString) ? true :
@@ -1230,11 +1400,11 @@ public final class String
     }
 
     /**
-     * Tests if this string starts with the specified prefix beginning
-     * a specified index.
+     * Tests if the substring of this string beginning at the
+     * specified index starts with the specified prefix.
      *
      * @param   prefix    the prefix.
-     * @param   toffset   where to begin looking in the string.
+     * @param   toffset   where to begin looking in this string.
      * @return  <code>true</code> if the character sequence represented by the
      *          argument is a prefix of the substring of this object starting
      *          at index <code>toffset</code>; <code>false</code> otherwise.
@@ -1551,7 +1721,7 @@ public final class String
      * specified substring, starting at the specified index.  The integer
      * returned is the smallest value <tt>k</tt> for which:
      * <blockquote><pre>
-     *     k &gt;= Math.min(fromIndex, str.length()) && this.startsWith(str, k)
+     *     k &gt;= Math.min(fromIndex, this.length()) && this.startsWith(str, k)
      * </pre></blockquote>
      * If no such value of <i>k</i> exists, then -1 is returned.
      *
@@ -1604,7 +1774,7 @@ public final class String
             if (i <= max) {
                 int j = i + 1;
                 int end = j + targetCount - 1;
-                for (int k = targetOffset + 1; j < end && source[j] == 
+                for (int k = targetOffset + 1; j < end && source[j] ==
                          target[k]; j++, k++);
 
                 if (j == end) {
@@ -1641,10 +1811,10 @@ public final class String
      * specified substring, searching backward starting at the specified index.
      * The integer returned is the largest value <i>k</i> such that:
      * <blockquote><pre>
-     *     k &lt;= Math.min(fromIndex, str.length()) && this.startsWith(str, k)
+     *     k &lt;= Math.min(fromIndex, this.length()) && this.startsWith(str, k)
      * </pre></blockquote>
      * If no such value of <i>k</i> exists, then -1 is returned.
-     * 
+     *
      * @param   str         the substring to search for.
      * @param   fromIndex   the index to start the search from.
      * @return  the index within this string of the last occurrence of the
@@ -1950,8 +2120,18 @@ public final class String
      * matcher}(</tt><i>str</i><tt>).{@link java.util.regex.Matcher#replaceFirst
      * replaceFirst}(</tt><i>repl</i><tt>)</tt></blockquote>
      *
+     *<p>
+     * Note that backslashes (<tt>\</tt>) and dollar signs (<tt>$</tt>) in the
+     * replacement string may cause the results to be different than if it were
+     * being treated as a literal replacement string; see
+     * {@link java.util.regex.Matcher#replaceFirst}.
+     * Use {@link java.util.regex.Matcher#quoteReplacement} to suppress the special
+     * meaning of these characters, if desired.
+     *
      * @param   regex
      *          the regular expression to which this string is to be matched
+     * @param   replacement
+     *          the string to be substituted for the first match
      *
      * @return  The resulting <tt>String</tt>
      *
@@ -1983,8 +2163,18 @@ public final class String
      * matcher}(</tt><i>str</i><tt>).{@link java.util.regex.Matcher#replaceAll
      * replaceAll}(</tt><i>repl</i><tt>)</tt></blockquote>
      *
+     *<p>
+     * Note that backslashes (<tt>\</tt>) and dollar signs (<tt>$</tt>) in the
+     * replacement string may cause the results to be different than if it were
+     * being treated as a literal replacement string; see
+     * {@link java.util.regex.Matcher#replaceAll Matcher.replaceAll}.
+     * Use {@link java.util.regex.Matcher#quoteReplacement} to suppress the special
+     * meaning of these characters, if desired.
+     *
      * @param   regex
      *          the regular expression to which this string is to be matched
+     * @param   replacement
+     *          the string to be substituted for each match
      *
      * @return  The resulting <tt>String</tt>
      *
@@ -2002,9 +2192,9 @@ public final class String
 
     /**
      * Replaces each substring of this string that matches the literal target
-     * sequence with the specified literal replacement sequence. The 
-     * replacement proceeds from the beginning of the string to the end, for 
-     * example, replacing "aa" with "b" in the string "aaa" will result in 
+     * sequence with the specified literal replacement sequence. The
+     * replacement proceeds from the beginning of the string to the end, for
+     * example, replacing "aa" with "b" in the string "aaa" will result in
      * "ba" rather than "ab".
      *
      * @param  target The sequence of char values to be replaced
@@ -2020,7 +2210,7 @@ public final class String
     }
 
     /**
-     * Splits this string around matches of the given 
+     * Splits this string around matches of the given
      * <a href="../util/regex/Pattern.html#sum">regular expression</a>.
      *
      * <p> The array returned by this method contains each substring of this
@@ -2104,8 +2294,8 @@ public final class String
     }
 
     /**
-     * Splits this string around matches of the given 
-     * {@linkplain java.util.regex.Pattern#sum regular expression}.
+     * Splits this string around matches of the given <a
+     * href="../util/regex/Pattern.html#sum">regular expression</a>.
      *
      * <p> This method works as if by invoking the two-argument {@link
      * #split(String, int) split} method with the given expression and a limit
@@ -2149,7 +2339,7 @@ public final class String
      * Converts all of the characters in this <code>String</code> to lower
      * case using the rules of the given <code>Locale</code>.  Case mapping is based
      * on the Unicode Standard version specified by the {@link java.lang.Character Character}
-     * class. Since case mappings are not always 1:1 char mappings, the resulting 
+     * class. Since case mappings are not always 1:1 char mappings, the resulting
      * <code>String</code> may be a different length than the original <code>String</code>.
      * <p>
      * Examples of lowercase  mappings are in the following table:
@@ -2289,6 +2479,17 @@ public final class String
      * case using the rules of the default locale. This is equivalent to calling
      * <code>toLowerCase(Locale.getDefault())</code>.
      * <p>
+     * <b>Note:</b> This method is locale sensitive, and may produce unexpected
+     * results if used for strings that are intended to be interpreted locale
+     * independently.
+     * Examples are programming language identifiers, protocol keys, and HTML
+     * tags.
+     * For instance, <code>"TITLE".toLowerCase()</code> in a Turkish locale
+     * returns <code>"t\u0131tle"</code>, where '\u0131' is the LATIN SMALL
+     * LETTER DOTLESS I character.
+     * To obtain correct results for locale insensitive strings, use
+     * <code>toLowerCase(Locale.ENGLISH)</code>.
+     * <p>
      * @return  the <code>String</code>, converted to lowercase.
      * @see     java.lang.String#toLowerCase(Locale)
      */
@@ -2300,7 +2501,7 @@ public final class String
      * Converts all of the characters in this <code>String</code> to upper
      * case using the rules of the given <code>Locale</code>. Case mapping is based
      * on the Unicode Standard version specified by the {@link java.lang.Character Character}
-     * class. Since case mappings are not always 1:1 char mappings, the resulting 
+     * class. Since case mappings are not always 1:1 char mappings, the resulting
      * <code>String</code> may be a different length than the original <code>String</code>.
      * <p>
      * Examples of locale-sensitive and 1:M case mappings are in the following table.
@@ -2441,6 +2642,17 @@ public final class String
      * case using the rules of the default locale. This method is equivalent to
      * <code>toUpperCase(Locale.getDefault())</code>.
      * <p>
+     * <b>Note:</b> This method is locale sensitive, and may produce unexpected
+     * results if used for strings that are intended to be interpreted locale
+     * independently.
+     * Examples are programming language identifiers, protocol keys, and HTML
+     * tags.
+     * For instance, <code>"title".toUpperCase()</code> in a Turkish locale
+     * returns <code>"T\u0130TLE"</code>, where '\u0130' is the LATIN CAPITAL
+     * LETTER I WITH DOT ABOVE character.
+     * To obtain correct results for locale insensitive strings, use
+     * <code>toUpperCase(Locale.ENGLISH)</code>.
+     * <p>
      * @return  the <code>String</code>, converted to uppercase.
      * @see     java.lang.String#toUpperCase(Locale)
      */
@@ -2524,7 +2736,7 @@ public final class String
      * java.util.Locale#getDefault() Locale.getDefault()}.
      *
      * @param  format
-     *         A <a href="../util/Formatter.html#syntax">format string</a> 
+     *         A <a href="../util/Formatter.html#syntax">format string</a>
      *
      * @param  args
      *         Arguments referenced by the format specifiers in the format
@@ -2545,7 +2757,7 @@ public final class String
      *          formatting errors, see the <a
      *          href="../util/Formatter.html#detail">Details</a> section of the
      *          formatter class specification.
-     *          
+     *
      * @throws  NullPointerException
      *          If the <tt>format</tt> is <tt>null</tt>
      *
@@ -2555,7 +2767,7 @@ public final class String
      * @since  1.5
      */
     public static String format(String format, Object ... args) {
-	return new Formatter().format(format, args).toString(); 
+	return new Formatter().format(format, args).toString();
     }
 
     /**
@@ -2568,7 +2780,7 @@ public final class String
      *         is applied.
      *
      * @param  format
-     *         A <a href="../util/Formatter.html#syntax">format string</a> 
+     *         A <a href="../util/Formatter.html#syntax">format string</a>
      *
      * @param  args
      *         Arguments referenced by the format specifiers in the format
@@ -2589,7 +2801,7 @@ public final class String
      *          formatting errors, see the <a
      *          href="../util/Formatter.html#detail">Details</a> section of the
      *          formatter class specification
-     *          
+     *
      * @throws  NullPointerException
      *          If the <tt>format</tt> is <tt>null</tt>
      *
@@ -2599,7 +2811,7 @@ public final class String
      * @since  1.5
      */
     public static String format(Locale l, String format, Object ... args) {
-	return new Formatter(l).format(format, args).toString(); 
+	return new Formatter(l).format(format, args).toString();
     }
 
     /**
@@ -2643,7 +2855,7 @@ public final class String
      * @param   offset   the initial offset into the value of the
      *                  <code>String</code>.
      * @param   count    the length of the value of the <code>String</code>.
-     * @return  a string representing the sequence of characters contained 
+     * @return  a string representing the sequence of characters contained
      *          in the subarray of the character array argument.
      * @exception IndexOutOfBoundsException if <code>offset</code> is
      *          negative, or <code>count</code> is negative, or

@@ -1,7 +1,7 @@
 /*
- * @(#)ClassDeclaration.java	1.3 04/02/20
+ * @(#)ClassDeclaration.java	1.4 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import com.sun.mirror.type.ClassType;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.3 04/02/20
+ * @version 1.4 05/11/17
  *
  * @see ClassType
  * @since 1.5

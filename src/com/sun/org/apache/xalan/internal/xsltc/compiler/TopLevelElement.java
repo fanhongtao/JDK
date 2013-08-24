@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: TopLevelElement.java,v 1.7 2004/02/16 22:25:10 minchau Exp $
+ * $Id: TopLevelElement.java,v 1.5 2005/09/28 13:48:17 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
+
+import java.util.Vector;
 
 import com.sun.org.apache.bcel.internal.generic.InstructionList;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ClassGenerator;
@@ -28,6 +30,12 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 
 class TopLevelElement extends SyntaxTreeNode {
+
+    /*
+     * List of dependencies with other variables, parameters or
+     * keys defined at the top level.
+     */
+    protected Vector _dependencies = null;
 
     /**
      * Type check all the children of this node.
@@ -63,4 +71,26 @@ class TopLevelElement extends SyntaxTreeNode {
 	Util.println("TopLevelElement");
 	displayContents(indent + IndentIncrement);
     }
+    
+    /**
+     * Add a dependency with other top-level elements like
+     * variables, parameters or keys.
+     */
+    public void addDependency(TopLevelElement other) {
+	if (_dependencies == null) {
+	    _dependencies = new Vector();
+	}
+	if (!_dependencies.contains(other)) {
+	    _dependencies.addElement(other);
+	}
+    }
+
+    /**
+     * Get the list of dependencies with other top-level elements
+     * like variables, parameteres or keys.
+     */
+    public Vector getDependencies() {
+	return _dependencies;
+    }
+
 }

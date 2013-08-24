@@ -1,7 +1,7 @@
 /*
- * @(#)XMLDecoder.java	1.30 04/06/01
+ * @(#)XMLDecoder.java	1.32 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -45,7 +45,7 @@ import javax.xml.parsers.SAXParser;
  *
  * @since 1.4
  * 
- * @version 1.30 06/01/04
+ * @version 1.32 11/30/05
  * @author Philip Milne
  */
 public class XMLDecoder { 
@@ -61,7 +61,7 @@ public class XMLDecoder {
      *
      * @param in The underlying stream. 
      *
-     * @see XMLEncoder#XMLEncoder(OutputStream)
+     * @see XMLEncoder#XMLEncoder(java.io.OutputStream)
      */ 
     public XMLDecoder(InputStream in) { 
         this(in, null); 
@@ -147,6 +147,7 @@ public class XMLDecoder {
      */
     public void close() { 
         if (in != null) {
+            getHandler();
             try { 
                 in.close(); 
             } 
@@ -197,25 +198,7 @@ public class XMLDecoder {
 	if (in == null) {
 	    return null;
 	}
-        if (handler == null) {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            try {
-                SAXParser saxParser = factory.newSAXParser();
-                handler = new ObjectHandler(this, getClassLoader());
-                saxParser.parse(in, handler); 
-            } 
-            catch (ParserConfigurationException e) {
-                getExceptionListener().exceptionThrown(e);
-            } 
-            catch (SAXException se) { 
-                Exception e = se.getException(); 
-                getExceptionListener().exceptionThrown((e == null) ? se : e); 
-            }
-            catch (IOException ioe) { 
-                getExceptionListener().exceptionThrown(ioe); 
-            }
-        }
-        return handler.dequeueResult(); 
+        return getHandler().dequeueResult();
     } 
 	
     /** 
@@ -238,5 +221,36 @@ public class XMLDecoder {
      */ 
     public Object getOwner() {
 	return owner; 
+    }
+
+    /**
+     * Returns the object handler for input stream.
+     * The object handler is created if necessary.
+     *
+     * @return  the object handler
+     */
+    private ObjectHandler getHandler() {
+        if ( handler == null ) {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            try {
+                SAXParser parser = factory.newSAXParser();
+                handler = new ObjectHandler( this, getClassLoader() );
+                parser.parse( in, handler );
+            }
+            catch ( ParserConfigurationException e ) {
+                getExceptionListener().exceptionThrown( e );
+            }
+            catch ( SAXException se ) {
+                Exception e = se.getException();
+                if ( e == null ) {
+                    e = se;
+                }
+                getExceptionListener().exceptionThrown( e );
+            }
+            catch ( IOException ioe ) {
+                getExceptionListener().exceptionThrown( ioe );
+            }
+        }
+        return handler;
     }
 }

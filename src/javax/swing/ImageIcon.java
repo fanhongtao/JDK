@@ -1,7 +1,7 @@
 /*
- * @(#)ImageIcon.java	1.53 03/12/19
+ * @(#)ImageIcon.java	1.55 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -40,7 +40,7 @@ import javax.accessibility.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.53 12/19/03
+ * @version 1.55 04/07/06
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -445,6 +445,7 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * @beaninfo
      *       expert: true
      *  description: The AccessibleContext associated with this ImageIcon.
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -467,6 +468,7 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * of all JavaBeans<sup><font size="-2">TM</font></sup>
      * has been added to the <code>java.beans</code> package.
      * Please see {@link java.beans.XMLEncoder}.
+     * @since 1.3
      */
     protected class AccessibleImageIcon extends AccessibleContext
         implements AccessibleIcon, Serializable {

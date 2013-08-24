@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: LocPathIterator.java,v 1.41 2004/02/17 04:32:08 minchau Exp $
+ * $Id: LocPathIterator.java,v 1.2.4.2 2005/09/14 19:45:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -47,12 +47,11 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
 public abstract class LocPathIterator extends PredicatedNodeTest
         implements Cloneable, DTMIterator, java.io.Serializable, PathComponent
 {
+    static final long serialVersionUID = -4602476357268405754L;
 	
   /**
    * Create a LocPathIterator object.
    *
-   * @param nscontext The namespace context for this iterator,
-   * should be OK if null.
    */
   protected LocPathIterator()
   {
@@ -253,9 +252,6 @@ public abstract class LocPathIterator extends PredicatedNodeTest
    * 
    * @param xctxt The execution context.
    * @param contextNode The node that "." expresses.
-   * @param namespaceContext The context in which namespaces in the
-   * XPath are supposed to be expanded.
-   * 
    * @throws TransformerException thrown if the active ProblemListener decides
    * the error condition is severe enough to halt processing.
    *
@@ -353,7 +349,7 @@ public abstract class LocPathIterator extends PredicatedNodeTest
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)

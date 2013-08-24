@@ -1,7 +1,7 @@
 /*
- * @(#)MotifCheckBoxMenuItemUI.java	1.44 03/12/19
+ * @(#)MotifCheckBoxMenuItemUI.java	1.47 06/07/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import java.awt.event.*;
  * MotifCheckboxMenuItem implementation
  * <p>
  *
- * @version 1.44 12/19/03
+ * @version 1.47 07/17/06
  * @author Georges Saab
  * @author Rich Schiavi
  */
@@ -51,20 +51,9 @@ public class MotifCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI
     protected class ChangeHandler implements ChangeListener {
 	public void stateChanged(ChangeEvent e) {
 	    JMenuItem c = (JMenuItem)e.getSource();
-	    if (c.isArmed()) {
-		c.setBorderPainted(true);
-	    } else {
-		c.setBorderPainted(false);
-	    }
+            LookAndFeel.installProperty(c, "borderPainted", c.isArmed());
 	}
     }
-
-    public void paint(Graphics g, JComponent c) {
-	MotifGraphicsUtils.paintMenuItem(g, c, checkIcon,arrowIcon,
-					 selectionBackground, selectionForeground,
-					 defaultTextIconGap);
-    }
-
 
     protected MouseInputListener createMouseInputListener(JComponent c) {
 	return new MouseInputHandler();

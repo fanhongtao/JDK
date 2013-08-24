@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeView.java	1.67 03/12/19
+ * @(#)CompositeView.java	1.69 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -54,7 +54,7 @@ import javax.swing.SwingConstants;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.67 12/19/03
+ * @version 1.69 04/07/06
  */
 public abstract class CompositeView extends View {
 
@@ -470,6 +470,7 @@ public abstract class CompositeView extends View {
      * @param pos the position >= 0
      * @return  index of the view representing the given position, or 
      *   -1 if no view represents that position
+     * @since 1.3
      */
     public int getViewIndex(int pos, Position.Bias b) {
 	if(b == Position.Bias.Backward) {

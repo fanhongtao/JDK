@@ -1,7 +1,7 @@
 /*
- * @(#)CacheMap.java	1.4 03/12/19
+ * @(#)CacheMap.java	1.6 05/12/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ public class CacheMap extends WeakHashMap {
        the map's iterators to detect removal.  So we may keep useless
        entries in the soft reference list for keys that have since
        been removed.  The assumption is that entries are added to the
-       cache but never removed.  But the behaviour is not wrong if
+       cache but never removed.  But the behavior is not wrong if
        they are in fact removed -- the caching is just less
        performant.  */
 

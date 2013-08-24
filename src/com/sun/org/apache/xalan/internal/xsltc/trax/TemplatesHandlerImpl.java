@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: TemplatesHandlerImpl.java,v 1.25 2004/02/16 22:57:21 minchau Exp $
+ * $Id: TemplatesHandlerImpl.java,v 1.2.4.1 2005/09/06 12:09:03 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerException;
@@ -90,7 +91,11 @@ public class TemplatesHandlerImpl
 	_tfactory = tfactory;
 
         // Instantiate XSLTC and get reference to parser object
-        _parser = new XSLTC().getParser();
+        XSLTC xsltc = new XSLTC();
+        if (tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING))
+            xsltc.setSecureProcessing(true);
+       
+        _parser = xsltc.getParser();
     }
 
     /**

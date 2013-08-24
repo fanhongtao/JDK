@@ -1,7 +1,7 @@
 /*
- * @(#)Outline.java	1.27 04/07/26
+ * @(#)Outline.java	1.29 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)Outline.java	1.27 04/07/26
+ * @(#)Outline.java	1.29 06/08/29
  */
 
 package java2d.demos.Fonts;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -57,7 +58,7 @@ import java2d.Surface;
 public class Outline extends Surface {
 
     public Outline() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -75,10 +76,10 @@ public class Outline extends Surface {
         float sw = (float) tl.getBounds().getWidth();
         float sh = (float) tl.getBounds().getHeight();
         Shape sha = tl.getOutline(AffineTransform.getTranslateInstance(w/2-sw/2, h*0.2+sh/2));
-        g2.setColor(Color.blue);
+        g2.setColor(BLUE);
         g2.setStroke(new BasicStroke(1.5f));
         g2.draw(sha);
-        g2.setColor(Color.magenta);
+        g2.setColor(MAGENTA);
         g2.fill(sha);
 
         f = new Font("serif", Font.BOLD,w/6);
@@ -86,9 +87,9 @@ public class Outline extends Surface {
         sw = (float) tl.getBounds().getWidth();
         sh = (float) tl.getBounds().getHeight();
         sha = tl.getOutline(AffineTransform.getTranslateInstance(w/2-sw/2,h*0.5+sh/2));
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(sha);
-        g2.setColor(Color.red);
+        g2.setColor(RED);
         g2.fill(sha);
 
         f = new Font("sansserif",Font.ITALIC,w/8);
@@ -99,9 +100,9 @@ public class Outline extends Surface {
         sw = (float) tl.getBounds().getWidth();
         sh = (float) tl.getBounds().getHeight();
         sha = tl.getOutline(AffineTransform.getTranslateInstance(w/2-sw/2,h*0.80f+sh/2));
-        g2.setColor(Color.green);
+        g2.setColor(GREEN);
         g2.draw(sha);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.fill(sha);
     }
 

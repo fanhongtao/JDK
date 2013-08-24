@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractUndoableEdit.java	1.29 03/12/19
+ * @(#)AbstractUndoableEdit.java	1.31 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import javax.swing.UIManager;
  * implementing simple responses to all boolean methods in
  * that interface. 
  *
- * @version 1.29 12/19/03
+ * @version 1.31 04/07/06
  * @author Ray Ryan
  */
 public class AbstractUndoableEdit implements UndoableEdit, Serializable {
@@ -54,7 +54,7 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
 
     /**
      * Creates an <code>AbstractUndoableEdit</code> which defaults
-     * <code.hasBeenDone</code> and <code>alive</code> to <code>true</code>.
+     * <code>hasBeenDone</code> and <code>alive</code> to <code>true</code>.
      */
     public AbstractUndoableEdit() {
 	super();

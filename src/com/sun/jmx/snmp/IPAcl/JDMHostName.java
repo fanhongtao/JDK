@@ -1,10 +1,10 @@
 /*
  * @(#)file      JDMHostName.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.9
- * @(#)date      04/09/15
+ * @(#)version   4.10
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -17,7 +17,7 @@ package com.sun.jmx.snmp.IPAcl;
 import java.net.UnknownHostException;
 
 /** 
- * @version     4.9     12/19/03 
+ * @version     4.10     11/17/05 
  * @author      Sun Microsystems, Inc. 
  */ 
 class JDMHostName extends Host {

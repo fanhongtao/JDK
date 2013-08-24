@@ -1,7 +1,7 @@
 /*
- * @(#)Security.java	1.126 04/05/18
+ * @(#)Security.java	1.132 06/07/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import sun.security.jca.*;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.126, 05/18/04
+ * @version 1.132, 07/13/06
  */
 
 public final class Security {
@@ -242,7 +242,7 @@ public final class Security {
     /** 
      * Gets a specified property for an algorithm. The algorithm name
      * should be a standard name. See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
      * Java Cryptography Architecture API Specification &amp; Reference </a> 
      * for information about standard algorithm names.
      * One possible use is by specialized algorithm parsers, which may map 
@@ -260,7 +260,7 @@ public final class Security {
      * Provider in order to determine how to parse algorithm-specific
      * parameters. Use the new provider-based and algorithm-independent
      * <code>AlgorithmParameters</code> and <code>KeyFactory</code> engine
-     * classes (introduced in the Java 2 platform) instead.
+     * classes (introduced in the J2SE version 1.2 platform) instead.
      */
     @Deprecated
     public static String getAlgorithmProperty(String algName,
@@ -277,8 +277,7 @@ public final class Security {
     /**
      * Adds a new provider, at a specified position. The position is
      * the preference order in which providers are searched for
-     * requested algorithms. Note that it is not guaranteed that this
-     * preference will be respected. The position is 1-based, that is,
+     * requested algorithms.  The position is 1-based, that is,
      * 1 is most preferred, followed by 2, and so on.
      * 
      * <p>If the given provider is installed at the requested position,
@@ -479,8 +478,8 @@ public final class Security {
      * </ul>
      *
      * <p> See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
-     * Java Cryptogaphy Architecture API Specification &amp; Reference </a>
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
      * for information about standard cryptographic service names, standard
      * algorithm names and standard attribute names.
      *
@@ -495,6 +494,7 @@ public final class Security {
      * @throws NullPointerException if filter is null
      *
      * @see #getProviders(java.util.Map)
+     * @since 1.3
      */
     public static Provider[] getProviders(String filter) {
 	String key = null;
@@ -546,8 +546,8 @@ public final class Security {
      * </ul>
      *
      * <p> See Appendix A in the <a href=
-     * "../../../guide/security/CryptoSpec.html#AppA">
-     * Java Cryptogaphy Architecture API Specification &amp; Reference </a>
+     * "../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
+     * Java Cryptography Architecture API Specification &amp; Reference </a>
      * for information about standard cryptographic service names, standard
      * algorithm names and standard attribute names.
      *
@@ -562,6 +562,7 @@ public final class Security {
      * @throws NullPointerException if filter is null
      *
      * @see #getProviders(java.lang.String)
+     * @since 1.3
      */
     public static Provider[] getProviders(Map<String,String> filter) {
 	// Get all installed providers first.
@@ -1021,7 +1022,7 @@ public final class Security {
      * an empty Set if there is no provider that supports the  
      * specified service or if serviceName is null. For a complete list 
      * of Java cryptographic services, please see the 
-     * <a href="../../../guide/security/CryptoSpec.html">Java 
+     * <a href="../../../technotes/guides/security/crypto/CryptoSpec.html">Java 
      * Cryptography Architecture API Specification &amp; Reference</a>.
      * Note: the returned set is immutable.
      *

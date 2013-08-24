@@ -1,7 +1,7 @@
 /*
- * @(#)SocketException.java	1.17 03/12/19
+ * @(#)SocketException.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.io.IOException;
  * protocol, such as a TCP error. 
  *
  * @author  Jonathan Payne
- * @version 1.17, 12/19/03
+ * @version 1.18, 11/17/05
  * @since   JDK1.0
  */
 public 

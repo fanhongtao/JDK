@@ -1,7 +1,7 @@
 /*
- * @(#)CustomControlsContext.java	1.13 04/07/26
+ * @(#)CustomControlsContext.java	1.15 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)CustomControlsContext.java	1.13 04/07/26
+ * @(#)CustomControlsContext.java	1.15 06/08/09
  */
 
 package java2d;
@@ -47,13 +47,10 @@ import java.awt.Component;
  * this interface.
  */
 public interface CustomControlsContext {
-
-    public static final int START = 0;
-    public static final int STOP = 1;
-
+    public static enum State { START, STOP };
     public String[] getConstraints();
     public Component[] getControls();
     public void setControls(Component[] controls);
     public void setConstraints(String[] constraints);
-    public void handleThread(int state);
+    public void handleThread(CustomControlsContext.State state);
 }

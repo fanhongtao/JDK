@@ -1,7 +1,7 @@
 /*
- * @(#)RGBImageFilter.java	1.24 03/12/19
+ * @(#)RGBImageFilter.java	1.26 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import java.awt.image.ColorModel;
  * @see ImageFilter
  * @see ColorModel#getRGBdefault
  *
- * @version	1.24 12/19/03
+ * @version	1.26 02/14/06
  * @author 	Jim Graham
  */
 public abstract class RGBImageFilter extends ImageFilter {
@@ -161,8 +161,10 @@ public abstract class RGBImageFilter extends ImageFilter {
     /**
      * Filters a buffer of pixels in the default RGB ColorModel by passing
      * them one by one through the filterRGB method.
-     * @param x,&nbsp;y the coordinates of the upper-left corner of the 
-     *        region of pixels
+     * @param x the X coordinate of the upper-left corner of the region 
+     *          of pixels
+     * @param y the Y coordinate of the upper-left corner of the region 
+     *          of pixels
      * @param w the width of the region of pixels
      * @param h the height of the region of pixels
      * @param pixels the array of pixels
@@ -261,7 +263,8 @@ public abstract class RGBImageFilter extends ImageFilter {
     /**
      * Subclasses must specify a method to convert a single input pixel
      * in the default RGB ColorModel to a single output pixel.
-     * @param x,&nbsp;y the coordinates of the pixel
+     * @param x the X coordinate of the pixel
+     * @param y the Y coordinate of the pixel
      * @param rgb the integer pixel representation in the default RGB
      *            color model
      * @return a filtered pixel in the default RGB color model.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StepPattern.java,v 1.28 2004/02/17 04:35:37 minchau Exp $
+ * $Id: StepPattern.java,v 1.2.4.2 2005/09/15 00:21:16 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.patterns;
 
@@ -36,6 +36,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class StepPattern extends NodeTest implements SubContextList, ExpressionOwner
 {
+    static final long serialVersionUID = 9071668960168152644L;
 
   /** The axis for this test. */
   protected int m_axis;
@@ -791,7 +792,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
       if (pat != this)
         buf.append("/");
 
-      buf.append(Axis.names[pat.m_axis]);
+      buf.append(Axis.getNames(pat.m_axis));
       buf.append("::");
 
       if (0x000005000 == pat.m_whatToShow)
@@ -959,7 +960,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   }
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

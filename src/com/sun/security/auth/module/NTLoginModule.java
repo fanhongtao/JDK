@@ -1,7 +1,7 @@
 /*
- * @(#)NTLoginModule.java	1.10 04/05/05
+ * @(#)NTLoginModule.java	1.11 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import com.sun.security.auth.NTNumericCredential;
  * debug messages from the native component of the module
  * will be output to the output stream, System.out.
  *
- * @version 1.10, 05/05/04
+ * @version 1.11, 11/17/05
  * @see javax.security.auth.spi.LoginModule
  */
 public class NTLoginModule implements LoginModule {

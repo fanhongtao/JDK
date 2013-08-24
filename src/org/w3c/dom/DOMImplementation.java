@@ -21,7 +21,7 @@ package org.w3c.dom;
 public interface DOMImplementation {
     /**
      * Test if the DOM implementation implements a specific feature and 
-     * version, as specified in .
+     * version, as specified in <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html#DOMFeatures">DOM Features</a>.
      * @param feature  The name of the feature to test. 
      * @param version  This is the version number of the feature to test. 
      * @return <code>true</code> if the feature is implemented in the 
@@ -110,7 +110,7 @@ public interface DOMImplementation {
     /**
      *  This method returns a specialized object which implements the 
      * specialized APIs of the specified feature and version, as specified 
-     * in . The specialized object may also be obtained by using 
+     * in <a href="http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html#DOMFeatures">DOM Features</a>. The specialized object may also be obtained by using 
      * binding-specific casting methods but is not necessarily expected to, 
      * as discussed in . This method also allow the implementation to 
      * provide specialized objects which do not support the 

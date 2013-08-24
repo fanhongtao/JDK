@@ -1,7 +1,7 @@
 /*
- * @(#)VM_NONE.java	1.9 03/12/19
+ * @(#)VM_NONE.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package org.omg.CORBA;
  *
  * @author OMG
  * @see org.omg.CORBA.TypeCode
- * @version 1.9 12/19/03
+ * @version 1.10 11/17/05
  * @since   JDK1.2
  */
 

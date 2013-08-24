@@ -1,7 +1,7 @@
 /*
- * @(#)ACrules.java	1.19 04/07/26
+ * @(#)ACrules.java	1.21 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ACrules.java	1.19 04/07/26
+ * @(#)ACrules.java	1.21 06/08/09
  */
 
 package java2d.demos.Composite;
@@ -47,6 +47,8 @@ import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java2d.AnimatingSurface;
+
+import static java.awt.AlphaComposite.*;
 
 
 /**
@@ -71,19 +73,8 @@ public class ACrules extends AnimatingSurface {
     };
 
     private static AlphaComposite compObjs[] = {
-        AlphaComposite.Src,
-        AlphaComposite.SrcOver,
-        AlphaComposite.SrcIn,
-        AlphaComposite.SrcOut,
-        AlphaComposite.SrcAtop,
-        AlphaComposite.Clear,
-
-        AlphaComposite.Dst,
-        AlphaComposite.DstOver,
-        AlphaComposite.DstIn,
-        AlphaComposite.DstOut,
-        AlphaComposite.DstAtop,
-        AlphaComposite.Xor,
+        Src, SrcOver, SrcIn, SrcOut, SrcAtop, Clear,
+        Dst, DstOver, DstIn, DstOut, DstAtop, Xor,
     };
 
     private static int NUM_RULES = compObjs.length;
@@ -231,9 +222,9 @@ public class ACrules extends AnimatingSurface {
             x = (i >= HALF_NUM_RULES) ? bi.getWidth()/2+PADLEFT : PADLEFT;
             big.translate(x, y);
 
-            gD.setComposite(AlphaComposite.Clear);
+            gD.setComposite(Clear);
             gD.fillRect(0, 0, RECTWIDTH, RECTHEIGHT);
-            gD.setComposite(AlphaComposite.Src);
+            gD.setComposite(Src);
             if (doGradient) {
                 gD.setPaint(gradientDst);
                 gD.fillRect(0, 0, RECTWIDTH, RECTHEIGHT);
@@ -242,9 +233,9 @@ public class ACrules extends AnimatingSurface {
                 gD.fill(dstpath);
             }
 
-            gS.setComposite(AlphaComposite.Clear);
+            gS.setComposite(Clear);
             gS.fillRect(0, 0, RECTWIDTH, RECTHEIGHT);
-            gS.setComposite(AlphaComposite.Src);
+            gS.setComposite(Src);
             if (doGradient) {
                 gS.setPaint(gradientSrc);
                 gS.fillRect(0, 0, RECTWIDTH, RECTHEIGHT);

@@ -66,17 +66,19 @@ import com.sun.org.apache.xerces.internal.xni.XMLString;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
+import com.sun.xml.internal.stream.Entity.ScannedEntity;
 
 /**
  * This class scans the version of the document to determine
  * which scanner to use: XML 1.1 or XML 1.0.
  * The version is scanned using XML 1.1. scanner.  
  * 
+ * @xerces.internal
+ * 
  * @author Neil Graham, IBM 
  * @author Elena Litani, IBM
- * @version $Id: XMLVersionDetector.java,v 1.12 2004/02/27 20:36:07 mrglavas Exp $
+ * @version $Id: XMLVersionDetector.java,v 1.2 2005/08/16 22:51:39 jeffsuttor Exp $
  */
-
 public class XMLVersionDetector {
 
     //
@@ -242,7 +244,7 @@ public class XMLVersionDetector {
     // from offset 0, to the manager's fCurrentEntity.ch.
     private void fixupCurrentEntity(XMLEntityManager manager, 
                 char [] scannedChars, int length) {
-        XMLEntityManager.ScannedEntity currentEntity = manager.getCurrentEntity();
+        ScannedEntity currentEntity = manager.getCurrentEntity();
         if(currentEntity.count-currentEntity.position+length > currentEntity.ch.length) {
             //resize array; this case is hard to imagine...
             char[] tempCh = currentEntity.ch;
@@ -261,6 +263,8 @@ public class XMLVersionDetector {
         // prepend contents...
         System.arraycopy(scannedChars, 0, currentEntity.ch, 0, length);
         currentEntity.position = 0;
+        currentEntity.baseCharOffset = 0;
+        currentEntity.startPosition = 0;
         currentEntity.columnNumber = currentEntity.lineNumber = 1;
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)JobStateReasons.java	1.8 04/05/05
+ * @(#)JobStateReasons.java	1.10 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -125,6 +125,7 @@ public final class JobStateReasons
      * @throws  ClassCastException
      *     (unchecked exception) Thrown if the specified element is not an 
      *     instance of class {@link JobStateReason JobStateReason}. 
+     * @since 1.5
      */
     public boolean add(JobStateReason o) {
 	if (o == null) {

@@ -1,7 +1,7 @@
 /*
- * @(#)gctest.c	1.5 04/07/27
+ * @(#)gctest.c	1.7 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -45,6 +45,9 @@
 #include "jni.h"
 #include "jvmti.h"
 
+/* For stdout_message(), fatal_error(), and check_jvmti_error() */
+#include "agent_util.h"
+
 /* Global static data */
 static jvmtiEnv     *jvmti;
 static int           gc_count;
@@ -56,41 +59,49 @@ worker(jvmtiEnv* jvmti, JNIEnv* jni, void *p)
 {
     jvmtiError err;
     
-    fprintf(stderr, "GC worker started...\n");
+    stdout_message("GC worker started...\n");
 
     for (;;) {
         err = (*jvmti)->RawMonitorEnter(jvmti, lock);
-        if (err != JVMTI_ERROR_NONE) {
-	    fprintf(stderr, "ERROR: RawMonitorEnter failed, err=%d\n", err);
-	    return;
-	}
+        check_jvmti_error(jvmti, err, "raw monitor enter");
 	while (gc_count == 0) {
 	    err = (*jvmti)->RawMonitorWait(jvmti, lock, 0);
 	    if (err != JVMTI_ERROR_NONE) {
-		fprintf(stderr, "ERROR: RawMonitorWait failed, err=%d\n", err);
-		(*jvmti)->RawMonitorExit(jvmti, lock);
+		err = (*jvmti)->RawMonitorExit(jvmti, lock);
+                check_jvmti_error(jvmti, err, "raw monitor wait");
 		return;
 	    }
 	}
 	gc_count = 0;
         
-	(*jvmti)->RawMonitorExit(jvmti, lock);
+	err = (*jvmti)->RawMonitorExit(jvmti, lock);
+	check_jvmti_error(jvmti, err, "raw monitor exit");
 
 	/* Perform arbitrary JVMTI/JNI work here to do post-GC cleanup */
-	fprintf(stderr, "post-GarbageCollectionFinish actions...\n");
+	stdout_message("post-GarbageCollectionFinish actions...\n");
     }
 }
 
 /* Creates a new jthread */
 static jthread 
-alloc_thread(JNIEnv *env) {
+alloc_thread(JNIEnv *env) 
+{
     jclass    thrClass;
     jmethodID cid;
     jthread   res;
 
     thrClass = (*env)->FindClass(env, "java/lang/Thread");
+    if ( thrClass == NULL ) {
+	fatal_error("Cannot find Thread class\n");
+    }
     cid      = (*env)->GetMethodID(env, thrClass, "<init>", "()V");
+    if ( cid == NULL ) {
+	fatal_error("Cannot find Thread constructor method\n");
+    }
     res      = (*env)->NewObject(env, thrClass, cid);
+    if ( res == NULL ) {
+	fatal_error("Cannot create new Thread object\n");
+    }
     return res;
 }
 
@@ -100,20 +111,18 @@ vm_init(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 {
     jvmtiError err;
     
-    fprintf(stderr, "VMInit...\n");
+    stdout_message("VMInit...\n");
 
     err = (*jvmti)->RunAgentThread(jvmti, alloc_thread(env), &worker, NULL,
 	JVMTI_THREAD_MAX_PRIORITY);
-    if (err != JVMTI_ERROR_NONE) {
-	fprintf(stderr, "ERROR: RunAgentProc failed, err=%d\n", err);
-    }
+    check_jvmti_error(jvmti, err, "running agent thread");
 }
 
 /* Callback for JVMTI_EVENT_GARBAGE_COLLECTION_START */
 static void JNICALL 
 gc_start(jvmtiEnv* jvmti_env) 
 {
-    fprintf(stderr, "GarbageCollectionStart...\n");
+    stdout_message("GarbageCollectionStart...\n");
 }
 
 /* Callback for JVMTI_EVENT_GARBAGE_COLLECTION_FINISH */
@@ -122,19 +131,15 @@ gc_finish(jvmtiEnv* jvmti_env)
 {
     jvmtiError err;
     
-    fprintf(stderr, "GarbageCollectionFinish...\n");
+    stdout_message("GarbageCollectionFinish...\n");
 
     err = (*jvmti)->RawMonitorEnter(jvmti, lock);
-    if (err != JVMTI_ERROR_NONE) {
-	fprintf(stderr, "ERROR: RawMonitorEnter failed, err=%d\n", err);
-    } else {
-        gc_count++;
-        err = (*jvmti)->RawMonitorNotify(jvmti, lock);
-	if (err != JVMTI_ERROR_NONE) {
-	    fprintf(stderr, "ERROR: RawMonitorNotify failed, err=%d\n", err);
-	}
-        err = (*jvmti)->RawMonitorExit(jvmti, lock);
-    }
+    check_jvmti_error(jvmti, err, "raw monitor enter");
+    gc_count++;
+    err = (*jvmti)->RawMonitorNotify(jvmti, lock);
+    check_jvmti_error(jvmti, err, "raw monitor notify");
+    err = (*jvmti)->RawMonitorExit(jvmti, lock);
+    check_jvmti_error(jvmti, err, "raw monitor exit");
 }
 
 /* Agent_OnLoad() is called first, we prepare for a VM_INIT event here. */
@@ -149,41 +154,36 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     /* Get JVMTI environment */
     rc = (*vm)->GetEnv(vm, (void **)&jvmti, JVMTI_VERSION);
     if (rc != JNI_OK) {
-	fprintf(stderr, "ERROR: Unable to create jvmtiEnv, GetEnv failed, error=%d\n", rc);
+	fatal_error("ERROR: Unable to create jvmtiEnv, rc=%d\n", rc);
 	return -1;
     }
 
     /* Get/Add JVMTI capabilities */ 
-    err = (*jvmti)->GetCapabilities(jvmti, &capabilities);
-    if (err != JVMTI_ERROR_NONE) {
-	fprintf(stderr, "ERROR: GetCapabilities failed, error=%d\n", err);
-    }
+    (void)memset(&capabilities, 0, sizeof(capabilities));
     capabilities.can_generate_garbage_collection_events = 1;
     err = (*jvmti)->AddCapabilities(jvmti, &capabilities);
-    if (err != JVMTI_ERROR_NONE) {
-	fprintf(stderr, "ERROR: AddCapabilities failed, error=%d\n", err);
-	return -1;
-    }
+    check_jvmti_error(jvmti, err, "add capabilities");
 
     /* Set callbacks and enable event notifications */
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.VMInit                  = &vm_init;
     callbacks.GarbageCollectionStart  = &gc_start;
     callbacks.GarbageCollectionFinish = &gc_finish;
-    (*jvmti)->SetEventCallbacks(jvmti, &callbacks, sizeof(callbacks));
-    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
+    err = (*jvmti)->SetEventCallbacks(jvmti, &callbacks, sizeof(callbacks));
+    check_jvmti_error(jvmti, err, "set event callbacks");
+    err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
 			JVMTI_EVENT_VM_INIT, NULL);
-    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
+    check_jvmti_error(jvmti, err, "set event notification");
+    err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
 			JVMTI_EVENT_GARBAGE_COLLECTION_START, NULL);
-    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
+    check_jvmti_error(jvmti, err, "set event notification");
+    err = (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, 
 			JVMTI_EVENT_GARBAGE_COLLECTION_FINISH, NULL);
+    check_jvmti_error(jvmti, err, "set event notification");
 
     /* Create the necessary raw monitor */
     err = (*jvmti)->CreateRawMonitor(jvmti, "lock", &lock);
-    if (err != JVMTI_ERROR_NONE) {
-	fprintf(stderr, "ERROR: Unable to create raw monitor: %d\n", err);
-	return -1;
-    }
+    check_jvmti_error(jvmti, err, "create raw monitor");
     return 0;
 }
 

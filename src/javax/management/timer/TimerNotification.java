@@ -1,7 +1,7 @@
 /*
- * @(#)TimerNotification.java	1.26 04/02/10
+ * @(#)TimerNotification.java	1.27 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package javax.management.timer;
  * <P>
  * The timer notifications are created and handled by the timer MBean.
  *
- * @version     1.26     02/10/04
+ * @version     1.27     11/17/05
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

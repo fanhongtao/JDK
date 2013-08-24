@@ -1,9 +1,28 @@
-// $Id: TransformerFactory.java,v 1.14.14.1 2004/05/05 20:04:52 jsuttor Exp $
 /*
- * @(#)TransformerFactory.java	1.36 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
+
+/*
+ * $Id: TransformerFactory.java,v 1.5 2006/04/06 00:26:40 jeffsuttor Exp $
+ * @(#)TransformerFactory.java	1.46 06/06/21
+ *
+ * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.transform;
@@ -20,6 +39,8 @@ package javax.xml.transform;
  * defined, a platform default is be used.</p>
  * 
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @author <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
+ *
  */
 public abstract class TransformerFactory {
     
@@ -29,35 +50,13 @@ public abstract class TransformerFactory {
     protected TransformerFactory() { }
 
 
-    /**
-     * <p>Get current state of canonicalization.</p>
-     * 
-     * @return current state canonicalization control
-     */
-    /*
-    public boolean getCanonicalization() {
-        return canonicalState;
-    }
-    */
-    
-    /**
-     * <p>Set canonicalization control to <code>true</code> or
-     * </code>false</code>.</p>
-     * 
-     * @param state of canonicalization
-     */
-    /*
-    public void setCanonicalization(boolean state) {
-        canonicalState = state;
-    }
-    */
 
     /**
-     * Obtain a new instance of a <code>TransformerFactory</code>.
+     * <p>Obtain a new instance of a <code>TransformerFactory</code>.
      * This static method creates a new factory instance
      * This method uses the following ordered lookup procedure to determine
      * the <code>TransformerFactory</code> implementation class to
-     * load:
+     * load:</p>
      * <ul>
      * <li>
      * Use the <code>javax.xml.transform.TransformerFactory</code> system
@@ -88,9 +87,9 @@ public abstract class TransformerFactory {
      * </li>
      * </ul>
      *
-     * Once an application has obtained a reference to a <code>
+     * <p>Once an application has obtained a reference to a <code>
      * TransformerFactory</code> it can use the factory to configure
-     * and obtain parser instances.
+     * and obtain transformer instances.</p>
      *
      * @return new TransformerFactory instance, never null.
      *
@@ -112,6 +111,52 @@ public abstract class TransformerFactory {
         }
     }
 
+    /**
+     * <p>Obtain a new instance of a <code>TransformerFactory</code> from factory class name.
+     * This function is useful when there are multiple providers in the classpath.
+     * It gives more control to the application as it can specify which provider
+     * should be loaded.</p>
+     *
+     * <p>Once an application has obtained a reference to a <code>
+     * TransformerFactory</code> it can use the factory to configure
+     * and obtain transformer instances.</p>
+     *
+     * <h2>Tip for Trouble-shooting</h2>
+     * <p>Setting the <code>jaxp.debug</code> system property will cause
+     * this method to print a lot of debug messages
+     * to <code>System.err</code> about what it is doing and where it is looking at.</p>
+     * 
+     * <p> If you have problems try:</p>
+     * <pre>
+     * java -Djaxp.debug=1 YourProgram ....
+     * </pre>
+     * 
+     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.transform.TransformerFactory</code>. 
+     *
+     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>  
+     *                     current <code>Thread</code>'s context classLoader is used to load the factory class.
+     *
+     * @return new TransformerFactory instance, never null.
+     *
+     * @throws TransformerFactoryConfigurationError 
+     *                    if <code>factoryClassName</code> is <code>null</code>, or 
+     *                   the factory class cannot be loaded, instantiated. 
+     *
+     * @see #newInstance()
+     *
+     * @since 1.6
+     */
+    public static TransformerFactory newInstance(String factoryClassName, ClassLoader classLoader)
+        throws TransformerFactoryConfigurationError{
+        try {
+            //do not fallback if given classloader can't find the class, throw exception
+            return (TransformerFactory) FactoryFinder.newInstance(factoryClassName, classLoader, false);
+        } catch (FactoryFinder.ConfigurationError e) {
+            throw new TransformerFactoryConfigurationError(
+                e.getException(),
+                e.getMessage());
+        }        
+    }
     /**
      * <p>Process the <code>Source</code> into a <code>Transformer</code>
      * <code>Object</code>.  The <code>Source</code> is an XSLT document that
@@ -144,14 +189,14 @@ public abstract class TransformerFactory {
         throws TransformerConfigurationException;
 
     /**
-     * <p>Create a new <code>Transformer<code> that performs a copy
+     * <p>Create a new <code>Transformer</code> that performs a copy
      * of the <code>Source</code> to the <code>Result</code>.
      * i.e. the "<em>identity transform</em>".</p>
      *
      * @return A Transformer object that may be used to perform a transformation
      * in a single thread, never null.
      *
-     * @exception TransformerConfigurationException Thrown if it is not
+     * @throws TransformerConfigurationException When it is not
      *   possible to create a <code>Transformer</code> instance.
      */
     public abstract Transformer newTransformer()
@@ -168,10 +213,10 @@ public abstract class TransformerFactory {
      * @param source An object that holds a URL, input stream, etc.
      *
      * @return A Templates object capable of being used for transformation
-     * purposes, never null.
+     *   purposes, never <code>null</code>.
      *
-     * @exception TransformerConfigurationException May throw this during the
-     * parse when it is constructing the Templates object and fails.
+     * @throws TransformerConfigurationException When parsing to
+     *   construct the Templates object fails.
      */
     public abstract Templates newTemplates(Source source)
         throws TransformerConfigurationException;
@@ -294,6 +339,9 @@ public abstract class TransformerFactory {
      *
      * @param name The name of the attribute.
      * @param value The value of the attribute.
+     * 
+     * @throws IllegalArgumentException When implementation does not
+     *   recognize the attribute.
      */
     public abstract void setAttribute(String name, Object value);
 
@@ -302,9 +350,13 @@ public abstract class TransformerFactory {
      * implementation.
      * An <code>IllegalArgumentException</code> is thrown if the underlying
      * implementation doesn't recognize the attribute.
-     * 
+     *
      * @param name The name of the attribute.
+     *
      * @return value The value of the attribute.
+     *
+     * @throws IllegalArgumentException When implementation does not
+     *   recognize the attribute.
      */
     public abstract Object getAttribute(String name);
 
@@ -316,6 +368,9 @@ public abstract class TransformerFactory {
      * <code>ErrorListener</code> listener is <code>null</code>.
      *
      * @param listener The new error listener.
+     * 
+     * @throws IllegalArgumentException When <code>listener</code> is
+     *   <code>null</code>
      */
     public abstract void setErrorListener(ErrorListener listener);
 

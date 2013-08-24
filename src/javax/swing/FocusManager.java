@@ -1,7 +1,7 @@
 /*
- * @(#)FocusManager.java	1.28 04/05/18
+ * @(#)FocusManager.java	1.29 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -24,7 +24,7 @@ import java.awt.*;
  *
  * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  *
- * @version 1.28, 05/18/04
+ * @version 1.29, 11/17/05
  * @author Arnaud Weber
  * @author David Mendenhall
  */

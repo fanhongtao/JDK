@@ -1,7 +1,7 @@
 /*
- * @(#)AudioFileReader.java	1.15 03/12/19
+ * @(#)AudioFileReader.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  * audio file, and can produce audio input streams from files of these types.
  *
  * @author Kara Kytle
- * @version 1.15 03/12/19
+ * @version 1.16 05/11/17
  * @since 1.3
  */
 public abstract class AudioFileReader {

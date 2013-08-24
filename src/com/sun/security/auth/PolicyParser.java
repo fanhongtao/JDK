@@ -1,7 +1,7 @@
 /*
- * @(#)PolicyParser.java	1.41 04/05/18
+ * @(#)PolicyParser.java	1.43 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,10 +59,10 @@ import sun.security.util.PropertyExpander;
  *             {@link sun.security.provider.PolicyParser}.
  *             This class is entirely deprecated.
  * 
- * @version 1.41, 05/18/04
+ * @version 1.43, 04/07/06
  * @author Roland Schemers
  *
- * @since JDK1.2
+ * @since 1.2
  */
 @Deprecated
 class PolicyParser {

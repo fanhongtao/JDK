@@ -1,7 +1,7 @@
 /*
- * @(#)MotifComboBoxUI.java	1.39 03/12/19
+ * @(#)MotifComboBoxUI.java	1.41 06/03/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
@@ -13,6 +13,7 @@ import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 import java.io.Serializable;
 import java.awt.event.*;
+import java.beans.*;
 
 /**
  * ComboBox motif look and feel
@@ -23,7 +24,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.39, 12/19/03
+ * @version 1.41, 03/28/06
  * @author Arnaud Weber
  */
 public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
@@ -310,6 +311,34 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
 
         public int getIconHeight() {
             return 11;
+        }
+    }
+
+    /**
+     *{@inheritDoc}
+     *
+     * @since 1.6
+     */
+    protected PropertyChangeListener createPropertyChangeListener() {
+        return new MotifPropertyChangeListener();
+    }
+
+    /**
+     * This class should be made &quot;protected&quot; in future releases.
+     */
+    private class MotifPropertyChangeListener
+            extends BasicComboBoxUI.PropertyChangeHandler {
+        public void propertyChange(PropertyChangeEvent e) {
+            super.propertyChange(e);
+            String propertyName = e.getPropertyName();
+            if (propertyName == "enabled") {
+                if (comboBox.isEnabled()) {
+                    Component editor = motifGetEditor();
+                    if (editor != null) {
+                        editor.setBackground(UIManager.getColor("text"));
+                    }
+                }
+            }
         }
     }
 }

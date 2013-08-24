@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: OutputPropertyUtils.java,v 1.2 2004/02/17 04:18:18 minchau Exp $
+ * $Id: OutputPropertyUtils.java,v 1.2.4.1 2005/09/15 08:15:21 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -24,9 +24,13 @@ import java.util.Properties;
  * This class contains some static methods that act as helpers when parsing a
  * Java Property object.
  * 
+ * This class is not a public API. 
+ * It is only public because it is used outside of this package.
+ * 
  * @see java.util.Properties
+ * @xsl.usage internal
  */
-public class OutputPropertyUtils
+public final class OutputPropertyUtils
 {
     /**
       * Searches for the boolean property with the specified key in the property list.

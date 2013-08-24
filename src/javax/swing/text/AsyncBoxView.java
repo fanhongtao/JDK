@@ -1,7 +1,7 @@
 /*
- * @(#)AsyncBoxView.java	1.16 03/12/19
+ * @(#)AsyncBoxView.java	1.18 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.event.DocumentEvent;
  * so that the model is stable while being accessed.
  *
  * @author  Timothy Prinzing
- * @version 1.16 12/19/03
+ * @version 1.18 04/07/06
  * @since   1.3
  */
 public class AsyncBoxView extends View {
@@ -902,6 +902,7 @@ public class AsyncBoxView extends View {
      * may be continuously changing, but the visible area
      * needs to remain fairly stable until the layout thread
      * decides to publish an update to the parent.
+     * @since 1.3
      */
     public class ChildLocator {
 
@@ -1166,6 +1167,7 @@ public class AsyncBoxView extends View {
      * same time and are not protected from each other).
      * Access to a child view hierarchy is serialized via
      * synchronization on the ChildState instance.
+     * @since 1.3
      */
     public class ChildState implements Runnable {
 
@@ -1173,6 +1175,7 @@ public class AsyncBoxView extends View {
 	 * Construct a child status.  This needs to start
 	 * out as fairly large so we don't falsely begin with
 	 * the idea that all of the children are visible.
+	 * @since 1.4
 	 */
 	public ChildState(View v) {
 	    child = v;

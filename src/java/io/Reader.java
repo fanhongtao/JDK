@@ -1,7 +1,7 @@
 /*
- * @(#)Reader.java	1.27 03/12/19
+ * @(#)Reader.java	1.30 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ package java.io;
  * @see StringReader
  * @see Writer
  *
- * @version 	1.27, 03/12/19
+ * @version 	1.30, 06/04/07
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -43,7 +43,7 @@ public abstract class Reader implements Readable, Closeable {
     protected Object lock;
 
     /**
-     * Create a new character-stream reader whose critical sections will
+     * Creates a new character-stream reader whose critical sections will
      * synchronize on the reader itself.
      */
     protected Reader() {
@@ -51,7 +51,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Create a new character-stream reader whose critical sections will
+     * Creates a new character-stream reader whose critical sections will
      * synchronize on the given object.
      *
      * @param lock  The Object to synchronize on.
@@ -75,6 +75,7 @@ public abstract class Reader implements Readable, Closeable {
      * @throws IOException if an I/O error occurs
      * @throws NullPointerException if target is null
      * @throws ReadOnlyBufferException if target is a read only buffer
+     * @since 1.5
      */
     public int read(java.nio.CharBuffer target) throws IOException {
         int len = target.remaining();
@@ -86,7 +87,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Read a single character.  This method will block until a character is
+     * Reads a single character.  This method will block until a character is
      * available, an I/O error occurs, or the end of the stream is reached.
      *
      * <p> Subclasses that intend to support efficient single-character input
@@ -107,7 +108,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Read characters into an array.  This method will block until some input
+     * Reads characters into an array.  This method will block until some input
      * is available, an I/O error occurs, or the end of the stream is reached.
      *
      * @param       cbuf  Destination buffer
@@ -123,7 +124,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Read characters into a portion of an array.  This method will block
+     * Reads characters into a portion of an array.  This method will block
      * until some input is available, an I/O error occurs, or the end of the
      * stream is reached.
      *
@@ -145,7 +146,7 @@ public abstract class Reader implements Readable, Closeable {
     private char skipBuffer[] = null;
 
     /**
-     * Skip characters.  This method will block until some characters are
+     * Skips characters.  This method will block until some characters are
      * available, an I/O error occurs, or the end of the stream is reached.
      *
      * @param  n  The number of characters to skip
@@ -174,7 +175,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Tell whether this stream is ready to be read.
+     * Tells whether this stream is ready to be read.
      *
      * @return True if the next read() is guaranteed not to block for input,
      * false otherwise.  Note that returning false does not guarantee that the
@@ -187,7 +188,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Tell whether this stream supports the mark() operation. The default
+     * Tells whether this stream supports the mark() operation. The default
      * implementation always returns false. Subclasses should override this
      * method.
      *
@@ -198,7 +199,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Mark the present position in the stream.  Subsequent calls to reset()
+     * Marks the present position in the stream.  Subsequent calls to reset()
      * will attempt to reposition the stream to this point.  Not all
      * character-input streams support the mark() operation.
      *
@@ -215,7 +216,7 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Reset the stream.  If the stream has been marked, then attempt to
+     * Resets the stream.  If the stream has been marked, then attempt to
      * reposition it at the mark.  If the stream has not been marked, then
      * attempt to reset it in some way appropriate to the particular stream,
      * for example by repositioning it to its starting point.  Not all
@@ -232,9 +233,10 @@ public abstract class Reader implements Readable, Closeable {
     }
 
     /**
-     * Close the stream.  Once a stream has been closed, further read(),
-     * ready(), mark(), or reset() invocations will throw an IOException.
-     * Closing a previously-closed stream, however, has no effect.
+     * Closes the stream and releases any system resources associated with
+     * it.  Once the stream has been closed, further read(), ready(),
+     * mark(), reset(), or skip() invocations will throw an IOException.
+     * Closing a previously closed stream has no effect.
      *
      * @exception  IOException  If an I/O error occurs
      */

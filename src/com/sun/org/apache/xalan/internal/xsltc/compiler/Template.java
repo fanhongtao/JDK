@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Template.java,v 1.25 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: Template.java,v 1.2.4.1 2005/09/12 11:30:11 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -32,7 +32,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NamedMethodGenerato
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 
 /**
@@ -194,7 +194,7 @@ public final class Template extends TopLevelElement {
 	_stylesheet = super.getStylesheet();
 
 	if (name.length() > 0) {
-            if (!XMLChar.isValidQName(name)) {
+            if (!XML11Char.isXML11ValidQName(name)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
                 parser.reportError(Constants.ERROR, err);           
             }                
@@ -202,7 +202,7 @@ public final class Template extends TopLevelElement {
 	}
 	
 	if (mode.length() > 0) {
-            if (!XMLChar.isValidQName(mode)) {
+            if (!XML11Char.isXML11ValidQName(mode)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, mode, this);
                 parser.reportError(Constants.ERROR, err);           
             } 		

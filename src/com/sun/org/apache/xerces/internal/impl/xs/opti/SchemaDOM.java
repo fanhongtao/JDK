@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 2001-2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.xs.opti;
@@ -71,34 +30,37 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 /**
+ * @xerces.internal  
+ * 
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: SchemaDOM.java,v 1.4 2003/07/03 15:15:58 neilg Exp $
+ * @version $Id: SchemaDOM.java,v 1.2.6.1 2005/09/08 10:33:57 sunithareddy Exp $
  */
 public class SchemaDOM extends DefaultDocument {
-
+    
     static final int relationsRowResizeFactor = 15;
     static final int relationsColResizeFactor = 10;
-
+    
     NodeImpl[][] relations;
     // parent must be an element in this scheme
     ElementImpl parent;
     int currLoc;
     int nextFreeLoc;
     boolean hidden;
-
+    boolean inCDATA;
+    
     // for annotation support:
     StringBuffer fAnnotationBuffer = null;
-
+    
     public SchemaDOM() {
         reset();
     }
     
-
+    
     public void startElement(QName element, XMLAttributes attributes,
-                             int line, int column) {
-        ElementImpl node = new ElementImpl(line, column);
+            int line, int column, int offset) {
+        ElementImpl node = new ElementImpl(line, column, offset);
         processElement(element, attributes, node);
         // now the current node added, becomes the parent
         parent = node;
@@ -106,14 +68,25 @@ public class SchemaDOM extends DefaultDocument {
     
     
     public void emptyElement(QName element, XMLAttributes attributes,
-                             int line, int column) {
-        ElementImpl node = new ElementImpl(line, column);
+            int line, int column, int offset) {
+        ElementImpl node = new ElementImpl(line, column, offset);
         processElement(element, attributes, node);
+    }
+    
+    public void startElement(QName element, XMLAttributes attributes,
+            int line, int column) {
+        startElement(element, attributes, line, column, -1);
+    }
+    
+    
+    public void emptyElement(QName element, XMLAttributes attributes,
+            int line, int column) {
+        emptyElement(element, attributes, line, column, -1);
     }
     
     
     private void processElement(QName element, XMLAttributes attributes, ElementImpl node) {
-
+        
         // populate node
         node.prefix = element.prefix;
         node.localpart = element.localpart;
@@ -125,11 +98,11 @@ public class SchemaDOM extends DefaultDocument {
         Attr[] attrs = new Attr[attributes.getLength()];
         for (int i=0; i<attributes.getLength(); i++) {
             attrs[i] = new AttrImpl(null, 
-                                    attributes.getPrefix(i), 
-                                    attributes.getLocalName(i), 
-                                    attributes.getQName(i), 
-                                    attributes.getURI(i), 
-                                    attributes.getValue(i));
+                    attributes.getPrefix(i), 
+                    attributes.getLocalName(i), 
+                    attributes.getQName(i), 
+                    attributes.getURI(i), 
+                    attributes.getValue(i));
         }
         node.attrs = attrs;
         
@@ -177,7 +150,7 @@ public class SchemaDOM extends DefaultDocument {
     void comment(XMLString text) {
         fAnnotationBuffer.append("<!--").append(text.toString()).append("-->");
     }
-
+    
     // note that this will only be called within appinfo/documentation
     void processingInstruction(String target, String data) {
         fAnnotationBuffer.append("<?").append(target).append(" ").append(data).append("?>");
@@ -185,18 +158,39 @@ public class SchemaDOM extends DefaultDocument {
     
     // note that this will only be called within appinfo/documentation
     void characters(XMLString text ) {
-        // need to handle &s and <s
-        for(int i=text.offset; i<text.offset+text.length; i++ ) {
-            if(text.ch[i] == '&') {
-                fAnnotationBuffer.append("&amp;");
-            } else if (text.ch[i] == '<') {
-                fAnnotationBuffer.append("&lt;");
-            } else {
-                fAnnotationBuffer.append(text.ch[i]);
+        
+        // escape characters if necessary
+        if (!inCDATA) {   
+            for (int i = text.offset; i < text.offset+text.length; ++i ) {
+                char ch = text.ch[i];
+                if (ch == '&') {
+                    fAnnotationBuffer.append("&amp;");
+                } 
+                else if (ch == '<') {
+                    fAnnotationBuffer.append("&lt;");
+                }
+                // character sequence "]]>" cannot appear in content, 
+                // therefore we should escape '>'.
+                else if (ch == '>') {
+                    fAnnotationBuffer.append("&gt;");
+                }
+                // If CR is part of the document's content, it
+                // must not be printed as a literal otherwise
+                // it would be normalized to LF when the document
+                // is reparsed.
+                else if (ch == '\r') {
+                    fAnnotationBuffer.append("&#xD;");
+                }
+                else {
+                    fAnnotationBuffer.append(ch);
+                }
             }
         }
+        else {
+            fAnnotationBuffer.append(text.ch, text.offset, text.length);
+        }
     }
-
+    
     void endAnnotationElement(QName elemName, boolean complete) {
         if(complete) {
             fAnnotationBuffer.append("\n</").append(elemName.rawname).append(">");
@@ -205,13 +199,13 @@ public class SchemaDOM extends DefaultDocument {
             // hence, we must make this the child of the current
             // parent's only child.
             ElementImpl child = (ElementImpl)relations[currLoc][1];
-
+            
             // check if array needs to be resized
             if (nextFreeLoc == relations.length) {
                 resizeRelations();
             }
             int newRow = child.parentRow = nextFreeLoc++; 
-        
+            
             // now find the place to insert this node
             boolean foundPlace = false;
             int i = 1;
@@ -221,7 +215,7 @@ public class SchemaDOM extends DefaultDocument {
                     break;
                 }
             }
-        
+            
             if (!foundPlace) {
                 resizeRelations(newRow);
             }
@@ -232,13 +226,31 @@ public class SchemaDOM extends DefaultDocument {
         } else      //capturing character calls
             fAnnotationBuffer.append("</").append(elemName.rawname).append(">");
     }
-
+    
+    void endSyntheticAnnotationElement(QName elemName, boolean complete) {
+        if(complete) {
+            fAnnotationBuffer.append("\n</").append(elemName.rawname).append(">");
+            // note that this is always called after endElement on <annotation>'s
+            // child and before endElement on annotation.
+            // hence, we must make this the child of the current
+            // parent's only child.
+            parent.fSyntheticAnnotation = fAnnotationBuffer.toString();
+            
+            // apparently, there is no sensible way of resetting
+            // these things
+            fAnnotationBuffer = null;
+        } else      //capturing character calls
+            fAnnotationBuffer.append("</").append(elemName.rawname).append(">");
+    }
+    
     void startAnnotationCDATA() {
+        inCDATA = true;
         fAnnotationBuffer.append("<![CDATA[");
     }
     
     void endAnnotationCDATA() {
         fAnnotationBuffer.append("]]>");
+        inCDATA = false;
     }
     
     private void resizeRelations() {
@@ -265,10 +277,11 @@ public class SchemaDOM extends DefaultDocument {
                 for(int j=0; j<relations[i].length; j++) 
                     relations[i][j] = null;
         relations = new NodeImpl[relationsRowResizeFactor][];
-        parent = new ElementImpl(0, 0);
+        parent = new ElementImpl(0, 0, 0);
         parent.rawname = "DOCUMENT_NODE";
         currLoc = 0;
         nextFreeLoc = 1;
+        inCDATA = false;
         for (int i=0; i<relationsRowResizeFactor; i++) {
             relations[i] = new NodeImpl[relationsColResizeFactor];
         }
@@ -278,17 +291,17 @@ public class SchemaDOM extends DefaultDocument {
     
     public void printDOM() {
         /*
-        for (int i=0; i<relations.length; i++) {
-            if (relations[i][0] != null) {
-            for (int j=0; j<relations[i].length; j++) {
-                if (relations[i][j] != null) {
-                    System.out.print(relations[i][j].nodeType+"-"+relations[i][j].parentRow+"  ");
-                }
-            }
-            System.out.println("");
-            }
-        }
-        */
+         for (int i=0; i<relations.length; i++) {
+         if (relations[i][0] != null) {
+         for (int j=0; j<relations[i].length; j++) {
+         if (relations[i][j] != null) {
+         System.out.print(relations[i][j].nodeType+"-"+relations[i][j].parentRow+"  ");
+         }
+         }
+         System.out.println("");
+         }
+         }
+         */
         //traverse(getDocumentElement(), 0);
     }
     
@@ -335,22 +348,26 @@ public class SchemaDOM extends DefaultDocument {
     
     // commence the serialization of an annotation
     void startAnnotation(QName elemName, XMLAttributes attributes,
-                NamespaceContext namespaceContext) {
+            NamespaceContext namespaceContext) {
         if(fAnnotationBuffer == null) fAnnotationBuffer = new StringBuffer(256);
         fAnnotationBuffer.append("<").append(elemName.rawname).append(" ");
-
+        
         // attributes are a bit of a pain.  To get this right, we have to keep track
         // of the namespaces we've seen declared, then examine the namespace context
         // for other namespaces so that we can also include them.
         // optimized for simplicity and the case that not many
         // namespaces are declared on this annotation...
         Vector namespaces = new Vector();
-        for(int i=0; i<attributes.getLength(); i++) {
+        for (int i = 0; i < attributes.getLength(); ++i) {
             String aValue = attributes.getValue(i);
             String aPrefix = attributes.getPrefix(i);
-            // if it's xmlns, must be a namespace decl
-            namespaces.addElement(aValue);
-            fAnnotationBuffer.append(attributes.getQName(i)).append("=\"").append(aValue).append("\" ");
+            String aQName = attributes.getQName(i);
+            // if it's xmlns:* or xmlns, must be a namespace decl
+            if (aPrefix == XMLSymbols.PREFIX_XMLNS || aQName == XMLSymbols.PREFIX_XMLNS) {
+                namespaces.addElement(aPrefix == XMLSymbols.PREFIX_XMLNS ? 
+                        attributes.getLocalName(i) : XMLSymbols.EMPTY_STRING);
+            }
+            fAnnotationBuffer.append(aQName).append("=\"").append(processAttValue(aValue)).append("\" ");
         }
         // now we have to look through currently in-scope namespaces to see what
         // wasn't declared here
@@ -358,37 +375,72 @@ public class SchemaDOM extends DefaultDocument {
         while(currPrefixes.hasMoreElements()) {
             String prefix = (String)currPrefixes.nextElement();
             String uri = namespaceContext.getURI(prefix);
-            if(!namespaces.contains(uri)) {
+            if (uri == null) {
+                uri = XMLSymbols.EMPTY_STRING;
+            }
+            if (!namespaces.contains(prefix)) {
                 // have to declare this one
-                if(prefix == XMLSymbols.EMPTY_STRING) 
-                    fAnnotationBuffer.append("xmlns").append("=\"").append(uri).append("\" ");
-                else 
-                    fAnnotationBuffer.append("xmlns:").append(prefix).append("=\"").append(uri).append("\" ");
+                if(prefix == XMLSymbols.EMPTY_STRING) {
+                    fAnnotationBuffer.append("xmlns").append("=\"").append(processAttValue(uri)).append("\" ");
+                }
+                else {
+                    fAnnotationBuffer.append("xmlns:").append(prefix).append("=\"").append(processAttValue(uri)).append("\" ");
+                }
             }
         }
         fAnnotationBuffer.append(">\n");
     }
     void startAnnotationElement(QName elemName, XMLAttributes attributes) {
-        fAnnotationBuffer.append("<").append(elemName.rawname).append(" ");
+        fAnnotationBuffer.append("<").append(elemName.rawname);
         for(int i=0; i<attributes.getLength(); i++) {
             String aValue = attributes.getValue(i);
-            fAnnotationBuffer.append(" ").append(attributes.getQName(i)).append("=\"").append(processAttValue(aValue)).append("\" ");
+            fAnnotationBuffer.append(" ").append(attributes.getQName(i)).append("=\"").append(processAttValue(aValue)).append("\"");
         }
         fAnnotationBuffer.append(">");
     }
     
     private static String processAttValue(String original) {
+        final int length = original.length();
         // normally, nothing will happen
-        StringBuffer newVal = new StringBuffer(original.length());
-        for(int i=0; i<original.length(); i++) {
+        for (int i = 0; i < length; ++i) {
             char currChar = original.charAt(i);
-            if(currChar == '"') {
+            if (currChar == '"' || currChar == '<' || currChar == '&' ||
+                    currChar == 0x09 || currChar == 0x0A || currChar == 0x0D) {
+                return escapeAttValue(original, i);
+            }
+        }
+        return original;
+    }
+    
+    private static String escapeAttValue(String original, int from) {
+        int i;
+        final int length = original.length();
+        StringBuffer newVal = new StringBuffer(length);
+        newVal.append(original.substring(0, from));
+        for (i = from; i < length; ++i) {
+            char currChar = original.charAt(i);
+            if (currChar == '"') {
                 newVal.append("&quot;");
-            } else if (currChar == '>') {
-                newVal.append("&gt;");
-            } else if (currChar == '&') {
+            } 
+            else if (currChar == '<') {
+                newVal.append("&lt;");
+            }
+            else if (currChar == '&') {
                 newVal.append("&amp;");
-            } else {
+            }
+            // Must escape 0x09, 0x0A and 0x0D if they appear in attribute
+            // value so that they may be round-tripped. They would otherwise
+            // be transformed to a 0x20 during attribute value normalization.
+            else if (currChar == 0x09) {
+                newVal.append("&#x9;");
+            }
+            else if (currChar == 0x0A) {
+                newVal.append("&#xA;");
+            }
+            else if (currChar == 0x0D) {
+                newVal.append("&#xD;");
+            }
+            else {
                 newVal.append(currChar);
             }
         }

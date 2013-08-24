@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.142 05/05/29
+ * @(#)Introspector.java	1.144 06/05/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -793,6 +793,13 @@ public class Introspector {
 		    pd = new PropertyDescriptor(ipd);
 		}
 	    }
+
+            // Find the first property descriptor
+            // which does not have getter and setter methods.
+            // See regression bug 4984912.
+            if ( (pd == null) && (list.size() > 0) ) {
+                pd = (PropertyDescriptor) list.get(0);
+            }
 
 	    if (pd != null) {
 		properties.put(pd.getName(), pd);

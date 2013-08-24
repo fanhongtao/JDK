@@ -1,7 +1,7 @@
 /*
- * @(#)ServerException.java	1.15 03/12/19
+ * @(#)ServerException.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.rmi;
  * A <code>ServerException</code> instance contains the original
  * <code>RemoteException</code> that occurred as its cause.
  *
- * @version 1.15, 12/19/03
+ * @version 1.16, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

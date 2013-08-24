@@ -60,10 +60,18 @@ import java.util.*;
 
 /**
  * This class represents a reference to an unknown (i.e.,
- * application-specific) attribute of a class.  It is instantiated
- * from the <em>Attribute.readAttribute()</em> method.
+ * application-specific) attribute of a class.  It is instantiated from the
+ * <em>Attribute.readAttribute()</em> method.  Applications that need to
+ * read in application-specific attributes should create an <a
+ * href="./AttributeReader.html">AttributeReader</a> implementation and
+ * attach it via <a
+ * href="./Attribute.html#addAttributeReader(java.lang.String,
+ * com.sun.org.apache.bcel.internal.classfile.AttributeReader)">Attribute.addAttributeReader</a>.
+
  *
- * @version $Id: Unknown.java,v 1.1.1.1 2001/10/29 20:00:04 jvanzyl Exp $
+ * @version $Id: Unknown.java,v 1.1.2.1 2005/07/31 23:46:30 jeffsuttor Exp $
+ * @see com.sun.org.apache.bcel.internal.classfile.Attribute
+ * @see com.sun.org.apache.bcel.internal.classfile.AttributeReader
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class Unknown extends Attribute {
@@ -118,7 +126,7 @@ public final class Unknown extends Attribute {
    * @param length Content length in bytes
    * @param file Input stream
    * @param constant_pool Array of constants
-   * @throw IOException
+   * @throws IOException
    */
   Unknown(int name_index, int length, DataInputStream file,
 	  ConstantPool constant_pool)
@@ -146,7 +154,7 @@ public final class Unknown extends Attribute {
    * Dump unknown bytes to file stream.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

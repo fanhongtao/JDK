@@ -1,26 +1,20 @@
 /*
- * @(#)MBeanServerFactory.java	1.55 04/02/23
+ * @(#)MBeanServerFactory.java	1.61 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management;
 
-// java import
-import java.security.AccessController;
-import java.security.Permission;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-// RI import
-import javax.management.loading.ClassLoaderRepository;
-
-import com.sun.jmx.defaults.ServiceName;
 import com.sun.jmx.defaults.JmxProperties;
+import com.sun.jmx.interceptor.DefaultMBeanServerInterceptor;
 import com.sun.jmx.mbeanserver.GetPropertyAction;
 import com.sun.jmx.trace.Trace;
+import java.security.AccessController;
+import java.security.Permission;
+import java.util.ArrayList;
+import javax.management.loading.ClassLoaderRepository;
 
 /**
  * <p>Provides MBean server references.  There are no instances of
@@ -343,15 +337,16 @@ public class MBeanServerFactory {
      * caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("findMBeanServer")</code>.
      */
-    public synchronized static ArrayList findMBeanServer(String agentId) {
+    public synchronized static
+	    ArrayList<MBeanServer> findMBeanServer(String agentId) {
+
 	checkPermission("findMBeanServer");
 
 	if (agentId == null)
-	    return (ArrayList) mBeanServerList.clone();
+	    return new ArrayList<MBeanServer>(mBeanServerList);
 
-	ArrayList result = new ArrayList();
-	for (Iterator i = mBeanServerList.iterator(); i.hasNext(); ) {
-	    MBeanServer mbs = (MBeanServer) i.next();
+	ArrayList<MBeanServer> result = new ArrayList<MBeanServer>();
+	for (MBeanServer mbs : mBeanServerList) {
 	    String name = mBeanServerName(mbs);
 	    if (agentId.equals(name))
 		result.add(mbs);
@@ -381,24 +376,10 @@ public class MBeanServerFactory {
 	return server.getClassLoaderRepository(); 
     }
 
-    private static final ObjectName delegateName;
-    static {
-	ObjectName name;
-	try {
-	    name = new ObjectName(ServiceName.DELEGATE);
-	} catch (JMException e) {
-	    /* This can only happen if ServiceName.DELEGATE is an invalid
-	       ObjectName, which means serious brokenness!  */
-	    name = null;
-	    trace("<clinit>",
-		  "internal error creating delegate ObjectName: " + e);
-	}
-	delegateName = name;
-    }
-
     private static String mBeanServerName(MBeanServer mbs) {
 	try {
-	    return (String) mbs.getAttribute(delegateName, "MBeanServerId");
+	    return (String) mbs.getAttribute(MBeanServerDelegate.DELEGATE_NAME,
+                                             "MBeanServerId");
 	} catch (JMException e) {
 	    return null;
 	}
@@ -425,7 +406,8 @@ public class MBeanServerFactory {
 	}
     }
 
-    private static final ArrayList mBeanServerList = new ArrayList();
+    private static final ArrayList<MBeanServer> mBeanServerList =
+	new ArrayList<MBeanServer>();
 
     /**
      * Load the builder class through the context class loader.
@@ -471,10 +453,9 @@ public class MBeanServerFactory {
      **/
     private static synchronized void checkMBeanServerBuilder() {
 	try {
-	    PrivilegedAction act =
+	    GetPropertyAction act =
 		new GetPropertyAction(JmxProperties.JMX_INITIAL_BUILDER);
-	    String builderClassName = (String)
-		AccessController.doPrivileged(act);
+	    String builderClassName = AccessController.doPrivileged(act);
 
 	    try {
 		final Class newBuilderClass;

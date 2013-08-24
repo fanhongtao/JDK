@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2004 The Apache Software Foundation.
+ * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AnyNodeCounter.java,v 1.4 2004/02/16 22:54:59 minchau Exp $
+ * $Id: AnyNodeCounter.java,v 1.2.4.1 2005/09/06 05:54:53 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -42,7 +42,12 @@ public abstract class AnyNodeCounter extends NodeCounter {
     public String getCounter() {
 	int result;
 	if (_value != Integer.MIN_VALUE) {
-	    result = _value;
+            //See Errata E24
+            if (_value == 0) return "0";
+            else if (Double.isNaN(_value)) return "NaN";
+            else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
+            else if (Double.isInfinite(_value)) return "Infinity";
+            else return formatNumbers((int)_value);
 	}
 	else {
 	    int next = _node; 
@@ -83,7 +88,12 @@ public abstract class AnyNodeCounter extends NodeCounter {
 	public String getCounter() {
 	    int result;
 	    if (_value != Integer.MIN_VALUE) {
-		result = _value;
+                    //See Errata E24
+                    if (_value == 0) return "0";
+                    else if (Double.isNaN(_value)) return "NaN";
+                    else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
+                    else if (Double.isInfinite(_value)) return "Infinity";
+                    else result = (int) _value;
 	    }
 	    else {
 		int next = _node;

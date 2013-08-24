@@ -1,7 +1,7 @@
 /*
- * @(#)BullsEye.java	1.18 04/07/26
+ * @(#)BullsEye.java	1.20 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)BullsEye.java	1.18 04/07/26
+ * @(#)BullsEye.java	1.20 06/08/29
  */
 
 package java2d.demos.Colors;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java2d.Surface;
@@ -52,13 +53,13 @@ public class BullsEye extends Surface {
 
 
     public BullsEye() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
     public void render(int w, int h, Graphics2D g2) {
 
-        Color reds[] = { Color.red.darker(), Color.red };
+        Color reds[] = { RED.darker(), RED };
         for (int N = 0; N < 18; N++) {
             float i = (N + 2) / 2.0f;
             float x = (float) (5+i*(w/2/10));

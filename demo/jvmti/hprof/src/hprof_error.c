@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_error.c	1.14 05/01/04
+ * @(#)hprof_error.c	1.17 05/11/17
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -44,18 +44,9 @@
  *
  */
 
-/* The option precrash=y|n is only available if _ALLOW_PRECRASH is defined. */
-/* The option pause=y|n    is only available if _ALLOW_PAUSE    is defined. */
-
-#if defined(_ALLOW_PRECRASH) || defined(_ALLOW_PAUSE)
-#include <unistd.h> /* Should be in machine dependent area? */
-#endif
-
 #include <signal.h>
 
-#ifdef _ALLOW_PAUSE
-    static int p = 1; /* Used with pause=y|n option */
-#endif
+static int p = 1; /* Used with pause=y|n option */
 
 /* Private functions */
 
@@ -75,7 +66,7 @@ error_abort(void)
     /* Important to remove existing signal handler */
     (void)signal(SIGABRT, NULL);
     error_message("HPROF DUMPING CORE\n");
-    abort();	/* Sends SIGABRT signal, usually also caught by libjvm */
+    abort();        /* Sends SIGABRT signal, usually also caught by libjvm */
 }
 
 static void
@@ -99,29 +90,10 @@ static void
 terminate_everything(jint exit_code)
 {
     if ( exit_code > 0 ) {
-	/* Could be a fatal error or assert error or a sanity error */
+        /* Could be a fatal error or assert error or a sanity error */
         error_message("HPROF TERMINATED PROCESS\n");
-        if ( gdata->precrash ) {
-            #ifdef _ALLOW_PRECRASH
-                char cmd[256];
-                pid_t pid;
-                
-                pid = (pid_t)md_getpid();
-                (void)md_snprintf(cmd, sizeof(cmd), 
-                        "precrash -p %d > /tmp/%s.%d", 
-                        /*LINTED*/
-			(int)pid, AGENTNAME, (int)pid);
-                cmd[sizeof(cmd)-1] = 0;
-		error_message("USING PRECRASH: %s\n", cmd);
-                (void)pclose(popen(cmd, "w"));
-            #endif
-        }
-        if ( gdata->exitpause ) {
-	    /* Pause here and wait for a connection from a debugger */
-            error_do_pause();
-        }
         if ( gdata->coredump || gdata->debug ) {
-	    /* Core dump here by request */
+            /* Core dump here by request */
             error_abort();
         }
     }
@@ -140,21 +112,19 @@ error_setup(void)
 void
 error_do_pause(void)
 {
-    #ifdef _ALLOW_PAUSE
-        pid_t pid = (pid_t)md_getpid();
-        int timeleft = 600; /* 10 minutes max */
-        int interval = 10;  /* 10 second message check */
+    int pid = md_getpid();
+    int timeleft = 600; /* 10 minutes max */
+    int interval = 10;  /* 10 second message check */
 
-        /*LINTED*/
-        error_message("\nHPROF pause for PID %d\n", (int)pid);
-        while ( p && timeleft > 0 ) {
-            (void)sleep(interval); /* 'assign p=0' to stop pause loop */
-            timeleft -= interval;
-        }
-        if ( timeleft <= 0 ) {
-            error_message("\n HPROF pause got tired of waiting and gave up.\n");
-        }
-    #endif
+    /*LINTED*/
+    error_message("\nHPROF pause for PID %d\n", (int)pid);
+    while ( p && timeleft > 0 ) {
+        md_sleep(interval); /* 'assign p=0' to stop pause loop */
+        timeleft -= interval;
+    }
+    if ( timeleft <= 0 ) {
+        error_message("\n HPROF pause got tired of waiting and gave up.\n");
+    }
 }
 
 void
@@ -163,34 +133,57 @@ error_exit_process(int exit_code)
     exit(exit_code);
 }
 
+static const char *
+source_basename(const char *file)
+{
+    const char *p;
+
+    if ( file == NULL ) {
+	return "UnknownSourceFile";
+    }
+    p = strrchr(file, '/');
+    if ( p == NULL ) {
+	p = strrchr(file, '\\');
+    }
+    if ( p == NULL ) {
+	p = file;
+    } else {
+	p++; /* go past / */
+    }
+    return p;
+}
+
 void
 error_assert(const char *condition, const char *file, int line)
 {
-    error_message("ASSERTION FAILURE: %s [%s:%d]\n", condition, file, line);
+    error_message("ASSERTION FAILURE: %s [%s:%d]\n", condition, 
+        source_basename(file), line);
     error_abort();
 }
 
 void
 error_handler(jboolean fatal, jvmtiError error, 
-		const char *message, const char *file, int line)
+                const char *message, const char *file, int line)
 {
     char *error_name;
     
     if ( message==NULL ) {
-	message = "";
+        message = "";
     }
     if ( error != JVMTI_ERROR_NONE ) {
-	error_name = getErrorName(error);
-	if ( error_name == NULL ) {
-	    error_name = "?";
-	}
-	error_message("HPROF ERROR: %s (JVMTI Error %s(%d)) [%s:%d]\n", 
-			    message, error_name, error, file, line);
+        error_name = getErrorName(error);
+        if ( error_name == NULL ) {
+            error_name = "?";
+        }
+        error_message("HPROF ERROR: %s (JVMTI Error %s(%d)) [%s:%d]\n", 
+                            message, error_name, error, 
+                            source_basename(file), line);
     } else {
-	error_message("HPROF ERROR: %s [%s:%d]\n", message, file, line);
+        error_message("HPROF ERROR: %s [%s:%d]\n", message, 
+                            source_basename(file), line);
     }
     if ( fatal || gdata->errorexit ) {
-	/* If it's fatal, or the user wants termination on any error, die */
+        /* If it's fatal, or the user wants termination on any error, die */
         terminate_everything(9);
     }
 }
@@ -209,11 +202,11 @@ void
 verbose_message(const char * format, ...)
 {
     if ( gdata->verbose ) {
-	va_list ap;
+        va_list ap;
 
-	va_start(ap, format);
-	(void)vfprintf(stderr, format, ap);
-	va_end(ap);
+        va_start(ap, format);
+        (void)vfprintf(stderr, format, ap);
+        va_end(ap);
     }
 }
 

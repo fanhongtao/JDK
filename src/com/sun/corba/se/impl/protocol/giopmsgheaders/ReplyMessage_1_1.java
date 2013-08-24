@@ -1,7 +1,7 @@
 /*
- * @(#)ReplyMessage_1_1.java	1.20 04/06/21
+ * @(#)ReplyMessage_1_1.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

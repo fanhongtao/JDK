@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Fallback.java,v 1.7 2004/02/16 22:24:29 minchau Exp $
+ * $Id: Fallback.java,v 1.2.4.1 2005/09/01 14:22:25 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

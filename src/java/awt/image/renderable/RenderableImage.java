@@ -1,7 +1,7 @@
 /*
- * @(#)RenderableImage.java	1.15 04/05/05
+ * @(#)RenderableImage.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

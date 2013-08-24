@@ -1,7 +1,7 @@
 /*
- * @(#)CounterMonitorMBean.java	4.26 04/05/18
+ * @(#)CounterMonitorMBean.java	4.27 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import javax.management.ObjectName;
 /**
  * Exposes the remote management interface of the counter monitor MBean.
  *
- * @version     4.26     05/18/04
+ * @version     4.27     11/17/05
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

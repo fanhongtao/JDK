@@ -1,7 +1,7 @@
 /*
- * @(#)JTable.java	1.240 06/03/28
+ * @(#)JTable.java	1.287 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,6 +33,12 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 
 import javax.print.attribute.*;
+import javax.print.PrintService;
+
+import sun.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2.Section;
+import static sun.swing.SwingUtilities2.Section.*;
+import sun.swing.PrintingStatus;
 
 /**
  * The <code>JTable</code> is used to display and edit regular two-dimensional tables
@@ -63,6 +69,18 @@ import javax.print.attribute.*;
  * displayed, you can get it using {@link #getTableHeader} and
  * display it separately.
  * <p>
+ * To enable sorting and filtering of rows, use a
+ * {@code RowSorter}.
+ * You can set up a row sorter in either of two ways: 
+ * <ul>
+ *   <li>Directly set the {@code RowSorter}. For example:
+ *        {@code table.setRowSorter(new TableRowSorter(model))}.
+ *   <li>Set the {@code autoCreateRowSorter}
+ *       property to {@code true}, so that the {@code JTable}
+ *       creates a {@code RowSorter} for
+ *       you. For example: {@code setAutoCreateRowSorter(true)}.
+ * </ul>
+ * <p>
  * When designing applications that use the <code>JTable</code> it is worth paying
  * close attention to the data structures that will represent the table's data.
  * The <code>DefaultTableModel</code> is a model implementation that
@@ -88,7 +106,10 @@ import javax.print.attribute.*;
  * The <code>JTable</code> uses integers exclusively to refer to both the rows and the columns
  * of the model that it displays. The <code>JTable</code> simply takes a tabular range of cells
  * and uses <code>getValueAt(int, int)</code> to retrieve the
- * values from the model during painting.
+ * values from the model during painting.  It is important to remember that
+ * the column and row indexes returned by various <code>JTable</code> methods
+ * are in terms of the <code>JTable</code> (the view) and are not
+ * necessarily the same indexes used by the model.
  * <p>
  * By default, columns may be rearranged in the <code>JTable</code> so that the
  * view's columns appear in a different order to the columns in the model.
@@ -103,6 +124,39 @@ import javax.print.attribute.*;
  * use of exactly this technique to interpose yet another coordinate system
  * where the order of the rows is changed, rather than the order of the columns.
  * <p>
+ * Similarly when using the sorting and filtering functionality
+ * provided by <code>RowSorter</code> the underlying
+ * <code>TableModel</code> does not need to know how to do sorting,
+ * rather <code>RowSorter</code> will handle it.  Coordinate
+ * conversions will be necessary when using the row based methods of
+ * <code>JTable</code> with the underlying <code>TableModel</code>.
+ * All of <code>JTable</code>s row based methods are in terms of the
+ * <code>RowSorter</code>, which is not necessarily the same as that
+ * of the underlying <code>TableModel</code>.  For example, the
+ * selection is always in terms of <code>JTable</code> so that when
+ * using <code>RowSorter</code> you will need to convert using
+ * <code>convertRowIndexToView</code> or
+ * <code>convertRowIndexToModel</code>.  The following shows how to
+ * convert coordinates from <code>JTable</code> to that of the
+ * underlying model:
+ * <pre>
+ *   int[] selection = table.getSelectedRows();
+ *   for (int i = 0; i &lt; selection.length; i++) {
+ *     selection[i] = table.convertRowIndexToModel(selection[i]);
+ *   }
+ *   // selection is now in terms of the underlying TableModel
+ * </pre>
+ * <p>
+ * By default if sorting is enabled <code>JTable</code> will persist the
+ * selection and variable row heights in terms of the model on
+ * sorting.  For example if row 0, in terms of the underlying model,
+ * is currently selected, after the sort row 0, in terms of the
+ * underlying model will be selected.  Visually the selection may
+ * change, but in terms of the underlying model it will remain the
+ * same.  The one exception to that is if the model index is no longer
+ * visible or was removed.  For example, if row 0 in terms of model
+ * was filtered out the selection will be empty after the sort.
+ * <p>
  * J2SE 5 adds methods to <code>JTable</code> to provide convenient access to some
  * common printing needs. Simple new {@link #print()} methods allow for quick
  * and easy addition of printing support to your application. In addition, a new
@@ -112,6 +166,11 @@ import javax.print.attribute.*;
  * {@link InputMap} and {@link ActionMap} to associate an
  * {@link Action} object with a {@link KeyStroke} and execute the
  * action under specified conditions.
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -127,16 +186,18 @@ import javax.print.attribute.*;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.240 03/28/06
+ * @version 1.287 08/08/06
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
+ * @see javax.swing.table.DefaultTableModel
+ * @see javax.swing.table.TableRowSorter
  */
 /* The first versions of the JTable, contained in Swing-0.1 through
  * Swing-0.4, were written by Alan Chung.
  */
 public class JTable extends JComponent implements TableModelListener, Scrollable,
     TableColumnModelListener, ListSelectionListener, CellEditorListener,
-    Accessible
+    Accessible, RowSorterListener
 {
 //
 // Static Constants
@@ -294,6 +355,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 // Private state
 //
 
+    // WARNING: If you directly access this field you should also change the
+    // SortManager.modelRowSizes field as well.
     private SizeSequence rowModel;
     private boolean dragEnabled;
     private boolean surrendersFocusOnKeystroke;
@@ -311,13 +374,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     private boolean rowSelectionAdjusting;
 
     /**
-     * A flag to indicate whether or not the table is currently being printed.
-     * Used by print() and prepareRenderer() to disable indication of the
-     * selection and focused cell while printing.
-     */
-    private boolean isPrinting = false;
-
-    /**
      * To communicate errors between threads during printing.
      */
     private Throwable printError;
@@ -326,6 +382,145 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * True when setRowHeight(int) has been invoked.
      */
     private boolean isRowHeightSet;
+
+    /**
+     * If true, on a sort the selection is reset.
+     */
+    private boolean updateSelectionOnSort;
+
+    /**
+     * Information used in sorting.
+     */
+    private transient SortManager sortManager;
+
+    /**
+     * If true, when sorterChanged is invoked it's value is ignored.
+     */
+    private boolean ignoreSortChange;
+
+    /**
+     * Whether or not sorterChanged has been invoked.
+     */
+    private boolean sorterChanged;
+
+    /**
+     * If true, any time the model changes a new RowSorter is set.
+     */
+    private boolean autoCreateRowSorter;
+
+    /**
+     * Whether or not the table always fills the viewport height.
+     * @see #setFillsViewportHeight
+     * @see #getScrollableTracksViewportHeight
+     */
+    private boolean fillsViewportHeight;
+
+    /**
+     * The drop mode for this component.
+     */
+    private DropMode dropMode = DropMode.USE_SELECTION;
+
+    /**
+     * The drop location.
+     */
+    private transient DropLocation dropLocation;
+
+    /**
+     * A subclass of <code>TransferHandler.DropLocation</code> representing
+     * a drop location for a <code>JTable</code>.
+     *
+     * @see #getDropLocation
+     * @since 1.6
+     */
+    public static final class DropLocation extends TransferHandler.DropLocation {
+        private final int row;
+        private final int col;
+        private final boolean isInsertRow;
+        private final boolean isInsertCol;
+
+        private DropLocation(Point p, int row, int col,
+                             boolean isInsertRow, boolean isInsertCol) {
+
+            super(p);
+            this.row = row;
+            this.col = col;
+            this.isInsertRow = isInsertRow;
+            this.isInsertCol = isInsertCol;
+        }
+
+        /**
+         * Returns the row index where a dropped item should be placed in the
+         * table. Interpretation of the value depends on the return of
+         * <code>isInsertRow()</code>. If that method returns
+         * <code>true</code> this value indicates the index where a new
+         * row should be inserted. Otherwise, it represents the value
+         * of an existing row on which the data was dropped. This index is
+         * in terms of the view.
+         * <p>
+         * <code>-1</code> indicates that the drop occurred over empty space,
+         * and no row could be calculated.
+         *
+         * @return the drop row
+         */
+        public int getRow() {
+            return row;
+        }
+
+        /**
+         * Returns the column index where a dropped item should be placed in the
+         * table. Interpretation of the value depends on the return of
+         * <code>isInsertColumn()</code>. If that method returns
+         * <code>true</code> this value indicates the index where a new
+         * column should be inserted. Otherwise, it represents the value
+         * of an existing column on which the data was dropped. This index is
+         * in terms of the view.
+         * <p>
+         * <code>-1</code> indicates that the drop occurred over empty space,
+         * and no column could be calculated.
+         *
+         * @return the drop row
+         */
+        public int getColumn() {
+            return col;
+        }
+
+        /**
+         * Returns whether or not this location represents an insert
+         * of a row.
+         *
+         * @return whether or not this is an insert row
+         */
+        public boolean isInsertRow() {
+            return isInsertRow;
+        }
+
+        /**
+         * Returns whether or not this location represents an insert
+         * of a column.
+         *
+         * @return whether or not this is an insert column
+         */
+        public boolean isInsertColumn() {
+            return isInsertCol;
+        }
+
+        /**
+         * Returns a string representation of this drop location.
+         * This method is intended to be used for debugging purposes,
+         * and the content and format of the returned string may vary
+         * between implementations.
+         *
+         * @return a string representation of this drop location
+         */
+        public String toString() {
+            return getClass().getName()
+                   + "[dropPoint=" + getDropPoint() + ","
+                   + "row=" + row + ","
+                   + "column=" + col + ","
+                   + "insertRow=" + isInsertRow + ","
+                   + "insertColumn=" + isInsertCol + "]";
+        }
+    }
 
 //
 // Constructors
@@ -396,7 +591,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 			   JComponent.getManagingFocusForwardTraversalKeys());
 	setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
 			   JComponent.getManagingFocusBackwardTraversalKeys());
-
         if (cm == null) {
             cm = createDefaultColumnModel();
             autoCreateColumnsFromModel = true;
@@ -519,7 +713,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 		//  scrollPane.getViewport().setBackingStoreEnabled(true);
                 Border border = scrollPane.getBorder();
                 if (border == null || border instanceof UIResource) {
-                    scrollPane.setBorder(UIManager.getBorder("Table.scrollPaneBorder"));
+                    Border scrollPaneBorder = 
+                        UIManager.getBorder("Table.scrollPaneBorder");
+                    if (scrollPaneBorder != null) {
+                        scrollPane.setBorder(scrollPaneBorder);
+                    }
                 }
             }
         }
@@ -548,6 +746,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *
      * @see #removeNotify
      * @see #configureEnclosingScrollPane
+     * @since 1.3
      */
     protected void unconfigureEnclosingScrollPane() {
         Container p = getParent();
@@ -653,6 +852,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	int old = this.rowHeight;
         this.rowHeight = rowHeight;
 	rowModel = null;
+        if (sortManager != null) {
+            sortManager.modelRowSizes = null;
+        }
         isRowHeightSet = true;
         resizeAndRepaint();
 	firePropertyChange("rowHeight", old, rowHeight);
@@ -689,12 +891,16 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @beaninfo
      *  bound: true
      *  description: The height in pixels of the cells in <code>row</code>
+     * @since 1.3
      */
     public void setRowHeight(int row, int rowHeight) {
         if (rowHeight <= 0) {
             throw new IllegalArgumentException("New row height less than 1");
         }
 	getRowModel().setSize(row, rowHeight);
+        if (sortManager != null) {
+            sortManager.setViewRowHeight(row, rowHeight);
+        }
 	resizeAndRepaint();
     }
 
@@ -702,6 +908,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Returns the height, in pixels, of the cells in <code>row</code>.
      * @param   row              the row whose height is to be returned
      * @return the height, in pixels, of the cells in the row
+     * @since 1.3
      */
     public int getRowHeight(int row) {
 	return (rowModel == null) ? getRowHeight() : rowModel.getSize(row);
@@ -1106,35 +1313,25 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Sets the <code>dragEnabled</code> property,
-     * which must be <code>true</code> to enable
-     * automatic drag handling (the first part of drag and drop)
-     * on this component.
-     * The <code>transferHandler</code> property needs to be set
-     * to a non-<code>null</code> value for the drag to do
-     * anything.  The default value of the <code>dragEnabled</code
-     * property
-     * is <code>false</code>.
-     *
+     * Turns on or off automatic drag handling. In order to enable automatic
+     * drag handling, this property should be set to {@code true}, and the
+     * table's {@code TransferHandler} needs to be {@code non-null}.
+     * The default value of the {@code dragEnabled} property is {@code false}.
      * <p>
-     *
-     * When automatic drag handling is enabled,
-     * most look and feels begin a drag-and-drop operation
-     * whenever the user presses the mouse button over a selection
-     * and then moves the mouse a few pixels.
-     * Setting this property to <code>true</code>
-     * can therefore have a subtle effect on
-     * how selections behave.
-     *
+     * The job of honoring this property, and recognizing a user drag gesture,
+     * lies with the look and feel implementation, and in particular, the table's
+     * {@code TableUI}. When automatic drag handling is enabled, most look and
+     * feels (including those that subclass {@code BasicLookAndFeel}) begin a
+     * drag and drop operation whenever the user presses the mouse button over
+     * an item (in single selection mode) or a selection (in other selection
+     * modes) and then moves the mouse a few pixels. Setting this property to
+     * {@code true} can therefore have a subtle effect on how selections behave.
      * <p>
+     * If a look and feel is used that ignores this property, you can still
+     * begin a drag and drop operation by calling {@code exportAsDrag} on the
+     * table's {@code TransferHandler}.
      *
-     * Some look and feels might not support automatic drag and drop;
-     * they will ignore this property.  You can work around such
-     * look and feels by modifying the component
-     * to directly call the <code>exportAsDrag</code> method of a
-     * <code>TransferHandler</code>.
-     *
-     * @param b the value to set the <code>dragEnabled</code> property to
+     * @param b whether or not to enable automatic drag handling
      * @exception HeadlessException if
      *            <code>b</code> is <code>true</code> and
      *            <code>GraphicsEnvironment.isHeadless()</code>
@@ -1157,9 +1354,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Gets the value of the <code>dragEnabled</code> property.
+     * Returns whether or not automatic drag handling is enabled.
      *
-     * @return  the value of the <code>dragEnabled</code> property
+     * @return the value of the {@code dragEnabled} property
      * @see #setDragEnabled
      * @since 1.4
      */
@@ -1167,6 +1364,483 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	return dragEnabled;
     }
 
+    /**
+     * Sets the drop mode for this component. For backward compatibility,
+     * the default for this property is <code>DropMode.USE_SELECTION</code>.
+     * Usage of one of the other modes is recommended, however, for an
+     * improved user experience. <code>DropMode.ON</code>, for instance,
+     * offers similar behavior of showing items as selected, but does so without
+     * affecting the actual selection in the table.
+     * <p>
+     * <code>JTable</code> supports the following drop modes:
+     * <ul>
+     *    <li><code>DropMode.USE_SELECTION</code></li>
+     *    <li><code>DropMode.ON</code></li>
+     *    <li><code>DropMode.INSERT</code></li>
+     *    <li><code>DropMode.INSERT_ROWS</code></li>
+     *    <li><code>DropMode.INSERT_COLS</code></li>
+     *    <li><code>DropMode.ON_OR_INSERT</code></li>
+     *    <li><code>DropMode.ON_OR_INSERT_ROWS</code></li>
+     *    <li><code>DropMode.ON_OR_INSERT_COLS</code></li>
+     * </ul>
+     * <p>
+     * The drop mode is only meaningful if this component has a
+     * <code>TransferHandler</code> that accepts drops.
+     *
+     * @param dropMode the drop mode to use
+     * @throws IllegalArgumentException if the drop mode is unsupported
+     *         or <code>null</code>
+     * @see #getDropMode
+     * @see #getDropLocation
+     * @see #setTransferHandler
+     * @see TransferHandler
+     * @since 1.6
+     */
+    public final void setDropMode(DropMode dropMode) {
+        if (dropMode != null) {
+            switch (dropMode) {
+                case USE_SELECTION:
+                case ON:
+                case INSERT:
+                case INSERT_ROWS:
+                case INSERT_COLS:
+                case ON_OR_INSERT:
+                case ON_OR_INSERT_ROWS:
+                case ON_OR_INSERT_COLS:
+                    this.dropMode = dropMode;
+                    return;
+            }
+        }
+
+        throw new IllegalArgumentException(dropMode + ": Unsupported drop mode for table");
+    }
+
+    /**
+     * Returns the drop mode for this component.
+     *
+     * @return the drop mode for this component
+     * @see #setDropMode
+     * @since 1.6
+     */
+    public final DropMode getDropMode() {
+        return dropMode;
+    }
+
+    /**
+     * Calculates a drop location in this component, representing where a
+     * drop at the given point should insert data.
+     *
+     * @param p the point to calculate a drop location for
+     * @return the drop location, or <code>null</code>
+     */
+    DropLocation dropLocationForPoint(Point p) {
+        DropLocation location = null;
+
+        int row = rowAtPoint(p);
+        int col = columnAtPoint(p);
+        boolean outside = Boolean.TRUE == getClientProperty("Table.isFileList")
+                          && SwingUtilities2.pointOutsidePrefSize(this, row, col, p);
+
+        Rectangle rect = getCellRect(row, col, true);
+        Section xSection, ySection;
+        boolean between = false;
+        boolean ltr = getComponentOrientation().isLeftToRight();
+
+        switch(dropMode) {
+            case USE_SELECTION:
+            case ON:
+                if (row == -1 || col == -1 || outside) {
+                    location = new DropLocation(p, -1, -1, false, false);
+                } else {
+                    location = new DropLocation(p, row, col, false, false);
+                }
+                break;
+            case INSERT:
+                if (row == -1 && col == -1) {
+                    location = new DropLocation(p, 0, 0, true, true);
+                    break;
+                }
+
+                xSection = SwingUtilities2.liesInHorizontal(rect, p, ltr, true);
+
+                if (row == -1) {
+                    if (xSection == LEADING) {
+                        location = new DropLocation(p, getRowCount(), col, true, true);
+                    } else if (xSection == TRAILING) {
+                        location = new DropLocation(p, getRowCount(), col + 1, true, true);
+                    } else {
+                        location = new DropLocation(p, getRowCount(), col, true, false);
+                    }
+                } else if (xSection == LEADING || xSection == TRAILING) {
+                    ySection = SwingUtilities2.liesInVertical(rect, p, true);
+                    if (ySection == LEADING) {
+                        between = true;
+                    } else if (ySection == TRAILING) {
+                        row++;
+                        between = true;
+                    }
+                    
+                    location = new DropLocation(p, row,
+                                                xSection == TRAILING ? col + 1 : col,
+                                                between, true);
+                } else {
+                    if (SwingUtilities2.liesInVertical(rect, p, false) == TRAILING) {
+                        row++;
+                    }
+
+                    location = new DropLocation(p, row, col, true, false);
+                }
+
+                break;
+            case INSERT_ROWS:
+                if (row == -1 && col == -1) {
+                    location = new DropLocation(p, -1, -1, false, false);
+                    break;
+                }
+
+                if (row == -1) {
+                    location = new DropLocation(p, getRowCount(), col, true, false);
+                    break;
+                }
+
+                if (SwingUtilities2.liesInVertical(rect, p, false) == TRAILING) {
+                    row++;
+                }
+
+                location = new DropLocation(p, row, col, true, false);
+                break;
+            case ON_OR_INSERT_ROWS:
+                if (row == -1 && col == -1) {
+                    location = new DropLocation(p, -1, -1, false, false);
+                    break;
+                }
+
+                if (row == -1) {
+                    location = new DropLocation(p, getRowCount(), col, true, false);
+                    break;
+                }
+
+                ySection = SwingUtilities2.liesInVertical(rect, p, true);
+                if (ySection == LEADING) {
+                    between = true;
+                } else if (ySection == TRAILING) {
+                    row++;
+                    between = true;
+                }
+
+                location = new DropLocation(p, row, col, between, false);
+                break;
+            case INSERT_COLS:
+                if (row == -1) {
+                    location = new DropLocation(p, -1, -1, false, false);
+                    break;
+                }
+
+                if (col == -1) {
+                    location = new DropLocation(p, getColumnCount(), col, false, true);
+                    break;
+                }
+
+                if (SwingUtilities2.liesInHorizontal(rect, p, ltr, false) == TRAILING) {
+                    col++;
+                }
+
+                location = new DropLocation(p, row, col, false, true);
+                break;
+            case ON_OR_INSERT_COLS:
+                if (row == -1) {
+                    location = new DropLocation(p, -1, -1, false, false);
+                    break;
+                }
+
+                if (col == -1) {
+                    location = new DropLocation(p, row, getColumnCount(), false, true);
+                    break;
+                }
+
+                xSection = SwingUtilities2.liesInHorizontal(rect, p, ltr, true);
+                if (xSection == LEADING) {
+                    between = true;
+                } else if (xSection == TRAILING) {
+                    col++;
+                    between = true;
+                }
+
+                location = new DropLocation(p, row, col, false, between);
+                break;
+            case ON_OR_INSERT:
+                if (row == -1 && col == -1) {
+                    location = new DropLocation(p, 0, 0, true, true);
+                    break;
+                }
+
+                xSection = SwingUtilities2.liesInHorizontal(rect, p, ltr, true);
+
+                if (row == -1) {
+                    if (xSection == LEADING) {
+                        location = new DropLocation(p, getRowCount(), col, true, true);
+                    } else if (xSection == TRAILING) {
+                        location = new DropLocation(p, getRowCount(), col + 1, true, true);
+                    } else {
+                        location = new DropLocation(p, getRowCount(), col, true, false);
+                    }
+
+                    break;
+                }
+
+                ySection = SwingUtilities2.liesInVertical(rect, p, true);
+                if (ySection == LEADING) {
+                    between = true;
+                } else if (ySection == TRAILING) {
+                    row++;
+                    between = true;
+                }
+
+                location = new DropLocation(p, row,
+                                            xSection == TRAILING ? col + 1 : col,
+                                            between,
+                                            xSection != MIDDLE);
+
+                break;
+            default:
+                assert false : "Unexpected drop mode";
+        }
+
+        return location;
+    }
+
+    /**
+     * Called to set or clear the drop location during a DnD operation.
+     * In some cases, the component may need to use it's internal selection
+     * temporarily to indicate the drop location. To help facilitate this,
+     * this method returns and accepts as a parameter a state object.
+     * This state object can be used to store, and later restore, the selection
+     * state. Whatever this method returns will be passed back to it in
+     * future calls, as the state parameter. If it wants the DnD system to
+     * continue storing the same state, it must pass it back every time.
+     * Here's how this is used:
+     * <p>
+     * Let's say that on the first call to this method the component decides
+     * to save some state (because it is about to use the selection to show
+     * a drop index). It can return a state object to the caller encapsulating
+     * any saved selection state. On a second call, let's say the drop location
+     * is being changed to something else. The component doesn't need to
+     * restore anything yet, so it simply passes back the same state object
+     * to have the DnD system continue storing it. Finally, let's say this
+     * method is messaged with <code>null</code>. This means DnD
+     * is finished with this component for now, meaning it should restore
+     * state. At this point, it can use the state parameter to restore
+     * said state, and of course return <code>null</code> since there's
+     * no longer anything to store.
+     *
+     * @param location the drop location (as calculated by
+     *        <code>dropLocationForPoint</code>) or <code>null</code>
+     *        if there's no longer a valid drop location
+     * @param state the state object saved earlier for this component,
+     *        or <code>null</code>
+     * @param forDrop whether or not the method is being called because an
+     *        actual drop occurred
+     * @return any saved state for this component, or <code>null</code> if none
+     */
+    Object setDropLocation(TransferHandler.DropLocation location,
+                           Object state,
+                           boolean forDrop) {
+
+        Object retVal = null;
+        DropLocation tableLocation = (DropLocation)location;
+
+        if (dropMode == DropMode.USE_SELECTION) {
+            if (tableLocation == null) {
+                if (!forDrop && state != null) {
+                    clearSelection();
+
+                    int[] rows = (int[])((int[][])state)[0];
+                    int[] cols = (int[])((int[][])state)[1];
+                    int[] anchleads = (int[])((int[][])state)[2];
+
+                    for (int i = 0; i < rows.length; i++) {
+                        addRowSelectionInterval(rows[i], rows[i]);
+                    }
+
+                    for (int i = 0; i < cols.length; i++) {
+                        addColumnSelectionInterval(cols[i], cols[i]);
+                    }
+
+                    SwingUtilities2.setLeadAnchorWithoutSelection(
+                            getSelectionModel(), anchleads[1], anchleads[0]);
+
+                    SwingUtilities2.setLeadAnchorWithoutSelection(
+                            getColumnModel().getSelectionModel(),
+                            anchleads[3], anchleads[2]);
+                }
+            } else {
+                if (dropLocation == null) {
+                    retVal = new int[][]{
+                        getSelectedRows(),
+                        getSelectedColumns(),
+                        {getAdjustedIndex(getSelectionModel()
+                             .getAnchorSelectionIndex(), true),
+                         getAdjustedIndex(getSelectionModel()
+                             .getLeadSelectionIndex(), true),
+                         getAdjustedIndex(getColumnModel().getSelectionModel()
+                             .getAnchorSelectionIndex(), false),
+                         getAdjustedIndex(getColumnModel().getSelectionModel()
+                             .getLeadSelectionIndex(), false)}};
+                } else {
+                    retVal = state;
+                }
+
+                if (tableLocation.getRow() == -1) {
+                    clearSelectionAndLeadAnchor();
+                } else {
+                    setRowSelectionInterval(tableLocation.getRow(),
+                                            tableLocation.getRow());
+                    setColumnSelectionInterval(tableLocation.getColumn(),
+                                               tableLocation.getColumn());
+                }
+            }
+        }
+
+        DropLocation old = dropLocation;
+        dropLocation = tableLocation;
+        firePropertyChange("dropLocation", old, dropLocation);
+
+        return retVal;
+    }
+
+    /**
+     * Returns the location that this component should visually indicate
+     * as the drop location during a DnD operation over the component,
+     * or {@code null} if no location is to currently be shown.
+     * <p>
+     * This method is not meant for querying the drop location
+     * from a {@code TransferHandler}, as the drop location is only
+     * set after the {@code TransferHandler}'s <code>canImport</code>
+     * has returned and has allowed for the location to be shown.
+     * <p>
+     * When this property changes, a property change event with
+     * name "dropLocation" is fired by the component.
+     *
+     * @return the drop location
+     * @see #setDropMode
+     * @see TransferHandler#canImport(TransferHandler.TransferSupport)
+     * @since 1.6
+     */
+    public final DropLocation getDropLocation() {
+        return dropLocation;
+    }
+
+    /**
+     * Specifies whether a {@code RowSorter} should be created for the
+     * table whenever its model changes.
+     * <p>
+     * When {@code setAutoCreateRowSorter(true)} is invoked, a {@code
+     * TableRowSorter} is immediately created and installed on the
+     * table.  While the {@code autoCreateRowSorter} property remains
+     * {@code true}, every time the model is changed, a new {@code
+     * TableRowSorter} is created and set as the table's row sorter.
+     *
+     * @param autoCreateRowSorter whether or not a {@code RowSorter}
+     *        should be automatically created
+     * @see javax.swing.table.TableRowSorter
+     * @beaninfo
+     *        bound: true
+     *    preferred: true
+     *  description: Whether or not to turn on sorting by default.
+     * @since 1.6
+     */
+    public void setAutoCreateRowSorter(boolean autoCreateRowSorter) {
+        boolean oldValue = this.autoCreateRowSorter;
+        this.autoCreateRowSorter = autoCreateRowSorter;
+        if (autoCreateRowSorter) {
+            setRowSorter(new TableRowSorter(getModel()));
+        }
+        firePropertyChange("autoCreateRowSorter", oldValue,
+                           autoCreateRowSorter);
+    }
+
+    /**
+     * Returns {@code true} if whenever the model changes, a new
+     * {@code RowSorter} should be created and installed
+     * as the table's sorter; otherwise, returns {@code false}. 
+     *
+     * @return true if a {@code RowSorter} should be created when
+     *         the model changes
+     * @since 1.6
+     */
+    public boolean getAutoCreateRowSorter() {
+        return autoCreateRowSorter;
+    }
+
+    /**
+     * Specifies whether the selection should be updated after sorting.
+     * If true, on sorting the selection is reset such that
+     * the same rows, in terms of the model, remain selected.  The default
+     * is true.
+     *
+     * @param update whether or not to update the selection on sorting
+     * @beaninfo
+     *        bound: true
+     *       expert: true
+     *  description: Whether or not to update the selection on sorting
+     * @since 1.6
+     */
+    public void setUpdateSelectionOnSort(boolean update) {
+        if (updateSelectionOnSort != update) {
+            updateSelectionOnSort = update;
+            firePropertyChange("updateSelectionOnSort", !update, update);
+        }
+    }
+
+    /**
+     * Returns true if the selection should be updated after sorting.
+     *
+     * @return whether to update the selection on a sort
+     * @since 1.6
+     */
+    public boolean getUpdateSelectionOnSort() {
+        return updateSelectionOnSort;
+    }
+
+    /**
+     * Sets the <code>RowSorter</code>.  <code>RowSorter</code> is used
+     * to provide sorting and filtering to a <code>JTable</code>.
+     * <p>
+     * This method clears the selection and resets any variable row heights.
+     * <p>
+     * If the underlying model of the <code>RowSorter</code> differs from
+     * that of this <code>JTable</code> undefined behavior will result.
+     *
+     * @param sorter the <code>RowSorter</code>; <code>null</code> turns
+     *        sorting off
+     * @see javax.swing.table.TableRowSorter
+     * @since 1.6
+     */
+    public void setRowSorter(RowSorter<? extends TableModel> sorter) {
+        RowSorter<? extends TableModel> oldRowSorter = null;
+        if (sortManager != null) {
+            oldRowSorter = sortManager.sorter;
+            sortManager.dispose();
+            sortManager = null;
+        }
+        rowModel = null;
+        clearSelectionAndLeadAnchor();
+        if (sorter != null) {
+            sortManager = new SortManager(sorter);
+        }
+        resizeAndRepaint();
+        firePropertyChange("sorter", oldRowSorter, sorter);
+    }
+
+    /**
+     * Returns the object responsible for sorting.
+     *
+     * @return the object responsible for sorting
+     * @since 1.6
+     */
+    public RowSorter<? extends TableModel> getRowSorter() {
+        return (sortManager != null) ? sortManager.sorter : null;
+    }
 
 //
 // Selection methods
@@ -1607,18 +2281,22 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
     private void changeSelectionModel(ListSelectionModel sm, int index,
 				      boolean toggle, boolean extend, boolean selected,
-                                      boolean row) {
+                                      int anchor, boolean anchorSelected) {
         if (extend) {
             if (toggle) {
-		sm.setAnchorSelectionIndex(index);
+                if (anchorSelected) {
+                    sm.addSelectionInterval(anchor, index);
+                } else {
+                    sm.removeSelectionInterval(anchor, index);
+                    // this is a Windows-only behavior that we want for file lists
+                    if (Boolean.TRUE == getClientProperty("Table.isFileList")) {
+                        sm.addSelectionInterval(index, index);
+                        sm.setAnchorSelectionIndex(anchor);
+                    }
+                }
 	    }
 	    else {
-                int anchorIndex = getAdjustedIndex(sm.getAnchorSelectionIndex(), row);
-                if (anchorIndex == -1) {
-                    anchorIndex = 0;
-                }
-
-                sm.setSelectionInterval(anchorIndex, index);
+		sm.setSelectionInterval(anchor, index);
 	    }
         }
 	else {
@@ -1655,17 +2333,34 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * <li> <code>toggle</code>: <em>true</em>, <code>extend</code>: <em>false</em>.
      *      If the specified cell is selected, deselect it. If it is not selected, select it.
      * <li> <code>toggle</code>: <em>true</em>, <code>extend</code>: <em>true</em>.
-     *      Leave the selection state as it is, but move the anchor index to the specified location.
+     *      Apply the selection state of the anchor to all cells between it and the
+     *      specified cell.
      * </ul>
      * @param  rowIndex   affects the selection at <code>row</code>
      * @param  columnIndex  affects the selection at <code>column</code>
      * @param  toggle  see description above
      * @param  extend  if true, extend the current selection
      *
+     * @since 1.3
      */
     public void changeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
         ListSelectionModel rsm = getSelectionModel();
         ListSelectionModel csm = getColumnModel().getSelectionModel();
+
+        int anchorRow = getAdjustedIndex(rsm.getAnchorSelectionIndex(), true);
+        int anchorCol = getAdjustedIndex(csm.getAnchorSelectionIndex(), false);
+
+        boolean anchorSelected = true;
+
+        if (anchorRow == -1) {
+            anchorRow = 0;
+            anchorSelected = false;
+        }
+
+        if (anchorCol == -1) {
+            anchorCol = 0;
+            anchorSelected = false;
+        }
 
 	// Check the selection here rather than in each selection model.
 	// This is significant in cell selection mode if we are supposed
@@ -1675,9 +2370,12 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	// might leave a cell in selection state if the row was
 	// selected but the column was not - as it would toggle them both.
 	boolean selected = isCellSelected(rowIndex, columnIndex);
+        anchorSelected = anchorSelected && isCellSelected(anchorRow, anchorCol);
 
-        changeSelectionModel(csm, columnIndex, toggle, extend, selected, false);
-        changeSelectionModel(rsm, rowIndex, toggle, extend, selected, true);
+        changeSelectionModel(csm, columnIndex, toggle, extend, selected,
+                             anchorCol, anchorSelected);
+        changeSelectionModel(rsm, rowIndex, toggle, extend, selected,
+                             anchorRow, anchorSelected);
 
         // Scroll after changing the selection as blit scrolling is immediate,
         // so that if we cause the repaint after the scroll we end up painting
@@ -1839,12 +2537,63 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Returns the number of rows in this table's model.
-     * @return the number of rows in this table's model
+     * Maps the index of the row in terms of the
+     * <code>TableModel</code> to the view.  If the contents of the
+     * model are not sorted the model and view indices are the same.
      *
+     * @param modelRowIndex the index of the row in terms of the model
+     * @return the index of the corresponding row in the view, or -1 if
+     *         the row isn't visible
+     * @throws IndexOutOfBoundsException if sorting is enabled and passed an
+     *         index outside the number of rows of the <code>TableModel</code>
+     * @see javax.swing.table.TableRowSorter
+     * @since 1.6
+     */
+    public int convertRowIndexToView(int modelRowIndex) {
+        RowSorter sorter = getRowSorter();
+        if (sorter != null) {
+            return sorter.convertRowIndexToView(modelRowIndex);
+        }
+        return modelRowIndex;
+    }
+
+    /**
+     * Maps the index of the row in terms of the view to the
+     * underlying <code>TableModel</code>.  If the contents of the
+     * model are not sorted the model and view indices are the same.
+     *
+     * @param viewRowIndex the index of the row in the view
+     * @return the index of the corresponding row in the model
+     * @throws IndexOutOfBoundsException if sorting is enabled and passed an
+     *         index outside the range of the <code>JTable</code> as
+     *         determined by the method <code>getRowCount</code> 
+     * @see javax.swing.table.TableRowSorter
+     * @see #getRowCount
+     * @since 1.6
+     */
+    public int convertRowIndexToModel(int viewRowIndex) {
+        RowSorter sorter = getRowSorter();
+        if (sorter != null) {
+            return sorter.convertRowIndexToModel(viewRowIndex);
+        }
+        return viewRowIndex;
+    }
+
+    /**
+     * Returns the number of rows that can be shown in the
+     * <code>JTable</code>, given unlimited space.  If a
+     * <code>RowSorter</code> with a filter has been specified, the
+     * number of rows returned may differ from that of the underlying
+     * <code>TableModel</code>.
+     *
+     * @return the number of rows shown in the <code>JTable</code>
      * @see #getColumnCount
      */
     public int getRowCount() {
+        RowSorter sorter = getRowSorter();
+        if (sorter != null) {
+            return sorter.getViewRowCount();
+        }
         return getModel().getRowCount();
     }
 
@@ -1900,7 +2649,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @return  the Object at the specified cell
      */
     public Object getValueAt(int row, int column) {
-        return getModel().getValueAt(row, convertColumnIndexToModel(column));
+        return getModel().getValueAt(convertRowIndexToModel(row),
+                                     convertColumnIndexToModel(column));
     }
 
     /**
@@ -1923,7 +2673,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see #getValueAt
      */
     public void setValueAt(Object aValue, int row, int column) {
-        getModel().setValueAt(aValue, row, convertColumnIndexToModel(column));
+        getModel().setValueAt(aValue, convertRowIndexToModel(row),
+                              convertColumnIndexToModel(column));
     }
 
     /**
@@ -1946,7 +2697,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see #setValueAt
      */
     public boolean isCellEditable(int row, int column) {
-        return getModel().isCellEditable(row, convertColumnIndexToModel(column));
+        return getModel().isCellEditable(convertRowIndexToModel(row),
+                                         convertColumnIndexToModel(column));
     }
 //
 // Adding and removing columns in the view
@@ -2103,6 +2855,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *
      * @return  the rectangle containing the cell at location
      *          <code>row</code>,<code>column</code>
+     * @see #getIntercellSpacing
      */
     public Rectangle getCellRect(int row, int column, boolean includeSpacing) {
         Rectangle r = new Rectangle();
@@ -2149,8 +2902,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	}
 
         if (valid && !includeSpacing) {
-            int rm = getRowMargin();
-            int cm = getColumnModel().getColumnMargin();
+            // Bound the margins by their associated dimensions to prevent
+            // returning bounds with negative dimensions.
+            int rm = Math.min(getRowMargin(), r.height);
+            int cm = Math.min(getColumnModel().getColumnMargin(), r.width);
             // This is not the same as grow(), it rounds differently.
             r.setBounds(r.x + cm/2, r.y + rm/2, r.width - cm, r.height - rm);
         }
@@ -2580,8 +3335,12 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 p.translate(-cellRect.x, -cellRect.y);
                 MouseEvent newEvent = new MouseEvent(component, event.getID(),
                                           event.getWhen(), event.getModifiers(),
-                                          p.x, p.y, event.getClickCount(),
-                                          event.isPopupTrigger());
+                                          p.x, p.y,
+                                          event.getXOnScreen(),
+                                          event.getYOnScreen(),
+                                          event.getClickCount(),
+                                          event.isPopupTrigger(),
+                                          MouseEvent.NOBUTTON);
 
                 tip = ((JComponent)component).getToolTipText(newEvent);
             }
@@ -2611,6 +3370,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *
      *
      * @see #getSurrendersFocusOnKeystroke
+     * @since 1.4
      */
     public void setSurrendersFocusOnKeystroke(boolean surrendersFocusOnKeystroke) {
         this.surrendersFocusOnKeystroke = surrendersFocusOnKeystroke;
@@ -2625,6 +3385,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *          activated
      *
      * @see #setSurrendersFocusOnKeystroke
+     * @since 1.4
      */
     public boolean getSurrendersFocusOnKeystroke() {
         return surrendersFocusOnKeystroke;
@@ -2693,6 +3454,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    editorComp.setBounds(getCellRect(row, column, false));
 	    add(editorComp);
 	    editorComp.validate();
+            editorComp.repaint();
 
 	    setCellEditor(editor);
 	    setEditingRow(row);
@@ -2792,8 +3554,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             component = ((DefaultCellEditor)componentShell).getComponent();
         }
 
-        if (component != null && component instanceof JComponent) {
-            ((JComponent)component).updateUI();
+        if (component != null) {
+            SwingUtilities.updateComponentTreeUI(component);
         }
     }
 
@@ -2832,7 +3594,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         }
         
         setUI((TableUI)UIManager.getUI(this));
-        resizeAndRepaint();
     }
 
     /**
@@ -2878,6 +3639,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             tableChanged(new TableModelEvent(dataModel, TableModelEvent.HEADER_ROW));
 
 	    firePropertyChange("model", old, dataModel);
+
+            if (getAutoCreateRowSorter()) {
+                setRowSorter(new TableRowSorter(dataModel));
+            }
         }
     }
 
@@ -2981,6 +3746,559 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
 //
+// RowSorterListener
+//
+
+    /**
+     * <code>RowSorterListener</code> notification that the
+     * <code>RowSorter</code> has changed in some way.
+     *
+     * @param e the <code>RowSorterEvent</code> describing the change
+     * @throws NullPointerException if <code>e</code> is <code>null</code>
+     * @since 1.6
+     */
+    public void sorterChanged(RowSorterEvent e) {
+        if (e.getType() == RowSorterEvent.Type.SORT_ORDER_CHANGED) {
+            JTableHeader header = getTableHeader();
+            if (header != null) {
+                header.repaint();
+            }
+        }
+        else if (e.getType() == RowSorterEvent.Type.SORTED) {
+            sorterChanged = true;
+            if (!ignoreSortChange) {
+                sortedTableChanged(e, null);
+            }
+        }
+    }
+
+
+    /**
+     * SortManager provides support for managing the selection and variable
+     * row heights when sorting is enabled. This information is encapsulated
+     * into a class to avoid bulking up JTable.
+     */
+    private final class SortManager {
+        RowSorter<? extends TableModel> sorter;
+
+        // Selection, in terms of the model. This is lazily created
+        // as needed.
+        private ListSelectionModel modelSelection;
+        private int modelLeadIndex;
+        // Set to true while in the process of changing the selection.
+        // If this is true the selection change is ignored.
+        private boolean syncingSelection;
+        // Temporary cache of selection, in terms of model. This is only used
+        // if we don't need the full weight of modelSelection.
+        private int[] lastModelSelection;
+
+        // Heights of the rows in terms of the model.
+        private SizeSequence modelRowSizes;
+
+
+        SortManager(RowSorter<? extends TableModel> sorter) {
+            this.sorter = sorter;
+            sorter.addRowSorterListener(JTable.this);
+        }
+
+        /**
+         * Disposes any resources used by this SortManager.
+         */
+        public void dispose() {
+            if (sorter != null) {
+                sorter.removeRowSorterListener(JTable.this);
+            }
+        }
+
+        /**
+         * Sets the height for a row at a specified index.
+         */
+        public void setViewRowHeight(int viewIndex, int rowHeight) {
+            if (modelRowSizes == null) {
+                modelRowSizes = new SizeSequence(getModel().getRowCount(),
+                                                 getRowHeight());
+            }
+            modelRowSizes.setSize(convertRowIndexToModel(viewIndex),rowHeight);
+        }
+
+        /**
+         * Invoked when the underlying model has completely changed.
+         */
+        public void allChanged() {
+            modelLeadIndex = -1;
+            modelSelection = null;
+            modelRowSizes = null;
+        }
+
+        /**
+         * Invoked when the selection, on the view, has changed.
+         */
+        public void viewSelectionChanged(ListSelectionEvent e) {
+            if (!syncingSelection && modelSelection != null) {
+                modelSelection = null;
+            }
+        }
+
+        /**
+         * Invoked when either the table model has changed, or the RowSorter
+         * has changed. This is invoked prior to notifying the sorter of the
+         * change.
+         */
+        public void prepareForChange(RowSorterEvent sortEvent,
+                                     ModelChange change) {
+            if (getUpdateSelectionOnSort()) {
+                cacheSelection(sortEvent, change);
+            }
+        }
+
+        /**
+         * Updates the internal cache of the selection based on the change.
+         */
+        private void cacheSelection(RowSorterEvent sortEvent,
+                                    ModelChange change) {
+            if (sortEvent != null) {
+                // sort order changed. If modelSelection is null and filtering
+                // is enabled we need to cache the selection in terms of the
+                // underlying model, this will allow us to correctly restore
+                // the selection even if rows are filtered out.
+                if (modelSelection == null &&
+                        sorter.getViewRowCount() != getModel().getRowCount()) {
+                    modelSelection = new DefaultListSelectionModel();
+                    ListSelectionModel viewSelection = getSelectionModel();
+                    int min = viewSelection.getMinSelectionIndex();
+                    int max = viewSelection.getMaxSelectionIndex();
+                    int modelIndex;
+                    for (int viewIndex = min; viewIndex <= max; viewIndex++) {
+                        if (viewSelection.isSelectedIndex(viewIndex)) {
+                            modelIndex = convertRowIndexToModel(
+                                    sortEvent, viewIndex);
+                            if (modelIndex != -1) {
+                                modelSelection.addSelectionInterval(
+                                    modelIndex, modelIndex);
+                            }
+                        }
+                    }
+                    modelIndex = convertRowIndexToModel(sortEvent,
+                            viewSelection.getLeadSelectionIndex());
+                    SwingUtilities2.setLeadAnchorWithoutSelection(
+                            modelSelection, modelIndex, modelIndex);
+                } else if (modelSelection == null) {
+                    // Sorting changed, haven't cached selection in terms
+                    // of model and no filtering. Temporarily cache selection.
+                    cacheModelSelection(sortEvent);
+                }
+            } else if (change.allRowsChanged) {
+                // All the rows have changed, chuck any cached selection.
+                modelSelection = null;
+            } else if (modelSelection != null) {
+                // Table changed, reflect changes in cached selection model.
+                switch(change.type) {
+                case TableModelEvent.DELETE:
+                    modelSelection.removeIndexInterval(change.startModelIndex,
+                                                       change.endModelIndex);
+                    break;
+                case TableModelEvent.INSERT:
+                    modelSelection.insertIndexInterval(change.startModelIndex,
+                                                       change.endModelIndex,
+                                                       true);
+                    break;
+                default:
+                    break;
+                }
+            } else {
+                // table changed, but haven't cached rows, temporarily
+                // cache them.
+                cacheModelSelection(null);
+            }
+        }
+
+        private void cacheModelSelection(RowSorterEvent sortEvent) {
+            lastModelSelection = convertSelectionToModel(sortEvent);
+            modelLeadIndex = convertRowIndexToModel(sortEvent,
+                        selectionModel.getLeadSelectionIndex());
+        }
+
+        /**
+         * Inovked when either the table has changed or the sorter has changed
+         * and after the sorter has been notified. If necessary this will
+         * reapply the selection and variable row heights.
+         */
+        public void processChange(RowSorterEvent sortEvent,
+                                  ModelChange change,
+                                  boolean sorterChanged) {
+            if (change != null) {
+                if (change.allRowsChanged) {
+                    modelRowSizes = null;
+                    rowModel = null;
+                } else if (modelRowSizes != null) {
+                    if (change.type == TableModelEvent.INSERT) {
+                        modelRowSizes.insertEntries(change.startModelIndex,
+                                                    change.endModelIndex -
+                                                    change.startModelIndex + 1,
+                                                    getRowHeight());
+                    } else if (change.type == TableModelEvent.DELETE) {
+                        modelRowSizes.removeEntries(change.startModelIndex,
+                                                    change.endModelIndex -
+                                                    change.startModelIndex +1 );
+                    }
+                }
+            }
+            if (sorterChanged) {
+                setViewRowHeightsFromModel();
+                restoreSelection(change);
+            }
+        }
+
+        /**
+         * Resets the variable row heights in terms of the view from
+         * that of the variable row heights in terms of the model.
+         */
+        private void setViewRowHeightsFromModel() {
+            if (modelRowSizes != null) {
+                rowModel.setSizes(getRowCount(), getRowHeight());
+                for (int viewIndex = getRowCount() - 1; viewIndex >= 0;
+                         viewIndex--) {
+                    int modelIndex = convertRowIndexToModel(viewIndex);
+                    rowModel.setSize(viewIndex,
+                                     modelRowSizes.getSize(modelIndex));
+                }
+            }
+        }
+
+        /**
+         * Restores the selection from that in terms of the model.
+         */
+        private void restoreSelection(ModelChange change) {
+            syncingSelection = true;
+            if (lastModelSelection != null) {
+                restoreSortingSelection(lastModelSelection,
+                                        modelLeadIndex, change);
+                lastModelSelection = null;
+            } else if (modelSelection != null) {
+                ListSelectionModel viewSelection = getSelectionModel();
+                viewSelection.setValueIsAdjusting(true);
+                viewSelection.clearSelection();
+                int min = modelSelection.getMinSelectionIndex();
+                int max = modelSelection.getMaxSelectionIndex();
+                int viewIndex;
+                for (int modelIndex = min; modelIndex <= max; modelIndex++) {
+                    if (modelSelection.isSelectedIndex(modelIndex)) {
+                        viewIndex = convertRowIndexToView(modelIndex);
+                        if (viewIndex != -1) {
+                            viewSelection.addSelectionInterval(viewIndex,
+                                                               viewIndex);
+                        }
+                    }
+                }
+                // Restore the lead
+                int viewLeadIndex = modelSelection.getLeadSelectionIndex();
+                if (viewLeadIndex != -1) {
+                    viewLeadIndex = convertRowIndexToView(viewLeadIndex);
+                }
+                SwingUtilities2.setLeadAnchorWithoutSelection(
+                        viewSelection, viewLeadIndex, viewLeadIndex);
+                viewSelection.setValueIsAdjusting(false);
+            }
+            syncingSelection = false;
+        }
+    }
+
+
+    /**
+     * ModelChange is used when sorting to restore state, it corresponds
+     * to data from a TableModelEvent.  The values are precalculated as
+     * they are used extensively.
+     */
+    private final class ModelChange {
+        // Starting index of the change, in terms of the model
+        int startModelIndex;
+
+        // Ending index of the change, in terms of the model
+        int endModelIndex;
+
+        // Type of change
+        int type;
+
+        // Number of rows in the model
+        int modelRowCount;
+
+        // The event that triggered this.
+        TableModelEvent event;
+
+        // Length of the change (end - start + 1)
+        int length;
+
+        // True if the event indicates all the contents have changed
+        boolean allRowsChanged;
+
+        ModelChange(TableModelEvent e) {
+            startModelIndex = Math.max(0, e.getFirstRow());
+            endModelIndex = e.getLastRow();
+            modelRowCount = getModel().getRowCount();
+            if (endModelIndex < 0) {
+                endModelIndex = Math.max(0, modelRowCount - 1);
+            }
+            length = endModelIndex - startModelIndex + 1;
+            type = e.getType();
+            event = e;
+            allRowsChanged = (e.getLastRow() == Integer.MAX_VALUE);
+        }
+    }
+
+    /**
+     * Invoked when <code>sorterChanged</code> is invoked, or
+     * when <code>tableChanged</code> is invoked and sorting is enabled.
+     */
+    private void sortedTableChanged(RowSorterEvent sortedEvent,
+                                    TableModelEvent e) {
+        int editingModelIndex = -1;
+        ModelChange change = (e != null) ? new ModelChange(e) : null;
+
+        if ((change == null || !change.allRowsChanged) &&
+                this.editingRow != -1) {
+            editingModelIndex = convertRowIndexToModel(sortedEvent,
+                                                       this.editingRow);
+        }
+
+        sortManager.prepareForChange(sortedEvent, change);
+
+        if (e != null) {
+            if (change.type == TableModelEvent.UPDATE) {
+                repaintSortedRows(change);
+            }
+            notifySorter(change);
+            if (change.type != TableModelEvent.UPDATE) {
+                // If the Sorter is unsorted we will not have received
+                // notification, force treating insert/delete as a change.
+                sorterChanged = true;
+            }
+        }
+        else {
+            sorterChanged = true;
+        }
+
+        sortManager.processChange(sortedEvent, change, sorterChanged);
+
+        if (sorterChanged) {
+            // Update the editing row
+            if (this.editingRow != -1) {
+                int newIndex = (editingModelIndex == -1) ? -1 :
+                        convertRowIndexToView(editingModelIndex,change);
+                restoreSortingEditingRow(newIndex);
+            }
+
+            // And handle the appropriate repainting.
+            if (e == null || change.type != TableModelEvent.UPDATE) {
+                resizeAndRepaint();
+            }
+        }
+
+        // Check if lead/anchor need to be reset.
+        if (change != null && change.allRowsChanged) {
+            clearSelectionAndLeadAnchor();
+            resizeAndRepaint();
+        }
+    }
+
+    /**
+     * Repaints the sort of sorted rows in response to a TableModelEvent.
+     */
+    private void repaintSortedRows(ModelChange change) {
+        if (change.startModelIndex > change.endModelIndex ||
+                change.startModelIndex + 10 < change.endModelIndex) {
+            // Too much has changed, punt
+            repaint();
+            return;
+        }
+        int eventColumn = change.event.getColumn();
+        int columnViewIndex = eventColumn;
+        if (columnViewIndex == TableModelEvent.ALL_COLUMNS) {
+            columnViewIndex = 0;
+        }
+        else {
+            columnViewIndex = convertColumnIndexToView(columnViewIndex);
+            if (columnViewIndex == -1) {
+                return;
+            }
+        }
+        int modelIndex = change.startModelIndex;
+        while (modelIndex <= change.endModelIndex) {
+            int viewIndex = convertRowIndexToView(modelIndex++);
+            if (viewIndex != -1) {
+                Rectangle dirty = getCellRect(viewIndex, columnViewIndex,
+                                              false);
+                int x = dirty.x;
+                int w = dirty.width;
+                if (eventColumn == TableModelEvent.ALL_COLUMNS) {
+                    x = 0;
+                    w = getWidth();
+                }
+                repaint(x, dirty.y, w, dirty.height);
+            }
+        }
+    }
+
+    /**
+     * Restores the selection after a model event/sort order changes.
+     * All coordinates are in terms of the model.
+     */
+    private void restoreSortingSelection(int[] selection, int lead,
+            ModelChange change) {
+        // Convert the selection from model to view
+        for (int i = selection.length - 1; i >= 0; i--) {
+            selection[i] = convertRowIndexToView(selection[i], change);
+        }
+        lead = convertRowIndexToView(lead, change);
+
+        // Check for the common case of no change in selection for 1 row
+        if (selection.length == 0 ||
+            (selection.length == 1 && selection[0] == getSelectedRow())) {
+            return;
+        }
+
+        // And apply the new selection
+        selectionModel.setValueIsAdjusting(true);
+        selectionModel.clearSelection();
+        for (int i = selection.length - 1; i >= 0; i--) {
+            if (selection[i] != -1) {
+                selectionModel.addSelectionInterval(selection[i],
+                                                    selection[i]);
+            }
+        }
+        SwingUtilities2.setLeadAnchorWithoutSelection(
+                selectionModel, lead, lead);
+        selectionModel.setValueIsAdjusting(false);
+    }
+
+    /**
+     * Restores the editing row after a model event/sort order change.
+     *
+     * @param editingRow new index of the editingRow, in terms of the view
+     */
+    private void restoreSortingEditingRow(int editingRow) {
+        if (editingRow == -1) {
+            // Editing row no longer being shown, cancel editing
+            TableCellEditor editor = getCellEditor();
+            if (editor != null) {
+                // First try and cancel
+                editor.cancelCellEditing();
+                if (getCellEditor() != null) {
+                    // CellEditor didn't cede control, forcefully
+                    // remove it
+                    removeEditor();
+                }
+            }
+        }
+        else {
+            // Repositioning handled in BasicTableUI
+            this.editingRow = editingRow;
+            repaint();
+        }
+    }
+
+    /**
+     * Notifies the sorter of a change in the underlying model.
+     */
+    private void notifySorter(ModelChange change) {
+        try {
+            ignoreSortChange = true;
+            sorterChanged = false;
+            switch(change.type) {
+            case TableModelEvent.UPDATE:
+                if (change.event.getLastRow() == Integer.MAX_VALUE) {
+                    sortManager.sorter.allRowsChanged();
+                } else if (change.event.getColumn() ==
+                           TableModelEvent.ALL_COLUMNS) {
+                    sortManager.sorter.rowsUpdated(change.startModelIndex,
+                                       change.endModelIndex);
+                } else {
+                    sortManager.sorter.rowsUpdated(change.startModelIndex,
+                                       change.endModelIndex,
+                                       change.event.getColumn());
+                }
+                break;
+            case TableModelEvent.INSERT:
+                sortManager.sorter.rowsInserted(change.startModelIndex,
+                                    change.endModelIndex);
+                break;
+            case TableModelEvent.DELETE:
+                sortManager.sorter.rowsDeleted(change.startModelIndex,
+                                   change.endModelIndex);
+                break;
+            }
+        } finally {
+            ignoreSortChange = false;
+        }
+    }
+
+    /**
+     * Converts a model index to view index.  This is called when the
+     * sorter or model changes and sorting is enabled.
+     *
+     * @param change describes the TableModelEvent that initiated the change;
+     *        will be null if called as the result of a sort
+     */
+    private int convertRowIndexToView(int modelIndex, ModelChange change) {
+        if (modelIndex < 0) {
+            return -1;
+        }
+        if (change != null && modelIndex >= change.startModelIndex) {
+            if (change.type == TableModelEvent.INSERT) {
+                if (modelIndex + change.length >= change.modelRowCount) {
+                    return -1;
+                }
+                return sortManager.sorter.convertRowIndexToView(
+                        modelIndex + change.length);
+            }
+            else if (change.type == TableModelEvent.DELETE) {
+                if (modelIndex <= change.endModelIndex) {
+                    // deleted
+                    return -1;
+                }
+                else {
+                    if (modelIndex - change.length >= change.modelRowCount) {
+                        return -1;
+                    }
+                    return sortManager.sorter.convertRowIndexToView(
+                            modelIndex - change.length);
+                }
+            }
+            // else, updated
+        }
+        if (modelIndex >= getModel().getRowCount()) {
+            return -1;
+        }
+        return sortManager.sorter.convertRowIndexToView(modelIndex);
+    }
+
+    /**
+     * Converts the selection to model coordinates.  This is used when
+     * the model changes or the sorter changes.
+     */
+    private int[] convertSelectionToModel(RowSorterEvent e) {
+        int[] selection = getSelectedRows();
+        for (int i = selection.length - 1; i >= 0; i--) {
+            selection[i] = convertRowIndexToModel(e, selection[i]);
+        }
+        return selection;
+    }
+
+    private int convertRowIndexToModel(RowSorterEvent e, int viewIndex) {
+        if (e != null) {
+            if (e.getPreviousRowCount() == 0) {
+                return viewIndex;
+            }
+            // range checking handled by RowSorterEvent
+            return e.convertPreviousRowIndexToModel(viewIndex);
+        }
+        // Make sure the viewIndex is valid
+        if (viewIndex < 0 || viewIndex >= getRowCount()) {
+            return -1;
+        }
+        return convertRowIndexToModel(viewIndex);
+    }
+
+//
 // Implementing TableModelListener interface
 //
 
@@ -3004,6 +4322,16 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
             rowModel = null;
 
+            if (sortManager != null) {
+                try {
+                    ignoreSortChange = true;
+                    sortManager.sorter.modelStructureChanged();
+                } finally {
+                    ignoreSortChange = false;
+                }
+                sortManager.allChanged();
+            }
+
             if (getAutoCreateColumnsFromModel()) {
 		// This will effect invalidation of the JTable and JTableHeader.
                 createDefaultColumnsFromModel();
@@ -3011,6 +4339,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    }
 
 	    resizeAndRepaint();
+            return;
+        }
+
+        if (sortManager != null) {
+            sortedTableChanged(null, e);
             return;
         }
 
@@ -3296,6 +4629,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see ListSelectionListener
      */
     public void valueChanged(ListSelectionEvent e) {
+        if (sortManager != null) {
+            sortManager.viewSelectionChanged(e);
+        }
         boolean isAdjusting = e.getValueIsAdjusting();
         if (rowSelectionAdjusting && !isAdjusting) {
             // The assumption is that when the model is no longer adjusting
@@ -3397,13 +4733,92 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @return the "unit" increment for scrolling in the specified direction
      * @see Scrollable#getScrollableUnitIncrement
      */
-    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation,
+    public int getScrollableUnitIncrement(Rectangle visibleRect,
+                                          int orientation,
                                           int direction) {
-        // PENDING(alan): do something smarter
-        if (orientation == SwingConstants.HORIZONTAL) {
+        int leadingRow;
+        int leadingCol;
+        Rectangle leadingCellRect;
+
+        int leadingVisibleEdge;
+        int leadingCellEdge;
+        int leadingCellSize;
+
+        leadingRow = getLeadingRow(visibleRect);
+        leadingCol = getLeadingCol(visibleRect);
+        if (orientation == SwingConstants.VERTICAL && leadingRow < 0) {
+            // Couldn't find leading row - return some default value
+            return getRowHeight();
+        }
+        else if (orientation == SwingConstants.HORIZONTAL && leadingCol < 0) {
+            // Couldn't find leading col - return some default value
             return 100;
         }
-        return getRowHeight();
+
+        // Note that it's possible for one of leadingCol or leadingRow to be
+        // -1, depending on the orientation.  This is okay, as getCellRect()
+        // still provides enough information to calculate the unit increment.
+        leadingCellRect = getCellRect(leadingRow, leadingCol, true);
+        leadingVisibleEdge = leadingEdge(visibleRect, orientation);
+        leadingCellEdge = leadingEdge(leadingCellRect, orientation);
+
+        if (orientation == SwingConstants.VERTICAL) {
+            leadingCellSize = leadingCellRect.height;
+
+        }
+        else {
+            leadingCellSize = leadingCellRect.width;
+        }
+
+        // 4 cases:
+        // #1: Leading cell fully visible, reveal next cell
+        // #2: Leading cell fully visible, hide leading cell
+        // #3: Leading cell partially visible, hide rest of leading cell
+        // #4: Leading cell partially visible, reveal rest of leading cell
+
+        if (leadingVisibleEdge == leadingCellEdge) { // Leading cell is fully
+                                                     // visible
+            // Case #1: Reveal previous cell
+            if (direction < 0) {
+                int retVal = 0;
+
+                if (orientation == SwingConstants.VERTICAL) {
+                    // Loop past any zero-height rows
+                    while (--leadingRow >= 0) {
+                        retVal = getRowHeight(leadingRow);
+                        if (retVal != 0) {
+                            break;
+                        }
+                    }
+                }
+                else { // HORIZONTAL
+                    // Loop past any zero-width cols
+                    while (--leadingCol >= 0) {
+                        retVal = getCellRect(leadingRow, leadingCol, true).width;
+                        if (retVal != 0) {
+                            break;
+                        }
+                    }
+                }
+                return retVal;
+            }
+            else { // Case #2: hide leading cell
+                return leadingCellSize;
+            }
+        }
+        else { // Leading cell is partially hidden
+            // Compute visible, hidden portions
+            int hiddenAmt = Math.abs(leadingVisibleEdge - leadingCellEdge);
+            int visibleAmt = leadingCellSize - hiddenAmt;
+
+            if (direction > 0) {
+                // Case #3: hide showing portion of leading cell
+                return visibleAmt;
+            }
+            else { // Case #4: reveal hidden portion of leading cell
+                return hiddenAmt;
+            }
+        }
     }
 
     /**
@@ -3419,15 +4834,299 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * 					per the orientation
      * @see Scrollable#getScrollableBlockIncrement
      */
-    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation,
-                                           int direction) {
-	if (orientation == SwingConstants.VERTICAL) {
-	    int rh = getRowHeight();
-	    return (rh > 0) ? Math.max(rh, (visibleRect.height / rh) * rh) : visibleRect.height;
-	}
-	else {
-	    return visibleRect.width;
-	}
+    public int getScrollableBlockIncrement(Rectangle visibleRect,
+            int orientation, int direction) {
+
+        if (getRowCount() == 0) {
+            // Short-circuit empty table model
+            if (SwingConstants.VERTICAL == orientation) {
+                int rh = getRowHeight();
+                return (rh > 0) ? Math.max(rh, (visibleRect.height / rh) * rh) :
+                                  visibleRect.height;
+            }
+            else {
+                return visibleRect.width;
+            }
+        }
+        // Shortcut for vertical scrolling of a table w/ uniform row height
+        if (null == rowModel && SwingConstants.VERTICAL == orientation) {
+            int row = rowAtPoint(visibleRect.getLocation());
+            assert row != -1;
+            int col = columnAtPoint(visibleRect.getLocation());
+            Rectangle cellRect = getCellRect(row, col, true);
+
+            if (cellRect.y == visibleRect.y) {
+                int rh = getRowHeight();
+                assert rh > 0;
+                return Math.max(rh, (visibleRect.height / rh) * rh);
+            }
+        }
+        if (direction < 0) {
+            return getPreviousBlockIncrement(visibleRect, orientation);
+        }
+        else {
+            return getNextBlockIncrement(visibleRect, orientation);
+        }
+    }
+
+    /**
+     * Called to get the block increment for upward scrolling in cases of
+     * horizontal scrolling, or for vertical scrolling of a table with
+     * variable row heights.
+     */
+    private int getPreviousBlockIncrement(Rectangle visibleRect,
+                                          int orientation) {
+        // Measure back from visible leading edge
+        // If we hit the cell on its leading edge, it becomes the leading cell.
+        // Else, use following cell
+
+        int row;
+        int col;
+
+        int   newEdge; 
+        Point newCellLoc;
+
+        int visibleLeadingEdge = leadingEdge(visibleRect, orientation);
+        boolean leftToRight = getComponentOrientation().isLeftToRight();
+        int newLeadingEdge;
+
+        // Roughly determine the new leading edge by measuring back from the
+        // leading visible edge by the size of the visible rect, and find the
+        // cell there.
+        if (orientation == SwingConstants.VERTICAL) {
+            newEdge = visibleLeadingEdge - visibleRect.height;
+            int x = visibleRect.x + (leftToRight ? 0 : visibleRect.width);
+            newCellLoc = new Point(x, newEdge);
+        }
+        else if (leftToRight) {
+            newEdge = visibleLeadingEdge - visibleRect.width;
+            newCellLoc = new Point(newEdge, visibleRect.y);
+        }
+        else { // Horizontal, right-to-left
+            newEdge = visibleLeadingEdge + visibleRect.width;
+            newCellLoc = new Point(newEdge, visibleRect.y);
+        }
+        row = rowAtPoint(newCellLoc);
+        col = columnAtPoint(newCellLoc);
+
+        // If we're measuring past the beginning of the table, we get an invalid
+        // cell.  Just go to the beginning of the table in this case.
+        if (orientation == SwingConstants.VERTICAL & row < 0) {
+            newLeadingEdge = 0;
+        }
+        else if (orientation == SwingConstants.HORIZONTAL & col < 0) {
+            if (leftToRight) {
+                newLeadingEdge = 0;
+            }
+            else {
+                newLeadingEdge = getWidth();
+            }
+        }
+        else {
+            // Refine our measurement
+            Rectangle newCellRect = getCellRect(row, col, true);
+            int newCellLeadingEdge = leadingEdge(newCellRect, orientation);
+            int newCellTrailingEdge = trailingEdge(newCellRect, orientation);
+
+            // Usually, we hit in the middle of newCell, and want to scroll to
+            // the beginning of the cell after newCell.  But there are a
+            // couple corner cases where we want to scroll to the beginning of
+            // newCell itself.  These cases are:
+            // 1) newCell is so large that it ends at or extends into the
+            //    visibleRect (newCell is the leading cell, or is adjacent to
+            //    the leading cell)
+            // 2) newEdge happens to fall right on the beginning of a cell
+
+            // Case 1
+            if ((orientation == SwingConstants.VERTICAL || leftToRight) &&
+                (newCellTrailingEdge >= visibleLeadingEdge)) {
+                newLeadingEdge = newCellLeadingEdge;
+            }
+            else if (orientation == SwingConstants.HORIZONTAL &&
+                     !leftToRight &&
+                     newCellTrailingEdge <= visibleLeadingEdge) {
+                newLeadingEdge = newCellLeadingEdge;
+            }
+            // Case 2:
+            else if (newEdge == newCellLeadingEdge) {
+                newLeadingEdge = newCellLeadingEdge;
+            }
+            // Common case: scroll to cell after newCell
+            else {
+                newLeadingEdge = newCellTrailingEdge;
+            }
+        }
+        return Math.abs(visibleLeadingEdge - newLeadingEdge);
+    }
+
+    /**  
+     * Called to get the block increment for downward scrolling in cases of  
+     * horizontal scrolling, or for vertical scrolling of a table with  
+     * variable row heights.  
+     */
+    private int getNextBlockIncrement(Rectangle visibleRect,
+                                      int orientation) {
+        // Find the cell at the trailing edge.  Return the distance to put
+        // that cell at the leading edge.
+        int trailingRow = getTrailingRow(visibleRect);
+        int trailingCol = getTrailingCol(visibleRect);
+
+        Rectangle cellRect;
+        boolean cellFillsVis;
+        
+        int cellLeadingEdge;
+        int cellTrailingEdge;
+        int newLeadingEdge;
+        int visibleLeadingEdge = leadingEdge(visibleRect, orientation);
+
+        // If we couldn't find trailing cell, just return the size of the
+        // visibleRect.  Note that, for instance, we don't need the
+        // trailingCol to proceed if we're scrolling vertically, because
+        // cellRect will still fill in the required dimensions.  This would
+        // happen if we're scrolling vertically, and the table is not wide
+        // enough to fill the visibleRect.
+        if (orientation == SwingConstants.VERTICAL && trailingRow < 0) {
+            return visibleRect.height;
+        }
+        else if (orientation == SwingConstants.HORIZONTAL && trailingCol < 0) {
+            return visibleRect.width;
+        }
+        cellRect = getCellRect(trailingRow, trailingCol, true);
+        cellLeadingEdge = leadingEdge(cellRect, orientation);
+        cellTrailingEdge = trailingEdge(cellRect, orientation);
+
+        if (orientation == SwingConstants.VERTICAL ||
+            getComponentOrientation().isLeftToRight()) {
+            cellFillsVis = cellLeadingEdge <= visibleLeadingEdge;
+        }
+        else { // Horizontal, right-to-left
+            cellFillsVis = cellLeadingEdge >= visibleLeadingEdge;
+        }
+
+        if (cellFillsVis) {
+            // The visibleRect contains a single large cell.  Scroll to the end
+            // of this cell, so the following cell is the first cell.
+            newLeadingEdge = cellTrailingEdge;
+        }
+        else if (cellTrailingEdge == trailingEdge(visibleRect, orientation)) {
+            // The trailing cell happens to end right at the end of the 
+            // visibleRect.  Again, scroll to the beginning of the next cell.
+            newLeadingEdge = cellTrailingEdge;
+        }
+        else {
+            // Common case: the trailing cell is partially visible, and isn't
+            // big enough to take up the entire visibleRect.  Scroll so it 
+            // becomes the leading cell.
+            newLeadingEdge = cellLeadingEdge;
+        }
+        return Math.abs(newLeadingEdge - visibleLeadingEdge);
+    }
+
+    /*
+     * Return the row at the top of the visibleRect
+     *
+     * May return -1
+     */
+    private int getLeadingRow(Rectangle visibleRect) {
+        Point leadingPoint;
+
+        if (getComponentOrientation().isLeftToRight()) {
+            leadingPoint = new Point(visibleRect.x, visibleRect.y);
+        }
+        else {
+            leadingPoint = new Point(visibleRect.x + visibleRect.width,
+                                     visibleRect.y);
+        }
+        return rowAtPoint(leadingPoint);
+    }
+
+    /*
+     * Return the column at the leading edge of the visibleRect.
+     *
+     * May return -1
+     */
+    private int getLeadingCol(Rectangle visibleRect) {
+        Point leadingPoint;
+
+        if (getComponentOrientation().isLeftToRight()) {
+            leadingPoint = new Point(visibleRect.x, visibleRect.y);
+        }
+        else {
+            leadingPoint = new Point(visibleRect.x + visibleRect.width,
+                                     visibleRect.y);
+        }
+        return columnAtPoint(leadingPoint);
+    }
+
+    /*
+     * Return the row at the bottom of the visibleRect.
+     *
+     * May return -1
+     */
+    private int getTrailingRow(Rectangle visibleRect) {
+        Point trailingPoint;
+
+        if (getComponentOrientation().isLeftToRight()) {
+            trailingPoint = new Point(visibleRect.x,
+                                      visibleRect.y + visibleRect.height - 1);
+        }
+        else {
+            trailingPoint = new Point(visibleRect.x + visibleRect.width,
+                                      visibleRect.y + visibleRect.height - 1);
+        }
+        return rowAtPoint(trailingPoint);
+    }
+
+    /*
+     * Return the column at the trailing edge of the visibleRect.
+     * 
+     * May return -1
+     */
+    private int getTrailingCol(Rectangle visibleRect) {
+        Point trailingPoint;
+
+        if (getComponentOrientation().isLeftToRight()) {
+            trailingPoint = new Point(visibleRect.x + visibleRect.width - 1,
+                                      visibleRect.y);
+        }
+        else {
+            trailingPoint = new Point(visibleRect.x, visibleRect.y);
+        }
+        return columnAtPoint(trailingPoint);
+    }
+
+    /*
+     * Returns the leading edge ("beginning") of the given Rectangle.
+     * For VERTICAL, this is the top, for left-to-right, the left side, and for
+     * right-to-left, the right side.
+     */
+    private int leadingEdge(Rectangle rect, int orientation) {
+        if (orientation == SwingConstants.VERTICAL) {
+            return rect.y;
+        }
+        else if (getComponentOrientation().isLeftToRight()) {
+            return rect.x;
+        }
+        else { // Horizontal, right-to-left
+            return rect.x + rect.width;
+        }
+    }
+
+    /*
+     * Returns the trailing edge ("end") of the given Rectangle.
+     * For VERTICAL, this is the bottom, for left-to-right, the right side, and
+     * for right-to-left, the left side.
+     */
+    private int trailingEdge(Rectangle rect, int orientation) {
+        if (orientation == SwingConstants.VERTICAL) {
+            return rect.y + rect.height;
+        }
+        else if (getComponentOrientation().isLeftToRight()) {
+            return rect.x + rect.width;
+        }
+        else { // Horizontal, right-to-left
+            return rect.x;
+        }
     }
 
     /**
@@ -3445,14 +5144,61 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Returns false to indicate that the height of the viewport does not
-     * determine the height of the table.
+     * Returns {@code false} to indicate that the height of the viewport does
+     * not determine the height of the table, unless
+     * {@code getFillsViewportHeight} is {@code true} and the preferred height
+     * of the table is smaller than the viewport's height.
      *
-     * @return false
+     * @return {@code false} unless {@code getFillsViewportHeight} is
+     *         {@code true} and the table needs to be stretched to fill
+     *         the viewport
      * @see Scrollable#getScrollableTracksViewportHeight
+     * @see #setFillsViewportHeight
+     * @see #getFillsViewportHeight
      */
     public boolean getScrollableTracksViewportHeight() {
-        return false;
+        return getFillsViewportHeight()
+               && getParent() instanceof JViewport
+               && (((JViewport)getParent()).getHeight() > getPreferredSize().height);
+    }
+
+    /**
+     * Sets whether or not this table is always made large enough
+     * to fill the height of an enclosing viewport. If the preferred
+     * height of the table is smaller than the viewport, then the table
+     * will be stretched to fill the viewport. In other words, this
+     * ensures the table is never smaller than the viewport.
+     * The default for this property is {@code false}.
+     *
+     * @param fillsViewportHeight whether or not this table is always
+     *        made large enough to fill the height of an enclosing
+     *        viewport
+     * @see #getFillsViewportHeight
+     * @see #getScrollableTracksViewportHeight
+     * @since 1.6
+     * @beaninfo
+     *      bound: true
+     *      description: Whether or not this table is always made large enough
+     *                   to fill the height of an enclosing viewport
+     */
+    public void setFillsViewportHeight(boolean fillsViewportHeight) {
+        boolean old = this.fillsViewportHeight;
+        this.fillsViewportHeight = fillsViewportHeight;
+        resizeAndRepaint();
+        firePropertyChange("fillsViewportHeight", old, fillsViewportHeight);
+    }
+
+    /**
+     * Returns whether or not this table is always made large enough
+     * to fill the height of an enclosing viewport.
+     *
+     * @return whether or not this table is always made large enough
+     *         to fill the height of an enclosing viewport
+     * @see #setFillsViewportHeight
+     * @since 1.6
+     */
+    public boolean getFillsViewportHeight() {
+        return fillsViewportHeight;
     }
 
 //
@@ -3486,7 +5232,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 		int leadColumn = getColumnModel().getSelectionModel().
 		                   getLeadSelectionIndex();
 		if (leadRow != -1 && leadColumn != -1 && !isEditing()) {
-		    if (!editCellAt(leadRow, leadColumn)) {
+		    if (!editCellAt(leadRow, leadColumn, e)) {
 			return false;
 		    }
 		}
@@ -3525,7 +5271,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *
      */
     protected void createDefaultRenderers() {
-        defaultRenderersByColumnClass = new UIDefaults();
+        defaultRenderersByColumnClass = new UIDefaults(8, 0.75f);
 
         // Objects
         setLazyRenderer(Object.class, "javax.swing.table.DefaultTableCellRenderer$UIResource");
@@ -3632,7 +5378,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see DefaultCellEditor
      */
     protected void createDefaultEditors() {
-        defaultEditorsByColumnClass = new UIDefaults();
+        defaultEditorsByColumnClass = new UIDefaults(3, 0.75f);
 
         // Objects
     	setLazyEditor(Object.class, "javax.swing.JTable$GenericEditor");
@@ -3729,6 +5475,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Initializes table properties to their default values.
      */
     protected void initializeLocalVars() {
+        updateSelectionOnSort = true;
         setOpaque(true);
         createDefaultRenderers();
         createDefaultEditors();
@@ -3896,6 +5643,14 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Returns the component (may be a <code>Component</code>
      * or a <code>JComponent</code>) under the event location.
      * <p>
+     * During a printing operation, this method will configure the
+     * renderer without indicating selection or focus, to prevent
+     * them from appearing in the printed output. To do other
+     * customizations based on whether or not the table is being
+     * printed, you can check the value of
+     * {@link javax.swing.JComponent#isPaintingForPrint()}, either here
+     * or within custom renderers.
+     * <p>
      * <b>Note:</b>
      * Throughout the table package, the internal implementations always
      * use this method to prepare renderers so that this default behavior
@@ -3914,7 +5669,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         boolean hasFocus = false;
 
         // Only indicate the selection and focused cell if not printing
-        if (!isPrinting) {
+        if (!isPaintingForPrint()) {
             isSelected = isCellSelected(row, column);
 
             boolean rowIsLead =
@@ -4003,9 +5758,15 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         TableCellEditor editor = getCellEditor();
         if(editor != null) {
             editor.removeCellEditorListener(this);
-
             if (editorComp != null) {
-		remove(editorComp);
+                Component focusOwner = 
+                        KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+                boolean isFocusOwnerInTheTable = focusOwner != null?   
+                        SwingUtilities.isDescendingFrom(focusOwner, this):false;                    
+                remove(editorComp);
+                if(isFocusOwnerInTheTable) {
+                    requestFocusInWindow();
+                }
 	    }
 
             Rectangle cellRect = getCellRect(editingRow, editingColumn, false);
@@ -4174,13 +5935,16 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * with no header or footer text. A modal progress dialog, with an abort
      * option, will be shown for the duration of printing.
      * <p>
-     * Note: In headless mode, no dialogs will be shown.
+     * Note: In headless mode, no dialogs are shown and printing
+     * occurs on the default printer.
      *
      * @return true, unless printing is cancelled by the user
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
      * @throws PrinterException if an error in the print system causes the job
      *                          to be aborted
      * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
-     *             boolean, PrintRequestAttributeSet, boolean)
+     *             boolean, PrintRequestAttributeSet, boolean, PrintService)
      * @see #getPrintable
      *
      * @since 1.5
@@ -4196,14 +5960,17 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * with no header or footer text. A modal progress dialog, with an abort
      * option, will be shown for the duration of printing.
      * <p>
-     * Note: In headless mode, no dialogs will be shown.
+     * Note: In headless mode, no dialogs are shown and printing
+     * occurs on the default printer.
      *
      * @param  printMode        the printing mode that the printable should use
      * @return true, unless printing is cancelled by the user
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
      * @throws PrinterException if an error in the print system causes the job
      *                          to be aborted
      * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
-     *             boolean, PrintRequestAttributeSet, boolean)
+     *             boolean, PrintRequestAttributeSet, boolean, PrintService)
      * @see #getPrintable
      *
      * @since 1.5
@@ -4219,7 +5986,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * with the specified header and footer text. A modal progress dialog,
      * with an abort option, will be shown for the duration of printing.
      * <p>
-     * Note: In headless mode, no dialogs will be shown.
+     * Note: In headless mode, no dialogs are shown and printing
+     * occurs on the default printer.
      *
      * @param  printMode        the printing mode that the printable should use
      * @param  headerFormat     a <code>MessageFormat</code> specifying the text
@@ -4229,10 +5997,12 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      *                          to be used in printing a footer,
      *                          or null for none
      * @return true, unless printing is cancelled by the user
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
      * @throws PrinterException if an error in the print system causes the job
      *                          to be aborted
      * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
-     *             boolean, PrintRequestAttributeSet, boolean)
+     *             boolean, PrintRequestAttributeSet, boolean, PrintService)
      * @see #getPrintable
      *
      * @since 1.5
@@ -4247,7 +6017,57 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Print this <code>JTable</code>. Takes steps that the majority of
+     * Prints this table, as specified by the fully featured
+     * {@link #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     * boolean, PrintRequestAttributeSet, boolean, PrintService) print}
+     * method, with the default printer specified as the print service.
+     *
+     * @param  printMode        the printing mode that the printable should use
+     * @param  headerFormat     a <code>MessageFormat</code> specifying the text
+     *                          to be used in printing a header,
+     *                          or <code>null</code> for none
+     * @param  footerFormat     a <code>MessageFormat</code> specifying the text
+     *                          to be used in printing a footer,
+     *                          or <code>null</code> for none
+     * @param  showPrintDialog  whether or not to display a print dialog
+     * @param  attr             a <code>PrintRequestAttributeSet</code>
+     *                          specifying any printing attributes,
+     *                          or <code>null</code> for none
+     * @param  interactive      whether or not to print in an interactive mode
+     * @return true, unless printing is cancelled by the user
+     * @throws HeadlessException if the method is asked to show a printing
+     *                           dialog or run interactively, and
+     *                           <code>GraphicsEnvironment.isHeadless</code>
+     *                           returns <code>true</code>
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
+     * @throws PrinterException if an error in the print system causes the job
+     *                          to be aborted
+     * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     *             boolean, PrintRequestAttributeSet, boolean, PrintService)
+     * @see #getPrintable
+     *
+     * @since 1.5
+     */
+    public boolean print(PrintMode printMode,
+                         MessageFormat headerFormat,
+                         MessageFormat footerFormat,
+                         boolean showPrintDialog,
+                         PrintRequestAttributeSet attr,
+                         boolean interactive) throws PrinterException,
+                                                     HeadlessException {
+
+        return print(printMode,
+                     headerFormat,
+                     footerFormat,
+                     showPrintDialog,
+                     attr,
+                     interactive,
+                     null);
+    }
+
+    /**
+     * Prints this <code>JTable</code>. Takes steps that the majority of
      * developers would take in order to print a <code>JTable</code>.
      * In short, it prepares the table, calls <code>getPrintable</code> to
      * fetch an appropriate <code>Printable</code>, and then sends it to the
@@ -4255,11 +6075,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * <p>
      * A <code>boolean</code> parameter allows you to specify whether or not
      * a printing dialog is displayed to the user. When it is, the user may
-     * use the dialog to change printing attributes or even cancel the print.
-     * Another parameter allows for printing attributes to be specified
-     * directly. This can be used either to provide the initial values for the
-     * print dialog, or to supply any needed attributes when the dialog is not
-     * shown.
+     * use the dialog to change the destination printer or printing attributes,
+     * or even to cancel the print. Another two parameters allow for a
+     * <code>PrintService</code> and printing attributes to be specified.
+     * These parameters can be used either to provide initial values for the
+     * print dialog, or to specify values when the dialog is not shown.
      * <p>
      * A second <code>boolean</code> parameter allows you to specify whether
      * or not to perform printing in an interactive mode. If <code>true</code>,
@@ -4284,48 +6104,54 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Note: Attempting to show the printing dialog or run interactively, while
      * in headless mode, will result in a <code>HeadlessException</code>.
      * <p>
-     * Before fetching the printable, this method prepares the table in order
-     * to get the most desirable printed result. If the table is currently
-     * in an editing mode, it terminates the editing as gracefully as
-     * possible. It also ensures that the the table's current selection and
-     * focused cell are not indicated in the printed output. This is handled on
-     * the view level, and only for the duration of the printing, thus no
-     * notification needs to be sent to the selection models.
+     * Before fetching the printable, this method will gracefully terminate
+     * editing, if necessary, to prevent an editor from showing in the printed
+     * result. Additionally, <code>JTable</code> will prepare its renderers
+     * during printing such that selection and focus are not indicated.
+     * As far as customizing further how the table looks in the printout,
+     * developers can provide custom renderers or paint code that conditionalize
+     * on the value of {@link javax.swing.JComponent#isPaintingForPrint()}.
      * <p>
-     * See {@link #getPrintable} for further description on how the
-     * table is printed.
+     * See {@link #getPrintable} for more description on how the table is
+     * printed. 
      *
      * @param  printMode        the printing mode that the printable should use
      * @param  headerFormat     a <code>MessageFormat</code> specifying the text
      *                          to be used in printing a header,
-     *                          or null for none
+     *                          or <code>null</code> for none
      * @param  footerFormat     a <code>MessageFormat</code> specifying the text
      *                          to be used in printing a footer,
-     *                          or null for none
+     *                          or <code>null</code> for none
      * @param  showPrintDialog  whether or not to display a print dialog
      * @param  attr             a <code>PrintRequestAttributeSet</code>
      *                          specifying any printing attributes,
-     *                          or null for none
+     *                          or <code>null</code> for none
      * @param  interactive      whether or not to print in an interactive mode
+     * @param  service          the destination <code>PrintService</code>,
+     *                          or <code>null</code> to use the default printer
      * @return true, unless printing is cancelled by the user
-     * @throws PrinterException if an error in the print system causes the job
-     *                          to be aborted
      * @throws HeadlessException if the method is asked to show a printing
      *                           dialog or run interactively, and
      *                           <code>GraphicsEnvironment.isHeadless</code>
-     *                           returns true
+     *                           returns <code>true</code>
+     * @throws  SecurityException if a security manager exists and its
+     *          {@link java.lang.SecurityManager#checkPrintJobAccess}
+     *          method disallows this thread from creating a print job request
+     * @throws PrinterException if an error in the print system causes the job
+     *                          to be aborted
      * @see #getPrintable
      * @see java.awt.GraphicsEnvironment#isHeadless
      *
-     * @since 1.5
+     * @since 1.6
      */
     public boolean print(PrintMode printMode,
                          MessageFormat headerFormat,
                          MessageFormat footerFormat,
                          boolean showPrintDialog,
                          PrintRequestAttributeSet attr,
-                         boolean interactive) throws PrinterException,
-                                                     HeadlessException {
+                         boolean interactive,
+                         PrintService service) throws PrinterException,
+                                                      HeadlessException {
 
         // complain early if an invalid parameter is specified for headless mode
         boolean isHeadless = GraphicsEnvironment.isHeadless();
@@ -4339,6 +6165,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             }
         }
 
+        // Get a PrinterJob.
+        // Do this before anything with side-effects since it may throw a
+        // security exception - in which case we don't want to do anything else.
+        final PrinterJob job = PrinterJob.getPrinterJob();
+
         if (isEditing()) {
             // try to stop cell editing, and failing that, cancel it
             if (!getCellEditor().stopCellEditing()) {
@@ -4350,20 +6181,29 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             attr = new HashPrintRequestAttributeSet();
         }
 
-        // get a PrinterJob
-        final PrinterJob job = PrinterJob.getPrinterJob();
-
-        // fetch the Printable
-        Printable printable =
-            getPrintable(printMode, headerFormat, footerFormat);
-
-        if (interactive) {
+        final PrintingStatus printingStatus;
+        
+         // fetch the Printable 
+        Printable printable = 
+             getPrintable(printMode, headerFormat, footerFormat); 
+  
+        if (interactive) { 
             // wrap the Printable so that we can print on another thread
             printable = new ThreadSafePrintable(printable);
+            printingStatus = PrintingStatus.createPrintingStatus(this, job);
+            printable = printingStatus.createNotificationPrintable(printable);
+        } else {
+            // to please compiler
+            printingStatus = null;
         }
-
-        // set the printable on the PrinterJob
-        job.setPrintable(printable);
+  
+        // set the printable on the PrinterJob 
+        job.setPrintable(printable); 
+        
+        // if specified, set the PrintService on the PrinterJob
+        if (service != null) {
+            job.setPrintService(service);
+        }
 
         // if requested, show the print dialog
         if (showPrintDialog && !job.printDialog(attr)) {
@@ -4373,116 +6213,12 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
         // if not interactive, just print on this thread (no dialog)
         if (!interactive) {
-            // set a flag to hide the selection and focused cell
-            isPrinting = true;
-
-            try {
-                // do the printing
-                job.print(attr);
-            } finally {
-                // restore the flag
-                isPrinting = false;
-            }
+            // do the printing
+            job.print(attr);
 
             // we're done
             return true;
         }
-
-        // interactive, drive printing from another thread
-        // and show a modal status dialog for the duration
-
-        // prepare the status JOptionPane
-        String progressTitle =
-            UIManager.getString("PrintingDialog.titleProgressText");
-
-        String dialogInitialContent =
-            UIManager.getString("PrintingDialog.contentInitialText");
-
-        // this one's a MessageFormat since it must include the page
-        // number in its text
-        MessageFormat statusFormat =
-            new MessageFormat(
-                UIManager.getString("PrintingDialog.contentProgressText"));
-
-        String abortText =
-            UIManager.getString("PrintingDialog.abortButtonText");
-        String abortTooltip =
-            UIManager.getString("PrintingDialog.abortButtonToolTipText");
-        int abortMnemonic =
-            UIManager.getInt("PrintingDialog.abortButtonMnemonic", -1);
-        int abortMnemonicIndex =
-            UIManager.getInt("PrintingDialog.abortButtonDisplayedMnemonicIndex", -1);
-
-        final JButton abortButton = new JButton(abortText);
-        abortButton.setToolTipText(abortTooltip);
-        if (abortMnemonic != -1) {
-            abortButton.setMnemonic(abortMnemonic);
-        }
-        if (abortMnemonicIndex != -1) {
-            abortButton.setDisplayedMnemonicIndex(abortMnemonicIndex);
-        }
-
-        final JLabel statusLabel = new JLabel(dialogInitialContent);
-
-        JOptionPane abortPane = new JOptionPane(statusLabel,
-                                                JOptionPane.INFORMATION_MESSAGE,
-                                                JOptionPane.DEFAULT_OPTION,
-                                                null, new Object[] {abortButton},
-                                                abortButton);
-
-        // need a final reference to the printable for later
-        final ThreadSafePrintable wrappedPrintable =
-            (ThreadSafePrintable)printable;
-
-        // set the label which the wrapped printable will update
-        wrappedPrintable.startUpdatingStatus(statusFormat, statusLabel);
-
-        // The dialog should be centered over the viewport if the table is in one
-        Container parentComp = getParent() instanceof JViewport ? getParent() : this;
-
-        // create the dialog to display the JOptionPane
-        final JDialog abortDialog = abortPane.createDialog(parentComp, progressTitle);
-        // clicking the X button should not hide the dialog
-        abortDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-
-        // the action that will abort printing
-        final Action abortAction = new AbstractAction() {
-            boolean isAborted = false;
-            public void actionPerformed(ActionEvent ae) {
-                if (!isAborted) {
-                    isAborted = true;
-
-                    // update the status dialog to indicate aborting
-                    abortButton.setEnabled(false);
-                    abortDialog.setTitle(
-                        UIManager.getString("PrintingDialog.titleAbortingText"));
-                    statusLabel.setText(
-                        UIManager.getString("PrintingDialog.contentAbortingText"));
-
-                    // we don't want the aborting status message to be clobbered
-                    wrappedPrintable.stopUpdatingStatus();
-
-                    // cancel the PrinterJob
-                    job.cancel();
-                }
-            }
-        };
-
-        // clicking the abort button should abort printing
-        abortButton.addActionListener(abortAction);
-
-        // the look and feels set up a close action (typically bound
-        // to ESCAPE) that also needs to be modified to simply abort
-        // printing
-        abortPane.getActionMap().put("close", abortAction);
-
-        // clicking the X button should also abort printing
-        final WindowAdapter closeListener = new WindowAdapter() {
-            public void windowClosing(WindowEvent we) {
-                abortAction.actionPerformed(null);
-            }
-        };
-        abortDialog.addWindowListener(closeListener);
 
         // make sure this is clear since we'll check it after
         printError = null;
@@ -4506,15 +6242,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                         printError = t;
                     }
                 } finally {
-                    // we're finished - hide the dialog, allowing
-                    // processing in the original EDT to continue
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            // don't want to notify the abort action
-                            abortDialog.removeWindowListener(closeListener);
-                            abortDialog.dispose();
-                        }
-                    });
+                    // we're finished - hide the dialog
+                    printingStatus.dispose();
                 }
             }
         };
@@ -4522,11 +6251,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         // start printing on another thread
         Thread th = new Thread(runnable);
         th.start();
-
-        // show the modal status dialog (and wait for it to be hidden)
-        abortDialog.setVisible(true);
-
-        // dialog has been hidden
+        
+        printingStatus.showModal(true);
 
         // look for any error that the printing may have generated
         Throwable pe;
@@ -4558,6 +6284,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
     /**
      * Return a <code>Printable</code> for use in printing this JTable.
+     * <p>
+     * This method is meant for those wishing to customize the default
+     * <code>Printable</code> implementation used by <code>JTable</code>'s
+     * <code>print</code> methods. Developers wanting simply to print the table
+     * should use one of those methods directly.
      * <p>
      * The <code>Printable</code> can be requested in one of two printing modes.
      * In both modes, it spreads table rows naturally in sequence across
@@ -4625,53 +6356,19 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * with <code>PrintMode.NORMAL</code> when it has to spread columns
      * across pages.
      * <p>
-     * It is important to note that this <code>Printable</code> prints the
-     * table at its current visual state, using the table's existing renderers.
-     * <i>Before</i> calling this method, you may wish to <i>first</i> modify
-     * the state of the table (such as to change the renderers, cancel editing,
-     * or hide the selection).
+     * As far as customizing how the table looks in the printed result,
+     * <code>JTable</code> itself will take care of hiding the selection
+     * and focus during printing. For additional customizations, your
+     * renderers or painting code can customize the look based on the value
+     * of {@link javax.swing.JComponent#isPaintingForPrint()}
      * <p>
-     * You must not, however, modify the table in any way <i>after</i>
-     * this <code>Printable</code> is fetched (invalid modifications include
-     * changes in: size, renderers, or underlying data). The behavior of the
-     * returned <code>Printable</code> is undefined once the table has been
-     * changed.
-     * <p>
-     * Here's a simple example that calls this method to fetch a
-     * <code>Printable</code>, shows a cross-platform print dialog, and then
-     * prints the <code>Printable</code> unless the user cancels the dialog:
-     * <p>
-     * <pre>
-     *     // prepare the table for printing here first (for example, hide selection)
-     *
-     *     // wrap in a try/finally so table can be restored even if something fails
-     *     try {
-     *         // fetch the printable
-     *         Printable printable = table.getPrintable(JTable.PrintMode.FIT_WIDTH,
-     *                                                  new MessageFormat("My Table"),
-     *                                                  new MessageFormat("Page - {0}"));
-     *
-     *         // fetch a PrinterJob
-     *         PrinterJob job = PrinterJob.getPrinterJob();
-     *
-     *         // set the Printable on the PrinterJob
-     *         job.setPrintable(printable);
-     *
-     *         // create an attribute set to store attributes from the print dialog
-     *         PrintRequestAttributeSet attr = new HashPrintRequestAttributeSet();
-     *
-     *         // display a print dialog and record whether or not the user cancels it
-     *         boolean printAccepted = job.printDialog(attr);
-     *
-     *         // if the user didn't cancel the dialog
-     *         if (printAccepted) {
-     *             // do the printing (may need to handle PrinterException)
-     *             job.print(attr);
-     *         }
-     *     } finally {
-     *         // restore the original table state here (for example, restore selection)
-     *     }
-     * </pre>
+     * Also, <i>before</i> calling this method you may wish to <i>first</i>
+     * modify the state of the table, such as to cancel cell editing or
+     * have the user size the table appropriately. However, you must not
+     * modify the state of the table <i>after</i> this <code>Printable</code>
+     * has been fetched (invalid modifications include changes in size or
+     * underlying data). The behavior of the returned <code>Printable</code>
+     * is undefined once the table has been changed.
      *
      * @param  printMode     the printing mode that the printable should use
      * @param  headerFormat  a <code>MessageFormat</code> specifying the text to
@@ -4679,6 +6376,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @param  footerFormat  a <code>MessageFormat</code> specifying the text to
      *                       be used in printing a footer, or null for none
      * @return a <code>Printable</code> for printing this JTable
+     * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     *             boolean, PrintRequestAttributeSet, boolean)
      * @see Printable
      * @see PrinterJob
      *
@@ -4695,22 +6394,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     /**
      * A <code>Printable</code> implementation that wraps another
      * <code>Printable</code>, making it safe for printing on another thread.
-     * <p>
-     * Also performs steps that are specific to this table printing
-     * implementation, such as hiding the selection and focus in the table,
-     * and updating the given <code>JLabel</code> with the page number
-     * based on the specified message format.
      */
     private class ThreadSafePrintable implements Printable {
 
         /** The delegate <code>Printable</code>. */
         private Printable printDelegate;
-
-        /** The formatter to prepare the status message. */
-        private MessageFormat statusFormat;
-
-        /** The <code>JLabel</code> to update with the status. */
-        private JLabel statusLabel;
 
         /**
          * To communicate any return value when delegating.
@@ -4730,28 +6418,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          */
         public ThreadSafePrintable(Printable printDelegate) {
             this.printDelegate = printDelegate;
-        }
-
-        /**
-         * Provide the <code>MessageFormat</code> and <code>JLabel</code>
-         * to use in updating the status.
-         *
-         * @param statusFormat the format to prepare the status message
-         * @param statusPane the JOptionPane to set the status message on
-         */
-        public void startUpdatingStatus(MessageFormat statusFormat,
-                                        JLabel statusLabel) {
-            this.statusFormat = statusFormat;
-            this.statusLabel = statusLabel;
-        }
-
-        /**
-         * Indicate that the <code>JLabel</code> should not be updated
-         * any more.
-         */
-        public void stopUpdatingStatus() {
-            statusFormat = null;
-            statusLabel = null;
         }
 
         /**
@@ -4775,27 +6441,13 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             // We'll use this Runnable
             Runnable runnable = new Runnable() {
                 public synchronized void run() {
-                    // set a flag to hide the selection and focused cell
-                    isPrinting = true;
-
                     try {
-                        if (statusLabel != null) {
-                            // set the status message on the JOptionPane with
-                            // the current page number
-                            Object[] pageNumber = new Object[]{
-                                new Integer(pageIndex + 1)};
-                            statusLabel.setText(statusFormat.format(pageNumber));
-                        }
-
                         // call into the delegate and save the return value
                         retVal = printDelegate.print(graphics, pageFormat, pageIndex);
                     } catch (Throwable throwable) {
                         // save any Throwable to be rethrown
                         retThrowable = throwable;
                     } finally {
-                        // restore the flag
-                        isPrinting = false;
-
                         // notify the caller that we're done
                         notifyAll();
                     }
@@ -5590,6 +7242,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * @param index the zero-based index in the table
          * @return the zero-based row of the table if one exists;
          * otherwise -1.
+         * @since 1.4
          */
         public int getAccessibleRow(int index) {
 	    return getAccessibleRowAtIndex(index);
@@ -5601,6 +7254,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * @param index the zero-based index in the table
          * @return the zero-based column of the table if one exists;
          * otherwise -1.
+         * @since 1.4
          */
         public int getAccessibleColumn(int index) {
 	    return getAccessibleColumnAtIndex(index);
@@ -5613,6 +7267,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * @param c zero-based column of the table
          * @return the zero-based index in the table if one exists;
          * otherwise -1.
+         * @since 1.4
          */
         public int getAccessibleIndex(int r, int c) {
 	    return getAccessibleIndexAt(r, c);
@@ -5635,6 +7290,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * on behalf of itself.
 	 *
 	 * @return this object
+         * @since 1.3
          */
         public AccessibleTable getAccessibleTable() {
             return this;
@@ -5644,6 +7300,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * Returns the caption for the table.
 	 *
 	 * @return the caption for the table
+         * @since 1.3
 	 */
 	public Accessible getAccessibleCaption() {
 	    return this.caption;
@@ -5653,6 +7310,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * Sets the caption for the table.
 	 *
 	 * @param a the caption for the table
+	 * @since 1.3
 	 */
 	public void setAccessibleCaption(Accessible a) {
 	    Accessible oldCaption = caption;
@@ -5665,6 +7323,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * Returns the summary description of the table.
 	 *
 	 * @return the summary description of the table
+	 * @since 1.3
 	 */
 	public Accessible getAccessibleSummary() {
 	    return this.summary;
@@ -5674,6 +7333,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * Sets the summary description of the table.
 	 *
 	 * @param a the summary description of the table
+         * @since 1.3
 	 */
 	public void setAccessibleSummary(Accessible a) {
 	    Accessible oldSummary = summary;
@@ -5719,6 +7379,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @return the number of rows occupied by the <code>Accessible</code>
 	 *     at a specified row and column in the table
+         * @since 1.3
 	 */
 	public int getAccessibleRowExtentAt(int r, int c) {
 	    return 1;
@@ -5730,6 +7391,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @return the number of columns occupied by the <code>Accessible</code>
 	 *     at a specified row and column in the table
+         * @since 1.3
 	 */
 	public int getAccessibleColumnExtentAt(int r, int c) {
 	    return 1;
@@ -5740,18 +7402,20 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @return an <code>AccessibleTable</code> representing the row
 	 * headers
+         * @since 1.3
 	 */
         public AccessibleTable getAccessibleRowHeader() {
 	    // row headers are not supported
 	    return null;
         }
 
-	/**
-	 * Returns the row headers as an <code>AccessibleTable</code>.
-	 *
-	 * @return an <code>AccessibleTable</code> representing
-	 *     the row headers
-	 */
+        /**
+         * Sets the row headers as an <code>AccessibleTable</code>.
+         *
+         * @param a an <code>AccessibleTable</code> representing the row
+         *  headers 
+         * @since 1.3
+         */
 	public void setAccessibleRowHeader(AccessibleTable a) {
 	    // row headers are not supported
 	}
@@ -5762,6 +7426,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          *  @return an <code>AccessibleTable</code> representing the column
          *          headers, or <code>null</code> if the table header is
          *          <code>null</code>
+         * @since 1.3
          */
         public AccessibleTable getAccessibleColumnHeader() {
             JTableHeader header = JTable.this.getTableHeader();
@@ -5899,6 +7564,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @param table an AccessibleTable representing the
 	     * column headers
+	     * @since 1.3
 	     */
 	    public void setAccessibleColumnHeader(AccessibleTable table) {}
 	    
@@ -5907,6 +7573,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @param r zero-based row of the table
 	     * @return the description of the row
+	     * @since 1.3
 	     */
 	    public Accessible getAccessibleRowDescription(int r) { return null; }
 	    
@@ -5915,6 +7582,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @param r zero-based row of the table
 	     * @param a the description of the row
+	     * @since 1.3
 	     */
 	    public void setAccessibleRowDescription(int r, Accessible a) {}
 	    
@@ -5923,6 +7591,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @param c zero-based column of the table
 	     * @return the text description of the column
+	     * @since 1.3
 	     */
 	    public Accessible getAccessibleColumnDescription(int c) { return null; }
 	    
@@ -5931,6 +7600,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @param c zero-based column of the table
 	     * @param a the text description of the column
+	     * @since 1.3
 	     */
 	    public void setAccessibleColumnDescription(int c, Accessible a) {}
 	    
@@ -5943,6 +7613,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     * @return the boolean value true if the accessible at the
 	     * row and column is selected. Otherwise, the boolean value 
 	     * false
+	     * @since 1.3
 	     */
 	    public boolean isAccessibleSelected(int r, int c) { return false; }
 	    
@@ -5953,6 +7624,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     * @param r zero-based row of the table
 	     * @return the boolean value true if the specified row is selected.
 	     * Otherwise, false.
+	     * @since 1.3
 	     */
 	    public boolean isAccessibleRowSelected(int r) { return false; }
 	    
@@ -5963,6 +7635,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     * @param r zero-based column of the table
 	     * @return the boolean value true if the specified column is selected.
 	     * Otherwise, false.
+	     * @since 1.3
 	     */
 	    public boolean isAccessibleColumnSelected(int c) { return false; }
 	    
@@ -5971,6 +7644,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @return an array of selected rows where each element is a
 	     * zero-based row of the table
+	     * @since 1.3
 	     */
 	    public int [] getSelectedAccessibleRows() { return new int[0]; }
 	    
@@ -5979,17 +7653,19 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     *
 	     * @return an array of selected columns where each element is a
 	     * zero-based column of the table
+	     * @since 1.3
 	     */
 	    public int [] getSelectedAccessibleColumns() { return new int[0]; }
 	}
 	
 
-	/**
-	 * Returns the column headers as an <code>AccessibleTable</code>.
-	 *
-	 * @return an <code>AccessibleTable</code> representing the column
-	 *      headers
-	 */
+        /**
+         * Sets the column headers as an <code>AccessibleTable</code>.
+         *
+         * @param a an <code>AccessibleTable</code> representing the
+         * column headers
+	 * @since 1.3
+         */
 	public void setAccessibleColumnHeader(AccessibleTable a) {
 	    // XXX not implemented
 	}
@@ -5999,6 +7675,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @param r zero-based row of the table
 	 * @return the description of the row
+	 * @since 1.3
 	 */
 	public Accessible getAccessibleRowDescription(int r) {
 	    if (r < 0 || r >= getAccessibleRowCount()) {
@@ -6016,6 +7693,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @param r zero-based row of the table
 	 * @param a the description of the row
+	 * @since 1.3
 	 */
 	public void setAccessibleRowDescription(int r, Accessible a) {
 	    if (r < 0 || r >= getAccessibleRowCount()) {
@@ -6033,6 +7711,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @param c zero-based column of the table
 	 * @return the description of the column
+	 * @since 1.3
 	 */
 	public Accessible getAccessibleColumnDescription(int c) {
 	    if (c < 0 || c >= getAccessibleColumnCount()) {
@@ -6050,6 +7729,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @param c zero-based column of the table
 	 * @param a the description of the column
+	 * @since 1.3
 	 */
 	public void setAccessibleColumnDescription(int c, Accessible a) {
 	    if (c < 0 || c >= getAccessibleColumnCount()) {
@@ -6070,6 +7750,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * @param c zero-based column of the table
 	 * @return the boolean value true if the accessible at (row, column)
 	 *     is selected; otherwise, the boolean value false
+	 * @since 1.3
 	 */
 	public boolean isAccessibleSelected(int r, int c) {
 	    return JTable.this.isCellSelected(r, c);
@@ -6082,6 +7763,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * @param r zero-based row of the table
 	 * @return the boolean value true if the specified row is selected;
 	 *     otherwise, false
+	 * @since 1.3
 	 */
 	public boolean isAccessibleRowSelected(int r) {
 	    return JTable.this.isRowSelected(r);
@@ -6094,6 +7776,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 * @param c zero-based column of the table
 	 * @return the boolean value true if the specified column is selected;
 	 *     otherwise, false
+	 * @since 1.3
 	 */
 	public boolean isAccessibleColumnSelected(int c) {
 	    return JTable.this.isColumnSelected(c);
@@ -6104,6 +7787,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @return an array of selected rows where each element is a
 	 *     zero-based row of the table
+	 * @since 1.3
 	 */
 	public int [] getSelectedAccessibleRows() {
 	    return JTable.this.getSelectedRows();
@@ -6114,6 +7798,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	 *
 	 * @return an array of selected columns where each element is a
 	 *     zero-based column of the table
+	 * @since 1.3
 	 */
 	public int [] getSelectedAccessibleColumns() {
 	    return JTable.this.getSelectedColumns();
@@ -6124,6 +7809,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          *
          * @param i zero-based index into the table
          * @return the row at a given index
+	 * @since 1.3
          */
         public int getAccessibleRowAtIndex(int i) {
 	    int columnCount = getAccessibleColumnCount();
@@ -6139,6 +7825,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          *
          * @param i zero-based index into the table
          * @return the column at a given index
+	 * @since 1.3
          */
         public int getAccessibleColumnAtIndex(int i) {
 	    int columnCount = getAccessibleColumnCount();
@@ -6155,6 +7842,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * @param r zero-based row of the table
          * @param c zero-based column of the table
          * @return the index into the table
+	 * @since 1.3
          */
         public int getAccessibleIndexAt(int r, int c) {
             return ((r * getAccessibleColumnCount()) + c);
@@ -6176,6 +7864,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
             /**
              *  Constructs an <code>AccessibleJTableHeaderEntry</code>.
+	     * @since 1.4
              */
             public AccessibleJTableCell(JTable t, int r, int c, int i) {
                 parent = t;
@@ -6197,7 +7886,15 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 return this;
             }
 
-            private AccessibleContext getCurrentAccessibleContext() {
+            /**
+             * Gets the AccessibleContext for the table cell renderer.
+             *
+             * @return the <code>AccessibleContext</code> for the table 
+             * cell renderer if one exists;
+             * otherwise, returns <code>null</code>.
+             * @since 1.6
+             */
+            protected AccessibleContext getCurrentAccessibleContext() {
                 TableColumn aColumn = getColumnModel().getColumn(column);
                 TableCellRenderer renderer = aColumn.getCellRenderer();
                 if (renderer == null) {
@@ -6214,7 +7911,14 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 }
             }
 
-            private Component getCurrentComponent() {
+            /**
+             * Gets the table cell renderer component.
+             *
+             * @return the table cell renderer component if one exists;
+             * otherwise, returns <code>null</code>.
+             * @since 1.6
+             */
+            protected Component getCurrentComponent() {
                 TableColumn aColumn = getColumnModel().getColumn(column);
                 TableCellRenderer renderer = aColumn.getCellRenderer();
                 if (renderer == null) {
@@ -6239,13 +7943,15 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 if (ac != null) {
                     String name = ac.getAccessibleName();
                     if ((name != null) && (name != "")) {
-                        return ac.getAccessibleName();
+                        // return the cell renderer's AccessibleName
+                        return name;
                     }
                 }
                 if ((accessibleName != null) && (accessibleName != "")) {
                     return accessibleName;
                 } else {
-		    return null;
+                    // fall back to the client property 
+                    return (String)getClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY); 
                 }
             }
 

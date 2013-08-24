@@ -1,7 +1,7 @@
 /*
- * @(#)Tools.java	1.40 04/07/26
+ * @(#)Tools.java	1.44 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)Tools.java	1.37 03/10/26
+ * @(#)Tools.java	1.44 06/08/29
  */
 
 package java2d;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.PrinterJob;
@@ -89,9 +90,9 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         this.surface = surface;
         setLayout(new BorderLayout());
 
-        stopIcon = new ImageIcon(DemoImages.getImage("stop.gif", this));
-        startIcon = new ImageIcon(DemoImages.getImage("start.gif",this));
-        bumpyIcon = new ToggleIcon(this, Color.lightGray);
+        stopIcon     = new  ImageIcon(DemoImages.getImage( "stop.gif",this));
+        startIcon    = new  ImageIcon(DemoImages.getImage("start.gif",this));
+        bumpyIcon    = new ToggleIcon(this, LIGHT_GRAY);
         rolloverIcon = new ToggleIcon(this, roColor);
         toggleB = new JToggleButton(bumpyIcon);
         toggleB.addMouseListener(this);
@@ -103,7 +104,6 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         toggleB.setContentAreaFilled(false);
         toggleB.setRolloverIcon(rolloverIcon);
         add("North", toggleB);
-
 
         toolbar = new JToolBar();
         toolbar.setPreferredSize(new Dimension(112, 26));
@@ -135,8 +135,8 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         screenCombo = new JComboBox();
         screenCombo.setPreferredSize(new Dimension(100, 18));
         screenCombo.setFont(font);
-        for (int i = 0; i < GlobalControls.screenNames.length; i++) {
-            screenCombo.addItem(GlobalControls.screenNames[i]);
+        for (String name : GlobalControls.screenNames) {
+            screenCombo.addItem(name);
         } 
         screenCombo.addActionListener(this);
         toolbarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,0));
@@ -152,7 +152,7 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         if (surface instanceof AnimatingSurface) {
             sliderPanel = new JPanel(new BorderLayout());
             label = new JLabel(" Sleep = 030 ms");
-            label.setForeground(Color.black);
+            label.setForeground(BLACK);
             sliderPanel.add(label, BorderLayout.WEST);
             slider = new JSlider(JSlider.HORIZONTAL, 0, 200, 30);
             slider.addChangeListener(this);
@@ -182,14 +182,21 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
     public JButton addTool(Image img,
                            String toolTip,
                            ActionListener al) {
-        JButton b = null;
-        b = (JButton) toolbar.add(new JButton(new ImageIcon(img)));
+        JButton b = new JButton(new ImageIcon(img)) {
+            Dimension prefSize = new Dimension(21, 22);
+            public Dimension getPreferredSize() {
+                return prefSize;
+            }
+            public Dimension getMaximumSize() {
+                return prefSize;
+            }
+            public Dimension getMinimumSize() {
+                return prefSize;
+            }
+        };
+        toolbar.add(b);
         b.setFocusPainted(false);
         b.setSelected(true);
-        Dimension prefSize = new Dimension(21, 22);
-        b.setPreferredSize(prefSize);
-        b.setMaximumSize(prefSize);
-        b.setMinimumSize(prefSize);
         b.setToolTipText(toolTip);
         b.addActionListener(al);
         return b;
@@ -198,8 +205,19 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
     public JToggleButton addTool(String name,
                                  String toolTip,
                                  ActionListener al) {
-        JToggleButton b = null;
-        b = (JToggleButton) toolbar.add(new JToggleButton(name));
+        JToggleButton b = new JToggleButton(name) {
+            Dimension prefSize = new Dimension(21, 22);
+            public Dimension getPreferredSize() {
+                return prefSize;
+            }
+            public Dimension getMaximumSize() {
+                return prefSize;
+            }
+            public Dimension getMinimumSize() {
+                return prefSize;
+            }
+        };
+        toolbar.add(b);
         b.setFocusPainted(false);
         if (toolTip.equals("Rendering Quality") ||
             toolTip.equals("Antialiasing On") ||
@@ -209,10 +227,6 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         } else {
             b.setSelected(false);
         }
-        Dimension prefSize = new Dimension(21, 22);
-        b.setPreferredSize(prefSize);
-        b.setMaximumSize(prefSize);
-        b.setMinimumSize(prefSize);
         b.setToolTipText(toolTip);
         b.addActionListener(al);
         return b;
@@ -225,7 +239,7 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
             JButton b = (JButton) obj;
             b.setSelected(!b.isSelected());
             if (b.getIcon() == null) {
-                b.setBackground(b.isSelected() ? Color.green : Color.lightGray);
+                b.setBackground(b.isSelected() ? GREEN : LIGHT_GRAY);
             }
         }
         if (obj.equals(toggleB)) {
@@ -389,12 +403,12 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
      */
     static class ToggleIcon implements Icon, Runnable {
 
-        private Color topColor = new Color(153, 153, 204);
+        private Color    topColor = new Color(153, 153, 204);
         private Color shadowColor = new Color(102, 102, 153);
-        private Color backColor = new Color(204, 204, 255);
+        private Color   backColor = new Color(204, 204, 255);
+        private Color   fillColor;
         private Tools tools;
         private Thread thread;
-        private Color fillColor;
 
 
         public ToggleIcon(Tools tools, Color fillColor) {
@@ -409,8 +423,8 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
 	    g.setColor(fillColor);
 	    g.fillRect(0, 0, w, h);
             for (; x < w-2; x+=4) {
-                g.setColor(Color.white);
-                g.fillRect(x, 1, 1, 1);
+                g.setColor(WHITE);
+                g.fillRect(x  , 1, 1, 1);
                 g.fillRect(x+2, 3, 1, 1);
                 g.setColor(shadowColor);
                 g.fillRect(x+1, 2, 1, 1);

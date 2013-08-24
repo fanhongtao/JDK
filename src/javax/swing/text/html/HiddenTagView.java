@@ -1,7 +1,7 @@
 /*
- * @(#)HiddenTagView.java	1.15 03/12/19
+ * @(#)HiddenTagView.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -24,7 +24,7 @@ import java.util.*;
  * not editable, the textfield will not be visible.
  *
  * @author  Scott Violet
- * @version 1.15, 12/19/03
+ * @version 1.16, 11/17/05
  */
 class HiddenTagView extends EditableView implements DocumentListener {
     HiddenTagView(Element e) {

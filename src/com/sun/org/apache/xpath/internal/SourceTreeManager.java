@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SourceTreeManager.java,v 1.34 2004/02/17 04:30:02 minchau Exp $
+ * $Id: SourceTreeManager.java,v 1.2.4.1 2005/09/10 18:14:09 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -331,10 +331,8 @@ public class SourceTreeManager
    * not currently in use for another parse().
    *
    * @param inputSource The value returned from the URIResolver.
-   * @returns a SAX2 XMLReader to use to resolve the inputSource argument.
+   * @return a SAX2 XMLReader to use to resolve the inputSource argument.
    * @param locator The location of the original caller, for diagnostic purposes.
-   *
-   * @return non-null XMLReader reference ready to parse.
    *
    * @throws TransformerException if the reader can not be created.
    */

@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPaneAdjustable.java	1.9 03/12/19
+ * @(#)ScrollPaneAdjustable.java	1.11 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -17,7 +17,7 @@ import java.io.Serializable;
  * scrollbar of a <code>ScrollPane</code>.  Objects of this class are
  * returned by <code>ScrollPane</code> methods.
  *
- * @version     1.9 12/19/03
+ * @version     1.11 07/11/06
  * @since	1.4
  */
 public class ScrollPaneAdjustable implements Adjustable, Serializable {
@@ -339,6 +339,8 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * events from this <code>ScrollPaneAdjustable</code>.
      * If <code>l</code> is <code>null</code>, no exception is thrown
      * and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param    l   the adjustment listener.
      * @see      #removeAdjustmentListener
@@ -358,6 +360,8 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * receives adjustment events from this <code>ScrollPaneAdjustable</code>.
      * If <code>l</code> is <code>null</code>, no exception is thrown
      * and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         l     the adjustment listener.
      * @see           #addAdjustmentListener

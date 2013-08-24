@@ -1,7 +1,7 @@
 /*
- * @(#)TextEvent.java	1.16 03/12/19
+ * @(#)TextEvent.java	1.18 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,11 @@ import java.awt.Event;
  * Instead, it can process a "meaningful" (semantic) event like "text changed". 
  *
  * @author Georges Saab
- * @version 1.16 12/19/03
+ * @version 1.18 04/13/06
  *
  * @see java.awt.TextComponent
  * @see TextListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/textlistener.html">Tutorial: Writing a Text Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @since 1.1
  */

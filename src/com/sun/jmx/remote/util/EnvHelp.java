@@ -1,7 +1,7 @@
 /*
- * @(#)EnvHelp.java	1.36 05/08/31
+ * @(#)EnvHelp.java	1.33 04/02/13
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -198,11 +198,11 @@ public class EnvHelp {
     }
 
     /**
-     * Initialise the cause field of a {@code Throwable} object.
+     * Initialize the cause field of a {@code Throwable} object.
      *
      * @param throwable The {@code Throwable} on which the cause is set.
      * @param cause The cause to set on the supplied {@code Throwable}.
-     * @return the {@code Throwable} with the cause field initialised.
+     * @return the {@code Throwable} with the cause field initialized.
      */
     public static <T extends Throwable> T initCause(T throwable,
 						    Throwable cause) {
@@ -617,11 +617,58 @@ public class EnvHelp {
 	"jmx.remote.x.client.connection.check.period";
 
     /** 
-     * Returns the client connection check oeriod.
+     * Returns the client connection check period.
      */
     public static long getConnectionCheckPeriod(Map env) {
 	return getIntegerAttribute(env, CLIENT_CONNECTION_CHECK_PERIOD, 60000L,
 				   0, Long.MAX_VALUE);
+    }
+
+    /**
+     * Computes a boolean value from a string value retrieved from a
+     * property in the given map.
+     *
+     * @param env the environment map.
+     * @param prop the name of the property in the environment map whose
+     * returned string value must be converted into a boolean value.
+     *
+     * @return
+     *   <ul>
+     *   <li>{@code false} if {@code env.get(prop)} is {@code null}</li>
+     *   <li>{@code false} if
+     *       {@code ((String)env.get(prop)).equalsIgnoreCase("false")}
+     *       is {@code true}</li>
+     *   <li>{@code true} if
+     *       {@code ((String)env.get(prop)).equalsIgnoreCase("true")}
+     *       is {@code true}</li>
+     *   </ul>
+     *
+     * @throws IllegalArgumentException if {@code env} is {@code null} or
+     * {@code env.get(prop)} is not {@code null} and
+     * {@code ((String)env.get(prop)).equalsIgnoreCase("false")} and
+     * {@code ((String)env.get(prop)).equalsIgnoreCase("true")} are
+     * {@code false}.
+     * @throws ClassCastException if {@code env.get(prop)} cannot be cast
+     * to {@code String}.
+     */
+    public static boolean computeBooleanFromString(Map env, String prop)
+        throws IllegalArgumentException, ClassCastException {
+
+        if (env == null)
+            throw new IllegalArgumentException("env map cannot be null");
+
+        String stringBoolean = (String) env.get(prop);
+
+        if (stringBoolean == null)
+            return false;
+        else if (stringBoolean.equalsIgnoreCase("true"))
+            return true;
+        else if (stringBoolean.equalsIgnoreCase("false"))
+            return false;
+        else
+            throw new IllegalArgumentException(prop +
+                " must be \"true\" or \"false\" instead of \"" +
+                stringBoolean + "\"");
     }
 
     /**

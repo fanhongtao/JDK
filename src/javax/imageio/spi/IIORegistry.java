@@ -1,7 +1,7 @@
 /*
  * @(#)IIORegistry.java	1.65 04/06/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,7 @@ import com.sun.imageio.spi.OutputStreamImageOutputStreamSpi;
 import com.sun.imageio.spi.RAFImageInputStreamSpi;
 import com.sun.imageio.spi.RAFImageOutputStreamSpi;
 import com.sun.imageio.plugins.gif.GIFImageReaderSpi;
+import com.sun.imageio.plugins.gif.GIFImageWriterSpi;
 import com.sun.imageio.plugins.jpeg.JPEGImageReaderSpi;
 import com.sun.imageio.plugins.jpeg.JPEGImageWriterSpi;
 import com.sun.imageio.plugins.png.PNGImageReaderSpi;
@@ -86,7 +87,7 @@ import sun.misc.ServiceConfigurationError;
  *
  * <p> For more details on declaring service providers, and the JAR
  * format in general, see the <a
- * href="{@docRoot}/../guide/jar/jar.html">
+ * href="{@docRoot}/../technotes/guides/jar/jar.html">
  * JAR File Specification</a>.
  *
  * @version 0.5
@@ -147,6 +148,7 @@ public final class IIORegistry extends ServiceRegistry {
     private void registerStandardSpis() {
         // Hardwire standard SPIs
         registerServiceProvider(new GIFImageReaderSpi());
+        registerServiceProvider(new GIFImageWriterSpi());
         registerServiceProvider(new BMPImageReaderSpi());
         registerServiceProvider(new BMPImageWriterSpi());
         registerServiceProvider(new WBMPImageReaderSpi());

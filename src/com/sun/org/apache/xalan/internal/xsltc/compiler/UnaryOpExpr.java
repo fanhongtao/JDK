@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnaryOpExpr.java,v 1.8 2004/02/16 22:25:10 minchau Exp $
+ * $Id: UnaryOpExpr.java,v 1.2.4.1 2005/09/05 09:21:00 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

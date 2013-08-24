@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToUnknownStream.java,v 1.8 2004/02/17 04:18:18 minchau Exp $
+ * $Id: ToUnknownStream.java,v 1.3 2005/09/28 13:49:08 pvedula Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -45,8 +45,11 @@ import org.xml.sax.SAXException;
  * simply passed directly to the wrapped handler.
  *
  * The user of this class doesn't know if the output is ultimatley XML or HTML.
+ * 
+ * This class is not a public API, it is public because it is used within Xalan.
+ * @xsl.usage internal
  */
-public class ToUnknownStream extends SerializerBase
+public final class ToUnknownStream extends SerializerBase
 {
 
     /**
@@ -137,7 +140,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#asContentHandler()
+     * @see Serializer#asContentHandler()
      * @return the wrapped XML or HTML handler
      */
     public ContentHandler asContentHandler() throws IOException
@@ -151,7 +154,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#close()
+     * @see SerializationHandler#close()
      */
     public void close()
     {
@@ -159,7 +162,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputFormat()
+     * @see Serializer#getOutputFormat()
      * @return the properties of the underlying handler
      */
     public Properties getOutputFormat()
@@ -168,7 +171,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputStream()
+     * @see Serializer#getOutputStream()
      * @return the OutputStream of the underlying XML or HTML handler
      */
     public OutputStream getOutputStream()
@@ -177,7 +180,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getWriter()
+     * @see Serializer#getWriter()
      * @return the Writer of the underlying XML or HTML handler
      */
     public Writer getWriter()
@@ -187,7 +190,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * passes the call on to the underlying HTML or XML handler
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#reset()
+     * @see Serializer#reset()
      * @return ???
      */
     public boolean reset()
@@ -198,7 +201,7 @@ public class ToUnknownStream extends SerializerBase
     /**
      * Converts the DOM node to output
      * @param node the DOM node to transform to output
-     * @see com.sun.org.apache.xml.internal.serializer.DOMSerializer#serialize(Node)
+     * @see DOMSerializer#serialize(Node)
      *
      */
     public void serialize(Node node) throws IOException
@@ -211,7 +214,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setEscaping(boolean)
+     * @see SerializationHandler#setEscaping(boolean)
      */
     public boolean setEscaping(boolean escape) throws SAXException
     {
@@ -221,7 +224,7 @@ public class ToUnknownStream extends SerializerBase
     /**
      * Set the properties of the handler
      * @param format the output properties to set
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputFormat(Properties)
+     * @see Serializer#setOutputFormat(Properties)
      */
     public void setOutputFormat(Properties format)
     {
@@ -231,7 +234,7 @@ public class ToUnknownStream extends SerializerBase
     /**
      * Sets the output stream to write to
      * @param output the OutputStream to write to
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputStream(OutputStream)
+     * @see Serializer#setOutputStream(OutputStream)
      */
     public void setOutputStream(OutputStream output)
     {
@@ -241,7 +244,7 @@ public class ToUnknownStream extends SerializerBase
     /**
      * Sets the writer to write to
      * @param writer the writer to write to
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setWriter(Writer)
+     * @see Serializer#setWriter(Writer)
      */
     public void setWriter(Writer writer)
     {
@@ -255,27 +258,29 @@ public class ToUnknownStream extends SerializerBase
      * @param rawName the attribute name, with prefix (if any)
      * @param type the type of the attribute, typically "CDATA"
      * @param value the value of the parameter
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#addAttribute(String, String, String, String, String)
+     * @param XSLAttribute true if this attribute is coming from an xsl:attribute element
+     * @see ExtendedContentHandler#addAttribute(String, String, String, String, String)
      */
     public void addAttribute(
         String uri,
         String localName,
         String rawName,
         String type,
-        String value)
+        String value,
+        boolean XSLAttribute)
         throws SAXException
     {
         if (m_firstTagNotEmitted)
         {
             flush();
         }
-        m_handler.addAttribute(uri, localName, rawName, type, value);
+        m_handler.addAttribute(uri, localName, rawName, type, value, XSLAttribute);
     }
     /**
      * Adds an attribute to the currenly open tag
-     * @param name the attribute name, with prefix (if any)
+     * @param rawName the attribute name, with prefix (if any)
      * @param value the value of the parameter
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#addAttribute(String, String)
+     * @see ExtendedContentHandler#addAttribute(String, String)
      */
     public void addAttribute(String rawName, String value)
     {
@@ -305,7 +310,7 @@ public class ToUnknownStream extends SerializerBase
      * Converts the String to a character array and calls the SAX method 
      * characters(char[],int,int);
      * 
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#characters(String)
+     * @see ExtendedContentHandler#characters(String)
      */
     public void characters(String chars) throws SAXException
     {
@@ -320,7 +325,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#endElement(String)
+     * @see ExtendedContentHandler#endElement(String)
      */
     public void endElement(String elementName) throws SAXException
     {
@@ -351,7 +356,7 @@ public class ToUnknownStream extends SerializerBase
      * @param uri the URI of the namespace
      * @param prefix the prefix associated with the given URI.
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#namespaceAfterStartElement(String, String)
+     * @see ExtendedContentHandler#namespaceAfterStartElement(String, String)
      */    
     public void namespaceAfterStartElement(String prefix, String uri)
         throws SAXException 
@@ -452,6 +457,12 @@ public class ToUnknownStream extends SerializerBase
         String elementName,
         Attributes atts) throws SAXException
     {
+        
+        if (m_needToCallSetDocumentInfo){
+            super.setDocumentInfo();
+            m_needToCallSetDocumentInfo = false;
+        }
+        
         /* we are notified of the start of an element */
         if (m_firstTagNotEmitted)
         {
@@ -515,7 +526,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedLexicalHandler#comment(String)
+     * @see ExtendedLexicalHandler#comment(String)
      */
     public void comment(String comment) throws SAXException
     {
@@ -534,7 +545,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getDoctypePublic()
+     * @see XSLOutputAttributes#getDoctypePublic()
      */
     public String getDoctypePublic()
     {
@@ -544,7 +555,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getDoctypeSystem()
+     * @see XSLOutputAttributes#getDoctypeSystem()
      */
     public String getDoctypeSystem()
     {
@@ -553,7 +564,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getEncoding()
+     * @see XSLOutputAttributes#getEncoding()
      */
     public String getEncoding()
     {
@@ -562,7 +573,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getIndent()
+     * @see XSLOutputAttributes#getIndent()
      */
     public boolean getIndent()
     {
@@ -571,7 +582,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getIndentAmount()
+     * @see XSLOutputAttributes#getIndentAmount()
      */
     public int getIndentAmount()
     {
@@ -580,7 +591,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getMediaType()
+     * @see XSLOutputAttributes#getMediaType()
      */
     public String getMediaType()
     {
@@ -589,7 +600,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getOmitXMLDeclaration()
+     * @see XSLOutputAttributes#getOmitXMLDeclaration()
      */
     public boolean getOmitXMLDeclaration()
     {
@@ -598,7 +609,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getStandalone()
+     * @see XSLOutputAttributes#getStandalone()
      */
     public String getStandalone()
     {
@@ -607,7 +618,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#getVersion()
+     * @see XSLOutputAttributes#getVersion()
      */
     public String getVersion()
     {
@@ -615,7 +626,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setDoctype(String, String)
+     * @see XSLOutputAttributes#setDoctype(String, String)
      */
     public void setDoctype(String system, String pub)
     {
@@ -627,7 +638,7 @@ public class ToUnknownStream extends SerializerBase
      * Set the doctype in the underlying XML handler. Remember that this method
      * was called, just in case we need to transfer this doctype to an HTML handler
      * @param doctype the public doctype to set
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setDoctypePublic(String)
+     * @see XSLOutputAttributes#setDoctypePublic(String)
      */
     public void setDoctypePublic(String doctype)
     {
@@ -639,7 +650,7 @@ public class ToUnknownStream extends SerializerBase
      * Set the doctype in the underlying XML handler. Remember that this method
      * was called, just in case we need to transfer this doctype to an HTML handler
      * @param doctype the system doctype to set
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setDoctypeSystem(String)
+     * @see XSLOutputAttributes#setDoctypeSystem(String)
      */
     public void setDoctypeSystem(String doctype)
     {
@@ -649,7 +660,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setEncoding(String)
+     * @see XSLOutputAttributes#setEncoding(String)
      */
     public void setEncoding(String encoding)
     {
@@ -658,7 +669,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setIndent(boolean)
+     * @see XSLOutputAttributes#setIndent(boolean)
      */
     public void setIndent(boolean indent)
     {
@@ -674,7 +685,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setMediaType(String)
+     * @see XSLOutputAttributes#setMediaType(String)
      */
     public void setMediaType(String mediaType)
     {
@@ -684,7 +695,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setOmitXMLDeclaration(boolean)
+     * @see XSLOutputAttributes#setOmitXMLDeclaration(boolean)
      */
     public void setOmitXMLDeclaration(boolean b)
     {
@@ -693,7 +704,7 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * Pass the call on to the underlying handler
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setStandalone(String)
+     * @see XSLOutputAttributes#setStandalone(String)
      */
     public void setStandalone(String standalone)
     {
@@ -701,7 +712,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.XSLOutputAttributes#setVersion(String)
+     * @see XSLOutputAttributes#setVersion(String)
      */
 
     /**
@@ -846,7 +857,7 @@ public class ToUnknownStream extends SerializerBase
     public void processingInstruction(String target, String data)
         throws SAXException
     {
-        if (m_firstTagNotEmitted)
+          if (m_firstTagNotEmitted)
         {
             flush();
         }
@@ -860,6 +871,7 @@ public class ToUnknownStream extends SerializerBase
      */
     public void setDocumentLocator(Locator locator)
     {
+        super.setDocumentLocator(locator);
         m_handler.setDocumentLocator(locator);
     }
 
@@ -1145,7 +1157,7 @@ public class ToUnknownStream extends SerializerBase
         return isHTML;
     }
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#asDOMSerializer()
+     * @see Serializer#asDOMSerializer()
      */
     public DOMSerializer asDOMSerializer() throws IOException
     {
@@ -1154,15 +1166,15 @@ public class ToUnknownStream extends SerializerBase
 
     /**
      * @param URI_and_localNames Vector a list of pairs of URI/localName
-     * specified in the cdata-section-elements attribute
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setCdataSectionElements(java.util.Vector)
+     * specified in the cdata-section-elements attribute.
+     * @see SerializationHandler#setCdataSectionElements(java.util.Vector)
      */
     public void setCdataSectionElements(Vector URI_and_localNames)
     {
         m_handler.setCdataSectionElements(URI_and_localNames);
     }
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#addAttributes(org.xml.sax.Attributes)
+     * @see ExtendedContentHandler#addAttributes(org.xml.sax.Attributes)
      */
     public void addAttributes(Attributes atts) throws SAXException
     {
@@ -1172,7 +1184,7 @@ public class ToUnknownStream extends SerializerBase
     /**
      * Get the current namespace mappings.
      * Simply returns the mappings of the wrapped handler.
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#getNamespaceMappings()
+     * @see ExtendedContentHandler#getNamespaceMappings()
      */
     public NamespaceMappings getNamespaceMappings()
     {
@@ -1184,7 +1196,7 @@ public class ToUnknownStream extends SerializerBase
         return mappings;
     }
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#flushPending()
+     * @see SerializationHandler#flushPending()
      */
     public void flushPending() throws SAXException
     {
@@ -1217,14 +1229,14 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#getPrefix
+     * @see ExtendedContentHandler#getPrefix
      */
     public String getPrefix(String namespaceURI)
     {
         return m_handler.getPrefix(namespaceURI);
     }
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#entityReference(java.lang.String)
+     * @see ExtendedContentHandler#entityReference(java.lang.String)
      */
     public void entityReference(String entityName) throws SAXException
     {
@@ -1232,7 +1244,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#getNamespaceURI(java.lang.String, boolean)
+     * @see ExtendedContentHandler#getNamespaceURI(java.lang.String, boolean)
      */
     public String getNamespaceURI(String qname, boolean isElement)
     {
@@ -1260,7 +1272,7 @@ public class ToUnknownStream extends SerializerBase
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setContentHandler(org.xml.sax.ContentHandler)
+     * @see SerializationHandler#setContentHandler(org.xml.sax.ContentHandler)
      */
     public void setContentHandler(ContentHandler ch)
     {
@@ -1271,7 +1283,7 @@ public class ToUnknownStream extends SerializerBase
      * generated an error message.
      * @param locator the source locator
      *
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#setSourceLocator(javax.xml.transform.SourceLocator)
+     * @see ExtendedContentHandler#setSourceLocator(javax.xml.transform.SourceLocator)
      */    
     public void setSourceLocator(SourceLocator locator)
     {

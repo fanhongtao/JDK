@@ -1,7 +1,7 @@
 /*
- * @(#)StringCoding.java	1.15	05/03/03
+ * @(#)StringCoding.java	1.20	06/10/06
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,9 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.MalformedInputException;
 import java.nio.charset.UnsupportedCharsetException;
-import sun.io.ByteToCharConverter;
-import sun.io.CharToByteConverter;
-import sun.io.Converters;
+import java.util.Arrays;
 import sun.misc.MessageUtils;
 import sun.nio.cs.HistoricallyNamedCharset;
-
 
 /**
  * Utility class for string encoding and decoding.
@@ -58,28 +55,30 @@ class StringCoding {
 
     // Trim the given byte array to the given length
     //
-    private static byte[] trim(byte[] ba, int len) {
-	if (len == ba.length)
+    private static byte[] safeTrim(byte[] ba, int len, Charset cs) {
+ 	if (len == ba.length 
+	    && (System.getSecurityManager() == null
+		|| cs.getClass().getClassLoader0() == null))
 	    return ba;
-	byte[] tba = new byte[len];
-	System.arraycopy(ba, 0, tba, 0, len);
-	return tba;
+        else
+            return Arrays.copyOf(ba, len);
     }
 
     // Trim the given char array to the given length
     //
-    private static char[] trim(char[] ca, int len) {
-	if (len == ca.length)
+    private static char[] safeTrim(char[] ca, int len, Charset cs) {
+ 	if (len == ca.length 
+	    && (System.getSecurityManager() == null
+		|| cs.getClass().getClassLoader0() == null))
 	    return ca;
-	char[] tca = new char[len];
-	System.arraycopy(ca, 0, tca, 0, len);
-	return tca;
+        else
+            return Arrays.copyOf(ca, len);
     }
 
     private static int scale(int len, float expansionFactor) {
-      // We need to perform double, not float, arithmetic; otherwise
-      // we lose low order bits when len is larger than 2**24.
-      return (int)(len * (double)expansionFactor);
+	// We need to perform double, not float, arithmetic; otherwise
+	// we lose low order bits when len is larger than 2**24.
+	return (int)(len * (double)expansionFactor);
     }
 
     private static Charset lookupCharset(String csn) {
@@ -106,66 +105,13 @@ class StringCoding {
 
 
     // -- Decoding --
-
-    // Encapsulates either a ByteToCharConverter or a CharsetDecoder
-    //
-    private static abstract class StringDecoder {
+    private static class StringDecoder {
 	private final String requestedCharsetName;
-	protected StringDecoder(String requestedCharsetName) {
-	    this.requestedCharsetName = requestedCharsetName;
-	}
-	final String requestedCharsetName() {
-	    return requestedCharsetName;
-	}
-	abstract String charsetName();
-	abstract char[] decode(byte[] ba, int off, int len);
-    }
-
-    // A string decoder based upon a ByteToCharConverter
-    //
-    private static class ConverterSD
-	extends StringDecoder
-    {
-	private ByteToCharConverter btc;
-
-	private ConverterSD(ByteToCharConverter btc, String rcn) {
-	    super(rcn);
-	    this.btc = btc;
-	}
-
-	String charsetName() {
-	    return btc.getCharacterEncoding();
-	}
-
-	char[] decode(byte[] ba, int off, int len) {
-	    int en = scale(len, btc.getMaxCharsPerByte());
-	    char[] ca = new char[en];
-	    if (len == 0)
-		return ca;
-	    btc.reset();
-	    int n = 0;
-	    try {
-		n = btc.convert(ba, off, off + len, ca, 0, en);
-		n += btc.flush(ca, btc.nextCharIndex(), en);
-	    } catch (CharConversionException x) {
-		// Yes, this is what we've always done
-		n = btc.nextCharIndex();
-	    }
-	    return trim(ca, n);
-	}
-
-    }
-
-    // A string decoder based upon a CharsetDecoder
-    //
-    private static class CharsetSD
-	extends StringDecoder
-    {
 	private final Charset cs;
 	private final CharsetDecoder cd;
 
-	private CharsetSD(Charset cs, String rcn) {
-	    super(rcn);
+	private StringDecoder(Charset cs, String rcn) {
+            this.requestedCharsetName = rcn;
 	    this.cs = cs;
 	    this.cd = cs.newDecoder()
 		.onMalformedInput(CodingErrorAction.REPLACE)
@@ -173,9 +119,13 @@ class StringCoding {
 	}
 
 	String charsetName() {
-	    if (cs instanceof HistoricallyNamedCharset)
-		return ((HistoricallyNamedCharset)cs).historicalName();
-	    return cs.name();
+ 	    if (cs instanceof HistoricallyNamedCharset)
+ 		return ((HistoricallyNamedCharset)cs).historicalName();
+ 	    return cs.name();
+	}
+
+	final String requestedCharsetName() {
+	    return requestedCharsetName;
 	}
 
 	char[] decode(byte[] ba, int off, int len) {
@@ -198,7 +148,7 @@ class StringCoding {
 		// so this shouldn't happen
 		throw new Error(x);
 	    }
-	    return trim(ca, cb.position());
+	    return safeTrim(ca, cb.position(), cs);
 	}
 
     }
@@ -214,26 +164,26 @@ class StringCoding {
 	    try {
 		Charset cs = lookupCharset(csn);
 		if (cs != null)
-		    sd = new CharsetSD(cs, csn);
-		else
-		    sd = null;
-	    } catch (IllegalCharsetNameException x) {
-		// FALL THROUGH to ByteToCharConverter, for compatibility
-	    }
-	    if (sd == null)
-		sd = new ConverterSD(ByteToCharConverter.getConverter(csn),
-				     csn);
+		    sd = new StringDecoder(cs, csn);
+	    } catch (IllegalCharsetNameException x) {}
+            if (sd == null)
+                throw new UnsupportedEncodingException(csn);
 	    set(decoder, sd);
 	}
 	return sd.decode(ba, off, len);
     }
 
+    static char[] decode(Charset cs, byte[] ba, int off, int len) {
+ 	StringDecoder sd = new StringDecoder(cs, cs.name());
+	byte[] b = Arrays.copyOf(ba, ba.length);
+	return sd.decode(b, off, len);
+    }
+
     static char[] decode(byte[] ba, int off, int len) {
-	String csn = Converters.getDefaultEncodingName();
+	String csn = Charset.defaultCharset().name();
 	try {
 	    return decode(csn, ba, off, len);
 	} catch (UnsupportedEncodingException x) {
-	    Converters.resetDefaultEncodingName();
 	    warnUnsupportedCharset(csn);
 	}
 	try {
@@ -254,69 +204,13 @@ class StringCoding {
 
 
     // -- Encoding --
-
-    // Encapsulates either a CharToByteConverter or a CharsetEncoder
-    //
-    private static abstract class StringEncoder {
-	private final String requestedCharsetName;
-	protected StringEncoder(String requestedCharsetName) {
-	    this.requestedCharsetName = requestedCharsetName;
-	}
-	final String requestedCharsetName() {
-	    return requestedCharsetName;
-	}
-	abstract String charsetName();
-	abstract byte[] encode(char[] cs, int off, int len);
-    }
-
-    // A string encoder based upon a CharToByteConverter
-    //
-    private static class ConverterSE
-	extends StringEncoder
-    {
-	private CharToByteConverter ctb;
-
-	private ConverterSE(CharToByteConverter ctb, String rcn) {
-	    super(rcn);
-	    this.ctb = ctb;
-	}
-
-	String charsetName() {
-	    return ctb.getCharacterEncoding();
-	}
-
-	byte[] encode(char[] ca, int off, int len) {
-	    int en = scale(len, ctb.getMaxBytesPerChar());
-	    byte[] ba = new byte[en];
-	    if (len == 0)
-		return ba;
-
-	    ctb.reset();
-	    int n;
-	    try {
-		n = ctb.convertAny(ca, off, (off + len),
-				   ba, 0, en);
-		n += ctb.flushAny(ba, ctb.nextByteIndex(), en);
-	    } catch (CharConversionException x) {
-		throw new Error("Converter malfunction: " +
-				ctb.getClass().getName(),
-				x);
-	    }
-	    return trim(ba, n);
-	}
-
-    }
-
-    // A string encoder based upon a CharsetEncoder
-    //
-    private static class CharsetSE
-	extends StringEncoder
-    {
+    private static class StringEncoder {
 	private Charset cs;
 	private CharsetEncoder ce;
+	private final String requestedCharsetName;
 
-	private CharsetSE(Charset cs, String rcn) {
-	    super(rcn);
+	private StringEncoder(Charset cs, String rcn) {
+	    this.requestedCharsetName = rcn;
 	    this.cs = cs;
 	    this.ce = cs.newEncoder()
 		.onMalformedInput(CodingErrorAction.REPLACE)
@@ -324,9 +218,13 @@ class StringCoding {
 	}
 
 	String charsetName() {
-	    if (cs instanceof HistoricallyNamedCharset)
-		return ((HistoricallyNamedCharset)cs).historicalName();
-	    return cs.name();
+ 	    if (cs instanceof HistoricallyNamedCharset)
+ 		return ((HistoricallyNamedCharset)cs).historicalName();
+ 	    return cs.name();
+	}
+
+	final String requestedCharsetName() {
+	    return requestedCharsetName;
 	}
 
 	byte[] encode(char[] ca, int off, int len) {
@@ -350,9 +248,8 @@ class StringCoding {
 		// so this shouldn't happen
 		throw new Error(x);
 	    }
-	    return trim(ba, bb.position());
+	    return safeTrim(ba, bb.position(), cs);
 	}
-
     }
 
     static byte[] encode(String charsetName, char[] ca, int off, int len)
@@ -360,30 +257,32 @@ class StringCoding {
     {
 	StringEncoder se = (StringEncoder)deref(encoder);
 	String csn = (charsetName == null) ? "ISO-8859-1" : charsetName;
-	if ((se == null) || !(csn.equals(se.requestedCharsetName())
-			      || csn.equals(se.charsetName()))) {
+ 	if ((se == null) || !(csn.equals(se.requestedCharsetName())
+ 			      || csn.equals(se.charsetName()))) {
 	    se = null;
 	    try {
 		Charset cs = lookupCharset(csn);
 		if (cs != null)
-		    se = new CharsetSE(cs, csn);
-	    } catch (IllegalCharsetNameException x) {
-		// FALL THROUGH to CharToByteConverter, for compatibility
-	    }
+		    se = new StringEncoder(cs, csn);
+	    } catch (IllegalCharsetNameException x) {}
 	    if (se == null)
-		se = new ConverterSE(CharToByteConverter.getConverter(csn),
-				     csn);
+                throw new UnsupportedEncodingException (csn);
 	    set(encoder, se);
 	}
 	return se.encode(ca, off, len);
     }
 
+    static byte[] encode(Charset cs, char[] ca, int off, int len) {
+	StringEncoder se = new StringEncoder(cs, cs.name());
+	char[] c = Arrays.copyOf(ca, ca.length);
+	return se.encode(c, off, len);
+    }
+
     static byte[] encode(char[] ca, int off, int len) {
-	String csn = Converters.getDefaultEncodingName();
+	String csn = Charset.defaultCharset().name();
 	try {
 	    return encode(csn, ca, off, len);
 	} catch (UnsupportedEncodingException x) {
-	    Converters.resetDefaultEncodingName();
 	    warnUnsupportedCharset(csn);
 	}
 	try {
@@ -399,5 +298,4 @@ class StringCoding {
 	    return null;
 	}
     }
-
 }

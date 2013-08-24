@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// $Id: JAXPVariableStack.java,v 1.4 2004/07/10 21:39:19 rameshm Exp $
+// $Id: JAXPVariableStack.java,v 1.1.2.1 2005/08/01 01:30:17 jeffsuttor Exp $
 
 package com.sun.org.apache.xpath.internal.jaxp;
 

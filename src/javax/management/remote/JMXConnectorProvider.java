@@ -1,7 +1,7 @@
 /*
- * @(#)JMXConnectorProvider.java	1.14 04/05/05
+ * @(#)JMXConnectorProvider.java	1.16 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,8 +42,13 @@ public interface JMXConnectorProvider {
      * @exception NullPointerException if <code>serviceURL</code> or
      * <code>environment</code> is null.
      *
-     * @exception IOException if the connection cannot be made because
-     * of a communication problem.
+     * @exception IOException It is recommended for a provider
+     * implementation to throw {@code MalformedURLException} if the
+     * protocol in the {@code serviceURL} is not recognized by this
+     * provider, {@code JMXProviderException} if this is a provider
+     * for the protocol in {@code serviceURL} but it cannot be used
+     * for some reason or any other {@code IOException} if the
+     * connection cannot be made because of a communication problem.
      */
     public JMXConnector newJMXConnector(JMXServiceURL serviceURL,
 					Map<String,?> environment)

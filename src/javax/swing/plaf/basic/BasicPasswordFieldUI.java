@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPasswordFieldUI.java	1.30 03/12/19
+ * @(#)BasicPasswordFieldUI.java	1.33 06/03/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -21,7 +21,7 @@ import javax.swing.plaf.*;
  * real text contained in the field.
  *
  * @author  Timothy Prinzing
- * @version 1.30 12/19/03
+ * @version 1.33 03/14/06
  */
 public class BasicPasswordFieldUI extends BasicTextFieldUI {
 
@@ -44,6 +44,20 @@ public class BasicPasswordFieldUI extends BasicTextFieldUI {
      */
     protected String getPropertyPrefix() {
 	return "PasswordField";
+    }
+
+
+    /**
+     * Installs the necessary properties on the JPasswordField.
+     * @since 1.6
+     */
+    protected void installDefaults() {
+        super.installDefaults();
+        String prefix = getPropertyPrefix();
+        Character echoChar = (Character)UIManager.getDefaults().get(prefix + ".echoChar");
+        if(echoChar != null) {
+            LookAndFeel.installProperty(getComponent(), "echoChar", echoChar);
+        }
     }
 
     /**

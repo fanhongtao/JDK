@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeCounter.java,v 1.10 2004/02/16 22:54:59 minchau Exp $
+ * $Id: NodeCounter.java,v 1.2.4.1 2005/09/12 11:52:36 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -25,18 +25,19 @@ import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import com.sun.org.apache.xalan.internal.xsltc.Translet;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 
 /**
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
  * @author Morten Jorgensen
  */
-public abstract class NodeCounter implements Axis {
+public abstract class NodeCounter {
     public static final int END = DTM.NULL;
 
     protected int _node = END;
     protected int _nodeType = DOM.FIRST_TYPE - 1;
-    protected int _value = Integer.MIN_VALUE;
+    protected double _value = Integer.MIN_VALUE;
 
     public final DOM          _document;
     public final DTMAxisIterator _iterator;
@@ -48,27 +49,29 @@ public abstract class NodeCounter implements Axis {
     protected String _groupSep;
     protected int    _groupSize;
 
-    private boolean separFirst = true;
-    private boolean separLast = false;
-    private Vector separToks = null;
-    private Vector formatToks = null;
-    private int nSepars  = 0;
-    private int nFormats = 0;
+    private boolean _separFirst = true;
+    private boolean _separLast = false;
+    private Vector _separToks = new Vector();
+    private Vector _formatToks = new Vector();
+    private int _nSepars  = 0;
+    private int _nFormats = 0;
 
-    private static String[] Thousands = 
+    private final static String[] Thousands = 
         {"", "m", "mm", "mmm" };
-    private static String[] Hundreds = 
-	{"", "c", "cc", "ccc", "cd", "d", "dc", "dcc", "dccc", "cm"};
-    private static String[] Tens = 
-	{"", "x", "xx", "xxx", "xl", "l", "lx", "lxx", "lxxx", "xc"};
-    private static String[] Ones = 
-	{"", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"};
-
+    private final static String[] Hundreds = 
+    {"", "c", "cc", "ccc", "cd", "d", "dc", "dcc", "dccc", "cm"};
+    private final static String[] Tens = 
+    {"", "x", "xx", "xxx", "xl", "l", "lx", "lxx", "lxxx", "xc"};
+    private final static String[] Ones = 
+    {"", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"};
+  
+  private StringBuffer _tempBuffer = new StringBuffer();
+    
     protected NodeCounter(Translet translet,
-			  DOM document, DTMAxisIterator iterator) {
-	_translet = translet;
-	_document = document;
-	_iterator = iterator;
+              DOM document, DTMAxisIterator iterator) {
+    _translet = translet;
+    _document = document;
+    _iterator = iterator;
     }
 
     /** 
@@ -81,86 +84,96 @@ public abstract class NodeCounter implements Axis {
      * If the user specified a value attribute, use this instead of 
      * counting nodes.
      */
-    public NodeCounter setValue(int value) {
-	_value = value;
-	return this;
+    public NodeCounter setValue(double value) {
+    _value = value;
+    return this;
     }
 
     /**
      * Sets formatting fields before calling formatNumbers().
      */
     protected void setFormatting(String format, String lang, String letterValue,
-				 String groupSep, String groupSize) {
-	_lang = lang;
-	_format = format;
-	_groupSep = groupSep;
-	_letterValue = letterValue;
+                 String groupSep, String groupSize) {
+    _lang = lang;
+    _groupSep = groupSep;
+    _letterValue = letterValue;
 
-	try {
-	    _groupSize = Integer.parseInt(groupSize);
-	}
-	catch (NumberFormatException e) {
-	    _groupSize = 0;
-	}
-
-	final int length = _format.length();
-	boolean isFirst = true;
-	separFirst = true;
-	separLast = false;
-
-        separToks = new Vector();
-        formatToks = new Vector();
-
-	/* 
-	 * Tokenize the format string into alphanumeric and non-alphanumeric
-	 * tokens as described in M. Kay page 241.
-	 */
-	for (int j = 0, i = 0; i < length;) {
-            char c = _format.charAt(i);
-            for (j = i; Character.isLetterOrDigit(c);) {
-                if (++i == length) break;
-		c = _format.charAt(i);
-            }
-            if (i > j) {
-                if (isFirst) {
-                    separToks.addElement(".");
-                    isFirst = separFirst = false;
-                }
-                formatToks.addElement(_format.substring(j, i));
-            }
-
-            if (i == length) break;
-
-            c = _format.charAt(i);
-            for (j = i; !Character.isLetterOrDigit(c);) {
-                if (++i == length) break;
-                c = _format.charAt(i);
-                isFirst = false;
-            }
-            if (i > j) {
-                separToks.addElement(_format.substring(j, i));
-            }
-        }
-
-	nSepars = separToks.size();
-	nFormats = formatToks.size(); 
-	if (nSepars > nFormats) separLast = true;
-
-	if (separFirst) nSepars--;
-	if (separLast) nSepars--;
-	if (nSepars == 0) {
-	    separToks.insertElementAt(".", 1);
- 	    nSepars++;
-	}
-	if (separFirst) nSepars ++;
+    try {
+        _groupSize = Integer.parseInt(groupSize);
     }
+    catch (NumberFormatException e) {
+       _groupSize = 0;
+    }
+    setTokens(format);
 
+ }
+  
+  // format == null assumed here 
+ private final void setTokens(final String format){
+     if( (_format!=null) &&(format.equals(_format)) ){// has already been set
+        return;
+     }
+     _format = format;
+     // reset
+     final int length = _format.length();
+     boolean isFirst = true;
+     _separFirst = true;
+     _separLast = false;
+     _nSepars  = 0;
+     _nFormats = 0;
+     _separToks.clear() ;
+     _formatToks.clear();
+
+         /* 
+          * Tokenize the format string into alphanumeric and non-alphanumeric
+          * tokens as described in M. Kay page 241.
+          */
+         for (int j = 0, i = 0; i < length;) {
+                 char c = format.charAt(i);
+                 for (j = i; Character.isLetterOrDigit(c);) {
+                     if (++i == length) break;
+             c = format.charAt(i);
+                 }
+                 if (i > j) {
+                     if (isFirst) {
+                         _separToks.addElement(".");
+                         isFirst = _separFirst = false;
+                     }
+                     _formatToks.addElement(format.substring(j, i));
+                 }
+
+                 if (i == length) break;
+
+                 c = format.charAt(i);
+                 for (j = i; !Character.isLetterOrDigit(c);) {
+                     if (++i == length) break;
+                     c = format.charAt(i);
+                     isFirst = false;
+                 }
+                 if (i > j) {
+                     _separToks.addElement(format.substring(j, i));
+                 }
+             }
+
+         _nSepars = _separToks.size();
+         _nFormats = _formatToks.size(); 
+         if (_nSepars > _nFormats) _separLast = true;
+
+         if (_separFirst) _nSepars--;
+         if (_separLast) _nSepars--;
+         if (_nSepars == 0) {
+             _separToks.insertElementAt(".", 1);
+             _nSepars++;
+         }
+         if (_separFirst) _nSepars ++;
+ 
+ }
     /**
      * Sets formatting fields to their default values.
      */
     public NodeCounter setDefaultFormatting() {
-	setFormatting("1", "en", "alphabetic", null, null);
-	return this;
+    setFormatting("1", "en", "alphabetic", null, null);
+    return this;
     }
 
     /**
@@ -175,9 +188,9 @@ public abstract class NodeCounter implements Axis {
      * string based on the arguments passed.
      */
     public String getCounter(String format, String lang, String letterValue,
-			     String groupSep, String groupSize) {
-	setFormatting(format, lang, letterValue, groupSep, groupSize);
-	return getCounter();
+                String groupSep, String groupSize) {
+    setFormatting(format, lang, letterValue, groupSep, groupSize);
+    return getCounter();
     }
 
     /**
@@ -186,7 +199,7 @@ public abstract class NodeCounter implements Axis {
      * same type as the starting node.
      */
     public boolean matchesCount(int node) {
-	return _nodeType == _document.getExpandedTypeID(node);
+    return _nodeType == _document.getExpandedTypeID(node);
     }
 
     /**
@@ -194,14 +207,14 @@ public abstract class NodeCounter implements Axis {
      * no node matches the from pattern.
      */
     public boolean matchesFrom(int node) {
-	return false;
+    return false;
     }
 
     /**
      * Format a single value according to the format parameters.
      */
     protected String formatNumbers(int value) {
-	return formatNumbers(new int[] { value });
+    return formatNumbers(new int[] { value });
     }
 
     /**
@@ -209,39 +222,40 @@ public abstract class NodeCounter implements Axis {
      * set by calling setFormatting().
      */
     protected String formatNumbers(int[] values) {
-	final int nValues = values.length;
-	final int length = _format.length();
+    final int nValues = values.length;
+    final int length = _format.length();
 
-	boolean isEmpty = true;
-	for (int i = 0; i < nValues; i++)
-	    if (values[i] != Integer.MIN_VALUE)
-		isEmpty = false;
-	if (isEmpty) return("");
+    boolean isEmpty = true;
+    for (int i = 0; i < nValues; i++)
+        if (values[i] != Integer.MIN_VALUE)
+        isEmpty = false;
+    if (isEmpty) return("");
 
-	// Format the output string using the values array and the fmt. tokens
-	boolean isFirst = true;
-	int t = 0, n = 0, s = 1;
-	final StringBuffer buffer = new StringBuffer();
+    // Format the output string using the values array and the fmt. tokens
+    boolean isFirst = true;
+    int t = 0, n = 0, s = 1;
+  _tempBuffer.setLength(0);
+    final StringBuffer buffer = _tempBuffer;
 
-	// Append separation token before first digit/letter/numeral
-	if (separFirst) buffer.append((String)separToks.elementAt(0));
+    // Append separation token before first digit/letter/numeral
+    if (_separFirst) buffer.append((String)_separToks.elementAt(0));
 
-	// Append next digit/letter/numeral and separation token
-	while (n < nValues) {
-	    final int value = values[n];
-	    if (value != Integer.MIN_VALUE) {
-		if (!isFirst) buffer.append((String) separToks.elementAt(s++));
-		formatValue(value, (String)formatToks.elementAt(t++), buffer);
-		if (t == nFormats) t--;
-		if (s >= nSepars) s--;
-		isFirst = false;
-	    }
-	    n++;
-	}
+    // Append next digit/letter/numeral and separation token
+    while (n < nValues) {
+        final int value = values[n];
+        if (value != Integer.MIN_VALUE) {
+        if (!isFirst) buffer.append((String) _separToks.elementAt(s++));
+        formatValue(value, (String)_formatToks.elementAt(t++), buffer);
+        if (t == _nFormats) t--;
+        if (s >= _nSepars) s--;
+        isFirst = false;
+        }
+        n++;
+    }
 
-	// Append separation token after last digit/letter/numeral
-	if (separLast) buffer.append((String)separToks.lastElement());
-	return buffer.toString();
+    // Append separation token after last digit/letter/numeral
+    if (_separLast) buffer.append((String)_separToks.lastElement());
+    return buffer.toString();
     }
 
     /**
@@ -280,54 +294,55 @@ public abstract class NodeCounter implements Axis {
                 }
             }
         } 
-	else if (c == 'i' && !_letterValue.equals("alphabetic")) {
+    else if (c == 'i' && !_letterValue.equals("alphabetic")) {
             buffer.append(romanValue(value));
         } 
-	else if (c == 'I' && !_letterValue.equals("alphabetic")) {
+    else if (c == 'I' && !_letterValue.equals("alphabetic")) {
             buffer.append(romanValue(value).toUpperCase());
         } 
-	else {
-	    int min = (int) c;
-	    int max = (int) c;
+    else {
+        int min = (int) c;
+        int max = (int) c;
 
-	    // Special case for Greek alphabet 
-	    if (c >= 0x3b1 && c <= 0x3c9) {
-		max = 0x3c9;	// omega
-	    }
-	    else {
-		// General case: search for end of group
-		while (Character.isLetterOrDigit((char) (max + 1))) {
-		    max++;
-		}
-	    }
+        // Special case for Greek alphabet 
+        if (c >= 0x3b1 && c <= 0x3c9) {
+        max = 0x3c9;    // omega
+        }
+        else {
+        // General case: search for end of group
+        while (Character.isLetterOrDigit((char) (max + 1))) {
+            max++;
+        }
+        }
             buffer.append(alphaValue(value, min, max));
         }
     }
 
     private String alphaValue(int value, int min, int max) {
         if (value <= 0) {
-	    return "" + value;
-	}
+        return "" + value;
+    }
 
         int range = max - min + 1;
         char last = (char)(((value-1) % range) + min);
         if (value > range) {
             return alphaValue((value-1) / range, min, max) + last;
         } 
-	else {
+    else {
             return "" + last;
         }
     }
 
     private String romanValue(int n) {
         if (n <= 0 || n > 4000) {
-	    return "" + n;
-	}
-        return
-	    Thousands[n / 1000] +
-	    Hundreds[(n / 100) % 10] +
-	    Tens[(n/10) % 10] +
-	    Ones[n % 10];
+        return "" + n;
     }
+        return
+        Thousands[n / 1000] +
+        Hundreds[(n / 100) % 10] +
+        Tens[(n/10) % 10] +
+        Ones[n % 10];
+    }
+
 }
 

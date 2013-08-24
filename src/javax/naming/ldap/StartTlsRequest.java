@@ -1,7 +1,7 @@
 /*
- * @(#)StartTlsRequest.java	1.16 03/12/19
+ * @(#)StartTlsRequest.java	1.18 06/03/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -221,7 +221,7 @@ public class StartTlsRequest implements ExtendedRequest {
 	Boolean answer = (Boolean) AccessController.doPrivileged(
 	    new PrivilegedAction() {
 	    public Object run() {
-		return new Boolean(iter.hasNext());
+		return Boolean.valueOf(iter.hasNext());
 	    }
 	});
 	return answer.booleanValue();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOM2TO.java,v 1.10 2004/12/10 18:39:15 santiagopg Exp $
+ * $Id: DOM2TO.java,v 1.5 2005/09/28 13:48:44 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -23,13 +23,14 @@ import java.io.IOException;
 
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.Document;
 import com.sun.org.apache.xml.internal.serializer.SerializationHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
-import org.xml.sax.Locator;
+import org.xml.sax.ext.Locator2;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
@@ -38,8 +39,9 @@ import com.sun.org.apache.xml.internal.serializer.NamespaceMappings;
 
 /**
  * @author Santiago Pericas-Geertsen
+ * @author Sunitha Reddy
  */
-public class DOM2TO implements XMLReader, Locator {
+public class DOM2TO implements XMLReader, Locator2 { 
 
     private final static String EMPTYSTRING = "";
     private static final String XMLNS_PREFIX = "xmlns";
@@ -53,7 +55,13 @@ public class DOM2TO implements XMLReader, Locator {
      * A reference to the output handler receiving the events.
      */
     private SerializationHandler _handler;
-
+    
+    
+    private String xmlVersion = null;
+    
+    private String xmlEncoding = null;
+    
+    
     public DOM2TO(Node root, SerializationHandler handler) {
 	_dom = root;
 	_handler = handler;
@@ -72,10 +80,11 @@ public class DOM2TO implements XMLReader, Locator {
     }
 
     public void parse() throws IOException, SAXException {
-	if (_dom != null) {
+	
+        if (_dom != null) {
 	    boolean isIncomplete = 
 		(_dom.getNodeType() != org.w3c.dom.Node.DOCUMENT_NODE);
-
+              
 	    if (isIncomplete) {
 		_handler.startDocument();
 		parse(_dom);
@@ -115,7 +124,9 @@ public class DOM2TO implements XMLReader, Locator {
 	    break;
 
 	case Node.DOCUMENT_NODE:
-	    _handler.startDocument();
+             setDocumentInfo((Document)node);
+             _handler.setDocumentLocator(this); 
+             _handler.startDocument();
 	    Node next = node.getFirstChild();
 	    while (next != null) {
 		parse(next);
@@ -356,7 +367,37 @@ public class DOM2TO implements XMLReader, Locator {
     public String getSystemId() { 
 	return null; 
     }
-
+    
+    
+    private void setDocumentInfo(Document document) {
+        if (!document.getXmlStandalone())
+            _handler.setStandalone(Boolean.toString(document.getXmlStandalone()));
+        setXMLVersion(document.getXmlVersion());
+        setEncoding(document.getXmlEncoding()); 
+    }
+    
+    public String getXMLVersion() {
+        return xmlVersion;
+    }
+    
+    private void setXMLVersion(String version) {
+        if (version != null) {
+            xmlVersion = version;
+            _handler.setVersion(xmlVersion);
+        }
+    }
+    
+    public String getEncoding() {
+        return xmlEncoding; 
+    }
+    
+    private void setEncoding(String encoding) {
+        if (encoding != null) {
+            xmlEncoding = encoding;
+            _handler.setEncoding(encoding);
+        }
+    }
+    
     // Debugging 
     private String getNodeTypeFromCode(short code) {
 	String retval = null;

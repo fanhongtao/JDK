@@ -1,11 +1,14 @@
 /*
  * @(#)Doc.java	1.15 02/09/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.javadoc;
+
+import java.text.BreakIterator;
+import java.util.Locale;
 
 /**
  * Represents Java language constructs (package, class, constructor,
@@ -13,7 +16,7 @@ package com.sun.javadoc;
  * run of javadoc.  All Doc objects are unique, that is, they 
  * are == comparable.
  *
- * @since JDK1.2
+ * @since 1.2
  * @author Robert Field
  * @author Scott Seligman (generics, enums, annotations)
  */
@@ -87,8 +90,7 @@ public interface Doc extends Comparable<Object> {
      * &lt;hr&gt;  &lt;pre&gt;  or &lt;/pre&gt;.
      * If the locale is not English, the sentence end will be
      * determined by
-     * {@link java.text.BreakIterator#getSentenceInstance(Locale)
-     * java.text.BreakIterator.getSentenceInstance(Locale)}.
+     * {@link BreakIterator#getSentenceInstance(Locale)}.
 
      * @return an array of {@link Tag}s representing the
      * first sentence of the comment
@@ -209,7 +211,7 @@ public interface Doc extends Comparable<Object> {
     /**
      * Is this Doc item an
      * <a href="{@docRoot}/com/sun/javadoc/package-summary.html#class">ordinary
-     * class</em></a>?
+     * class</a>?
      * (i.e. not an interface, annotation type, enum, exception, or error)?
      *
      * @return true if it represents an ordinary class

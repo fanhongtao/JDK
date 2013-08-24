@@ -1,12 +1,14 @@
 /*
- * @(#)JDesktopPane.java	1.51 03/12/19
+ * @(#)JDesktopPane.java	1.58 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.plaf.*;
 import javax.accessibility.*;
@@ -19,6 +21,9 @@ import java.awt.Window;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.beans.PropertyVetoException;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A container used to create a multiple-document interface or a virtual desktop. 
@@ -43,6 +48,11 @@ import java.io.IOException;
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/internalframe.html">How to Use Internal Frames</a>,
  * a section in <em>The Java Tutorial</em>.
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -56,7 +66,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see DesktopManager
  *
- * @version 1.51 12/19/03
+ * @version 1.58 08/08/06
  * @author David Kloba
  */
 public class JDesktopPane extends JLayeredPane implements Accessible
@@ -91,11 +101,15 @@ public class JDesktopPane extends JLayeredPane implements Accessible
 
     private int dragMode = LIVE_DRAG_MODE;
     private boolean dragModeSet = false;
+    private transient List<JInternalFrame> framesCache;
+    private boolean componentOrderCheckingEnabled = true;
+    private boolean componentOrderChanged = false;
 
     /** 
      * Creates a new <code>JDesktopPane</code>.
      */
     public JDesktopPane() {
+        setUIProperty("opaque", Boolean.TRUE);
         setFocusCycleRoot(true);
 
         setFocusTraversalPolicy(new LayoutFocusTraversalPolicy() {
@@ -154,6 +168,7 @@ public class JDesktopPane extends JLayeredPane implements Accessible
      *  description: Dragging style for internal frame children.
      *         enum: LIVE_DRAG_MODE JDesktopPane.LIVE_DRAG_MODE
      *               OUTLINE_DRAG_MODE JDesktopPane.OUTLINE_DRAG_MODE
+     * @since 1.3
      */
     public void setDragMode(int dragMode) {
         int oldDragMode = this.dragMode;
@@ -167,6 +182,7 @@ public class JDesktopPane extends JLayeredPane implements Accessible
      * @return either <code>Live_DRAG_MODE</code> or
      *   <code>OUTLINE_DRAG_MODE</code>
      * @see #setDragMode
+     * @since 1.3
      */
      public int getDragMode() {
          return dragMode;
@@ -264,7 +280,12 @@ public class JDesktopPane extends JLayeredPane implements Accessible
     }
 
     /** Sets the currently active <code>JInternalFrame</code>
-     *  in this <code>JDesktopPane</code>.
+     *  in this <code>JDesktopPane</code>. This method is used to bridge
+     *  the package gap between JDesktopPane and the platform implementation
+     *  code and should not be called directly. To visually select the frame
+     *  the client must call JInternalFrame.setSelected(true) to activate
+     *  the frame.
+     *  @see JInternalFrame#setSelected(boolean) 
      *
      * @param f the internal frame that's currently selected
      * @since 1.3
@@ -308,19 +329,200 @@ public class JDesktopPane extends JLayeredPane implements Accessible
         return results;
     }
 
+    private List<JInternalFrame> getFrames() {
+        Component c;
+        Set<ComponentPosition> set = new TreeSet<ComponentPosition>();
+        for (int i = 0; i < getComponentCount(); i++) {
+            c = getComponent(i);
+            if (c instanceof JInternalFrame) {
+                set.add(new ComponentPosition((JInternalFrame)c, getLayer(c), 
+                    i));
+            } 
+            else if (c instanceof JInternalFrame.JDesktopIcon)  {
+                c = ((JInternalFrame.JDesktopIcon)c).getInternalFrame();
+                set.add(new ComponentPosition((JInternalFrame)c, getLayer(c), 
+                    i));
+            }
+        }
+        List<JInternalFrame> frames = new ArrayList<JInternalFrame>(
+                set.size());
+        for (ComponentPosition position : set) {
+            frames.add(position.component);
+        }
+        return frames;
+   }
 
-    /**
-     * Returns true to indicate that this component paints every pixel
-     * in its range. (In other words, it does not have a transparent
-     * background or foreground.)
-     *
-     * @return true
-     * @see JComponent#isOpaque
-     */
-    public boolean isOpaque() {
-        return true;
+    private static class ComponentPosition implements 
+        Comparable<ComponentPosition> {
+        private final JInternalFrame component;
+        private final int layer;
+        private final int zOrder;
+
+        ComponentPosition(JInternalFrame component, int layer, int zOrder) {
+            this.component = component;
+            this.layer = layer;
+            this.zOrder = zOrder;
+        }
+
+        public int compareTo(ComponentPosition o) {
+            int delta = o.layer - layer;
+            if (delta == 0) {
+                return zOrder - o.zOrder;
+            }
+            return delta;
+        }
+    } 
+
+    private JInternalFrame getNextFrame(JInternalFrame f, boolean forward) {
+        verifyFramesCache();
+        if (f == null) {
+            return getTopInternalFrame();
+        }
+        int i = framesCache.indexOf(f);
+        if (i == -1 || framesCache.size() == 1) {
+            /* error */
+            return null;
+        }
+        if (forward) {
+            // navigate to the next frame
+            if (++i == framesCache.size()) {
+                /* wrap */
+                i = 0;
+            }
+        }
+        else {
+            // navigate to the previous frame
+            if (--i == -1) {
+                /* wrap */
+                i = framesCache.size() - 1;
+            }
+        }
+        return framesCache.get(i);
     }
 
+    JInternalFrame getNextFrame(JInternalFrame f) {
+        return getNextFrame(f, true);
+    }
+
+    private JInternalFrame getTopInternalFrame() {
+        if (framesCache.size() == 0) {
+            return null;
+        }
+        return framesCache.get(0);
+    }
+
+    private void updateFramesCache() {
+        framesCache = getFrames();
+    }
+
+    private void verifyFramesCache() {
+        // If framesCache is dirty, then recreate it.
+        if (componentOrderChanged) {
+            componentOrderChanged = false;
+            updateFramesCache();
+        }
+    }
+
+    /**
+     * Selects the next <code>JInternalFrame</code> in this desktop pane.
+     *
+     * @param forward a boolean indicating which direction to select in;
+     *        <code>true</code> for forward, <code>false</code> for
+     *        backward
+     * @return the JInternalFrame that was selected or <code>null</code>
+     *         if nothing was selected
+     * @since 1.6
+     */ 
+    public JInternalFrame selectFrame(boolean forward) {
+        JInternalFrame selectedFrame = getSelectedFrame();
+        JInternalFrame frameToSelect = getNextFrame(selectedFrame, forward);
+        if (frameToSelect == null) {
+            return null;
+        }
+        // Maintain navigation traversal order until an
+        // external stack change, such as a click on a frame.
+        setComponentOrderCheckingEnabled(false);
+        if (forward && selectedFrame != null) {
+            selectedFrame.moveToBack();  // For Windows MDI fidelity.
+        }
+        try { frameToSelect.setSelected(true);
+        } catch (PropertyVetoException pve) {}
+        setComponentOrderCheckingEnabled(true);
+        return frameToSelect;
+    }
+
+    /*
+     * Sets whether component order checking is enabled. 
+     * @param enable a boolean value, where <code>true</code> means 
+     * a change in component order will cause a change in the keyboard
+     * navigation order. 
+     * @since 1.6
+     */
+    void setComponentOrderCheckingEnabled(boolean enable) {
+        componentOrderCheckingEnabled = enable;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    protected void addImpl(Component comp, Object constraints, int index) {
+        super.addImpl(comp, constraints, index);
+        if (componentOrderCheckingEnabled) {
+            if (comp instanceof JInternalFrame ||
+                comp instanceof JInternalFrame.JDesktopIcon) {
+                componentOrderChanged = true;
+            }
+        }
+    } 
+
+    /**
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    public void remove(int index) {
+        if (componentOrderCheckingEnabled) {
+            Component comp = getComponent(index);
+            if (comp instanceof JInternalFrame ||
+                comp instanceof JInternalFrame.JDesktopIcon) {
+                componentOrderChanged = true;
+            }
+        }
+        super.remove(index);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    public void removeAll() {
+        if (componentOrderCheckingEnabled) {
+            int count = getComponentCount();
+            for (int i = 0; i < count; i++) {
+                Component comp = getComponent(i);
+                if (comp instanceof JInternalFrame ||
+                    comp instanceof JInternalFrame.JDesktopIcon) {
+                    componentOrderChanged = true;
+                    break;
+                }
+            }
+        }
+        super.removeAll();
+    }
+
+    /**
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    public void setComponentZOrder(Component comp, int index) {
+        super.setComponentZOrder(comp, index);
+        if (componentOrderCheckingEnabled) {
+            if (comp instanceof JInternalFrame ||
+                comp instanceof JInternalFrame.JDesktopIcon) {
+                componentOrderChanged = true;
+            }
+        }
+    }
 
     /** 
      * See readObject() and writeObject() in JComponent for more 

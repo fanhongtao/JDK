@@ -1,7 +1,7 @@
 /*
- * @(#)CompoundEdit.java	1.25 04/05/05
+ * @(#)CompoundEdit.java	1.26 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.undo;
@@ -12,7 +12,7 @@ import java.util.*;
  * A concrete subclass of AbstractUndoableEdit, used to assemble little
  * UndoableEdits into great big ones.
  *
- * @version 1.25 05/05/04
+ * @version 1.26 11/17/05
  * @author Ray Ryan
  */
 public class CompoundEdit extends AbstractUndoableEdit {

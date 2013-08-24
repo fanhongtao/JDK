@@ -1,7 +1,7 @@
 /*
- * @(#)TextUI.java	1.32 03/12/19
+ * @(#)TextUI.java	1.34 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf;
@@ -17,7 +17,7 @@ import javax.swing.text.*;
  * Text editor user interface
  *
  * @author  Timothy Prinzing
- * @version 1.32 12/19/03
+ * @version 1.34 02/14/06
  */
 public abstract class TextUI extends ComponentUI
 {
@@ -78,14 +78,16 @@ public abstract class TextUI extends ComponentUI
      * they might not be in the same order found in the model, or they just
      * might not allow access to some of the locations in the model.
      *
+     * @param t the text component for which this UI is installed
      * @param pos the position to convert >= 0
-     * @param a the allocated region to render into
+     * @param b the bias for the position
      * @param direction the direction from the current position that can
      *  be thought of as the arrow keys typically found on a keyboard.
-     *  This may be SwingConstants.WEST, SwingConstants.EAST, 
-     *  SwingConstants.NORTH, or SwingConstants.SOUTH.  
+     *  This may be SwingConstants.WEST, SwingConstants.EAST,
+     *  SwingConstants.NORTH, or SwingConstants.SOUTH
+     * @param biasRet an array to contain the bias for the returned position
      * @return the location within the model that best represents the next
-     *  location visual position.
+     *  location visual position
      * @exception BadLocationException
      * @exception IllegalArgumentException for an invalid direction
      */

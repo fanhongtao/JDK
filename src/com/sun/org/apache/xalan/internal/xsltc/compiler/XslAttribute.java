@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XslAttribute.java,v 1.24 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: XslAttribute.java,v 1.2.4.1 2005/09/12 11:39:32 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -36,10 +36,10 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
 
 import com.sun.org.apache.xml.internal.serializer.ElemDesc;
 import com.sun.org.apache.xml.internal.serializer.SerializationHandler;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -91,7 +91,7 @@ final class XslAttribute extends Instruction {
   
         _isLiteral = Util.isLiteral(name);
         if (_isLiteral) {
-            if (!XMLChar.isValidQName(name)) {
+            if (!XML11Char.isXML11ValidQName(name)) {
                 reportError(this, parser, ErrorMsg.ILLEGAL_ATTR_NAME_ERR, name);
                 return;
             }

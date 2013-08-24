@@ -1,7 +1,7 @@
 /*
- * @(#)Inflater.java	1.44 05/11/11
+ * @(#)Inflater.java	1.47 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,30 +20,36 @@ package java.util.zip;
  * <tt>Inflater</tt>.
  *
  * <blockquote><pre>
- * // Encode a String into bytes
- * String inputString = "blahblahblah\u20AC\u20AC";
- * byte[] input = inputString.getBytes("UTF-8");
+ * try {
+ *     // Encode a String into bytes
+ *     String inputString = "blahblahblah\u20AC\u20AC";
+ *     byte[] input = inputString.getBytes("UTF-8");
  *
- * // Compress the bytes
- * byte[] output = new byte[100];
- * Deflater compresser = new Deflater();
- * compresser.setInput(input);
- * compresser.finish();
- * int compressedDataLength = compresser.deflate(output);
+ *     // Compress the bytes
+ *     byte[] output = new byte[100];
+ *     Deflater compresser = new Deflater();
+ *     compresser.setInput(input);
+ *     compresser.finish();
+ *     int compressedDataLength = compresser.deflate(output);
  *
- * // Decompress the bytes
- * Inflater decompresser = new Inflater();
- * decompresser.setInput(output, 0, compressedDataLength);
- * byte[] result = new byte[100];
- * int resultLength = decompresser.inflate(result);
- * decompresser.end();
+ *     // Decompress the bytes
+ *     Inflater decompresser = new Inflater();
+ *     decompresser.setInput(output, 0, compressedDataLength);
+ *     byte[] result = new byte[100];
+ *     int resultLength = decompresser.inflate(result);
+ *     decompresser.end();
  *
- * // Decode the bytes into a String
- * String outputString = new String(result, 0, resultLength, "UTF-8");
+ *     // Decode the bytes into a String
+ *     String outputString = new String(result, 0, resultLength, "UTF-8");
+ * } catch(java.io.UnsupportedEncodingException ex) {
+ *     // handle
+ * } catch (java.util.zip.DataFormatException ex) {
+ *     // handle
+ * }
  * </pre></blockquote>
  *
  * @see		Deflater
- * @version 	1.44, 11/11/05
+ * @version 	1.47, 04/07/06
  * @author 	David Connelly
  *
  */
@@ -193,7 +199,7 @@ class Inflater {
      * of bytes uncompressed. A return value of 0 indicates that
      * needsInput() or needsDictionary() should be called in order to
      * determine if more input data or a preset dictionary is required.
-     * In the later case, getAdler() can be used to get the Adler-32
+     * In the latter case, getAdler() can be used to get the Adler-32
      * value of the dictionary required.
      * @param b the buffer for the uncompressed data
      * @param off the start offset of the data
@@ -220,7 +226,7 @@ class Inflater {
      * of bytes uncompressed. A return value of 0 indicates that
      * needsInput() or needsDictionary() should be called in order to
      * determine if more input data or a preset dictionary is required.
-     * In the later case, getAdler() can be used to get the Adler-32
+     * In the latter case, getAdler() can be used to get the Adler-32
      * value of the dictionary required.
      * @param b the buffer for the uncompressed data
      * @return the actual number of uncompressed bytes
@@ -258,6 +264,7 @@ class Inflater {
      * Returns the total number of compressed bytes input so far.</p>
      *
      * @return the total (non-negative) number of compressed bytes input so far
+     * @since 1.5
      */
     public synchronized long getBytesRead() {
 	ensureOpen();
@@ -281,6 +288,7 @@ class Inflater {
      * Returns the total number of uncompressed bytes output so far.</p>
      *
      * @return the total (non-negative) number of uncompressed bytes output so far
+     * @since 1.5
      */
     public synchronized long getBytesWritten() {
 	ensureOpen();

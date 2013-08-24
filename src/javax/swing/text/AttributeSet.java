@@ -1,7 +1,7 @@
 /*
- * @(#)AttributeSet.java	1.40 04/05/05
+ * @(#)AttributeSet.java	1.42 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -24,7 +24,7 @@ import java.util.Enumeration;
  * exists, the key will be resolved through the parent.
  *
  * @author  Timothy Prinzing
- * @version 1.40 05/05/04
+ * @version 1.42 07/11/06
  * @see MutableAttributeSet
  */
 public interface AttributeSet {
@@ -69,7 +69,8 @@ public interface AttributeSet {
     }
 
     /**
-     * Returns the number of attributes contained in this set.
+     * Returns the number of attributes that are defined locally in this set.
+     * Attributes that are defined in the parent set are not included.
      *
      * @return the number of attributes >= 0
      */
@@ -114,29 +115,42 @@ public interface AttributeSet {
     public Object getAttribute(Object key);
 
     /**
-     * Returns an enumeration over the names of the attributes in the set.
-     * The values of the <code>Enumeration</code> may be anything
-     * and are not constrained to a particular <code>Object</code> type.
-     * The set does not include the resolving parent, if one is defined.
+     * Returns an enumeration over the names of the attributes that are
+     * defined locally in the set. Names of attributes defined in the
+     * resolving parent, if any, are not included. The values of the
+     * <code>Enumeration</code> may be anything and are not constrained to
+     * a particular <code>Object</code> type.
+     * <p>
+     * This method never returns {@code null}. For a set with no attributes, it
+     * returns an empty {@code Enumeration}.
      *
      * @return the names
      */
     public Enumeration<?> getAttributeNames();
 
     /**
-     * Returns true if this set contains this attribute with an equal value.
+     * Returns {@code true} if this set defines an attribute with the same
+     * name and an equal value. If such an attribute is not found locally,
+     * it is searched through in the resolving parent hierarchy.
      *
      * @param name the non-null attribute name
      * @param value the value
-     * @return true if the set contains the attribute with an equal value
+     * @return {@code true} if the set defines the attribute with an
+     *     equal value, either locally or through its resolving parent
+     * @throws NullPointerException if either {@code name} or
+     *      {@code value} is {@code null}
      */
     public boolean containsAttribute(Object name, Object value);
 
     /**
-     * Returns true if this set contains all the attributes with equal values.
+     * Returns {@code true} if this set defines all the attributes from the
+     * given set with equal values. If an attribute is not found locally,
+     * it is searched through in the resolving parent hierarchy.
      *
      * @param attributes the set of attributes to check against
-     * @return true if this set contains all the attributes with equal values
+     * @return {@code true} if this set defines all the attributes with equal
+     *              values, either locally or through its resolving parent
+     * @throws NullPointerException if {@code attributes} is {@code null}
      */
     public boolean containsAttributes(AttributeSet attributes);
 

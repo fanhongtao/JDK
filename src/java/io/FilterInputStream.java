@@ -1,7 +1,7 @@
 /*
- * @(#)FilterInputStream.java	1.28 03/12/19
+ * @(#)FilterInputStream.java	1.33 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.io;
  * and fields.
  *
  * @author  Jonathan Payne
- * @version 1.28, 12/19/03
+ * @version 1.33, 04/07/06
  * @since   JDK1.0
  */
 public
@@ -92,18 +92,23 @@ class FilterInputStream extends InputStream {
 
     /**
      * Reads up to <code>len</code> bytes of data from this input stream 
-     * into an array of bytes. This method blocks until some input is 
-     * available. 
+     * into an array of bytes. If <code>len</code> is not zero, the method
+     * blocks until some input is available; otherwise, no
+     * bytes are read and <code>0</code> is returned. 
      * <p>
      * This method simply performs <code>in.read(b, off, len)</code> 
      * and returns the result.
      *
      * @param      b     the buffer into which the data is read.
-     * @param      off   the start offset of the data.
+     * @param      off   the start offset in the destination array <code>b</code>
      * @param      len   the maximum number of bytes read.
      * @return     the total number of bytes read into the buffer, or
      *             <code>-1</code> if there is no more data because the end of
      *             the stream has been reached.
+     * @exception  NullPointerException If <code>b</code> is <code>null</code>.
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
+     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * <code>b.length - off</code>
      * @exception  IOException  if an I/O error occurs.
      * @see        java.io.FilterInputStream#in
      */
@@ -112,35 +117,26 @@ class FilterInputStream extends InputStream {
     }
 
     /**
-     * Skips over and discards <code>n</code> bytes of data from the 
-     * input stream. The <code>skip</code> method may, for a variety of 
-     * reasons, end up skipping over some smaller number of bytes, 
-     * possibly <code>0</code>. The actual number of bytes skipped is 
-     * returned. 
+     * {@inheritDoc} 
      * <p>
-     * This method
-     * simply performs <code>in.skip(n)</code>.
-     *
-     * @param      n   the number of bytes to be skipped.
-     * @return     the actual number of bytes skipped.
-     * @exception  IOException  if an I/O error occurs.
+     * This method simply performs <code>in.skip(n)</code>.
      */
     public long skip(long n) throws IOException {
 	return in.skip(n);
     }
 
     /**
-     * Returns the number of bytes that can be read from this input 
-     * stream without blocking. 
+     * Returns an estimate of the number of bytes that can be read (or
+     * skipped over) from this input stream without blocking by the next
+     * caller of a method for this input stream. The next caller might be
+     * the same thread or another thread.  A single read or skip of this
+     * many bytes will not block, but may read or skip fewer bytes.
      * <p>
-     * This method
-     * simply performs <code>in.available()</code> and
-     * returns the result.
+     * This method returns the result of {@link #in in}.available().
      *
-     * @return     the number of bytes that can be read from the input stream
-     *             without blocking.
+     * @return     an estimate of the number of bytes that can be read (or skipped
+     *             over) from this input stream without blocking.
      * @exception  IOException  if an I/O error occurs.
-     * @see        java.io.FilterInputStream#in
      */
     public int available() throws IOException {
 	return in.available();

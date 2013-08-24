@@ -1,8 +1,8 @@
 #ifdef USE_PRAGMA_IDENT_HDR
-#pragma ident "@(#)jvmtiLib.xsl	1.32 04/06/01 20:19:53 JVM"
+#pragma ident "@(#)jvmtiLib.xsl	1.38 06/08/02 23:22:31 JVM"
 #endif
 /*
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
@@ -23,12 +23,16 @@ extern "C" {
 enum {
     JVMTI_VERSION_1   = 0x30010000,
     JVMTI_VERSION_1_0 = 0x30010000,
+    JVMTI_VERSION_1_1 = 0x30010100,
 
-    JVMTI_VERSION = 0x30000000 + (1 * 0x10000) + (0 * 0x100) + 33  /* version: 1.0.33 */
+    JVMTI_VERSION = 0x30000000 + (1 * 0x10000) + (1 * 0x100) + 102  /* version: 1.1.102 */
 };
 
 JNIEXPORT jint JNICALL 
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
+
+JNIEXPORT jint JNICALL
+Agent_OnAttach(JavaVM* vm, char* options, void* reserved);
 
 JNIEXPORT void JNICALL 
 Agent_OnUnload(JavaVM *vm);
@@ -97,6 +101,57 @@ enum {
     JVMTI_THREAD_NORM_PRIORITY = 5,
     JVMTI_THREAD_MAX_PRIORITY = 10
 };
+
+    /* Heap Filter Flags */ 
+
+enum {
+    JVMTI_HEAP_FILTER_TAGGED = 0x4,
+    JVMTI_HEAP_FILTER_UNTAGGED = 0x8,
+    JVMTI_HEAP_FILTER_CLASS_TAGGED = 0x10,
+    JVMTI_HEAP_FILTER_CLASS_UNTAGGED = 0x20
+};
+
+    /* Heap Visit Control Flags */ 
+
+enum {
+    JVMTI_VISIT_OBJECTS = 0x100,
+    JVMTI_VISIT_ABORT = 0x8000
+};
+
+    /* Heap Reference Enumeration */ 
+
+typedef enum {
+    JVMTI_HEAP_REFERENCE_CLASS = 1,
+    JVMTI_HEAP_REFERENCE_FIELD = 2,
+    JVMTI_HEAP_REFERENCE_ARRAY_ELEMENT = 3,
+    JVMTI_HEAP_REFERENCE_CLASS_LOADER = 4,
+    JVMTI_HEAP_REFERENCE_SIGNERS = 5,
+    JVMTI_HEAP_REFERENCE_PROTECTION_DOMAIN = 6,
+    JVMTI_HEAP_REFERENCE_INTERFACE = 7,
+    JVMTI_HEAP_REFERENCE_STATIC_FIELD = 8,
+    JVMTI_HEAP_REFERENCE_CONSTANT_POOL = 9,
+    JVMTI_HEAP_REFERENCE_SUPERCLASS = 10,
+    JVMTI_HEAP_REFERENCE_JNI_GLOBAL = 21,
+    JVMTI_HEAP_REFERENCE_SYSTEM_CLASS = 22,
+    JVMTI_HEAP_REFERENCE_MONITOR = 23,
+    JVMTI_HEAP_REFERENCE_STACK_LOCAL = 24,
+    JVMTI_HEAP_REFERENCE_JNI_LOCAL = 25,
+    JVMTI_HEAP_REFERENCE_THREAD = 26,
+    JVMTI_HEAP_REFERENCE_OTHER = 27
+} jvmtiHeapReferenceKind;
+
+    /* Primitive Type Enumeration */ 
+
+typedef enum {
+    JVMTI_PRIMITIVE_TYPE_BOOLEAN = 90,
+    JVMTI_PRIMITIVE_TYPE_BYTE = 66,
+    JVMTI_PRIMITIVE_TYPE_CHAR = 67,
+    JVMTI_PRIMITIVE_TYPE_SHORT = 83,
+    JVMTI_PRIMITIVE_TYPE_INT = 73,
+    JVMTI_PRIMITIVE_TYPE_LONG = 74,
+    JVMTI_PRIMITIVE_TYPE_FLOAT = 70,
+    JVMTI_PRIMITIVE_TYPE_DOUBLE = 68
+} jvmtiPrimitiveType;
 
     /* Heap Object Filter Enumeration */ 
 
@@ -251,6 +306,14 @@ typedef enum {
     JVMTI_JLOCATION_OTHER = 0
 } jvmtiJlocationFormat;
 
+    /* Resource Exhaustion Flags */ 
+
+enum {
+    JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR = 0x0001,
+    JVMTI_RESOURCE_EXHAUSTED_JAVA_HEAP = 0x0002,
+    JVMTI_RESOURCE_EXHAUSTED_THREADS = 0x0004
+};
+
     /* Errors */
 
 typedef enum {
@@ -296,6 +359,7 @@ typedef enum {
     JVMTI_ERROR_INVALID_EVENT_TYPE = 102,
     JVMTI_ERROR_ILLEGAL_ARGUMENT = 103,
     JVMTI_ERROR_NATIVE_METHOD = 104,
+    JVMTI_ERROR_CLASS_LOADER_UNSUPPORTED = 106,
     JVMTI_ERROR_OUT_OF_MEMORY = 110,
     JVMTI_ERROR_ACCESS_DENIED = 111,
     JVMTI_ERROR_WRONG_PHASE = 112,
@@ -335,6 +399,7 @@ typedef enum {
     JVMTI_EVENT_MONITOR_WAITED = 74,
     JVMTI_EVENT_MONITOR_CONTENDED_ENTER = 75,
     JVMTI_EVENT_MONITOR_CONTENDED_ENTERED = 76,
+    JVMTI_EVENT_RESOURCE_EXHAUSTED = 80,
     JVMTI_EVENT_GARBAGE_COLLECTION_START = 81,
     JVMTI_EVENT_GARBAGE_COLLECTION_FINISH = 82,
     JVMTI_EVENT_OBJECT_FREE = 83,
@@ -343,10 +408,74 @@ typedef enum {
 } jvmtiEvent;
 
 
+    /* Pre-Declarations */
+struct _jvmtiThreadInfo;
+typedef struct _jvmtiThreadInfo jvmtiThreadInfo;
+struct _jvmtiMonitorStackDepthInfo;
+typedef struct _jvmtiMonitorStackDepthInfo jvmtiMonitorStackDepthInfo;
+struct _jvmtiThreadGroupInfo;
+typedef struct _jvmtiThreadGroupInfo jvmtiThreadGroupInfo;
+struct _jvmtiFrameInfo;
+typedef struct _jvmtiFrameInfo jvmtiFrameInfo;
+struct _jvmtiStackInfo;
+typedef struct _jvmtiStackInfo jvmtiStackInfo;
+struct _jvmtiHeapReferenceInfoField;
+typedef struct _jvmtiHeapReferenceInfoField jvmtiHeapReferenceInfoField;
+struct _jvmtiHeapReferenceInfoArray;
+typedef struct _jvmtiHeapReferenceInfoArray jvmtiHeapReferenceInfoArray;
+struct _jvmtiHeapReferenceInfoConstantPool;
+typedef struct _jvmtiHeapReferenceInfoConstantPool jvmtiHeapReferenceInfoConstantPool;
+struct _jvmtiHeapReferenceInfoStackLocal;
+typedef struct _jvmtiHeapReferenceInfoStackLocal jvmtiHeapReferenceInfoStackLocal;
+struct _jvmtiHeapReferenceInfoJniLocal;
+typedef struct _jvmtiHeapReferenceInfoJniLocal jvmtiHeapReferenceInfoJniLocal;
+struct _jvmtiHeapReferenceInfoReserved;
+typedef struct _jvmtiHeapReferenceInfoReserved jvmtiHeapReferenceInfoReserved;
+union _jvmtiHeapReferenceInfo;
+typedef union _jvmtiHeapReferenceInfo jvmtiHeapReferenceInfo;
+struct _jvmtiHeapCallbacks;
+typedef struct _jvmtiHeapCallbacks jvmtiHeapCallbacks;
+struct _jvmtiClassDefinition;
+typedef struct _jvmtiClassDefinition jvmtiClassDefinition;
+struct _jvmtiMonitorUsage;
+typedef struct _jvmtiMonitorUsage jvmtiMonitorUsage;
+struct _jvmtiLineNumberEntry;
+typedef struct _jvmtiLineNumberEntry jvmtiLineNumberEntry;
+struct _jvmtiLocalVariableEntry;
+typedef struct _jvmtiLocalVariableEntry jvmtiLocalVariableEntry;
+struct _jvmtiParamInfo;
+typedef struct _jvmtiParamInfo jvmtiParamInfo;
+struct _jvmtiExtensionFunctionInfo;
+typedef struct _jvmtiExtensionFunctionInfo jvmtiExtensionFunctionInfo;
+struct _jvmtiExtensionEventInfo;
+typedef struct _jvmtiExtensionEventInfo jvmtiExtensionEventInfo;
+struct _jvmtiTimerInfo;
+typedef struct _jvmtiTimerInfo jvmtiTimerInfo;
+struct _jvmtiAddrLocationMap;
+typedef struct _jvmtiAddrLocationMap jvmtiAddrLocationMap;
+
     /* Function Types */
 
 typedef void (JNICALL *jvmtiStartFunction)
     (jvmtiEnv* jvmti_env, JNIEnv* jni_env, void* arg);
+
+typedef jint (JNICALL *jvmtiHeapIterationCallback)
+    (jlong class_tag, jlong size, jlong* tag_ptr, jint length, void* user_data);
+
+typedef jint (JNICALL *jvmtiHeapReferenceCallback)
+    (jvmtiHeapReferenceKind reference_kind, const jvmtiHeapReferenceInfo* reference_info, jlong class_tag, jlong referrer_class_tag, jlong size, jlong* tag_ptr, jlong* referrer_tag_ptr, jint length, void* user_data);
+
+typedef jint (JNICALL *jvmtiPrimitiveFieldCallback)
+    (jvmtiHeapReferenceKind kind, const jvmtiHeapReferenceInfo* info, jlong object_class_tag, jlong* object_tag_ptr, jvalue value, jvmtiPrimitiveType value_type, void* user_data);
+
+typedef jint (JNICALL *jvmtiArrayPrimitiveValueCallback)
+    (jlong class_tag, jlong size, jlong* tag_ptr, jint element_count, jvmtiPrimitiveType element_type, const void* elements, void* user_data);
+
+typedef jint (JNICALL *jvmtiStringPrimitiveValueCallback)
+    (jlong class_tag, jlong size, jlong* tag_ptr, const jchar* value, jint value_length, void* user_data);
+
+typedef jint (JNICALL *jvmtiReservedCallback)
+    ();
 
 typedef jvmtiIterationControl (JNICALL *jvmtiHeapObjectCallback)
     (jlong class_tag, jlong size, jlong* tag_ptr, void* user_data);
@@ -368,71 +497,124 @@ typedef void (JNICALL *jvmtiExtensionEvent)
 
 
     /* Structure Types */
-
-typedef struct {
+struct _jvmtiThreadInfo {
     char* name;
     jint priority;
     jboolean is_daemon;
     jthreadGroup thread_group;
     jobject context_class_loader;
-} jvmtiThreadInfo;
-
-typedef struct {
+};
+struct _jvmtiMonitorStackDepthInfo {
+    jobject monitor;
+    jint stack_depth;
+};
+struct _jvmtiThreadGroupInfo {
     jthreadGroup parent;
     char* name;
     jint max_priority;
     jboolean is_daemon;
-} jvmtiThreadGroupInfo;
-
-typedef struct {
+};
+struct _jvmtiFrameInfo {
     jmethodID method;
     jlocation location;
-} jvmtiFrameInfo;
-
-typedef struct {
+};
+struct _jvmtiStackInfo {
     jthread thread;
     jint state;
     jvmtiFrameInfo* frame_buffer;
     jint frame_count;
-} jvmtiStackInfo;
-
-typedef struct {
+};
+struct _jvmtiHeapReferenceInfoField {
+    jint index;
+};
+struct _jvmtiHeapReferenceInfoArray {
+    jint index;
+};
+struct _jvmtiHeapReferenceInfoConstantPool {
+    jint index;
+};
+struct _jvmtiHeapReferenceInfoStackLocal {
+    jlong thread_tag;
+    jlong thread_id;
+    jint depth;
+    jmethodID method;
+    jlocation location;
+    jint slot;
+};
+struct _jvmtiHeapReferenceInfoJniLocal {
+    jlong thread_tag;
+    jlong thread_id;
+    jint depth;
+    jmethodID method;
+};
+struct _jvmtiHeapReferenceInfoReserved {
+    jlong reserved1;
+    jlong reserved2;
+    jlong reserved3;
+    jlong reserved4;
+    jlong reserved5;
+    jlong reserved6;
+    jlong reserved7;
+    jlong reserved8;
+};
+union _jvmtiHeapReferenceInfo {
+    jvmtiHeapReferenceInfoField field;
+    jvmtiHeapReferenceInfoArray array;
+    jvmtiHeapReferenceInfoConstantPool constant_pool;
+    jvmtiHeapReferenceInfoStackLocal stack_local;
+    jvmtiHeapReferenceInfoJniLocal jni_local;
+    jvmtiHeapReferenceInfoReserved other;
+};
+struct _jvmtiHeapCallbacks {
+    jvmtiHeapIterationCallback heap_iteration_callback;
+    jvmtiHeapReferenceCallback heap_reference_callback;
+    jvmtiPrimitiveFieldCallback primitive_field_callback;
+    jvmtiArrayPrimitiveValueCallback array_primitive_value_callback;
+    jvmtiStringPrimitiveValueCallback string_primitive_value_callback;
+    jvmtiReservedCallback reserved5;
+    jvmtiReservedCallback reserved6;
+    jvmtiReservedCallback reserved7;
+    jvmtiReservedCallback reserved8;
+    jvmtiReservedCallback reserved9;
+    jvmtiReservedCallback reserved10;
+    jvmtiReservedCallback reserved11;
+    jvmtiReservedCallback reserved12;
+    jvmtiReservedCallback reserved13;
+    jvmtiReservedCallback reserved14;
+    jvmtiReservedCallback reserved15;
+};
+struct _jvmtiClassDefinition {
     jclass klass;
     jint class_byte_count;
     const unsigned char* class_bytes;
-} jvmtiClassDefinition;
-
-typedef struct {
+};
+struct _jvmtiMonitorUsage {
     jthread owner;
     jint entry_count;
     jint waiter_count;
     jthread* waiters;
     jint notify_waiter_count;
     jthread* notify_waiters;
-} jvmtiMonitorUsage;
-
-typedef struct {
+};
+struct _jvmtiLineNumberEntry {
     jlocation start_location;
     jint line_number;
-} jvmtiLineNumberEntry;
-
-typedef struct {
+};
+struct _jvmtiLocalVariableEntry {
     jlocation start_location;
     jint length;
     char* name;
     char* signature;
     char* generic_signature;
     jint slot;
-} jvmtiLocalVariableEntry;
-
-typedef struct {
+};
+struct _jvmtiParamInfo {
     char* name;
     jvmtiParamKind kind;
     jvmtiParamTypes base_type;
     jboolean null_ok;
-} jvmtiParamInfo;
-
-typedef struct {
+};
+struct _jvmtiExtensionFunctionInfo {
     jvmtiExtensionFunction func;
     char* id;
     char* short_description;
@@ -440,29 +622,26 @@ typedef struct {
     jvmtiParamInfo* params;
     jint error_count;
     jvmtiError* errors;
-} jvmtiExtensionFunctionInfo;
-
-typedef struct {
+};
+struct _jvmtiExtensionEventInfo {
     jint extension_event_index;
     char* id;
     char* short_description;
     jint param_count;
     jvmtiParamInfo* params;
-} jvmtiExtensionEventInfo;
-
-typedef struct {
+};
+struct _jvmtiTimerInfo {
     jlong max_value;
     jboolean may_skip_forward;
     jboolean may_skip_backward;
     jvmtiTimerKind kind;
     jlong reserved1;
     jlong reserved2;
-} jvmtiTimerInfo;
-
-typedef struct {
+};
+struct _jvmtiAddrLocationMap {
     const void* start_address;
     jlocation location;
-} jvmtiAddrLocationMap;
+};
 
 typedef struct {
     unsigned int can_tag_objects : 1;
@@ -498,7 +677,15 @@ typedef struct {
     unsigned int can_generate_native_method_bind_events : 1;
     unsigned int can_generate_garbage_collection_events : 1;
     unsigned int can_generate_object_free_events : 1;
-    unsigned int : 15;
+    unsigned int can_force_early_return : 1;
+    unsigned int can_get_owned_monitor_stack_depth_info : 1;
+    unsigned int can_get_constant_pool : 1;
+    unsigned int can_set_native_method_prefix : 1;
+    unsigned int can_retransform_classes : 1;
+    unsigned int can_retransform_any_class : 1;
+    unsigned int can_generate_resource_exhaustion_heap_events : 1;
+    unsigned int can_generate_resource_exhaustion_threads_events : 1;
+    unsigned int : 7;
     unsigned int : 16;
     unsigned int : 16;
     unsigned int : 16;
@@ -671,6 +858,13 @@ typedef void (JNICALL *jvmtiEventObjectFree)
     (jvmtiEnv *jvmti_env, 
      jlong tag);
 
+typedef void (JNICALL *jvmtiEventResourceExhausted)
+    (jvmtiEnv *jvmti_env, 
+     JNIEnv* jni_env, 
+     jint flags, 
+     const void* reserved, 
+     const char* description);
+
 typedef void (JNICALL *jvmtiEventSingleStep)
     (jvmtiEnv *jvmti_env, 
      JNIEnv* jni_env, 
@@ -772,8 +966,8 @@ typedef struct {
     jvmtiEventReserved reserved78;
                               /*   79 */
     jvmtiEventReserved reserved79;
-                              /*   80 */
-    jvmtiEventReserved reserved80;
+                              /*   80 : Resource Exhausted */
+    jvmtiEventResourceExhausted ResourceExhausted;
                               /*   81 : Garbage Collection Start */
     jvmtiEventGarbageCollectionStart GarbageCollectionStart;
                               /*   82 : Garbage Collection Finish */
@@ -875,8 +1069,9 @@ typedef struct jvmtiInterface_1_ {
     jthread thread, 
     jint* thread_state_ptr);
 
-  /*   18 :  RESERVED */
-  void *reserved18;
+  /*   18 : Get Current Thread */
+  jvmtiError (JNICALL *GetCurrentThread) (jvmtiEnv* env, 
+    jthread* thread_ptr);
 
   /*   19 : Get Frame Location */
   jvmtiError (JNICALL *GetFrameLocation) (jvmtiEnv* env, 
@@ -1023,8 +1218,10 @@ typedef struct jvmtiInterface_1_ {
     jclass klass, 
     jfieldID field);
 
-  /*   45 :  RESERVED */
-  void *reserved45;
+  /*   45 : Is Modifiable Class */
+  jvmtiError (JNICALL *IsModifiableClass) (jvmtiEnv* env, 
+    jclass klass, 
+    jboolean* is_modifiable_class_ptr);
 
   /*   46 : Allocate */
   jvmtiError (JNICALL *Allocate) (jvmtiEnv* env, 
@@ -1173,11 +1370,14 @@ typedef struct jvmtiInterface_1_ {
     jint* entry_count_ptr, 
     jvmtiLocalVariableEntry** table_ptr);
 
-  /*   73 :  RESERVED */
-  void *reserved73;
+  /*   73 : Set Native Method Prefix */
+  jvmtiError (JNICALL *SetNativeMethodPrefix) (jvmtiEnv* env, 
+    const char* prefix);
 
-  /*   74 :  RESERVED */
-  void *reserved74;
+  /*   74 : Set Native Method Prefixes */
+  jvmtiError (JNICALL *SetNativeMethodPrefixes) (jvmtiEnv* env, 
+    jint prefix_count, 
+    char** prefixes);
 
   /*   75 : Get Bytecodes */
   jvmtiError (JNICALL *GetBytecodes) (jvmtiEnv* env, 
@@ -1210,23 +1410,34 @@ typedef struct jvmtiInterface_1_ {
   jvmtiError (JNICALL *PopFrame) (jvmtiEnv* env, 
     jthread thread);
 
-  /*   81 :  RESERVED */
-  void *reserved81;
+  /*   81 : Force Early Return - Object */
+  jvmtiError (JNICALL *ForceEarlyReturnObject) (jvmtiEnv* env, 
+    jthread thread, 
+    jobject value);
 
-  /*   82 :  RESERVED */
-  void *reserved82;
+  /*   82 : Force Early Return - Int */
+  jvmtiError (JNICALL *ForceEarlyReturnInt) (jvmtiEnv* env, 
+    jthread thread, 
+    jint value);
 
-  /*   83 :  RESERVED */
-  void *reserved83;
+  /*   83 : Force Early Return - Long */
+  jvmtiError (JNICALL *ForceEarlyReturnLong) (jvmtiEnv* env, 
+    jthread thread, 
+    jlong value);
 
-  /*   84 :  RESERVED */
-  void *reserved84;
+  /*   84 : Force Early Return - Float */
+  jvmtiError (JNICALL *ForceEarlyReturnFloat) (jvmtiEnv* env, 
+    jthread thread, 
+    jfloat value);
 
-  /*   85 :  RESERVED */
-  void *reserved85;
+  /*   85 : Force Early Return - Double */
+  jvmtiError (JNICALL *ForceEarlyReturnDouble) (jvmtiEnv* env, 
+    jthread thread, 
+    jdouble value);
 
-  /*   86 :  RESERVED */
-  void *reserved86;
+  /*   86 : Force Early Return - Void */
+  jvmtiError (JNICALL *ForceEarlyReturnVoid) (jvmtiEnv* env, 
+    jthread thread);
 
   /*   87 : Redefine Classes */
   jvmtiError (JNICALL *RedefineClasses) (jvmtiEnv* env, 
@@ -1332,27 +1543,27 @@ typedef struct jvmtiInterface_1_ {
   jvmtiError (JNICALL *IterateOverObjectsReachableFromObject) (jvmtiEnv* env, 
     jobject object, 
     jvmtiObjectReferenceCallback object_reference_callback, 
-    void* user_data);
+    const void* user_data);
 
   /*   110 : Iterate Over Reachable Objects */
   jvmtiError (JNICALL *IterateOverReachableObjects) (jvmtiEnv* env, 
     jvmtiHeapRootCallback heap_root_callback, 
     jvmtiStackReferenceCallback stack_ref_callback, 
     jvmtiObjectReferenceCallback object_ref_callback, 
-    void* user_data);
+    const void* user_data);
 
   /*   111 : Iterate Over Heap */
   jvmtiError (JNICALL *IterateOverHeap) (jvmtiEnv* env, 
     jvmtiHeapObjectFilter object_filter, 
     jvmtiHeapObjectCallback heap_object_callback, 
-    void* user_data);
+    const void* user_data);
 
   /*   112 : Iterate Over Instances Of Class */
   jvmtiError (JNICALL *IterateOverInstancesOfClass) (jvmtiEnv* env, 
     jclass klass, 
     jvmtiHeapObjectFilter object_filter, 
     jvmtiHeapObjectCallback heap_object_callback, 
-    void* user_data);
+    const void* user_data);
 
   /*   113 :  RESERVED */
   void *reserved113;
@@ -1365,11 +1576,20 @@ typedef struct jvmtiInterface_1_ {
     jobject** object_result_ptr, 
     jlong** tag_result_ptr);
 
-  /*   115 :  RESERVED */
-  void *reserved115;
+  /*   115 : Follow References */
+  jvmtiError (JNICALL *FollowReferences) (jvmtiEnv* env, 
+    jint heap_filter, 
+    jclass klass, 
+    jobject initial_object, 
+    const jvmtiHeapCallbacks* callbacks, 
+    const void* user_data);
 
-  /*   116 :  RESERVED */
-  void *reserved116;
+  /*   116 : Iterate Through Heap */
+  jvmtiError (JNICALL *IterateThroughHeap) (jvmtiEnv* env, 
+    jint heap_filter, 
+    jclass klass, 
+    const jvmtiHeapCallbacks* callbacks, 
+    const void* user_data);
 
   /*   117 :  RESERVED */
   void *reserved117;
@@ -1487,11 +1707,18 @@ typedef struct jvmtiInterface_1_ {
   jvmtiError (JNICALL *GetAvailableProcessors) (jvmtiEnv* env, 
     jint* processor_count_ptr);
 
-  /*   145 :  RESERVED */
-  void *reserved145;
+  /*   145 : Get Class Version Numbers */
+  jvmtiError (JNICALL *GetClassVersionNumbers) (jvmtiEnv* env, 
+    jclass klass, 
+    jint* minor_version_ptr, 
+    jint* major_version_ptr);
 
-  /*   146 :  RESERVED */
-  void *reserved146;
+  /*   146 : Get Constant Pool */
+  jvmtiError (JNICALL *GetConstantPool) (jvmtiEnv* env, 
+    jclass klass, 
+    jint* constant_pool_count_ptr, 
+    jint* constant_pool_byte_count_ptr, 
+    unsigned char** constant_pool_bytes_ptr);
 
   /*   147 : Get Environment Local Storage */
   jvmtiError (JNICALL *GetEnvironmentLocalStorage) (jvmtiEnv* env, 
@@ -1510,14 +1737,20 @@ typedef struct jvmtiInterface_1_ {
     jvmtiVerboseFlag flag, 
     jboolean value);
 
-  /*   151 :  RESERVED */
-  void *reserved151;
+  /*   151 : Add To System Class Loader Search */
+  jvmtiError (JNICALL *AddToSystemClassLoaderSearch) (jvmtiEnv* env, 
+    const char* segment);
 
-  /*   152 :  RESERVED */
-  void *reserved152;
+  /*   152 : Retransform Classes */
+  jvmtiError (JNICALL *RetransformClasses) (jvmtiEnv* env, 
+    jint class_count, 
+    const jclass* classes);
 
-  /*   153 :  RESERVED */
-  void *reserved153;
+  /*   153 : Get Owned Monitor Stack Depth Info */
+  jvmtiError (JNICALL *GetOwnedMonitorStackDepthInfo) (jvmtiEnv* env, 
+    jthread thread, 
+    jint* monitor_info_count_ptr, 
+    jvmtiMonitorStackDepthInfo** monitor_info_ptr);
 
   /*   154 : Get Object Size */
   jvmtiError (JNICALL *GetObjectSize) (jvmtiEnv* env, 
@@ -1543,6 +1776,10 @@ struct _jvmtiEnv {
   jvmtiError GetThreadState(jthread thread,
             jint* thread_state_ptr) {
     return functions->GetThreadState(this, thread, thread_state_ptr);
+  }
+
+  jvmtiError GetCurrentThread(jthread* thread_ptr) {
+    return functions->GetCurrentThread(this, thread_ptr);
   }
 
   jvmtiError GetAllThreads(jint* threads_count_ptr,
@@ -1588,6 +1825,12 @@ struct _jvmtiEnv {
             jint* owned_monitor_count_ptr,
             jobject** owned_monitors_ptr) {
     return functions->GetOwnedMonitorInfo(this, thread, owned_monitor_count_ptr, owned_monitors_ptr);
+  }
+
+  jvmtiError GetOwnedMonitorStackDepthInfo(jthread thread,
+            jint* monitor_info_count_ptr,
+            jvmtiMonitorStackDepthInfo** monitor_info_ptr) {
+    return functions->GetOwnedMonitorStackDepthInfo(this, thread, monitor_info_count_ptr, monitor_info_ptr);
   }
 
   jvmtiError GetCurrentContendedMonitor(jthread thread,
@@ -1672,6 +1915,50 @@ struct _jvmtiEnv {
     return functions->NotifyFramePop(this, thread, depth);
   }
 
+  jvmtiError ForceEarlyReturnObject(jthread thread,
+            jobject value) {
+    return functions->ForceEarlyReturnObject(this, thread, value);
+  }
+
+  jvmtiError ForceEarlyReturnInt(jthread thread,
+            jint value) {
+    return functions->ForceEarlyReturnInt(this, thread, value);
+  }
+
+  jvmtiError ForceEarlyReturnLong(jthread thread,
+            jlong value) {
+    return functions->ForceEarlyReturnLong(this, thread, value);
+  }
+
+  jvmtiError ForceEarlyReturnFloat(jthread thread,
+            jfloat value) {
+    return functions->ForceEarlyReturnFloat(this, thread, value);
+  }
+
+  jvmtiError ForceEarlyReturnDouble(jthread thread,
+            jdouble value) {
+    return functions->ForceEarlyReturnDouble(this, thread, value);
+  }
+
+  jvmtiError ForceEarlyReturnVoid(jthread thread) {
+    return functions->ForceEarlyReturnVoid(this, thread);
+  }
+
+  jvmtiError FollowReferences(jint heap_filter,
+            jclass klass,
+            jobject initial_object,
+            const jvmtiHeapCallbacks* callbacks,
+            const void* user_data) {
+    return functions->FollowReferences(this, heap_filter, klass, initial_object, callbacks, user_data);
+  }
+
+  jvmtiError IterateThroughHeap(jint heap_filter,
+            jclass klass,
+            const jvmtiHeapCallbacks* callbacks,
+            const void* user_data) {
+    return functions->IterateThroughHeap(this, heap_filter, klass, callbacks, user_data);
+  }
+
   jvmtiError GetTag(jobject object,
             jlong* tag_ptr) {
     return functions->GetTag(this, object, tag_ptr);
@@ -1682,42 +1969,42 @@ struct _jvmtiEnv {
     return functions->SetTag(this, object, tag);
   }
 
-  jvmtiError ForceGarbageCollection() {
-    return functions->ForceGarbageCollection(this);
-  }
-
-  jvmtiError IterateOverObjectsReachableFromObject(jobject object,
-            jvmtiObjectReferenceCallback object_reference_callback,
-            void* user_data) {
-    return functions->IterateOverObjectsReachableFromObject(this, object, object_reference_callback, user_data);
-  }
-
-  jvmtiError IterateOverReachableObjects(jvmtiHeapRootCallback heap_root_callback,
-            jvmtiStackReferenceCallback stack_ref_callback,
-            jvmtiObjectReferenceCallback object_ref_callback,
-            void* user_data) {
-    return functions->IterateOverReachableObjects(this, heap_root_callback, stack_ref_callback, object_ref_callback, user_data);
-  }
-
-  jvmtiError IterateOverHeap(jvmtiHeapObjectFilter object_filter,
-            jvmtiHeapObjectCallback heap_object_callback,
-            void* user_data) {
-    return functions->IterateOverHeap(this, object_filter, heap_object_callback, user_data);
-  }
-
-  jvmtiError IterateOverInstancesOfClass(jclass klass,
-            jvmtiHeapObjectFilter object_filter,
-            jvmtiHeapObjectCallback heap_object_callback,
-            void* user_data) {
-    return functions->IterateOverInstancesOfClass(this, klass, object_filter, heap_object_callback, user_data);
-  }
-
   jvmtiError GetObjectsWithTags(jint tag_count,
             const jlong* tags,
             jint* count_ptr,
             jobject** object_result_ptr,
             jlong** tag_result_ptr) {
     return functions->GetObjectsWithTags(this, tag_count, tags, count_ptr, object_result_ptr, tag_result_ptr);
+  }
+
+  jvmtiError ForceGarbageCollection() {
+    return functions->ForceGarbageCollection(this);
+  }
+
+  jvmtiError IterateOverObjectsReachableFromObject(jobject object,
+            jvmtiObjectReferenceCallback object_reference_callback,
+            const void* user_data) {
+    return functions->IterateOverObjectsReachableFromObject(this, object, object_reference_callback, user_data);
+  }
+
+  jvmtiError IterateOverReachableObjects(jvmtiHeapRootCallback heap_root_callback,
+            jvmtiStackReferenceCallback stack_ref_callback,
+            jvmtiObjectReferenceCallback object_ref_callback,
+            const void* user_data) {
+    return functions->IterateOverReachableObjects(this, heap_root_callback, stack_ref_callback, object_ref_callback, user_data);
+  }
+
+  jvmtiError IterateOverHeap(jvmtiHeapObjectFilter object_filter,
+            jvmtiHeapObjectCallback heap_object_callback,
+            const void* user_data) {
+    return functions->IterateOverHeap(this, object_filter, heap_object_callback, user_data);
+  }
+
+  jvmtiError IterateOverInstancesOfClass(jclass klass,
+            jvmtiHeapObjectFilter object_filter,
+            jvmtiHeapObjectCallback heap_object_callback,
+            const void* user_data) {
+    return functions->IterateOverInstancesOfClass(this, klass, object_filter, heap_object_callback, user_data);
   }
 
   jvmtiError GetLocalObject(jthread thread,
@@ -1870,6 +2157,19 @@ struct _jvmtiEnv {
     return functions->GetImplementedInterfaces(this, klass, interface_count_ptr, interfaces_ptr);
   }
 
+  jvmtiError GetClassVersionNumbers(jclass klass,
+            jint* minor_version_ptr,
+            jint* major_version_ptr) {
+    return functions->GetClassVersionNumbers(this, klass, minor_version_ptr, major_version_ptr);
+  }
+
+  jvmtiError GetConstantPool(jclass klass,
+            jint* constant_pool_count_ptr,
+            jint* constant_pool_byte_count_ptr,
+            unsigned char** constant_pool_bytes_ptr) {
+    return functions->GetConstantPool(this, klass, constant_pool_count_ptr, constant_pool_byte_count_ptr, constant_pool_bytes_ptr);
+  }
+
   jvmtiError IsInterface(jclass klass,
             jboolean* is_interface_ptr) {
     return functions->IsInterface(this, klass, is_interface_ptr);
@@ -1880,6 +2180,11 @@ struct _jvmtiEnv {
     return functions->IsArrayClass(this, klass, is_array_class_ptr);
   }
 
+  jvmtiError IsModifiableClass(jclass klass,
+            jboolean* is_modifiable_class_ptr) {
+    return functions->IsModifiableClass(this, klass, is_modifiable_class_ptr);
+  }
+
   jvmtiError GetClassLoader(jclass klass,
             jobject* classloader_ptr) {
     return functions->GetClassLoader(this, klass, classloader_ptr);
@@ -1888,6 +2193,11 @@ struct _jvmtiEnv {
   jvmtiError GetSourceDebugExtension(jclass klass,
             char** source_debug_extension_ptr) {
     return functions->GetSourceDebugExtension(this, klass, source_debug_extension_ptr);
+  }
+
+  jvmtiError RetransformClasses(jint class_count,
+            const jclass* classes) {
+    return functions->RetransformClasses(this, class_count, classes);
   }
 
   jvmtiError RedefineClasses(jint class_count,
@@ -2000,6 +2310,15 @@ struct _jvmtiEnv {
   jvmtiError IsMethodObsolete(jmethodID method,
             jboolean* is_obsolete_ptr) {
     return functions->IsMethodObsolete(this, method, is_obsolete_ptr);
+  }
+
+  jvmtiError SetNativeMethodPrefix(const char* prefix) {
+    return functions->SetNativeMethodPrefix(this, prefix);
+  }
+
+  jvmtiError SetNativeMethodPrefixes(jint prefix_count,
+            char** prefixes) {
+    return functions->SetNativeMethodPrefixes(this, prefix_count, prefixes);
   }
 
   jvmtiError CreateRawMonitor(const char* name,
@@ -2118,6 +2437,10 @@ struct _jvmtiEnv {
 
   jvmtiError AddToBootstrapClassLoaderSearch(const char* segment) {
     return functions->AddToBootstrapClassLoaderSearch(this, segment);
+  }
+
+  jvmtiError AddToSystemClassLoaderSearch(const char* segment) {
+    return functions->AddToSystemClassLoaderSearch(this, segment);
   }
 
   jvmtiError GetSystemProperties(jint* count_ptr,

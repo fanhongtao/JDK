@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentInputMap.java	1.9 03/12/19
+ * @(#)ComponentInputMap.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -14,8 +14,9 @@ package javax.swing;
  * <code>ComponentInputMap</code>s are used for
  * <code>WHEN_IN_FOCUSED_WINDOW</code> bindings.
  *
- * @version 1.9 12/19/03
+ * @version 1.11 04/07/06
  * @author Scott Violet
+ * @since 1.3
  */
 public class ComponentInputMap extends InputMap {
     /** Component binding is created for. */

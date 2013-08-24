@@ -1,7 +1,7 @@
 /*
- * @(#)OpenMBeanConstructorInfo.java	3.19 03/12/19
+ * @(#)OpenMBeanConstructorInfo.java	3.20 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import javax.management.MBeanParameterInfo;
  * (typically {@link OpenMBeanParameterInfoSupport}).</p>
  *
  *
- * @version     3.19  03/12/19
+ * @version     3.20  05/11/17
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

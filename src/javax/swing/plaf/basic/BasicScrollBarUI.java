@@ -1,7 +1,7 @@
 /*
- * @(#)BasicScrollBarUI.java	1.83 04/01/09
+ * @(#)BasicScrollBarUI.java	1.87 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -23,7 +23,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.83 01/09/04
+ * @version 1.87 11/17/05
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -37,6 +37,8 @@ public class BasicScrollBarUI
     private static final int MIN_SCROLL = 2;
     private static final int MAX_SCROLL = 3;
 
+    // NOTE: DO NOT use this field directly, SynthScrollBarUI assumes you'll
+    // call getMinimumThumbSize to access it.
     protected Dimension minimumThumbSize;
     protected Dimension maximumThumbSize;
 
@@ -876,40 +878,64 @@ public class BasicScrollBarUI
     /*
      * Method for scrolling by a unit increment.
      * Added for mouse wheel scrolling support, RFE 4202656.
+     *
+     * If limitByBlock is set to true, the scrollbar will scroll at least 1
+     * unit increment, but will not scroll farther than the block increment.
+     * See BasicScrollPaneUI.Handler.mouseWheelMoved().
      */
     static void scrollByUnits(JScrollBar scrollbar, int direction,
-                                   int units) {
+                              int units, boolean limitToBlock) {
         // This method is called from BasicScrollPaneUI to implement wheel
         // scrolling, as well as from scrollByUnit().
         int delta;
+        int limit = -1;
 
-	for (int i=0; i<units; i++) {
-	    if (direction > 0) {
-		delta = scrollbar.getUnitIncrement(direction);
-	    }
-	    else {
-		delta = -scrollbar.getUnitIncrement(direction);
-	    }
+        if (limitToBlock) {
+            if (direction < 0) {
+                limit = scrollbar.getValue() -
+                                         scrollbar.getBlockIncrement(direction);
+            }
+            else {
+                limit = scrollbar.getValue() +
+                                         scrollbar.getBlockIncrement(direction);
+            }
+        }
 
-	    int oldValue = scrollbar.getValue();
-	    int newValue = oldValue + delta;
-	    
-	    // Check for overflow.
-	    if (delta > 0 && newValue < oldValue) {
-		newValue = scrollbar.getMaximum();
-	    }
-	    else if (delta < 0 && newValue > oldValue) {
-		newValue = scrollbar.getMinimum();
-	    }
-	    if (oldValue == newValue) {
-		break;
-	    }
-	    scrollbar.setValue(newValue);
-	}
+        for (int i=0; i<units; i++) {
+            if (direction > 0) {
+                delta = scrollbar.getUnitIncrement(direction);
+            }
+            else {
+                delta = -scrollbar.getUnitIncrement(direction);
+            }
+
+            int oldValue = scrollbar.getValue();
+            int newValue = oldValue + delta;
+
+            // Check for overflow.
+            if (delta > 0 && newValue < oldValue) {
+                newValue = scrollbar.getMaximum();
+            }
+            else if (delta < 0 && newValue > oldValue) {
+                newValue = scrollbar.getMinimum();
+            }
+            if (oldValue == newValue) {
+                break;
+            }
+
+            if (limitToBlock && i > 0) {
+                assert limit != -1;
+                if ((direction < 0 && newValue < limit) ||
+                    (direction > 0 && newValue > limit)) {
+                    break;
+                }
+            }
+            scrollbar.setValue(newValue);
+        }
     }
 
     protected void scrollByUnit(int direction)	{
-        scrollByUnits(scrollbar, direction, 1);
+        scrollByUnits(scrollbar, direction, 1, false);
     }
 
     /**
@@ -1196,27 +1222,24 @@ public class BasicScrollBarUI
 	    if (scrollTimer.isRunning()) {
 		return;
 	    }
+            
+            Rectangle tb = getThumbBounds();
+            
 	    switch (scrollbar.getOrientation()) {
 	    case JScrollBar.VERTICAL:
-		if (direction >0) {
-		    if (getThumbBounds().y + getThumbBounds().height <
-			trackListener.currentMouseY) {
+		if (direction > 0) {
+                    if (tb.y + tb.height < trackListener.currentMouseY) {
 			scrollTimer.start();
 		    }
-		} else if (getThumbBounds().y >
-			   trackListener.currentMouseY) {
+                } else if (tb.y > trackListener.currentMouseY) {
 		    scrollTimer.start();
 		}
 		break;
 	    case JScrollBar.HORIZONTAL:
-		if (direction >0) {
-		    if (getThumbBounds().x + getThumbBounds().width <
-			trackListener.currentMouseX) {
-			scrollTimer.start();
-		    }
-		} else if (getThumbBounds().x >
-			   trackListener.currentMouseX) {
-		    scrollTimer.start();
+                if ((direction > 0 && isMouseAfterThumb())
+                        || (direction < 0 && isMouseBeforeThumb())) {
+
+                    scrollTimer.start();
 		}
 		break;
 	    }
@@ -1315,12 +1338,10 @@ public class BasicScrollBarUI
 			((Timer)e.getSource()).stop();
 		    }
 		} else {
-		    if(direction > 0)	{
-			if(getThumbBounds().x + getThumbBounds().width 
-				>= trackListener.currentMouseX)
-				    ((Timer)e.getSource()).stop();
-		    } else if(getThumbBounds().x <= trackListener.currentMouseX)	{
-		        ((Timer)e.getSource()).stop();
+                    if ((direction > 0 && !isMouseAfterThumb())
+                           || (direction < 0 && !isMouseBeforeThumb())) {
+
+                       ((Timer)e.getSource()).stop();
 		    }
 	        }
 	    } else {
@@ -1337,6 +1358,26 @@ public class BasicScrollBarUI
 	}
     }
 
+    private boolean isMouseLeftOfThumb() {
+        return trackListener.currentMouseX < getThumbBounds().x;
+    }
+
+    private boolean isMouseRightOfThumb() {
+        Rectangle tb = getThumbBounds();
+        return trackListener.currentMouseX > tb.x + tb.width;
+    }
+
+    private boolean isMouseBeforeThumb() {
+        return scrollbar.getComponentOrientation().isLeftToRight()
+            ? isMouseLeftOfThumb()
+            : isMouseRightOfThumb();
+    }
+    
+    private boolean isMouseAfterThumb() {
+        return scrollbar.getComponentOrientation().isLeftToRight()
+            ? isMouseRightOfThumb()
+            : isMouseLeftOfThumb();
+    }
 
     private void updateButtonDirections() {
         int orient = scrollbar.getOrientation();

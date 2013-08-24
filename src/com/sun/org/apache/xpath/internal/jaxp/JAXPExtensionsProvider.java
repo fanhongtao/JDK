@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// $Id: JAXPExtensionsProvider.java,v 1.9 2004/07/10 21:39:19 rameshm Exp $
+// $Id: JAXPExtensionsProvider.java,v 1.1.2.1 2005/08/01 01:30:17 jeffsuttor Exp $
 
 package com.sun.org.apache.xpath.internal.jaxp;
 

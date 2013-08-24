@@ -56,10 +56,8 @@ package com.sun.org.apache.bcel.internal.util;
 
 import java.util.Hashtable;
 import java.io.*;
-import java.util.zip.*;
 import com.sun.org.apache.bcel.internal.*;
 import com.sun.org.apache.bcel.internal.classfile.*;
-import com.sun.org.apache.bcel.internal.generic.*;
 
 /**
  * <p>Drop in replacement for the standard class loader of the JVM. You can use it
@@ -79,7 +77,7 @@ import com.sun.org.apache.bcel.internal.generic.*;
  * where to use the system class loader in the constructor. The default value contains
  * "java.", "sun.", "javax."</p>
  *
- * @version $Id: ClassLoader.java,v 1.1.1.1 2001/10/29 20:00:29 jvanzyl Exp $
+ * @version $Id: ClassLoader.java,v 1.1.2.1 2005/07/31 23:47:03 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see JavaWrapper
  * @see ClassPath
@@ -89,16 +87,34 @@ public class ClassLoader extends java.lang.ClassLoader {
   private String[] ignored_packages = {
     "java.", "javax.", "sun."
   };
+  private Repository repository = SyntheticRepository.getInstance();
+  private java.lang.ClassLoader deferTo = ClassLoader.getSystemClassLoader();
 
   public ClassLoader() {
+  }
+
+  public ClassLoader(java.lang.ClassLoader deferTo) {
+    this.deferTo = deferTo;
+    this.repository = new ClassLoaderRepository(deferTo);
   }
 
   /** @param ignored_packages classes contained in these packages will be loaded
    * with the system class loader
    */
   public ClassLoader(String[] ignored_packages) {
-    String[] new_p = new String[ignored_packages.length + this.ignored_packages.length];
+    addIgnoredPkgs(ignored_packages);
+  }
 
+  public ClassLoader(java.lang.ClassLoader deferTo, String [] ignored_packages) {
+    this.deferTo = deferTo;
+    this.repository = new ClassLoaderRepository(deferTo);
+
+    addIgnoredPkgs(ignored_packages);
+  }
+
+  private void addIgnoredPkgs(String[] ignored_packages) {
+    String[] new_p = new String[ignored_packages.length + this.ignored_packages.length];
+	
     System.arraycopy(this.ignored_packages, 0, new_p, 0, this.ignored_packages.length);
     System.arraycopy(ignored_packages, 0, new_p, this.ignored_packages.length,
 		     ignored_packages.length);
@@ -119,7 +135,7 @@ public class ClassLoader extends java.lang.ClassLoader {
        */
       for(int i=0; i < ignored_packages.length; i++) {
 	if(class_name.startsWith(ignored_packages[i])) {
-	  cl = Class.forName(class_name);
+	  cl = deferTo.loadClass(class_name);
 	  break;
 	}
       }
@@ -131,8 +147,13 @@ public class ClassLoader extends java.lang.ClassLoader {
 	 */
 	if(class_name.indexOf("$$BCEL$$") >= 0)
 	  clazz = createClass(class_name);
-	else // Fourth try: Load classes via repository
-	  clazz = modifyClass(Repository.lookupClass(class_name));
+	else { // Fourth try: Load classes via repository
+	  if ((clazz = repository.loadClass(class_name)) != null) {
+	    clazz = modifyClass(clazz);
+	  }
+	  else
+	    throw new ClassNotFoundException(class_name);
+	}
 
 	if(clazz != null) {
 	  byte[] bytes  = clazz.getBytes();
@@ -167,7 +188,7 @@ public class ClassLoader extends java.lang.ClassLoader {
    *
    * The default implementation interprets the string as a encoded compressed
    * Java class, unpacks and decodes it with the Utility.decode() method, and
-   * parses thee resulting byte array and returns the resulting JavaClass object.
+   * parses the resulting byte array and returns the resulting JavaClass object.
    *
    * @param class_name compressed byte code with "$$BCEL$$" in it
    */

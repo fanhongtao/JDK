@@ -1,7 +1,7 @@
 /*
- * @(#)RuleBasedBreakIterator.java	1.17 03/12/19
+ * @(#)RuleBasedBreakIterator.java	1.19 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -720,7 +720,7 @@ class RuleBasedBreakIterator extends BreakIterator {
      * Throw IllegalArgumentException unless begin <= offset < end.
      */
     protected static final void checkOffset(int offset, CharacterIterator text) {
-        if (offset < text.getBeginIndex() || offset >= text.getEndIndex()) {
+        if (offset < text.getBeginIndex() || offset > text.getEndIndex()) {
             throw new IllegalArgumentException("offset out of bounds");
         }
     }
@@ -769,8 +769,8 @@ class RuleBasedBreakIterator extends BreakIterator {
         // position specified by the caller, we can just use previous()
         // to carry out this operation
         CharacterIterator text = getText();
-        checkOffset(offset, text);
-        text.setIndex(offset);
+	checkOffset(offset, text);
+	text.setIndex(offset);
         return previous();
     }
 

@@ -1,60 +1,18 @@
 /*
- *
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2000-2004 The Apache Software Foundation.  All rights 
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, Sun Microsystems, Inc., 
- * http://www.sun.com.  For more information on the Apache Software 
- * Foundation, please see <http://www.apache.org/>.
+ * Copyright 2000-2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 
 package com.sun.org.apache.xerces.internal.jaxp;
 
@@ -63,16 +21,23 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Schema;
 
 import com.sun.org.apache.xerces.internal.dom.DOMImplementationImpl;
 import com.sun.org.apache.xerces.internal.dom.DOMMessageFormatter;
 import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
+import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator;
+import com.sun.org.apache.xerces.internal.jaxp.validation.XSGrammarPoolContainer;
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
-import com.sun.org.apache.xerces.internal.parsers.JAXPConfiguration;
 import com.sun.org.apache.xerces.internal.util.SecurityManager;
-import com.sun.org.apache.xerces.internal.xni.XNIException;
+import com.sun.org.apache.xerces.internal.xni.XMLDocumentHandler;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLComponent;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDFilter;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
@@ -81,108 +46,161 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
-import org.xml.sax.helpers.DefaultHandler;
+
 /**
  * @author Rajiv Mordani
  * @author Edwin Goei
- * @version $Id: DocumentBuilderImpl.java,v 1.24 2004/02/24 23:15:58 mrglavas Exp $
+ * @version $Id: DocumentBuilderImpl.java,v 1.2.6.1 2005/09/05 10:05:40 sunithareddy Exp $
  */
 public class DocumentBuilderImpl extends DocumentBuilder
         implements JAXPConstants
 {
-    private EntityResolver er = null;
-    private ErrorHandler eh = null;
-    private final DOMParser domParser;
-	private boolean enableSP = true;
+    /** Feature identifier: namespaces. */
+    private static final String NAMESPACES_FEATURE =
+        Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
+    
+    /** Feature identifier: include ignorable white space. */
+    private static final String INCLUDE_IGNORABLE_WHITESPACE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.INCLUDE_IGNORABLE_WHITESPACE;
+    
+    /** Feature identifier: create entiry ref nodes feature. */
+    private static final String CREATE_ENTITY_REF_NODES_FEATURE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.CREATE_ENTITY_REF_NODES_FEATURE;
+    
+    /** Feature identifier: include comments feature. */
+    private static final String INCLUDE_COMMENTS_FEATURE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.INCLUDE_COMMENTS_FEATURE;
+    
+    /** Feature identifier: create cdata nodes feature. */
+    private static final String CREATE_CDATA_NODES_FEATURE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.CREATE_CDATA_NODES_FEATURE;
+    
+    /** Feature identifier: XInclude processing */
+    private static final String XINCLUDE_FEATURE = 
+        Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FEATURE;
+
+    /** feature identifier: XML Schema validation */
+    private static final String XMLSCHEMA_VALIDATION_FEATURE =
+        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE;
+    
+    /** Feature identifier: validation */
+    private static final String VALIDATION_FEATURE =
+        Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
+    
+    /** Property identifier: security manager. */
+    private static final String SECURITY_MANAGER =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
+    
+    private DOMParser domParser = null;
     private final Schema grammar;
     
-    /**
-     * null if the secure processing is disabled.
-     * otherwise a valid {@link SecureProcessing} object.
-     */
-    private final SecurityManager secureProcessing ;
-    private final boolean xincludeAware;
- 
+    private XMLComponent fSchemaValidator;
+    private XMLComponentManager fSchemaValidatorComponentManager;
+    private ValidationManager fSchemaValidationManager;
+    
+    /** Initial ErrorHandler */
+    private final ErrorHandler fInitErrorHandler;
+    
+    /** Initial EntityResolver */
+    private final EntityResolver fInitEntityResolver;
+    
+    DocumentBuilderImpl(DocumentBuilderFactoryImpl dbf, Hashtable dbfAttrs, Hashtable features)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+        this(dbf, dbfAttrs, features, false);
+    }
 
-    protected DocumentBuilderImpl(DocumentBuilderFactory dbf, Hashtable dbfAttrs)
-          throws SAXNotRecognizedException, SAXNotSupportedException
-      {
-        grammar = dbf.getSchema();
-    	secureProcessing = new SecurityManager();    
-        this.domParser = new DOMParser(new JAXPConfiguration(grammar));
-        this.xincludeAware = dbf.isXIncludeAware();
-        
-        domParser.setFeature(
-                Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_AWARE,
-                xincludeAware);
+    DocumentBuilderImpl(DocumentBuilderFactoryImpl dbf, Hashtable dbfAttrs, Hashtable features, boolean secureProcessing)
+        throws SAXNotRecognizedException, SAXNotSupportedException
+    {
+        domParser = new DOMParser();
 
         // If validating, provide a default ErrorHandler that prints
         // validation errors with a warning telling the user to set an
         // ErrorHandler
         if (dbf.isValidating()) {
-            setErrorHandler(new DefaultValidationErrorHandler());
+            fInitErrorHandler = new DefaultValidationErrorHandler();
+            setErrorHandler(fInitErrorHandler);
+        }
+        else {
+            fInitErrorHandler = domParser.getErrorHandler();
         }
 
-        domParser.setFeature(Constants.SAX_FEATURE_PREFIX +
-                             Constants.VALIDATION_FEATURE, dbf.isValidating());
+        domParser.setFeature(VALIDATION_FEATURE, dbf.isValidating());
 
         // "namespaceAware" == SAX Namespaces feature
-        domParser.setFeature(Constants.SAX_FEATURE_PREFIX +
-                             Constants.NAMESPACES_FEATURE,
-                             dbf.isNamespaceAware());
+        domParser.setFeature(NAMESPACES_FEATURE, dbf.isNamespaceAware());
 
         // Set various parameters obtained from DocumentBuilderFactory
-        domParser.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                             Constants.INCLUDE_IGNORABLE_WHITESPACE,
-                             !dbf.isIgnoringElementContentWhitespace());
-        domParser.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                             Constants.CREATE_ENTITY_REF_NODES_FEATURE,
-                             !dbf.isExpandEntityReferences());
-        domParser.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                             Constants.INCLUDE_COMMENTS_FEATURE,
-                             !dbf.isIgnoringComments());
-        domParser.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                             Constants.CREATE_CDATA_NODES_FEATURE,
-                             !dbf.isCoalescing());
+        domParser.setFeature(INCLUDE_IGNORABLE_WHITESPACE, 
+                !dbf.isIgnoringElementContentWhitespace());
+        domParser.setFeature(CREATE_ENTITY_REF_NODES_FEATURE,
+                !dbf.isExpandEntityReferences());
+        domParser.setFeature(INCLUDE_COMMENTS_FEATURE,
+                !dbf.isIgnoringComments());
+        domParser.setFeature(CREATE_CDATA_NODES_FEATURE,
+                !dbf.isCoalescing());
+        
+        // Avoid setting the XInclude processing feature if the value is false.
+        // This will keep the configuration from throwing an exception if it
+        // does not support XInclude.
+        if (dbf.isXIncludeAware()) {
+            domParser.setFeature(XINCLUDE_FEATURE, true);
+        }
+        
+        // If the secure processing feature is on set a security manager.
+        if (secureProcessing) {
+            domParser.setProperty(SECURITY_MANAGER, new SecurityManager());
+        }
+        
+        this.grammar = dbf.getSchema();
+        if (grammar != null) {
+            XMLParserConfiguration config = domParser.getXMLParserConfiguration();
+            XMLComponent validatorComponent = null;
+            /** For Xerces grammars, use built-in schema validator. **/
+            if (grammar instanceof XSGrammarPoolContainer) {
+                validatorComponent = new XMLSchemaValidator();
+                fSchemaValidationManager = new ValidationManager();
+                XMLDTDFilter entityHandler = new UnparsedEntityHandler(fSchemaValidationManager);
+                config.setDTDHandler(entityHandler);
+                entityHandler.setDTDHandler(domParser);
+                domParser.setDTDSource(entityHandler);
+                fSchemaValidatorComponentManager = new SchemaValidatorConfiguration(config, 
+                        (XSGrammarPoolContainer) grammar, fSchemaValidationManager);
+            }
+            /** For third party grammars, use the JAXP validator component. **/
+            else {
+                validatorComponent = new JAXPValidatorComponent(grammar.newValidatorHandler());
+                fSchemaValidatorComponentManager = config;
+            }
+            config.addRecognizedFeatures(validatorComponent.getRecognizedFeatures());
+            config.addRecognizedProperties(validatorComponent.getRecognizedProperties());
+            config.setDocumentHandler((XMLDocumentHandler) validatorComponent);
+            ((XMLDocumentSource)validatorComponent).setDocumentHandler(domParser);
+            domParser.setDocumentSource((XMLDocumentSource) validatorComponent);
+            fSchemaValidator = validatorComponent;
+        }
 
+        // Set features
+        setFeatures(features);
+        
+        // Set attributes
         setDocumentBuilderFactoryAttributes(dbfAttrs);
-		if( enableSP)
-			domParser.setProperty(Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY, secureProcessing);
+        
+        // Initial EntityResolver
+        fInitEntityResolver = domParser.getEntityResolver();
     }
     
-	/**
-	  * <p>Reset this <code>DocumentBuilder</code> to its original configuration.</p>
-	  * 
-	  * <p><code>DocumentBuilder</code> is reset to the same state as when it was created with
-	  * {@link DocumentBuilderFactory#newDocumentBuilder()}.
-	  * <code>reset()</code> is designed to allow the reuse of existing <code>DocumentBuilder</code>s
-	  * thus saving resources associated with the creation of new <code>DocumentBuilder</code>s.</p>
-	  * 
-	  * <p>The reset <code>DocumentBuilder</code> is not guaranteed to have the same {@link EntityResolver} or {@link ErrorHandler}
-	  * <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.  It is guaranteed to have a functionally equal
-	  * <code>EntityResolver</code> and <code>ErrorHandler</code>.</p>
-	  * 
-	  * @since 1.5
-	  */
-
-    public void reset(){
-        if(domParser != null){
-            try{
-                //we dont need to worry about any properties being set on this object because 
-                //DocumentBuilder doesn't provide any way to set the properties
-                //once it is created.
-                domParser.reset();
-            }
-            //xxx: underlying implementation reset throws XNIException what should we do in this case ?
-            //other question is why underlying implementation should throw an exception is it because 
-            //of properties being set.. if there was any propery that is not being supported
-            //exception would have been thrown when setting it on the underlying implementation.
-            catch(XNIException ex){
-                //coninue.
+    private void setFeatures(Hashtable features)
+        throws SAXNotSupportedException, SAXNotRecognizedException {
+        if (features != null) {
+            for (Enumeration e = features.keys(); e.hasMoreElements();) {
+                String feature = (String)e.nextElement();
+                boolean value = ((Boolean)features.get(feature)).booleanValue();
+                domParser.setFeature(feature, value);
             }
         }
     }
-    
+
     /**
      * Set any DocumentBuilderFactory attributes of our underlying DOMParser
      *
@@ -198,17 +216,12 @@ public class DocumentBuilderImpl extends DocumentBuilder
             return;
         }
 
-        // TODO: reroute those properties to use new JAXP1.3 API. -KK
-        
         for (Enumeration e = dbfAttrs.keys(); e.hasMoreElements();) {
             String name = (String)e.nextElement();
             Object val = dbfAttrs.get(name);
             if (val instanceof Boolean) {
                 // Assume feature
-				if (Constants.FEATURE_SECURE_PROCESSING.equals(name)){
-					enableSP = ((Boolean)val).booleanValue();
-				}else
-	                domParser.setFeature(name, ((Boolean)val).booleanValue());
+                domParser.setFeature(name, ((Boolean)val).booleanValue());
             } else {
                 // Assume property
                 if (JAXP_SCHEMA_LANGUAGE.equals(name)) {
@@ -216,13 +229,7 @@ public class DocumentBuilderImpl extends DocumentBuilder
                     //None of the properties will take effect till the setValidating(true) has been called                                        
                     if ( W3C_XML_SCHEMA.equals(val) ) {
                         if( isValidating() ) {
-                            domParser.setFeature(
-                                Constants.XERCES_FEATURE_PREFIX +
-                                Constants.SCHEMA_VALIDATION_FEATURE, true);
-                            //also set the schema full checking to true.
-                            domParser.setFeature(Constants.XERCES_FEATURE_PREFIX +
-                                     Constants.SCHEMA_FULL_CHECKING,
-                                     true);
+                            domParser.setFeature(XMLSCHEMA_VALIDATION_FEATURE, true);
                             // this should allow us not to emit DTD errors, as expected by the 
                             // spec when schema validation is enabled
                             domParser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
@@ -240,20 +247,7 @@ public class DocumentBuilderImpl extends DocumentBuilder
                                 new Object[] {JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCE}));
 						}
 					}
-            	} 
-				/*else if(name.equals(Constants.ENTITY_EXPANSION_LIMIT)){
-					String elimit = (String)value;
-					if(elimit != null && elimit != ""){
-						int val = Integer.parseInt(elimit);
-						secureProcessing.setEntityExpansionLimit(val);
-					}
-				}else if(name.equals(Constants.MAX_OCCUR_LIMIT)){
-					String mlimit = (String)value;
-					if(mlimit != null && mlimit != ""){
-						int val = Integer.parseInt(mlimit);
-						secureProcessing.setMaxOccurNodeLimit(val);
-					}
-        		}*/ else {
+            	} else {
                     // Let Xerces code handle the property
                     domParser.setProperty(name, val);
 				}
@@ -280,66 +274,82 @@ public class DocumentBuilderImpl extends DocumentBuilder
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, 
                 "jaxp-null-input-source", null));
         }
-
-        if (er != null) {
-            domParser.setEntityResolver(er);
+        if (fSchemaValidator != null) {
+            if (fSchemaValidationManager != null) {
+                fSchemaValidationManager.reset();
+            }
+            resetSchemaValidator();
         }
-
-        if (eh != null) {
-            domParser.setErrorHandler(eh);      
-        }
-
         domParser.parse(is);
         return domParser.getDocument();
     }
 
     public boolean isNamespaceAware() {
         try {
-            return domParser.getFeature(Constants.SAX_FEATURE_PREFIX +
-                                        Constants.NAMESPACES_FEATURE);
-        } catch (SAXException x) {
+            return domParser.getFeature(NAMESPACES_FEATURE);
+        } 
+        catch (SAXException x) {
             throw new IllegalStateException(x.getMessage());
         }
     }
 
     public boolean isValidating() {
         try {
-            return domParser.getFeature(Constants.SAX_FEATURE_PREFIX +
-                                        Constants.VALIDATION_FEATURE);
-        } catch (SAXException x) {
+            return domParser.getFeature(VALIDATION_FEATURE);
+        } 
+        catch (SAXException x) {
             throw new IllegalStateException(x.getMessage());
         }
     }
-
-    public void setEntityResolver(org.xml.sax.EntityResolver er) {
-        this.er = er;
-    }
-
-    public void setErrorHandler(org.xml.sax.ErrorHandler eh) {
-        // If app passes in a ErrorHandler of null, then ignore all errors
-        // and warnings
-        this.eh = (eh == null) ? new DefaultHandler() : eh;
-    }
-
-    /** <p>Get a reference to the the <code>GrammarCache</code> being used by
-     * the XML processor.</p>
-     *
-     * <p>If no cache is being used, <code>null</code> is returned.</p>
-     *
-     * @return <code>GrammarCache</code> being used or <code>null</code>
-     *  if none in use
-     */
     
-    public Schema getSchema(){
+    /**
+     * Gets the XInclude processing mode for this parser
+     * @return the state of XInclude processing mode
+     */
+    public boolean isXIncludeAware() {
+        try {
+            return domParser.getFeature(XINCLUDE_FEATURE);
+        }
+        catch (SAXException exc) {
+            return false;
+        }
+    }
+
+    public void setEntityResolver(EntityResolver er) {
+        domParser.setEntityResolver(er);
+    }
+
+    public void setErrorHandler(ErrorHandler eh) {
+        domParser.setErrorHandler(eh);
+    }
+    
+    public Schema getSchema() {
         return grammar;
     }
     
-    public boolean isXIncludeAware() {
-         return xincludeAware;
+    public void reset() {
+        /** Restore the initial error handler. **/
+        if (domParser.getErrorHandler() != fInitErrorHandler) {
+            domParser.setErrorHandler(fInitErrorHandler);
+        }
+        /** Restore the initial entity resolver. **/
+        if (domParser.getEntityResolver() != fInitEntityResolver) {
+            domParser.setEntityResolver(fInitEntityResolver);
+        }
     }
 
-    final DOMParser getDOMParser() {
-          return domParser;
+    // package private
+    DOMParser getDOMParser() {
+        return domParser;
     }
     
+    private void resetSchemaValidator() throws SAXException {
+        try {
+            fSchemaValidator.reset(fSchemaValidatorComponentManager);
+        }
+        // This should never be thrown from the schema validator.
+        catch (XMLConfigurationException e) {
+            throw new SAXException(e);
+        }
+    }
 }

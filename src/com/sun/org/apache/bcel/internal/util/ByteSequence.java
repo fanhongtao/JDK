@@ -60,7 +60,7 @@ import java.io.*;
  * via the `readByte()' method. This is used to implement a wrapper for the 
  * Java byte code stream to gain some more readability.
  *
- * @version $Id: ByteSequence.java,v 1.1.1.1 2001/10/29 20:00:28 jvanzyl Exp $
+ * @version $Id: ByteSequence.java,v 1.1.2.1 2005/07/31 23:47:00 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class ByteSequence extends DataInputStream {

@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceDropEvent.java	1.19 03/12/19
+ * @(#)DragSourceDropEvent.java	1.20 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.awt.dnd;
  * to provide appropriate feedback to the end user 
  * when the operation completes.
  * <P>
- * @version 	1.19, 12/19/03
+ * @version 	1.20, 11/17/05
  * <P>
  * @since 1.2
  */

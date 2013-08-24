@@ -1,7 +1,7 @@
 /*
- * @(#)X-Buffer.java	1.56 04/07/16
+ * @(#)X-Buffer.java	1.62 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -233,7 +233,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.56, 04/07/16
+ * @version 1.62, 06/07/10
  * @since 1.4
  */
 
@@ -372,6 +372,7 @@ public abstract class ByteBuffer
     public static ByteBuffer wrap(byte[] array) {
 	return wrap(array, 0, array.length);
     }
+
 
 
 
@@ -996,9 +997,7 @@ public abstract class ByteBuffer
      *
      * <blockquote><pre>
      * buf.clear();          // Prepare buffer for use
-     * for (;;) {
-     *     if (in.read(buf) < 0 && !buf.hasRemaining())
-     *         break;        // No more bytes to transfer
+     * while (in.read(buf) >= 0 || buf.position != 0) {
      *     buf.flip();
      *     out.write(buf);
      *     buf.compact();    // In case of partial write

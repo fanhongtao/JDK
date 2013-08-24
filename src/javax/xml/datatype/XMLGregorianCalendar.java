@@ -1,10 +1,28 @@
-// $Id: XMLGregorianCalendar.java,v 1.28.4.2.2.4.2.1.2.2.2.6 2004/06/09 19:06:01 ndw Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)XMLGregorianCalendar.java	1.16 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: XMLGregorianCalendar.java,v 1.7 2006/01/12 18:53:55 ndw Exp $
+ * @(#)XMLGregorianCalendar.java	1.28 06/03/23
+ *
+ * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.datatype;
@@ -18,14 +36,15 @@ import java.util.GregorianCalendar;
 /** 
  * <p>Representation for W3C XML Schema 1.0 date/time datatypes.
  * Specifically, these date/time datatypes are 
- * <a href="#DATETIME"><code>dateTime</code></a>,
- * <a href="#TIME"><code>time</code></a>,
- * <a href="#DATE"><code>date</code></a>,
- * <a href="#GYEARMONTH"><code>gYearMonth</code></a>,
- * <a href="#GMONTHDAY"><code>gMonthDay</code></a>,
- * <a href="#GYEAR"><code>gYear</code></a>
- * <a href="#GMONTH"><code>gMonth</code></a> and
- * <a href="#GDAY"><code>gDay</code></a> defined in the XML Namespace
+ * {@link DatatypeConstants#DATETIME},
+ * {@link DatatypeConstants#TIME},
+ * {@link DatatypeConstants#DATE},
+ * {@link DatatypeConstants#GYEARMONTH},
+ * {@link DatatypeConstants#GMONTHDAY},
+ * {@link DatatypeConstants#GYEAR},
+ * {@link DatatypeConstants#GMONTH}, and
+ * {@link DatatypeConstants#GDAY}
+ * defined in the XML Namespace
  * <code>"http://www.w3.org/2001/XMLSchema"</code>.
  * These datatypes are normatively defined in 
  * <a href="http://www.w3.org/TR/xmlschema-2/#dateTime">W3C XML Schema 1.0 Part 2, Section 3.2.7-14</a>.</p>
@@ -35,8 +54,8 @@ import java.util.GregorianCalendar;
  * the value constraints for the date and time fields defined in
  * <a href="http://www.w3.org/TR/xmlschema-2/#isoformats">W3C XML Schema 1.0 Part 2, Appendix D,
  * <i>ISO 8601 Date and Time Formats</i></a>.</p>
- * 
- * <a name="datetimefieldsmapping"/>
+ *
+ * <a name="datetimefieldmapping"/>
  * <table border="2" rules="all" cellpadding="2">
  *   <thead>
  *     <tr>
@@ -53,9 +72,8 @@ import java.util.GregorianCalendar;
  *       <th>Related<br/>XMLGregorianCalendar<br/>Accessor(s)</th>
  *       <th>Value Range</th>
  *     </tr>
- *     <a name="datetimefield-year"/>
  *     <tr>
- *       <td> year </td>
+ *       <td><a name="datetimefield-year"/>year</td>
  *       <td> {@link #getYear()} + {@link #getEon()} or<br/>
  *            {@link #getEonAndYear}
  *       </td>
@@ -72,23 +90,21 @@ import java.util.GregorianCalendar;
  *            validation does not allow for the year field to have a value of zero.
  *            </td>
  *     </tr>
- *     <a name="datetimefield-month"/>
  *     <tr>
- *       <td> month </td>
+ *       <td><a name="datetimefield-month"/>month</td>
  *       <td> {@link #getMonth()} </td>
  *       <td> 1 to 12 or {@link DatatypeConstants#FIELD_UNDEFINED} </td>
  *     </tr>
- *     <a name="datetimefield-day"/>
  *     <tr>
- *       <td> day </td>
+ *       <td><a name="datetimefield-day"/>day</td>
  *       <td> {@link #getDay()} </td>
  *       <td> Independent of month, max range is 1 to 31 or {@link DatatypeConstants#FIELD_UNDEFINED}.<br/>
  *            The normative value constraint stated relative to month 
  *            field's value is in <a href="http://www.w3.org/TR/xmlschema-2/#isoformats">W3C XML Schema 1.0 Part 2, Appendix D</a>.
  *       </td> 
  *     </tr>
- *     <tr id="datetimefield-hour">
- *       <td>hour</td>
+ *     <tr>
+ *       <td><a name="datetimefield-hour"/>hour</td>
  *       <td>{@link #getHour()}</td>
  *       <td>
  *         0 to 24 or {@link DatatypeConstants#FIELD_UNDEFINED}.
@@ -96,15 +112,13 @@ import java.util.GregorianCalendar;
  *         <a href="http://www.w3.org/2001/05/xmlschema-errata#e2-45">XML Schema Errata</a>.
  *       </td>
  *     </tr>
- *     <a name="datetimefield-minute"/>
  *     <tr>
- *       <td> minute </td>
+ *       <td><a name="datetimefield-minute"/>minute</td>
  *       <td> {@link #getMinute()} </td>
  *       <td> 0 to 59 or {@link DatatypeConstants#FIELD_UNDEFINED} </td>
  *     </tr>
- *     <a name="datetimefield-second"/>
  *     <tr>
- *       <td>second</td>
+ *       <td><a name="datetimefield-second"/>second</td>
  *       <td>
  *         {@link #getSecond()} + {@link #getMillisecond()}/1000 or<br/>
  *         {@link #getSecond()} + {@link #getFractionalSecond()}
@@ -119,8 +133,8 @@ import java.util.GregorianCalendar;
  *            millisecond precision of value of {@link #getFractionalSecond()}.
  *       </td>
  *     </tr>
- *     <tr id="datetimefield-timezone">
- *       <td> timezone </td>
+ *     <tr>
+ *       <td><a name="datetimefield-timezone"/>timezone</td>
  *       <td> {@link #getTimezone()} </td>
  *       <td> Number of minutes or {@link DatatypeConstants#FIELD_UNDEFINED}.
  *         Value range from -14 hours (-14 * 60 minutes) to 14 hours (14 * 60 minutes).
@@ -159,7 +173,8 @@ import java.util.GregorianCalendar;
  * @author <a href="mailto:Joseph.Fialli@Sun.com">Joseph Fialli</a>
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.28.4.2.2.4.2.1.2.2.2.6 $, $Date: 2004/06/09 19:06:01 $    
+ * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
+ * @version $Revision: 1.7 $, $Date: 2006/01/12 18:53:55 $    
  * @see Duration
  * @see DatatypeFactory
  * @since 1.5
@@ -167,6 +182,18 @@ import java.util.GregorianCalendar;
 
 public abstract class XMLGregorianCalendar
 	implements Cloneable {
+
+	/**
+	 * Default no-arg constructor.
+	 *
+	 * <p>Note: Always use the {@link DatatypeFactory} to
+	 * construct an instance of <code>XMLGregorianCalendar</code>.
+	 * The constructor on this class cannot be guaranteed to
+	 * produce an object with a consistent state and may be
+	 * removed in the future.</p>
+	 */
+         public XMLGregorianCalendar() {
+	 }
 
 	/**
 	 * <p>Unset all fields to undefined.</p>
@@ -366,7 +393,7 @@ public abstract class XMLGregorianCalendar
 	 * <p>Unset this field by invoking the setter with a parameter value of {@link DatatypeConstants#FIELD_UNDEFINED}.</p>
 	 *
 	 * @param millisecond value constraints summarized in
-	 *   <a href="#datetimefield-millisecond">millisecond field of date/time field mapping table</a>.
+	 *   <a href="#datetimefield-second">second field of date/time field mapping table</a>.
 	 *
 	 * @throws IllegalArgumentException if <code>millisecond</code> parameter is outside value constraints for the field as specified
 	 *   in <a href="#datetimefieldmapping">date/time field mapping table</a>.
@@ -379,7 +406,7 @@ public abstract class XMLGregorianCalendar
 	 * <p>Unset this field by invoking the setter with a parameter value of <code>null</code>.</p>
 	 *
 	 * @param fractional value constraints summarized in
-	 *   <a href="#datetimefield-fractional">fractional field of date/time field mapping table</a>.
+	 *   <a href="#datetimefield-second">second field of date/time field mapping table</a>.
 	 *
 	 * @throws IllegalArgumentException if <code>fractional</code> parameter is outside value constraints for the field as specified
 	 *   in <a href="#datetimefieldmapping">date/time field mapping table</a>.
@@ -644,27 +671,25 @@ public abstract class XMLGregorianCalendar
     public abstract XMLGregorianCalendar normalize();
 
     /**
-     * <p>Indicates whether parameter <code>obj</code> is "equal to" this one.</p>
+     * <p>Compares this calendar to the specified object. The result is
+     * <code>true</code> if and only if the argument is not null and is an
+     * <code>XMLGregorianCalendar</code> object that represents the same
+     * instant in time as this object.</p>
      * 
      * @param obj to compare.
      *
-     * @return <code>true</code> when <code>obj</code> is an instance of <code>XMLGregorianCalendar</code>
-     *   and  {@link #compare(XMLGregorianCalendar obj)} returns {@link DatatypeConstants#EQUAL}, otherwise <code>false</code>.
-     * 
-     * @throws NullPointerException If <code>obj</code> is <code>null</code>.
+     * @return <code>true</code> when <code>obj</code> is an instance of
+     * <code>XMLGregorianCalendar</code> and
+     * {@link #compare(XMLGregorianCalendar obj)}
+     * returns {@link DatatypeConstants#EQUAL},
+     * otherwise <code>false</code>.
      */
     public boolean equals(Object obj) {
     	
-    	if (obj == null) {
-    		throw new NullPointerException("Cannot test null for equality with this XMLGregorianCalendar");
-    	}
-    	
-	   boolean result = false;
-	   
-	   if (obj instanceof XMLGregorianCalendar) {
-	       result = compare((XMLGregorianCalendar) obj) == DatatypeConstants.EQUAL;
-	   }
-	   return result;
+    	if (obj == null || !(obj instanceof XMLGregorianCalendar)) {
+	       return false;
+	}
+	return compare((XMLGregorianCalendar) obj) == DatatypeConstants.EQUAL;
     }
 
     /**
@@ -853,7 +878,7 @@ public abstract class XMLGregorianCalendar
      * <p>The computation is specified in
      * <a href="http://www.w3.org/TR/xmlschema-2/#adding-durations-to-dateTimes">XML Schema 1.0 Part 2, Appendix E,
      * <i>Adding durations to dateTimes</i>></a>.
-     * <a href="#datetimefieldsmapping">date/time field mapping table</a>
+     * <a href="#datetimefieldmapping">date/time field mapping table</a>
      * defines the mapping from XML Schema 1.0 <code>dateTime</code> fields 
      * to this class' representation of those fields.</p>
      * 
@@ -939,7 +964,7 @@ public abstract class XMLGregorianCalendar
      *   <li>Using <code>timeZone</code> value as defined above, create a new 
      * <code>java.util.GregorianCalendar(timeZone,Locale.getDefault())</code>.
      *   </li>
-     *   <li>Initialize all GregorianCalendar fields by calling {(@link GegorianCalendar#clear()}.</li>
+     *   <li>Initialize all GregorianCalendar fields by calling {@link java.util.GregorianCalendar#clear()}.</li>
      *   <li>Obtain a pure Gregorian Calendar by invoking
      *   <code>GregorianCalendar.setGregorianChange(
      *   new Date(Long.MIN_VALUE))</code>.</li>

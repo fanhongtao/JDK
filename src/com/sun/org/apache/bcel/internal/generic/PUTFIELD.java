@@ -63,10 +63,12 @@ import com.sun.org.apache.bcel.internal.ExceptionConstants;
  * OR
  * <PRE>Stack: ..., objectref, value.word1, value.word2 -&gt; ...</PRE>
  *
- * @version $Id: PUTFIELD.java,v 1.1.1.1 2001/10/29 20:00:25 jvanzyl Exp $
+ * @version $Id: PUTFIELD.java,v 1.1.2.1 2005/07/31 23:45:51 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
-public class PUTFIELD extends FieldInstruction implements ExceptionThrower{
+public class PUTFIELD 
+    extends FieldInstruction 
+    implements PopInstruction,ExceptionThrower{
   /**
    * Empty constructor needed for the Class.newInstance() statement in
    * Instruction.readInstruction(). Not to be used otherwise.
@@ -104,6 +106,8 @@ public class PUTFIELD extends FieldInstruction implements ExceptionThrower{
    */
   public void accept(Visitor v) {
     v.visitExceptionThrower(this);
+    v.visitStackConsumer(this);
+    v.visitPopInstruction(this);
     v.visitTypedInstruction(this);
     v.visitLoadClass(this);
     v.visitCPInstruction(this);

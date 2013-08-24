@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: LoadDocument.java,v 1.25 2004/02/16 22:54:59 minchau Exp $
+ * $Id: LoadDocument.java,v 1.2.4.1 2005/09/06 07:14:12 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -100,8 +100,9 @@ public final class LoadDocument {
     throws TransletException {
         try {
             if (arg instanceof String) {
-                if (xslURI == null ) 
-                    xslURI="";
+                if (xslURI == null )
+                    xslURI = "";
+
                 String baseURI = xslURI;
                 if (!SystemIDResolver.isAbsoluteURI(xslURI))
                    baseURI = SystemIDResolver.getAbsoluteURIFromRelative(xslURI);

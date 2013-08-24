@@ -1,7 +1,7 @@
 /*
- * @(#)Provider.java	1.64 05/04/08
+ * @(#)Provider.java	1.77 06/08/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,7 @@ import java.lang.ref.*;
 import java.lang.reflect.*;
 
 import java.security.cert.CertStoreParameters;
+import javax.security.auth.login.Configuration;
 
 /**
  * This class represents a "provider" for the
@@ -33,7 +34,7 @@ import java.security.cert.CertStoreParameters;
  * in each runtime it is installed in.
  *
  * <p>See <a href =
- * "../../../guide/security/CryptoSpec.html#Provider">The Provider Class</a>
+ * "../../../technotes/guides/security/crypto/CryptoSpec.html#Provider">The Provider Class</a>
  * in the "Java Cryptography Architecture API Specification &amp; Reference"
  * for information about how a particular type of provider, the
  * cryptographic service provider, works and is installed. However,
@@ -62,7 +63,7 @@ import java.security.cert.CertStoreParameters;
  *     <td><code>provider.getClass().getName()</code></td>
  * </table>
  *
- * @version 1.64, 04/08/05
+ * @version 1.77, 08/07/06
  * @author Benjamin Renaud
  * @author Andreas Sterbenz
  */
@@ -100,6 +101,7 @@ public abstract class Provider extends Properties {
     private transient Set entrySet = null;
     private transient int entrySetCallCount = 0;
 
+    private transient boolean initialized;
 
     /**
      * Constructs a provider with the specified name, version number,
@@ -116,6 +118,7 @@ public abstract class Provider extends Properties {
 	this.version = version;
 	this.info = info;
 	putId();
+	initialized = true;
     }
 
     /**
@@ -233,6 +236,7 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public synchronized Set<Map.Entry<Object,Object>> entrySet() {
+	checkInitialized();
 	if (entrySet == null) {
 	    if (entrySetCallCount++ == 0)  // Initial call
 		entrySet = Collections.unmodifiableMap(this).entrySet();
@@ -258,6 +262,7 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public Set<Object> keySet() {
+	checkInitialized();
 	return Collections.unmodifiableSet(super.keySet());
     }
 
@@ -268,6 +273,7 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public Collection<Object> values() {
+	checkInitialized();
 	return Collections.unmodifiableCollection(super.values());
     }
 
@@ -342,8 +348,39 @@ public abstract class Provider extends Properties {
         }
 	return implRemove(key);
     }
+    
+    // let javadoc show doc from superclass
+    public Object get(Object key) {
+	checkInitialized();
+	return super.get(key);
+    }
+    
+    // let javadoc show doc from superclass
+    public Enumeration<Object> keys() {
+	checkInitialized();
+	return super.keys();
+    }
 
-    private static void check(String directive) {
+    // let javadoc show doc from superclass
+    public Enumeration<Object> elements() {
+	checkInitialized();
+	return super.elements();
+    }
+
+    // let javadoc show doc from superclass
+    public String getProperty(String key) {
+	checkInitialized();
+	return super.getProperty(key);
+    }
+    
+    private void checkInitialized() {
+	if (!initialized) {
+	    throw new IllegalStateException();
+	}
+    }
+
+    private void check(String directive) {
+	checkInitialized();
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
             security.checkSecurityAccess(directive);
@@ -367,7 +404,7 @@ public abstract class Provider extends Properties {
     private transient Map<ServiceKey,Service> legacyMap;
     
     // Set<Service>
-    // set of all services. initialized on demand, cleared on modification
+    // Unmodifiable set of all services. Initialized on demand.
     private transient Set<Service> serviceSet;
     
     // register the id attributes for this provider
@@ -379,6 +416,19 @@ public abstract class Provider extends Properties {
 	super.put("Provider.id version", String.valueOf(version));
 	super.put("Provider.id info", String.valueOf(info));
 	super.put("Provider.id className", this.getClass().getName());
+    }
+
+    private void readObject(ObjectInputStream in)
+		throws IOException, ClassNotFoundException {
+	Map<Object,Object> copy = new HashMap<Object,Object>();
+	for (Map.Entry<Object,Object> entry : super.entrySet()) {
+	    copy.put(entry.getKey(), entry.getValue());
+	}
+	defaults = null;
+	in.defaultReadObject();
+	implClear();
+	initialized = true;
+	putAll(copy);
     }
 
     /**
@@ -423,8 +473,6 @@ public abstract class Provider extends Properties {
     }
     
     private void implClear() {
-	super.clear();
-	putId();
 	if (legacyStrings != null) {
 	    legacyStrings.clear();
 	}
@@ -437,6 +485,8 @@ public abstract class Provider extends Properties {
 	legacyChanged = false;
 	servicesChanged = false;
 	serviceSet = null;
+	super.clear();
+	putId();
     }
     
     // used as key in the serviceMap and legacyMap HashMaps
@@ -610,6 +660,7 @@ public abstract class Provider extends Properties {
      * @since 1.5
      */
     public synchronized Service getService(String type, String algorithm) {
+	checkInitialized();
 	// avoid allocating a new key object if possible
 	ServiceKey key = previousKey;
 	if (key.matches(type, algorithm) == false) {
@@ -645,20 +696,22 @@ public abstract class Provider extends Properties {
      * @since 1.5
      */
     public synchronized Set<Service> getServices() {
+	checkInitialized();
 	if (legacyChanged || servicesChanged) {
 	    serviceSet = null;
-	} else if (serviceSet != null) {
-	    return serviceSet;
 	}
-	ensureLegacyParsed();
-	serviceSet = new LinkedHashSet<Service>();
-	if (serviceMap != null) {
-	    serviceSet.addAll(serviceMap.values());
+	if (serviceSet == null) {
+	    ensureLegacyParsed();
+	    Set<Service> set = new LinkedHashSet<Service>();
+	    if (serviceMap != null) {
+		set.addAll(serviceMap.values());
+	    }
+	    if (legacyMap != null) {
+		set.addAll(legacyMap.values());
+	    }
+	    serviceSet = Collections.unmodifiableSet(set);
+	    servicesChanged = false;
 	}
-	if (legacyMap != null) {
-	    serviceSet.addAll(legacyMap.values());
-	}
-	servicesChanged = false;
 	return serviceSet;
     }
 
@@ -668,7 +721,7 @@ public abstract class Provider extends Properties {
      * it is replaced by the new service. 
      * This method also places information about this service
      * in the provider's Hashtable values in the format described in the
-     * <a href="../../../guide/security/CryptoSpec.html">
+     * <a href="../../../technotes/guides/security/crypto/CryptoSpec.html">
      * Java Cryptography Architecture API Specification &amp; Reference </a>.
      *
      * <p>Also, if there is a security manager, its 
@@ -698,6 +751,10 @@ public abstract class Provider extends Properties {
 	}
 	if (s == null) {
 	    throw new NullPointerException();
+	}
+	if (s.getProvider() != this) {
+	    throw new IllegalArgumentException
+		    ("service.getProvider() must match this Provider object");
 	}
 	if (serviceMap == null) {
 	    serviceMap = new LinkedHashMap<ServiceKey,Service>();
@@ -842,21 +899,30 @@ public abstract class Provider extends Properties {
     // describe relevant properties of a type of engine
     private static class EngineDescription {
 	final String name;
-	final boolean constructor;
 	final boolean supportsParameter;
+	final String constructorParameterClassName;
+	private volatile Class constructorParameterClass;
 	
-	EngineDescription(String name, boolean constructor, boolean sp) {
+	EngineDescription(String name, boolean sp, String paramName) {
 	    this.name = name;
-	    this.constructor = constructor;
 	    this.supportsParameter = sp;
+	    this.constructorParameterClassName = paramName;
+	}
+	Class getConstructorParameterClass() throws ClassNotFoundException {
+	    Class clazz = constructorParameterClass;
+	    if (clazz == null) {
+		clazz = Class.forName(constructorParameterClassName);
+		constructorParameterClass = clazz;
+	    }
+	    return clazz;
 	}
     }
     
     // built in knowledge of the engine types shipped as part of the JDK
     private static final Map<String,EngineDescription> knownEngines;
     
-    private static void addEngine(String name, boolean cons, boolean sp) {
-	EngineDescription ed = new EngineDescription(name, cons, sp);
+    private static void addEngine(String name, boolean sp, String paramName) {
+	EngineDescription ed = new EngineDescription(name, sp, paramName);
 	// also index by canonical name to avoid toLowerCase() for some lookups
 	knownEngines.put(name.toLowerCase(ENGLISH), ed);
 	knownEngines.put(name, ed);
@@ -865,36 +931,50 @@ public abstract class Provider extends Properties {
     static {
 	knownEngines = new HashMap<String,EngineDescription>();
 	// JCA
-	addEngine("AlgorithmParameterGenerator",	false, false);
-	addEngine("AlgorithmParameters",		false, false);
-	addEngine("KeyFactory",				false, false);
-	addEngine("KeyPairGenerator",			false, false);
-	addEngine("KeyStore",				false, false);
-	addEngine("MessageDigest",			false, false);
-	addEngine("SecureRandom",			false, false);
-	addEngine("Signature",				false, true);
-	addEngine("CertificateFactory",			false, false);
-	addEngine("CertPathBuilder",			false, false);
-	addEngine("CertPathValidator",			false, false);
-	addEngine("CertStore",				true,  false);
+	addEngine("AlgorithmParameterGenerator",	false, null);
+	addEngine("AlgorithmParameters",		false, null);
+	addEngine("KeyFactory",				false, null);
+	addEngine("KeyPairGenerator",			false, null);
+	addEngine("KeyStore",				false, null);
+	addEngine("MessageDigest",			false, null);
+	addEngine("SecureRandom",			false, null);
+	addEngine("Signature",				true,  null);
+	addEngine("CertificateFactory",			false, null);
+	addEngine("CertPathBuilder",			false, null);
+	addEngine("CertPathValidator",			false, null);
+	addEngine("CertStore",				false,
+			    "java.security.cert.CertStoreParameters");
 	// JCE
-	addEngine("Cipher",				false, true);
-	addEngine("ExemptionMechanism",			false, false);
-	addEngine("Mac",				false, true);
-	addEngine("KeyAgreement",			false, true);
-	addEngine("KeyGenerator",			false, false);
-	addEngine("SecretKeyFactory",			false, false);
+	addEngine("Cipher",				true,  null);
+	addEngine("ExemptionMechanism",			false, null);
+	addEngine("Mac",				true,  null);
+	addEngine("KeyAgreement",			true,  null);
+	addEngine("KeyGenerator",			false, null);
+	addEngine("SecretKeyFactory",			false, null);
 	// JSSE
-	addEngine("KeyManagerFactory",			false, false);
-	addEngine("SSLContext",				false, false);
-	addEngine("TrustManagerFactory",		false, false);
+	addEngine("KeyManagerFactory",			false, null);
+	addEngine("SSLContext",				false, null);
+	addEngine("TrustManagerFactory",		false, null);
 	// JGSS
-	addEngine("GssApiMechanism",			false, false);
+	addEngine("GssApiMechanism",			false, null);
 	// SASL
-	addEngine("SaslClientFactory",			false, false);
-	addEngine("SaslServerFactory",			false, false);
+	addEngine("SaslClientFactory",			false, null);
+	addEngine("SaslServerFactory",			false, null);
+	// POLICY
+	addEngine("Policy",				false,
+			    "java.security.Policy$Parameters");
+	// CONFIGURATION
+	addEngine("Configuration",			false,
+			    "javax.security.auth.login.Configuration$Parameters");
+	// XML DSig
+	addEngine("XMLSignatureFactory",		false, null);
+	addEngine("KeyInfoFactory",			false, null);
+	addEngine("TransformService",			false, null);
+	// Smart Card I/O
+	addEngine("TerminalFactory",			false,
+			    "java.lang.Object");
     }
-    
+
     // get the "standard" (mixed-case) engine name for arbitary case engine name
     // if there is no known engine by that name, return s
     private static String getEngineName(String s) {
@@ -922,11 +1002,11 @@ public abstract class Provider extends Properties {
      * which are used by the Java security framework when it searches for
      * suitable services and instantes them. The valid arguments to those 
      * methods depend on the type of service. For the service types defined 
-     * within J2SE, see the
-     * <a href="../../../guide/security/CryptoSpec.html">
+     * within Java SE, see the
+     * <a href="../../../technotes/guides/security/crypto/CryptoSpec.html">
      * Java Cryptography Architecture API Specification &amp; Reference </a>
      * for the valid values.
-     * Note that components outside of J2SE can define additional types of 
+     * Note that components outside of Java SE can define additional types of 
      * services and their behavior.
      *
      * <p>Instances of this class are immutable.
@@ -955,6 +1035,9 @@ public abstract class Provider extends Properties {
 	// names of the supported key (super) classes
 	private Class[] supportedClasses;
 	
+	// whether this service has been registered with the Provider
+	private boolean registered;
+
 	private static final Class[] CLASS0 = new Class[0];
 	
 	// this constructor and these methods are used for parsing
@@ -1096,7 +1179,7 @@ public abstract class Provider extends Properties {
 	 * instantiation in a different way.
 	 * For details and the values of constructorParameter that are 
 	 * valid for the various types of services see the
-	 * <a href="../../../guide/security/CryptoSpec.html">
+	 * <a href="../../../technotes/guides/security/crypto/CryptoSpec.html">
 	 * Java Cryptography Architecture API Specification &amp; 
 	 * Reference</a>.
 	 *
@@ -1112,6 +1195,14 @@ public abstract class Provider extends Properties {
 	 */
 	public Object newInstance(Object constructorParameter) 
 		throws NoSuchAlgorithmException {
+	    if (registered == false) {
+		if (provider.getService(type, algorithm) != this) {
+		    throw new NoSuchAlgorithmException
+			("Service not registered with Provider "
+			+ provider.getName() + ": " + this);
+		}
+		registered = true;
+	    }
 	    try {
 		EngineDescription cap = knownEngines.get(type);
 		if (cap == null) {
@@ -1120,7 +1211,7 @@ public abstract class Provider extends Properties {
 		    // optional packages
 		    return newInstanceGeneric(constructorParameter);
 		}
-		if (cap.constructor == false) {
+		if (cap.constructorParameterClassName == null) {
 		    if (constructorParameter != null) {
 			throw new InvalidParameterException
 			    ("constructorParameter not used with " + type
@@ -1128,22 +1219,21 @@ public abstract class Provider extends Properties {
 		    }
 		    Class clazz = getImplClass();
 		    return clazz.newInstance();
+		} else {
+		    Class paramClass = cap.getConstructorParameterClass();
+		    if (constructorParameter != null) {
+			Class argClass = constructorParameter.getClass();
+			if (paramClass.isAssignableFrom(argClass) == false) {
+			    throw new InvalidParameterException
+			    ("constructorParameter must be instanceof "
+			    + cap.constructorParameterClassName.replace('$', '.')
+			    + " for engine type " + type);
+			}
+		    }
+		    Class clazz = getImplClass();
+		    Constructor cons = clazz.getConstructor(paramClass);
+		    return cons.newInstance(constructorParameter);
 		}
-		if (type.equals("CertStore") == false) {
-		    throw new AssertionError("Unknown engine: " + type);
-		}
-		if (constructorParameter != null &&
-		    !(constructorParameter instanceof CertStoreParameters)) {
-		    throw new InvalidParameterException
-		    	("constructorParameter must be instanceof "
-			+ "CertStoreParameters for CertStores");
-		}
-		Class clazz = getImplClass();
-		// use Class.forName() rather than .class to delay
-		// class loading
-		Constructor cons = clazz.getConstructor(new Class[] 
-		   { Class.forName("java.security.cert.CertStoreParameters") });
-		return cons.newInstance(new Object[] {constructorParameter});
 	    } catch (NoSuchAlgorithmException e) {
 		throw e;
 	    } catch (InvocationTargetException e) {
@@ -1226,7 +1316,7 @@ public abstract class Provider extends Properties {
 	 *
 	 * <p>For details and the values of parameter that are valid for the 
 	 * various types of services see the top of this class and the
-	 * <a href="../../../guide/security/CryptoSpec.html">
+	 * <a href="../../../technotes/guides/security/crypto/CryptoSpec.html">
 	 * Java Cryptography Architecture API Specification &amp; 
 	 * Reference</a>.
 	 * Security providers can override it to implement their own test.

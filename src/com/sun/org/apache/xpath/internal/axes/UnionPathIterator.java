@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnionPathIterator.java,v 1.33 2004/02/17 04:32:08 minchau Exp $
+ * $Id: UnionPathIterator.java,v 1.2.4.1 2005/09/14 19:43:25 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -38,6 +38,7 @@ import com.sun.org.apache.xpath.internal.compiler.OpCodes;
 public class UnionPathIterator extends LocPathIterator
         implements Cloneable, DTMIterator, java.io.Serializable, PathComponent
 {
+    static final long serialVersionUID = -3910351546843826781L;
 
   /**
    * Constructor to create an instance which you can add location paths to.
@@ -57,7 +58,7 @@ public class UnionPathIterator extends LocPathIterator
    * Initialize the context values for this expression 
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this 
+   * @param context The XPath runtime context for this 
    * transformation.
    */
   public void setRoot(int context, Object environment)
@@ -89,7 +90,7 @@ public class UnionPathIterator extends LocPathIterator
   /**
    * Add an iterator to the union list.
    *
-   * @param iter non-null reference to a location path iterator.
+   * @param expr non-null reference to a location path iterator.
    */
   public void addIterator(DTMIterator expr)
   {
@@ -276,17 +277,17 @@ public class UnionPathIterator extends LocPathIterator
   {
 
     UnionPathIterator clone = (UnionPathIterator) super.clone();
-//    if (m_iterators != null)
-//    {
-//      int n = m_iterators.length;
-//
-//      clone.m_iterators = new LocPathIterator[n];
-//
-//      for (int i = 0; i < n; i++)
-//      {
-//        clone.m_iterators[i] = (LocPathIterator)m_iterators[i].clone();
-//      }
-//    }
+    if (m_iterators != null)
+    {
+      int n = m_iterators.length;
+      
+      clone.m_iterators = new DTMIterator[n];
+
+      for (int i = 0; i < n; i++)
+      {
+        clone.m_iterators[i] = (DTMIterator)m_iterators[i].clone();
+      }
+    }
 
     return clone;
   }

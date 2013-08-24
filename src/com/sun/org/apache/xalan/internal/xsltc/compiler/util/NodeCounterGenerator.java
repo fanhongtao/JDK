@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeCounterGenerator.java,v 1.6 2004/02/16 22:26:45 minchau Exp $
+ * $Id: NodeCounterGenerator.java,v 1.2.4.1 2005/09/05 11:20:48 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;

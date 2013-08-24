@@ -1,7 +1,7 @@
 /*
- * @(#)Box.java	1.43 03/12/19
+ * @(#)Box.java	1.45 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,7 +57,7 @@ import javax.accessibility.*;
  * @see BoxLayout
  *
  * @author  Timothy Prinzing
- * @version 1.43 12/19/03
+ * @version 1.45 11/17/05
  */
 public class Box extends JComponent implements Accessible {
 
@@ -250,6 +250,26 @@ public class Box extends JComponent implements Accessible {
 	throw new AWTError("Illegal request");
     }
 
+    /**
+     * Paints this <code>Box</code>.  If this <code>Box</code> has a UI this
+     * method invokes super's implementation, otherwise if this
+     * <code>Box</code> is opaque the <code>Graphics</code> is filled
+     * using the background.
+     *
+     * @param g the <code>Graphics</code> to paint to
+     * @throws NullPointerException if <code>g</code> is null
+     * @since 1.6
+     */
+    protected void paintComponent(Graphics g) {
+        if (ui != null) {
+            // On the off chance some one created a UI, honor it
+            super.paintComponent(g);
+        } else if (isOpaque()) {
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+    }
+
 
     /**
      * An implementation of a lightweight component that participates in
@@ -274,9 +294,9 @@ public class Box extends JComponent implements Accessible {
 	 * @param max   Maximum size
 	 */
         public Filler(Dimension min, Dimension pref, Dimension max) {
-	    reqMin = min;
-	    reqPref = pref;
-	    reqMax = max;
+            setMinimumSize(min);
+            setPreferredSize(pref);
+            setMaximumSize(max);
 	}
 
 	/**
@@ -289,55 +309,38 @@ public class Box extends JComponent implements Accessible {
 	 * @param max   Value to return for getMaximumSize
 	 */
         public void changeShape(Dimension min, Dimension pref, Dimension max) {
-	    reqMin = min;
-	    reqPref = pref;
-	    reqMax = max;
-	    invalidate();
+            setMinimumSize(min);
+            setPreferredSize(pref);
+            setMaximumSize(max);
+            revalidate();
 	}
 
 	// ---- Component methods ------------------------------------------
 
         /**
-         * Returns the minimum size of the component.
+         * Paints this <code>Filler</code>.  If this
+         * <code>Filler</code> has a UI this method invokes super's
+         * implementation, otherwise if this <code>Filler</code> is
+         * opaque the <code>Graphics</code> is filled using the
+         * background.
          *
-         * @return the size
+         * @param g the <code>Graphics</code> to paint to
+         * @throws NullPointerException if <code>g</code> is null
+         * @since 1.6
          */
-        public Dimension getMinimumSize() {
-	    return reqMin;
-	}
-
-        /**
-         * Returns the preferred size of the component.
-         *
-         * @return the size
-         */
-        public Dimension getPreferredSize() {
-	    return reqPref;
-	}
-
-        /**
-         * Returns the maximum size of the component.
-         *
-         * @return the size
-         */
-        public Dimension getMaximumSize() {
-	    return reqMax;
-	}
-
-	// ---- member variables ---------------------------------------
-
-        private Dimension reqMin;
-        private Dimension reqPref;
-        private Dimension reqMax;
+        protected void paintComponent(Graphics g) {
+            if (ui != null) {
+                // On the off chance some one created a UI, honor it
+                super.paintComponent(g);
+            } else if (isOpaque()) {
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        }
 
 /////////////////
 // Accessibility support for Box$Filler
 ////////////////
-
-        /**
-         * The currently set AccessibleContext object.
-         */
-        protected AccessibleContext accessibleContext = null;
 
         /**
          * Gets the AccessibleContext associated with this Box.Filler. 
@@ -378,11 +381,6 @@ public class Box extends JComponent implements Accessible {
 /////////////////
 // Accessibility support for Box
 ////////////////
-
-    /**
-     * The currently set AccessibleContext object.
-     */
-    protected AccessibleContext accessibleContext = null;
 
     /**
      * Gets the AccessibleContext associated with this Box. 

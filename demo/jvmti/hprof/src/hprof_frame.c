@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_frame.c	1.16 04/07/27
+ * @(#)hprof_frame.c	1.21 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -47,14 +47,22 @@
  *
  */
 
+enum LinenoState {
+    LINENUM_UNINITIALIZED = 0,
+    LINENUM_AVAILABLE     = 1,
+    LINENUM_UNAVAILABLE   = 2
+};
+
 typedef struct FrameKey {
     jmethodID   method;
     jlocation   location;
 } FrameKey;
 
 typedef struct FrameInfo {
-    jint        status;
-    jint        lineno;
+    unsigned short    	lineno;
+    unsigned char       lineno_state; /* LinenoState */
+    unsigned char       status;
+    SerialNumber serial_num;
 } FrameInfo;
 
 static FrameKey*
@@ -91,9 +99,9 @@ list_item(TableIndex i, void *key_ptr, int key_len, void *info_ptr, void *arg)
     key = *((FrameKey*)key_ptr);
     info = (FrameInfo*)info_ptr;
     debug_message( 
-	"Frame 0x%08x: method=%p, location=%d, lineno=%d, status=0x%08x \n",
+	"Frame 0x%08x: method=%p, location=%d, lineno=%d(%d), status=%d \n",
                 i, (void*)key.method, (jint)key.location, 
-		info->lineno, info->status);
+		info->lineno, info->lineno_state, info->status);
 }
 
 void
@@ -106,20 +114,28 @@ frame_init(void)
 FrameIndex
 frame_find_or_create(jmethodID method, jlocation location)
 {
+    FrameIndex index;
     static FrameKey empty_key;
     FrameKey key;
-    static FrameInfo empty_info;
-    FrameInfo info;
+    jboolean new_one;
     
     key          = empty_key;
     key.method   = method;
     key.location = location;
-    info         = empty_info;
-    if ( location < 0 ) {
-	info.lineno = -1;
+    new_one      = JNI_FALSE;
+    index        = table_find_or_create_entry(gdata->frame_table, 
+			&key, (int)sizeof(key), &new_one, NULL);
+    if ( new_one ) {
+	FrameInfo *info;
+	
+	info = get_info(index);
+	info->lineno_state = LINENUM_UNINITIALIZED;
+	if ( location < 0 ) {
+	    info->lineno_state = LINENUM_UNAVAILABLE;
+	}
+        info->serial_num = gdata->frame_serial_number_counter++;
     }
-    return table_find_or_create_entry(gdata->frame_table, 
-			&key, (int)sizeof(key), NULL, (void*)&info);
+    return index;
 }
 
 void
@@ -145,30 +161,39 @@ frame_set_status(FrameIndex index, jint status)
     FrameInfo *info;
 
     info = get_info(index);
-    info->status = status;
+    info->status = (unsigned char)status;
 }
 
 void
-frame_get_location(FrameIndex index, jmethodID *pmethod, 
-			jlocation *plocation, jint *plineno)
+frame_get_location(FrameIndex index, SerialNumber *pserial_num,
+		   jmethodID *pmethod, jlocation *plocation, jint *plineno)
 {
     FrameKey  *pkey;
     FrameInfo *info;
+    jint       lineno;
 
     pkey       = get_pkey(index);
     *pmethod   = pkey->method;
     *plocation = pkey->location;
     info       = get_info(index);
-    if ( info->lineno == 0 ) {
+    lineno     = (jint)info->lineno;
+    if ( info->lineno_state == LINENUM_UNINITIALIZED ) {
+	info->lineno_state = LINENUM_UNAVAILABLE;
 	if ( gdata->lineno_in_traces ) {
 	    if ( pkey->location >= 0 && !isMethodNative(pkey->method) ) {
-		info->lineno = getLineNumber(pkey->method, pkey->location);
-	    } else { 
-		info->lineno = -1;
+		lineno = getLineNumber(pkey->method, pkey->location);
+		if ( lineno >= 0 ) {
+		    info->lineno = (unsigned short)lineno; /* save it */
+                    info->lineno_state = LINENUM_AVAILABLE;
+		}
 	    }
 	}
+    } 
+    if ( info->lineno_state == LINENUM_UNAVAILABLE ) {
+	lineno = -1;
     }
-    *plineno   = info->lineno;
+    *plineno     = lineno;
+    *pserial_num = info->serial_num;
 }
 
 jint
@@ -177,6 +202,6 @@ frame_get_status(FrameIndex index)
     FrameInfo *info;
 
     info = get_info(index);
-    return info->status;
+    return (jint)info->status;
 }
 

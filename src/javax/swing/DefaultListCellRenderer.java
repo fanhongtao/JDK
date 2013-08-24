@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.29 05/10/31
+ * @(#)DefaultListCellRenderer.java	1.32 05/11/30
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.29 10/31/05
+ * @version 1.32 11/30/05
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -56,6 +56,12 @@ public class DefaultListCellRenderer extends JLabel
     implements ListCellRenderer, Serializable
 {
 
+   /**
+    * An empty <code>Border</code>. This field might not be used. To change the
+    * <code>Border</code> used by this renderer override the 
+    * <code>getListCellRendererComponent</code> method and set the border
+    * of the returned component directly.
+    */
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
     private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
     
@@ -86,9 +92,24 @@ public class DefaultListCellRenderer extends JLabel
         boolean cellHasFocus)
     {
         setComponentOrientation(list.getComponentOrientation());
+
+        Color bg = null;
+        Color fg = null;
+
+        JList.DropLocation dropLocation = list.getDropLocation();
+        if (dropLocation != null
+                && !dropLocation.isInsert()
+                && dropLocation.getIndex() == index) {
+
+            bg = UIManager.getColor("List.dropCellBackground");
+            fg = UIManager.getColor("List.dropCellForeground");
+
+            isSelected = true;
+        }
+
 	if (isSelected) {
-	    setBackground(list.getSelectionBackground());
-	    setForeground(list.getSelectionForeground());
+            setBackground(bg == null ? list.getSelectionBackground() : bg);
+	    setForeground(fg == null ? list.getSelectionForeground() : fg);
 	}
 	else {
 	    setBackground(list.getBackground());
@@ -199,8 +220,13 @@ public class DefaultListCellRenderer extends JLabel
     */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
 	// Strings get interned...
-	if (propertyName=="text")
+	if (propertyName == "text"
+                || ((propertyName == "font" || propertyName == "foreground")
+                    && oldValue != newValue
+                    && getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) != null)) {
+
 	    super.firePropertyChange(propertyName, oldValue, newValue);
+        }
     }
 
    /**

@@ -1,7 +1,7 @@
 /*
- * @(#)JOptionPane.java	1.91 04/03/04
+ * @(#)JOptionPane.java	1.100 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -87,7 +87,7 @@ import javax.accessibility.*;
  * versions of the basic methods that use different parameter lists.
  * <p>
  * All dialogs are modal. Each <code>showXxxDialog</code> method blocks 
- * the current thread until the user's interaction is complete.
+ * the caller until the user's interaction is complete.
  * <p>
  *
  * <table cellspacing=6 cellpadding=4 border=0 align=right summary="layout">
@@ -270,6 +270,11 @@ import javax.accessibility.*;
  *     return CLOSED_OPTION;
  * </pre>
  * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -285,7 +290,7 @@ import javax.accessibility.*;
  *      attribute: isContainer true
  *    description: A component which implements standard dialog box controls.
  *
- * @version 1.91 03/04/04
+ * @version 1.100 08/08/06
  * @author James Gosling
  * @author Scott Violet
  */
@@ -305,11 +310,11 @@ public class JOptionPane extends JComponent implements Accessible
     //
     // Option types
     //
+
     /** 
      * Type meaning Look and Feel should not supply any options -- only
      * use the options from the <code>JOptionPane</code>.
      */
-    /** Type used for <code>showConfirmDialog</code>. */
     public static final int         DEFAULT_OPTION = -1;
     /** Type used for <code>showConfirmDialog</code>. */
     public static final int         YES_NO_OPTION = 0;
@@ -414,8 +419,8 @@ public class JOptionPane extends JComponent implements Accessible
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static String showInputDialog(Object message)
-        throws HeadlessException {
+    public static String showInputDialog(Object message) 
+        throws HeadlessException { 
         return showInputDialog(null, message);
     }
 
@@ -449,7 +454,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static String showInputDialog(Component parentComponent,
-        Object message) throws HeadlessException {
+        Object message) throws HeadlessException { 
         return showInputDialog(parentComponent, message, UIManager.getString(
             "OptionPane.inputDialogTitle", parentComponent), QUESTION_MESSAGE);
     }
@@ -498,7 +503,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static String showInputDialog(Component parentComponent,
-        Object message, String title, int messageType)
+        Object message, String title, int messageType) 
         throws HeadlessException {
         return (String)showInputDialog(parentComponent, message, title,
                                        messageType, null, null, null);
@@ -542,7 +547,7 @@ public class JOptionPane extends JComponent implements Accessible
      */
     public static Object showInputDialog(Component parentComponent,
         Object message, String title, int messageType, Icon icon,
-        Object[] selectionValues, Object initialSelectionValue)
+        Object[] selectionValues, Object initialSelectionValue) 
         throws HeadlessException {
         JOptionPane    pane = new JOptionPane(message, messageType,
                                               OK_CANCEL_OPTION, icon,
@@ -611,7 +616,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static void showMessageDialog(Component parentComponent,
-        Object message, String title, int messageType)
+        Object message, String title, int messageType) 
         throws HeadlessException {
         showMessageDialog(parentComponent, message, title, messageType, null);
     }
@@ -640,7 +645,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static void showMessageDialog(Component parentComponent,
-        Object message, String title, int messageType, Icon icon)
+        Object message, String title, int messageType, Icon icon) 
         throws HeadlessException {
         showOptionDialog(parentComponent, message, title, DEFAULT_OPTION, 
                          messageType, icon, null, null);
@@ -682,8 +687,9 @@ public class JOptionPane extends JComponent implements Accessible
      * @param message   the <code>Object</code> to display
      * @param title     the title string for the dialog
      * @param optionType an int designating the options available on the dialog:
-     *                  <code>YES_NO_OPTION</code>, or
-     *			<code>YES_NO_CANCEL_OPTION</code>
+     *                  <code>YES_NO_OPTION</code>,
+     *                  <code>YES_NO_CANCEL_OPTION</code>,
+     *                  or <code>OK_CANCEL_OPTION</code>
      * @return an int indicating the option selected by the user
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
@@ -691,7 +697,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static int showConfirmDialog(Component parentComponent,
-        Object message, String title, int optionType)
+        Object message, String title, int optionType) 
         throws HeadlessException {
         return showConfirmDialog(parentComponent, message, title, optionType,
                                  QUESTION_MESSAGE);
@@ -713,8 +719,9 @@ public class JOptionPane extends JComponent implements Accessible
      * @param message   the <code>Object</code> to display
      * @param title     the title string for the dialog
      * @param optionType an integer designating the options available
-     *			on the dialog: <code>YES_NO_OPTION</code>,
-     *			or <code>YES_NO_CANCEL_OPTION</code>
+     *                   on the dialog: <code>YES_NO_OPTION</code>,
+     *                  <code>YES_NO_CANCEL_OPTION</code>,
+     *                  or <code>OK_CANCEL_OPTION</code>
      * @param messageType an integer designating the kind of message this is; 
      *                  primarily used to determine the icon from the pluggable
      *                  Look and Feel: <code>ERROR_MESSAGE</code>,
@@ -729,7 +736,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static int showConfirmDialog(Component parentComponent,
-        Object message, String title, int optionType, int messageType)
+        Object message, String title, int optionType, int messageType) 
         throws HeadlessException {
         return showConfirmDialog(parentComponent, message, title, optionType,
                                 messageType, null);
@@ -750,7 +757,8 @@ public class JOptionPane extends JComponent implements Accessible
      * @param title     the title string for the dialog
      * @param optionType an int designating the options available on the dialog:
      *                  <code>YES_NO_OPTION</code>,
-     *			or <code>YES_NO_CANCEL_OPTION</code>
+     *                  <code>YES_NO_CANCEL_OPTION</code>,
+     *                  or <code>OK_CANCEL_OPTION</code>
      * @param messageType an int designating the kind of message this is, 
      *                  primarily used to determine the icon from the pluggable
      *                  Look and Feel: <code>ERROR_MESSAGE</code>,
@@ -796,8 +804,10 @@ public class JOptionPane extends JComponent implements Accessible
      * @param message   the <code>Object</code> to display
      * @param title     the title string for the dialog
      * @param optionType an integer designating the options available on the
-     *			dialog: <code>YES_NO_OPTION</code>,
-     *			or <code>YES_NO_CANCEL_OPTION</code>
+     *                  dialog: <code>DEFAULT_OPTION</code>,
+     *                  <code>YES_NO_OPTION</code>,
+     *                  <code>YES_NO_CANCEL_OPTION</code>,
+     *                  or <code>OK_CANCEL_OPTION</code>
      * @param messageType an integer designating the kind of message this is, 
      *                  primarily used to determine the icon from the
      *			pluggable Look and Feel: <code>ERROR_MESSAGE</code>,
@@ -826,7 +836,7 @@ public class JOptionPane extends JComponent implements Accessible
      */
     public static int showOptionDialog(Component parentComponent,
         Object message, String title, int optionType, int messageType,
-        Icon icon, Object[] options, Object initialValue)
+        Icon icon, Object[] options, Object initialValue) 
         throws HeadlessException {
         JOptionPane             pane = new JOptionPane(message, messageType,
                                                        optionType, icon,
@@ -886,12 +896,41 @@ public class JOptionPane extends JComponent implements Accessible
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public JDialog createDialog(Component parentComponent, String title)
+    public JDialog createDialog(Component parentComponent, String title) 
         throws HeadlessException {
-            int style = styleFromMessageType(getMessageType());
-            return createDialog(parentComponent, title, style);
+        int style = styleFromMessageType(getMessageType());
+        return createDialog(parentComponent, title, style);
     }
 
+    /**
+     * Creates and returns a new parentless <code>JDialog</code>
+     * with the specified title.
+     * The returned <code>JDialog</code> will not be resizable by the
+     * user, however programs can invoke <code>setResizable</code> on
+     * the <code>JDialog</code> instance to change this property.
+     * The returned <code>JDialog</code> will be set up such that
+     * once it is closed, or the user clicks on one of the buttons,
+     * the optionpane's value property will be set accordingly and
+     * the dialog will be closed.  Each time the dialog is made visible,
+     * it will reset the option pane's value property to 
+     * <code>JOptionPane.UNINITIALIZED_VALUE</code> to ensure the
+     * user's subsequent action closes the dialog properly.
+     *
+     * @param title     the title string for the dialog
+     * @return a new <code>JDialog</code> containing this instance
+     * @exception HeadlessException if
+     *   <code>GraphicsEnvironment.isHeadless</code> returns
+     *   <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since 1.6
+     */
+    public JDialog createDialog(String title) throws HeadlessException {
+        int style = styleFromMessageType(getMessageType());
+        JDialog dialog = new JDialog((Dialog) null, title, true);
+        initDialog(dialog, style, null);
+        return dialog;
+    }
+   
     private JDialog createDialog(Component parentComponent, String title,
             int style)
             throws HeadlessException {
@@ -904,20 +943,25 @@ public class JOptionPane extends JComponent implements Accessible
         } else {
             dialog = new JDialog((Dialog)window, title, true);
         }
-        dialog.setComponentOrientation(this.getComponentOrientation());
  	if (window instanceof SwingUtilities.SharedOwnerFrame) {
 	    WindowListener ownerShutdownListener =
 		(WindowListener)SwingUtilities.getSharedOwnerFrameShutdownListener();
  	    dialog.addWindowListener(ownerShutdownListener);
  	}
-        Container             contentPane = dialog.getContentPane();
+        initDialog(dialog, style, parentComponent);
+        return dialog;
+    }
+
+    private void initDialog(final JDialog dialog, int style, Component parentComponent) {
+        dialog.setComponentOrientation(this.getComponentOrientation());
+        Container contentPane = dialog.getContentPane();
 
         contentPane.setLayout(new BorderLayout());
         contentPane.add(this, BorderLayout.CENTER);
         dialog.setResizable(false);
         if (JDialog.isDefaultLookAndFeelDecorated()) {
-            boolean supportsWindowDecorations = 
-            UIManager.getLookAndFeel().getSupportsWindowDecorations();
+            boolean supportsWindowDecorations =
+              UIManager.getLookAndFeel().getSupportsWindowDecorations();
             if (supportsWindowDecorations) {
                 dialog.setUndecorated(true);
                 getRootPane().setWindowDecorationStyle(style);
@@ -940,28 +984,27 @@ public class JOptionPane extends JComponent implements Accessible
         };
         dialog.addWindowListener(adapter);
         dialog.addWindowFocusListener(adapter);
-	dialog.addComponentListener(new ComponentAdapter() {
+        dialog.addComponentListener(new ComponentAdapter() {
             public void componentShown(ComponentEvent ce) {
-	        // reset value to ensure closing works properly
+                // reset value to ensure closing works properly
                 setValue(JOptionPane.UNINITIALIZED_VALUE);
             }
-	});
+        });
         addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent event) {
                 // Let the defaultCloseOperation handle the closing
                 // if the user closed the window without selecting a button
                 // (newValue = null in that case).  Otherwise, close the dialog.
-                if(dialog.isVisible() && event.getSource() == JOptionPane.this &&
-                   (event.getPropertyName().equals(VALUE_PROPERTY)) &&
-                    event.getNewValue() != null &&
-		    event.getNewValue() != JOptionPane.UNINITIALIZED_VALUE) {
-                    dialog.setVisible(false);               
+                if (dialog.isVisible() && event.getSource() == JOptionPane.this &&
+                  (event.getPropertyName().equals(VALUE_PROPERTY)) &&
+                  event.getNewValue() != null &&
+                  event.getNewValue() != JOptionPane.UNINITIALIZED_VALUE) {
+                    dialog.setVisible(false);
                 }
             }
         });
-        return dialog;
     }
-        
+
 
     /**
      * Brings up an internal confirmation dialog panel. The dialog
@@ -1242,7 +1285,7 @@ public class JOptionPane extends JComponent implements Accessible
             obj = AccessController.doPrivileged(new ModalPrivilegedAction(
                     Container.class, "startLWModal"));
             if (obj != null) {
-                ((Method)obj).invoke(dialog, null);
+                ((Method)obj).invoke(dialog, (Object[])null);
             }
         } catch (IllegalAccessException ex) {
         } catch (IllegalArgumentException ex) {
@@ -1388,7 +1431,7 @@ public class JOptionPane extends JComponent implements Accessible
             obj = AccessController.doPrivileged(new ModalPrivilegedAction(
                     Container.class, "startLWModal"));
             if (obj != null) {
-                ((Method)obj).invoke(dialog, null);
+                ((Method)obj).invoke(dialog, (Object[])null);
             }
         } catch (IllegalAccessException ex) {
         } catch (IllegalArgumentException ex) {
@@ -1474,7 +1517,7 @@ public class JOptionPane extends JComponent implements Accessible
                         new ModalPrivilegedAction(
                             Container.class, "stopLWModal"));
                     if (obj != null) {
-                        ((Method)obj).invoke(iFrame, null);
+                        ((Method)obj).invoke(iFrame, (Object[])null);
                     }
                 } catch (IllegalAccessException ex) {
                 } catch (IllegalArgumentException ex) {
@@ -1531,14 +1574,16 @@ public class JOptionPane extends JComponent implements Accessible
      * @param parentComponent the <code>Component</code> to check for a
      *		<code>Frame</code>
      * @return the <code>Frame</code> that contains the component,
-     *		or the default frame if the component is <code>null</code>,
+     *          or <code>getRootFrame</code>  
+     *          if the component is <code>null</code>,      
      *		or does not have a valid <code>Frame</code> parent
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
+     * @see #getRootFrame
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public static Frame getFrameForComponent(Component parentComponent)
+    public static Frame getFrameForComponent(Component parentComponent) 
         throws HeadlessException {
         if (parentComponent == null)
             return getRootFrame();
@@ -1563,7 +1608,7 @@ public class JOptionPane extends JComponent implements Accessible
      *   <code>true</code>
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    static Window getWindowForComponent(Component parentComponent)
+    static Window getWindowForComponent(Component parentComponent) 
         throws HeadlessException {
         if (parentComponent == null)
             return getRootFrame();
@@ -1596,6 +1641,9 @@ public class JOptionPane extends JComponent implements Accessible
     /**
      * Sets the frame to use for class methods in which a frame is
      * not provided.
+     * <p>  
+     * <strong>Note:</strong> 
+     * It is recommended that rather than using this method you supply a valid parent.     
      *
      * @param newRootFrame the default <code>Frame</code> to use
      */
@@ -1615,6 +1663,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
+     * @see #setRootFrame
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     public static Frame getRootFrame() throws HeadlessException {
@@ -2454,7 +2503,7 @@ public class JOptionPane extends JComponent implements Accessible
         public Object run() {
             Method method = null;
             try {
-                method = clazz.getDeclaredMethod(methodName, null);
+                method = clazz.getDeclaredMethod(methodName, (Class[])null);
             } catch (NoSuchMethodException ex) {
             }
             if (method != null) {
@@ -2513,7 +2562,15 @@ public class JOptionPane extends JComponent implements Accessible
          * @see AccessibleRole
          */
         public AccessibleRole getAccessibleRole() {
-            return AccessibleRole.OPTION_PANE;
+	    switch (messageType) {
+	    case ERROR_MESSAGE:
+	    case INFORMATION_MESSAGE:
+	    case WARNING_MESSAGE:
+		return AccessibleRole.ALERT;
+
+	    default:
+		return AccessibleRole.OPTION_PANE;
+	    }
         }
 
     } // inner class AccessibleJOptionPane

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XResources_ko.java,v 1.6 2004/02/17 04:22:15 minchau Exp $
+ * $Id: XResources_ko.java,v 1.2.4.1 2005/09/15 08:16:08 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils.res;
 
@@ -34,29 +34,20 @@ public class XResources_ko extends XResourceBundle
    *
    * @return The association list.
    */
-  protected Object[][] getContents() {
-      // return a copy of contents; in theory we want a deep clone
-      // of contents, but since it only contains (immutable) Strings,
-      // this shallow copy is sufficient
-      Object[][] msgCopy = new Object[contents.length][2];
-      for (int i = 0; i < contents.length; i++) {
-          msgCopy[i][0] = contents[i][0];
-          msgCopy[i][1] = contents[i][1];
-      }
-      return msgCopy;
-  }
-
-  /** The association list.          */
-  static final Object[][] contents =
+  public Object[][] getContents()
+  {
+    return new Object[][]
   {
     { "ui_language", "ko" }, { "help_language", "ko" }, { "language", "ko" },
-    { "alphabet",
-      new char[]{ 0x3131, 0x3134, 0x3137, 0x3139, 0x3141, 0x3142, 0x3145, 0x3147, 0x3148, 0x314a, 0x314b, 0x314c,
-                  0x314d, 0x314e, 0x314f, 0x3151, 0x3153, 0x3155, 0x3157, 0x315b, 0x315c, 0x3160, 0x3161, 0x3163}},
-    { "tradAlphabet",
+    { "alphabet", new CharArrayWrapper(
+      new char[]{ 0x3131, 0x3134, 0x3137, 0x3139, 0x3141, 0x3142, 0x3145, 
+                  0x3147, 0x3148, 0x314a, 0x314b, 0x314c, 0x314d, 0x314e, 
+                  0x314f, 0x3151, 0x3153, 0x3155, 0x3157, 0x315b, 0x315c, 
+                  0x3160, 0x3161, 0x3163})},
+    { "tradAlphabet", new CharArrayWrapper(
       new char[]{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
                   'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                  'Y', 'Z' } },
+                  'Y', 'Z' }) },
 
     //language orientation 
     { "orientation", "LeftToRight" },
@@ -68,17 +59,20 @@ public class XResources_ko extends XResourceBundle
     // largest numerical value
     //{"MaxNumericalValue", new Integer(100000000)},
     //These would not be used for EN. Only used for traditional numbering   
-    { "numberGroups", new int[]{ 1 } },
+    { "numberGroups", new IntArrayWrapper(new int[]{ 1 }) },
 
     // chinese only ??
-    { "zero", new char[0] },
+    { "zero", new CharArrayWrapper(new char[0]) },
 
     //These only used for mutiplicative-additive numbering
-    { "multiplier", new int[]{ 100000000, 10000, 1000, 100, 10 } },
-    { "multiplierChar",
-      new char[]{  0xc5b5, 0xb9cc, 0xcc9c, 0xbc31, 0xc2ed } },
-    { "digits",
-      new char[]{ 0xc77c, 0xc774, 0xc0bc, 0xc0ac, 0xc624, 0xc721, 0xce60, 0xd314, 0xad6c
-                   } }, { "tables", new String[]{ "digits" } }
+    { "multiplier", new LongArrayWrapper(new long[]{ 100000000, 10000, 1000, 
+        100, 10 }) },
+    { "multiplierChar", new CharArrayWrapper(
+      new char[]{  0xc5b5, 0xb9cc, 0xcc9c, 0xbc31, 0xc2ed }) },
+    { "digits", new CharArrayWrapper(
+      new char[]{ 0xc77c, 0xc774, 0xc0bc, 0xc0ac, 0xc624, 0xc721, 0xce60, 
+          0xd314, 0xad6c}) }, { "tables", new StringArrayWrapper(
+              new String[]{ "digits" }) }
   };
+  }
 }

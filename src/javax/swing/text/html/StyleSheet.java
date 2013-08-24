@@ -1,12 +1,12 @@
 /*
- * @(#)StyleSheet.java	1.85 04/09/14
+ * @(#)StyleSheet.java	1.91 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.util.*;
 import java.awt.*;
 import java.io.*;
@@ -107,7 +107,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.85 09/14/04
+ * @version 1.91 11/30/05
  */
 public class StyleSheet extends StyleContext {
     // As the javadoc states, this class maintains a mapping between
@@ -1783,7 +1783,7 @@ public class StyleSheet extends StyleContext {
 			b = new BevelBorder(BevelBorder.RAISED, c.brighter(), c.darker());
 		    } else if (bstyle.equals("solid")) {
 			Color c = getBorderColor(a);
-			b = new LineBorder(c);
+                        b = new LineBorder(c, bw);
 		    }
 		}
 	    }
@@ -1824,13 +1824,13 @@ public class StyleSheet extends StyleContext {
 	    float inset = 0;
 	    switch(side) {
 	    case View.LEFT:
-                inset += getOrientationMargin(HorizontalMargin.LEFT, 
+		inset += getOrientationMargin(HorizontalMargin.LEFT, 
                                               leftMargin, a, isLeftToRight(v));
 		inset += binsets.left;
 		inset += getLength(CSS.Attribute.PADDING_LEFT, a);
 		break;
 	    case View.RIGHT:
-                inset += getOrientationMargin(HorizontalMargin.RIGHT, 
+		inset += getOrientationMargin(HorizontalMargin.RIGHT, 
                                               rightMargin, a, isLeftToRight(v));
 		inset += binsets.right;
 		inset += getLength(CSS.Attribute.PADDING_RIGHT, a);
@@ -1871,12 +1871,12 @@ public class StyleSheet extends StyleContext {
 	    // PENDING(prinz) implement real rendering... which would
 	    // do full set of border and background capabilities.
 	    // remove margin
-
+            
             float dx = 0;                                                 
             float dy = 0;                                                 
             float dw = 0;                                                 
-            float dh = 0;                                                 
-            AttributeSet a = v.getAttributes();
+            float dh = 0;        
+	    AttributeSet a = v.getAttributes();
             boolean isLeftToRight = isLeftToRight(v);
             float localLeftMargin = getOrientationMargin(HorizontalMargin.LEFT,
                                                          leftMargin, 
@@ -1900,11 +1900,20 @@ public class StyleSheet extends StyleContext {
             if (bgPainter != null) {                                      
                 bgPainter.paint(g, x + dx, y + dy, w + dw, h + dh, v);    
             }                                                             
-            x += localLeftMargin;
+	    x += localLeftMargin;
 	    y += topMargin;
-            w -= localLeftMargin + localRightMargin;
+	    w -= localLeftMargin + localRightMargin;
 	    h -= topMargin + bottomMargin;
-	    border.paintBorder(null, g, (int) x, (int) y, (int) w, (int) h);
+            if (border instanceof BevelBorder) {
+                //BevelBorder does not support border width
+                int bw = (int) getLength(CSS.Attribute.BORDER_TOP_WIDTH, a);
+                for (int i = bw - 1; i >= 0; i--) {
+                    border.paintBorder(null, g, (int) x + i, (int) y + i, 
+                                       (int) w - 2 * i, (int) h - 2 * i);
+                }
+            } else {
+                border.paintBorder(null, g, (int) x, (int) y, (int) w, (int) h);
+            }
 	}
 
 	float getLength(CSS.Attribute key, AttributeSet a) {
@@ -1956,8 +1965,8 @@ public class StyleSheet extends StyleContext {
          *
          * @param side The horizontal side to fetch margin for
          *  This can be HorizontalMargin.LEFT or HorizontalMargin.RIGHT
-         * @param cssMargin margin from css
-         * @param a AttributeSet for the View we getting margin for
+	 * @param cssMargin margin from css
+	 * @param a AttributeSet for the View we getting margin for
          * @param isLeftToRight 
          * @return orientation depended margin
          */
@@ -3202,8 +3211,11 @@ public class StyleSheet extends StyleContext {
 	 * A selector has been encountered.
 	 */
 	public void handleSelector(String selector) {
-            selector = selector.toLowerCase();
-
+            //class and index selectors are case sensitive
+            if (!(selector.startsWith(".")
+                  || selector.startsWith("#"))) {
+                selector = selector.toLowerCase();
+            }
 	    int length = selector.length();
 
 	    if (selector.endsWith(",")) {
@@ -3322,7 +3334,7 @@ public class StyleSheet extends StyleContext {
      * The HTML/CSS size model has seven slots
      * that one can assign sizes to.
      */
-    static int sizeMapDefault[] = { 8, 10, 12, 14, 18, 24, 36 };
+    static final int sizeMapDefault[] = { 8, 10, 12, 14, 18, 24, 36 };
 
     private int sizeMap[] = sizeMapDefault;
     private boolean w3cLengthUnits = false;

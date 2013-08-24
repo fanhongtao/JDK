@@ -1,7 +1,7 @@
 /*
- * @(#)Subject.java	1.123 04/05/05
+ * @(#)Subject.java	1.127 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,7 +77,7 @@ import sun.security.util.SecurityConstants;
  * <code>Principal</code> implementations associated with Subjects
  * must implement <code>Serializable</code>.
  *
- * @version 1.123, 05/05/04
+ * @version 1.127, 11/17/05
  * @see java.security.Principal
  * @see java.security.DomainCombiner
  */
@@ -309,7 +309,7 @@ public final class Subject implements java.io.Serializable {
      * @param action the code to be run as the specified
      *			<code>Subject</code>. <p>
      *
-     * @return the <code>Object</code> returned by the PrivilegedAction's
+     * @return the value returned by the PrivilegedAction's
      *			<code>run</code> method.
      *
      * @exception NullPointerException if the <code>PrivilegedAction</code>
@@ -318,8 +318,8 @@ public final class Subject implements java.io.Serializable {
      * @exception SecurityException if the caller does not have permission
      *			to invoke this method.
      */
-    public static Object doAs(final Subject subject,
-			final java.security.PrivilegedAction action) {
+    public static <T> T doAs(final Subject subject,
+			final java.security.PrivilegedAction<T> action) {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
@@ -362,7 +362,7 @@ public final class Subject implements java.io.Serializable {
      * @param action the code to be run as the specified
      *			<code>Subject</code>. <p>
      *
-     * @return the <code>Object</code> returned by the
+     * @return the value returned by the
      *			PrivilegedExceptionAction's <code>run</code> method.
      *
      * @exception PrivilegedActionException if the
@@ -376,8 +376,8 @@ public final class Subject implements java.io.Serializable {
      * @exception SecurityException if the caller does not have permission
      *			to invoke this method.
      */
-    public static Object doAs(final Subject subject,
-			final java.security.PrivilegedExceptionAction action)
+    public static <T> T doAs(final Subject subject,
+			final java.security.PrivilegedExceptionAction<T> action)
 			throws java.security.PrivilegedActionException {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
@@ -421,7 +421,7 @@ public final class Subject implements java.io.Serializable {
      * @param acc the <code>AccessControlContext</code> to be tied to the
      *			specified <i>subject</i> and <i>action</i>. <p>
      *
-     * @return the <code>Object</code> returned by the PrivilegedAction's
+     * @return the value returned by the PrivilegedAction's
      *			<code>run</code> method.
      *
      * @exception NullPointerException if the <code>PrivilegedAction</code>
@@ -430,8 +430,8 @@ public final class Subject implements java.io.Serializable {
      * @exception SecurityException if the caller does not have permission
      *			to invoke this method.
      */
-    public static Object doAsPrivileged(final Subject subject,
-			final java.security.PrivilegedAction action,
+    public static <T> T doAsPrivileged(final Subject subject,
+			final java.security.PrivilegedAction<T> action,
 			final java.security.AccessControlContext acc) {
 
 	java.lang.SecurityManager sm = System.getSecurityManager();
@@ -479,7 +479,7 @@ public final class Subject implements java.io.Serializable {
      * @param acc the <code>AccessControlContext</code> to be tied to the
      *			specified <i>subject</i> and <i>action</i>. <p>
      *
-     * @return the <code>Object</code> returned by the
+     * @return the value returned by the
      *			PrivilegedExceptionAction's <code>run</code> method.
      *
      * @exception PrivilegedActionException if the
@@ -493,8 +493,8 @@ public final class Subject implements java.io.Serializable {
      * @exception SecurityException if the caller does not have permission
      *			to invoke this method.
      */
-    public static Object doAsPrivileged(final Subject subject,
-			final java.security.PrivilegedExceptionAction action,
+    public static <T> T doAsPrivileged(final Subject subject,
+			final java.security.PrivilegedExceptionAction<T> action,
 			final java.security.AccessControlContext acc)
 			throws java.security.PrivilegedActionException {
 
@@ -814,8 +814,8 @@ public final class Subject implements java.io.Serializable {
      */
     String toString(boolean includePrivateCredentials) {
 
-	String s = new String(ResourcesMgr.getString("Subject:\n"));
-	String suffix = new String();
+	String s = ResourcesMgr.getString("Subject:\n");
+	String suffix = "";
 
 	synchronized(principals) {
 	    Iterator pI = principals.iterator();
@@ -1264,7 +1264,7 @@ public final class Subject implements java.io.Serializable {
 	 *	in the set.  If the security check passes,
 	 *	the set is serialized.
 	 */
-	private synchronized void writeObject(java.io.ObjectOutputStream oos)
+	private void writeObject(java.io.ObjectOutputStream oos)
 		throws java.io.IOException {
 	
 	    if (which == Subject.PRIV_CREDENTIAL_SET) {

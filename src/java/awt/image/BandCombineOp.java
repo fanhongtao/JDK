@@ -1,7 +1,7 @@
 /*
- * @(#)BandCombineOp.java	1.39 03/12/19
+ * @(#)BandCombineOp.java	1.41 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.RenderingHints;
 import sun.awt.image.ImagingLib;
+import java.util.Arrays;
 
 /**
  * This class performs an arbitrary linear combination of the bands 
@@ -66,20 +67,32 @@ public class BandCombineOp implements  RasterOp {
     public BandCombineOp (float[][] matrix, RenderingHints hints) {
         nrows = matrix.length;
         ncols = matrix[0].length;
-        this.matrix = new float[nrows][ncols+1];
+        this.matrix = new float[nrows][];
         for (int i=0; i < nrows; i++) {
-            System.arraycopy(matrix[i], 0, this.matrix[i], 0, ncols);
+            /* Arrays.copyOf is forgiving of the source array being
+             * too short, but it is also faster than other cloning
+             * methods, so we provide our own protection for short
+             * matrix rows.
+             */
+            if (ncols > matrix[i].length) {
+                throw new IndexOutOfBoundsException("row "+i+" too short");
+            }
+            this.matrix[i] = Arrays.copyOf(matrix[i], ncols);
         }
         this.hints  = hints;
     }
 
     /**
-     * Returns the matrix.
+     * Returns a copy of the linear combination matrix.
      *
      * @return The matrix associated with this band combine operation.
      */
     public final float[][] getMatrix() {
-        return (float[][]) matrix.clone();
+        float[][] ret = new float[nrows][];
+        for (int i = 0; i < nrows; i++) {
+            ret[i] = Arrays.copyOf(matrix[i], ncols);
+        }
+        return ret;
     }
     
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)CardLayout.java	1.40 04/05/18
+ * @(#)CardLayout.java	1.42 06/03/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.io.IOException;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.40 05/18/04
+ * @version 	1.42 03/28/06
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
@@ -214,6 +214,7 @@ public class CardLayout implements LayoutManager2,
 
     /**
      * Removes the specified component from the layout.
+     * If the card was visible on top, the next card underneath it is shown.
      * @param   comp   the component to be removed.
      * @see     java.awt.Container#remove(java.awt.Component)
      * @see     java.awt.Container#removeAll()

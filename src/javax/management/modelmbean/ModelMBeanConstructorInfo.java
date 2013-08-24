@@ -1,8 +1,8 @@
 /*
  * @(#)file      ModelMBeanConstructorInfo.java
  * @(#)author    IBM Corp.
- * @(#)version   1.33
- * @(#)lastedit      03/12/19
+ * @(#)version   1.42
+ * @(#)lastedit      06/03/15
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -56,15 +56,21 @@ import com.sun.jmx.trace.Trace;
  * visibility            : 1-4 where 1: always visible 4: rarely visible 
  * presentationString :  xml formatted string to describe how to present operation 
  *</PRE>
- * The persistPolicy and currencyTimeLimit fields are not valid for the constructor.
- * The default descriptor will have the name, descriptorType, displayName and role fields.
  *
+ * <p>The {@code persistPolicy} and {@code currencyTimeLimit} fields
+ * are meaningless for constructors, but are not considered invalid.
+ *
+ * <p>The default descriptor will have the {@code name}, {@code
+ * descriptorType}, {@code displayName} and {@code role} fields.
+ *
+ * <p>The <b>serialVersionUID</b> of this class is <code>3862947819818064362L</code>.
+ * 
  * @since 1.5
  */
 
-public class ModelMBeanConstructorInfo extends MBeanConstructorInfo 
-	 implements DescriptorAccess, Cloneable
-{
+public class ModelMBeanConstructorInfo
+    extends MBeanConstructorInfo
+    implements DescriptorAccess {
 
     // Serialization compatibility stuff:
     // Two serial forms are supported in this class. The selected form depends
@@ -100,8 +106,8 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: No compat with 1.0
@@ -126,10 +132,14 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 
 
 	/**
-	* Constructs a MBeanConstructorInfo object with a default descriptor.
+	* Constructs a ModelMBeanConstructorInfo object with a default
+	* descriptor.  The {@link Descriptor} of the constructed
+	* object will include fields contributed by any annotations on
+	* the {@code Constructor} object that contain the {@link
+	* DescriptorKey} meta-annotation.
 	*
 	* @param description A human readable description of the constructor.
-	* @param constructorMethod The java.lang.reflect.Method object
+	* @param constructorMethod The java.lang.reflect.Constructor object
 	* describing the MBean constructor.
 	*/
 	public ModelMBeanConstructorInfo(String description,
@@ -149,10 +159,14 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 	}
 
 	/**
-	* Constructs a MBeanConstructorInfo object.
-	*
+	* Constructs a ModelMBeanConstructorInfo object.  The {@link
+	* Descriptor} of the constructed object will include fields
+	* contributed by any annotations on the {@code Constructor}
+	* object that contain the {@link DescriptorKey}
+	* meta-annotation.
+        *
 	* @param description A human readable description of the constructor.
-	* @param constructorMethod The java.lang.reflect.Method object
+	* @param constructorMethod The java.lang.reflect.Constructor object
 	* describing the ModelMBean constructor.
 	* @param descriptor An instance of Descriptor containing the
 	* appropriate metadata for this instance of the
@@ -196,7 +210,7 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 			} else
 			{  // exception
 			    consDescriptor = createDefaultDescriptor();
-			    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanConstructorInfo constructor"));	
+			    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanConstructorInfo constructor"));	
 
 			}
 
@@ -224,7 +238,7 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 		consDescriptor = createDefaultDescriptor();
 	}
 	/**
-	* Constructs a MBeanConstructorInfo object.
+	* Constructs a ModelMBeanConstructorInfo object.
 	*
 	* @param name The name of the constructor.
 	* @param description A human readable description of the constructor.
@@ -263,7 +277,7 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 			} else
 			{  // exception
 				consDescriptor = createDefaultDescriptor();
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanConstructorInfo constructor"));								
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanConstructorInfo constructor"));								
 
 			}
 		}
@@ -297,7 +311,7 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 			} else
 			{  // exception
 				consDescriptor = createDefaultDescriptor();
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanConstructorInfo constructor"));	
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanConstructorInfo constructor"));	
 
 			}
 
@@ -382,7 +396,7 @@ public class ModelMBeanConstructorInfo extends MBeanConstructorInfo
 				consDescriptor = (Descriptor) inDescriptor.clone();
 			} else
 			{
-			    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanConstructorInfo setDescriptor"));
+			    throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanConstructorInfo setDescriptor"));
 			}
 		}
 	}

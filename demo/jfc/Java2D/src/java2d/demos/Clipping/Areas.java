@@ -1,7 +1,7 @@
 /*
- * @(#)Areas.java	1.33 04/07/26
+ * @(#)Areas.java	1.36 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)Areas.java	1.29 03/01/23
+ * @(#)Areas.java	1.36 06/08/29
  */
 
 package java2d.demos.Clipping;
@@ -49,6 +49,8 @@ import javax.swing.*;
 import java2d.ControlsSurface;
 import java2d.CustomControls;
 
+import static java.awt.Color.*;
+
 
 /**
  * The Areas class demonstrates the CAG (Constructive Area Geometry) 
@@ -60,44 +62,40 @@ public class Areas extends ControlsSurface {
 
 
     public Areas() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         setControls(new Component[] { new DemoControls(this) });
     }
 
 
     public void render(int w, int h, Graphics2D g2) {
         GeneralPath p1 = new GeneralPath();
-        p1.moveTo( w * .25f, 0.0f);
-        p1.lineTo( w * .75f, h * .5f);
+        p1.moveTo( w * .25f,      0.0f);
+        p1.lineTo( w * .75f,   h * .5f);
         p1.lineTo( w * .25f, (float) h);
-        p1.lineTo( 0.0f, h * .5f);
+        p1.lineTo(     0.0f,   h * .5f);
         p1.closePath();
 
         GeneralPath p2 = new GeneralPath();
-        p2.moveTo( w * .75f, 0.0f);
-        p2.lineTo( (float) w, h * .5f);
-        p2.lineTo( w * .75f, (float) h);
-        p2.lineTo( w * .25f, h * .5f);
+        p2.moveTo(  w * .75f,      0.0f);
+        p2.lineTo( (float) w,   h * .5f);
+        p2.lineTo(  w * .75f, (float) h);
+        p2.lineTo(  w * .25f,   h * .5f);
         p2.closePath();
 
 
         Area area = new Area(p1);
-        g2.setColor(Color.yellow);
+        g2.setColor(YELLOW);
         if (areaType.equals("nop")) {
             g2.fill(p1);
             g2.fill(p2);
-            g2.setColor(Color.red);
+            g2.setColor(RED);
             g2.draw(p1);
             g2.draw(p2);
             return;
-        } else if (areaType.equals("add")) {
-	    area.add(new Area(p2));
-        } else if (areaType.equals("sub")) {
-	    area.subtract(new Area(p2));
-        } else if (areaType.equals("xor")) {
-	    area.exclusiveOr(new Area(p2));
-        } else if (areaType.equals("int")) {
-	    area.intersect(new Area(p2));
+        } else if (areaType.equals("add" )) { area.add        (new Area(p2));
+        } else if (areaType.equals("sub" )) { area.subtract   (new Area(p2));
+        } else if (areaType.equals("xor" )) { area.exclusiveOr(new Area(p2));
+        } else if (areaType.equals("int" )) { area.intersect  (new Area(p2));
         } else if (areaType.equals("pear")) {
 
             double sx = w/100;
@@ -113,7 +111,7 @@ public class Areas extends ControlsSurface {
             leaf.setFrame(x-14, y-47, 30.0, 30.0);
             Area leaf2 = new Area(leaf); 
             leaf1.intersect(leaf2);   
-            g2.setColor(Color.green);
+            g2.setColor(GREEN);
             g2.fill(leaf1);   
 
             // Creates the second leaf.
@@ -128,7 +126,7 @@ public class Areas extends ControlsSurface {
             Area st1 = new Area(stem);
             stem.setFrame(x+3, y-47, 50.0, 50.0);
             st1.subtract(new Area(stem));
-            g2.setColor(Color.black);
+            g2.setColor(BLACK);
             g2.fill(st1);
 
             // Creates the pear itself by filling the Area resulting from the 
@@ -138,13 +136,13 @@ public class Areas extends ControlsSurface {
             Area circ = new Area(circle);
             circ.add(new Area(oval));
 
-            g2.setColor(Color.yellow);
+            g2.setColor(YELLOW);
             g2.fill(circ);
             return;
         }
         
         g2.fill(area);
-        g2.setColor(Color.red);
+        g2.setColor(RED);
         g2.draw(area);
     }
 
@@ -166,12 +164,12 @@ public class Areas extends ControlsSurface {
             this.demo = demo;
             add(toolbar = new JToolBar());
             toolbar.setFloatable(false);
-            addTool("nop", "no area operation", true);
-            addTool("add", "add", false);
-            addTool("sub", "subtract", false);
-            addTool("xor", "exclusiveOr", false);
-            addTool("int", "intersection", false);
-            addTool("pear", "pear", false);
+            addTool("nop",  "no area operation", true );
+            addTool("add",  "add",               false);
+            addTool("sub",  "subtract",          false);
+            addTool("xor",  "exclusiveOr",       false);
+            addTool("int",  "intersection",      false);
+            addTool("pear", "pear",              false);
         }
 
 
@@ -190,9 +188,8 @@ public class Areas extends ControlsSurface {
 
 
         public void actionPerformed(ActionEvent e) {
-            for (int i = 0; i < toolbar.getComponentCount(); i++) {
-                JToggleButton b = (JToggleButton) toolbar.getComponentAtIndex(i);
-                b.setSelected(false);
+            for (Component comp : toolbar.getComponents()) {
+                ((JToggleButton) comp).setSelected(false);
             }
             JToggleButton b = (JToggleButton) e.getSource();
             b.setSelected(true);
@@ -208,8 +205,8 @@ public class Areas extends ControlsSurface {
             try { thread.sleep(1111); } catch (Exception e) { return; }
             Thread me = Thread.currentThread();
             while (thread == me) {
-                for (int i = 0; i < toolbar.getComponentCount(); i++) {
-                    ((AbstractButton) toolbar.getComponentAtIndex(i)).doClick();
+                for (Component comp : toolbar.getComponents()) {
+                    ((AbstractButton) comp).doClick();
                     try {
                         thread.sleep(4444);
                     } catch (InterruptedException e) { return; }

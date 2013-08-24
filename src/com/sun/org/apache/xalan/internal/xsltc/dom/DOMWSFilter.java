@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOMWSFilter.java,v 1.5 2004/02/16 22:54:59 minchau Exp $
+ * $Id: DOMWSFilter.java,v 1.2.4.1 2005/09/06 06:14:31 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.xsltc.dom;
 
@@ -29,7 +29,7 @@ import com.sun.org.apache.xml.internal.dtm.DTMWSFilter;
 /**
  * A wrapper class that adapts the
  * {@link com.sun.org.apache.xml.internal.dtm.DTMWSFilter DTMWSFilter} interface to the XSLTC
- * DOM {@link org.apache.xsltc.StripFilter StripFilter} interface.
+ * DOM {@link com.sun.org.apache.xalan.internal.xsltc.StripFilter StripFilter} interface.
  */
 public class DOMWSFilter implements DTMWSFilter {
 
@@ -51,7 +51,7 @@ public class DOMWSFilter implements DTMWSFilter {
      * interface.
      *
      * @see com.sun.org.apache.xml.internal.dtm.DTMWSFilter
-     * @see org.apache.xsltc.StripFilter
+     * @see com.sun.org.apache.xalan.internal.xsltc.StripFilter
      */
     public DOMWSFilter(AbstractTranslet translet) {
         m_translet = translet;

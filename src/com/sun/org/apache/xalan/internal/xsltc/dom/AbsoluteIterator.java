@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AbsoluteIterator.java,v 1.11 2004/02/16 22:54:59 minchau Exp $
+ * $Id: AbsoluteIterator.java,v 1.2.4.1 2005/09/06 05:46:46 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;

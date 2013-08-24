@@ -1,7 +1,7 @@
 /*
- * @(#)Parser.java	1.43 05/05/27
+ * @(#)Parser.java	1.47 06/02/26
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import sun.misc.MessageUtils;
  * @see DTD
  * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.43, 05/27/05
+ * @version 1.47, 02/26/06
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -355,8 +355,7 @@ class Parser implements DTDConstants {
      */
     protected void error(String err, String arg1, String arg2,
 	String arg3) {
-	// big hack, but this should never get used...
-	handleError (ln, err + arg1 + arg2 + arg3);
+        handleError(ln, err + " " + arg1 + " " + arg2 + " " + arg3);
     }
 
     protected void error(String err, String arg1, String arg2) {
@@ -399,8 +398,10 @@ class Parser implements DTDConstants {
 
 	// check required attributes
 	for (AttributeList a = elem.atts ; a != null ; a = a.next) {
-
-	    if ((a.modifier == REQUIRED) && ((attributes.isEmpty()) || (!attributes.isDefined(a.name)))) {
+	    if ((a.modifier == REQUIRED) && 
+		((attributes.isEmpty()) || 
+		 ((!attributes.isDefined(a.name)) && 
+		  (!attributes.isDefined(HTML.getAttributeKey(a.name)))))) {
 		error("req.att ", a.getName(), elem.getName());
 	    }
 	}
@@ -1438,9 +1439,6 @@ class Parser implements DTDConstants {
 		error("invalid.tagattval", attname, elem.getName());
 	    }
 	    HTML.Attribute attkey = HTML.getAttributeKey(attname);
-	    if (attkey == HTML.Attribute.CLASS) {
-		attvalue = attvalue.toLowerCase();
-	    }
 	    if (attkey == null) {
 		attributes.addAttribute(attname, attvalue);
 	    } else {
@@ -1849,6 +1847,9 @@ class Parser implements DTDConstants {
 	    net = true;
 	  case '>':
 	    ch = readCh();
+            if (ch == '>' && net) {
+                ch = readCh();
+            }
 	  case '<':
 	    break;
 
@@ -1941,6 +1942,68 @@ class Parser implements DTDConstants {
 	}
     }
 
+    private static final String START_COMMENT = "<!--";
+    private static final String END_COMMENT = "-->";
+    private static final char[] SCRIPT_END_TAG = "</script>".toCharArray();
+    private static final char[] SCRIPT_END_TAG_UPPER_CASE = 
+                                        "</SCRIPT>".toCharArray();
+    
+    void parseScript() throws IOException {
+        char[] charsToAdd = new char[SCRIPT_END_TAG.length];
+        
+        /* Here, ch should be the first character after <script> */
+        while (true) {
+            int i = 0;
+            while (i < SCRIPT_END_TAG.length 
+                       && (SCRIPT_END_TAG[i] == ch 
+                           || SCRIPT_END_TAG_UPPER_CASE[i] == ch)) {
+                charsToAdd[i] = (char) ch;
+                ch = readCh();
+                i++;
+            }
+            if (i == SCRIPT_END_TAG.length) {
+                
+                /*  '</script>' tag detected */
+                /* Here, ch == '>' */
+                ch = readCh();
+                /* Here, ch == the first character after </script> */
+                return;
+            } else {
+                
+                /* To account for extra read()'s that happened */
+                for (int j = 0; j < i; j++) {
+                    addString(charsToAdd[j]);
+                }
+                
+                switch (ch) {
+                case -1:
+                    error("eof.script");
+                    return;
+                case '\n':
+                    ln++;
+                    ch = readCh();
+                    lfCount++;
+                    addString('\n');
+                    break;
+                case '\r':
+                    ln++;
+                    if ((ch = readCh()) == '\n') {
+                        ch = readCh();
+                        crlfCount++;
+                    } else {
+                        crCount++;
+                    }
+                    addString('\n');
+                    break;
+                default:
+                    addString(ch);
+                    ch = readCh();
+                    break;
+                } // switch
+            }
+        } // while
+    }
+    
     /**
      * Parse Content. [24] 320:1
      */
@@ -1953,114 +2016,136 @@ class Parser implements DTDConstants {
                 break;
             }
 
-	    int c = ch;
+            int c = ch;
 	    currentBlockStartPos = currentPosition;
-	    switch (c) {
-	      case '<':
-		parseTag();
-		lastBlockStartPos = currentPosition;
-		continue;
+            
+            if (recent == dtd.script) { // means: if after starting <script> tag
 
-	      case '/':
-		ch = readCh();
-		if ((stack != null) && stack.net) {
-		    // null end tag.
-		    endTag(false);
-		    continue;
-		}
-		break;
-
-	      case -1:
-		return;
-
-	      case '&':
-		if (textpos == 0) {
-		    if (!legalElementContext(dtd.pcdata)) {
-			error("unexpected.pcdata");
-		    }
-		    if (last.breaksFlow()) {
-			space = false;
-		    }
-		}
-		char data[] = parseEntityReference();
-		if (textpos + data.length + 1 > text.length) {
-		    char newtext[] = new char[Math.max(textpos + data.length + 128, text.length * 2)];
-		    System.arraycopy(text, 0, newtext, 0, text.length);
-		    text = newtext;
-		}
-		if (space) {
-		    space = false;
-		    text[textpos++] = ' ';
-		}
-		System.arraycopy(data, 0, text, textpos, data.length);
-		textpos += data.length;
-                ignoreSpace = false;
-		continue;
-
-	      case '\n':
-		ln++;
-		lfCount++;
-		ch = readCh();
-		if ((stack != null) && stack.pre) {
-		    break;
-		}
-		if (textpos == 0) {
-		    lastBlockStartPos = currentPosition;
-		}
-                if (!ignoreSpace) {
-                    space = true;
+                /* Here, ch has to be the first character after <script> */
+                parseScript();
+                last = makeTag(dtd.getElement("comment"), true);
+                
+                /* Remove leading and trailing HTML comment declarations */
+                String str = new String(getChars(0)).trim();
+                int minLength = START_COMMENT.length() + END_COMMENT.length();
+                if (str.startsWith(START_COMMENT) && str.endsWith(END_COMMENT) 
+                       && str.length() >= (minLength)) {
+                    str = str.substring(START_COMMENT.length(), 
+                                      str.length() - END_COMMENT.length());
                 }
-		continue;
+                
+                /* Handle resulting chars as comment */
+                handleComment(str.toCharArray());
+                endTag(false);
+                lastBlockStartPos = currentPosition;
+            } else {
+                switch (c) {
+                  case '<':
+                    parseTag();
+                    lastBlockStartPos = currentPosition;
+                    continue;
 
-	      case '\r':
-		ln++;
-		c = '\n';
-		if ((ch = readCh()) == '\n') {
-		    ch = readCh();
-		    crlfCount++;
-		}
-		else {
-		    crCount++;
-		}
-		if ((stack != null) && stack.pre) {
-		    break;
-		}
-		if (textpos == 0) {
-		    lastBlockStartPos = currentPosition;
-		}
-                if (!ignoreSpace) {
-                    space = true;
+                  case '/':
+                    ch = readCh();
+                    if ((stack != null) && stack.net) {
+                        // null end tag.
+                        endTag(false);
+                        continue;
+                    }
+                    break;
+
+                  case -1:
+                    return;
+
+                  case '&':
+                    if (textpos == 0) {
+                        if (!legalElementContext(dtd.pcdata)) {
+                            error("unexpected.pcdata");
+                        }
+                        if (last.breaksFlow()) {
+                            space = false;
+                        }
+                    }
+                    char data[] = parseEntityReference();
+                    if (textpos + data.length + 1 > text.length) {
+                        char newtext[] = new char[Math.max(textpos + data.length + 128, text.length * 2)];
+                        System.arraycopy(text, 0, newtext, 0, text.length);
+                        text = newtext;
+                    }
+                    if (space) {
+                        space = false;
+                        text[textpos++] = ' ';
+                    }
+                    System.arraycopy(data, 0, text, textpos, data.length);
+                    textpos += data.length;
+                    ignoreSpace = false;
+                    continue;
+
+                  case '\n':
+                    ln++;
+                    lfCount++;
+                    ch = readCh();
+                    if ((stack != null) && stack.pre) {
+                        break;
+                    }
+                    if (textpos == 0) {
+                        lastBlockStartPos = currentPosition;
+                    }
+                    if (!ignoreSpace) {
+                        space = true;
+                    }
+                    continue;
+
+                  case '\r':
+                    ln++;
+                    c = '\n';
+                    if ((ch = readCh()) == '\n') {
+                        ch = readCh();
+                        crlfCount++;
+                    }
+                    else {
+                        crCount++;
+                    }
+                    if ((stack != null) && stack.pre) {
+                        break;
+                    }
+                    if (textpos == 0) {
+                        lastBlockStartPos = currentPosition;
+                    }
+                    if (!ignoreSpace) {
+                        space = true;
+                    }
+                    continue;
+
+
+                  case '\t':
+                  case ' ':
+                    ch = readCh();
+                    if ((stack != null) && stack.pre) {
+                        break;
+                    }
+                    if (textpos == 0) {
+                        lastBlockStartPos = currentPosition;
+                    }
+                    if (!ignoreSpace) {
+                        space = true;
+                    }
+                    continue;
+
+                  default:
+                    if (textpos == 0) {
+                        if (!legalElementContext(dtd.pcdata)) {
+                            error("unexpected.pcdata");
+                        }
+                        if (last.breaksFlow()) {
+                            space = false;
+                        }
+                    }
+                    ch = readCh();
+                    break;
                 }
-		continue;
-
-
-	      case '\t':
-	      case ' ':
-		ch = readCh();
-		if ((stack != null) && stack.pre) {
-		    break;
-		}
-		if (textpos == 0) {
-		    lastBlockStartPos = currentPosition;
-		}
-                if (!ignoreSpace) {
-                    space = true;
-                }
-		continue;
-
-	      default:
-		if (textpos == 0) {
-		    if (!legalElementContext(dtd.pcdata)) {
-			error("unexpected.pcdata");
-		    }
-		    if (last.breaksFlow()) {
-			space = false;
-		    }
-		}
-		ch = readCh();
-		break;
-	    }
-
+            } 
+                
 	    // enlarge buffer if needed
 	    if (textpos + 2 > text.length) {
 		char newtext[] = new char[text.length + 128];
@@ -2119,21 +2204,17 @@ class Parser implements DTDConstants {
 	crCount = lfCount = crlfCount = 0;
 
 	try {
-	    try {
-		ch = readCh();
-		text = new char[1024];
-		str = new char[128];
-
-		parseContent();
-		// NOTE: interruption may have occurred.  Control flows out
-		// of here normally.
-		while (stack != null) {
-		    endTag(true);
-		}
-	    } finally {
-		in.close();
-	    }
-
+            ch = readCh();
+            text = new char[1024];
+            str = new char[128];
+            
+            parseContent();
+            // NOTE: interruption may have occurred.  Control flows out
+            // of here normally.
+            while (stack != null) {
+                endTag(true);
+            }
+            in.close();
 	} catch (IOException e) {
 	    errorContext();
 	    error("ioexception");

@@ -1,7 +1,7 @@
 /*
- * @(#)IDLTypesUtil.java	1.6 05/10/31
+ * @(#)IDLTypesUtil.java	1.7 06/08/12
  * 
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

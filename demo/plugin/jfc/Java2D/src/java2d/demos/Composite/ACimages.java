@@ -1,7 +1,7 @@
 /*
- * @(#)ACimages.java	1.25 04/07/26
+ * @(#)ACimages.java	1.28 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ACimages.java	1.25 04/07/26
+ * @(#)ACimages.java	1.28 06/08/29
  */
 
 package java2d.demos.Composite;
@@ -48,6 +48,7 @@ import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import java2d.Surface;
 
+import static java.awt.Color.*;
 
 /**
  * Compositing shapes on images.
@@ -58,13 +59,12 @@ public class ACimages extends Surface {
                         "boxwave", "globe", "snooze",
                         "tip", "thumbsup", "dukeplug"};
     private static Image imgs[] = new Image[s.length];
-    private static Color colors[] = { Color.blue, Color.cyan, Color.green,
-                        Color.magenta, Color.orange, Color.pink,
-                        Color.red, Color.yellow, Color.lightGray };
+    private static Color colors[] = { BLUE, CYAN, GREEN,
+                        MAGENTA, ORANGE, PINK, RED, YELLOW, LIGHT_GRAY };
 
 
     public ACimages() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         for (int i = 0; i < imgs.length; i++) {
             imgs[i] = getImage(s[i] + ".gif");
         }
@@ -87,8 +87,8 @@ public class ACimages extends Surface {
             }
 
             g2.setComposite(AlphaComposite.SrcOver);
-            g2.setColor(Color.black);
-            AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha += .1f);
+            g2.setColor(BLACK);
+            AlphaComposite ac = AlphaComposite.SrcOver.derive(alpha += .1f);
             String s = "a=" + Float.toString(alpha).substring(0,3);
             new TextLayout(s,g2.getFont(), g2.getFontRenderContext()).draw(g2, xx+3, yy-2);
 

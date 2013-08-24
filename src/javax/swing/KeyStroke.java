@@ -1,7 +1,7 @@
 /*
- * @(#)KeyStroke.java	1.49 04/05/18
+ * @(#)KeyStroke.java	1.52 06/02/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -15,7 +15,7 @@ import java.awt.event.KeyEvent;
  * key, just as KEY_PRESSED and KEY_RELEASED KeyEvents do; alternately, they
  * can correspond to typing a specific Java character, just as KEY_TYPED
  * KeyEvents do. In all cases, KeyStrokes can specify modifiers (alt, shift,
- * control, meta, or a combination thereof) which must be present during the
+ * control, meta, altGraph, or a combination thereof) which must be present during the
  * action for an exact match.
  * <p>
  * KeyStrokes are used to define high-level (semantic) action events. Instead
@@ -40,7 +40,7 @@ import java.awt.event.KeyEvent;
  * @see javax.swing.text.Keymap
  * @see #getKeyStroke
  *
- * @version 1.49, 05/18/04
+ * @version 1.52, 02/06/06
  * @author Arnaud Weber
  * @author David Mendenhall
  */
@@ -91,17 +91,30 @@ public class KeyStroke extends AWTKeyStroke {
     }
 
     /**
-     * Returns a shared instance of a KeyStroke, given a Character object and a
-     * set of modifiers. Note that the first parameter is of type Character
+     * Returns a shared instance of a {@code KeyStroke}
+     * that represents a {@code KEY_TYPED} event for the
+     * specified Character object and a
+      * set of modifiers. Note that the first parameter is of type Character
      * rather than char. This is to avoid inadvertent clashes with calls to
      * <code>getKeyStroke(int keyCode, int modifiers)</code>.
      *
-     * The modifiers consist of any combination of:<ul>
-     * <li>java.awt.event.InputEvent.SHIFT_MASK (1)
-     * <li>java.awt.event.InputEvent.CTRL_MASK (2)
-     * <li>java.awt.event.InputEvent.META_MASK (4)
-     * <li>java.awt.event.InputEvent.ALT_MASK (8)
+     * The modifiers consist of any combination of following:<ul>
+     * <li>java.awt.event.InputEvent.SHIFT_DOWN_MASK 
+     * <li>java.awt.event.InputEvent.CTRL_DOWN_MASK
+     * <li>java.awt.event.InputEvent.META_DOWN_MASK
+     * <li>java.awt.event.InputEvent.ALT_DOWN_MASK
+     * <li>java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
      * </ul>
+     * The old modifiers listed below also can be used, but they are
+     * mapped to _DOWN_ modifiers. <ul>
+     * <li>java.awt.event.InputEvent.SHIFT_MASK 
+     * <li>java.awt.event.InputEvent.CTRL_MASK 
+     * <li>java.awt.event.InputEvent.META_MASK 
+     * <li>java.awt.event.InputEvent.ALT_MASK
+     * <li>java.awt.event.InputEvent.ALT_GRAPH_MASK
+     * </ul> 
+     * also can be used, but they are mapped to _DOWN_ modifiers.
+     *
      * Since these numbers are all different powers of two, any combination of
      * them is an integer in which each bit represents a different modifier
      * key. Use 0 to specify no modifiers.
@@ -133,11 +146,21 @@ public class KeyStroke extends AWTKeyStroke {
      * <li>java.awt.event.KeyEvent.VK_SPACE
      * </ul>
      * The modifiers consist of any combination of:<ul>
-     * <li>java.awt.event.InputEvent.SHIFT_MASK (1)
-     * <li>java.awt.event.InputEvent.CTRL_MASK (2)
-     * <li>java.awt.event.InputEvent.META_MASK (4)
-     * <li>java.awt.event.InputEvent.ALT_MASK (8)
+     * <li>java.awt.event.InputEvent.SHIFT_DOWN_MASK 
+     * <li>java.awt.event.InputEvent.CTRL_DOWN_MASK
+     * <li>java.awt.event.InputEvent.META_DOWN_MASK
+     * <li>java.awt.event.InputEvent.ALT_DOWN_MASK
+     * <li>java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
      * </ul>
+     * The old modifiers <ul>
+     * <li>java.awt.event.InputEvent.SHIFT_MASK 
+     * <li>java.awt.event.InputEvent.CTRL_MASK 
+     * <li>java.awt.event.InputEvent.META_MASK 
+     * <li>java.awt.event.InputEvent.ALT_MASK
+     * <li>java.awt.event.InputEvent.ALT_GRAPH_MASK
+     * </ul> 
+     * also can be used, but they are mapped to _DOWN_ modifiers.
+     *
      * Since these numbers are all different powers of two, any combination of
      * them is an integer in which each bit represents a different modifier
      * key. Use 0 to specify no modifiers.
@@ -171,11 +194,21 @@ public class KeyStroke extends AWTKeyStroke {
      * <li>java.awt.event.KeyEvent.VK_SPACE
      * </ul>
      * The modifiers consist of any combination of:<ul>
-     * <li>java.awt.event.InputEvent.SHIFT_MASK (1)
-     * <li>java.awt.event.InputEvent.CTRL_MASK (2)
-     * <li>java.awt.event.InputEvent.META_MASK (4)
-     * <li>java.awt.event.InputEvent.ALT_MASK (8)
+     * <li>java.awt.event.InputEvent.SHIFT_DOWN_MASK 
+     * <li>java.awt.event.InputEvent.CTRL_DOWN_MASK
+     * <li>java.awt.event.InputEvent.META_DOWN_MASK
+     * <li>java.awt.event.InputEvent.ALT_DOWN_MASK
+     * <li>java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
      * </ul>
+     * The old modifiers <ul>
+     * <li>java.awt.event.InputEvent.SHIFT_MASK 
+     * <li>java.awt.event.InputEvent.CTRL_MASK 
+     * <li>java.awt.event.InputEvent.META_MASK 
+     * <li>java.awt.event.InputEvent.ALT_MASK
+     * <li>java.awt.event.InputEvent.ALT_GRAPH_MASK
+     * </ul> 
+     * also can be used, but they are mapped to _DOWN_ modifiers.
+     *
      * Since these numbers are all different powers of two, any combination of
      * them is an integer in which each bit represents a different modifier
      * key. Use 0 to specify no modifiers.

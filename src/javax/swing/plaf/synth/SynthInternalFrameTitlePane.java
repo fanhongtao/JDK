@@ -1,7 +1,7 @@
 /*
- * @(#)SynthInternalFrameTitlePane.java	1.22 04/09/10
+ * @(#)SynthInternalFrameTitlePane.java	1.27 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,11 +20,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.VetoableChangeListener;
 import java.beans.PropertyVetoException;
 import sun.swing.plaf.synth.SynthUI;
+import sun.swing.SwingUtilities2;
 
 /**
  * The class that manages a synth title bar
  *
- * @version 1.22 09/10/04
+ * @version 1.27 11/30/05
  * @author David Kloba
  * @author Joshua Outwater
  * @author Steve Wilson
@@ -36,6 +37,10 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     protected JButton menuButton;
 
     private SynthStyle style;
+    private int titleSpacing;
+    private int buttonSpacing;
+    // Alignment for the title, one of SwingConstants.(LEADING|TRAILING|CENTER)
+    private int titleAlignment;
 
     public SynthInternalFrameTitlePane(JInternalFrame f) {
         super(f);
@@ -82,10 +87,12 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     protected void installListeners() {
         super.installListeners();
         frame.addPropertyChangeListener(this);
+        addPropertyChangeListener(this);
     }
 
     protected void uninstallListeners() {
         frame.removePropertyChangeListener(this);
+        removePropertyChangeListener(this);
         super.uninstallListeners();
     }
 
@@ -102,6 +109,22 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
                 style.getIcon(context,"InternalFrameTitlePane.iconifyIcon");
             closeIcon =
                 style.getIcon(context,"InternalFrameTitlePane.closeIcon");
+            titleSpacing = style.getInt(context,
+                              "InternalFrameTitlePane.titleSpacing", 2);
+            buttonSpacing = style.getInt(context,
+                              "InternalFrameTitlePane.buttonSpacing", 2);
+            String alignString = (String)style.get(context,
+                              "InternalFrameTitlePane.titleAlignment");
+            titleAlignment = SwingConstants.LEADING;
+            if (alignString != null) {
+                alignString = alignString.toUpperCase();
+                if (alignString.equals("TRAILING")) {
+                    titleAlignment = SwingConstants.TRAILING;
+                }
+                else if (alignString.equals("CENTER")) {
+                    titleAlignment = SwingConstants.CENTER;
+                }
+            }
         }
         context.dispose();
     }
@@ -132,9 +155,13 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
         addSystemMenuItems(systemPopupMenu);
 	enableActions();
         menuButton = createNoFocusButton();
-	menuButton.setIcon(frame.getFrameIcon());
+        updateMenuIcon();
         menuButton.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
+                try {
+                    frame.setSelected(true);
+                } catch(PropertyVetoException pve) {
+                }
                 showSystemMenu();
             }
         });
@@ -169,19 +196,14 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     }
 
     protected void showSystemMenu() {
-        Dimension dim = new Dimension();
         Insets insets = frame.getInsets();
-        dim.width += insets.left + insets.right;
-        dim.height += insets.bottom + insets.top;
         if (!frame.isIcon()) {
-            systemPopupMenu.show(menuButton,
-                getX() - dim.width,
-                getY() + getHeight() - dim.height);
+            systemPopupMenu.show(frame, insets.left, getY() + getHeight());
         } else {
             systemPopupMenu.show(menuButton,
-                getX() - dim.width,
+                getX() - insets.left - insets.right,
                 getY() - systemPopupMenu.getPreferredSize().height -
-                    dim.height);
+                    insets.bottom - insets.top);
         }
     }
 
@@ -195,14 +217,77 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
         context.dispose();
     }
 
-    public void paint(Graphics g, JComponent c) {
-        SynthContext context = getContext(c);
-
-        paint(context, g);
-        context.dispose();
-    }
-
     protected void paint(SynthContext context, Graphics g) {
+        String title = frame.getTitle();
+
+	if (title != null) {
+            SynthStyle style = context.getStyle();
+
+            g.setColor(style.getColor(context, ColorType.TEXT_FOREGROUND));
+            g.setFont(style.getFont(context));
+
+            // Center text vertically.
+	    FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g);
+            int baseline = (getHeight() + fm.getAscent() - fm.getLeading() -
+                            fm.getDescent()) / 2;
+            JButton lastButton = null;
+            if (frame.isIconifiable()) {
+                lastButton = iconButton;
+            }
+            else if (frame.isMaximizable()) {
+                lastButton = maxButton;
+            }
+            else if (frame.isClosable()) {
+                lastButton = closeButton;
+            }
+            int maxX;
+            int minX;
+            boolean ltr = SynthLookAndFeel.isLeftToRight(frame);
+            int titleAlignment = this.titleAlignment;
+            if (ltr) {
+                if (lastButton != null) {
+                    maxX = lastButton.getX() - titleSpacing;
+                }
+                else {
+                    maxX = frame.getWidth() - frame.getInsets().right -
+                           titleSpacing;
+                }
+                minX = menuButton.getX() + menuButton.getWidth() +
+                       titleSpacing;
+            }
+            else {
+                if (lastButton != null) {
+                    minX = lastButton.getX() + lastButton.getWidth() +
+                           titleSpacing;
+                }
+                else {
+                    minX = frame.getInsets().left + titleSpacing;
+                }
+                maxX = menuButton.getX() - titleSpacing;
+                if (titleAlignment == SwingConstants.LEADING) {
+                    titleAlignment = SwingConstants.TRAILING;
+                }
+                else if (titleAlignment == SwingConstants.TRAILING) {
+                    titleAlignment = SwingConstants.LEADING;
+                }
+            }
+            String clippedTitle = getTitle(title, fm, maxX - minX);
+            if (clippedTitle == title) {
+                // String fit, align as necessary.
+                if (titleAlignment == SwingConstants.TRAILING) {
+                    minX = maxX - style.getGraphicsUtils(context).
+                        computeStringWidth(context, g.getFont(), fm, title);
+                }
+                else if (titleAlignment == SwingConstants.CENTER) {
+                    int width = style.getGraphicsUtils(context).
+                           computeStringWidth(context, g.getFont(), fm, title);
+                    minX = Math.max(minX, (getWidth() - width) / 2);
+                    minX = Math.min(maxX - width, minX);
+                }
+            }
+            style.getGraphicsUtils(context).paintText(
+                context, g, clippedTitle, minX, baseline - fm.getAscent(), -1);
+	}
     }
 
     public void paintBorder(SynthContext context, Graphics g, int x,
@@ -220,10 +305,46 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-        if (SynthLookAndFeel.shouldUpdateStyle(evt)) {
-            updateStyle(SynthInternalFrameTitlePane.this);
+        if (evt.getSource() == this) {
+            if (SynthLookAndFeel.shouldUpdateStyle(evt)) {
+                updateStyle(this);
+            }
+        }
+        else {
+            // Changes for the internal frame
+            if (evt.getPropertyName() == JInternalFrame.FRAME_ICON_PROPERTY) {
+                updateMenuIcon();
+            }
         }
     }
+
+    /**
+     * Resets the menuButton icon to match that of the frame.
+     */
+    private void updateMenuIcon() {
+        Icon frameIcon = frame.getFrameIcon();
+        SynthContext context = getContext(this);
+        if (frameIcon != null) {
+            Dimension maxSize = (Dimension)context.getStyle().get(context,
+                                "InternalFrameTitlePane.maxFrameIconSize");
+            int maxWidth = 16;
+            int maxHeight = 16;
+            if (maxSize != null) {
+                maxWidth = maxSize.width;
+                maxHeight = maxSize.height;
+            }
+            if ((frameIcon.getIconWidth() > maxWidth ||
+                     frameIcon.getIconHeight() > maxHeight) && 
+                    (frameIcon instanceof ImageIcon)) {
+                frameIcon = new ImageIcon(((ImageIcon)frameIcon).
+                             getImage().getScaledInstance(maxWidth, maxHeight,
+                             Image.SCALE_SMOOTH));
+            }
+        }
+        context.dispose();
+        menuButton.setIcon(frameIcon);
+    }
+
 
     class SynthTitlePaneLayout implements LayoutManager {
         public void addLayoutComponent(String name, Component c) {}
@@ -233,21 +354,40 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
 	}
     
         public Dimension minimumLayoutSize(Container c) {
-            // Calculate width.
-            int width = 22;
+            SynthContext context = getContext(
+                             SynthInternalFrameTitlePane.this);
+            int width = 0;
+            int height = 0;
  
+            int buttonCount = 0;
+            Dimension pref;
+
             if (frame.isClosable()) {
-                width += 19;
+                pref = closeButton.getPreferredSize();
+                width += pref.width;
+                height = Math.max(pref.height, height);
+                buttonCount++;
             }
             if (frame.isMaximizable()) {
-                width += 19;
+                pref = maxButton.getPreferredSize();
+                width += pref.width;
+                height = Math.max(pref.height, height);
+                buttonCount++;
             }
             if (frame.isIconifiable()) {
-                width += 19;
+                pref = iconButton.getPreferredSize();
+                width += pref.width;
+                height = Math.max(pref.height, height);
+                buttonCount++;
             }
+            pref = menuButton.getPreferredSize();
+            width += pref.width;
+            height = Math.max(pref.height, height);
 
-            FontMetrics fm = frame.getFontMetrics(getFont());
-            SynthContext context = getContext(frame);
+            width += Math.max(0, (buttonCount - 1) * buttonSpacing);
+
+            FontMetrics fm = SynthInternalFrameTitlePane.this.getFontMetrics(
+                                          getFont());
             SynthGraphicsUtils graphicsUtils = context.getStyle().
                                        getGraphicsUtils(context);
             String frameTitle = frame.getTitle();
@@ -265,68 +405,66 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
                 width += title_w;
             }
 
-            // Calculate height.
-            Icon icon = frame.getFrameIcon();
-            int fontHeight = fm.getHeight();
-            fontHeight += 2;
-            int iconHeight = 0;
-            if (icon != null) {
-                // SystemMenuBar forces the icon to be 16x16 or less.
-                iconHeight = Math.min(icon.getIconHeight(), 16);
-            }
-            iconHeight += 2;
-      
-            int height = Math.max( fontHeight, iconHeight );
+            height = Math.max(fm.getHeight() + 2, height);
 
-            Dimension dim = new Dimension(width, height);
+            width += titleSpacing + titleSpacing;
 
-            // Take into account the border insets if any.
-            if (getBorder() != null) {
-                Insets insets = getBorder().getBorderInsets(c);
-                dim.height += insets.top + insets.bottom;
-                dim.width += insets.left + insets.right;
-            }
+            Insets insets = getInsets();
+            height += insets.top + insets.bottom;
+            width += insets.left + insets.right;
             context.dispose();
-            return dim;
+            return new Dimension(width, height);
 	}
     
-        public void layoutContainer(Container c) {
-            boolean leftToRight = SynthLookAndFeel.isLeftToRight(frame);
-
-            int w = getWidth();
-            int h = getHeight();
-            int x;
-
-            Icon closeIcon = closeButton.getIcon();
-            int buttonHeight = (closeIcon != null) ? closeIcon.getIconHeight(): 12;
-	    if (buttonHeight == 0) {
-		buttonHeight = 12;
-	    }
-            //int buttonWidth = closeButton.getIcon().getIconWidth();
-
-            Icon icon = frame.getFrameIcon();
-            int iconHeight = (icon != null) ? icon.getIconHeight() : buttonHeight;
-
-	    Insets insets = frame.getInsets();
-
-            x = (leftToRight) ? insets.left : w - 16 - insets.right;
-            menuButton.setBounds(x, (h - iconHeight) / 2, 16, 14);
-
-            x = (leftToRight) ? w - 16 - insets.right : insets.left;
-
-            if (frame.isClosable()) {
-                closeButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
-                x += (leftToRight) ? -(16 + 2) : 16 + 2;
-            } 
-
-            if (frame.isMaximizable()) {
-                maxButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
-                x += (leftToRight) ? -(16 + 2) : 16 + 2;
+        private int center(Component c, Insets insets, int x,
+                           boolean trailing) {
+            Dimension pref = c.getPreferredSize();
+            if (trailing) {
+                x -= pref.width;
             }
+            c.setBounds(x, insets.top +
+                        (getHeight() - insets.top - insets.bottom -
+                         pref.height) / 2, pref.width, pref.height);
+            if (pref.width > 0) {
+                if (trailing) {
+                    return x - buttonSpacing;
+                }
+                return x + pref.width + buttonSpacing;
+            }
+            return x;
+        }
 
-            if (frame.isIconifiable()) {
-                iconButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
-            } 
+        public void layoutContainer(Container c) {
+            Insets insets = c.getInsets();
+            Dimension pref;
+
+            if (SynthLookAndFeel.isLeftToRight(frame)) {
+                center(menuButton, insets, insets.left, false);
+                int x = getWidth() - insets.right;
+                if (frame.isClosable()) {
+                    x = center(closeButton, insets, x, true);
+                }
+                if (frame.isMaximizable()) {
+                    x = center(maxButton, insets, x, true);
+                }
+                if (frame.isIconifiable()) {
+                    x = center(iconButton, insets, x, true);
+                }
+            }
+            else {
+                center(menuButton, insets, getWidth() - insets.right,
+                       true);
+                int x = insets.left;
+                if (frame.isClosable()) {
+                    x = center(closeButton, insets, x, false);
+                }
+                if (frame.isMaximizable()) {
+                    x = center(maxButton, insets, x, false);
+                }
+                if (frame.isIconifiable()) {
+                    x = center(iconButton, insets, x, false);
+                }
+            }
         }
     }
 

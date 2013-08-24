@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.30 03/12/19
+ * @(#)DefaultTreeCellEditor.java	1.32 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import java.util.Vector;
  *
  * @see javax.swing.JTree
  *
- * @version 1.30 12/19/03
+ * @version 1.32 04/07/06
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
@@ -577,6 +577,7 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
          * <code>DefaultTreeCellEditor.DefaultTextField</code> object.
          *
          * @param border  a <code>Border</code> object
+	 * @since 1.4
          */
 	public DefaultTextField(Border border) {
             setBorder(border);

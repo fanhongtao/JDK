@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XNodeSet.java,v 1.28 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XNodeSet.java,v 1.2.4.2 2005/09/14 20:34:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -35,6 +35,7 @@ import org.w3c.dom.traversal.NodeIterator;
  */
 public class XNodeSet extends NodeSequence
 {  
+    static final long serialVersionUID = 1916026368035639667L;
   /**
    * Default constructor for derived objects.
    */
@@ -433,23 +434,23 @@ public class XNodeSet extends NodeSequence
   }
 
   /** Less than comparator         */
-  static LessThanComparator S_LT = new LessThanComparator();
+  static final LessThanComparator S_LT = new LessThanComparator();
 
   /** Less than or equal comparator          */
-  static LessThanOrEqualComparator S_LTE = new LessThanOrEqualComparator();
+  static final LessThanOrEqualComparator S_LTE = new LessThanOrEqualComparator();
 
   /** Greater than comparator         */
-  static GreaterThanComparator S_GT = new GreaterThanComparator();
+  static final GreaterThanComparator S_GT = new GreaterThanComparator();
 
   /** Greater than or equal comparator          */
-  static GreaterThanOrEqualComparator S_GTE =
+  static final GreaterThanOrEqualComparator S_GTE =
     new GreaterThanOrEqualComparator();
 
   /** Equal comparator         */
-  static EqualComparator S_EQ = new EqualComparator();
+  static final EqualComparator S_EQ = new EqualComparator();
 
   /** Not equal comparator         */
-  static NotEqualComparator S_NEQ = new NotEqualComparator();
+  static final NotEqualComparator S_NEQ = new NotEqualComparator();
 
   /**
    * Tell if one object is less than the other.

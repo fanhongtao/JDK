@@ -1,12 +1,11 @@
 /*
- * @(#)WeakHashMap.java	1.30 04/02/19
+ *  @(#)WeakHashMap.java	1.39 06/05/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
-
 import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
@@ -18,7 +17,7 @@ import java.lang.ref.ReferenceQueue;
  * mapping for a given key will not prevent the key from being discarded by the
  * garbage collector, that is, made finalizable, finalized, and then reclaimed.
  * When a key has been discarded its entry is effectively removed from the map,
- * so this class behaves somewhat differently than other <tt>Map</tt>
+ * so this class behaves somewhat differently from other <tt>Map</tt>
  * implementations.
  *
  * <p> Both null values and the null key are supported. This class has
@@ -26,9 +25,10 @@ import java.lang.ref.ReferenceQueue;
  * class, and has the same efficiency parameters of <em>initial capacity</em>
  * and <em>load factor</em>.
  *
- * <p> Like most collection classes, this class is not synchronized.  A
- * synchronized <tt>WeakHashMap</tt> may be constructed using the
- * <tt>Collections.synchronizedMap</tt> method.
+ * <p> Like most collection classes, this class is not synchronized.
+ * A synchronized <tt>WeakHashMap</tt> may be constructed using the
+ * {@link Collections#synchronizedMap Collections.synchronizedMap}
+ * method.
  *
  * <p> This class is intended primarily for use with key objects whose
  * <tt>equals</tt> methods test for object identity using the
@@ -56,8 +56,8 @@ import java.lang.ref.ReferenceQueue;
  * <tt>null</tt>, for the <tt>put</tt> method to return
  * <tt>null</tt> and the <tt>remove</tt> method to return
  * <tt>false</tt> for a key that previously appeared to be in the map, and
- * for successive examinations of the key set, the value set, and the entry set
- * to yield successively smaller numbers of elements.
+ * for successive examinations of the key set, the value collection, and
+ * the entry set to yield successively smaller numbers of elements.
  *
  * <p> Each key object in a <tt>WeakHashMap</tt> is stored indirectly as
  * the referent of a weak reference.  Therefore a key will automatically be
@@ -77,14 +77,14 @@ import java.lang.ref.ReferenceQueue;
  * inserting, as in: <tt>m.put(key, new WeakReference(value))</tt>,
  * and then unwrapping upon each <tt>get</tt>.
  *
- * <p>The iterators returned by all of this class's "collection view methods"
- * are <i>fail-fast</i>: if the map is structurally modified at any time after
- * the iterator is created, in any way except through the iterator's own
- * <tt>remove</tt> or <tt>add</tt> methods, the iterator will throw a
- * <tt>ConcurrentModificationException</tt>.  Thus, in the face of concurrent
+ * <p>The iterators returned by the <tt>iterator</tt> method of the collections
+ * returned by all of this class's "collection view methods" are
+ * <i>fail-fast</i>: if the map is structurally modified at any time after the
+ * iterator is created, in any way except through the iterator's own
+ * <tt>remove</tt> method, the iterator will throw a {@link
+ * ConcurrentModificationException}.  Thus, in the face of concurrent
  * modification, the iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the
- * future.
+ * arbitrary, non-deterministic behavior at an undetermined time in the future.
  *
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
@@ -95,10 +95,13 @@ import java.lang.ref.ReferenceQueue;
  * should be used only to detect bugs.</i>
  *
  * <p>This class is a member of the
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @version	1.30, 02/19/04
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
+ *
+ * @version	1.39, 05/24/06
  * @author      Doug Lea
  * @author      Josh Bloch
  * @author	Mark Reinhold
@@ -153,11 +156,13 @@ public class WeakHashMap<K,V>
     private final ReferenceQueue<K> queue = new ReferenceQueue<K>();
 
     /**
-     * The number of times this HashMap has been structurally modified
-     * Structural modifications are those that change the number of mappings in
-     * the HashMap or otherwise modify its internal structure (e.g.,
-     * rehash).  This field is used to make iterators on Collection-views of
-     * the HashMap fail-fast.  (See ConcurrentModificationException).
+     * The number of times this WeakHashMap has been structurally modified.
+     * Structural modifications are those that change the number of
+     * mappings in the map or otherwise modify its internal structure
+     * (e.g., rehash).  This field is used to make iterators on
+     * Collection-views of the map fail-fast.
+     *
+     * @see ConcurrentModificationException
      */
     private volatile int modCount;
 
@@ -167,7 +172,7 @@ public class WeakHashMap<K,V>
      *
      * @param  initialCapacity The initial capacity of the <tt>WeakHashMap</tt>
      * @param  loadFactor      The load factor of the <tt>WeakHashMap</tt>
-     * @throws IllegalArgumentException  If the initial capacity is negative,
+     * @throws IllegalArgumentException if the initial capacity is negative,
      *         or if the load factor is nonpositive.
      */
     public WeakHashMap(int initialCapacity, float loadFactor) {
@@ -190,10 +195,10 @@ public class WeakHashMap<K,V>
 
     /**
      * Constructs a new, empty <tt>WeakHashMap</tt> with the given initial
-     * capacity and the default load factor, which is <tt>0.75</tt>.
+     * capacity and the default load factor (0.75).
      *
      * @param  initialCapacity The initial capacity of the <tt>WeakHashMap</tt>
-     * @throws IllegalArgumentException  If the initial capacity is negative.
+     * @throws IllegalArgumentException if the initial capacity is negative
      */
     public WeakHashMap(int initialCapacity) {
         this(initialCapacity, DEFAULT_LOAD_FACTOR);
@@ -201,7 +206,7 @@ public class WeakHashMap<K,V>
 
     /**
      * Constructs a new, empty <tt>WeakHashMap</tt> with the default initial
-     * capacity (16) and the default load factor (0.75).
+     * capacity (16) and load factor (0.75).
      */
     public WeakHashMap() {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
@@ -211,18 +216,18 @@ public class WeakHashMap<K,V>
 
     /**
      * Constructs a new <tt>WeakHashMap</tt> with the same mappings as the
-     * specified <tt>Map</tt>.  The <tt>WeakHashMap</tt> is created with
-     * default load factor, which is <tt>0.75</tt> and an initial capacity
-     * sufficient to hold the mappings in the specified <tt>Map</tt>.
+     * specified map.  The <tt>WeakHashMap</tt> is created with the default
+     * load factor (0.75) and an initial capacity sufficient to hold the
+     * mappings in the specified map.
      *
-     * @param   t the map whose mappings are to be placed in this map.
-     * @throws  NullPointerException if the specified map is null.
+     * @param   m the map whose mappings are to be placed in this map
+     * @throws  NullPointerException if the specified map is null
      * @since	1.3
      */
-    public WeakHashMap(Map<? extends K, ? extends V> t) {
-        this(Math.max((int) (t.size() / DEFAULT_LOAD_FACTOR) + 1, 16),
+    public WeakHashMap(Map<? extends K, ? extends V> m) {
+        this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1, 16),
              DEFAULT_LOAD_FACTOR);
-        putAll(t);
+        putAll(m);
     }
 
     // internal utilities
@@ -240,14 +245,14 @@ public class WeakHashMap<K,V>
     }
 
     /**
-     * Return internal representation of null key back to caller as null
+     * Returns internal representation of null key back to caller as null.
      */
     private static <K> K unmaskNull(Object key) {
         return (K) (key == NULL_KEY ? null : key);
     }
 
     /**
-     * Check for equality of non-null reference x and possibly-null y.  By
+     * Checks for equality of non-null reference x and possibly-null y.  By
      * default uses Object.equals.
      */
     static boolean eq(Object x, Object y) {
@@ -255,14 +260,14 @@ public class WeakHashMap<K,V>
     }
 
     /**
-     * Return index for hash code h.
+     * Returns index for hash code h.
      */
     static int indexFor(int h, int length) {
         return h & (length-1);
     }
 
     /**
-     * Expunge stale entries from the table.
+     * Expunges stale entries from the table.
      */
     private void expungeStaleEntries() {
 	Entry<K,V> e;
@@ -291,7 +296,7 @@ public class WeakHashMap<K,V>
     }
 
     /**
-     * Return the table after first expunging stale entries
+     * Returns the table after first expunging stale entries.
      */
     private Entry[] getTable() {
         expungeStaleEntries();
@@ -322,22 +327,25 @@ public class WeakHashMap<K,V>
     }
 
     /**
-     * Returns the value to which the specified key is mapped in this weak
-     * hash map, or <tt>null</tt> if the map contains no mapping for
-     * this key.  A return value of <tt>null</tt> does not <i>necessarily</i>
-     * indicate that the map contains no mapping for the key; it is also
-     * possible that the map explicitly maps the key to <tt>null</tt>. The
-     * <tt>containsKey</tt> method may be used to distinguish these two
-     * cases.
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
      *
-     * @param   key the key whose associated value is to be returned.
-     * @return  the value to which this map maps the specified key, or
-     *          <tt>null</tt> if the map contains no mapping for this key.
+     * <p>More formally, if this map contains a mapping from a key
+     * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
+     * key.equals(k))}, then this method returns {@code v}; otherwise
+     * it returns {@code null}.  (There can be at most one such mapping.)
+     *
+     * <p>A return value of {@code null} does not <i>necessarily</i>
+     * indicate that the map contains no mapping for the key; it's also
+     * possible that the map explicitly maps the key to {@code null}.
+     * The {@link #containsKey containsKey} operation may be used to
+     * distinguish these two cases.
+     *
      * @see #put(Object, Object)
      */
     public V get(Object key) {
         Object k = maskNull(key);
-        int h = HashMap.hash(k);
+        int h = HashMap.hash(k.hashCode());
         Entry[] tab = getTable();
         int index = indexFor(h, tab.length);
         Entry<K,V> e = tab[index];
@@ -353,21 +361,21 @@ public class WeakHashMap<K,V>
      * Returns <tt>true</tt> if this map contains a mapping for the
      * specified key.
      *
-     * @param   key   The key whose presence in this map is to be tested
-     * @return  <tt>true</tt> if there is a mapping for <tt>key</tt>;
-     *          <tt>false</tt> otherwise
+     * @param  key   The key whose presence in this map is to be tested
+     * @return <tt>true</tt> if there is a mapping for <tt>key</tt>;
+     *         <tt>false</tt> otherwise
      */
     public boolean containsKey(Object key) {
         return getEntry(key) != null;
     }
 
     /**
-     * Returns the entry associated with the specified key in the HashMap.
-     * Returns null if the HashMap contains no mapping for this key.
+     * Returns the entry associated with the specified key in this map.
+     * Returns null if the map contains no mapping for this key.
      */
     Entry<K,V> getEntry(Object key) {
         Object k = maskNull(key);
-        int h = HashMap.hash(k);
+        int h = HashMap.hash(k.hashCode());
         Entry[] tab = getTable();
         int index = indexFor(h, tab.length);
         Entry<K,V> e = tab[index];
@@ -383,14 +391,14 @@ public class WeakHashMap<K,V>
      *
      * @param key key with which the specified value is to be associated.
      * @param value value to be associated with the specified key.
-     * @return previous value associated with specified key, or <tt>null</tt>
-     *	       if there was no mapping for key.  A <tt>null</tt> return can
-     *	       also indicate that the HashMap previously associated
-     *	       <tt>null</tt> with the specified key.
+     * @return the previous value associated with <tt>key</tt>, or
+     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+     *         (A <tt>null</tt> return can also indicate that the map
+     *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
     public V put(K key, V value) {
         K k = (K) maskNull(key);
-        int h = HashMap.hash(k);
+        int h = HashMap.hash(k.hashCode());
         Entry[] tab = getTable();
         int i = indexFor(h, tab.length);
 
@@ -451,7 +459,7 @@ public class WeakHashMap<K,V>
         }
     }
 
-    /** Transfer all entries from src to dest tables */
+    /** Transfers all entries from src to dest tables */
     private void transfer(Entry[] src, Entry[] dest) {
         for (int j = 0; j < src.length; ++j) {
             Entry<K,V> e = src[j];
@@ -474,9 +482,9 @@ public class WeakHashMap<K,V>
     }
 
     /**
-     * Copies all of the mappings from the specified map to this map These
-     * mappings will replace any mappings that this map had for any of the
-     * keys currently in the specified map.<p>
+     * Copies all of the mappings from the specified map to this map.
+     * These mappings will replace any mappings that this map had for any
+     * of the keys currently in the specified map.
      *
      * @param m mappings to be stored in this map.
      * @throws  NullPointerException if the specified map is null.
@@ -506,24 +514,33 @@ public class WeakHashMap<K,V>
                 resize(newCapacity);
         }
 
-        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> i = m.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<? extends K, ? extends V> e = i.next();
+        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
             put(e.getKey(), e.getValue());
-        }
     }
 
     /**
-     * Removes the mapping for this key from this map if present.
+     * Removes the mapping for a key from this weak hash map if it is present.
+     * More formally, if this map contains a mapping from key <tt>k</tt> to
+     * value <tt>v</tt> such that <code>(key==null ?  k==null :
+     * key.equals(k))</code>, that mapping is removed.  (The map can contain
+     * at most one such mapping.)
      *
-     * @param key key whose mapping is to be removed from the map.
-     * @return previous value associated with specified key, or <tt>null</tt>
-     *	       if there was no mapping for key.  A <tt>null</tt> return can
-     *	       also indicate that the map previously associated <tt>null</tt>
-     *	       with the specified key.
+     * <p>Returns the value to which this map previously associated the key,
+     * or <tt>null</tt> if the map contained no mapping for the key.  A
+     * return value of <tt>null</tt> does not <i>necessarily</i> indicate
+     * that the map contained no mapping for the key; it's also possible
+     * that the map explicitly mapped the key to <tt>null</tt>.
+     *
+     * <p>The map will not contain a mapping for the specified key once the
+     * call returns.
+     *
+     * @param key key whose mapping is to be removed from the map
+     * @return the previous value associated with <tt>key</tt>, or
+     *         <tt>null</tt> if there was no mapping for <tt>key</tt>
      */
     public V remove(Object key) {
         Object k = maskNull(key);
-        int h = HashMap.hash(k);
+        int h = HashMap.hash(k.hashCode());
         Entry[] tab = getTable();
         int i = indexFor(h, tab.length);
         Entry<K,V> prev = tab[i];
@@ -556,7 +573,7 @@ public class WeakHashMap<K,V>
         Entry[] tab = getTable();
         Map.Entry entry = (Map.Entry)o;
         Object k = maskNull(entry.getKey());
-        int h = HashMap.hash(k);
+        int h = HashMap.hash(k.hashCode());
         int i = indexFor(h, tab.length);
         Entry<K,V> prev = tab[i];
         Entry<K,V> e = prev;
@@ -580,7 +597,8 @@ public class WeakHashMap<K,V>
     }
 
     /**
-     * Removes all mappings from this map.
+     * Removes all of the mappings from this map.
+     * The map will be empty after this call returns.
      */
     public void clear() {
         // clear out ref queue. We don't need to expunge entries
@@ -599,15 +617,15 @@ public class WeakHashMap<K,V>
         // reference queue will make them eligible for reclamation.
         while (queue.poll() != null)
             ;
-   }
+    }
 
     /**
      * Returns <tt>true</tt> if this map maps one or more keys to the
      * specified value.
      *
-     * @param value value whose presence in this map is to be tested.
+     * @param value value whose presence in this map is to be tested
      * @return <tt>true</tt> if this map maps one or more keys to the
-     *         specified value.
+     *         specified value
      */
     public boolean containsValue(Object value) {
 	if (value==null)
@@ -643,7 +661,7 @@ public class WeakHashMap<K,V>
         private Entry<K,V> next;
 
         /**
-         * Create new entry.
+         * Creates new entry.
          */
         Entry(K key, V value,
 	      ReferenceQueue<K> queue,
@@ -789,15 +807,17 @@ public class WeakHashMap<K,V>
     private transient Set<Map.Entry<K,V>> entrySet = null;
 
     /**
-     * Returns a set view of the keys contained in this map.  The set is
-     * backed by the map, so changes to the map are reflected in the set, and
-     * vice-versa.  The set supports element removal, which removes the
-     * corresponding mapping from this map, via the <tt>Iterator.remove</tt>,
-     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and
-     * <tt>clear</tt> operations.  It does not support the <tt>add</tt> or
-     * <tt>addAll</tt> operations.
-     *
-     * @return a set view of the keys contained in this map.
+     * Returns a {@link Set} view of the keys contained in this map.
+     * The set is backed by the map, so changes to the map are
+     * reflected in the set, and vice-versa.  If the map is modified
+     * while an iteration over the set is in progress (except through
+     * the iterator's own <tt>remove</tt> operation), the results of
+     * the iteration are undefined.  The set supports element removal,
+     * which removes the corresponding mapping from the map, via the
+     * <tt>Iterator.remove</tt>, <tt>Set.remove</tt>,
+     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt>
+     * operations.  It does not support the <tt>add</tt> or <tt>addAll</tt>
+     * operations.
      */
     public Set<K> keySet() {
         Set<K> ks = keySet;
@@ -829,32 +849,20 @@ public class WeakHashMap<K,V>
         public void clear() {
             WeakHashMap.this.clear();
         }
-
-        public Object[] toArray() {
-            Collection<K> c = new ArrayList<K>(size());
-            for (Iterator<K> i = iterator(); i.hasNext(); )
-                c.add(i.next());
-            return c.toArray();
-        }
-
-        public <T> T[] toArray(T[] a) {
-            Collection<K> c = new ArrayList<K>(size());
-            for (Iterator<K> i = iterator(); i.hasNext(); )
-                c.add(i.next());
-            return c.toArray(a);
-        }
     }
 
     /**
-     * Returns a collection view of the values contained in this map.  The
-     * collection is backed by the map, so changes to the map are reflected in
-     * the collection, and vice-versa.  The collection supports element
-     * removal, which removes the corresponding mapping from this map, via the
-     * <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations.
-     * It does not support the <tt>add</tt> or <tt>addAll</tt> operations.
-     *
-     * @return a collection view of the values contained in this map.
+     * Returns a {@link Collection} view of the values contained in this map.
+     * The collection is backed by the map, so changes to the map are
+     * reflected in the collection, and vice-versa.  If the map is
+     * modified while an iteration over the collection is in progress
+     * (except through the iterator's own <tt>remove</tt> operation),
+     * the results of the iteration are undefined.  The collection
+     * supports element removal, which removes the corresponding
+     * mapping from the map, via the <tt>Iterator.remove</tt>,
+     * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
+     * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
+     * support the <tt>add</tt> or <tt>addAll</tt> operations.
      */
     public Collection<V> values() {
         Collection<V> vs = values;
@@ -877,38 +885,25 @@ public class WeakHashMap<K,V>
         public void clear() {
             WeakHashMap.this.clear();
         }
-
-        public Object[] toArray() {
-            Collection<V> c = new ArrayList<V>(size());
-            for (Iterator<V> i = iterator(); i.hasNext(); )
-                c.add(i.next());
-            return c.toArray();
-        }
-
-        public <T> T[] toArray(T[] a) {
-            Collection<V> c = new ArrayList<V>(size());
-            for (Iterator<V> i = iterator(); i.hasNext(); )
-                c.add(i.next());
-            return c.toArray(a);
-        }
     }
 
     /**
-     * Returns a collection view of the mappings contained in this map.  Each
-     * element in the returned collection is a <tt>Map.Entry</tt>.  The
-     * collection is backed by the map, so changes to the map are reflected in
-     * the collection, and vice-versa.  The collection supports element
-     * removal, which removes the corresponding mapping from the map, via the
-     * <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations.
-     * It does not support the <tt>add</tt> or <tt>addAll</tt> operations.
-     *
-     * @return a collection view of the mappings contained in this map.
-     * @see Map.Entry
+     * Returns a {@link Set} view of the mappings contained in this map.
+     * The set is backed by the map, so changes to the map are
+     * reflected in the set, and vice-versa.  If the map is modified
+     * while an iteration over the set is in progress (except through
+     * the iterator's own <tt>remove</tt> operation, or through the
+     * <tt>setValue</tt> operation on a map entry returned by the
+     * iterator) the results of the iteration are undefined.  The set
+     * supports element removal, which removes the corresponding
+     * mapping from the map, via the <tt>Iterator.remove</tt>,
+     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
+     * <tt>clear</tt> operations.  It does not support the
+     * <tt>add</tt> or <tt>addAll</tt> operations.
      */
     public Set<Map.Entry<K,V>> entrySet() {
         Set<Map.Entry<K,V>> es = entrySet;
-        return (es != null ? es : (entrySet = new EntrySet()));
+        return es != null ? es : (entrySet = new EntrySet());
     }
 
     private class EntrySet extends AbstractSet<Map.Entry<K,V>> {
@@ -937,18 +932,19 @@ public class WeakHashMap<K,V>
             WeakHashMap.this.clear();
         }
 
+	private List<Map.Entry<K,V>> deepCopy() {
+	    List<Map.Entry<K,V>> list = new ArrayList<Map.Entry<K,V>>(size());
+	    for (Map.Entry<K,V> e : this)
+		list.add(new AbstractMap.SimpleEntry<K,V>(e));
+	    return list;
+	}
+
         public Object[] toArray() {
-            Collection<Map.Entry<K,V>> c = new ArrayList<Map.Entry<K,V>>(size());
-            for (Iterator<Map.Entry<K,V>> i = iterator(); i.hasNext(); )
-                c.add(new AbstractMap.SimpleEntry<K,V>(i.next()));
-            return c.toArray();
+            return deepCopy().toArray();
         }
 
         public <T> T[] toArray(T[] a) {
-            Collection<Map.Entry<K,V>> c = new ArrayList<Map.Entry<K,V>>(size());
-            for (Iterator<Map.Entry<K,V>> i = iterator(); i.hasNext(); )
-                c.add(new AbstractMap.SimpleEntry<K,V>(i.next()));
-            return c.toArray(a);
+            return deepCopy().toArray(a);
         }
     }
 }

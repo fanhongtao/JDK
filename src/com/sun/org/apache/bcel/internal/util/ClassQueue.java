@@ -53,26 +53,29 @@ package com.sun.org.apache.bcel.internal.util;
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  */
-import java.util.ArrayList;
+import java.util.LinkedList;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 
 /** 
  * Utility class implementing a (typesafe) queue of JavaClass
  * objects.
  *
- * @version $Id: ClassQueue.java,v 1.1.1.1 2001/10/29 20:00:29 jvanzyl Exp $
+ * @version $Id: ClassQueue.java,v 1.1.2.1 2005/07/31 23:46:58 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
  * @see ClassVector
 */
-public class ClassQueue {
-  protected int       left = 0;
-  private   ArrayList vec  = new ArrayList();
+public class ClassQueue implements java.io.Serializable {
+  protected LinkedList vec  = new LinkedList();
 
-  public void      enqueue(JavaClass clazz) { vec.add(clazz); }
+  public void enqueue(JavaClass clazz) { vec.addLast(clazz); }
+
   public JavaClass dequeue()                {
-    JavaClass clazz = (JavaClass)vec.get(left);
-    vec.remove(left++);
-    return clazz;
+    return (JavaClass)vec.removeFirst();
   }
-  public boolean   empty()                  { return vec.size() <= left; }
+
+  public boolean empty() { return vec.isEmpty(); }
+
+  public String toString() {
+    return vec.toString();
+  }
 }  

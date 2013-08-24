@@ -1,7 +1,7 @@
 /*
- * @(#)DTD.java	1.20 04/05/05
+ * @(#)DTD.java	1.24 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.net.URL;
  * @see ContentModel
  * @see Parser
  * @author Arthur van Hoff
- * @version 1.20 05/05/04
+ * @version 1.24 04/07/06
  */
 public
 class DTD implements DTDConstants {
@@ -108,8 +108,7 @@ class DTD implements DTDConstants {
      *   part of the DTD, otherwise returns <code>false</code>
      */
     boolean elementExists(String name) {
-	Element e = (Element)elementHash.get(name);
-	return ((e == null) ? false : true);
+        return !"unknown".equals(name) && (elementHash.get(name) != null);
     }
 
     /**
@@ -177,7 +176,7 @@ class DTD implements DTDConstants {
      *
      * @param name the name of the <code>Element</code>
      * @param type the type of the <code>Element</code>
-     * @param omitStart <code>true</code if start should be omitted
+     * @param omitStart <code>true</code> if start should be omitted
      * @param omitEnd  <code>true</code> if end should be omitted
      * @param content  the <code>ContentModel</code>
      * @param atts the <code>AttributeList</code> specifying the 
@@ -199,14 +198,11 @@ class DTD implements DTDConstants {
     }
 
     /**
-     * Returns the <code>Element</code> which matches the
-     * specified <code>AttributeList</code>. 
-     * If one doesn't exist, a new one is created and returned.
+     * Defines attributes for an {@code Element}.
      *
      * @param name the name of the <code>Element</code>
-     * @param atts the <code>AttributeList</code> specifying the 
+     * @param atts the <code>AttributeList</code> specifying the
      *    <code>Element</code>
-     * @return the <code>Element</code> specified
      */
     public void defineAttributes(String name, AttributeList atts) {
 	Element e = getElement(name);

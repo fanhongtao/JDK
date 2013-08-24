@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMAxisTraverser.java,v 1.4 2004/02/16 23:03:44 minchau Exp $
+ * $Id: DTMAxisTraverser.java,v 1.2.4.1 2005/09/15 08:14:52 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -90,7 +90,7 @@ public abstract class DTMAxisTraverser
    * context is in the set, you must use the first() method instead.
    *
    * @return the next node in the iteration, or DTM.NULL.
-   * @see first(int)
+   * @see #first(int)
    */
   public abstract int next(int context, int current);
 
@@ -108,7 +108,7 @@ public abstract class DTMAxisTraverser
    * @param extendedTypeID The extended type ID that must match.
    *
    * @return the next node in the iteration, or DTM.NULL.
-   * @see first(int,int)
+   * @see #first(int,int)
    */
   public abstract int next(int context, int current, int extendedTypeID);
 }

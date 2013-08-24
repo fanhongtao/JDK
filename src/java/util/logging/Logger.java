@@ -1,7 +1,7 @@
 /*
- * @(#)Logger.java	1.46 06/04/12
+ * @(#)Logger.java	1.49 06/05/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -138,7 +138,7 @@ import java.lang.ref.WeakReference;
  * All the other logging methods are implemented as calls on this
  * log(LogRecord) method.
  *
- * @version 1.46, 04/12/06
+ * @version 1.49, 05/08/06
  * @since 1.4
  */
 
@@ -169,6 +169,20 @@ public class Logger {
     private volatile int levelValue;  // current effective level value
 
     /**
+     * GLOBAL_LOGGER_NAME is a name for the global logger.
+     * This name is provided as a convenience to developers who are making
+     * casual use of the Logging package.  Developers who are making serious
+     * use of the logging package (for example in products) should create
+     * and use their own Logger objects, with appropriate names, so that
+     * logging can be controlled on a suitable per-Logger granularity.
+     * <p>
+     * The preferred way to get the global logger object is via the call
+     * <code>Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)</code>.
+     * @since 1.6
+     */
+    public static final String GLOBAL_LOGGER_NAME = "global";
+
+    /**
      * The "global" Logger object is provided as a convenience to developers
      * who are making casual use of the Logging package.  Developers
      * who are making serious use of the logging package (for example
@@ -176,9 +190,15 @@ public class Logger {
      * with appropriate names, so that logging can be controlled on a
      * suitable per-Logger granularity.
      * <p>
-     * The global logger is initialized by calling Logger.getLogger("global").
+     * @deprecated Initialization of this field is prone to deadlocks.
+     * The field must be initialized by the Logger class initialization
+     * which may cause deadlocks with the LogManager class initialization.
+     * In such cases two class initialization wait for each other to complete.
+     * As of JDK version 1.6, the preferred way to get the global logger object
+     * is via the call <code>Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)</code>.
      */
-    public  static final Logger global = new Logger("global");
+    @Deprecated
+    public static final Logger global = new Logger(GLOBAL_LOGGER_NAME);
 
     /**
      * Protected method to construct a logger for a named subsystem.

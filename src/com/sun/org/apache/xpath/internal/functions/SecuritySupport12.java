@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SecuritySupport12.java,v 1.3 2004/02/23 10:29:37 aruny Exp $
+ * $Id: SecuritySupport12.java,v 1.1.2.1 2005/08/01 01:29:45 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xpath.internal.functions;

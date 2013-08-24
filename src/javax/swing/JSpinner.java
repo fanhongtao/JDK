@@ -1,7 +1,7 @@
 /*
- * @(#)JSpinner.java	1.38 04/05/12
+ * @(#)JSpinner.java	1.52 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.beans.*;
 import java.text.*;
 import java.io.*;
 import java.util.HashMap;
-import sun.text.resources.LocaleData;
+import sun.util.resources.LocaleData;
 
 import javax.accessibility.*;
 
@@ -72,6 +72,15 @@ import javax.accessibility.*;
  *   return spinner.getValue();
  * </pre>
  * <p>
+ * For information and examples of using spinner see
+ * <a href="http://java.sun.com/doc/books/tutorial/uiswing/components/spinner.html">How to Use Spinners</a>,
+ * a section in <em>The Java Tutorial.</em>
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -93,7 +102,7 @@ import javax.accessibility.*;
  * @see SpinnerDateModel
  * @see JFormattedTextField
  * 
- * @version 1.38 05/12/04
+ * @version 1.52 08/08/06
  * @author Hans Muller
  * @author Lynn Monsanto (accessibility)
  * @since 1.4
@@ -560,8 +569,8 @@ public class JSpinner extends JComponent implements Accessible
     /**
      * A simple base class for more specialized editors
      * that displays a read-only view of the model's current
-     * value with a <code>JFormattedTextField<code>.  Subclasses
-     * can configure the <code>JFormattedTextField<code> to create
+     * value with a <code>JFormattedTextField</code>.  Subclasses
+     * can configure the <code>JFormattedTextField</code> to create
      * an editor that's appropriate for the type of model they
      * support and they may want to override
      * the <code>stateChanged</code> and <code>propertyChanged</code>
@@ -582,9 +591,10 @@ public class JSpinner extends JComponent implements Accessible
      * with <code>setEditor</code> or created by a <code>createEditor</code>
      * override, will not be replaced anyway.
      * <p>
-     * This class is the <code>LayoutManager<code> for it's single
+     * This class is the <code>LayoutManager</code> for it's single
      * <code>JFormattedTextField</code> child.   By default the
      * child is just centered with the parents insets.
+     * @since 1.4
      */
     public static class DefaultEditor extends JPanel 
 	implements ChangeListener, PropertyChangeListener, LayoutManager 
@@ -593,7 +603,7 @@ public class JSpinner extends JComponent implements Accessible
 	 * Constructs an editor component for the specified <code>JSpinner</code>.
 	 * This <code>DefaultEditor</code> is it's own layout manager and 
 	 * it is added to the spinner's <code>ChangeListener</code> list.
-	 * The constructor creates a single <code>JFormattedTextField<code> child,
+	 * The constructor creates a single <code>JFormattedTextField</code> child,
 	 * initializes it's value to be the spinner model's current value
 	 * and adds it to <code>this</code> <code>DefaultEditor</code>.  
 	 * 
@@ -609,6 +619,7 @@ public class JSpinner extends JComponent implements Accessible
 	    ftf.setValue(spinner.getValue());
 	    ftf.addPropertyChangeListener(this);
 	    ftf.setEditable(false);
+            ftf.setInheritsPopupMenu(true);
 
 	    String toolTipText = spinner.getToolTipText();
 	    if (toolTipText != null) {
@@ -648,13 +659,17 @@ public class JSpinner extends JComponent implements Accessible
 
 	
 	/**
-	 * Returns the <code>JSpinner</code> ancestor of this editor or null.  
+         * Returns the <code>JSpinner</code> ancestor of this editor or
+         * <code>null</code> if none of the ancestors are a
+         * <code>JSpinner</code>.
 	 * Typically the editor's parent is a <code>JSpinner</code> however 
-	 * subclasses of <codeJSpinner</code> may override the
+	 * subclasses of <code>JSpinner</code> may override the
 	 * the <code>createEditor</code> method and insert one or more containers
 	 * between the <code>JSpinner</code> and it's editor.
 	 * 
-         * @return <code>JSpinner</code> ancestor
+         * @return <code>JSpinner</code> ancestor; <code>null</code>
+         *         if none of the ancestors are a <code>JSpinner</code>
+         * 
 	 * @see JSpinner#createEditor
 	 */
 	public JSpinner getSpinner() {
@@ -687,7 +702,8 @@ public class JSpinner extends JComponent implements Accessible
 	 * It sets the <code>value</code> of the text field to the current
 	 * value of the spinners model.
 	 * 
-	 * @param e not used
+	 * @param e the <code>ChangeEvent</code> whose source is the
+	 * <code>JSpinner</code> whose model has changed.
 	 * @see #getTextField
 	 * @see JSpinner#getValue
 	 */
@@ -843,6 +859,39 @@ public class JSpinner extends JComponent implements Accessible
 
             ftf.commitEdit();
         }
+
+        /**
+         * Returns the baseline.
+         *
+         * @throws IllegalArgumentException {@inheritDoc}
+         * @see javax.swing.JComponent#getBaseline(int,int)
+         * @see javax.swing.JComponent#getBaselineResizeBehavior()
+         * @since 1.6
+         */
+        public int getBaseline(int width, int height) {
+            // check size.
+            super.getBaseline(width, height);
+            Insets insets = getInsets();
+            width = width - insets.left - insets.right;
+            height = height - insets.top - insets.bottom;
+            int baseline = getComponent(0).getBaseline(width, height);
+            if (baseline >= 0) {
+                return baseline + insets.top;
+            }
+            return -1;
+        }
+
+        /**
+         * Returns an enum indicating how the baseline of the component
+         * changes as the size changes.
+         *
+         * @throws NullPointerException {@inheritDoc}
+         * @see javax.swing.JComponent#getBaseline(int, int)
+         * @since 1.6
+         */
+        public BaselineResizeBehavior getBaselineResizeBehavior() {
+            return getComponent(0).getBaselineResizeBehavior();
+        }
     }
 
 
@@ -885,6 +934,7 @@ public class JSpinner extends JComponent implements Accessible
      * is defined by a <code>DateFormatter</code> instance whose
      * <code>minimum</code> and <code>maximum</code> properties
      * are mapped to the <code>SpinnerDateModel</code>.
+     * @since 1.4
      */
     // PENDING(hmuller): more example javadoc
     public static class DateEditor extends DefaultEditor 
@@ -892,7 +942,7 @@ public class JSpinner extends JComponent implements Accessible
         // This is here until SimpleDateFormat gets a constructor that
         // takes a Locale: 4923525
         private static String getDefaultPattern(Locale loc) {
-            ResourceBundle r = LocaleData.getLocaleElements(loc);
+            ResourceBundle r = LocaleData.getDateFormatData(loc);
             String[] dateTimePatterns = r.getStringArray("DateTimePatterns");
 	    Object[] dateTimeArgs = {dateTimePatterns[DateFormat.SHORT],
 				     dateTimePatterns[DateFormat.SHORT + 4]};
@@ -1062,6 +1112,7 @@ public class JSpinner extends JComponent implements Accessible
      * is defined by a <code>NumberFormatter</code> instance whose
      * <code>minimum</code> and <code>maximum</code> properties
      * are mapped to the <code>SpinnerNumberModel</code>.
+     * @since 1.4
      */
     // PENDING(hmuller): more example javadoc
     public static class NumberEditor extends DefaultEditor 
@@ -1070,7 +1121,7 @@ public class JSpinner extends JComponent implements Accessible
         // takes a Locale: 4923525
         private static String getDefaultPattern(Locale locale) {
             // Get the pattern for the default locale.
-            ResourceBundle rb = LocaleData.getLocaleElements(locale);
+            ResourceBundle rb = LocaleData.getNumberFormatData(locale);
             String[] all = rb.getStringArray("NumberPatterns");
             return all[0];
         }
@@ -1204,6 +1255,7 @@ public class JSpinner extends JComponent implements Accessible
     /**
      * An editor for a <code>JSpinner</code> whose model is a 
      * <code>SpinnerListModel</code>.  
+     * @since 1.4
      */
     public static class ListEditor extends DefaultEditor 
     {
@@ -1333,7 +1385,7 @@ public class JSpinner extends JComponent implements Accessible
     ////////////////
 	
     /**
-     * Gets the <code>AccessibleContext<code> for the <code>JSpinner</code>
+     * Gets the <code>AccessibleContext</code> for the <code>JSpinner</code>
      *
      * @return the <code>AccessibleContext</code> for the <code>JSpinner</code>
      * @since 1.5 
@@ -1495,7 +1547,7 @@ public class JSpinner extends JComponent implements Accessible
 	}
 
 	/*
-	 * Returns the AccessibleExtendedText for the JSpinner editor
+	 * Returns the AccessibleEditableText for the JSpinner editor
 	 */
 	private AccessibleEditableText getEditorAccessibleEditableText() {
 	    AccessibleText at = getEditorAccessibleText();

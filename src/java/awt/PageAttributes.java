@@ -1,7 +1,7 @@
 /*
- * @(#)PageAttributes.java	1.7 03/12/19
+ * @(#)PageAttributes.java	1.9 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,12 +37,14 @@ import java.util.Locale;
  * has a corresponding <code>set<i>attributeName</i>ToDefault</code> method.
  * Default value fields are not provided.
  *
- * @version	1.7, 12/19/03
+ * @version	1.9, 04/07/06
  * @author	David Mendenhall
+ * @since 1.3
  */
 public final class PageAttributes implements Cloneable {
     /**
      * A type-safe enumeration of possible color states.
+     * @since 1.3
      */
     public static final class ColorType extends AttributeValue {
         private static final int I_COLOR = 0;
@@ -69,6 +71,7 @@ public final class PageAttributes implements Cloneable {
     /**
      * A type-safe enumeration of possible paper sizes. These sizes are in
      * compliance with IPP 1.1.
+     * @since 1.3
      */
     public static final class MediaType extends AttributeValue {
         private static final int I_ISO_4A0 = 0;
@@ -786,6 +789,7 @@ public final class PageAttributes implements Cloneable {
     /**
      * A type-safe enumeration of possible orientations. These orientations
      * are in partial compliance with IPP 1.1.
+     * @since 1.3
      */
     public static final class OrientationRequestedType extends AttributeValue {
         private static final int I_PORTRAIT = 0;
@@ -815,6 +819,7 @@ public final class PageAttributes implements Cloneable {
 
     /**
      * A type-safe enumeration of possible origins.
+     * @since 1.3
      */
     public static final class OriginType extends AttributeValue {
         private static final int I_PHYSICAL = 0;
@@ -841,6 +846,7 @@ public final class PageAttributes implements Cloneable {
     /**
      * A type-safe enumeration of possible print qualities. These print
      * qualities are in compliance with IPP 1.1.
+     * @since 1.3
      */
     public static final class PrintQualityType extends AttributeValue {
         private static final int I_HIGH = 0;

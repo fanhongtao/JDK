@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * $Id: Variable.java,v 1.2.4.1 2005/09/14 21:24:33 jeffsuttor Exp $
+ */
 package com.sun.org.apache.xpath.internal.operations;
 
 import javax.xml.transform.TransformerException;
@@ -36,6 +39,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class Variable extends Expression implements PathComponent
 {
+    static final long serialVersionUID = -4334975375609297049L;
   /** Tell if fixupVariables was called.
    *  @serial   */
   private boolean m_fixUpWasCalled = false;
@@ -197,10 +201,9 @@ public class Variable extends Expression implements PathComponent
    */
   public XObject execute(XPathContext xctxt, boolean destructiveOK) throws javax.xml.transform.TransformerException
   {
-  	com.sun.org.apache.xml.internal.utils.PrefixResolver xprefixResolver = xctxt.getNamespaceContext();
+    com.sun.org.apache.xml.internal.utils.PrefixResolver xprefixResolver = xctxt.getNamespaceContext();
 
-	XObject result;
-
+    XObject result;
     // Is the variable fetched always the same?
     // XObject result = xctxt.getVariable(m_qname);
     if(m_fixUpWasCalled)
@@ -209,10 +212,11 @@ public class Variable extends Expression implements PathComponent
         result = xctxt.getVarStack().getGlobalVariable(xctxt, m_index, destructiveOK);
       else
         result = xctxt.getVarStack().getLocalVariable(xctxt, m_index, destructiveOK);
-    } else {  
+    } 
+    else {  
     	result = xctxt.getVarStack().getVariableOrParam(xctxt,m_qname);
     }
-    
+  
       if (null == result)
       {
         // This should now never happen...
@@ -251,7 +255,8 @@ public class Variable extends Expression implements PathComponent
    * this to work, the SourceLocator must be the owning ElemTemplateElement.
    * @return The dereference to the ElemVariable, or null if not found.
    */
-/*
+  // J2SE does not support Xalan interpretive
+  /*
   public com.sun.org.apache.xalan.internal.templates.ElemVariable getElemVariable()
   {
   	
@@ -261,19 +266,18 @@ public class Variable extends Expression implements PathComponent
     // qname.  If we reach the top level, use the StylesheetRoot's composed
     // list of top level variables and parameters.
     
+    com.sun.org.apache.xalan.internal.templates.ElemVariable vvar = null;	
     com.sun.org.apache.xpath.internal.ExpressionNode owner = getExpressionOwner();
 
     if (null != owner && owner instanceof com.sun.org.apache.xalan.internal.templates.ElemTemplateElement)
     {
-
-      com.sun.org.apache.xalan.internal.templates.ElemVariable vvar;
 
       com.sun.org.apache.xalan.internal.templates.ElemTemplateElement prev = 
         (com.sun.org.apache.xalan.internal.templates.ElemTemplateElement) owner;
 
       if (!(prev instanceof com.sun.org.apache.xalan.internal.templates.Stylesheet))
       {            
-        while ( !(prev.getParentNode() instanceof com.sun.org.apache.xalan.internal.templates.Stylesheet) )
+        while ( prev != null && !(prev.getParentNode() instanceof com.sun.org.apache.xalan.internal.templates.Stylesheet) )
         {
           com.sun.org.apache.xalan.internal.templates.ElemTemplateElement savedprev = prev;
 
@@ -287,25 +291,19 @@ public class Variable extends Expression implements PathComponent
               {
                 return vvar;
               }
+              vvar = null; 	 	
             }
           }
           prev = savedprev.getParentElem();
         }
       }
-
-      vvar = prev.getStylesheetRoot().getVariableOrParamComposed(m_qname);
-      if (null != vvar)
-      {
-        return vvar;
-      }
-
+      if (prev != null)
+        vvar = prev.getStylesheetRoot().getVariableOrParamComposed(m_qname);
     }
-    return null;
+    return vvar;
 
   }
-
-*/
-  
+  */
   /**
    * Tell if this expression returns a stable number that will not change during 
    * iterations within the expression.  This is used to determine if a proximity 
@@ -325,24 +323,35 @@ public class Variable extends Expression implements PathComponent
    */
   public int getAnalysisBits()
   {
-    // <<<<<<<   TIGER SPECIFIC CHANGE >>>>>>>>>
-    // As we are not supporting Xalan interpretive we are taking away the functionality
-    // dependent on XSLT interpretive Transformer. Only way supported is to use XSLTC 
-    // and the execution path needed for supporting standard XPath API defined by 
-    // JAXP 1.3 . 
-
+    
+    // J2SE does not support Xalan interpretive
+    /*
+  	com.sun.org.apache.xalan.internal.templates.ElemVariable vvar = getElemVariable();
+  	if(null != vvar)
+  	{
+  		XPath xpath = vvar.getSelect();
+  		if(null != xpath)
+  		{
+	  		Expression expr = xpath.getExpression();
+	  		if(null != expr && expr instanceof PathComponent)
+	  		{
+	  			return ((PathComponent)expr).getAnalysisBits();
+	  		}
+  		}
+  	}
+    */
+    
     return WalkerFactory.BIT_FILTER;
   }
 
 
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
   	visitor.visitVariableRef(owner, this);
   }
-
   /**
    * @see Expression#deepEquals(Expression)
    */
@@ -354,14 +363,14 @@ public class Variable extends Expression implements PathComponent
   	if(!m_qname.equals(((Variable)expr).m_qname))
   		return false;
   		
+    // J2SE does not support Xalan interpretive
+    /*
   	// We have to make sure that the qname really references 
   	// the same variable element.
-        // <<<<<<<   TIGER SPECIFIC CHANGE >>>>>>>>>
-        // As we are not supporting Xalan interpretive we are taking away the functionality
-        // dependent on XSLT interpretive Transformer. Only way supported is to use XSLTC 
-        // and the execution path needed for supporting standard XPath API defined by 
-        // JAXP 1.3 . 
-
+    if(getElemVariable() != ((Variable)expr).getElemVariable())
+    	return false;
+  	*/
+    
   	return true;
   }
   

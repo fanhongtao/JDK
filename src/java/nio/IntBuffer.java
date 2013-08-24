@@ -1,7 +1,7 @@
 /*
- * @(#)X-Buffer.java	1.56 04/07/16
+ * @(#)X-Buffer.java	1.62 06/07/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,7 +49,7 @@ package java.nio;
  *
  *   <li><p> Methods for {@link #compact </code>compacting<code>}, {@link
  *   #duplicate </code>duplicating<code>}, and {@link #slice
- *   </code>slicing<code>} a int buffer.  </p></li>
+ *   </code>slicing<code>} an int buffer.  </p></li>
  *
  * </ul>
  *
@@ -65,7 +65,7 @@ package java.nio;
  *
  * content, by {@link #wrap(int[]) </code><i>wrapping</i><code>} an existing
  * int array  into a buffer, or by creating a
- * <a href="ByteBuffer.html#view"><i>view</i></a> of an existing byte buffer
+ * <a href="ByteBuffer.html#views"><i>view</i></a> of an existing byte buffer.
  *
 
  *
@@ -171,12 +171,12 @@ package java.nio;
 *
 
  *
- * <p> Like a byte buffer, a int buffer is either <a
+ * <p> Like a byte buffer, an int buffer is either <a
  * href="ByteBuffer.html#direct"><i>direct</i> or <i>non-direct</i></a>.  A
  * int buffer created via the <tt>wrap</tt> methods of this class will
- * be non-direct.  A int buffer created as a view of a byte buffer will
+ * be non-direct.  An int buffer created as a view of a byte buffer will
  * be direct if, and only if, the byte buffer itself is direct.  Whether or not
- * a int buffer is direct may be determined by invoking the {@link
+ * an int buffer is direct may be determined by invoking the {@link
  * #isDirect isDirect} method.  </p>
  *
 
@@ -233,7 +233,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.56, 04/07/16
+ * @version 1.62, 06/07/10
  * @since 1.4
  */
 
@@ -313,7 +313,7 @@ public abstract class IntBuffer
     }
 
     /**
-     * Wraps a int array into a buffer.
+     * Wraps an int array into a buffer.
      *
      * <p> The new buffer will be backed by the given int array;
      * that is, modifications to the buffer will cause the array to be modified
@@ -354,7 +354,7 @@ public abstract class IntBuffer
     }
 
     /**
-     * Wraps a int array into a buffer.
+     * Wraps an int array into a buffer.
      *
      * <p> The new buffer will be backed by the given int array;
      * that is, modifications to the buffer will cause the array to be modified
@@ -372,6 +372,7 @@ public abstract class IntBuffer
     public static IntBuffer wrap(int[] array) {
 	return wrap(array, 0, array.length);
     }
+
 
 
 
@@ -1003,8 +1004,6 @@ public abstract class IntBuffer
 
 
 
-
-
      *
      * @return  This buffer
      *
@@ -1342,11 +1341,11 @@ public abstract class IntBuffer
     /**
      * Retrieves this buffer's byte order.
      *
-     * <p> The byte order of a int buffer created by allocation or by
+     * <p> The byte order of an int buffer created by allocation or by
      * wrapping an existing <tt>int</tt> array is the {@link
      * ByteOrder#nativeOrder </code>native order<code>} of the underlying
-     * hardware.  The byte order of a int buffer created as a <a
-     * href="ByteBuffer.html#view">view</a> of a byte buffer is that of the
+     * hardware.  The byte order of an int buffer created as a <a
+     * href="ByteBuffer.html#views">view</a> of a byte buffer is that of the
      * byte buffer at the moment that the view is created.  </p>
      *
      * @return  This buffer's byte order

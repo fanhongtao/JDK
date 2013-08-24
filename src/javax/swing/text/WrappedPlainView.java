@@ -1,7 +1,7 @@
 /*
- * @(#)WrappedPlainView.java	1.38 04/05/26
+ * @(#)WrappedPlainView.java	1.41 06/05/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -9,6 +9,7 @@ package javax.swing.text;
 import java.util.Vector;
 import java.util.Properties;
 import java.awt.*;
+import java.lang.ref.SoftReference;
 import javax.swing.event.*;
 
 /**
@@ -31,7 +32,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.38 05/26/04
+ * @version 1.41 05/05/06
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
@@ -516,25 +517,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 
         WrappedLine(Element elem) {
             super(elem);
-        }
-
-        /**
-         * Calculate the number of lines that will be rendered
-         * by logical line when it is wrapped.
-         */
-        final int calculateLineCount() {
-            int nlines = 0;
-            int p1 = getEndOffset();
-            for (int p0 = getStartOffset(); p0 < p1; ) {
-                nlines += 1;
-		int p = calculateBreakPosition(p0, p1);
-		p0 = (p == p0) ? ++p : p; // this is the fix of #4410243
-					   // we check on situation when
-					   // width is too small and
-					   // break position is calculated
-					   // incorrect
-            }
-            return nlines;
+            lineCount = -1;
         }
 
         /**
@@ -559,10 +542,10 @@ public class WrappedPlainView extends BoxView implements TabExpander {
                 }
                 return width;
             case View.Y_AXIS:
-		if (nlines == 0 || widthChanging) {
-		    nlines = calculateLineCount();
+		if (lineCount < 0 || widthChanging) {
+		    breakLines(getStartOffset());
 		}
-                int h = nlines * metrics.getHeight();
+                int h = lineCount * metrics.getHeight();
                 return h;
             default:
                 throw new IllegalArgumentException("Invalid axis: " + axis);
@@ -587,20 +570,23 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 	    Highlighter h = host.getHighlighter();
 	    LayeredHighlighter dh = (h instanceof LayeredHighlighter) ?
 		                     (LayeredHighlighter)h : null;
-            int p1 = getEndOffset();
-            for (int p0 = getStartOffset(); p0 < p1; ) {
-		int p = calculateBreakPosition(p0, p1);
-		if (dh != null) {
- 		    if (p == p1) {
- 			dh.paintLayeredHighlights(g, p0, p - 1, a, host, this);
- 		    }
- 		    else {
- 			dh.paintLayeredHighlights(g, p0, p, a, host, this);
- 		    }
-		}
-                drawLine(p0, p, g, x, y);
+            
+            int start = getStartOffset(); 
+            int end = getEndOffset();
+            int p0 = start;
+            int[] lineEnds = getLineEnds();
+            for (int i = 0; i < lineCount; i++) {
+                int p1 = (lineEnds == null) ? end : 
+                                             start + lineEnds[i];
+                if (dh != null) {
+                    int hOffset = (p1 == end) 
+                                  ? (p1 - 1)
+                                  : p1;
+                    dh.paintLayeredHighlights(g, p0, hOffset, a, host, this);
+                }
+                drawLine(p0, p1, g, x, y);
                 
-                p0 = (p == p0) ? p1 : p;
+                p0 = p1;
                 y += metrics.getHeight();
             }
         }
@@ -616,51 +602,45 @@ public class WrappedPlainView extends BoxView implements TabExpander {
          *   valid location in the associated document
          * @see View#modelToView
          */
-        public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
+        public Shape modelToView(int pos, Shape a, Position.Bias b)
+                throws BadLocationException {
 	    Rectangle alloc = a.getBounds();
             alloc.height = metrics.getHeight();
             alloc.width = 1;
             
-            int p1 = getEndOffset();
-	    int p0 = getStartOffset();
+            int p0 = getStartOffset();
+            if (pos < p0 || pos > getEndOffset()) {
+                throw new BadLocationException("Position out of range", pos);
+            }
+
 	    int testP = (b == Position.Bias.Forward) ? pos :
 		        Math.max(p0, pos - 1);
-            while (p0 < p1) {
-		int p = calculateBreakPosition(p0, p1);
-                if ((pos >= p0) && (testP < p)) {
-                    // it's in this line
-                    Segment segment = SegmentCache.getSharedSegment();
-                    loadText(segment, p0, pos);
-                    alloc.x += Utilities.getTabbedTextWidth(segment, metrics, 
-                                                            alloc.x, 
-                                                            WrappedPlainView.this, p0);
-                    SegmentCache.releaseSharedSegment(segment);
-                    return alloc;
+            int line = 0;
+            int[] lineEnds = getLineEnds();
+            if (lineEnds != null) {
+                line = findLine(testP - p0);
+                if (line > 0) {
+                    p0 += lineEnds[line - 1];
                 }
-		if (p == p1 && pos == p1) {
-		    // Wants end.
-		    if (pos > p0) {
-                        Segment segment = SegmentCache.getSharedSegment();
-			loadText(segment, p0, pos);
-			alloc.x += Utilities.getTabbedTextWidth(segment,
-					     metrics, alloc.x, 
-					     WrappedPlainView.this, p0);
-                        SegmentCache.releaseSharedSegment(segment);
-		    }
-                    return alloc;
-		}
-                p0 = (p == p0) ? p1 : p;
-                alloc.y += alloc.height;
+                alloc.y += alloc.height * line;
             }
-            throw new BadLocationException(null, pos);
+            
+            if (pos > p0) {
+                Segment segment = SegmentCache.getSharedSegment();
+                loadText(segment, p0, pos);
+                alloc.x += Utilities.getTabbedTextWidth(segment, metrics, 
+                        alloc.x, WrappedPlainView.this, p0);
+                SegmentCache.releaseSharedSegment(segment);
+            }
+            return alloc;
         }
 
         /**
          * Provides a mapping from the view coordinate space to the logical
          * coordinate space of the model.
          *
-         * @param x the X coordinate
-         * @param y the Y coordinate
+         * @param fx the X coordinate
+         * @param fy the Y coordinate
          * @param a the allocated region to render into
          * @return the location within the model that best represents the
          *  given point in the view
@@ -671,7 +651,6 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 	    bias[0] = Position.Bias.Forward;
 
 	    Rectangle alloc = (Rectangle) a;
-	    Document doc = getDocument();
 	    int x = (int) fx;
 	    int y = (int) fy;
 	    if (y < alloc.y) {
@@ -689,70 +668,171 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 		// simply use the last line as it represents the last possible place
 		// we can position to.
 		alloc.height = metrics.getHeight();
-		int p1 = getEndOffset();
-		for (int p0 = getStartOffset(); p0 < p1; ) {
-		    int p = calculateBreakPosition(p0, p1);
-		    if ((y >= alloc.y) && (y < (alloc.y + alloc.height))) {
-			// it's in this line
-			if (x < alloc.x) {
-			    // point is to the left of the line
-			    return p0;
-			} else if (x > alloc.x + alloc.width) {
-			    // point is to the right of the line
-			    return p - 1;
-			} else {
-			    // Determine the offset into the text
-                            Segment segment = SegmentCache.getSharedSegment();
-                            loadText(segment, p0, p1);
-			    int n = Utilities.getTabbedTextOffset(segment, metrics, 
-								    alloc.x, x, 
-								    WrappedPlainView.this, p0);
-                            SegmentCache.releaseSharedSegment(segment);
-			    return Math.min(p0 + n, p1 - 1);
-			}
-		    }
-		    
-		    p0 = (p == p0) ? p1 : p;
-		    alloc.y += alloc.height;
-		}
-		return getEndOffset() - 1;
+                int line = (y - alloc.y) / alloc.height;
+                if (line >= lineCount) {
+                    return getEndOffset() - 1;
+                } else {
+                    int p0 = getStartOffset();
+                    int p1;
+                    if (lineCount == 1) {
+                        p1 = getEndOffset();
+                    } else {
+                        int[] lineEnds = getLineEnds();
+                        p1 = p0 + lineEnds[line];
+                        if (line > 0) {
+                            p0 += lineEnds[line - 1];
+                        }
+                    }
+                    
+                    if (x < alloc.x) {
+                        // point is to the left of the line
+                        return p0;
+                    } else if (x > alloc.x + alloc.width) {
+                        // point is to the right of the line
+                        return p1 - 1;
+                    } else {
+                        // Determine the offset into the text
+                        Segment segment = SegmentCache.getSharedSegment();
+                        loadText(segment, p0, p1);
+                        int n = Utilities.getTabbedTextOffset(segment, metrics, 
+                                                   alloc.x, x, 
+                                                   WrappedPlainView.this, p0);
+                        SegmentCache.releaseSharedSegment(segment);
+                        return Math.min(p0 + n, p1 - 1);
+                    }
+                }
 	    }
 	}
 
         public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	    int n = calculateLineCount();
-	    if (this.nlines != n) {
-		this.nlines = n;
-		WrappedPlainView.this.preferenceChanged(this, false, true);
-		// have to repaint any views after the receiver.
-		getContainer().repaint();
-	    }
-	    else if (a != null) {
-                Component c = getContainer();
-                Rectangle alloc = (Rectangle) a;
-                c.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
-            }
+            update(e, a);
         }
 
         public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	    int n = calculateLineCount();
-	    if (this.nlines != n) {
-		// have to repaint any views after the receiver.
-		this.nlines = n;
-		WrappedPlainView.this.preferenceChanged(this, false, true);
-		getContainer().repaint();
-	    }
-	    else if (a != null) {
+            update(e, a);
+        }
+
+        private void update(DocumentEvent ev, Shape a) {
+            int oldCount = lineCount;
+            breakLines(ev.getOffset());
+            if (oldCount != lineCount) {
+                WrappedPlainView.this.preferenceChanged(this, false, true);
+                // have to repaint any views after the receiver.
+                getContainer().repaint();
+            } else if (a != null) {
                 Component c = getContainer();
                 Rectangle alloc = (Rectangle) a;
                 c.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
             }
         }
+        
+        /**
+         * Returns line cache. If the cache was GC'ed, recreates it.
+         * If there's no cache, returns null
+         */ 
+        final int[] getLineEnds() {
+            if (lineCache == null) {
+                return null;
+            } else {
+                int[] lineEnds = lineCache.get();
+                if (lineEnds == null) {
+                    // Cache was GC'ed, so rebuild it
+                    return breakLines(getStartOffset());
+                } else {
+                    return lineEnds;
+                }
+            }
+        }
 
-        // --- variables ---------------------------------------
+        /**
+         * Creates line cache if text breaks into more than one physical line.
+         * @param startPos position to start breaking from 
+         * @return the cache created, ot null if text breaks into one line 
+         */ 
+        final int[] breakLines(int startPos) {
+            int[] lineEnds = (lineCache == null) ? null : lineCache.get();
+            int[] oldLineEnds = lineEnds;
+            int start = getStartOffset();
+            int lineIndex = 0;
+            if (lineEnds != null) {
+                lineIndex = findLine(startPos - start);
+                if (lineIndex > 0) {
+                    lineIndex--;
+                }
+            }
+            
+            int p0 = (lineIndex == 0) ? start : start + lineEnds[lineIndex - 1];  
+            int p1 = getEndOffset();
+            while (p0 < p1) {
+		int p = calculateBreakPosition(p0, p1);
+		p0 = (p == p0) ? ++p : p;      // 4410243
+                
+                if (lineIndex == 0 && p0 >= p1) {
+                    // do not use cache if there's only one line
+                    lineCache = null;
+                    lineEnds = null;
+                    lineIndex = 1;
+                    break;
+                } else if (lineEnds == null || lineIndex >= lineEnds.length) {
+                    // we have 2+ lines, and the cache is not big enough
+                    // we try to estimate total number of lines
+                    double growFactor = ((double)(p1 - start) / (p0 - start));
+                    int newSize = (int)Math.ceil((lineIndex + 1) * growFactor);
+                    newSize = Math.max(newSize, lineIndex + 2);
+                    int[] tmp = new int[newSize];
+                    if (lineEnds != null) {
+                        System.arraycopy(lineEnds, 0, tmp, 0, lineIndex);
+                    }
+                    lineEnds = tmp;
+                }
+                lineEnds[lineIndex++] = p0 - start;
+            }
+            
+            lineCount = lineIndex;
+            if (lineCount > 1) {
+                // check if the cache is too big
+                int maxCapacity = lineCount + lineCount / 3;
+                if (lineEnds.length > maxCapacity) {
+                    int[] tmp = new int[maxCapacity];
+                    System.arraycopy(lineEnds, 0, tmp, 0, lineCount);
+                    lineEnds = tmp;
+                }
+            }
 
-        int nlines;
-    }
+            if (lineEnds != null && lineEnds != oldLineEnds) {
+                lineCache = new SoftReference<int[]>(lineEnds);
+            }
+            return lineEnds;
+        }
+
+        /**
+         * Binary search in the cache for line containing specified offset
+         * (which is relative to the beginning of the view). This method
+         * assumes that cache exists.
+         */ 
+        private int findLine(int offset) {
+            int[] lineEnds = lineCache.get();
+            if (offset < lineEnds[0]) {
+                return 0;
+            } else if (offset > lineEnds[lineCount - 1]) {
+                return lineCount;
+            } else {
+                return findLine(lineEnds, offset, 0, lineCount - 1);
+            }
+        }
     
+        private int findLine(int[] array, int offset, int min, int max) {
+            if (max - min <= 1) {
+                return max;
+            } else {
+                int mid = (max + min) / 2;
+                return (offset < array[mid]) ?
+                        findLine(array, offset, min, mid) :
+                        findLine(array, offset, mid, max);                                           
+            }
+        }
+        
+        int lineCount;
+        SoftReference<int[]> lineCache = null;
+    }
 }
-

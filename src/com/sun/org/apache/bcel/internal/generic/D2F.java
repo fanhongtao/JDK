@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * D2F - Convert double to float
  * <PRE>Stack: ..., value.word1, value.word2 -&gt; ..., result</PRE>
  *
- * @version $Id: D2F.java,v 1.1.1.1 2001/10/29 20:00:08 jvanzyl Exp $
+ * @version $Id: D2F.java,v 1.1.2.1 2005/07/31 23:46:01 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class D2F extends ConversionInstruction {

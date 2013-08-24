@@ -1,7 +1,7 @@
 /*
- * @(#)ParserTable.java	1.50 05/01/04
+ * @(#)ParserTable.java	1.51 06/08/28
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -330,6 +330,10 @@ public class ParserTable {
 	    ParserDataFactory.make( ORBConstants.SERVER_ID_PROPERTY, 
 		OperationFactory.setFlagAction(), 
 		"persistentServerIdInitialized", Boolean.FALSE,
+		Boolean.TRUE, "294" ),
+	    ParserDataFactory.make( ORBConstants.SERVER_ID_PROPERTY, 
+		OperationFactory.setFlagAction(), 
+		"orbServerIdPropertySpecified", Boolean.FALSE,
 		Boolean.TRUE, "294" ),
 	    ParserDataFactory.make( ORBConstants.ACTIVATED_PROPERTY, 
 		OperationFactory.booleanAction(), 

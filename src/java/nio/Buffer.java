@@ -1,5 +1,5 @@
 /*
- * @(#)Buffer.java	1.35 06/08/11
+ * @(#)Buffer.java	1.38 05/12/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -150,7 +150,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.35, 06/08/11
+ * @version 1.38, 05/12/20
  * @since 1.4
  */
 
@@ -382,6 +382,82 @@ public abstract class Buffer {
      * @return  <tt>true</tt> if, and only if, this buffer is read-only
      */
     public abstract boolean isReadOnly();
+
+    /**
+     * Tells whether or not this buffer is backed by an accessible
+     * array.
+     *
+     * <p> If this method returns <tt>true</tt> then the {@link #array() array}
+     * and {@link #arrayOffset() arrayOffset} methods may safely be invoked.
+     * </p>
+     *
+     * @return  <tt>true</tt> if, and only if, this buffer
+     *          is backed by an array and is not read-only
+     *
+     * @since 1.6
+     */
+    public abstract boolean hasArray();
+
+    /**
+     * Returns the array that backs this
+     * buffer&nbsp;&nbsp;<i>(optional operation)</i>.
+     *
+     * <p> This method is intended to allow array-backed buffers to be
+     * passed to native code more efficiently. Concrete subclasses
+     * provide more strongly-typed return values for this method.
+     *
+     * <p> Modifications to this buffer's content will cause the returned
+     * array's content to be modified, and vice versa.
+     *
+     * <p> Invoke the {@link #hasArray hasArray} method before invoking this
+     * method in order to ensure that this buffer has an accessible backing
+     * array.  </p>
+     *
+     * @return  The array that backs this buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is backed by an array but is read-only
+     *
+     * @throws  UnsupportedOperationException
+     *          If this buffer is not backed by an accessible array
+     *
+     * @since 1.6
+     */
+    public abstract Object array();
+
+    /**
+     * Returns the offset within this buffer's backing array of the first
+     * element of the buffer&nbsp;&nbsp;<i>(optional operation)</i>.
+     *
+     * <p> If this buffer is backed by an array then buffer position <i>p</i>
+     * corresponds to array index <i>p</i>&nbsp;+&nbsp;<tt>arrayOffset()</tt>.
+     *
+     * <p> Invoke the {@link #hasArray hasArray} method before invoking this
+     * method in order to ensure that this buffer has an accessible backing
+     * array.  </p>
+     *
+     * @return  The offset within this buffer's array
+     *          of the first element of the buffer
+     *
+     * @throws  ReadOnlyBufferException
+     *          If this buffer is backed by an array but is read-only
+     *
+     * @throws  UnsupportedOperationException
+     *          If this buffer is not backed by an accessible array
+     *
+     * @since 1.6
+     */
+    public abstract int arrayOffset();
+
+    /**
+     * Tells whether or not this buffer is
+     * <a href="ByteBuffer.html#direct"><i>direct</i></a>. </p>
+     *
+     * @return  <tt>true</tt> if, and only if, this buffer is direct
+     *
+     * @since 1.6
+     */
+    public abstract boolean isDirect();
 
 
     // -- Package-private methods for bounds checking, etc. --

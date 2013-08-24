@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.42 05/10/31
+ * @(#)DefaultTableCellRenderer.java	1.46 05/11/30
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.42 10/31/05
+ * @version 1.46 11/30/05
  * @author Philip Milne 
  * @see JTable
  */
@@ -69,6 +69,12 @@ public class DefaultTableCellRenderer extends JLabel
     implements TableCellRenderer, Serializable
 {
 
+   /**
+    * An empty <code>Border</code>. This field might not be used. To change the
+    * <code>Border</code> used by this renderer override the 
+    * <code>getTableCellRendererComponent</code> method and set the border
+    * of the returned component directly.
+    */
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1); 
     private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
 
@@ -136,6 +142,13 @@ public class DefaultTableCellRenderer extends JLabel
     /**
      *
      * Returns the default table cell renderer.
+     * <p>
+     * During a printing operation, this method will be called with
+     * <code>isSelected</code> and <code>hasFocus</code> values of
+     * <code>false</code> to prevent selection and focus from appearing
+     * in the printed output. To do other customization based on whether
+     * or not the table is being printed, check the return value from
+     * {@link javax.swing.JComponent#isPaintingForPrint()}.
      *
      * @param table  the <code>JTable</code>
      * @param value  the value to assign to the cell at
@@ -145,21 +158,41 @@ public class DefaultTableCellRenderer extends JLabel
      * @param row  the row of the cell to render
      * @param column the column of the cell to render
      * @return the default table cell renderer
+     * @see javax.swing.JComponent#isPaintingForPrint()
      */
     public Component getTableCellRendererComponent(JTable table, Object value,
                           boolean isSelected, boolean hasFocus, int row, int column) {
 
-	if (isSelected) {
-	   super.setForeground(table.getSelectionForeground());
-	   super.setBackground(table.getSelectionBackground());
+        Color fg = null;
+        Color bg = null;
+
+        JTable.DropLocation dropLocation = table.getDropLocation();
+        if (dropLocation != null
+                && !dropLocation.isInsertRow()
+                && !dropLocation.isInsertColumn()
+                && dropLocation.getRow() == row
+                && dropLocation.getColumn() == column) {
+
+            fg = UIManager.getColor("Table.dropCellForeground");
+            bg = UIManager.getColor("Table.dropCellBackground");
+
+            isSelected = true;
+        }
+
+        if (isSelected) {
+            super.setForeground(fg == null ? table.getSelectionForeground()
+                                           : fg);
+            super.setBackground(bg == null ? table.getSelectionBackground()
+                                           : bg);
+	} else {
+            super.setForeground(unselectedForeground != null
+                                    ? unselectedForeground
+                                    : table.getForeground());
+	    super.setBackground(unselectedBackground != null
+                                    ? unselectedBackground
+                                    : table.getBackground());
 	}
-	else {
-	    super.setForeground((unselectedForeground != null) ? unselectedForeground 
-	                                                       : table.getForeground());
-	    super.setBackground((unselectedBackground != null) ? unselectedBackground 
-	                                                       : table.getBackground());
-	}
-	
+
 	setFont(table.getFont());
 
 	if (hasFocus) {
@@ -272,9 +305,15 @@ public class DefaultTableCellRenderer extends JLabel
      */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {	
 	// Strings get interned...
-	if (propertyName=="text") {
-	    super.firePropertyChange(propertyName, oldValue, newValue);
-	}
+	if (propertyName=="text"
+                || propertyName == "labelFor"
+                || propertyName == "displayedMnemonic"
+                || ((propertyName == "font" || propertyName == "foreground")
+                    && oldValue != newValue
+                    && getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) != null)) {
+
+            super.firePropertyChange(propertyName, oldValue, newValue);
+        }
     }
 
     /**

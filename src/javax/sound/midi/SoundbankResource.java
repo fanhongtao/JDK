@@ -1,7 +1,7 @@
 /*
- * @(#)SoundbankResource.java	1.15 04/05/05
+ * @(#)SoundbankResource.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ package javax.sound.midi;
  * brightness).  Also, more than one <code>Instrument</code> can use the same 
  * sample.
  *
- * @version 1.15, 04/05/05
+ * @version 1.16, 05/11/17
  * @author Kara Kytle
  */
 

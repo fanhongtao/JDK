@@ -1,7 +1,7 @@
 /*
- * @(#)AndQueryExp.java	4.19 04/02/10
+ * @(#)AndQueryExp.java	4.20 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

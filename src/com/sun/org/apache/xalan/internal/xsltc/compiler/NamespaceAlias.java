@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NamespaceAlias.java,v 1.7 2004/02/16 22:24:29 minchau Exp $
+ * $Id: NamespaceAlias.java,v 1.2.4.1 2005/09/02 10:20:55 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

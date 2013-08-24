@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_monitor.c	1.34 05/03/03
+ * @(#)hprof_monitor.c	1.36 05/11/17
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -407,26 +407,17 @@ monitor_waited_event(JNIEnv *env, jthread thread,
     time_waited = tls_monitor_stop_timer(tls_index);
     index = tls_get_monitor(tls_index);
 
-    if ( index ==0 ) { /* FIXUP: Why is this happening? JVMTI Bug? */
+    if ( index ==0 ) {
 	/* As best as I can tell, on Solaris X86 (not SPARC) I sometimes
 	 *    get a "waited" event on a thread that I have never seen before
 	 *    at all, so how did I get a WAITED event? Perhaps when I
 	 *    did the VM_INIT handling, a thread I've never seen had already
 	 *    done the WAIT (which I never saw?), and now I see this thread
 	 *    for the first time, and also as it finishes it's WAIT?
+	 *    Only happening on faster processors?
 	 */
-	
         tls_set_monitor(tls_index, 0);
 	return;
-
-#if 0 /* FIXUP: Remove this for now, bug filed on JVMTI. */
-	TraceIndex trace_index;
-	
-	HPROF_ERROR(JNI_FALSE, "MonitorWaitedEvent missing MonitorWaitEvent?");
-        trace_index = get_trace(tls_index, env);
-	index = find_or_create_entry(env, trace_index, object);
-#endif
-
     }
     HPROF_ASSERT(index!=0);
     tls_set_monitor(tls_index, 0);

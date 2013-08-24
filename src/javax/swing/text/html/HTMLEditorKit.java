@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLEditorKit.java	1.131 04/05/18
+ * @(#)HTMLEditorKit.java	1.136 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -140,7 +140,7 @@ import java.lang.ref.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.131 05/18/04
+ * @version 1.136 04/07/06
  */
 public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 
@@ -496,6 +496,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 
     /**
      * Returns the cursor to use over hyper links.
+     * @since 1.3
      */
     public Cursor getLinkCursor() {
 	return linkCursor;
@@ -612,7 +613,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	private String href = null;
 	/** This is used by viewToModel to avoid allocing a new array each
 	 * time. */
-	private Position.Bias[] bias = new Position.Bias[1];
+        private transient Position.Bias[] bias = new Position.Bias[1];
         /**
          * Current offset.
          */
@@ -1069,7 +1070,11 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	 * @return the view
 	 */
         public View create(Element elem) {
-	    Object o = elem.getAttributes().getAttribute(StyleConstants.NameAttribute);
+            AttributeSet attrs = elem.getAttributes();
+ 	    Object elementName = 
+                attrs.getAttribute(AbstractDocument.ElementNameAttribute);
+	    Object o = (elementName != null) ? 
+		null : attrs.getAttribute(StyleConstants.NameAttribute);
 	    if (o instanceof HTML.Tag) {
 		HTML.Tag kind = (HTML.Tag) o;
 		if (kind == HTML.Tag.CONTENT) {
@@ -1183,7 +1188,8 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	    }
 	    // If we get here, it's either an element we don't know about
 	    // or something from StyledDocument that doesn't have a mapping to HTML.
-	    String nm = elem.getName();
+	    String nm = (elementName != null) ? (String)elementName : 
+                                                elem.getName();
 	    if (nm != null) {
 		if (nm.equals(AbstractDocument.ContentElementName)) {
 		    return new LabelView(elem);
@@ -1406,7 +1412,10 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	new InsertHRAction(),
 	new InsertHTMLTextAction("InsertPre", INSERT_PRE_HTML,
 				 HTML.Tag.BODY, HTML.Tag.PRE),
-	nextLinkAction, previousLinkAction, activateLinkAction
+	nextLinkAction, previousLinkAction, activateLinkAction,
+    
+        new BeginAction(beginAction, false),
+        new BeginAction(selectionBeginAction, true)
     };
 
 
@@ -1817,7 +1826,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 
 	private static int prevHypertextOffset = -1;
 	private static boolean foundLink = false;
-	private FocusHighlightPainter focusPainter =
+        private static FocusHighlightPainter focusPainter =
 	    new FocusHighlightPainter(null);
 	private Object selectionTag;
 	private boolean focusBack = false;
@@ -1944,7 +1953,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	 * A highlight painter that draws a one-pixel border around
 	 * the highlighted area.
 	 */ 
-	class FocusHighlightPainter extends 
+        static class FocusHighlightPainter extends 
 	    DefaultHighlighter.DefaultHighlightPainter {
 
 	    FocusHighlightPainter(Color color) {
@@ -2169,5 +2178,47 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 		}
 	    }
 	}
+    }
+
+    private static int getBodyElementStart(JTextComponent comp) {
+        Element rootElement = comp.getDocument().getRootElements()[0];
+        for (int i = 0; i < rootElement.getElementCount(); i++) {
+            Element currElement = rootElement.getElement(i); 
+            if("body".equals(currElement.getName())) {
+                return currElement.getStartOffset();
+            }
+        }
+        return 0;
+    }
+    
+    /*
+     * Move the caret to the beginning of the document.
+     * @see DefaultEditorKit#beginAction
+     * @see HTMLEditorKit#getActions
+     */
+    
+    static class BeginAction extends TextAction {
+
+        /* Create this object with the appropriate identifier. */
+        BeginAction(String nm, boolean select) {
+            super(nm);
+            this.select = select;
+        }
+
+        /** The operation to perform when this action is triggered. */
+        public void actionPerformed(ActionEvent e) {
+            JTextComponent target = getTextComponent(e);
+            int bodyStart = getBodyElementStart(target);
+            
+            if (target != null) {
+                if (select) {
+                    target.moveCaretPosition(bodyStart);
+                } else {
+                    target.setCaretPosition(bodyStart);
+                }
+            }
+        }
+
+        private boolean select;
     }
 }

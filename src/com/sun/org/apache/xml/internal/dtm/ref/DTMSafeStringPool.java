@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMSafeStringPool.java,v 1.6 2004/02/16 23:06:11 minchau Exp $
+ * $Id: DTMSafeStringPool.java,v 1.2.4.1 2005/09/15 08:15:04 suresh_emailid Exp $
  */
 
 package com.sun.org.apache.xml.internal.dtm.ref;
@@ -25,7 +25,7 @@ package com.sun.org.apache.xml.internal.dtm.ref;
  * this addresses. Of course performance is inferior to that of the
  * bare-bones version.</p>
  *
- * <p>Status: Passed basic test in _main().</p>
+ * <p>Status: Passed basic test in main().</p>
  * */
 public class DTMSafeStringPool
 extends DTMStringPool

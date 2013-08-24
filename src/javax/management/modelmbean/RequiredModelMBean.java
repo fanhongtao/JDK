@@ -1,8 +1,8 @@
 /*
  * @(#)file      RequiredModelMBean.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.54
- * @(#)lastedit      05/09/08
+ * @(#)version   1.61
+ * @(#)lastedit      05/12/29
  *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
  *
@@ -12,11 +12,11 @@
  * liable for any damages suffered by you or any third party claim against
  * you regarding the Program.
  *
- * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * Copyright 2005 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation.
  *
@@ -74,7 +74,6 @@ import javax.management.RuntimeOperationsException;
 import javax.management.ServiceNotFoundException;
 import javax.management.NotificationEmitter;
 import javax.management.loading.ClassLoaderRepository;
-import sun.reflect.misc.MethodUtil;
 
 import com.sun.jmx.trace.Trace;
 
@@ -247,7 +246,7 @@ public class RequiredModelMBean
 	    final RuntimeException x = new
 		IllegalArgumentException("ModelMBeanInfo must not be null");
 	    final String exceptionText =
-		"Exception occured trying to initialize the " +
+		"Exception occurred trying to initialize the " +
 		"ModelMBeanInfo of the RequiredModelMBean";
 	    throw new RuntimeOperationsException(x,exceptionText);
 	}
@@ -257,7 +256,7 @@ public class RequiredModelMBean
 		trace("setModelMBeanInfo(ModelMBeanInfo)",
 		      "RequiredMBean is registered: Raising exception.");
 	    final String exceptionText =
-		"Exception occured trying to set the " +
+		"Exception occurred trying to set the " +
 		"ModelMBeanInfo of the RequiredModelMBean";
 	    final RuntimeException x = new IllegalStateException(
 	     "cannot call setModelMBeanInfo while ModelMBean is registered");
@@ -375,6 +374,7 @@ public class RequiredModelMBean
      *   = "always"
      *   = "onTimer" and now > 'lastPersistTime' + 'persistPeriod'
      *   = "NoMoreOftenThan" and now > 'lastPersistTime' + 'persistPeriod'
+     *   = "onUnregister"
      * </PRE>
      *
      * <p>Do not store the MBean if 'persistPolicy' field is:</p>
@@ -826,7 +826,7 @@ public class RequiredModelMBean
 	    final RuntimeException x =
 		new IllegalArgumentException("Method name must not be null");
 	    throw new RuntimeOperationsException(x,
-                      "An exception occured while trying to " +
+                      "An exception occurred while trying to " +
 		      "invoke a method on a RequiredModelMBean");
 	}
 
@@ -1014,8 +1014,8 @@ public class RequiredModelMBean
 	int.class, long.class, boolean.class, double.class,
 	float.class, short.class, byte.class, char.class,
     };
-    private static final Map/*<String,Class>*/ primitiveClassMap =
-	new HashMap();
+    private static final Map<String,Class<?>> primitiveClassMap =
+	new HashMap<String,Class<?>>();
     static {
 	for (int i = 0; i < primitiveClasses.length; i++) {
 	    final Class c = primitiveClasses[i];
@@ -1037,8 +1037,8 @@ public class RequiredModelMBean
 	    return null;
 	if (targetObjectField != null)
 	    return null;
-	final Class rmmbClass = RequiredModelMBean.class;
-	final Class targetClass;
+	final Class<RequiredModelMBean> rmmbClass = RequiredModelMBean.class;
+	final Class<?> targetClass;
 	if (opClassName == null)
 	    targetClass = rmmbClass;
 	else {
@@ -1068,18 +1068,25 @@ public class RequiredModelMBean
 				Object targetObject, Object[] opArgs)
 	    throws MBeanException, ReflectionException {
 	try {
-	    return MethodUtil.invoke(method, targetObject, opArgs);
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                if (method.getName().equals("forName") &&
+                    targetObject.getClass() == Class.class) {
+                    sm.checkPackageAccess((String)opArgs[0]);
+                }
+            }
+            return method.invoke(targetObject, opArgs);
 	} catch (RuntimeErrorException ree) {
 	    throw new RuntimeOperationsException(ree,
-		      "RuntimeException occured in RequiredModelMBean "+
+		      "RuntimeException occurred in RequiredModelMBean "+
 		      "while trying to invoke operation " + opName);
 	} catch (RuntimeException re) {
 	    throw new RuntimeOperationsException(re,
-		      "RuntimeException occured in RequiredModelMBean "+
+		      "RuntimeException occurred in RequiredModelMBean "+
 		      "while trying to invoke operation " + opName);
 	} catch (IllegalAccessException iae) {
 	    throw new ReflectionException(iae,
-		      "IllegalAccessException occured in " +
+		      "IllegalAccessException occurred in " +
 		      "RequiredModelMBean while trying to " +
 		      "invoke operation " + opName);
 	} catch (InvocationTargetException ite) {
@@ -1090,7 +1097,7 @@ public class RequiredModelMBean
 		      "while trying to invoke operation " + opName);
 	    } else if (mmbTargEx instanceof Error) {
 		throw new RuntimeErrorException((Error)mmbTargEx,
-		      "Error occured in RequiredModelMBean while trying "+
+		      "Error occurred in RequiredModelMBean while trying "+
 		      "to invoke operation " + opName);
 	    } else if (mmbTargEx instanceof ReflectionException) {
 		throw (ReflectionException) mmbTargEx;
@@ -1101,11 +1108,11 @@ public class RequiredModelMBean
 	    }
 	} catch (Error err) {
 	    throw new RuntimeErrorException(err,
-		  "Error occured in RequiredModelMBean while trying "+
+		  "Error occurred in RequiredModelMBean while trying "+
 		  "to invoke operation " + opName);
 	} catch (Exception e) {
 	    throw new ReflectionException(e,
-		  "Exception occured in RequiredModelMBean while " +
+		  "Exception occurred in RequiredModelMBean while " +
 		  "trying to invoke operation " + opName);
 	}
     }
@@ -1169,11 +1176,11 @@ public class RequiredModelMBean
      * which case we don't touch anything so as not to interfere
      * with a later permissionful caller.
      */
-    private static Set/*<String>*/ rmmbMethodNames;
+    private static Set<String> rmmbMethodNames;
     private static synchronized boolean isRMMBMethodName(String name) {
 	if (rmmbMethodNames == null) {
 	    try {
-		Set names = new HashSet();
+		Set<String> names = new HashSet<String>();
 		Method[] methods = RequiredModelMBean.class.getMethods();
 		for (int i = 0; i < methods.length; i++)
 		    names.add(methods[i].getName());
@@ -1227,13 +1234,29 @@ public class RequiredModelMBean
      * operation descriptor, then the method described by the
      * operation descriptor is executed.  The response from the
      * method is returned as the value of the attribute.  If the
-     * operation fails or the returned value is not of the same
-     * type as the attribute, an exception will be thrown.  If no
-     * 'getMethod' field is defined then the default value of the
-     * attribute is returned. In this implementation, in every
-     * case where the getMethod needs to be called, because the
-     * method is invoked through the standard "invoke" method and
-     * thus needs operationInfo, an operation must be specified
+     * operation fails or the returned value is not compatible with
+     * the declared type of the attribute, an exception will be thrown.</p>
+     *
+     * <p>If no 'getMethod' field is defined then the default value of the
+     * attribute is returned. If the returned value is not compatible with
+     * the declared type of the attribute, an exception will be thrown.</p>
+     * 
+     * <p>The declared type of the attribute is the String returned by
+     * {@link ModelMBeanAttributeInfo#getType()}.  A value is compatible
+     * with this type if one of the following is true:
+     * <ul>
+     * <li>the value is null;</li>
+     * <li>the declared name is a primitive type name (such as "int")
+     *     and the value is an instance of the corresponding wrapper
+     *     type (such as java.lang.Integer);</li>
+     * <li>the name of the value's class is identical to the declared name;</li>
+     * <li>the declared name can be loaded by the value's class loader and
+     *     produces a class to which the value can be assigned.</li>
+     * </ul>
+     *
+     * <p>In this implementation, in every case where the getMethod needs to
+     * be called, because the method is invoked through the standard "invoke"
+     * method and thus needs operationInfo, an operation must be specified
      * for that getMethod so that the invocation works correctly.</p>
      *
      * @param attrName A String specifying the name of the
@@ -1283,7 +1306,7 @@ public class RequiredModelMBean
 	if (attrName == null)
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("attributeName must not be null"),
-		"Exception occured trying to get attribute of a " +
+		"Exception occurred trying to get attribute of a " +
 	        "RequiredModelMBean");
 
 	if (tracing())
@@ -1477,7 +1500,7 @@ public class RequiredModelMBean
 		    InvalidAttributeValueException(
 		    "Unable to resolve attribute value, " +
 		    "no getMethod defined in descriptor for attribute"),
-		    "An exception occured while trying to get an "+
+		    "An exception occurred while trying to get an "+
 		    "attribute value through a RequiredModelMBean");
 	    }
 
@@ -1490,7 +1513,7 @@ public class RequiredModelMBean
 		trace("getAttribute(String)","getMethod failed with " +
 		      e.getMessage() + " exception type " +
 		      (e.getClass()).toString());
-	    throw new MBeanException(e,"An exception occured while trying "+
+	    throw new MBeanException(e,"An exception occurred while trying "+
 		      "to get an attribute value: " + e.getMessage());
 	}
 		
@@ -1524,7 +1547,7 @@ public class RequiredModelMBean
 	if (attrNames == null)
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("attributeNames must not be null"),
-		"Exception occured trying to get attributes of a "+
+		"Exception occurred trying to get attributes of a "+
 		"RequiredModelMBean");
 
 	responseList = new AttributeList();
@@ -1580,6 +1603,7 @@ public class RequiredModelMBean
      * <UL>
      * <Li> = "never"</Li>
      * <Li> = "onTimer" && now &lt; 'lastPersistTime' + 'persistPeriod'</Li>
+     * <Li> = "onUnregister"</Li>
      * <Li> = "NoMoreOftenThan" and now &lt; 'lastPersistTime' +
      *        'persistPeriod'</Li>
      * </UL>
@@ -1604,9 +1628,12 @@ public class RequiredModelMBean
      * @exception MBeanException Wraps one of the following Exceptions:
      *   <UL>
      *     <LI> An Exception thrown by the managed object's setter.</LI>
-     *     <LI> A {@link ServiceNotFoundException} if no `setMethod` field
-     *          is defined in the descriptor for the attribute or the
-     *          managed resource is null.</LI>
+     *     <LI> A {@link ServiceNotFoundException} if a setMethod field is 
+     *          defined in the descriptor for the attribute and the managed 
+     *          resource is null; or if no setMethod field is defined and 
+     *          caching is not enabled for the attribute. 
+     *          Note that if there is no getMethod field either, then caching 
+     *          is automatically enabled.</LI>
      *     <LI> {@link InvalidTargetObjectTypeException} The 'targetType'
      *          field value is not 'objectReference'.</LI>
      *     <LI> An Exception thrown by the managed object's getter.</LI>
@@ -1629,7 +1656,7 @@ public class RequiredModelMBean
 	if (attribute == null)
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("attribute must not be null"),
-		"Exception occured trying to set an attribute of a "+
+		"Exception occurred trying to set an attribute of a "+
 		"RequiredModelMBean");
 	
 	/* run setMethod if there is one */
@@ -1659,6 +1686,9 @@ public class RequiredModelMBean
 	    Object setResponse = null;
 	    String attrSetMethod = (String)
 		(attrDescr.getFieldValue("setMethod"));
+            String attrGetMethod = (String)
+		(attrDescr.getFieldValue("getMethod"));
+            
 	    String attrType = (String)(attrInfo.getType());
 	    Object currValue = "Unknown";
 
@@ -1707,6 +1737,13 @@ public class RequiredModelMBean
 	    }
 		
 	    final boolean updateCache = ((ctl != null) && !(ctl.equals("-1")));
+
+             if(attrSetMethod == null  && !updateCache && attrGetMethod != null)
+                throw new MBeanException(new ServiceNotFoundException("No " +
+                        "setMethod field is defined in the descriptor for " +
+                        attrName + " attribute and caching is not enabled " +
+                        "for it"));
+            
 	    if (updateCache || updateDescriptor) {
 		if (tracing())
 		    trace("setAttribute()","setting cached value of " +
@@ -1781,7 +1818,7 @@ public class RequiredModelMBean
 	if (attributes == null)
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("attributes must not be null"),
-		"Exception occured trying to set attributes of a "+
+		"Exception occurred trying to set attributes of a "+
 		"RequiredModelMBean");
 
 	final AttributeList responseList = new AttributeList();
@@ -1950,7 +1987,7 @@ public class RequiredModelMBean
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("notification object must not be "+
 					 "null"),
-		"Exception occured trying to send a notification from a "+
+		"Exception occurred trying to send a notification from a "+
 		"RequiredModelMBean");
 		
 	
@@ -2014,7 +2051,7 @@ public class RequiredModelMBean
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("notification message must not "+
 					 "be null"),
-		"Exception occured trying to send a text notification "+
+		"Exception occurred trying to send a text notification "+
 		"from a ModelMBean");
 		
 	Notification myNtfyObj = new Notification("jmx.modelmbean.generic",
@@ -2208,14 +2245,14 @@ public class RequiredModelMBean
 			break;
 		    }				
 		}
-		if (!found) {
-		    throw new RuntimeOperationsException(new
-			IllegalArgumentException(
-                        "The attribute name does not exist"),
-                        "Exception occured trying to add an "+
-			"AttributeChangeNotification listener");
-		}
-	    }
+            }
+            if (!found) {
+                throw new RuntimeOperationsException(new
+                    IllegalArgumentException(
+                    "The attribute name does not exist"),
+                    "Exception occurred trying to add an "+
+                    "AttributeChangeNotification listener");
+            }
 	}
 
 	if (tracing())
@@ -2260,7 +2297,7 @@ public class RequiredModelMBean
 	if ((!found) && (inAttributeName != null)) {
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("Invalid attribute name"),
-		"Exception occured trying to remove "+
+		"Exception occurred trying to remove "+
 		"attribute change notification listener");
 	}
 
@@ -2289,7 +2326,7 @@ public class RequiredModelMBean
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException(
                 "attribute change notification object must not be null"),
-		"Exception occured trying to send "+
+		"Exception occurred trying to send "+
                 "attribute change notification of a ModelMBean");
 	
 	Object oldv = ntfyObj.getOldValue();
@@ -2397,14 +2434,14 @@ public class RequiredModelMBean
 	if ((inOldVal == null) || (inNewVal == null))
 	    throw new RuntimeOperationsException(new
 	       IllegalArgumentException("Attribute object must not be null"),
-	       "Exception occured trying to send " +
+	       "Exception occurred trying to send " +
 	       "attribute change notification of a ModelMBean");
 	
 
 	if (!(inOldVal.getName().equals(inNewVal.getName())))
 	    throw new RuntimeOperationsException(new
 		IllegalArgumentException("Attribute names are not the same"),
-		"Exception occured trying to send " +
+		"Exception occurred trying to send " +
 		"attribute change notification of a ModelMBean");
 
 	

@@ -1,7 +1,7 @@
 /*
- * @(#)BevelBorder.java	1.20 03/12/19
+ * @(#)BevelBorder.java	1.22 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -25,7 +25,7 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.20 12/19/03
+ * @version 1.22 04/07/06
  * @author David Kloba
  */
 public class BevelBorder extends AbstractBorder
@@ -128,6 +128,7 @@ public class BevelBorder extends AbstractBorder
      * color was specified at instantiation, the highlight color
      * is derived from the specified component's background color.
      * @param c the component for which the highlight may be derived
+     * @since 1.3
      */
     public Color getHighlightOuterColor(Component c)   {
         Color highlight = getHighlightOuterColor();
@@ -141,6 +142,7 @@ public class BevelBorder extends AbstractBorder
      * color was specified at instantiation, the highlight color
      * is derived from the specified component's background color.
      * @param c the component for which the highlight may be derived
+     * @since 1.3
      */
     public Color getHighlightInnerColor(Component c)   {
         Color highlight = getHighlightInnerColor();
@@ -154,6 +156,7 @@ public class BevelBorder extends AbstractBorder
      * color was specified at instantiation, the shadow color
      * is derived from the specified component's background color.
      * @param c the component for which the shadow may be derived
+     * @since 1.3
      */
     public Color getShadowInnerColor(Component c)      {
         Color shadow = getShadowInnerColor();
@@ -167,6 +170,7 @@ public class BevelBorder extends AbstractBorder
      * color was specified at instantiation, the shadow color
      * is derived from the specified component's background color.
      * @param c the component for which the shadow may be derived
+     * @since 1.3
      */
     public Color getShadowOuterColor(Component c)      {
         Color shadow = getShadowOuterColor();
@@ -178,6 +182,7 @@ public class BevelBorder extends AbstractBorder
      * Returns the outer highlight color of the bevel border.
      * Will return null if no highlight color was specified
      * at instantiation.
+     * @since 1.3
      */
     public Color getHighlightOuterColor()   {
         return highlightOuter;
@@ -187,6 +192,7 @@ public class BevelBorder extends AbstractBorder
      * Returns the inner highlight color of the bevel border.
      * Will return null if no highlight color was specified
      * at instantiation.
+     * @since 1.3
      */
     public Color getHighlightInnerColor()   {
         return highlightInner;
@@ -196,6 +202,7 @@ public class BevelBorder extends AbstractBorder
      * Returns the inner shadow color of the bevel border.
      * Will return null if no shadow color was specified
      * at instantiation.
+     * @since 1.3
      */
     public Color getShadowInnerColor()      {
         return shadowInner;
@@ -205,6 +212,7 @@ public class BevelBorder extends AbstractBorder
      * Returns the outer shadow color of the bevel border.
      * Will return null if no shadow color was specified
      * at instantiation.
+     * @since 1.3
      */
     public Color getShadowOuterColor()      {
         return shadowOuter;

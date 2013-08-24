@@ -1,7 +1,7 @@
 /*
- * @(#)AquaTheme.java	1.9 04/07/26
+ * @(#)AquaTheme.java	1.10 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)AquaTheme.java	1.9 04/07/26
+ * @(#)AquaTheme.java	1.10 05/11/17
  */
 
 
@@ -48,7 +48,7 @@ import java.awt.*;
 /**
  * This class describes a theme using "blue-green" colors.
  *
- * 1.9 07/26/04
+ * 1.10 11/17/05
  * @author Steve Wilson
  */
 public class AquaTheme extends DefaultMetalTheme {

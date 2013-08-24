@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanNotificationInfo.java	1.32 04/02/10
+ * @(#)MBeanNotificationInfo.java	1.37 06/03/15
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.util.Arrays;
  *
  * @since 1.5
  */
-public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable, java.io.Serializable  { 
+public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable { 
   
     /* Serial version */
     static final long serialVersionUID = -3888371564530107064L;
@@ -51,8 +51,8 @@ public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable
      */
     private final String[] types;
     
-    /** @see MBeanInfo#immutable */
-    private final transient boolean immutable;
+    /** @see MBeanInfo#arrayGettersSafe */
+    private final transient boolean arrayGettersSafe;
 
     /**
      * Constructs an <CODE>MBeanNotificationInfo</CODE> object.
@@ -66,10 +66,29 @@ public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable
      */
     public MBeanNotificationInfo(String[] notifTypes,
 				 String name,
-				 String description)
-	    throws IllegalArgumentException {
-	super(name, description);
-	
+				 String description) {
+        this(notifTypes, name, description, null);
+    }
+
+    /**
+     * Constructs an <CODE>MBeanNotificationInfo</CODE> object.
+     *
+     * @param notifTypes The array of strings (in dot notation)
+     * containing the notification types that the MBean may emit.
+     * This may be null with the same effect as a zero-length array.
+     * @param name The fully qualified Java class name of the
+     * described notifications.
+     * @param description A human readable description of the data.
+     * @param descriptor The descriptor for the notifications.  This may be null
+     * which is equivalent to an empty descriptor.
+     *
+     * @since 1.6
+     */
+    public MBeanNotificationInfo(String[] notifTypes,
+				 String name,
+				 String description,
+                                 Descriptor descriptor) {  
+	super(name, description, descriptor);
 
 	/* We do not validate the notifTypes, since the spec just says
 	   they are dot-separated, not that they must look like Java
@@ -80,8 +99,8 @@ public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable
 	if (notifTypes == null)
 	    notifTypes = NO_TYPES;
 	this.types = notifTypes;
-	this.immutable =
-	    MBeanInfo.isImmutableClass(this.getClass(),
+	this.arrayGettersSafe =
+	    MBeanInfo.arrayGettersSafe(this.getClass(),
 				       MBeanNotificationInfo.class);
     }
 
@@ -95,7 +114,7 @@ public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable
      */
      public Object clone () {
 	 try {
-	     return  super.clone() ;
+	     return super.clone() ;
 	 } catch (CloneNotSupportedException e) {
 	     // should not happen as this class is cloneable
 	     return null;
@@ -118,19 +137,30 @@ public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable
     }
 
     private String[] fastGetNotifTypes() {
-	if (immutable)
+	if (arrayGettersSafe)
 	    return types;
 	else
 	    return getNotifTypes();
     }
 
+    public String toString() {
+        return
+            getClass().getName() + "[" +
+            "description=" + getDescription() + ", " +
+            "name=" + getName() + ", " +
+            "notifTypes=" + Arrays.asList(fastGetNotifTypes()) + ", " +
+            "descriptor=" + getDescriptor() +
+            "]";
+    }
+    
     /**
-     * Compare this MBeanAttributeInfo to another.
+     * Compare this MBeanNotificationInfo to another.
      *
      * @param o the object to compare to.
      *
-     * @return true iff <code>o</code> is an MBeanNotificationInfo
+     * @return true if and only if <code>o</code> is an MBeanNotificationInfo
      * such that its {@link #getName()}, {@link #getDescription()},
+     * {@link #getDescriptor()},
      * and {@link #getNotifTypes()} values are equal (not necessarily
      * identical) to those of this MBeanNotificationInfo.  Two
      * notification type arrays are equal if their corresponding
@@ -145,6 +175,7 @@ public class MBeanNotificationInfo extends MBeanFeatureInfo implements Cloneable
 	MBeanNotificationInfo p = (MBeanNotificationInfo) o;
 	return (p.getName().equals(getName()) &&
 		p.getDescription().equals(getDescription()) &&
+                p.getDescriptor().equals(getDescriptor()) &&
 		Arrays.equals(p.fastGetNotifTypes(), fastGetNotifTypes()));
     }
 

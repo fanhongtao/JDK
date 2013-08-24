@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterJob.java	1.36 04/01/28
+ * @(#)PrinterJob.java	1.42 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,11 @@ import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import javax.print.StreamPrintServiceFactory;
 import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.Media;
+import javax.print.attribute.standard.MediaPrintableArea;
+import javax.print.attribute.standard.MediaSize;
+import javax.print.attribute.standard.MediaSizeName;
+import javax.print.attribute.standard.OrientationRequested;
 
 import sun.security.action.GetPropertyAction;
 
@@ -41,6 +46,10 @@ public abstract class PrinterJob {
      * should ensure that the array returned from 
      * {@link #lookupPrintServices() lookupPrintServices} is not empty.
      * @return a new <code>PrinterJob</code>.
+     *
+     * @throws  SecurityException if a security manager exists and its
+     *          {@link java.lang.SecurityManager#checkPrintJobAccess}
+     *          method disallows this thread from creating a print job request
      */
     public static PrinterJob getPrinterJob() {
 	SecurityManager security = System.getSecurityManager();
@@ -133,9 +142,11 @@ public abstract class PrinterJob {
     /**
      * Returns the service (printer) for this printer job.
      * Implementations of this class which do not support print services
-     * may return null;
+     * may return null.  null will also be returned if no printers are 
+     * available.
      * @return the service for this printer job.
      * @see #setPrintService(PrintService)
+     * @see #getPrinterJob()
      * @since     1.4
      */
     public PrintService getPrintService() {
@@ -362,6 +373,105 @@ public abstract class PrinterJob {
     }
 
     /**
+     * Calculates a <code>PageFormat</code> with values consistent with those
+     * supported by the current <code>PrintService</code> for this job
+     * (ie the value returned by <code>getPrintService()</code>) and media,
+     * printable area and orientation contained in <code>attributes</code>.
+     * <p>
+     * Calling this method does not update the job.
+     * It is useful for clients that have a set of attributes obtained from
+     * <code>printDialog(PrintRequestAttributeSet attributes)</code>
+     * and need a PageFormat to print a Pageable object.
+     * @param attributes a set of printing attributes, for example obtained
+     * from calling printDialog. If <code>attributes</code> is null a default
+     * PageFormat is returned.
+     * @return a <code>PageFormat</code> whose settings conform with
+     * those of the current service and the specified attributes.
+     * @since 1.6
+     */
+    public PageFormat getPageFormat(PrintRequestAttributeSet attributes) {
+
+        PrintService service = getPrintService();
+        PageFormat pf = defaultPage();
+
+        if (service == null || attributes == null) {
+            return pf;
+        }
+
+        Media media = (Media)attributes.get(Media.class);
+        MediaPrintableArea mpa =
+            (MediaPrintableArea)attributes.get(MediaPrintableArea.class);
+        OrientationRequested orientReq =
+           (OrientationRequested)attributes.get(OrientationRequested.class);
+
+        if (media == null && mpa == null && orientReq == null) {
+           return pf;
+        }
+        Paper paper = pf.getPaper();
+
+	/* If there's a media but no media printable area, we can try
+	 * to retrieve the default value for mpa and use that.
+	 */
+	if (mpa == null && media != null &&
+	    service.isAttributeCategorySupported(MediaPrintableArea.class)) {
+	    Object mpaVals = 
+		service.getSupportedAttributeValues(MediaPrintableArea.class,
+						    null, attributes);
+	    if (mpaVals instanceof MediaPrintableArea[] &&
+		((MediaPrintableArea[])mpaVals).length > 0) {
+		mpa = ((MediaPrintableArea[])mpaVals)[0];
+	    }
+	}
+
+        if (media != null &&
+            service.isAttributeValueSupported(media, null, attributes)) {
+            if (media instanceof MediaSizeName) {
+                MediaSizeName msn = (MediaSizeName)media;
+                MediaSize msz = MediaSize.getMediaSizeForName(msn);
+                if (msz != null) {
+		    double inch = 72.0;
+                    double paperWid = msz.getX(MediaSize.INCH) * inch;
+                    double paperHgt = msz.getY(MediaSize.INCH) * inch;
+                    paper.setSize(paperWid, paperHgt);
+		    if (mpa == null) {
+			paper.setImageableArea(inch, inch,
+					       paperWid-2*inch,
+					       paperHgt-2*inch);
+		    }
+		}
+            }
+        }
+
+        if (mpa != null &&
+	    service.isAttributeValueSupported(mpa, null, attributes)) {
+            float [] printableArea =
+                mpa.getPrintableArea(MediaPrintableArea.INCH);
+            for (int i=0; i < printableArea.length; i++) {
+                printableArea[i] = printableArea[i]*72.0f;
+            }
+            paper.setImageableArea(printableArea[0], printableArea[1],
+                                   printableArea[2], printableArea[3]);
+        }
+
+        if (orientReq != null &&
+            service.isAttributeValueSupported(orientReq, null, attributes)) {
+            int orient;
+            if (orientReq.equals(OrientationRequested.REVERSE_LANDSCAPE)) {
+                orient = PageFormat.REVERSE_LANDSCAPE;
+            } else if (orientReq.equals(OrientationRequested.LANDSCAPE)) {
+                orient = PageFormat.LANDSCAPE;
+            } else {
+                orient = PageFormat.PORTRAIT;
+            }
+            pf.setOrientation(orient);
+        }
+
+        pf.setPaper(paper);
+        pf = validatePage(pf);
+        return pf;
+    }
+
+    /**
      * Returns the clone of <code>page</code> with its settings
      * adjusted to be compatible with the current printer of this
      * <code>PrinterJob</code>.  For example, the returned 
@@ -423,6 +533,7 @@ public abstract class PrinterJob {
      * @see Book
      * @see Pageable
      * @see Printable
+     * @since 1.4
      */
     public void print(PrintRequestAttributeSet attributes)
 	throws PrinterException {

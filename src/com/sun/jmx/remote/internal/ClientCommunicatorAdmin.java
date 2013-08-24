@@ -1,7 +1,7 @@
 /*
- * @(#)ClientCommunicatorAdmin.java	1.14 04/05/12
+ * @(#)ClientCommunicatorAdmin.java	1.16 05/12/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ public abstract class ClientCommunicatorAdmin {
     protected abstract void doStart() throws IOException;
 
     /**
-     * Tells a client to stop becaue failing to call checkConnection.
+     * Tells a client to stop because failing to call checkConnection.
      */
     protected abstract void doStop();
 

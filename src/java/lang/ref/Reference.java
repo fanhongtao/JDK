@@ -1,7 +1,7 @@
 /*
- * @(#)Reference.java	1.41 04/04/20
+ * @(#)Reference.java	1.43 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import sun.misc.Cleaner;
  * implemented in close cooperation with the garbage collector, this class may
  * not be subclassed directly.
  *
- * @version  1.41, 04/20/04
+ * @version  1.43, 04/10/06
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -163,6 +163,9 @@ public abstract class Reference<T> {
     /**
      * Clears this reference object.  Invoking this method will not cause this
      * object to be enqueued.
+     *
+     * <p> This method is invoked only by Java code; when the garbage collector
+     * clears references it does so directly, without invoking this method.
      */
     public void clear() {
 	this.referent = null;
@@ -191,6 +194,9 @@ public abstract class Reference<T> {
     /**
      * Adds this reference object to the queue with which it is registered,
      * if any.
+     *
+     * <p> This method is invoked only by Java code; when the garbage collector
+     * enqueues references it does so directly, without invoking this method.
      *
      * @return	 <code>true</code> if this reference object was successfully
      *		 enqueued; <code>false</code> if it was already enqueued or if

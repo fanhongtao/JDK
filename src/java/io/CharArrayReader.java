@@ -1,7 +1,7 @@
 /*
- * @(#)CharArrayReader.java	1.22 04/02/19
+ * @(#)CharArrayReader.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,11 +12,10 @@ package java.io;
  * character-input stream.
  *
  * @author	Herb Jellinek
- * @version 	1.22, 02/19/04
+ * @version 	1.25, 11/17/05
  * @since       JDK1.1
  */
-public
-class CharArrayReader extends Reader {
+public class CharArrayReader extends Reader {
     /** The character buffer. */
     protected char buf[];
 
@@ -33,7 +32,7 @@ class CharArrayReader extends Reader {
     protected int count;
 
     /**
-     * Create an CharArrayReader from the specified array of chars.
+     * Creates a CharArrayReader from the specified array of chars.
      * @param buf	Input buffer (not copied)
      */
     public CharArrayReader(char buf[]) {
@@ -43,12 +42,12 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Create an CharArrayReader from the specified array of chars.
+     * Creates a CharArrayReader from the specified array of chars.
      *
      * <p> The resulting reader will start reading at the given
      * <tt>offset</tt>.  The total number of <tt>char</tt> values that can be
      * read from this reader will be either <tt>length</tt> or
-     * <tt>buf.length-offset<tt>, whichever is smaller.
+     * <tt>buf.length-offset</tt>, whichever is smaller.
      *
      * @throws IllegalArgumentException
      *         If <tt>offset</tt> is negative or greater than
@@ -70,14 +69,14 @@ class CharArrayReader extends Reader {
         this.markedPos = offset;
     }
 
-    /** Check to make sure that the stream has not been closed */
+    /** Checks to make sure that the stream has not been closed */
     private void ensureOpen() throws IOException {
 	if (buf == null)
 	    throw new IOException("Stream closed");
     }
 
     /**
-     * Read a single character.
+     * Reads a single character.
      * 
      * @exception   IOException  If an I/O error occurs
      */
@@ -92,7 +91,7 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Read characters into a portion of an array.
+     * Reads characters into a portion of an array.
      * @param b	 Destination buffer
      * @param off  Offset at which to start storing characters
      * @param len   Maximum number of characters to read
@@ -127,7 +126,7 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Skip characters.  Returns the number of characters that were skipped.
+     * Skips characters.  Returns the number of characters that were skipped.
      *
      * <p>The <code>n</code> parameter may be negative, even though the
      * <code>skip</code> method of the {@link Reader} superclass throws
@@ -153,7 +152,7 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Tell whether this stream is ready to be read.  Character-array readers
+     * Tells whether this stream is ready to be read.  Character-array readers
      * are always ready to be read.
      *
      * @exception  IOException  If an I/O error occurs
@@ -166,14 +165,14 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Tell whether this stream supports the mark() operation, which it does.
+     * Tells whether this stream supports the mark() operation, which it does.
      */
     public boolean markSupported() {
 	return true;
     }
 
     /**
-     * Mark the present position in the stream.  Subsequent calls to reset()
+     * Marks the present position in the stream.  Subsequent calls to reset()
      * will reposition the stream to this point.
      *
      * @param  readAheadLimit  Limit on the number of characters that may be
@@ -192,7 +191,7 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Reset the stream to the most recent mark, or to the beginning if it has
+     * Resets the stream to the most recent mark, or to the beginning if it has
      * never been marked.
      *
      * @exception  IOException  If an I/O error occurs
@@ -205,7 +204,10 @@ class CharArrayReader extends Reader {
     }
 
     /**
-     * Close the stream.
+     * Closes the stream and releases any system resources associated with
+     * it.  Once the stream has been closed, further read(), ready(),
+     * mark(), reset(), or skip() invocations will throw an IOException.
+     * Closing a previously closed stream has no effect.
      */
     public void close() {
 	buf = null;

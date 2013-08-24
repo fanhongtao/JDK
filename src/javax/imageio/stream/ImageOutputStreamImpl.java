@@ -1,7 +1,7 @@
 /*
- * @(#)ImageOutputStreamImpl.java	1.24 03/12/19
+ * @(#)ImageOutputStreamImpl.java	1.26 05/12/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,12 +47,13 @@ public abstract class ImageOutputStreamImpl
 
     public void writeShort(int v) throws IOException {
         if (byteOrder == ByteOrder.BIG_ENDIAN) {
-            write((v >>> 8) & 0xFF);
-            write((v >>> 0) & 0xFF);
+            byteBuf[0] = (byte)(v >>> 8);
+            byteBuf[1] = (byte)(v >>> 0);
         } else {
-            write((v >>> 0) & 0xFF);
-            write((v >>> 8) & 0xFF);
+            byteBuf[0] = (byte)(v >>> 0);
+            byteBuf[1] = (byte)(v >>> 8);
         }
+        write(byteBuf, 0, 2);
     }
 
     public void writeChar(int v) throws IOException {
@@ -61,38 +62,45 @@ public abstract class ImageOutputStreamImpl
 
     public void writeInt(int v) throws IOException {
         if (byteOrder == ByteOrder.BIG_ENDIAN) {
-            write((v >>> 24) & 0xFF);
-            write((v >>> 16) & 0xFF);
-            write((v >>>  8) & 0xFF);
-            write((v >>>  0) & 0xFF);
+            byteBuf[0] = (byte)(v >>> 24);
+            byteBuf[1] = (byte)(v >>> 16);
+            byteBuf[2] = (byte)(v >>>  8);
+            byteBuf[3] = (byte)(v >>>  0);
         } else {
-            write((v >>>  0) & 0xFF);
-            write((v >>>  8) & 0xFF);
-            write((v >>> 16) & 0xFF);
-            write((v >>> 24) & 0xFF);
+            byteBuf[0] = (byte)(v >>>  0);
+            byteBuf[1] = (byte)(v >>>  8);
+            byteBuf[2] = (byte)(v >>> 16);
+            byteBuf[3] = (byte)(v >>> 24);
         }
+        write(byteBuf, 0, 4);
     }
 
     public void writeLong(long v) throws IOException {
         if (byteOrder == ByteOrder.BIG_ENDIAN) {
-            write((int)(v >>> 56) & 0xFF);
-            write((int)(v >>> 48) & 0xFF);
-            write((int)(v >>> 40) & 0xFF);
-            write((int)(v >>> 32) & 0xFF);
-            write((int)(v >>> 24) & 0xFF);
-            write((int)(v >>> 16) & 0xFF);
-            write((int)(v >>>  8) & 0xFF);
-            write((int)(v >>>  0) & 0xFF);
+            byteBuf[0] = (byte)(v >>> 56);
+            byteBuf[1] = (byte)(v >>> 48);
+            byteBuf[2] = (byte)(v >>> 40);
+            byteBuf[3] = (byte)(v >>> 32);
+            byteBuf[4] = (byte)(v >>> 24);
+            byteBuf[5] = (byte)(v >>> 16);
+            byteBuf[6] = (byte)(v >>>  8);
+            byteBuf[7] = (byte)(v >>>  0);
         } else {
-            write((int)(v >>>  0) & 0xFF);
-            write((int)(v >>>  8) & 0xFF);
-            write((int)(v >>> 16) & 0xFF);
-            write((int)(v >>> 24) & 0xFF);
-            write((int)(v >>> 32) & 0xFF);
-            write((int)(v >>> 40) & 0xFF);
-            write((int)(v >>> 48) & 0xFF);
-            write((int)(v >>> 56) & 0xFF);
+            byteBuf[0] = (byte)(v >>>  0);
+            byteBuf[1] = (byte)(v >>>  8);
+            byteBuf[2] = (byte)(v >>> 16);
+            byteBuf[3] = (byte)(v >>> 24);
+            byteBuf[4] = (byte)(v >>> 32);
+            byteBuf[5] = (byte)(v >>> 40);
+            byteBuf[6] = (byte)(v >>> 48);
+            byteBuf[7] = (byte)(v >>> 56);
         }
+        // REMIND: Once 6277756 is fixed, we should do a bulk write of all 8
+        // bytes here as we do in writeShort() and writeInt() for even better
+        // performance.  For now, two bulk writes of 4 bytes each is still
+        // faster than 8 individual write() calls (see 6347575 for details).
+        write(byteBuf, 0, 4);
+        write(byteBuf, 4, 4);
     }
 
     public void writeFloat(float v) throws IOException {

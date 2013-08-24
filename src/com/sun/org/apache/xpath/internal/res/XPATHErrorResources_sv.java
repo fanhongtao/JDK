@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPATHErrorResources_sv.java,v 1.7 2004/02/17 04:36:46 minchau Exp $
+ * $Id: XPATHErrorResources_sv.java,v 1.2.4.1 2005/09/15 00:39:20 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.res;
 
@@ -46,7 +46,14 @@ public static final int MAX_CODE = 108;  // this is needed to keep track of the 
 
 
   // Error messages...
-  public static final Object[][] contents = {
+  /**
+   * Get the association list.
+   *
+   * @return The association list.
+   */
+  public Object[][] getContents()
+  {
+    return new Object[][]{
 
   /** Field ERROR0000          */
   //public static final int ERROR0000 = 0;
@@ -1206,8 +1213,8 @@ public static final int MAX_CODE = 108;  // this is needed to keep track of the 
     { "noParsermsg5",
       "IBMs AlphaWorks: http://www.alphaworks.ibm.com/formula/xml"}
   };
+  }
 
-  // ================= INFRASTRUCTURE ======================
 
   /** Field BAD_CODE          */
   public static final String BAD_CODE = "D\u00c5LIG_KOD";
@@ -1237,22 +1244,6 @@ public static final int MAX_CODE = 108;  // this is needed to keep track of the 
   /** Field QUERY_HEADER          */
   public static final String QUERY_HEADER = "M\u00d6NSTER ";
 
-  /**
-   * Get the association list.
-   *
-   * @return The association list.
-   */
-  protected Object[][] getContents() {
-      // return a copy of contents; in theory we want a deep clone
-      // of contents, but since it only contains (immutable) Strings,
-      // this shallow copy is sufficient
-      Object[][] msgCopy = new Object[contents.length][2];
-      for (int i = 0; i < contents.length; i++) {
-          msgCopy[i][0] = contents[i][0];
-          msgCopy[i][1] = contents[i][1];
-      }
-      return msgCopy;
-  }
 }
 
 

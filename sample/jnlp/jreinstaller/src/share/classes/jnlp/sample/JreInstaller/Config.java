@@ -1,7 +1,7 @@
 /*
- * @(#)Config.java	1.4 03/12/19
+ * @(#)Config.java	1.7 05/11/30
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -264,7 +264,7 @@ public class Config {
     }
 
     public static String getWindowLogo() {
-        return getString("window.logo");
+        return "resources/sunlogo.png";
     }
 
     public static String getWindowStep(int i) {

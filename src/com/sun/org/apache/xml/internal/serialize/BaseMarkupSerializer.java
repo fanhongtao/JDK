@@ -1,58 +1,17 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 
@@ -105,6 +64,7 @@ import org.w3c.dom.Entity;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.Notation;
+import org.w3c.dom.ls.LSException;
 import org.w3c.dom.ls.LSSerializerFilter;
 import org.w3c.dom.traversal.NodeFilter;
 import org.xml.sax.ContentHandler;
@@ -157,10 +117,11 @@ import org.xml.sax.ext.LexicalHandler;
  * another element.
  *
  *
- * @version $Revision: 1.51 $ $Date: 2004/02/12 16:56:07 $
+ * @version $Revision: 1.4 $ $Date: 2006/01/23 06:47:25 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  * @author <a href="mailto:rahul.srivastava@sun.com">Rahul Srivastava</a>
  * @author Elena Litani, IBM 
+ * @author Sunitha Reddy, Sun Microsystems
  * @see Serializer
  * @see LSSerializer
  */
@@ -390,11 +351,11 @@ public abstract class BaseMarkupSerializer
         // reused with the same output stream and different encoding.
 
         _encodingInfo = _format.getEncodingInfo();
-
+        
         if ( _output != null ) {
             _writer = _encodingInfo.getWriter(_output);
         }
-
+        
         if ( _format.getIndenting() ) {
             _indenting = true;
             _printer = new IndentPrinter( _writer, _format );
@@ -449,8 +410,26 @@ public abstract class BaseMarkupSerializer
         if ( _printer.getException() != null )
             throw _printer.getException();
     }
-
-
+    
+    /**
+     * Serializes a node using the previously specified
+     * writer and output format. Throws an exception only if
+     * an I/O exception occured while serializing.
+     *
+     * @param node Node to serialize
+     * @throws IOException An I/O exception occured while serializing
+     */
+    public void serialize( Node node ) throws IOException {
+        reset();
+        prepare();
+        serializeNode( node );
+        //Print any PIs and Comments which appeared in 'node'
+        serializePreRoot(); 
+        _printer.flush();
+        if ( _printer.getException() != null )
+            throw _printer.getException();
+    }
+    
     /**
      * Serializes the DOM document fragmnt using the previously specified
      * writer and output format. Throws an exception only if
@@ -487,7 +466,7 @@ public abstract class BaseMarkupSerializer
         reset();
         prepare();
         serializeNode( doc );
-        serializePreRoot();
+        serializePreRoot(); 
         _printer.flush();
         if ( _printer.getException() != null )
             throw _printer.getException();
@@ -536,9 +515,10 @@ public abstract class BaseMarkupSerializer
             saveIndent = _printer.getNextIndent();
             _printer.setNextIndent( 0 );
             char ch;
-            for ( int index = start ; index < length ; ++index ) {
+            final int end = start + length;
+            for ( int index = start ; index < end; ++index ) {
                 ch = chars[index];
-                if ( ch == ']' && index + 2 < length &&
+                if ( ch == ']' && index + 2 < end &&
                      chars[ index + 1 ] == ']' && chars[ index + 2 ] == '>' ) {
                     _printer.printText("]]]]><![CDATA[>");
                     index +=2; 
@@ -546,7 +526,7 @@ public abstract class BaseMarkupSerializer
                 }
                 if (!XMLChar.isValid(ch)) {
                     // check if it is surrogate
-                    if (++index <length) {
+                    if (++index < end) {
                         surrogates(ch, chars[index]);
                     } 
                     else {
@@ -684,7 +664,7 @@ public abstract class BaseMarkupSerializer
         
         if ( _format.getOmitComments() )
             return;
-
+        
         state  = content();
         // Create the processing comment textual representation.
         // Make sure we don't have '-->' inside the comment.
@@ -861,6 +841,7 @@ public abstract class BaseMarkupSerializer
         _printer.enterDTD();
         _docTypePublicId = publicId;
         _docTypeSystemId = systemId;
+        
         } catch ( IOException except ) {
             throw new SAXException( except );
         }
@@ -1217,6 +1198,8 @@ public abstract class BaseMarkupSerializer
             Notation          notation;
             int               i;
             
+            serializeDocument();
+            
             // If there is a document type, use the SAX events to
             // serialize it.
             docType = ( (Document) node ).getDoctype();
@@ -1241,18 +1224,18 @@ public abstract class BaseMarkupSerializer
                     String docTypePublicId = null;
                     String docTypeSystemId = null;
                     try {
-                        java.lang.reflect.Method getPublicId = docTypeClass.getMethod("getPublicId", null);
+                        java.lang.reflect.Method getPublicId = docTypeClass.getMethod("getPublicId", (Class[]) null);
                         if (getPublicId.getReturnType().equals(String.class)) {
-                            docTypePublicId = (String)getPublicId.invoke(docType, null);
+                            docTypePublicId = (String)getPublicId.invoke(docType, (Object[]) null);
                         }
                     }
                     catch (Exception e) {
                         // ignore
                     }
                     try {
-                        java.lang.reflect.Method getSystemId = docTypeClass.getMethod("getSystemId", null);
+                        java.lang.reflect.Method getSystemId = docTypeClass.getMethod("getSystemId", (Class[]) null);
                         if (getSystemId.getReturnType().equals(String.class)) {
-                            docTypeSystemId = (String)getSystemId.invoke(docType, null);
+                            docTypeSystemId = (String)getSystemId.invoke(docType, (Object[]) null);
                         }
                     }
                     catch (Exception e) {
@@ -1263,7 +1246,12 @@ public abstract class BaseMarkupSerializer
                     _docTypeSystemId = docTypeSystemId;
                     endDTD();
                 }
+                
+                serializeDTD(docType.getName());
+                              
             }
+            _started = true;
+                     
             // !! Fall through
         }
         case Node.DOCUMENT_FRAGMENT_NODE : {
@@ -1285,7 +1273,95 @@ public abstract class BaseMarkupSerializer
         }
     }
 
+ 
+    /* Serializes XML Declaration, according to 'xml-declaration' property.
+     */
+    protected void serializeDocument()throws IOException {
+        int    i;
+                
+        String dtd = _printer.leaveDTD();
+        if (! _started) {
 
+            if (! _format.getOmitXMLDeclaration()) {
+                StringBuffer    buffer;
+
+                // Serialize the document declaration appreaing at the head
+                // of very XML document (unless asked not to).
+                buffer = new StringBuffer( "<?xml version=\"" );
+                if (_format.getVersion() != null)
+                    buffer.append( _format.getVersion() );
+                else
+                    buffer.append( "1.0" );
+                buffer.append( '"' );
+                String format_encoding =  _format.getEncoding();
+                if (format_encoding != null) {
+                    buffer.append( " encoding=\"" );
+                    buffer.append( format_encoding );
+                    buffer.append( '"' );
+                }
+                if (_format.getStandalone() && _docTypeSystemId == null &&
+                    _docTypePublicId == null)
+                    buffer.append( " standalone=\"yes\"" );
+                buffer.append( "?>" );
+                _printer.printText( buffer );
+                _printer.breakLine();
+            }
+        }
+        
+        // Always serialize these, even if not te first root element.
+        serializePreRoot();
+        
+    }
+       
+    /* Serializes DTD, if present.
+     */
+    protected void serializeDTD(String name) throws IOException{
+        
+        String dtd = _printer.leaveDTD();
+        if (! _format.getOmitDocumentType()) {
+            if (_docTypeSystemId != null) {
+                // System identifier must be specified to print DOCTYPE.
+                // If public identifier is specified print 'PUBLIC
+                // <public> <system>', if not, print 'SYSTEM <system>'.
+                _printer.printText( "<!DOCTYPE " );
+                _printer.printText( name );
+                if (_docTypePublicId != null) {
+                    _printer.printText( " PUBLIC " );
+                    printDoctypeURL( _docTypePublicId );
+                    if (_indenting) {
+                        _printer.breakLine();
+                        for (int i = 0 ; i < 18 + name.length() ; ++i)
+                            _printer.printText( " " );
+                    } else
+                        _printer.printText( " " );
+                    printDoctypeURL( _docTypeSystemId );
+                } else {
+                    _printer.printText( " SYSTEM " );
+                    printDoctypeURL( _docTypeSystemId );
+                }
+
+                // If we accumulated any DTD contents while printing.
+                // this would be the place to print it.
+                if (dtd != null && dtd.length() > 0) {
+                    _printer.printText( " [" );
+                    printText( dtd, true, true );
+                    _printer.printText( ']' );
+                }
+
+                _printer.printText( ">" );
+                _printer.breakLine();
+            } else if (dtd != null && dtd.length() > 0) {
+                _printer.printText( "<!DOCTYPE " );
+                _printer.printText( name );
+                _printer.printText( " [" );
+                printText( dtd, true, true );
+                _printer.printText( "]>" );
+                _printer.breakLine();
+            }
+        }
+    } 
+    
+    
     /**
      * Must be called by a method about to print any type of content.
      * If the element was just opened, the opening tag is closed and
@@ -1453,23 +1529,24 @@ public abstract class BaseMarkupSerializer
                 if (fDOMErrorHandler != null) {
                     // REVISIT: this means that if DOM Error handler is not registered we don't report any
                     // fatal errors and might serialize not wellformed document
-                    if ((features & DOMSerializerImpl.SPLITCDATA) == 0
-                        && (features & DOMSerializerImpl.WELLFORMED) == 0) {
-                        // issue fatal error
-                        String msg =
-                            DOMMessageFormatter.formatMessage(
-                                DOMMessageFormatter.SERIALIZER_DOMAIN,
-                                "EndingCDATA",
-                                null);
-                        modifyDOMError(
-                            msg,
-                            DOMError.SEVERITY_FATAL_ERROR,
-                            fCurrentNode);
-                        boolean continueProcess =
+                    if ((features & DOMSerializerImpl.SPLITCDATA) == 0) {
+                        String msg = DOMMessageFormatter.formatMessage(
+                            DOMMessageFormatter.SERIALIZER_DOMAIN,
+                            "EndingCDATA",
+                            null);    
+                        if ((features & DOMSerializerImpl.WELLFORMED) != 0) {
+                            // issue fatal error
+                            modifyDOMError(msg, DOMError.SEVERITY_FATAL_ERROR, "wf-invalid-character", fCurrentNode);
                             fDOMErrorHandler.handleError(fDOMError);
-                        if (!continueProcess) {
-                            throw new IOException();
-                        }
+                            throw new LSException(LSException.SERIALIZE_ERR, msg);
+                        } 
+                        else {
+                            // issue error
+                            modifyDOMError(msg, DOMError.SEVERITY_ERROR, "cdata-section-not-splitted", fCurrentNode);
+                            if (!fDOMErrorHandler.handleError(fDOMError)) {
+                                throw new LSException(LSException.SERIALIZE_ERR, msg);
+                            }
+                        }                        
                     } else {
                         // issue warning
                         String msg =
@@ -1480,7 +1557,7 @@ public abstract class BaseMarkupSerializer
                         modifyDOMError(
                             msg,
                             DOMError.SEVERITY_WARNING,
-                            fCurrentNode);
+                            null, fCurrentNode);
                         fDOMErrorHandler.handleError(fDOMError);
                     }
                 }
@@ -1689,11 +1766,11 @@ public abstract class BaseMarkupSerializer
 	/**
 	 * Escapes chars
 	 */ 
-	 final void printHex( int ch) throws IOException {	
-		 _printer.printText( "&#x" );
+	 final void printHex( int ch) throws IOException {
+                 _printer.printText( "&#x" );
 		 _printer.printText(Integer.toHexString(ch));
 		 _printer.printText( ';' );
-      	
+                 
 	 }
 
 
@@ -1852,11 +1929,13 @@ public abstract class BaseMarkupSerializer
      * 
      * @param message
      * @param severity
+     * @param type
      * @return a DOMError
      */
-    protected DOMError modifyDOMError(String message, short severity, Node node){
+    protected DOMError modifyDOMError(String message, short severity, String type, Node node){
             fDOMError.reset();
             fDOMError.fMessage = message;
+            fDOMError.fType = type;
             fDOMError.fSeverity = severity;
             fDOMError.fLocator = new DOMLocatorImpl(-1, -1, -1, node, null);
             return fDOMError;
@@ -1866,7 +1945,7 @@ public abstract class BaseMarkupSerializer
 
     protected void fatalError(String message) throws IOException{
         if (fDOMErrorHandler != null) {
-            modifyDOMError(message, DOMError.SEVERITY_FATAL_ERROR, fCurrentNode);
+            modifyDOMError(message, DOMError.SEVERITY_FATAL_ERROR, null, fCurrentNode);
             fDOMErrorHandler.handleError(fDOMError);
         } 
         else {

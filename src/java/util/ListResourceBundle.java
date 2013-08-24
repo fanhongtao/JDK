@@ -1,7 +1,7 @@
 /*
- * @(#)ListResourceBundle.java	1.27 05/09/01
+ * @(#)ListResourceBundle.java	1.30 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@
  */
 
 package java.util;
+
+import sun.util.ResourceBundleEnumeration;
 
 /**
  * <code>ListResourceBundle</code> is an abstract subclass of
@@ -110,7 +112,12 @@ public abstract class ListResourceBundle extends ResourceBundle {
     }
 
     /**
-     * Implementation of ResourceBundle.getKeys.
+     * Returns an <code>Enumeration</code> of the keys contained in
+     * this <code>ResourceBundle</code> and its parent bundles.
+     *
+     * @return an <code>Enumeration</code> of the keys contained in
+     *         this <code>ResourceBundle</code> and its parent bundles.
+     * @see #keySet()
      */
     public Enumeration<String> getKeys() {
         // lazily load the lookup hashtable.
@@ -124,7 +131,30 @@ public abstract class ListResourceBundle extends ResourceBundle {
     }
 
     /**
-     * See class description.
+     * Returns a <code>Set</code> of the keys contained
+     * <em>only</em> in this <code>ResourceBundle</code>.
+     *
+     * @return a <code>Set</code> of the keys contained only in this
+     *         <code>ResourceBundle</code>
+     * @since 1.6
+     * @see #keySet()
+     */
+    protected Set<String> handleKeySet() {
+	if (lookup == null) {
+	    loadLookup();
+	}
+	return lookup.keySet();
+    }
+
+    /**
+     * Returns an array in which each item is a pair of objects in an
+     * <code>Object</code> array. The first element of each pair is
+     * the key, which must be a <code>String</code>, and the second
+     * element is the value associated with that key.  See the class
+     * description for details.
+     *
+     * @return an array of an <code>Object</code> array representing a
+     * key-value pair.
      */
     abstract protected Object[][] getContents();
 
@@ -139,7 +169,7 @@ public abstract class ListResourceBundle extends ResourceBundle {
             return;
 
         Object[][] contents = getContents();
-        HashMap temp = new HashMap(contents.length);
+        HashMap<String,Object> temp = new HashMap<String,Object>(contents.length);
         for (int i = 0; i < contents.length; ++i) {
             // key must be non-null String, value must be non-null
             String key = (String) contents[i][0];
@@ -152,5 +182,5 @@ public abstract class ListResourceBundle extends ResourceBundle {
         lookup = temp;
     }
 
-    private Map lookup = null;
+    private Map<String,Object> lookup = null;
 }

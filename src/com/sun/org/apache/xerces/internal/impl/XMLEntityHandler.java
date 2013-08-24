@@ -57,6 +57,7 @@
 
 package com.sun.org.apache.xerces.internal.impl;
 
+import java.io.IOException;
 import com.sun.org.apache.xerces.internal.xni.Augmentations;
 import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
@@ -64,12 +65,14 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
 /**
  * The entity handler interface defines methods to report information
  * about the start and end of entities.
+ * 
+ * @xerces.internal
  *
  * @see com.sun.org.apache.xerces.internal.impl.XMLEntityScanner
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLEntityHandler.java,v 1.9 2004/02/27 20:36:07 mrglavas Exp $
+ * @version $Id: XMLEntityHandler.java,v 1.1.2.1 2005/08/01 03:34:12 jeffsuttor Exp $
  */
 public interface XMLEntityHandler {
 
@@ -105,8 +108,9 @@ public interface XMLEntityHandler {
      * @param name The name of the entity.
      * @param augs Additional information that may include infoset augmentations
      * 
+     * @throws IOException This exception might be thrown when there is premature end of entity
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void endEntity(String name, Augmentations augs) throws XNIException;
+    public void endEntity(String name, Augmentations augs) throws IOException, XNIException;
 
 } // interface XMLEntityHandler

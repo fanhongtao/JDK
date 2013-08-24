@@ -1,7 +1,7 @@
 /*
- * @(#)Base64.java	1.5 03/12/19
+ * @(#)Base64.java	1.7 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.util.prefs;
  * and vice-versa.
  *
  * @author  Josh Bloch
- * @version 1.5, 12/19/03
+ * @version 1.7, 11/17/05
  * @see     Preferences
  * @since   1.4
  */
@@ -26,7 +26,7 @@ class Base64 {
     }
 
     /**
-     * Translates the specified byte array into an "aternate representation"
+     * Translates the specified byte array into an "alternate representation"
      * Base64 string.  This non-standard variant uses an alphabet that does
      * not contain the uppercase alphabetic characters, which makes it
      * suitable for use in situations where case-folding occurs.
@@ -115,7 +115,7 @@ class Base64 {
     }
 
     /**
-     * Translates the specified "aternate representation" Base64 string
+     * Translates the specified "alternate representation" Base64 string
      * into a byte array.
      * 
      * @throw IllegalArgumentException or ArrayOutOfBoundsException

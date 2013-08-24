@@ -1,7 +1,7 @@
 /*
- * @(#)ColorConvertOp.java	1.38 03/12/19
+ * @(#)ColorConvertOp.java	1.40 06/06/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -302,6 +302,29 @@ public class ColorConvertOp implements BufferedImageOp, RasterOp {
             destProfile = ((ICC_ColorSpace) destColorSpace).getProfile();
         }
 
+        /* Checking if all profiles in the transform sequence are the same.
+         * If so, performing just copying the data. 
+         */
+        if (srcProfile == destProfile) {
+            boolean noTrans = true;
+            for (int i = 0; i < nProfiles; i++) {
+                if (srcProfile != profileList[i]) {
+                    noTrans = false;
+                    break;
+                }
+            }
+            if (noTrans) {
+                Graphics2D g = dest.createGraphics();
+                try {
+                    g.drawImage(src, 0, 0, null);
+                } finally {
+                    g.dispose();
+                }
+
+                return dest;
+            }
+        }
+ 
         /* make a new transform if needed */
         if ((thisTransform == null) || (thisSrcProfile != srcProfile) ||
             (thisDestProfile != destProfile) ) {

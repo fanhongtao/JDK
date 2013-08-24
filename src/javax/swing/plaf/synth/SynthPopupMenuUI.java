@@ -1,7 +1,7 @@
 /*
- * @(#)SynthPopupMenuUI.java	1.21 03/12/19
+ * @(#)SynthPopupMenuUI.java	1.23 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's PopupMenuUI.
  *
- * @version 1.21, 12/19/03
+ * @version 1.23, 11/17/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -51,6 +51,12 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
      * menu items.
      */
     private int maxAcceleratorWidth;
+
+    /*
+     * Maximum icon and text offsets of the children menu items.
+     */
+    private int maxTextOffset;
+    private int maxIconOffset;
 
     private SynthStyle style;
 
@@ -120,10 +126,12 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
     }
 
     /**
-     * Resets the max text and accerator widths.
+     * Resets the max text and accerator widths, 
+     * text and icon offsets.
      */
-    void resetAcceleratorWidths() {
-        maxTextWidth = maxAcceleratorWidth = 0;
+    void resetAlignmentHints() {
+        maxTextWidth = maxAcceleratorWidth
+                     = maxTextOffset = maxIconOffset = 0;
     }
 
     /**
@@ -160,6 +168,28 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
      */
     int getMaxAcceleratorWidth() {
         return maxAcceleratorWidth;
+    }
+
+    /**
+     * Adjusts the text offset needed to align text horizontally.
+     *
+     * @param offset Text offset
+     * @return max offset
+     */
+    int adjustTextOffset(int offset) {
+        maxTextOffset = Math.max(maxTextOffset, offset);
+        return maxTextOffset;
+    }
+
+   /**
+    * Adjusts the icon offset needed to align icons horizontally
+    *
+    * @param offset Icon offset
+    * @return max offset
+    */
+    int adjustIconOffset(int offset) {
+        maxIconOffset = Math.max(maxIconOffset, offset);
+        return maxIconOffset;
     }
 
     public void update(Graphics g, JComponent c) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ExtendedContentHandler.java,v 1.3 2004/02/17 04:18:18 minchau Exp $
+ * $Id: ExtendedContentHandler.java,v 1.2.4.1 2005/09/15 08:15:17 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -40,8 +40,9 @@ import org.xml.sax.SAXException;
  * <pre>
  * addAttribute(namespaceURI, localName, qName, type, value)
  * </pre>
+ * @xsl.usage internal
  */
-public interface ExtendedContentHandler extends org.xml.sax.ContentHandler
+abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
 {
     /**
      * Add at attribute to the current element
@@ -50,6 +51,7 @@ public interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * @param rawName the qualified name of the attribute
      * @param type the attribute type typically character data (CDATA)
      * @param value the value of the attribute
+     * @param XSLAttribute true if the added attribute is coming from an xsl:attribute element
      * @throws SAXException
      */
     public void addAttribute(
@@ -57,7 +59,8 @@ public interface ExtendedContentHandler extends org.xml.sax.ContentHandler
         String localName,
         String rawName,
         String type,
-        String value)
+        String value,
+        boolean XSLAttribute)
         throws SAXException;
     /**
      * Add attributes to the current element
@@ -82,6 +85,14 @@ public interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * @throws SAXException
      */
     public void characters(String chars) throws SAXException;
+    
+    /**
+     * This method is used to notify of a character event, but passing the data
+     * as a DOM Node rather than the standard character array.
+     * @param node a DOM Node containing text.
+     * @throws SAXException
+     */    
+    public void characters(org.w3c.dom.Node node) throws org.xml.sax.SAXException;
     /**
      * This method is used to notify that an element has ended. Unlike the
      * standard SAX method
@@ -228,5 +239,31 @@ public interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * @param flags a bitwise flag
      */
     public void addUniqueAttribute(String qName, String value, int flags)
+        throws SAXException;
+    
+    /**
+     * Add an attribute from an xsl:attribute element.
+     * @param qName the qualified attribute name (prefix:localName)
+     * @param value the attributes value
+     * @param uri the uri that the prefix of the qName is mapped to.
+     */    
+    public void addXSLAttribute(String qName, final String value, final String uri);
+    
+    /**
+     * Add at attribute to the current element, not from an xsl:attribute
+     * element.
+     * @param uri the namespace URI of the attribute name
+     * @param localName the local name of the attribute (without prefix)
+     * @param rawName the qualified name of the attribute
+     * @param type the attribute type typically character data (CDATA)
+     * @param value the value of the attribute
+     * @throws SAXException
+     */
+    public void addAttribute(
+        String uri,
+        String localName,
+        String rawName,
+        String type,
+        String value)
         throws SAXException;
 }

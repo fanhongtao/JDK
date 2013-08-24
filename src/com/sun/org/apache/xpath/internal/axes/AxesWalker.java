@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: AxesWalker.java,v 1.28 2004/02/17 04:32:08 minchau Exp $
+ * $Id: AxesWalker.java,v 1.2.4.1 2005/09/14 19:45:22 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -38,6 +38,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
 public class AxesWalker extends PredicatedNodeTest
         implements Cloneable, PathComponent, ExpressionOwner
 {
+    static final long serialVersionUID = -2966031951306601247L;
   
   /**
    * Construct an AxesWalker using a LocPathIterator.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NSInfo.java,v 1.5 2004/02/17 04:21:14 minchau Exp $
+ * $Id: NSInfo.java,v 1.2.4.1 2005/09/15 08:15:48 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -55,7 +55,7 @@ public class NSInfo
    * have been processed for this node 
    * @param hasXMLNSAttrs Flag indicating whether this node
    * has XMLNS attributes. 
-   * @param hasXMLNSAttrs Flag indicating whether one of this node's
+   * @param ancestorHasXMLNSAttrs Flag indicating whether one of this node's
    * ancestor has XMLNS attributes.
    */
   public NSInfo(boolean hasProcessedNS, boolean hasXMLNSAttrs,

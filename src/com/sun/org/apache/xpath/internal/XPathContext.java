@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 /*
- * $Id: XPathContext.java,v 1.52 2004/02/17 04:30:02 minchau Exp $
+ * $Id: XPathContext.java,v 1.2.4.2 2005/09/15 01:37:55 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
 import java.lang.reflect.Method;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.xml.transform.ErrorListener;
 import javax.xml.transform.SourceLocator;
@@ -44,6 +46,7 @@ import com.sun.org.apache.xml.internal.utils.SAXSourceLocator;
 import com.sun.org.apache.xml.internal.utils.XMLString;
 import com.sun.org.apache.xpath.internal.axes.SubContextList;
 import com.sun.org.apache.xpath.internal.objects.XObject;
+import com.sun.org.apache.xpath.internal.objects.DTMXRTreeFrag;
 import com.sun.org.apache.xpath.internal.objects.XString;
 import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
 
@@ -78,6 +81,16 @@ public class XPathContext extends DTMManager // implements ExpressionContext
    */
   private SAX2RTFDTM m_global_rtfdtm=null;
   
+  /**
+   * HashMap of cached the DTMXRTreeFrag objects, which are identified by DTM IDs.
+   * The object are just wrappers for DTMs which are used in  XRTreeFrag.
+   */
+  private HashMap m_DTMXRTreeFrags = null;
+  
+  /**
+   * state of the secure processing feature.
+   */
+  private boolean m_isSecureProcessing = false;
 	
   /**
    * Though XPathContext context extends 
@@ -99,6 +112,22 @@ public class XPathContext extends DTMManager // implements ExpressionContext
    }
   
   /**
+   * Set the state of the secure processing feature
+   */
+  public void setSecureProcessing(boolean flag)
+  {
+    m_isSecureProcessing = flag;
+  }
+  
+  /**
+   * Return the state of the secure processing feature
+   */
+  public boolean isSecureProcessing()
+  {
+    return m_isSecureProcessing;
+  }
+  
+  /**
    * Get an instance of a DTM, loaded with the content from the
    * specified source.  If the unique flag is true, a new instance will
    * always be returned.  Otherwise it is up to the DTMManager to return a
@@ -112,8 +141,7 @@ public class XPathContext extends DTMManager // implements ExpressionContext
    *               by some other means.
    * @param unique true if the returned DTM must be unique, probably because it
    * is going to be mutated.
-   * @param whiteSpaceFilter Enables filtering of whitespace nodes, and may 
-   *                         be null.
+   * @param wsfilter Enables filtering of whitespace nodes, and may be null.
    * @param incremental true if the construction should try and be incremental.
    * @param doIndexing true if the caller considers it worth it to use 
    *                   indexing schemes.
@@ -305,6 +333,7 @@ public class XPathContext extends DTMManager // implements ExpressionContext
    */
   public void reset()
   {
+    releaseDTMXRTreeFrags();
   	// These couldn't be disposed of earlier (see comments in release()); zap them now.
   	if(m_rtfdtm_stack!=null)
   		 for (java.util.Enumeration e = m_rtfdtm_stack.elements() ; e.hasMoreElements() ;) 
@@ -316,6 +345,7 @@ public class XPathContext extends DTMManager // implements ExpressionContext
     if(m_global_rtfdtm!=null)
   		 	m_dtmManager.release(m_global_rtfdtm,true);
     m_global_rtfdtm=null;
+    
   	
     m_dtmManager = DTMManager.newInstance(
                    com.sun.org.apache.xpath.internal.objects.XMLStringFactoryImpl.getFactory());
@@ -363,7 +393,6 @@ public class XPathContext extends DTMManager // implements ExpressionContext
    * Push a slot on the locations stack so that setSAXLocator can be 
    * repeatedly called.
    *
-   * @param location The location within the stylesheet.
    */
   public void pushSAXLocatorNull()
   {
@@ -1256,4 +1285,42 @@ public class XPathContext extends DTMManager // implements ExpressionContext
   		--m_which_rtfdtm; 
   	}
   }
+  
+  /**
+   * Gets DTMXRTreeFrag object if one has already been created.
+   * Creates new DTMXRTreeFrag object and adds to m_DTMXRTreeFrags  HashMap,
+   * otherwise.  
+   * @param dtmIdentity
+   * @return DTMXRTreeFrag
+   */
+  public DTMXRTreeFrag getDTMXRTreeFrag(int dtmIdentity){
+    if(m_DTMXRTreeFrags == null){
+      m_DTMXRTreeFrags = new HashMap();     
+    }
+    
+    if(m_DTMXRTreeFrags.containsKey(new Integer(dtmIdentity))){
+       return (DTMXRTreeFrag)m_DTMXRTreeFrags.get(new Integer(dtmIdentity));
+    }else{
+      final DTMXRTreeFrag frag = new DTMXRTreeFrag(dtmIdentity,this);
+      m_DTMXRTreeFrags.put(new Integer(dtmIdentity),frag);
+      return frag ;
+    }   
+  }
+ 
+  /**
+   * Cleans DTMXRTreeFrag objects by removing references 
+   * to DTM and XPathContext objects.   
+   */
+  private final void releaseDTMXRTreeFrags(){
+    if(m_DTMXRTreeFrags == null){
+      return;
+    }
+    final Iterator iter = (m_DTMXRTreeFrags.values()).iterator();
+    while(iter.hasNext()){
+      DTMXRTreeFrag frag = (DTMXRTreeFrag)iter.next();
+      frag.destruct();
+      iter.remove();
+    }
+    m_DTMXRTreeFrags = null;
+ }
 }

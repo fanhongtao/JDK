@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CastExpr.java,v 1.21 2004/02/16 22:24:29 minchau Exp $
+ * $Id: CastExpr.java,v 1.2.4.1 2005/09/12 10:06:35 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -33,7 +33,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ResultTreeType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
-import com.sun.org.apache.xalan.internal.xsltc.dom.Axis;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 
 /**
  * @author Jacek Ambroziak
@@ -76,7 +76,6 @@ final class CastExpr extends Expression {
 	InternalTypeMap.put(Type.String, Type.Real);
 	InternalTypeMap.put(Type.String, Type.Reference);
         InternalTypeMap.put(Type.String, Type.Object);
-        InternalTypeMap.put(Type.String, Type.ObjectString);
 
 	InternalTypeMap.put(Type.NodeSet, Type.NodeSet);
 	InternalTypeMap.put(Type.NodeSet, Type.Boolean);
@@ -113,7 +112,6 @@ final class CastExpr extends Expression {
 	InternalTypeMap.put(Type.Reference, Type.Object);
 
 	InternalTypeMap.put(Type.Object, Type.String);
-	InternalTypeMap.put(Type.ObjectString, Type.String);
 
 	InternalTypeMap.put(Type.Void, Type.String);
     }

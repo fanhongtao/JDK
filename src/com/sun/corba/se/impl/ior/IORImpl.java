@@ -1,7 +1,7 @@
 /*
- * @(#)IORImpl.java	1.32 05/05/27
+ * @(#)IORImpl.java	1.32 06/08/14
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -99,10 +99,10 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
     public synchronized int hashCode() 
     {
         if (! isCachedHashValue) {
-		cachedHashValue =  (super.hashCode() ^ typeId.hashCode());
-		isCachedHashValue = true;
-	}
-	return cachedHashValue;
+              cachedHashValue =  (super.hashCode() ^ typeId.hashCode());
+              isCachedHashValue = true;
+        }
+        return cachedHashValue;
     }
 
     /** Construct an empty IOR.  This is needed for null object references.

@@ -1,7 +1,7 @@
 /*
- * @(#)Paper.java	1.17 03/12/19
+ * @(#)Paper.java	1.19 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -139,7 +139,9 @@ public class Paper implements Cloneable {
      * Sets the imageable area of this <code>Paper</code>.  The 
      * imageable area is the area on the page in which printing
      * occurs. 
-     * @param x,&nbsp;y the coordinates to which to set the
+     * @param x the X coordinate to which to set the
+     * upper-left corner of the imageable area of this <code>Paper</code>
+     * @param y the Y coordinate to which to set the
      * upper-left corner of the imageable area of this <code>Paper</code>
      * @param width the value to which to set the width of the 
      * imageable area of this <code>Paper</code>

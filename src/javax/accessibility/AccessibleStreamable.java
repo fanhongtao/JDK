@@ -1,7 +1,7 @@
 /**
- * @(#)AccessibleStreamable.java	1.3 03/12/19
+ * @(#)AccessibleStreamable.java	1.5 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,7 @@ package javax.accessibility;
 import java.io.InputStream;
 import java.awt.datatransfer.DataFlavor;
 
-/*
+/**
  *
  * The <code>AccessibleStreamable</code> interface should be implemented
  * by the <code>AccessibleContext</code> of any component that presents the
@@ -20,7 +20,7 @@ import java.awt.datatransfer.DataFlavor;
  * types supported by the object and a streaming interface for each MIME type to
  * get the data.
  *
- * @version 1.3 12/19/03
+ * @version 1.5 04/07/06
  * @author Lynn Monsanto
  * @author Peter Korn
  *

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToXMLSAXHandler.java,v 1.13 2004/02/17 04:18:19 minchau Exp $
+ * $Id: ToXMLSAXHandler.java,v 1.3 2005/09/28 13:49:08 pvedula Exp $
  */
  package com.sun.org.apache.xml.internal.serializer;
 
@@ -35,13 +35,12 @@ import org.xml.sax.ext.LexicalHandler;
 /**
  * This class receives notification of SAX-like events, and with gathered
  * information over these calls it will invoke the equivalent SAX methods
- * on a handler, the ultimate output is known to be XML.
+ * on a handler, the ultimate xsl:output method is known to be "xml".
  * 
- * @author minchau
- * @author Santiago Pericas-Geertsen
- * @author G. Todd Miller 
+ * This class is not a public API, it is only public because it is used by Xalan.
+ * @xsl.usage internal
  */
-public class ToXMLSAXHandler extends ToSAXHandler
+public final class ToXMLSAXHandler extends ToSAXHandler
 {
 
     /**
@@ -57,7 +56,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputFormat()
+     * @see Serializer#getOutputFormat()
      */
     public Properties getOutputFormat()
     {
@@ -65,7 +64,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getOutputStream()
+     * @see Serializer#getOutputStream()
      */
     public OutputStream getOutputStream()
     {
@@ -73,7 +72,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#getWriter()
+     * @see Serializer#getWriter()
      */
     public Writer getWriter()
     {
@@ -89,14 +88,14 @@ public class ToXMLSAXHandler extends ToSAXHandler
 
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.DOMSerializer#serialize(Node)
+     * @see DOMSerializer#serialize(Node)
      */
     public void serialize(Node node) throws IOException
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.SerializationHandler#setEscaping(boolean)
+     * @see SerializationHandler#setEscaping(boolean)
      */
     public boolean setEscaping(boolean escape) throws SAXException
     {
@@ -113,21 +112,21 @@ public class ToXMLSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputFormat(Properties)
+     * @see Serializer#setOutputFormat(Properties)
      */
     public void setOutputFormat(Properties format)
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setOutputStream(OutputStream)
+     * @see Serializer#setOutputStream(OutputStream)
      */
     public void setOutputStream(OutputStream output)
     {
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#setWriter(Writer)
+     * @see Serializer#setWriter(Writer)
      */
     public void setWriter(Writer writer)
     {
@@ -297,6 +296,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
      */
     public void setDocumentLocator(Locator arg0)
     {
+        super.setDocumentLocator(arg0);
         m_saxHandler.setDocumentLocator(arg0);
     }
 
@@ -364,7 +364,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
             if (getShouldOutputNSAttr()) 
             {
 
-	              /* bjm: don't know if we really needto do this. The
+	              /* Brian M.: don't know if we really needto do this. The
 	               * callers of this object should have injected both
 	               * startPrefixMapping and the attributes.  We are
 	               * just covering our butt here.
@@ -373,7 +373,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
   	            if (EMPTYSTRING.equals(prefix))
   	            {
   	                name = "xmlns";
-  	                addAttributeAlways(XMLNS_URI, prefix, name,"CDATA",uri);
+  	                addAttributeAlways(XMLNS_URI, name, name,"CDATA",uri, false);
   	            }
   	            else 
                 {
@@ -385,7 +385,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
   	             	 	     *  the uri is the value, that is why we pass it in the
   	             	 	     * value, or 5th slot of addAttributeAlways()
   	                 	   */
-  	                    addAttributeAlways(XMLNS_URI, prefix, name,"CDATA",uri);
+  	                    addAttributeAlways(XMLNS_URI, prefix, name,"CDATA",uri, false );
   	                }
   	            }
             }
@@ -454,7 +454,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
     }
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#characters(String)
+     * @see ExtendedContentHandler#characters(String)
      */
     public void characters(String chars) throws SAXException
     {
@@ -548,7 +548,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
     
 
     /**
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#endElement(String)
+     * @see ExtendedContentHandler#endElement(String)
      */
     public void endElement(String elemName) throws SAXException
     {
@@ -685,10 +685,9 @@ public class ToXMLSAXHandler extends ToSAXHandler
         if (ns != null && ns.length() > 0)
         {
             int index;
-            String prefix =
-                (index = rawName.indexOf(":")) < 0
-                    ? ""
-                    : rawName.substring(0, index);
+            final boolean no_prefix = ((index = rawName.indexOf(":")) < 0);
+            String prefix = (no_prefix) ? "" : rawName.substring(0, index);
+
 
             if (null != prefix)
             {
@@ -703,10 +702,11 @@ public class ToXMLSAXHandler extends ToSAXHandler
                         // SAX does expect both.
                         this.addAttributeAlways(
                             "http://www.w3.org/2000/xmlns/",
-                            prefix,
-                            "xmlns" + (prefix.length() == 0 ? "" : ":") + prefix,
+                            no_prefix ? "xmlns" : prefix,  // local name
+                            no_prefix ? "xmlns" : ("xmlns:"+ prefix), // qname
                             "CDATA",
-                            ns);
+                            ns,
+                            false);
                     }
                 }
 
@@ -723,20 +723,22 @@ public class ToXMLSAXHandler extends ToSAXHandler
      * @param rawName    the qualified name of the attribute
      * @param type the type of the attribute (probably CDATA)
      * @param value the value of the attribute
-     * @see com.sun.org.apache.xml.internal.serializer.ExtendedContentHandler#addAttribute(String, String, String, String, String)
+     * @param XSLAttribute true if this attribute is coming from an xsl:attribute element
+     * @see ExtendedContentHandler#addAttribute(String, String, String, String, String)
      */
     public void addAttribute(
         String uri,
         String localName,
         String rawName,
         String type,
-        String value)
+        String value,
+        boolean XSLAttribute)
         throws SAXException
     {      
         if (m_elemContext.m_startTagOpen)
         {
             ensurePrefixIsDeclared(uri, rawName);
-            addAttributeAlways(uri, localName, rawName, type, value);
+            addAttributeAlways(uri, localName, rawName, type, value, false);
         }
 
     } 
@@ -747,7 +749,7 @@ public class ToXMLSAXHandler extends ToSAXHandler
      * (mostly for performance reasons).
      * 
      * @return true if the class was successfuly reset.
-     * @see com.sun.org.apache.xml.internal.serializer.Serializer#reset()
+     * @see Serializer#reset()
      */
     public boolean reset()
     {

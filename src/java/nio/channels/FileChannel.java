@@ -1,7 +1,7 @@
 /*
- * @(#)FileChannel.java	1.40 04/01/12
+ * @(#)FileChannel.java	1.43 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -128,7 +128,7 @@ import java.nio.channels.spi.AbstractInterruptibleChannel;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.40, 04/01/12
+ * @version 1.43, 05/11/17
  * @since 1.4
  */
 
@@ -591,7 +591,7 @@ public abstract class FileChannel
     /**
      * A typesafe enumeration for file-mapping modes.
      *
-     * @version 1.40, 04/01/12
+     * @version 1.43, 05/11/17
      * @since 1.4
      *
      * @see java.nio.channels.FileChannel#map
@@ -846,13 +846,8 @@ public abstract class FileChannel
      *          blocked in this method and is attempting to lock an overlapping
      *          region of the same file
      *
-     * @throws  NonReadableChannelException
-     *          If <tt>shared</tt> is <tt>true</tt> this channel was not
-     *          opened for reading
-     *
      * @throws  NonWritableChannelException
-     *          If <tt>shared</tt> is <tt>false</tt> but this channel was not
-     *          opened for writing
+     *          If this channel was not opened for writing
      *
      * @throws  IOException
      *          If some other I/O error occurs
@@ -868,7 +863,7 @@ public abstract class FileChannel
     /**
      * Attempts to acquire a lock on the given region of this channel's file.
      *
-     * <p> This method does not block.  An invocation of this always returns
+     * <p> This method does not block.  An invocation always returns
      * immediately, either having acquired a lock on the requested region or
      * having failed to do so.  If it fails to acquire a lock because an
      * overlapping lock is held by another program then it returns

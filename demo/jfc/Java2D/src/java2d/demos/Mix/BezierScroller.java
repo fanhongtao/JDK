@@ -1,7 +1,7 @@
 /*
- * @(#)BezierScroller.java	1.39 04/07/26
+ * @(#)BezierScroller.java	1.43 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)BezierScroller.java	1.36 03/10/26
+ * @(#)BezierScroller.java	1.43 06/08/29
  */
 
 package java2d.demos.Mix;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.GeneralPath;
@@ -55,6 +56,8 @@ import javax.swing.*;
 import java2d.AnimatingControlsSurface;
 import java2d.CustomControls;
 
+import static java.lang.Math.random;
+
 
 /**
  * Animated Bezier Curve shape with images at the control points.
@@ -68,8 +71,8 @@ public class BezierScroller extends AnimatingControlsSurface {
            "For README.txt file scrolling run in application mode", " " };
     private static final int NUMPTS = 6;
     private static Color greenBlend = new Color(0, 255, 0, 100);
+    private static Color  blueBlend = new Color(0, 0, 255, 100);
     private static Font font = new Font("serif", Font.PLAIN, 12);
-    private static Color blueBlend = new Color(0, 0, 255, 100);
     private static BasicStroke bs = new BasicStroke(3.0f);
     private static Image hotj_img;
     private static BufferedImage img;
@@ -77,7 +80,7 @@ public class BezierScroller extends AnimatingControlsSurface {
     private static final int DOWN = 1;
 
     private float animpts[] = new float[NUMPTS * 2];
-    private float deltas[] = new float[NUMPTS * 2];
+    private float  deltas[] = new float[NUMPTS * 2];
     private BufferedReader reader;      
     private int nStrs;          
     private int strH;
@@ -90,7 +93,7 @@ public class BezierScroller extends AnimatingControlsSurface {
 
 
     public BezierScroller() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         doShape = doText = true;
         hotj_img = getImage("java-logo.gif");
         Image image = getImage("jumptojavastrip.png");
@@ -106,10 +109,10 @@ public class BezierScroller extends AnimatingControlsSurface {
         float newpt = pts[index] + deltas[index];
         if (newpt <= 0) {
             newpt = -newpt;
-            deltas[index] = (float) (Math.random() * 4.0 + 2.0);
+            deltas[index] = (float) (random() * 4.0 + 2.0);
         } else if (newpt >= (float) limit) {
             newpt = 2.0f * limit - newpt;
-            deltas[index] = - (float) (Math.random() * 4.0 + 2.0);
+            deltas[index] = - (float) (random() * 4.0 + 2.0);
         }
         pts[index] = newpt;
     }
@@ -155,10 +158,10 @@ public class BezierScroller extends AnimatingControlsSurface {
 
     public void reset(int w, int h) {
         for (int i = 0; i < animpts.length; i += 2) {
-            animpts[i + 0] = (float) (Math.random() * w);
-            animpts[i + 1] = (float) (Math.random() * h);
-            deltas[i + 0] = (float) (Math.random() * 6.0 + 4.0);
-            deltas[i + 1] = (float) (Math.random() * 6.0 + 4.0);
+            animpts[i + 0] = (float) (random() * w);
+            animpts[i + 1] = (float) (random() * h);
+             deltas[i + 0] = (float) (random() * 6.0 + 4.0);
+             deltas[i + 1] = (float) (random() * 6.0 + 4.0);
             if (animpts[i + 0] > w / 2.0f) {
                 deltas[i + 0] = -deltas[i + 0];
             }
@@ -170,8 +173,8 @@ public class BezierScroller extends AnimatingControlsSurface {
         strH = fm.getAscent()+fm.getDescent();
         nStrs = h/strH+2;
         vector = new Vector(nStrs);
-        ix = (int) (Math.random() * (w - 80));
-        iy = (int) (Math.random() * (h - 80));
+        ix = (int) (random() * (w - 80));
+        iy = (int) (random() * (h - 80));
     }
 
 
@@ -200,8 +203,8 @@ public class BezierScroller extends AnimatingControlsSurface {
             if ((alpha -= .02) < 0.01) {
                 alphaDirection = UP;
                 alpha = 0;
-                ix = (int) (Math.random() * (w - 80));
-                iy = (int) (Math.random() * (h - 80));
+                ix = (int) (random() * (w - 80));
+                iy = (int) (random() * (h - 80));
             }
         }
         if (doImage) {
@@ -216,7 +219,7 @@ public class BezierScroller extends AnimatingControlsSurface {
     public void render(int w, int h, Graphics2D g2) {
 
         if (doText) {
-            g2.setColor(Color.lightGray);
+            g2.setColor(LIGHT_GRAY);
             g2.setFont(font);
             float y = yy;
             for (int i = 0; i < vector.size(); i++) {

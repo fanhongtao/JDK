@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPathParser.java,v 1.28 2004/02/17 04:32:49 minchau Exp $
+ * $Id: XPathParser.java,v 1.2.4.1 2005/09/14 19:46:02 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.compiler;
 
@@ -24,6 +24,7 @@ import javax.xml.transform.TransformerException;
 import com.sun.org.apache.xalan.internal.res.XSLMessages;
 import com.sun.org.apache.xml.internal.utils.PrefixResolver;
 import com.sun.org.apache.xpath.internal.XPathProcessorException;
+import com.sun.org.apache.xpath.internal.domapi.XPathStylesheetDOM3Exception;
 import com.sun.org.apache.xpath.internal.objects.XNumber;
 import com.sun.org.apache.xpath.internal.objects.XString;
 import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
@@ -102,6 +103,7 @@ public class XPathParser
 
     m_ops = compiler;
     m_namespaceContext = namespaceContext;
+    m_functionTable = compiler.getFunctionTable();
 
     Lexer lexer = new Lexer(compiler, namespaceContext, this);
 
@@ -177,6 +179,7 @@ public class XPathParser
 
     m_ops = compiler;
     m_namespaceContext = namespaceContext;
+    m_functionTable = compiler.getFunctionTable();
 
     Lexer lexer = new Lexer(compiler, namespaceContext, this);
 
@@ -219,6 +222,9 @@ public class XPathParser
   
   /** The source location of the XPath. */
   javax.xml.transform.SourceLocator m_sourceLocator;
+  
+  /** The table contains build-in functions and customized functions */
+  private FunctionTable m_functionTable;
 
   /**
    * Allow an application to register an error event handler, where syntax 
@@ -613,6 +619,50 @@ public class XPathParser
   }
 
   /**
+   * This method is added to support DOM 3 XPath API.
+   * <p>
+   * This method is exactly like error(String, Object[]); except that
+   * the underlying TransformerException is 
+   * XpathStylesheetDOM3Exception (which extends TransformerException).
+   * <p>
+   * So older XPath code in Xalan is not affected by this. To older XPath code
+   * the behavior of whether error() or errorForDOM3() is called because it is
+   * always catching TransformerException objects and is oblivious to
+   * the new subclass of XPathStylesheetDOM3Exception. Older XPath code 
+   * runs as before.
+   * <p>
+   * However, newer DOM3 XPath code upon catching a TransformerException can
+   * can check if the exception is an instance of XPathStylesheetDOM3Exception
+   * and take appropriate action.
+   * 
+   * @param msg An error msgkey that corresponds to one of the constants found 
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   *            a key for a format string.
+   * @param args An array of arguments represented in the format string, which 
+   *             may be null.
+   *
+   * @throws TransformerException if the current ErrorListoner determines to 
+   *                              throw an exception.
+   */
+  void errorForDOM3(String msg, Object[] args) throws TransformerException
+  {
+
+	String fmsg = XSLMessages.createXPATHMessage(msg, args);
+	ErrorListener ehandler = this.getErrorListener();
+
+	TransformerException te = new XPathStylesheetDOM3Exception(fmsg, m_sourceLocator);
+	if (null != ehandler)
+	{
+	  // TO DO: Need to get stylesheet Locator from here.
+	  ehandler.fatalError(te);
+	}
+	else
+	{
+	  // System.err.println(fmsg);
+	  throw te;
+	}
+  }
+  /**
    * Dump the remaining token queue.
    * Thanks to Craig for this.
    *
@@ -659,10 +709,16 @@ public class XPathParser
   {
 
     int tok;
+    
+    Object id;
 
     try
     {
-      tok = ((Integer) (Keywords.m_functions.get(key))).intValue();
+      // These are nodetests, xpathparser treats them as functions when parsing
+      // a FilterExpr. 
+      id = Keywords.lookupNodeTest(key);
+      if (null == id) id = m_functionTable.getFunctionID(key);
+      tok = ((Integer) id).intValue();
     }
     catch (NullPointerException npe)
     {
@@ -1530,6 +1586,8 @@ public class XPathParser
       m_ops.setOp(m_ops.getOp(OpMap.MAPINDEX_LENGTH) - 1, OpCodes.NODETYPE_ROOT);
 
       nextToken();
+    } else if (m_token == null) {
+      error(XPATHErrorResources.ER_EXPECTED_LOC_PATH_AT_END_EXPR, null);
     }
 
     if (m_token != null)
@@ -1742,7 +1800,7 @@ public class XPathParser
   protected int AxisName() throws javax.xml.transform.TransformerException
   {
 
-    Object val = Keywords.m_axisnames.get(m_token);
+    Object val = Keywords.getAxisName(m_token);
 
     if (null == val)
     {
@@ -1772,7 +1830,7 @@ public class XPathParser
 
     if (lookahead('(', 1))
     {
-      Object nodeTestOp = Keywords.m_nodetypes.get(m_token);
+      Object nodeTestOp = Keywords.getNodeType(m_token);
 
       if (null == nodeTestOp)
       {
@@ -1843,16 +1901,6 @@ public class XPathParser
       }
       else
       {
-        if (OpCodes.FROM_NAMESPACE == axesType)
-        {
-          String prefix = (String) this.m_ops.m_tokenQueue.elementAt(m_queueMark - 1);
-          String namespace =
-            ((PrefixResolver) m_namespaceContext).getNamespaceForPrefix(
-              prefix);
-
-          this.m_ops.m_tokenQueue.setElementAt(namespace,m_queueMark - 1);
-        }
-
         m_ops.setOp(m_ops.getOp(OpMap.MAPINDEX_LENGTH), m_queueMark - 1);
 
         // Minimalist check for an NCName - just check first character

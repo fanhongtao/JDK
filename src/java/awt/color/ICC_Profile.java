@@ -1,7 +1,7 @@
 /*
- * @(#)ICC_Profile.java	1.35 05/10/26
+ * @(#)ICC_Profile.java	1.37 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -299,6 +299,7 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Rendering Intent: Media-RelativeColorimetric.
+     * @since 1.5
      */
     public static final int icMediaRelativeColorimetric = 1;
 
@@ -314,6 +315,7 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Rendering Intent: ICC-AbsoluteColorimetric.
+     * @since 1.5
      */
     public static final int icICCAbsoluteColorimetric = 3;
 
@@ -345,6 +347,7 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Tag Signature: 'bXYZ'.
+     * @since 1.5
      */
     public static final int icSigBlueMatrixColumnTag = 0x6258595A; /* 'bXYZ' */
 
@@ -421,6 +424,7 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Tag Signature: 'gXYZ'.
+     * @since 1.5
      */
     public static final int icSigGreenMatrixColumnTag = 0x6758595A;/* 'gXYZ' */
 
@@ -524,6 +528,7 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Tag Signature: 'rXYZ'.
+     * @since 1.5
      */
     public static final int icSigRedMatrixColumnTag = 0x7258595A;  /* 'rXYZ' */
 
@@ -569,16 +574,19 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Tag Signature: 'chad'.
+     * @since 1.5
      */
     public static final int icSigChromaticAdaptationTag = 0x63686164;/* 'chad' */
 
     /**
      * ICC Profile Tag Signature: 'clro'.
+     * @since 1.5
      */
     public static final int icSigColorantOrderTag = 0x636C726F;    /* 'clro' */
 
     /**
      * ICC Profile Tag Signature: 'clrt'.
+     * @since 1.5
      */
     public static final int icSigColorantTableTag = 0x636C7274;    /* 'clrt' */
 
@@ -665,6 +673,7 @@ public class ICC_Profile implements Serializable {
 
     /**
      * ICC Profile Header Location: profile's ID.
+     * @since 1.5
      */
     public static final int icHdrProfileID = 84; /* Profile's ID */
 
@@ -1977,6 +1986,7 @@ public class ICC_Profile implements Serializable {
      * @return ICC_Profile object for profile registered with CMM.
      * @throws ObjectStreamException
      *     never thrown, but mandated by the serialization spec.
+     * @since 1.3
      */
     protected Object readResolve() throws ObjectStreamException {
 	return resolvedDeserializedProfile;

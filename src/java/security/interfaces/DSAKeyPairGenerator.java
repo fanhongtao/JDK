@@ -1,7 +1,7 @@
 /*
- * @(#)DSAKeyPairGenerator.java	1.13 03/12/19
+ * @(#)DSAKeyPairGenerator.java	1.15 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -49,43 +49,48 @@ import java.security.*;
 public interface DSAKeyPairGenerator {
 
     /**
-     * Initializes the key pair generator using p, q and g, the DSA
-     * family parameters.
+     * Initializes the key pair generator using the DSA family parameters
+     * (p,q and g) and an optional SecureRandom bit source. If a
+     * SecureRandom bit source is needed but not supplied, i.e. null, a 
+     * default SecureRandom instance will be used.
      *
      * @param params the parameters to use to generate the keys.
      *
-     * @param random the random bit source to use to generate 
-     * key bits.
+     * @param random the random bit source to use to generate key bits;
+     * can be null.
      *
-     * @exception InvalidParameterException if the parameters passed are
-     * invalid or null.
+     * @exception InvalidParameterException if the <code>params</code>
+     * value is invalid or null.
      */
    public void initialize(DSAParams params, SecureRandom random)
    throws InvalidParameterException;
 
     /**
-     * Initializes the key pair generator for a given modulus length,
-     * without parameters. 
+     * Initializes the key pair generator for a given modulus length
+     * (instead of parameters), and an optional SecureRandom bit source.  
+     * If a SecureRandom bit source is needed but not supplied, i.e. 
+     * null, a default SecureRandom instance will be used.  
      *
-     * <p>If <code>genParams</code> is true, this method will generate new 
-     * p, q and g parameters. If it is false, the method will use precomputed
+     * <p>If <code>genParams</code> is true, this method generates new 
+     * p, q and g parameters. If it is false, the method uses precomputed
      * parameters for the modulus length requested. If there are no
      * precomputed parameters for that modulus length, an exception will be 
      * thrown. It is guaranteed that there will always be
      * default parameters for modulus lengths of 512 and 1024 bits.
      *
-     * @param modlen the modulus length, in bits. Valid values are any
+     * @param modlen the modulus length in bits. Valid values are any
      * multiple of 8 between 512 and 1024, inclusive.
      *
-     * @param random the random bit source to use to generate 
-     * key bits.
+     * @param random the random bit source to use to generate key bits; 
+     * can be null.
      *
      * @param genParams whether or not to generate new parameters for
      * the modulus length requested.
      *
-     * @exception InvalidParameterException if the modulus length is not
-     * between 512 and 1024, or if genParams is false and there are
-     * not precomputed parameters for the modulus length requested.  
+     * @exception InvalidParameterException if <code>modlen</code> is not
+     * between 512 and 1024, or if <code>genParams</code> is false and 
+     * there are no precomputed parameters for the requested modulus 
+     * length.  
      */
     public void initialize(int modlen, boolean genParams, SecureRandom random)
     throws InvalidParameterException;

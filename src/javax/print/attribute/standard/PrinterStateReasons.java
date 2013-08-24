@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterStateReasons.java	1.9 04/05/05
+ * @(#)PrinterStateReasons.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -153,6 +153,7 @@ public final class PrinterStateReasons
      *   instance of class {@link PrinterStateReason PrinterStateReason} or if 
      *     <CODE>severity</CODE> is not an instance of class {@link Severity 
      *     Severity}. 
+     * @since 1.5
      */
     public Severity put(PrinterStateReason reason, Severity severity) {
 	if (reason == null) {

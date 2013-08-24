@@ -1,7 +1,7 @@
 /*
- * @(#)MidiSystem.java	1.66 04/04/15
+ * @(#)MidiSystem.java	1.68 06/05/02
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -139,7 +139,7 @@ import com.sun.media.sound.AutoConnectSequencer;
  * If that fails, too, a <code>MidiUnavailableException</code>
  * is thrown.
  *
- * @version 1.66, 04/04/15
+ * @version 1.68, 06/05/02
  * @author Kara Kytle
  * @author Florian Bomers
  * @author Matthias Pfisterer
@@ -1179,9 +1179,7 @@ public class MidiSystem {
 	    }
 	}
 
-	// try to get Sequncer or Synthesizer
-	return getNamedDevice(deviceName, provider, deviceClass,
-			       true, true);
+        return null;
     }
 
 
@@ -1241,9 +1239,7 @@ public class MidiSystem {
 	    }
 	}
 
-	// try to get Sequncer or Synthesizer
-	return getNamedDevice(deviceName, providers, deviceClass,
-			       true, true);
+        return null;
     }
 
 
@@ -1301,9 +1297,7 @@ public class MidiSystem {
 	    }
 	}
 
-	// try to get Sequncer or Synthesizer
-	return getFirstDevice(provider, deviceClass,
-			      true, true);
+        return null;
     }
 
 
@@ -1357,9 +1351,7 @@ public class MidiSystem {
 	    }
 	}
 
-	// try to get Sequncer or Synthesizer
-	return getFirstDevice(providers, deviceClass,
-			      true, true);
+        return null;
     }
 
 

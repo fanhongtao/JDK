@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: NodeSetDTM.java,v 1.15 2004/02/17 04:30:02 minchau Exp $
+ * $Id: NodeSetDTM.java,v 1.2.4.2 2005/09/14 20:30:06 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal;
 
@@ -59,6 +59,7 @@ public class NodeSetDTM extends NodeVector
         implements /* NodeList, NodeIterator, */ DTMIterator, 
         Cloneable
 {
+    static final long serialVersionUID = 7686480133331317070L;
 
   /**
    * Create an empty nodelist.
@@ -132,7 +133,7 @@ public class NodeSetDTM extends NodeVector
    * Create a NodeSetDTM, and copy the members of the
    * given DTMIterator into it.
    *
-   * @param ni Iterator which yields Nodes to be made members of the new set.
+   * @param iterator Iterator which yields Nodes to be made members of the new set.
    */
   public NodeSetDTM(NodeIterator iterator, XPathContext xctxt)
   {
@@ -153,7 +154,6 @@ public class NodeSetDTM extends NodeVector
    * Create a NodeSetDTM, and copy the members of the
    * given DTMIterator into it.
    *
-   * @param ni Iterator which yields Nodes to be made members of the new set.
    */
   public NodeSetDTM(NodeList nodeList, XPathContext xctxt)
   {
@@ -227,7 +227,7 @@ public class NodeSetDTM extends NodeVector
    * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param execContext The XPath runtime context for this
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)
@@ -780,9 +780,6 @@ public class NodeSetDTM extends NodeVector
   /**
    * Add the node into a vector of nodes where it should occur in
    * document order.
-   * @param v Vector of nodes, presumably containing Nodes
-   * @param obj Node object.
-   *
    * @param node The node to be added.
    * @param test true if we should test for doc order
    * @param support The XPath runtime context.
@@ -858,9 +855,6 @@ public class NodeSetDTM extends NodeVector
   /**
    * Add the node into a vector of nodes where it should occur in
    * document order.
-   * @param v Vector of nodes, presumably containing Nodes
-   * @param obj Node object.
-   *
    * @param node The node to be added.
    * @param support The XPath runtime context.
    *

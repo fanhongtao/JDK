@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncTranslate.java,v 1.8 2004/02/17 04:34:00 minchau Exp $
+ * $Id: FuncTranslate.java,v 1.2.4.1 2005/09/14 20:18:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -28,6 +28,7 @@ import com.sun.org.apache.xpath.internal.objects.XString;
  */
 public class FuncTranslate extends Function3Args
 {
+    static final long serialVersionUID = -1672834340026116482L;
 
   /**
    * Execute the function.  The function must return

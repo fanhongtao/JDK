@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMsg.java,v 1.25 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: ErrorMsg.java,v 1.2.4.1 2005/09/15 10:18:01 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -40,6 +40,7 @@ public final class ErrorMsg {
     private String _message = null;
     private String _url = null;
     Object[] _params = null;
+    private boolean _isWarningError;
 
     // Compiler error messages
     public static final String MULTIPLE_STYLESHEET_ERR = "MULTIPLE_STYLESHEET_ERR";
@@ -117,6 +118,9 @@ public final class ErrorMsg {
     public static final String XSLTC_SOURCE_ERR = "XSLTC_SOURCE_ERR";
     public static final String ER_RESULT_NULL = "ER_RESULT_NULL";
     public static final String JAXP_INVALID_SET_PARAM_VALUE = "JAXP_INVALID_SET_PARAM_VALUE";        
+    public static final String JAXP_SET_FEATURE_NULL_NAME = "JAXP_SET_FEATURE_NULL_NAME";
+    public static final String JAXP_GET_FEATURE_NULL_NAME = "JAXP_GET_FEATURE_NULL_NAME";
+    public static final String JAXP_UNSUPPORTED_FEATURE = "JAXP_UNSUPPORTED_FEATURE";
 
     // Command-line error messages
     public static final String COMPILE_STDIN_ERR = "COMPILE_STDIN_ERR";
@@ -281,6 +285,18 @@ public final class ErrorMsg {
      */    
     private String getErrorMessage() {
       return _bundle.getString(_code);
+    }
+    
+    // If the _isWarningError flag is true, the error is treated as
+    // a warning by the compiler, but should be reported as an error
+    // to the ErrorListener. This is a workaround for the TCK failure 
+    // ErrorListener.errorTests.error001.
+    public void setWarningError(boolean flag) {
+    	_isWarningError = flag;
+}
+
+    public boolean isWarningError() {
+        return _isWarningError;
     }
 }
 

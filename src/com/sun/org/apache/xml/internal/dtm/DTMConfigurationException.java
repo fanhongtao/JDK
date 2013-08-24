@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMConfigurationException.java,v 1.4 2004/02/16 23:03:44 minchau Exp $
+ * $Id: DTMConfigurationException.java,v 1.2.4.1 2005/09/15 08:14:52 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -24,6 +24,7 @@ import javax.xml.transform.SourceLocator;
  * Indicates a serious configuration error.
  */
 public class DTMConfigurationException extends DTMException {
+    static final long serialVersionUID = -4607874078818418046L;
 
     /**
      * Create a new <code>DTMConfigurationException</code> with no
@@ -58,8 +59,6 @@ public class DTMConfigurationException extends DTMException {
      * Create a new <code>DTMConfigurationException</code> with the
      * given <code>Exception</code> base cause and detail message.
      *
-     * @param e The exception to be encapsulated in a
-     * DTMConfigurationException
      * @param msg The detail message.
      * @param e The exception to be wrapped in a DTMConfigurationException
      */

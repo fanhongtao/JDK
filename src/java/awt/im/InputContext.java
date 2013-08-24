@@ -1,7 +1,7 @@
 /*
- * @(#)InputContext.java	1.34 03/12/19
+ * @(#)InputContext.java	1.37 05/12/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,23 +34,23 @@ import sun.awt.im.InputMethodContext;
  * own input context instances.
  *
  * <p>
- * The Java 2 platform supports input methods that have been developed in the Java
+ * The Java Platform supports input methods that have been developed in the Java
  * programming language, using the interfaces in the {@link java.awt.im.spi} package,
- * and installed into a Java 2 runtime environment as extensions. Implementations
+ * and installed into a Java SE Runtime Environment as extensions. Implementations
  * may also support using the native input methods of the platforms they run on;
  * however, not all platforms and locales provide input methods. Keyboard layouts
  * are provided by the host platform.
  *
  * <p>
  * Input methods are <em>unavailable</em> if (a) no input method written
- * in the Java programming language has been installed and (b) the Java 2 implementation
+ * in the Java programming language has been installed and (b) the Java Platform implementation
  * or the underlying platform does not support native input methods. In this case,
  * input contexts can still be created and used; their behavior is specified with
  * the individual methods below.
  *
  * @see java.awt.Component#getInputContext
  * @see java.awt.Component#enableInputMethods
- * @version 	1.34, 12/19/03
+ * @version 	1.37, 12/03/05
  * @author JavaSoft Asia/Pacific
  * @since 1.2
  */
@@ -289,7 +289,7 @@ public class InputContext {
     }
 
     /**
-     * Disposes of the input context and release the resources used by it.
+     * Releases the resources used by this input context.
      * Called by AWT for the default input context of each Window.
      * If no input methods are available, then this method
      * has no effect.

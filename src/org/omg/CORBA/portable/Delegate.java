@@ -1,7 +1,7 @@
 /*
- * @(#)Delegate.java	1.37 03/12/19
+ * @(#)Delegate.java	1.38 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA.portable;
@@ -26,7 +26,7 @@ import org.omg.CORBA.SystemException;
  *
  * @see org.omg.CORBA.Object
  * @author OMG
- * @version 1.37 12/19/03
+ * @version 1.38 11/17/05
  */
 
 public abstract class Delegate {

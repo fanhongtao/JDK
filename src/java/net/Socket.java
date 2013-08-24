@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.110 06/08/14
+ * @(#)Socket.java	1.113 06/07/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.110, 08/14/06
+ * @version 1.113, 07/19/06
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -390,36 +390,36 @@ class Socket {
     }
 
     private void checkOldImpl() {
-        if (impl == null)
-            return;
-        // SocketImpl.connect() is a protected method, therefore we need to use
-        // getDeclaredMethod, therefore we need permission to access the member
+	if (impl == null)
+	    return;
+	// SocketImpl.connect() is a protected method, therefore we need to use
+	// getDeclaredMethod, therefore we need permission to access the member
 
-        Boolean tmpBool = (Boolean) AccessController.doPrivileged (new PrivilegedAction() {
-            public Boolean run() {
-                Class[] cl = new Class[2];
-                cl[0] = SocketAddress.class;
-                cl[1] = Integer.TYPE;
-                Class clazz = impl.getClass();
-                while (true) {
-                    try {
-                        clazz.getDeclaredMethod("connect", cl);
-                        return Boolean.FALSE;
-                    } catch (NoSuchMethodException e) {
-                        clazz = clazz.getSuperclass();
-			// java.net.SocketImpl class will always have this abstract method. 
-			// If we have not found it by now in the hierarchy then it does not 
-			// exist, we are an old style impl. 
-			if (clazz.equals(java.net.SocketImpl.class)) { 
+        oldImpl = AccessController.doPrivileged
+				(new PrivilegedAction<Boolean>() {
+	    public Boolean run() {
+	        Class[] cl = new Class[2];
+	        cl[0] = SocketAddress.class;
+	        cl[1] = Integer.TYPE;
+	        Class clazz = impl.getClass();
+	        while (true) {
+		    try {
+		        clazz.getDeclaredMethod("connect", cl);
+		        return Boolean.FALSE;
+		    } catch (NoSuchMethodException e) {
+		        clazz = clazz.getSuperclass();
+			// java.net.SocketImpl class will always have this abstract method.
+			// If we have not found it by now in the hierarchy then it does not
+			// exist, we are an old style impl.
+			if (clazz.equals(java.net.SocketImpl.class)) {
                             return Boolean.TRUE;
                         }
-                    }
-                }
-            }
+		    }
+	        }
+	    }
         });
-        oldImpl = tmpBool.booleanValue();
     }
-    
+
     /**
      * Sets impl to the system-default type of SocketImpl.
      * @since 1.4
@@ -751,6 +751,9 @@ class Socket {
      *
      * </ul>
      *
+     * <p> Closing the returned {@link java.io.InputStream InputStream}
+     * will close the associated socket.
+     *
      * @return     an input stream for reading bytes from this socket.
      * @exception  IOException  if an I/O error occurs when creating the
      *             input stream, the socket is closed, the socket is
@@ -790,6 +793,9 @@ class Socket {
      * is in non-blocking mode then the output stream's <tt>write</tt>
      * operations will throw an {@link
      * java.nio.channels.IllegalBlockingModeException}.
+     *
+     * <p> Closing the returned {@link java.io.OutputStream OutputStream}
+     * will close the associated socket.
      *
      * @return     an output stream for writing bytes to this socket.
      * @exception  IOException  if an I/O error occurs when creating the
@@ -1178,7 +1184,7 @@ class Socket {
      * <P> The tc <B>must</B> be in the range <code> 0 <= tc <=
      * 255</code> or an IllegalArgumentException will be thrown.
      * <p>Notes:
-     * <p> for Internet Protocol v4 the value consists of an octet
+     * <p> For Internet Protocol v4 the value consists of an octet
      * with precedence and TOS fields as detailed in RFC 1349. The
      * TOS field is bitset created by bitwise-or'ing values such
      * the following :-
@@ -1196,7 +1202,15 @@ class Socket {
      * SocketException indicating that the operation is not
      * permitted.
      * <p>
-     * for Internet Protocol v6 <code>tc</code> is the value that
+     * As RFC 1122 section 4.2.4.2 indicates, a compliant TCP
+     * implementation should, but is not required to, let application
+     * change the TOS field during the lifetime of a connection.
+     * So whether the type-of-service field can be changed after the
+     * TCP connection has been established depends on the implementation
+     * in the underlying platform. Applications should not assume that
+     * they can change the TOS field after the connection.
+     * <p>
+     * For Internet Protocol v6 <code>tc</code> is the value that
      * would be placed into the sin6_flowinfo field of the IP header.
      *
      * @param tc        an <code>int</code> value for the bitset.
@@ -1297,6 +1311,10 @@ class Socket {
      * Once a socket has been closed, it is not available for further networking
      * use (i.e. can't be reconnected or rebound). A new socket needs to be
      * created.
+     *
+     * <p> Closing this socket will also close the socket's
+     * {@link java.io.InputStream InputStream} and
+     * {@link java.io.OutputStream OutputStream}.
      *
      * <p> If this socket has an associated channel then the channel is closed
      * as well.

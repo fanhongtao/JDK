@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * ALOAD - Load reference from local variable
  * <PRE>Stack: ... -&gt; ..., objectref</PRE>
  *
- * @version $Id: ALOAD.java,v 1.1.1.1 2001/10/29 20:00:05 jvanzyl Exp $
+ * @version $Id: ALOAD.java,v 1.1.2.1 2005/07/31 23:45:09 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ALOAD extends LoadInstruction {

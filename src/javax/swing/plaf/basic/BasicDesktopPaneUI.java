@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDesktopPaneUI.java	1.57 05/10/31
+ * @(#)BasicDesktopPaneUI.java	1.61 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,15 +26,12 @@ import sun.awt.AppContext;
 /**
  * Basic L&F for a desktop.
  *
- * @version 1.57 10/31/05
+ * @version 1.61 04/07/06
  * @author Steve Wilson
  */
 public class BasicDesktopPaneUI extends DesktopPaneUI {
     // Old actions forward to an instance of this.
     private static final Actions SHARED_ACTION = new Actions();
-    private static final Object FRAMES_CACHE_KEY = 
-                new StringBuilder("BASIC_DESKTOP_PANE_UI.FRAMES_CACHE");
-
     private static Dimension minSize = new Dimension(0,0);
     private static Dimension maxSize = new Dimension(Integer.MAX_VALUE,
             Integer.MAX_VALUE);
@@ -100,18 +97,6 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
     }
 
     public BasicDesktopPaneUI() {
-    }
-
-    private static Vector getCurrentFramesCache() {
-        synchronized (BasicDesktopPaneUI.class) {
-            AppContext appContext = AppContext.getAppContext();
-            Vector framesCache = (Vector) appContext.get(FRAMES_CACHE_KEY);
-            if(framesCache == null) {
-                framesCache = new Vector();
-                appContext.put(FRAMES_CACHE_KEY,framesCache);
-            }
-            return framesCache;
-        }
     }
 
     public void installUI(JComponent c)   {
@@ -293,7 +278,6 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
     private class Handler implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent evt) {
             String propertyName = evt.getPropertyName();
-
             if ("desktopManager" == propertyName) {
                 installDesktopManager();
             }
@@ -389,12 +373,22 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
                                 sourceFrame) {
                     return;
                 }
+                Insets minOnScreenInsets =
+                    UIManager.getInsets("Desktop.minOnScreenInsets");
                 Dimension size = c.getSize();
                 Dimension minSize = c.getMinimumSize();
+                int dpWidth = dp.getWidth();
+                int dpHeight = dp.getHeight();
+                int delta;
                 Point loc = c.getLocation();
                 if (LEFT == key) {
                     if (moving) {
-                        c.setLocation(loc.x - MOVE_RESIZE_INCREMENT, loc.y);
+                        c.setLocation(
+                                loc.x + size.width - MOVE_RESIZE_INCREMENT <
+                                    minOnScreenInsets.right ?
+                                        -size.width + minOnScreenInsets.right :
+                                        loc.x - MOVE_RESIZE_INCREMENT,
+                                loc.y);
                     } else if (resizing) {
                         c.setLocation(loc.x - MOVE_RESIZE_INCREMENT, loc.y);
                         c.setSize(size.width + MOVE_RESIZE_INCREMENT,
@@ -402,15 +396,24 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
                     }
                 } else if (RIGHT == key) {
                     if (moving) {
-                        c.setLocation(loc.x + MOVE_RESIZE_INCREMENT, loc.y);
+                        c.setLocation(
+                                loc.x + MOVE_RESIZE_INCREMENT >
+                                    dpWidth - minOnScreenInsets.left ?
+                                        dpWidth - minOnScreenInsets.left :
+                                        loc.x + MOVE_RESIZE_INCREMENT,
+                                loc.y);
                     } else if (resizing) {
-                        c.setLocation(loc.x, loc.y);
                         c.setSize(size.width + MOVE_RESIZE_INCREMENT,
                                 size.height);
                     }
                 } else if (UP == key) {
                     if (moving) {
-                        c.setLocation(loc.x, loc.y - MOVE_RESIZE_INCREMENT);
+                        c.setLocation(loc.x,
+                                loc.y + size.height - MOVE_RESIZE_INCREMENT <
+                                    minOnScreenInsets.bottom ?
+                                        -size.height +
+                                            minOnScreenInsets.bottom :
+                                        loc.y - MOVE_RESIZE_INCREMENT);
                     } else if (resizing) {
                         c.setLocation(loc.x, loc.y - MOVE_RESIZE_INCREMENT);
                         c.setSize(size.width,
@@ -418,54 +421,79 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
                     }
                 } else if (DOWN == key) {
                     if (moving) {
-                        c.setLocation(loc.x, loc.y + MOVE_RESIZE_INCREMENT);
+                        c.setLocation(loc.x,
+                                loc.y + MOVE_RESIZE_INCREMENT >
+                                    dpHeight - minOnScreenInsets.top ?
+                                        dpHeight - minOnScreenInsets.top :
+                                        loc.y + MOVE_RESIZE_INCREMENT);
                     } else if (resizing) {
-                        c.setLocation(loc.x, loc.y);
                         c.setSize(size.width,
                                 size.height + MOVE_RESIZE_INCREMENT);
                     }
                 } else if (SHRINK_LEFT == key && resizing) {
+                    // Make sure we don't resize less than minimum size.
                     if (minSize.width < (size.width - MOVE_RESIZE_INCREMENT)) {
-                        c.setLocation(loc.x, loc.y);
-                        c.setSize(size.width - MOVE_RESIZE_INCREMENT,
-                                size.height);
+                        delta = MOVE_RESIZE_INCREMENT;
                     } else {
-                        c.setSize(minSize.width, size.height);
+                        delta = size.width - minSize.width;
                     }
+
+                    // Ensure that we keep the internal frame on the desktop.
+                    if (loc.x + size.width - delta < minOnScreenInsets.left) {
+                        delta = loc.x + size.width - minOnScreenInsets.left;
+                    }
+                    c.setSize(size.width - delta, size.height);
                 } else if (SHRINK_RIGHT == key && resizing) {
+                    // Make sure we don't resize less than minimum size.
                     if (minSize.width < (size.width - MOVE_RESIZE_INCREMENT)) {
-                        c.setLocation(loc.x + MOVE_RESIZE_INCREMENT, loc.y);
-                        c.setSize(size.width - MOVE_RESIZE_INCREMENT,
-                                size.height);
+                        delta = MOVE_RESIZE_INCREMENT;
                     } else {
-                        c.setLocation(loc.x - minSize.width + size.width,
-                                loc.y);
-                        c.setSize(minSize.width, size.height);
+                        delta = size.width - minSize.width;
                     }
+
+                    // Ensure that we keep the internal frame on the desktop.
+                    if (loc.x + delta > dpWidth - minOnScreenInsets.right) {
+                        delta = (dpWidth - minOnScreenInsets.right) - loc.x;
+                    }
+
+                    c.setLocation(loc.x + delta, loc.y);
+                    c.setSize(size.width - delta, size.height);
                 } else if (SHRINK_UP == key && resizing) {
+                    // Make sure we don't resize less than minimum size.
                     if (minSize.height <
                             (size.height - MOVE_RESIZE_INCREMENT)) {
-                        c.setLocation(loc.x, loc.y);
-                        c.setSize(size.width,
-                                size.height - MOVE_RESIZE_INCREMENT);
+                        delta = MOVE_RESIZE_INCREMENT;
                     } else {
-                        c.setSize(size.width, minSize.height);
+                        delta = size.height - minSize.height;
                     }
+
+                    // Ensure that we keep the internal frame on the desktop.
+                    if (loc.y + size.height - delta <
+                            minOnScreenInsets.bottom) {
+                        delta = loc.y + size.height - minOnScreenInsets.bottom;
+                    }
+
+                    c.setSize(size.width, size.height - delta);
                 } else if (SHRINK_DOWN == key  && resizing) {
+                    // Make sure we don't resize less than minimum size.
                     if (minSize.height <
                             (size.height - MOVE_RESIZE_INCREMENT)) {
-                        c.setLocation(loc.x, loc.y + MOVE_RESIZE_INCREMENT);
-                        c.setSize(size.width,
-                                size.height - MOVE_RESIZE_INCREMENT);
+                        delta = MOVE_RESIZE_INCREMENT;
                     } else {
-                        c.setLocation(loc.x,
-                                loc.y - minSize.height + size.height);
-                        c.setSize(size.width, minSize.height);
+                        delta = size.height - minSize.height;
                     }
+
+                    // Ensure that we keep the internal frame on the desktop.
+                    if (loc.y + delta > dpHeight - minOnScreenInsets.top) {
+                        delta = (dpHeight - minOnScreenInsets.top) - loc.y;
+                    }
+
+                    c.setLocation(loc.x, loc.y + delta);
+                    c.setSize(size.width, size.height - delta);
                 }
             }
             else if (NEXT_FRAME == key || PREVIOUS_FRAME == key) {
-                selectFrame(dp, (key == NEXT_FRAME) ? true : false);
+                dp.selectFrame((key == NEXT_FRAME) ? true : false);
             }
             else if (NAVIGATE_NEXT == key ||
                      NAVIGATE_PREVIOUS == key) {
@@ -498,95 +526,6 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
                             sPolicy.setImplicitDownCycleTraversal(idc);
                         }
                     }
-                }
-            }
-        }
-
-        private void selectFrame(JDesktopPane dp, boolean forward) {
-            Vector framesCache = getCurrentFramesCache();
-            if (forward) {
-                // navigate to the next frame
-                int i = 0;
-                verifyFramesCache(dp);
-                if (framesCache.size() == 0) {
-                    return;
-                }
-
-                JInternalFrame f = dp.getSelectedFrame();
-
-                if (f != null) {
-                    i = framesCache.indexOf(f);
-                }
-                if (i == -1) {
-                    /* if the frame is not there, its icon may be */
-                    i = framesCache.indexOf(f.getDesktopIcon());
-                    if (i == -1) {
-                        /* error */
-                        return;
-                    }
-                }
-                if (++i == framesCache.size()) {
-                    /* wrap */
-                    i = 0;
-                }
-                JComponent c = (JComponent) framesCache.elementAt(i);
-                if (c instanceof JInternalFrame) {
-                    try {
-                        ((JInternalFrame)c).setSelected(true);
-                        dp.getDesktopManager().activateFrame((JInternalFrame)c);
-                    } catch (PropertyVetoException pve) {}
-                } else {
-                    /* it had better be an icon! */
-                    if (!(c instanceof JInternalFrame.JDesktopIcon)){
-                        /* error */
-                        return;
-                    }
-                    try {
-                        ((JInternalFrame)((JInternalFrame.JDesktopIcon)c).
-                                getInternalFrame()).setSelected(true);
-                        dp.getDesktopManager().activateFrame(
-                                ((JInternalFrame.JDesktopIcon)c).
-                                        getInternalFrame());
-                    } catch (PropertyVetoException pve) {}
-                }
-            } else {
-                // navigate to the previous internal frame
-                int i = 0;
-                verifyFramesCache(dp);
-                if (framesCache.size() == 0) {
-                    return;
-                }
-                JInternalFrame f = dp.getSelectedFrame();
-                if (f != null) {
-                    i = framesCache.indexOf(f);
-                }
-                if (i == -1) {
-                    /* if the frame is not there, its icon may be */
-                    i = framesCache.indexOf(f.getDesktopIcon());
-                    if (i == -1) {
-                        /* error */
-                        return;
-                    }
-                }
-                if (--i == -1) {
-                    /* wrap */
-                    i = framesCache.size() - 1;
-                }
-                JComponent c = (JComponent) framesCache.elementAt(i);
-                if (c instanceof JInternalFrame) {
-                    try {
-                        ((JInternalFrame)c).setSelected(true);
-                    } catch (PropertyVetoException pve) {}
-                } else {
-                    /* it had better be an icon! */
-                    if (!(c instanceof JInternalFrame.JDesktopIcon)) {
-                        /* error */
-                        return;
-                    }
-                    try {
-                        ((JInternalFrame)((JInternalFrame.JDesktopIcon)c).
-                                getInternalFrame()).setSelected(true);
-                    } catch (PropertyVetoException pve) {}
                 }
             }
         }
@@ -647,16 +586,18 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
             }
         }
 
-
         public boolean isEnabled(Object sender) {
             if (sender instanceof JDesktopPane) {
                 JDesktopPane dp = (JDesktopPane)sender;
+                String action = getName();
+                if (action == Actions.NEXT_FRAME ||
+                    action == Actions.PREVIOUS_FRAME) {
+                    return true;
+                }
                 JInternalFrame iFrame = dp.getSelectedFrame();
                 if (iFrame == null) {
                     return false;
-                }
-                String action = getName();
-                if (action == Actions.CLOSE) {
+                } else if (action == Actions.CLOSE) {
                     return iFrame.isClosable();
                 } else if (action == Actions.MINIMIZE) {
                     return iFrame.isIconifiable();
@@ -670,8 +611,9 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
     }
 
 
-    /*
+    /**
      * Handles restoring a minimized or maximized internal frame.
+     * @since 1.3
      */
     protected class OpenAction extends AbstractAction {
 	public void actionPerformed(ActionEvent evt) {
@@ -684,8 +626,8 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
 	}
     }
 
-    /*
-     * Handles closing an internal frame
+    /**
+     * Handles closing an internal frame.
      */
     protected class CloseAction extends AbstractAction {
 	public void actionPerformed(ActionEvent evt) {
@@ -702,8 +644,8 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
 	}
     }
 
-    /*
-     * Handles minimizing an internal frame
+    /**
+     * Handles minimizing an internal frame.
      */
     protected class MinimizeAction extends AbstractAction {
 	public void actionPerformed(ActionEvent evt) {
@@ -720,8 +662,8 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
 	}
     }
 
-    /*
-     * Handles maximizing an internal frame
+    /**
+     * Handles maximizing an internal frame.
      */
     protected class MaximizeAction extends AbstractAction {
 	public void actionPerformed(ActionEvent evt) {
@@ -738,60 +680,17 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
         }
     }
 
-    /*
+    /**
      * Handles navigating to the next internal frame. 
      */
     protected class NavigateAction extends AbstractAction {
 	public void actionPerformed(ActionEvent evt) {
             JDesktopPane dp = (JDesktopPane)evt.getSource();
-            SHARED_ACTION.selectFrame(dp, true);
+            dp.selectFrame(true);
 	}
 
 	public boolean isEnabled() { 
 	    return true;
 	}
-    }
-
-    private static void verifyFramesCache(JDesktopPane dp) {
-        Vector framesCache = getCurrentFramesCache();
-	// Check whether any internal frames have closed in
-	// which case we have to refresh the frames cache.
-       	boolean framesHaveClosed = false;
-	int len = framesCache.size();
-	for (int i = 0; i < len; i++) {
-	    JComponent c = 
-		(JComponent)framesCache.elementAt(i);
-	    if (c instanceof JInternalFrame) {
-		JInternalFrame f = (JInternalFrame)c;
-		if (f.isClosed()) {
-		    framesHaveClosed = true;
-		    break;
-		}
-	    }
-	    else if (c instanceof JInternalFrame.JDesktopIcon) {
-		JInternalFrame.JDesktopIcon icon = 
-		    (JInternalFrame.JDesktopIcon)c;
-		JInternalFrame f = (JInternalFrame)icon.getInternalFrame();
-		if (f.isClosed()) {
-		    framesHaveClosed = true;
-		    break;
-		}
-	    }
-	} 
-       	JInternalFrame [] allFrames = dp.getAllFrames();
-       	if (framesHaveClosed || allFrames.length != framesCache.size()) {
-	    // Cache frames starting at the lowest layer.
-	    framesCache.clear();
-	    int low = dp.lowestLayer();
-	    int high = dp.highestLayer();
-	    for (int i = high; i >= low; i--) {
-		Component [] comp = dp.getComponentsInLayer(i);
-		if (comp.length > 0) {
-		    for (int j = 0; j < comp.length; j++) {
-			framesCache.addElement(comp[j]);
-		    }
-		}
-	    }
-       	}
     }
 }

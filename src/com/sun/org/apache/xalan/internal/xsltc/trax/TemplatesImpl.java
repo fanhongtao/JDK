@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TemplatesImpl.java,v 1.34 2004/02/23 10:29:36 aruny Exp $
+ * $Id: TemplatesImpl.java,v 1.2.4.1 2005/09/06 12:19:26 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -45,7 +46,7 @@ import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
  * @author Santiago Pericas-Geertsen 
  */
 public final class TemplatesImpl implements Templates, Serializable {
-
+    static final long serialVersionUID = 673094361519270707L;
     /**
      * Name of the superclass of all translets. This is needed to
      * determine which, among all classes comprising a translet, 
@@ -368,6 +369,10 @@ public final class TemplatesImpl implements Templates, Serializable {
 	
 	if (_uriResolver != null) {
 	    transformer.setURIResolver(_uriResolver);
+	}
+	
+	if (_tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+	    transformer.setSecureProcessing(true);
 	}
 	return transformer;
     }

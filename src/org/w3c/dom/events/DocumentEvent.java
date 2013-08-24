@@ -26,7 +26,7 @@ import org.w3c.dom.DOMException;
 public interface DocumentEvent {
     /**
      * 
-     * @param eventTypeThe <code>eventType</code> parameter specifies the 
+     * @param eventType The <code>eventType</code> parameter specifies the 
      *   type of <code>Event</code> interface to be created. If the 
      *   <code>Event</code> interface specified is supported by the 
      *   implementation this method will return a new <code>Event</code> of 

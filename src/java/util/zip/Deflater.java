@@ -1,7 +1,7 @@
 /*
- * @(#)Deflater.java	1.43 05/11/11
+ * @(#)Deflater.java	1.45 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,30 +20,36 @@ package java.util.zip;
  * <tt>Inflater</tt>.
  *
  * <blockquote><pre>
- * // Encode a String into bytes
- * String inputString = "blahblahblah\u20AC\u20AC";
- * byte[] input = inputString.getBytes("UTF-8");
+ * try {
+ *     // Encode a String into bytes
+ *     String inputString = "blahblahblah\u20AC\u20AC";
+ *     byte[] input = inputString.getBytes("UTF-8");
  *
- * // Compress the bytes
- * byte[] output = new byte[100];
- * Deflater compresser = new Deflater();
- * compresser.setInput(input);
- * compresser.finish();
- * int compressedDataLength = compresser.deflate(output);
+ *     // Compress the bytes
+ *     byte[] output = new byte[100];
+ *     Deflater compresser = new Deflater();
+ *     compresser.setInput(input);
+ *     compresser.finish();
+ *     int compressedDataLength = compresser.deflate(output);
  *
- * // Decompress the bytes
- * Inflater decompresser = new Inflater();
- * decompresser.setInput(output, 0, compressedDataLength);
- * byte[] result = new byte[100];
- * int resultLength = decompresser.inflate(result);
- * decompresser.end();
+ *     // Decompress the bytes
+ *     Inflater decompresser = new Inflater();
+ *     decompresser.setInput(output, 0, compressedDataLength);
+ *     byte[] result = new byte[100];
+ *     int resultLength = decompresser.inflate(result);
+ *     decompresser.end();
  *
- * // Decode the bytes into a String
- * String outputString = new String(result, 0, resultLength, "UTF-8");
+ *     // Decode the bytes into a String
+ *     String outputString = new String(result, 0, resultLength, "UTF-8");
+ * } catch(java.io.UnsupportedEncodingException ex) {
+ *     // handle
+ * } catch (java.util.zip.DataFormatException ex) {
+ *     // handle
+ * }
  * </pre></blockquote>
- * 
+ *
  * @see		Inflater
- * @version 	1.43, 11/11/05
+ * @version 	1.45, 04/07/06
  * @author 	David Connelly
  */
 public
@@ -322,6 +328,7 @@ class Deflater {
      * Returns the total number of uncompressed bytes input so far.</p>
      *
      * @return the total (non-negative) number of uncompressed bytes input so far
+     * @since 1.5
      */
     public synchronized long getBytesRead() {
 	ensureOpen();
@@ -345,6 +352,7 @@ class Deflater {
      * Returns the total number of compressed bytes output so far.</p>
      *
      * @return the total (non-negative) number of compressed bytes output so far
+     * @since 1.5
      */
     public synchronized long getBytesWritten() {
 	ensureOpen();

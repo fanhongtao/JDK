@@ -1,7 +1,7 @@
 /*
- * @(#)CheckboxGroup.java	1.36 04/05/18
+ * @(#)CheckboxGroup.java	1.37 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -32,7 +32,7 @@ package java.awt;
  * alt="Shows three checkboxes, arranged vertically, labeled one, two, and three. Checkbox one is in the on state."
  * ALIGN=center HSPACE=10 VSPACE=7> 
  * <p>
- * @version 	1.36 05/18/04
+ * @version 	1.37 11/17/05
  * @author 	Sami Shaio
  * @see         java.awt.Checkbox
  * @since       JDK1.0

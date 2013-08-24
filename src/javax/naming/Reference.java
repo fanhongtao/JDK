@@ -1,7 +1,7 @@
 /*
- * @(#)Reference.java	1.9 04/05/05
+ * @(#)Reference.java	1.10 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.util.Enumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.9 04/05/05
+  * @version 1.10 05/11/17
   *
   * @see RefAddr
   * @see StringRefAddr

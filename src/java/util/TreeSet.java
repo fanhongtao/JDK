@@ -1,48 +1,48 @@
 /*
- * @(#)TreeSet.java	1.32 03/12/19
+ * @(#)TreeSet.java	1.37 06/05/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
 
 /**
- * This class implements the <tt>Set</tt> interface, backed by a
- * <tt>TreeMap</tt> instance.  This class guarantees that the sorted set will
- * be in ascending element order, sorted according to the <i>natural order</i>
- * of the elements (see <tt>Comparable</tt>), or by the comparator provided at
- * set creation time, depending on which constructor is used.<p>
+ * A {@link NavigableSet} implementation based on a {@link TreeMap}.
+ * The elements are ordered using their {@linkplain Comparable natural
+ * ordering}, or by a {@link Comparator} provided at set creation
+ * time, depending on which constructor is used.
  *
- * This implementation provides guaranteed log(n) time cost for the basic
- * operations (<tt>add</tt>, <tt>remove</tt> and <tt>contains</tt>).<p>
+ * <p>This implementation provides guaranteed log(n) time cost for the basic
+ * operations ({@code add}, {@code remove} and {@code contains}).
  *
- * Note that the ordering maintained by a set (whether or not an explicit
+ * <p>Note that the ordering maintained by a set (whether or not an explicit
  * comparator is provided) must be <i>consistent with equals</i> if it is to
- * correctly implement the <tt>Set</tt> interface.  (See <tt>Comparable</tt>
- * or <tt>Comparator</tt> for a precise definition of <i>consistent with
- * equals</i>.)  This is so because the <tt>Set</tt> interface is defined in
- * terms of the <tt>equals</tt> operation, but a <tt>TreeSet</tt> instance
- * performs all key comparisons using its <tt>compareTo</tt> (or
- * <tt>compare</tt>) method, so two keys that are deemed equal by this method
+ * correctly implement the {@code Set} interface.  (See {@code Comparable}
+ * or {@code Comparator} for a precise definition of <i>consistent with
+ * equals</i>.)  This is so because the {@code Set} interface is defined in
+ * terms of the {@code equals} operation, but a {@code TreeSet} instance
+ * performs all element comparisons using its {@code compareTo} (or
+ * {@code compare}) method, so two elements that are deemed equal by this method
  * are, from the standpoint of the set, equal.  The behavior of a set
  * <i>is</i> well-defined even if its ordering is inconsistent with equals; it
- * just fails to obey the general contract of the <tt>Set</tt> interface.<p>
+ * just fails to obey the general contract of the {@code Set} interface.
  *
- * <b>Note that this implementation is not synchronized.</b> If multiple
- * threads access a set concurrently, and at least one of the threads modifies
- * the set, it <i>must</i> be synchronized externally.  This is typically
- * accomplished by synchronizing on some object that naturally encapsulates
- * the set.  If no such object exists, the set should be "wrapped" using the
- * <tt>Collections.synchronizedSet</tt> method.  This is best done at creation
- * time, to prevent accidental unsynchronized access to the set: <pre>
- *     SortedSet s = Collections.synchronizedSortedSet(new TreeSet(...));
- * </pre><p>
+ * <p><strong>Note that this implementation is not synchronized.</strong>
+ * If multiple threads access a tree set concurrently, and at least one
+ * of the threads modifies the set, it <i>must</i> be synchronized
+ * externally.  This is typically accomplished by synchronizing on some
+ * object that naturally encapsulates the set.
+ * If no such object exists, the set should be "wrapped" using the
+ * {@link Collections#synchronizedSortedSet Collections.synchronizedSortedSet}
+ * method.  This is best done at creation time, to prevent accidental
+ * unsynchronized access to the set: <pre>
+ *   SortedSet s = Collections.synchronizedSortedSet(new TreeSet(...));</pre>
  *
- * The Iterators returned by this class's <tt>iterator</tt> method are
+ * <p>The iterators returned by this class's {@code iterator} method are
  * <i>fail-fast</i>: if the set is modified at any time after the iterator is
- * created, in any way except through the iterator's own <tt>remove</tt>
- * method, the iterator will throw a <tt>ConcurrentModificationException</tt>.
+ * created, in any way except through the iterator's own {@code remove}
+ * method, the iterator will throw a {@link ConcurrentModificationException}.
  * Thus, in the face of concurrent modification, the iterator fails quickly
  * and cleanly, rather than risking arbitrary, non-deterministic behavior at
  * an undetermined time in the future.
@@ -50,93 +50,93 @@ package java.util;
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
+ * throw {@code ConcurrentModificationException} on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:   <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i><p>
+ * should be used only to detect bugs.</i>
  *
- * This class is a member of the
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * <p>This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * @param <E> the type of elements maintained by this set
+ *
  * @author  Josh Bloch
- * @version 1.32, 12/19/03
+ * @version 1.37, 05/10/06
  * @see	    Collection
  * @see	    Set
  * @see	    HashSet
  * @see     Comparable
  * @see     Comparator
- * @see	    Collections#synchronizedSortedSet(SortedSet)
  * @see	    TreeMap
  * @since   1.2
  */
 
-public class TreeSet<E>
-    extends AbstractSet<E>
-    implements SortedSet<E>, Cloneable, java.io.Serializable
+public class TreeSet<E> extends AbstractSet<E>
+    implements NavigableSet<E>, Cloneable, java.io.Serializable
 {
-    private transient SortedMap<E,Object> m; // The backing Map
-    private transient Set<E> keySet;	// The keySet view of the backing Map
+    /**
+     * The backing map.
+     */
+    private transient NavigableMap<E,Object> m;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
 
     /**
-     * Constructs a set backed by the specified sorted map.
+     * Constructs a set backed by the specified navigable map.
      */
-    private TreeSet(SortedMap<E,Object> m) {
+    TreeSet(NavigableMap<E,Object> m) {
         this.m = m;
-        keySet = m.keySet();
     }
 
     /**
-     * Constructs a new, empty set, sorted according to the elements' natural
-     * order.  All elements inserted into the set must implement the
-     * <tt>Comparable</tt> interface.  Furthermore, all such elements must be
-     * <i>mutually comparable</i>: <tt>e1.compareTo(e2)</tt> must not throw a
-     * <tt>ClassCastException</tt> for any elements <tt>e1</tt> and
-     * <tt>e2</tt> in the set.  If the user attempts to add an element to the
-     * set that violates this constraint (for example, the user attempts to
-     * add a string element to a set whose elements are integers), the
-     * <tt>add(Object)</tt> call will throw a <tt>ClassCastException</tt>.
-     *
-     * @see Comparable
+     * Constructs a new, empty tree set, sorted according to the
+     * natural ordering of its elements.  All elements inserted into
+     * the set must implement the {@link Comparable} interface.
+     * Furthermore, all such elements must be <i>mutually
+     * comparable</i>: {@code e1.compareTo(e2)} must not throw a
+     * {@code ClassCastException} for any elements {@code e1} and
+     * {@code e2} in the set.  If the user attempts to add an element
+     * to the set that violates this constraint (for example, the user
+     * attempts to add a string element to a set whose elements are
+     * integers), the {@code add} call will throw a
+     * {@code ClassCastException}.
      */
     public TreeSet() {
 	this(new TreeMap<E,Object>());
     }
 
     /**
-     * Constructs a new, empty set, sorted according to the specified
+     * Constructs a new, empty tree set, sorted according to the specified
      * comparator.  All elements inserted into the set must be <i>mutually
-     * comparable</i> by the specified comparator: <tt>comparator.compare(e1,
-     * e2)</tt> must not throw a <tt>ClassCastException</tt> for any elements
-     * <tt>e1</tt> and <tt>e2</tt> in the set.  If the user attempts to add
+     * comparable</i> by the specified comparator: {@code comparator.compare(e1,
+     * e2)} must not throw a {@code ClassCastException} for any elements
+     * {@code e1} and {@code e2} in the set.  If the user attempts to add
      * an element to the set that violates this constraint, the
-     * <tt>add(Object)</tt> call will throw a <tt>ClassCastException</tt>.
+     * {@code add} call will throw a {@code ClassCastException}.
      *
-     * @param c the comparator that will be used to sort this set.  A
-     *        <tt>null</tt> value indicates that the elements' <i>natural
-     *        ordering</i> should be used.
+     * @param comparator the comparator that will be used to order this set.
+     *        If {@code null}, the {@linkplain Comparable natural
+     *        ordering} of the elements will be used.
      */
-    public TreeSet(Comparator<? super E> c) {
-	this(new TreeMap<E,Object>(c));
+    public TreeSet(Comparator<? super E> comparator) {
+	this(new TreeMap<E,Object>(comparator));
     }
 
     /**
-     * Constructs a new set containing the elements in the specified
-     * collection, sorted according to the elements' <i>natural order</i>.
-     * All keys inserted into the set must implement the <tt>Comparable</tt>
-     * interface.  Furthermore, all such keys must be <i>mutually
-     * comparable</i>: <tt>k1.compareTo(k2)</tt> must not throw a
-     * <tt>ClassCastException</tt> for any elements <tt>k1</tt> and
-     * <tt>k2</tt> in the set.
+     * Constructs a new tree set containing the elements in the specified
+     * collection, sorted according to the <i>natural ordering</i> of its
+     * elements.  All elements inserted into the set must implement the
+     * {@link Comparable} interface.  Furthermore, all such elements must be
+     * <i>mutually comparable</i>: {@code e1.compareTo(e2)} must not throw a
+     * {@code ClassCastException} for any elements {@code e1} and
+     * {@code e2} in the set.
      *
-     * @param c The elements that will comprise the new set.
-     *
-     * @throws ClassCastException if the keys in the specified collection are
-     *         not comparable, or are not mutually comparable.
-     * @throws NullPointerException if the specified collection is null.
+     * @param c collection whose elements will comprise the new set
+     * @throws ClassCastException if the elements in {@code c} are
+     *         not {@link Comparable}, or are not mutually comparable
+     * @throws NullPointerException if the specified collection is null
      */
     public TreeSet(Collection<? extends E> c) {
         this();
@@ -144,11 +144,11 @@ public class TreeSet<E>
     }
 
     /**
-     * Constructs a new set containing the same elements as the specified
-     * sorted set, sorted according to the same ordering.
+     * Constructs a new tree set containing the same elements and
+     * using the same ordering as the specified sorted set.
      *
-     * @param s sorted set whose elements will comprise the new set.
-     * @throws NullPointerException if the specified sorted set is null.
+     * @param s sorted set whose elements will comprise the new set
+     * @throws NullPointerException if the specified sorted set is null
      */
     public TreeSet(SortedSet<E> s) {
         this(s.comparator());
@@ -156,41 +156,62 @@ public class TreeSet<E>
     }
 
     /**
-     * Returns an iterator over the elements in this set.  The elements
-     * are returned in ascending order.
+     * Returns an iterator over the elements in this set in ascending order.
      *
-     * @return an iterator over the elements in this set.
+     * @return an iterator over the elements in this set in ascending order
      */
     public Iterator<E> iterator() {
-	return keySet.iterator();
+        return m.navigableKeySet().iterator();
+    }
+
+    /**
+     * Returns an iterator over the elements in this set in descending order.
+     *
+     * @return an iterator over the elements in this set in descending order
+     * @since 1.6
+     */
+    public Iterator<E> descendingIterator() {
+	return m.descendingKeySet().iterator();
+    }
+
+    /**
+     * @since 1.6
+     */
+    public NavigableSet<E> descendingSet() {
+	return new TreeSet(m.descendingMap());
     }
 
     /**
      * Returns the number of elements in this set (its cardinality).
      *
-     * @return the number of elements in this set (its cardinality).
+     * @return the number of elements in this set (its cardinality)
      */
     public int size() {
 	return m.size();
     }
 
     /**
-     * Returns <tt>true</tt> if this set contains no elements.
+     * Returns {@code true} if this set contains no elements.
      *
-     * @return <tt>true</tt> if this set contains no elements.
+     * @return {@code true} if this set contains no elements
      */
     public boolean isEmpty() {
 	return m.isEmpty();
     }
 
     /**
-     * Returns <tt>true</tt> if this set contains the specified element.
+     * Returns {@code true} if this set contains the specified element.
+     * More formally, returns {@code true} if and only if this set
+     * contains an element {@code e} such that
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
      *
-     * @param o the object to be checked for containment in this set.
-     * @return <tt>true</tt> if this set contains the specified element.
-     *
+     * @param o object to be checked for containment in this set
+     * @return {@code true} if this set contains the specified element
      * @throws ClassCastException if the specified object cannot be compared
-     * 		  with the elements currently in the set.
+     *         with the elements currently in the set
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      */
     public boolean contains(Object o) {
 	return m.containsKey(o);
@@ -198,26 +219,41 @@ public class TreeSet<E>
 
     /**
      * Adds the specified element to this set if it is not already present.
+     * More formally, adds the specified element {@code e} to this set if
+     * the set contains no element {@code e2} such that
+     * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt>.
+     * If this set already contains the element, the call leaves the set
+     * unchanged and returns {@code false}.
      *
-     * @param o element to be added to this set.
-     * @return <tt>true</tt> if the set did not already contain the specified
-     *         element.
-     *
+     * @param e element to be added to this set
+     * @return {@code true} if this set did not already contain the specified
+     *         element
      * @throws ClassCastException if the specified object cannot be compared
-     * 		  with the elements currently in the set.
+     *         with the elements currently in this set
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      */
-    public boolean add(E o) {
-	return m.put(o, PRESENT)==null;
+    public boolean add(E e) {
+	return m.put(e, PRESENT)==null;
     }
 
     /**
      * Removes the specified element from this set if it is present.
+     * More formally, removes an element {@code e} such that
+     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>,
+     * if this set contains such an element.  Returns {@code true} if
+     * this set contained the element (or equivalently, if this set
+     * changed as a result of the call).  (This set will not contain the
+     * element once the call returns.)
      *
-     * @param o object to be removed from this set, if present.
-     * @return <tt>true</tt> if the set contained the specified element.
-     *
+     * @param o object to be removed from this set, if present
+     * @return {@code true} if this set contained the specified element
      * @throws ClassCastException if the specified object cannot be compared
-     * 		  with the elements currently in the set.
+     *         with the elements currently in this set
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      */
     public boolean remove(Object o) {
 	return m.remove(o)==PRESENT;
@@ -225,6 +261,7 @@ public class TreeSet<E>
 
     /**
      * Removes all of the elements from this set.
+     * The set will be empty after this call returns.
      */
     public void clear() {
 	m.clear();
@@ -233,22 +270,22 @@ public class TreeSet<E>
     /**
      * Adds all of the elements in the specified collection to this set.
      *
-     * @param c elements to be added
-     * @return <tt>true</tt> if this set changed as a result of the call.
-     *
+     * @param c collection containing elements to be added to this set
+     * @return {@code true} if this set changed as a result of the call
      * @throws ClassCastException if the elements provided cannot be compared
-     *		  with the elements currently in the set.
-     * @throws NullPointerException of the specified collection is null.
+     *         with the elements currently in the set
+     * @throws NullPointerException if the specified collection is null or
+     *         if any element is null and this set uses natural ordering, or
+     *         its comparator does not permit null elements
      */
     public  boolean addAll(Collection<? extends E> c) {
         // Use linear-time version if applicable
         if (m.size()==0 && c.size() > 0 &&
-	    // FIXME(VFORCE) Work-around for bug in compiler
 	    c instanceof SortedSet &&
             m instanceof TreeMap) {
-            SortedSet<Map.Entry<E, Object>> set = (SortedSet<Map.Entry<E, Object>>) (SortedSet) c;
+            SortedSet<? extends E> set = (SortedSet<? extends E>) c;
             TreeMap<E,Object> map = (TreeMap<E, Object>) m;
-            Comparator<? super E> cc = (Comparator<E>) set.comparator();
+            Comparator<? super E> cc = (Comparator<? super E>) set.comparator();
             Comparator<? super E> mc = map.comparator();
             if (cc==mc || (cc != null && cc.equals(mc))) {
                 map.addAllForTreeSet(set, PRESENT);
@@ -259,169 +296,161 @@ public class TreeSet<E>
     }
 
     /**
-     * Returns a view of the portion of this set whose elements range from
-     * <tt>fromElement</tt>, inclusive, to <tt>toElement</tt>, exclusive.  (If
-     * <tt>fromElement</tt> and <tt>toElement</tt> are equal, the returned
-     * sorted set is empty.)  The returned sorted set is backed by this set,
-     * so changes in the returned sorted set are reflected in this set, and
-     * vice-versa.  The returned sorted set supports all optional Set
-     * operations.<p>
-     *
-     * The sorted set returned by this method will throw an
-     * <tt>IllegalArgumentException</tt> if the user attempts to insert an
-     * element outside the specified range.<p>
-     *
-     * Note: this method always returns a <i>half-open range</i> (which
-     * includes its low endpoint but not its high endpoint).  If you need a
-     * <i>closed range</i> (which includes both endpoints), and the element
-     * type allows for calculation of the successor of a specified value,
-     * merely request the subrange from <tt>lowEndpoint</tt> to
-     * <tt>successor(highEndpoint)</tt>.  For example, suppose that <tt>s</tt>
-     * is a sorted set of strings.  The following idiom obtains a view
-     * containing all of the strings in <tt>s</tt> from <tt>low</tt> to
-     * <tt>high</tt>, inclusive: <pre>
-     *     SortedSet sub = s.subSet(low, high+"\0");
-     * </pre>
-     *
-     * A similar technique can be used to generate an <i>open range</i> (which
-     * contains neither endpoint).  The following idiom obtains a view
-     * containing all of the strings in <tt>s</tt> from <tt>low</tt> to
-     * <tt>high</tt>, exclusive: <pre>
-     *     SortedSet sub = s.subSet(low+"\0", high);
-     * </pre>
-     *
-     * @param fromElement low endpoint (inclusive) of the subSet.
-     * @param toElement high endpoint (exclusive) of the subSet.
-     * @return a view of the portion of this set whose elements range from
-     * 	       <tt>fromElement</tt>, inclusive, to <tt>toElement</tt>,
-     * 	       exclusive.
-     * @throws ClassCastException if <tt>fromElement</tt> and
-     *         <tt>toElement</tt> cannot be compared to one another using
-     *         this set's comparator (or, if the set has no comparator,
-     *         using natural ordering).
-     * @throws IllegalArgumentException if <tt>fromElement</tt> is greater than
-     *         <tt>toElement</tt>.
-     * @throws NullPointerException if <tt>fromElement</tt> or
-     *	       <tt>toElement</tt> is <tt>null</tt> and this set uses natural
-     *	       order, or its comparator does not tolerate <tt>null</tt>
-     *         elements.
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} or {@code toElement}
+     *         is null and this set uses natural ordering, or its comparator
+     *         does not permit null elements
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @since 1.6
+     */
+    public NavigableSet<E> subSet(E fromElement, boolean fromInclusive,
+                                  E toElement,   boolean toInclusive) {
+	return new TreeSet<E>(m.subMap(fromElement, fromInclusive,
+                                       toElement,   toInclusive));
+    }
+
+    /**
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code toElement} is null and
+     *         this set uses natural ordering, or its comparator does
+     *         not permit null elements
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @since 1.6
+     */
+    public NavigableSet<E> headSet(E toElement, boolean inclusive) {
+	return new TreeSet<E>(m.headMap(toElement, inclusive));
+    }
+
+    /**
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} is null and
+     *         this set uses natural ordering, or its comparator does
+     *         not permit null elements
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @since 1.6
+     */
+    public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
+	return new TreeSet<E>(m.tailMap(fromElement, inclusive));
+    }
+
+    /**
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} or
+     *         {@code toElement} is null and this set uses natural ordering,
+     *         or its comparator does not permit null elements
+     * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedSet<E> subSet(E fromElement, E toElement) {
-	return new TreeSet<E>(m.subMap(fromElement, toElement));
+	return subSet(fromElement, true, toElement, false);
     }
 
     /**
-     * Returns a view of the portion of this set whose elements are strictly
-     * less than <tt>toElement</tt>.  The returned sorted set is backed by
-     * this set, so changes in the returned sorted set are reflected in this
-     * set, and vice-versa.  The returned sorted set supports all optional set
-     * operations.<p>
-     *
-     * The sorted set returned by this method will throw an
-     * <tt>IllegalArgumentException</tt> if the user attempts to insert an
-     * element greater than or equal to <tt>toElement</tt>.<p>
-     *
-     * Note: this method always returns a view that does not contain its
-     * (high) endpoint.  If you need a view that does contain this endpoint,
-     * and the element type allows for calculation of the successor of a
-     * specified value, merely request a headSet bounded by
-     * <tt>successor(highEndpoint)</tt>.  For example, suppose that <tt>s</tt>
-     * is a sorted set of strings.  The following idiom obtains a view
-     * containing all of the strings in <tt>s</tt> that are less than or equal
-     * to <tt>high</tt>: <pre> SortedSet head = s.headSet(high+"\0");</pre>
-     *
-     * @param toElement high endpoint (exclusive) of the headSet.
-     * @return a view of the portion of this set whose elements are strictly
-     * 	       less than toElement.
-     * @throws ClassCastException if <tt>toElement</tt> is not compatible
-     *         with this set's comparator (or, if the set has no comparator,
-     *         if <tt>toElement</tt> does not implement <tt>Comparable</tt>).
-     * @throws IllegalArgumentException if this set is itself a subSet,
-     *         headSet, or tailSet, and <tt>toElement</tt> is not within the
-     *         specified range of the subSet, headSet, or tailSet.
-     * @throws NullPointerException if <tt>toElement</tt> is <tt>null</tt> and
-     *	       this set uses natural ordering, or its comparator does
-     *         not tolerate <tt>null</tt> elements.
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code toElement} is null
+     *         and this set uses natural ordering, or its comparator does
+     *         not permit null elements
+     * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedSet<E> headSet(E toElement) {
-	return new TreeSet<E>(m.headMap(toElement));
+	return headSet(toElement, false);
     }
 
     /**
-     * Returns a view of the portion of this set whose elements are
-     * greater than or equal to <tt>fromElement</tt>.  The returned sorted set
-     * is backed by this set, so changes in the returned sorted set are
-     * reflected in this set, and vice-versa.  The returned sorted set
-     * supports all optional set operations.<p>
-     *
-     * The sorted set returned by this method will throw an
-     * <tt>IllegalArgumentException</tt> if the user attempts to insert an
-     * element less than <tt>fromElement</tt>.
-     *
-     * Note: this method always returns a view that contains its (low)
-     * endpoint.  If you need a view that does not contain this endpoint, and
-     * the element type allows for calculation of the successor of a specified
-     * value, merely request a tailSet bounded by
-     * <tt>successor(lowEndpoint)</tt>.  For example, suppose that <tt>s</tt>
-     * is a sorted set of strings.  The following idiom obtains a view
-     * containing all of the strings in <tt>s</tt> that are strictly greater
-     * than <tt>low</tt>: <pre>
-     *     SortedSet tail = s.tailSet(low+"\0");
-     * </pre>
-     *
-     * @param fromElement low endpoint (inclusive) of the tailSet.
-     * @return a view of the portion of this set whose elements are
-     * 	       greater than or equal to <tt>fromElement</tt>.
-     * @throws ClassCastException if <tt>fromElement</tt> is not compatible
-     *         with this set's comparator (or, if the set has no comparator,
-     *         if <tt>fromElement</tt> does not implement <tt>Comparable</tt>).
-     * @throws IllegalArgumentException if this set is itself a subSet,
-     *         headSet, or tailSet, and <tt>fromElement</tt> is not within the
-     *         specified range of the subSet, headSet, or tailSet.
-     * @throws NullPointerException if <tt>fromElement</tt> is <tt>null</tt>
-     *	       and this set uses natural ordering, or its comparator does
-     *         not tolerate <tt>null</tt> elements.
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} is null
+     *         and this set uses natural ordering, or its comparator does
+     *         not permit null elements
+     * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedSet<E> tailSet(E fromElement) {
-	return new TreeSet<E>(m.tailMap(fromElement));
+	return tailSet(fromElement, true);
     }
 
-    /**
-     * Returns the comparator used to order this sorted set, or <tt>null</tt>
-     * if this tree set uses its elements natural ordering.
-     *
-     * @return the comparator used to order this sorted set, or <tt>null</tt>
-     * if this tree set uses its elements natural ordering.
-     */
     public Comparator<? super E> comparator() {
         return m.comparator();
     }
 
     /**
-     * Returns the first (lowest) element currently in this sorted set.
-     *
-     * @return the first (lowest) element currently in this sorted set.
-     * @throws    NoSuchElementException sorted set is empty.
+     * @throws NoSuchElementException {@inheritDoc}
      */
     public E first() {
         return m.firstKey();
     }
 
     /**
-     * Returns the last (highest) element currently in this sorted set.
-     *
-     * @return the last (highest) element currently in this sorted set.
-     * @throws    NoSuchElementException sorted set is empty.
+     * @throws NoSuchElementException {@inheritDoc}
      */
     public E last() {
         return m.lastKey();
     }
 
+    // NavigableSet API methods
+
     /**
-     * Returns a shallow copy of this <tt>TreeSet</tt> instance. (The elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
+     * @since 1.6
+     */
+    public E lower(E e) {
+        return m.lowerKey(e);
+    }
+
+    /**
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
+     * @since 1.6
+     */
+    public E floor(E e) {
+        return m.floorKey(e);
+    }
+
+    /**
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
+     * @since 1.6
+     */
+    public E ceiling(E e) {
+        return m.ceilingKey(e);
+    }
+
+    /**
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if the specified element is null
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
+     * @since 1.6
+     */
+    public E higher(E e) {
+        return m.higherKey(e);
+    }
+
+    /**
+     * @since 1.6
+     */
+    public E pollFirst() {
+        Map.Entry<E,?> e = m.pollFirstEntry();
+        return (e == null)? null : e.getKey();
+    }
+
+    /**
+     * @since 1.6
+     */
+    public E pollLast() {
+        Map.Entry<E,?> e = m.pollLastEntry();
+        return (e == null)? null : e.getKey();
+    }
+
+    /**
+     * Returns a shallow copy of this {@code TreeSet} instance. (The elements
      * themselves are not cloned.)
      *
-     * @return a shallow copy of this set.
+     * @return a shallow copy of this set
      */
     public Object clone() {
         TreeSet<E> clone = null;
@@ -432,21 +461,19 @@ public class TreeSet<E>
 	}
 
         clone.m = new TreeMap<E,Object>(m);
-        clone.keySet = clone.m.keySet();
-
         return clone;
     }
 
     /**
-     * Save the state of the <tt>TreeSet</tt> instance to a stream (that is,
+     * Save the state of the {@code TreeSet} instance to a stream (that is,
      * serialize it).
      *
      * @serialData Emits the comparator used to order this set, or
-     *		   <tt>null</tt> if it obeys its elements' natural ordering
-     *		   (Object), followed by the size of the set (the number of
-     *		   elements it contains) (int), followed by all of its
-     *		   elements (each an Object) in order (as determined by the
-     *		   set's Comparator, or by the elements' natural ordering if
+     *             {@code null} if it obeys its elements' natural ordering
+     *             (Object), followed by the size of the set (the number of
+     *             elements it contains) (int), followed by all of its
+     *             elements (each an Object) in order (as determined by the
+     *             set's Comparator, or by the elements' natural ordering if
      *             the set has no Comparator).
      */
     private void writeObject(java.io.ObjectOutputStream s)
@@ -466,7 +493,7 @@ public class TreeSet<E>
     }
 
     /**
-     * Reconstitute the <tt>TreeSet</tt> instance from a stream (that is,
+     * Reconstitute the {@code TreeSet} instance from a stream (that is,
      * deserialize it).
      */
     private void readObject(java.io.ObjectInputStream s)
@@ -475,16 +502,15 @@ public class TreeSet<E>
 	s.defaultReadObject();
 
         // Read in Comparator
-        Comparator<E> c = (Comparator<E>) s.readObject();
+        Comparator<? super E> c = (Comparator<? super E>) s.readObject();
 
-        // Create backing TreeMap and keySet view
+        // Create backing TreeMap
 	TreeMap<E,Object> tm;
 	if (c==null)
 	    tm = new TreeMap<E,Object>();
 	else
 	    tm = new TreeMap<E,Object>(c);
 	m = tm;
-        keySet = m.keySet();
 
         // Read in size
         int size = s.readInt();

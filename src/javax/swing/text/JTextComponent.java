@@ -1,7 +1,7 @@
 /*
- * @(#)JTextComponent.java	1.213 06/04/10
+ * @(#)JTextComponent.java	1.229 06/08/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -21,15 +21,24 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import java.util.concurrent.*;
+
 import java.io.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.*;
 import java.awt.datatransfer.*;
 import java.awt.im.InputContext;
 import java.awt.im.InputMethodRequests;
 import java.awt.font.TextHitInfo;
 import java.awt.font.TextAttribute;
+
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+
+import javax.print.PrintService;
+import javax.print.attribute.PrintRequestAttributeSet;
 
 import java.text.*;
 import java.text.AttributedCharacterIterator.Attribute;
@@ -40,7 +49,14 @@ import javax.swing.plaf.*;
 
 import javax.accessibility.*;
 
+import javax.print.attribute.*;
+
 import sun.awt.AppContext;
+
+
+import sun.swing.PrintingStatus;
+import sun.swing.SwingUtilities2;
+import sun.swing.text.TextComponentPrintable;
 
 /**
  * <code>JTextComponent</code> is the base class for swing text 
@@ -103,7 +119,7 @@ import sun.awt.AppContext;
  * the action (In the case that the <code>ActionEvent</code>
  * sent to the action doesn't contain the target text component as its source). 
  * <p>
- * The <a href="../../../../guide/imf/spec.html">input method framework</a>
+ * The <a href="../../../../technotes/guides/imf/spec.html">input method framework</a>
  * lets text components interact with input methods, separate software
  * components that preprocess events to let users enter thousands of
  * different characters using keyboards with far fewer keys.
@@ -233,6 +249,13 @@ import sun.awt.AppContext;
  * <dd>
  * For a discussion on how newlines are handled, see
  * <a href="DefaultEditorKit.html">DefaultEditorKit</a>.
+ *
+ * <p>
+ * <dt><b><font size=+1>Printing support</font></b>
+ * <dd> 
+ * Several {@link #print print} methods are provided for basic
+ * document printing.  If more advanced printing is needed, use the 
+ * {@link #getPrintable} method.
  * </dl>
  *
  * <p>
@@ -249,7 +272,8 @@ import sun.awt.AppContext;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.213 04/10/06
+ * @author Igor Kushnirskiy (printing support)
+ * @version 1.229 08/03/06
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -407,8 +431,9 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             Boolean runDir = getComponentOrientation().isLeftToRight() 
                              ? TextAttribute.RUN_DIRECTION_LTR
                              : TextAttribute.RUN_DIRECTION_RTL;
-            doc.putProperty( TextAttribute.RUN_DIRECTION, runDir );
-
+            if (runDir != doc.getProperty(TextAttribute.RUN_DIRECTION)) {
+                doc.putProperty(TextAttribute.RUN_DIRECTION, runDir );
+            }
 	    firePropertyChange("document", old, doc);
 	} finally {
 	    if (old instanceof AbstractDocument) {
@@ -617,31 +642,24 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     /**
-     * Sets the <code>dragEnabled</code> property,
-     * which must be <code>true</code> to enable
-     * automatic drag handling (the first part of drag and drop) 
-     * on this component.
-     * The <code>transferHandler</code> property needs to be set
-     * to a non-<code>null</code> value for the drag to do
-     * anything.  The default value of the <code>dragEnabled</code>
-     * property
-     * is <code>false</code>.
+     * Turns on or off automatic drag handling. In order to enable automatic
+     * drag handling, this property should be set to {@code true}, and the
+     * component's {@code TransferHandler} needs to be {@code non-null}.
+     * The default value of the {@code dragEnabled} property is {@code false}.
      * <p>
-     * When automatic drag handling is enabled,
-     * most look and feels begin a drag-and-drop operation 
-     * whenever the user presses the mouse button over a selection
-     * and then moves the mouse a few pixels.
-     * Setting this property to <code>true</code> 
-     * can therefore have a subtle effect on
-     * how selections behave.
+     * The job of honoring this property, and recognizing a user drag gesture,
+     * lies with the look and feel implementation, and in particular, the component's
+     * {@code TextUI}. When automatic drag handling is enabled, most look and
+     * feels (including those that subclass {@code BasicLookAndFeel}) begin a
+     * drag and drop operation whenever the user presses the mouse button over
+     * a selection and then moves the mouse a few pixels. Setting this property to
+     * {@code true} can therefore have a subtle effect on how selections behave.
      * <p>
-     * Some look and feels might not support automatic drag and drop;
-     * they will ignore this property.  You can work around such
-     * look and feels by modifying the component 
-     * to directly call the <code>exportAsDrag</code> method of a
-     * <code>TransferHandler</code>.
+     * If a look and feel is used that ignores this property, you can still
+     * begin a drag and drop operation by calling {@code exportAsDrag} on the
+     * component's {@code TransferHandler}.
      *
-     * @param b the value to set the <code>dragEnabled</code> property to
+     * @param b whether or not to enable automatic drag handling
      * @exception HeadlessException if
      *            <code>b</code> is <code>true</code> and
      *            <code>GraphicsEnvironment.isHeadless()</code>
@@ -664,14 +682,246 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     /**
-     * Gets the <code>dragEnabled</code> property.
+     * Returns whether or not automatic drag handling is enabled.
      *
-     * @return the value of the <code>dragEnabled</code> property
+     * @return the value of the {@code dragEnabled} property
      * @see #setDragEnabled
      * @since 1.4
      */
     public boolean getDragEnabled() {
 	return dragEnabled;
+    }
+
+    /**
+     * Sets the drop mode for this component. For backward compatibility,
+     * the default for this property is <code>DropMode.USE_SELECTION</code>.
+     * Usage of <code>DropMode.INSERT</code> is recommended, however,
+     * for an improved user experience. It offers similar behavior of dropping
+     * between text locations, but does so without affecting the actual text
+     * selection and caret location.
+     * <p>
+     * <code>JTextComponents</code> support the following drop modes:
+     * <ul>
+     *    <li><code>DropMode.USE_SELECTION</code></li>
+     *    <li><code>DropMode.INSERT</code></li>
+     * </ul>
+     * <p>
+     * The drop mode is only meaningful if this component has a
+     * <code>TransferHandler</code> that accepts drops.
+     *
+     * @param dropMode the drop mode to use
+     * @throws IllegalArgumentException if the drop mode is unsupported
+     *         or <code>null</code>
+     * @see #getDropMode
+     * @see #getDropLocation
+     * @see #setTransferHandler
+     * @see javax.swing.TransferHandler
+     * @since 1.6
+     */
+    public final void setDropMode(DropMode dropMode) {
+        if (dropMode != null) {
+            switch (dropMode) {
+                case USE_SELECTION:
+                case INSERT:
+                    this.dropMode = dropMode;
+                    return;
+            }
+        }
+
+        throw new IllegalArgumentException(dropMode + ": Unsupported drop mode for text");
+    }
+
+    /**
+     * Returns the drop mode for this component.
+     *
+     * @return the drop mode for this component
+     * @see #setDropMode
+     * @since 1.6
+     */
+    public final DropMode getDropMode() {
+        return dropMode;
+    }
+
+
+    /**
+     * Calculates a drop location in this component, representing where a
+     * drop at the given point should insert data.
+     * <p>
+     * Note: This method is meant to override
+     * <code>JComponent.dropLocationForPoint()</code>, which is package-private
+     * in javax.swing. <code>TransferHandler</code> will detect text components
+     * and call this method instead via reflection. It's name should therefore
+     * not be changed.
+     *
+     * @param p the point to calculate a drop location for
+     * @return the drop location, or <code>null</code>
+     */
+    DropLocation dropLocationForPoint(Point p) {
+        Position.Bias[] bias = new Position.Bias[1];
+        int index = getUI().viewToModel(this, p, bias);
+
+        // viewToModel currently returns null for some HTML content
+        // when the point is within the component's top inset
+        if (bias[0] == null) {
+            bias[0] = Position.Bias.Forward;
+        }
+
+        return new DropLocation(p, index, bias[0]);
+    }
+
+    /**
+     * Called to set or clear the drop location during a DnD operation.
+     * In some cases, the component may need to use it's internal selection
+     * temporarily to indicate the drop location. To help facilitate this,
+     * this method returns and accepts as a parameter a state object.
+     * This state object can be used to store, and later restore, the selection
+     * state. Whatever this method returns will be passed back to it in
+     * future calls, as the state parameter. If it wants the DnD system to
+     * continue storing the same state, it must pass it back every time.
+     * Here's how this is used:
+     * <p>
+     * Let's say that on the first call to this method the component decides
+     * to save some state (because it is about to use the selection to show
+     * a drop index). It can return a state object to the caller encapsulating
+     * any saved selection state. On a second call, let's say the drop location
+     * is being changed to something else. The component doesn't need to
+     * restore anything yet, so it simply passes back the same state object
+     * to have the DnD system continue storing it. Finally, let's say this
+     * method is messaged with <code>null</code>. This means DnD
+     * is finished with this component for now, meaning it should restore
+     * state. At this point, it can use the state parameter to restore
+     * said state, and of course return <code>null</code> since there's
+     * no longer anything to store.
+     * <p>
+     * Note: This method is meant to override
+     * <code>JComponent.setDropLocation()</code>, which is package-private
+     * in javax.swing. <code>TransferHandler</code> will detect text components
+     * and call this method instead via reflection. It's name should therefore
+     * not be changed.
+     *
+     * @param location the drop location (as calculated by
+     *        <code>dropLocationForPoint</code>) or <code>null</code>
+     *        if there's no longer a valid drop location
+     * @param state the state object saved earlier for this component,
+     *        or <code>null</code>
+     * @param forDrop whether or not the method is being called because an
+     *        actual drop occurred
+     * @return any saved state for this component, or <code>null</code> if none
+     */
+    Object setDropLocation(TransferHandler.DropLocation location,
+                           Object state,
+                           boolean forDrop) {
+
+        Object retVal = null;
+        DropLocation textLocation = (DropLocation)location;
+
+        if (dropMode == DropMode.USE_SELECTION) {
+            if (textLocation == null) {
+                if (state != null) {
+                    /*
+                     * This object represents the state saved earlier.
+                     *     If the caret is a DefaultCaret it will be
+                     *     an Object array containing, in order:
+                     *         - the saved caret mark (Integer)
+                     *         - the saved caret dot (Integer)
+                     *         - the saved caret visibility (Boolean)
+                     *         - the saved mark bias (Position.Bias)
+                     *         - the saved dot bias (Position.Bias)
+                     *     If the caret is not a DefaultCaret it will
+                     *     be similar, but will not contain the dot
+                     *     or mark bias.
+                     */
+                    Object[] vals = (Object[])state;
+
+                    if (!forDrop) {
+                        if (caret instanceof DefaultCaret) {
+                            ((DefaultCaret)caret).setDot(((Integer)vals[0]).intValue(),
+                                                         (Position.Bias)vals[3]);
+                            ((DefaultCaret)caret).moveDot(((Integer)vals[1]).intValue(),
+                                                         (Position.Bias)vals[4]);
+                        } else {
+                            caret.setDot(((Integer)vals[0]).intValue());
+                            caret.moveDot(((Integer)vals[1]).intValue());
+                        }
+                    }
+
+                    caret.setVisible(((Boolean)vals[2]).booleanValue());
+                }
+            } else {
+                if (dropLocation == null) {
+                    boolean visible;
+
+                    if (caret instanceof DefaultCaret) {
+                        DefaultCaret dc = (DefaultCaret)caret;
+                        visible = dc.isActive();
+                        retVal = new Object[] {Integer.valueOf(dc.getMark()),
+                                               Integer.valueOf(dc.getDot()),
+                                               Boolean.valueOf(visible),
+                                               dc.getMarkBias(),
+                                               dc.getDotBias()};
+                    } else {
+                        visible = caret.isVisible();
+                        retVal = new Object[] {Integer.valueOf(caret.getMark()),
+                                               Integer.valueOf(caret.getDot()),
+                                               Boolean.valueOf(visible)};
+                    }
+
+                    caret.setVisible(true);
+                } else {
+                    retVal = state;
+                }
+
+                if (caret instanceof DefaultCaret) {
+                    ((DefaultCaret)caret).setDot(textLocation.getIndex(), textLocation.getBias());
+                } else {
+                    caret.setDot(textLocation.getIndex());
+                }
+            }
+        } else {
+            if (textLocation == null) {
+                if (state != null) {
+                    caret.setVisible(((Boolean)state).booleanValue());
+                }
+            } else {
+                if (dropLocation == null) {
+                    boolean visible = caret instanceof DefaultCaret
+                                      ? ((DefaultCaret)caret).isActive()
+                                      : caret.isVisible();
+                    retVal = Boolean.valueOf(visible);
+                    caret.setVisible(false);
+                } else {
+                    retVal = state;
+                }
+            }
+        }
+
+        DropLocation old = dropLocation;
+        dropLocation = textLocation;
+        firePropertyChange("dropLocation", old, dropLocation);
+
+        return retVal;
+    }
+
+    /**
+     * Returns the location that this component should visually indicate
+     * as the drop location during a DnD operation over the component,
+     * or {@code null} if no location is to currently be shown.
+     * <p>
+     * This method is not meant for querying the drop location
+     * from a {@code TransferHandler}, as the drop location is only
+     * set after the {@code TransferHandler}'s <code>canImport</code>
+     * has returned and has allowed for the location to be shown.
+     * <p>
+     * When this property changes, a property change event with
+     * name "dropLocation" is fired by the component.
+     *
+     * @return the drop location
+     * @see #setDropMode
+     * @see TransferHandler#canImport(TransferHandler.TransferSupport)
+     * @since 1.6
+     */
+    public final DropLocation getDropLocation() {
+        return dropLocation;
     }
 
 
@@ -814,18 +1064,20 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     private static HashMap<String,Keymap> getKeymapTable() {
-        AppContext appContext = AppContext.getAppContext();
-        HashMap<String,Keymap> keymapTable = 
-            (HashMap<String,Keymap>)appContext.get(KEYMAP_TABLE);
-        if (keymapTable == null) {
-            keymapTable = new HashMap<String,Keymap>(17);
-            appContext.put(KEYMAP_TABLE, keymapTable);
-            //initialize default keymap
-            Keymap binding = addKeymap(DEFAULT_KEYMAP, null);
-            binding.setDefaultAction(new 
-                                     DefaultEditorKit.DefaultKeyTypedAction());
+        synchronized (KEYMAP_TABLE) {
+            AppContext appContext = AppContext.getAppContext();
+            HashMap<String,Keymap> keymapTable = 
+                (HashMap<String,Keymap>)appContext.get(KEYMAP_TABLE);
+            if (keymapTable == null) {
+                keymapTable = new HashMap<String,Keymap>(17);
+                appContext.put(KEYMAP_TABLE, keymapTable);
+                //initialize default keymap
+                Keymap binding = addKeymap(DEFAULT_KEYMAP, null);
+                binding.setDefaultAction(new 
+                                         DefaultEditorKit.DefaultKeyTypedAction());
+            }
+            return keymapTable;
         }
-        return keymapTable;
     }
 
     /**
@@ -1044,7 +1296,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 
     /**
      * Fetches the current color used to render the 
-     * selected text.
+     * disabled text.
      *
      * @return the color
      */
@@ -1083,8 +1335,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param content  the content to replace the selection with
      */
@@ -1421,8 +1673,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * Note that text is not a bound property, so no <code>PropertyChangeEvent
      * </code> is fired when it changes. To listen for changes to the text,
@@ -1525,11 +1777,6 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	if (b != editable) {
 	    boolean oldVal = editable;
 	    editable = b;
-	    if (editable) {
-		setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-	    } else {
-		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	    }
 	    enableInputMethods(editable);
 	    firePropertyChange("editable", Boolean.valueOf(oldVal), Boolean.valueOf(editable));
 	    repaint();
@@ -1818,6 +2065,415 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	return false;
     }
 
+
+//////////////////
+// Printing Support
+//////////////////
+
+    /**
+     * A convenience print method that displays a print dialog, and then
+     * prints this {@code JTextComponent} in <i>interactive</i> mode with no
+     * header or footer text. Note: this method
+     * blocks until printing is done.
+     * <p>
+     * Note: In <i>headless</i> mode, no dialogs will be shown.
+     * 
+     * <p> This method calls the full featured 
+     * {@link #print(MessageFormat, MessageFormat, boolean, PrintService, PrintRequestAttributeSet, boolean)
+     * print} method to perform printing.
+     * @return {@code true}, unless printing is canceled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *         to be aborted
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
+     *         
+     * @see #print(MessageFormat, MessageFormat, boolean, PrintService, PrintRequestAttributeSet, boolean)
+     * 
+     * @since 1.6
+     */
+    
+    public boolean print() throws PrinterException {
+        return print(null, null, true, null, null, true);
+    }
+    
+    /**
+     * A convenience print method that displays a print dialog, and then
+     * prints this {@code JTextComponent} in <i>interactive</i> mode with 
+     * the specified header and footer text. Note: this method
+     * blocks until printing is done.
+     * <p>
+     * Note: In <i>headless</i> mode, no dialogs will be shown.
+     * 
+     * <p> This method calls the full featured 
+     * {@link #print(MessageFormat, MessageFormat, boolean, PrintService, PrintRequestAttributeSet, boolean)
+     * print} method to perform printing.
+     * @param headerFormat the text, in {@code MessageFormat}, to be
+     *        used as the header, or {@code null} for no header
+     * @param footerFormat the text, in {@code MessageFormat}, to be
+     *        used as the footer, or {@code null} for no footer
+     * @return {@code true}, unless printing is canceled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *         to be aborted
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
+     *         
+     * @see #print(MessageFormat, MessageFormat, boolean, PrintService, PrintRequestAttributeSet, boolean)
+     * @see java.text.MessageFormat     
+     * @since 1.6
+     */
+    public boolean print(final MessageFormat headerFormat,
+            final MessageFormat footerFormat) throws PrinterException {
+        return print(headerFormat, footerFormat, true, null, null, true);
+    }
+    
+    /**
+     * Prints the content of this {@code JTextComponent}. Note: this method
+     * blocks until printing is done.
+     * 
+     * <p>
+     * Page header and footer text can be added to the output by providing
+     * {@code MessageFormat} arguments. The printing code requests
+     * {@code Strings} from the formats, providing a single item which may be
+     * included in the formatted string: an {@code Integer} representing the
+     * current page number.
+     * 
+     * <p>
+     * {@code showPrintDialog boolean} parameter allows you to specify whether
+     * a print dialog is displayed to the user. When it is, the user
+     * may use the dialog to change printing attributes or even cancel the
+     * print. 
+     *
+     * <p> 
+     * {@code service} allows you to provide the initial 
+     * {@code PrintService} for the print dialog, or to specify 
+     * {@code PrintService} to print to when the dialog is not shown.
+     *
+     * <p> 
+     * {@code attributes} can be used to provide the
+     * initial values for the print dialog, or to supply any needed
+     * attributes when the dialog is not shown. {@code attributes} can
+     * be used to control how the job will print, for example
+     * <i>duplex</i> or <i>single-sided</i>.
+     *
+     * <p> 
+     * {@code interactive boolean} parameter allows you to specify
+     * whether to perform printing in <i>interactive</i>
+     * mode. If {@code true}, a progress dialog, with an abort option,
+     * is displayed for the duration of printing.  This dialog is
+     * <i>modal</i> when {@code print} is invoked on the <i>Event Dispatch
+     * Thread</i> and <i>non-modal</i> otherwise. <b>Warning</b>:
+     * calling this method on the <i>Event Dispatch Thread</i> with {@code
+     * interactive false} blocks <i>all</i> events, including repaints, from
+     * being processed until printing is complete. It is only
+     * recommended when printing from an application with no
+     * visible GUI.
+     *
+     * <p> 
+     * Note: In <i>headless</i> mode, {@code showPrintDialog} and
+     * {@code interactive} parameters are ignored and no dialogs are
+     * shown.
+     *
+     * <p>
+     * This method ensures the {@code document} is not mutated during printing.
+     * To indicate it visually, {@code setEnabled(false)} is set for the
+     * duration of printing.
+     * 
+     * <p>
+     * This method uses {@link #getPrintable} to render document content.
+     * 
+     * <p>
+     * This method is thread-safe, although most Swing methods are not. Please
+     * see <A
+     * HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">
+     * How to Use Threads</A> for more information.
+     * 
+     * <p>
+     * <b>Sample Usage</b>. This code snippet shows a cross-platform print
+     * dialog and then prints the {@code JTextComponent} in <i>interactive</i> mode
+     * unless the user cancels the dialog:
+     * 
+     * <pre>
+     * textComponent.print(new MessageFormat(&quot;My text component header&quot;),
+     *     new MessageFormat(&quot;Footer. Page - {0}&quot;), true, null, null, true);
+     * </pre>
+     * <p>
+     * Executing this code off the <i>Event Dispatch Thread</i> 
+     * performs printing on the <i>background</i>. 
+     * The following pattern might be used for <i>background</i> 
+     * printing:
+     * <pre>
+     *     FutureTask&lt;Boolean&gt; future =
+     *         new FutureTask&lt;Boolean&gt;(
+     *             new Callable&lt;Boolean&gt;() {
+     *                 public Boolean call() {
+     *                     return textComponent.print(.....);
+     *                 }  
+     *             });
+     *     executor.execute(future);
+     * </pre> 
+     * 
+     * @param headerFormat the text, in {@code MessageFormat}, to be
+     *        used as the header, or {@code null} for no header
+     * @param footerFormat the text, in {@code MessageFormat}, to be
+     *        used as the footer, or {@code null} for no footer
+     * @param showPrintDialog {@code true} to display a print dialog,
+     *        {@code false} otherwise
+     * @param service initial {@code PrintService}, or {@code null} for the
+     *        default
+     * @param attributes the job attributes to be applied to the print job, or
+     *        {@code null} for none
+     * @param interactive whether to print in an interactive mode
+     * @return {@code true}, unless printing is canceled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *         to be aborted
+     * @throws SecurityException if this thread is not allowed to
+     *                           initiate a print job request
+     * 
+     * @see #getPrintable
+     * @see java.text.MessageFormat
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @see java.util.concurrent.FutureTask
+     * 
+     * @since 1.6
+     */
+    public boolean print(final MessageFormat headerFormat,
+            final MessageFormat footerFormat, 
+            final boolean showPrintDialog,
+            final PrintService service,
+            final PrintRequestAttributeSet attributes, 
+            final boolean interactive)
+            throws PrinterException {
+
+        final PrinterJob job = PrinterJob.getPrinterJob();
+        final Printable printable;
+        final PrintingStatus printingStatus;
+        final boolean isHeadless = GraphicsEnvironment.isHeadless();
+        final boolean isEventDispatchThread = 
+            SwingUtilities.isEventDispatchThread();
+        final Printable textPrintable = getPrintable(headerFormat, footerFormat);
+        if (interactive && ! isHeadless) {
+            printingStatus = 
+                PrintingStatus.createPrintingStatus(this, job);
+            printable = 
+                printingStatus.createNotificationPrintable(textPrintable);
+        } else {
+            printingStatus = null; 
+            printable = textPrintable;
+        }
+
+        if (service != null) {
+            job.setPrintService(service);
+        }
+
+        job.setPrintable(printable);
+
+        final PrintRequestAttributeSet attr = (attributes == null) 
+            ? new HashPrintRequestAttributeSet() 
+            : attributes;        
+
+        if (showPrintDialog && ! isHeadless && ! job.printDialog(attr)) {
+            return false;
+        }
+
+        /*
+         * there are three cases for printing:
+         * 1. print non interactively (! interactive || isHeadless)
+         * 2. print interactively off EDT
+         * 3. print interactively on EDT
+         * 
+         * 1 and 2 prints on the current thread (3 prints on another thread)
+         * 2 and 3 deal with PrintingStatusDialog
+         */
+        final Callable<Object> doPrint = 
+            new Callable<Object>() {
+                public Object call() throws Exception {
+                    try {
+                        job.print(attr);
+                    } finally {
+                        if (printingStatus != null) {
+                            printingStatus.dispose();
+                        }
+                    }
+                    return null;
+                }
+            };
+
+        final FutureTask<Object> futurePrinting = 
+            new FutureTask<Object>(doPrint);
+
+        final Runnable runnablePrinting = 
+            new Runnable() {
+                public void run() {
+                    //disable component
+                    boolean wasEnabled = false;
+                    if (isEventDispatchThread) {
+                        if (isEnabled()) {
+                            wasEnabled = true;
+                            setEnabled(false);
+                        }
+                    } else {
+                        try {
+                            wasEnabled = SwingUtilities2.submit(
+                                new Callable<Boolean>() {
+                                    public Boolean call() throws Exception {
+                                        boolean rv = isEnabled();
+                                        if (rv) {
+                                            setEnabled(false);
+                                        } 
+                                        return rv;
+                                    }
+                                }).get();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            Throwable cause = e.getCause();
+                            if (cause instanceof Error) {
+                                throw (Error) cause;
+                            } 
+                            if (cause instanceof RuntimeException) {
+                                throw (RuntimeException) cause;
+                            } 
+                            throw new AssertionError(cause);
+                        }
+                    }
+
+                    getDocument().render(futurePrinting);
+
+                    //enable component
+                    if (wasEnabled) {
+                        if (isEventDispatchThread) {
+                            setEnabled(true);
+                        } else {
+                            try {
+                                SwingUtilities2.submit(
+                                    new Runnable() {
+                                        public void run() {
+                                            setEnabled(true);
+                                        }
+                                    }, null).get();
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            } catch (ExecutionException e) {
+                                Throwable cause = e.getCause();
+                                if (cause instanceof Error) {
+                                    throw (Error) cause;
+                                } 
+                                if (cause instanceof RuntimeException) {
+                                    throw (RuntimeException) cause;
+                                } 
+                                throw new AssertionError(cause);
+                            }
+                        }
+                    }
+                }
+            };
+        
+        if (! interactive || isHeadless) {
+            runnablePrinting.run();
+        } else {
+            if (isEventDispatchThread) {
+                (new Thread(runnablePrinting)).start();
+                printingStatus.showModal(true);
+            } else {
+                printingStatus.showModal(false);
+                runnablePrinting.run();
+            }
+        }
+        
+        //the printing is done successfully or otherwise. 
+        //dialog is hidden if needed.
+        try {
+            futurePrinting.get();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof PrinterAbortException) {
+                if (printingStatus != null
+                    && printingStatus.isAborted()) {
+                    return false;
+                } else {
+                    throw (PrinterAbortException) cause;
+                }
+            } else if (cause instanceof PrinterException) {
+                throw (PrinterException) cause;
+            } else if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else if (cause instanceof Error) {
+                throw (Error) cause;
+            } else {
+                throw new AssertionError(cause);
+            }
+        }
+        return true;
+    }
+    
+
+    /**
+     * Returns a {@code Printable} to use for printing the content of this
+     * {@code JTextComponent}. The returned {@code Printable} prints
+     * the document as it looks on the screen except being reformatted
+     * to fit the paper.
+     * The returned {@code Printable} can be wrapped inside another
+     * {@code Printable} in order to create complex reports and
+     * documents.  
+     *
+     *
+     * <p>
+     * The returned {@code Printable} shares the {@code document} with this
+     * {@code JTextComponent}. It is the responsibility of the developer to
+     * ensure that the {@code document} is not mutated while this {@code Printable}
+     * is used. Printing behavior is undefined when the {@code document} is
+     * mutated during printing.
+     * 
+     * <p>
+     * Page header and footer text can be added to the output by providing
+     * {@code MessageFormat} arguments. The printing code requests
+     * {@code Strings} from the formats, providing a single item which may be
+     * included in the formatted string: an {@code Integer} representing the
+     * current page number.
+     *
+     * <p> 
+     * The returned {@code Printable} when printed, formats the
+     * document content appropriately for the page size. For correct
+     * line wrapping the {@code imageable width} of all pages must be the
+     * same. See {@link java.awt.print.PageFormat#getImageableWidth}.
+     *
+     * <p>
+     * This method is thread-safe, although most Swing methods are not. Please
+     * see <A
+     * HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">
+     * How to Use Threads</A> for more information.
+     *
+     * <p>
+     * The returned {@code Printable} can be printed on any thread.
+     *
+     * <p>
+     * This implementation returned {@code Printable} performs all painting on
+     * the <i>Event Dispatch Thread</i>, regardless of what thread it is
+     * used on.
+     * 
+     * @param headerFormat the text, in {@code MessageFormat}, to be
+     *        used as the header, or {@code null} for no header
+     * @param footerFormat the text, in {@code MessageFormat}, to be
+     *        used as the footer, or {@code null} for no footer
+     * @return a {@code Printable} for use in printing content of this
+     *         {@code JTextComponent}
+     * 
+     * 
+     * @see java.awt.print.Printable
+     * @see java.awt.print.PageFormat
+     * @see javax.swing.text.Document#render(java.lang.Runnable)
+     *
+     * @since 1.6
+     */
+    public Printable getPrintable(final MessageFormat headerFormat,
+                                  final MessageFormat footerFormat) {
+        return TextComponentPrintable.getPrintable(
+                   this, headerFormat, footerFormat);
+    }
+
+
 /////////////////
 // Accessibility support
 ////////////////
@@ -1858,7 +2514,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     public class AccessibleJTextComponent extends AccessibleJComponent 
     implements AccessibleText, CaretListener, DocumentListener,
-               AccessibleAction, AccessibleEditableText {
+               AccessibleAction, AccessibleEditableText,
+               AccessibleExtendedText {
 
         int caretPos;
         Point oldLocationOnScreen;
@@ -2452,6 +3109,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * this text component.
 	 *
 	 * @return the AccessibleEditableText interface
+	 * @since 1.4
 	 */
 	public AccessibleEditableText getAccessibleEditableText() {
 	    return this;
@@ -2461,6 +3119,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * Sets the text contents to the specified string.
 	 *
 	 * @param s the string to set the text contents
+	 * @since 1.4
 	 */
 	public void setTextContents(String s) {
 	    JTextComponent.this.setText(s);
@@ -2472,6 +3131,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * @param index the index in the text where the string will 
 	 * be inserted
 	 * @param s the string to insert in the text
+	 * @since 1.4
 	 */
 	public void insertTextAtIndex(int index, String s) {
 	    Document doc = JTextComponent.this.getDocument();
@@ -2496,6 +3156,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * @param startIndex the starting index in the text
 	 * @param endIndex the ending index in the text
 	 * @return the text string between the indices
+	 * @since 1.4
 	 */
 	public String getTextRange(int startIndex, int endIndex) {
 	    String txt = null;
@@ -2517,6 +3178,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 *
 	 * @param startIndex the starting index in the text
 	 * @param endIndex the ending index in the text
+	 * @since 1.4
 	 */
 	public void delete(int startIndex, int endIndex) {
 	    if (isEditable() && isEnabled()) {
@@ -2539,6 +3201,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 *
 	 * @param startIndex the starting index in the text
 	 * @param endIndex the ending index in the text
+	 * @since 1.4
 	 */
 	public void cut(int startIndex, int endIndex) {
 	    selectText(startIndex, endIndex);
@@ -2550,6 +3213,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * starting at the specified index.
 	 *
 	 * @param startIndex the starting index in the text
+	 * @since 1.4
 	 */
 	public void paste(int startIndex) {
 	    setCaretPosition(startIndex);
@@ -2563,6 +3227,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * @param startIndex the starting index in the text
 	 * @param endIndex the ending index in the text
 	 * @param s the string to replace the text between two indices
+	 * @since 1.4
 	 */
 	public void replaceText(int startIndex, int endIndex, String s) {
 	    selectText(startIndex, endIndex);
@@ -2574,6 +3239,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 *
 	 * @param startIndex the starting index in the text
 	 * @param endIndex the ending index in the text
+	 * @since 1.4
 	 */
 	public void selectText(int startIndex, int endIndex) {
 	    JTextComponent.this.select(startIndex, endIndex);
@@ -2586,6 +3252,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
          * @param endIndex the ending index in the text
          * @param as the attribute set
          * @see AttributeSet
+	 * @since 1.4
          */
         public void setAttributes(int startIndex, int endIndex, 
             AttributeSet as) {
@@ -2603,6 +3270,431 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	// ----- end AccessibleEditableText methods
 
 
+        // ----- begin AccessibleExtendedText methods
+
+// Probably should replace the helper method getAtIndex() to return
+// instead an AccessibleTextSequence also for LINE & ATTRIBUTE_RUN
+// and then make the AccessibleText methods get[At|After|Before]Point
+// call this new method instead and return only the string portion
+
+        /**
+         * Returns the AccessibleTextSequence at a given <code>index</code>.
+         * If <code>direction</code> is non-null this will find the
+         * next/previous word/sentence/character.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or
+         * <code>ATTRIBUTE_RUN</code> to retrieve
+         * @param index an index within the text
+         * @param direction is either -1, 0, or 1
+         * @return an <code>AccessibleTextSequence</code> specifying the text
+         * if <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned.
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        private AccessibleTextSequence getSequenceAtIndex(int part, 
+            int index, int direction) {
+            if (index < 0 || index >= model.getLength()) {
+                return null;
+            }
+            if (direction < -1 || direction > 1) {
+                return null;    // direction must be 1, 0, or -1
+            }
+
+            switch (part) {
+            case AccessibleText.CHARACTER:
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readLock();
+                }
+                AccessibleTextSequence charSequence = null;
+                try {
+                    if (index + direction < model.getLength() &&
+                        index + direction >= 0) {
+                        charSequence = 
+                            new AccessibleTextSequence(index + direction, 
+                            index + direction + 1,
+                            model.getText(index + direction, 1));
+                    } 
+
+                } catch (BadLocationException e) {
+                    // we are intentionally silent; our contract says we return
+                    // null if there is any failure in this method
+                } finally {
+                    if (model instanceof AbstractDocument) {
+                        ((AbstractDocument)model).readUnlock();
+                    }
+                }
+                return charSequence;
+
+            case AccessibleText.WORD:
+            case AccessibleText.SENTENCE:
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readLock();
+                }
+                AccessibleTextSequence rangeSequence = null;
+                try {
+                    IndexedSegment seg = getSegmentAt(part, index);
+                    if (seg != null) {
+                        if (direction != 0) {
+                            int next;
+
+                            if (direction < 0) {
+                                next = seg.modelOffset - 1;
+                            }
+                            else {
+                                next = seg.modelOffset + seg.count;
+                            }
+                            if (next >= 0 && next <= model.getLength()) {
+                                seg = getSegmentAt(part, next);
+                            }
+                            else {
+                                seg = null;
+                            }
+                        }
+                        if (seg != null && 
+                            (seg.offset + seg.count) <= model.getLength()) {
+                            rangeSequence = 
+                                new AccessibleTextSequence (seg.offset,
+                                seg.offset + seg.count,
+                                new String(seg.array, seg.offset, seg.count));
+                        } // else we leave rangeSequence set to null
+                    }
+                } catch(BadLocationException e) {
+                    // we are intentionally silent; our contract says we return
+                    // null if there is any failure in this method
+                } finally {
+                    if (model instanceof AbstractDocument) {
+                        ((AbstractDocument)model).readUnlock();
+                    }
+                }
+                return rangeSequence;
+
+            case AccessibleExtendedText.LINE:
+                AccessibleTextSequence lineSequence = null;
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readLock();
+                }
+                try {
+                    int startIndex = 
+                        Utilities.getRowStart(JTextComponent.this, index);
+                    int endIndex = 
+                        Utilities.getRowEnd(JTextComponent.this, index);
+                    if (startIndex >= 0 && endIndex >= startIndex) {
+                        if (direction == 0) {
+                            lineSequence = 
+                                new AccessibleTextSequence(startIndex, endIndex,
+                                    model.getText(startIndex, 
+                                        endIndex - startIndex + 1));
+                        } else if (direction == -1 && startIndex > 0) {
+                            endIndex = 
+                                Utilities.getRowEnd(JTextComponent.this, 
+                                    startIndex - 1);
+                            startIndex = 
+                                Utilities.getRowStart(JTextComponent.this, 
+                                    startIndex - 1);
+                            if (startIndex >= 0 && endIndex >= startIndex) {
+                                lineSequence = 
+                                    new AccessibleTextSequence(startIndex, 
+                                        endIndex,
+                                        model.getText(startIndex, 
+                                            endIndex - startIndex + 1));
+                            }
+                        } else if (direction == 1 && 
+                         endIndex < model.getLength()) {
+                            startIndex = 
+                                Utilities.getRowStart(JTextComponent.this, 
+                                    endIndex + 1);
+                            endIndex = 
+                                Utilities.getRowEnd(JTextComponent.this, 
+                                    endIndex + 1);
+                            if (startIndex >= 0 && endIndex >= startIndex) {
+                                lineSequence = 
+                                    new AccessibleTextSequence(startIndex, 
+                                        endIndex, model.getText(startIndex, 
+                                            endIndex - startIndex + 1));
+                            }
+                        }
+                        // already validated 'direction' above...
+                    }
+                } catch(BadLocationException e) {
+                    // we are intentionally silent; our contract says we return
+                    // null if there is any failure in this method
+                } finally {
+                    if (model instanceof AbstractDocument) {
+                        ((AbstractDocument)model).readUnlock();
+                    }
+                }
+                return lineSequence;
+
+            case AccessibleExtendedText.ATTRIBUTE_RUN:
+                // assumptions: (1) that all characters in a single element 
+                // share the same attribute set; (2) that adjacent elements
+                // *may* share the same attribute set
+
+                int attributeRunStartIndex, attributeRunEndIndex;
+                String runText = null;
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readLock();
+                }
+
+                try {
+                    attributeRunStartIndex = attributeRunEndIndex = 
+                     Integer.MIN_VALUE;
+                    int tempIndex = index;
+                    switch (direction) {
+                    case -1:
+                        // going backwards, so find left edge of this run - 
+                        // that'll be the end of the previous run 
+                        // (off-by-one counting)
+                        attributeRunEndIndex = getRunEdge(index, direction); 
+                        // now set ourselves up to find the left edge of the 
+                        // prev. run
+                        tempIndex = attributeRunEndIndex - 1;
+                        break;
+                    case 1:
+                        // going forward, so find right edge of this run -
+                        // that'll be the start of the next run 
+                        // (off-by-one counting)
+                        attributeRunStartIndex = getRunEdge(index, direction);
+                        // now set ourselves up to find the right edge of the 
+                        // next run
+                        tempIndex = attributeRunStartIndex;
+                        break;
+                    case 0:
+                        // interested in the current run, so nothing special to 
+                        // set up in advance...
+                        break;
+                    default:
+                        // only those three values of direction allowed...
+                        throw new AssertionError(direction);
+                    }
+
+                    // set the unset edge; if neither set then we're getting 
+                    // both edges of the current run around our 'index'
+                    attributeRunStartIndex = 
+                        (attributeRunStartIndex != Integer.MIN_VALUE) ? 
+                        attributeRunStartIndex : getRunEdge(tempIndex, -1);
+                    attributeRunEndIndex = 
+                        (attributeRunEndIndex != Integer.MIN_VALUE) ?
+                        attributeRunEndIndex : getRunEdge(tempIndex, 1);
+
+                    runText = model.getText(attributeRunStartIndex, 
+                                            attributeRunEndIndex - 
+                                            attributeRunStartIndex);
+                } catch (BadLocationException e) {
+                    // we are intentionally silent; our contract says we return
+                    // null if there is any failure in this method
+                    return null;
+                } finally {
+                    if (model instanceof AbstractDocument) {
+                        ((AbstractDocument)model).readUnlock();
+                    }
+                }
+                return new AccessibleTextSequence(attributeRunStartIndex,
+                                                  attributeRunEndIndex,
+                                                  runText);
+
+            default:
+                break;
+            }
+            return null;
+        }
+
+
+        /**
+         * Starting at text position <code>index</code>, and going in 
+         * <code>direction</code>, return the edge of run that shares the 
+         * same <code>AttributeSet</code> and parent element as those at 
+         * <code>index</code>.
+         *
+         * Note: we assume the document is already locked...
+         */
+        private int getRunEdge(int index, int direction) throws 
+         BadLocationException {
+            if (index < 0 || index >= model.getLength()) {
+                throw new BadLocationException("Location out of bounds", index);
+            }
+            // locate the Element at index
+            Element indexElement = null;
+            // locate the Element at our index/offset
+            int elementIndex = -1;        // test for initialization
+            for (indexElement = model.getDefaultRootElement(); 
+                 ! indexElement.isLeaf(); ) {
+                elementIndex = indexElement.getElementIndex(index);
+                indexElement = indexElement.getElement(elementIndex);
+            }
+            if (elementIndex == -1) {
+                throw new AssertionError(index);
+            } 
+            // cache the AttributeSet and parentElement atindex 
+            AttributeSet indexAS = indexElement.getAttributes(); 
+            Element parent = indexElement.getParentElement();
+
+            // find the first Element before/after ours w/the same AttributeSet
+            // if we are already at edge of the first element in our parent
+            // then return that edge
+            Element edgeElement = indexElement;
+            switch (direction) {
+            case -1:
+            case 1:
+                int edgeElementIndex = elementIndex;
+                int elementCount = parent.getElementCount();
+                while ((edgeElementIndex + direction) > 0 && 
+                       ((edgeElementIndex + direction) < elementCount) &&
+                       parent.getElement(edgeElementIndex
+                       + direction).getAttributes().isEqual(indexAS)) {
+                    edgeElementIndex += direction;
+                }
+                edgeElement = parent.getElement(edgeElementIndex);
+                break;
+            default:
+                throw new AssertionError(direction);
+            }
+            switch (direction) {
+            case -1:
+                return edgeElement.getStartOffset();
+            case 1:
+                return edgeElement.getEndOffset();
+            default:
+                // we already caught this case earlier; this is to satisfy 
+                // the compiler...
+                return Integer.MIN_VALUE;
+            }
+        }
+
+        // getTextRange() not needed; defined in AccessibleEditableText
+
+        /**
+         * Returns the <code>AccessibleTextSequence</code> at a given 
+         * <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or 
+         * <code>ATTRIBUTE_RUN</code> to retrieve
+         * @param index an index within the text
+         * @return an <code>AccessibleTextSequence</code> specifying the text if
+         * <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        public AccessibleTextSequence getTextSequenceAt(int part, int index) {
+            return getSequenceAtIndex(part, index, 0);
+        }
+    
+        /**
+         * Returns the <code>AccessibleTextSequence</code> after a given 
+         * <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or 
+         * <code>ATTRIBUTE_RUN</code> to retrieve
+         * @param index an index within the text
+         * @return an <code>AccessibleTextSequence</code> specifying the text
+         * if <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        public AccessibleTextSequence getTextSequenceAfter(int part, int index) {
+            return getSequenceAtIndex(part, index, 1);
+        }
+    
+        /**
+         * Returns the <code>AccessibleTextSequence</code> before a given 
+         * <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or 
+         * <code>ATTRIBUTE_RUN</code> to retrieve
+         * @param index an index within the text
+         * @return an <code>AccessibleTextSequence</code> specifying the text 
+         * if <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        public AccessibleTextSequence getTextSequenceBefore(int part, int index) {
+            return getSequenceAtIndex(part, index, -1);
+        }
+    
+        /**
+         * Returns the <code>Rectangle</code> enclosing the text between
+         * two indicies.
+         *
+         * @param startIndex the start index in the text
+         * @param endIndex the end index in the text
+         * @return the bounding rectangle of the text if the indices are valid.
+         * Otherwise, <code>null</code> is returned
+         *
+         * @since 1.6
+         */
+        public Rectangle getTextBounds(int startIndex, int endIndex) {
+            if (startIndex < 0 || startIndex > model.getLength()-1 ||
+                endIndex < 0 || endIndex > model.getLength()-1 ||
+                startIndex > endIndex) {
+                return null;
+            }
+            TextUI ui = getUI();
+            if (ui == null) {
+                return null;
+            }
+            Rectangle rect = null;
+            Rectangle alloc = getRootEditorRect();
+            if (alloc == null) {
+                return null;
+            }
+            if (model instanceof AbstractDocument) {
+                ((AbstractDocument)model).readLock();
+            }
+            try {
+                View rootView = ui.getRootView(JTextComponent.this);
+                if (rootView != null) {
+                    Shape bounds = rootView.modelToView(startIndex,
+                                    Position.Bias.Forward, endIndex,
+                                    Position.Bias.Backward, alloc);
+
+                    rect = (bounds instanceof Rectangle) ?
+                     (Rectangle)bounds : bounds.getBounds();
+
+                }
+            } catch (BadLocationException e) {
+            } finally {
+                if (model instanceof AbstractDocument) {
+                    ((AbstractDocument)model).readUnlock();
+                }
+            }
+            return rect;
+        }
+    
+        // ----- end AccessibleExtendedText methods
+
+
 	// --- interface AccessibleAction methods ------------------------
 
 	public AccessibleAction getAccessibleAction() {
@@ -2615,6 +3707,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * "default" action of the object.
 	 *
 	 * @return the zero-based number of Actions in this object
+	 * @since 1.4
 	 */
 	public int getAccessibleActionCount() {
 	    Action [] actions = JTextComponent.this.getActions();
@@ -2627,6 +3720,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * @param i zero-based index of the actions
 	 * @return a String description of the action
 	 * @see #getAccessibleActionCount
+	 * @since 1.4
 	 */
 	public String getAccessibleActionDescription(int i) {
 	    Action [] actions = JTextComponent.this.getActions();
@@ -2642,6 +3736,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	 * @param i zero-based index of actions
 	 * @return true if the action was performed; otherwise false.
 	 * @see #getAccessibleActionCount
+	 * @since 1.4
 	 */
 	public boolean doAccessibleAction(int i) {
 	    Action [] actions = JTextComponent.this.getActions();
@@ -2723,6 +3818,68 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     private Insets margin;
     private char focusAccelerator;
     private boolean dragEnabled;
+
+    /**
+     * The drop mode for this component.
+     */
+    private DropMode dropMode = DropMode.USE_SELECTION;
+
+    /**
+     * The drop location.
+     */
+    private transient DropLocation dropLocation;
+
+    /**
+     * Represents a drop location for <code>JTextComponent</code>s.
+     *
+     * @see #getDropLocation
+     * @since 1.6
+     */
+    public static final class DropLocation extends TransferHandler.DropLocation {
+        private final int index;
+        private final Position.Bias bias;
+
+        private DropLocation(Point p, int index, Position.Bias bias) {
+            super(p);
+            this.index = index;
+            this.bias = bias;
+        }
+
+        /**
+         * Returns the index where dropped data should be inserted into the
+         * associated component. This index represents a position between
+         * characters, as would be interpreted by a caret.
+         *
+         * @return the drop index
+         */
+        public int getIndex() {
+            return index;
+        }
+
+        /**
+         * Returns the bias for the drop index.
+         *
+         * @return the drop bias
+         */
+        public Position.Bias getBias() {
+            return bias;
+        }
+
+        /**
+         * Returns a string representation of this drop location.
+         * This method is intended to be used for debugging purposes,
+         * and the content and format of the returned string may vary
+         * between implementations.
+         *
+         * @return a string representation of this drop location
+         */
+        public String toString() {
+            return getClass().getName()
+                   + "[dropPoint=" + getDropPoint() + ","
+                   + "index=" + index + ","
+                   + "bias=" + bias + "]";
+        }
+    }
 
     /**
      * TransferHandler used if one hasn't been supplied by the UI.

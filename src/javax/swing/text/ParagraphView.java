@@ -1,7 +1,7 @@
 /*
- * @(#)ParagraphView.java	1.94 06/04/10
+ * @(#)ParagraphView.java	1.97 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.SizeRequirements;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Igor Kushnirskiy
- * @version 1.94 04/10/06
+ * @version 1.97 04/07/06
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
@@ -354,6 +354,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      * @param index the index of the view being queried
      * @return the constraining span for the given view at
      *	<code>index</code>
+     * @since 1.3
      */
     public int getFlowSpan(int index) {
 	View child = getView(index);
@@ -362,8 +363,8 @@ public class ParagraphView extends FlowView implements TabExpander {
 	    Row row = (Row) child;
 	    adjust = row.getLeftInset() + row.getRightInset();
 	}
-	int span = layoutSpan - adjust;
-	return span;
+        return (layoutSpan == Integer.MAX_VALUE) ? layoutSpan 
+                                                 : (layoutSpan - adjust);
     }
 
     /**
@@ -372,6 +373,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      * @param index the index of the view being queried
      * @return the location for the given view at
      *	<code>index</code>
+     * @since 1.3
      */
     public int getFlowStart(int index) {
 	View child = getView(index);
@@ -387,6 +389,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      * Create a <code>View</code> that should be used to hold a 
      * a row's worth of children in a flow.
      * @return the new <code>View</code>
+     * @since 1.3
      */
     protected View createRow() {
 	return new Row(getElement());

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultMutableTreeNode.java	1.23 04/07/13
+ * @(#)DefaultMutableTreeNode.java	1.24 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import java.util.*;
  *
  * @see MutableTreeNode
  *
- * @version 1.23 07/13/04
+ * @version 1.24 11/17/05
  * @author Rob Davis
  */
 public class DefaultMutableTreeNode extends Object implements Cloneable,

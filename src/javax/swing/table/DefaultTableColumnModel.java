@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableColumnModel.java	1.49 05/08/23
+ * @(#)DefaultTableColumnModel.java	1.52 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import java.util.EventListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
+import sun.swing.SwingUtilities2;
 
 /**
  * The standard column-handler for a <code>JTable</code>.
@@ -29,7 +30,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.49 08/23/05
+ * @version 1.52 11/30/05
  * @author Alan Chung
  * @author Philip Milne
  * @see JTable
@@ -377,34 +378,6 @@ public class DefaultTableColumnModel implements TableColumnModel,
      */
     public ListSelectionModel getSelectionModel() {
 	return selectionModel;
-    }
-
-    /**
-     * Initialize the lead and anchor of the selection model
-     * based on what the column model contains.
-     */
-    private void checkLeadAnchor() {
-        int lead = selectionModel.getLeadSelectionIndex();
-        int count = tableColumns.size();
-        if (count == 0) {
-            if (lead != -1) {
-                // no columns left, set the lead and anchor to -1
-                selectionModel.setValueIsAdjusting(true);
-                selectionModel.setAnchorSelectionIndex(-1);
-                selectionModel.setLeadSelectionIndex(-1);
-                selectionModel.setValueIsAdjusting(false);
-            }
-        } else {
-            if (lead == -1) {
-                // set the lead and anchor to the first column
-                // (without changing the selection)
-                if (selectionModel.isSelectedIndex(0)) {
-                    selectionModel.addSelectionInterval(0, 0);
-                } else {
-                    selectionModel.removeSelectionInterval(0, 0);
-                }
-            }
-        }
     }
 
     // implements javax.swing.table.TableColumnModel

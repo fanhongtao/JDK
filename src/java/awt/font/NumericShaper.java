@@ -1,7 +1,7 @@
 /*
- * @(#)NumericShaper.java	1.10 03/12/19
+ * @(#)NumericShaper.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,10 +38,10 @@ package java.awt.font;
  *   NumericShaper shaper = NumericShaper.getShaper(NumericShaper.ARABIC);
  *   shaper.shape(text, start, count);
  *
- *   // shape European digits to ARABIC digits if preceeding text is Arabic, or
- *   // shape European digits to TAMIL digits if preceeding text is Tamil, or
- *   // leave European digits alone if there is no preceeding text, or 
- *   // preceeding text is neither Arabic nor Tamil
+ *   // shape European digits to ARABIC digits if preceding text is Arabic, or
+ *   // shape European digits to TAMIL digits if preceding text is Tamil, or
+ *   // leave European digits alone if there is no preceding text, or 
+ *   // preceding text is neither Arabic nor Tamil
  *   NumericShaper shaper = 
  *      NumericShaper.getContextualShaper(NumericShaper.ARABIC | 
  *                                              NumericShaper.TAMIL,
@@ -634,7 +634,7 @@ public final class NumericShaper implements java.io.Serializable {
     /**
      * Returns a contextual shaper for the provided unicode range(s).  
      * Latin-1 (EUROPEAN) digits are converted to the decimal digits 
-     * corresponding to the range of the preceeding text, if the
+     * corresponding to the range of the preceding text, if the
      * range is one of the provided ranges.  Multiple ranges are 
      * represented by or-ing the values together, such as, 
      * <code>NumericShaper.ARABIC | NumericShaper.THAI</code>.  The
@@ -653,7 +653,7 @@ public final class NumericShaper implements java.io.Serializable {
     /**
      * Returns a contextual shaper for the provided unicode range(s).  
      * Latin-1 (EUROPEAN) digits will be converted to the decimal digits 
-     * corresponding to the range of the preceeding text, if the
+     * corresponding to the range of the preceding text, if the
      * range is one of the provided ranges.  Multiple ranges are 
      * represented by or-ing the values together, for example, 
      * <code>NumericShaper.ARABIC | NumericShaper.THAI</code>.  The
@@ -662,6 +662,8 @@ public final class NumericShaper implements java.io.Serializable {
      * @param defaultContext the starting context, such as 
      * <code>NumericShaper.EUROPEAN</code>
      * @return a shaper for the specified Unicode ranges.
+     * @throws IllegalArgumentException if the specified
+     * <code>defaultContext</code> is not a single valid range.
      */
     static public NumericShaper getContextualShaper(int ranges, int defaultContext) {
 	int key = getKeyFromMask(defaultContext);
@@ -685,8 +687,22 @@ public final class NumericShaper implements java.io.Serializable {
      *        converting
      * @param count the number of characters in <code>text</code>
      *        to convert
+     * @throws IndexOutOfBoundsException if start or start + count is
+     *        out of bounds
+     * @throws NullPointerException if text is null
      */
     public void shape(char[] text, int start, int count) {
+        if (text == null) {
+            throw new NullPointerException("text is null");
+        }
+        if ((start < 0) 
+            || (start > text.length) 
+            || ((start + count) < 0)
+            || ((start + count) > text.length)) {
+            throw new IndexOutOfBoundsException(
+                "bad start or count for text of length " + text.length);
+        }
+
 	if (isContextual()) {
 	    shapeContextually(text, start, count, key);
 	} else {
@@ -705,8 +721,25 @@ public final class NumericShaper implements java.io.Serializable {
      *        to convert
      * @param context the context to which to convert the 
      *        characters, such as <code>NumericShaper.EUROPEAN</code>
+     * @throws IndexOutOfBoundsException if start or start + count is
+     *        out of bounds
+     * @throws NullPointerException if text is null
+     * @throws IllegalArgumentException if this is a contextual shaper
+     * and the specified <code>context</code> is not a single valid
+     * range.
      */
     public void shape(char[] text, int start, int count, int context) {
+        if (text == null) {
+            throw new NullPointerException("text is null");
+        }
+        if ((start < 0) 
+            || (start > text.length) 
+            || ((start + count) < 0)
+            || ((start + count) > text.length)) {
+            throw new IndexOutOfBoundsException(
+                "bad start or count for text of length " + text.length);
+        }
+
 	if (isContextual()) {
 	    int ctxKey = getKeyFromMask(context);
 	    shapeContextually(text, start, count, ctxKey);

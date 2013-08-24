@@ -1,7 +1,7 @@
 /*
- * @(#)MetalComboBoxButton.java	1.38 03/12/19
+ * @(#)MetalComboBoxButton.java	1.40 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MetalComboBoxButton
- * @version 1.38 12/19/03
+ * @version 1.40 11/17/05
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {
@@ -195,5 +195,13 @@ public class MetalComboBoxButton extends JButton {
 					     left + iconWidth, top, cWidth, height, shouldValidate );
 	    }
         }
+    }
+    
+    public Dimension getMinimumSize() {
+        Dimension ret = new Dimension();
+        Insets insets = getInsets();
+        ret.width = insets.left + getComboIcon().getIconWidth() + insets.right;
+        ret.height = insets.bottom + getComboIcon().getIconHeight() + insets.top;
+        return ret;        
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)VersionHelper12.java	1.9 03/12/19
+ * @(#)VersionHelper12.java	1.11 06/07/19
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,11 +24,15 @@ import java.util.Properties;
 import javax.naming.*;
 
 /**
- * An implementation of VersionHelper for the Java 2 platform.
+ * VersionHelper was used by JNDI to accommodate differences between
+ * JDK 1.1.x and the Java 2 platform. As this is no longer necessary
+ * since JNDI's inclusion in the platform, this class currently
+ * serves as a set of utilities for performing system-level things,
+ * such as class-loading and reading system properties.
  * 
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.9 03/12/19
+ * @version 1.11 06/07/19
  */
 
 final class VersionHelper12 extends VersionHelper {

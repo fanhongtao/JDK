@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SAXImpl.java,v 1.19 2004/02/24 04:21:50 zongaro Exp $
+ * $Id: SAXImpl.java,v 1.5 2005/09/28 13:48:37 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -33,6 +33,7 @@ import com.sun.org.apache.xalan.internal.xsltc.TransletException;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.BasisLibrary;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 import com.sun.org.apache.xml.internal.dtm.DTM;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
 import com.sun.org.apache.xml.internal.dtm.DTMManager;
 import com.sun.org.apache.xml.internal.dtm.DTMWSFilter;
@@ -457,11 +458,12 @@ public final class SAXImpl extends SAX2DTM2
 
     /**
      * Returns singleton iterator containg the document root
-     * Works for them main document (mark == 0)
+     * Works for them main document (mark == 0).  It cannot be made
+     * to point to any other node through setStartNode().
      */
     public DTMAxisIterator getIterator()
     {
-        return new SingletonIterator(getDocument());
+        return new SingletonIterator(getDocument(), true);
     }
 
      /**
@@ -1159,8 +1161,11 @@ public final class SAXImpl extends SAX2DTM2
                 return new PrecedingSiblingIterator();
             case Axis.NAMESPACE:
                 return new NamespaceIterator();
+            case Axis.ROOT:
+                return new RootIterator();
             default:
-                BasisLibrary.runTimeError(BasisLibrary.AXIS_SUPPORT_ERR, Axis.names[axis]);
+                BasisLibrary.runTimeError(BasisLibrary.AXIS_SUPPORT_ERR, 
+                        Axis.getNames(axis));
         }
         return null;
     }
@@ -1208,8 +1213,11 @@ public final class SAXImpl extends SAX2DTM2
                 return new TypedPrecedingSiblingIterator(type);
             case Axis.NAMESPACE:
                 return  new TypedNamespaceIterator(type);
+            case Axis.ROOT:
+                return new TypedRootIterator(type);
             default:
-                BasisLibrary.runTimeError(BasisLibrary.TYPED_AXIS_SUPPORT_ERR, Axis.names[axis]);
+                BasisLibrary.runTimeError(BasisLibrary.TYPED_AXIS_SUPPORT_ERR, 
+                        Axis.getNames(axis));
         }
         return null;
     }

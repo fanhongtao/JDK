@@ -1,7 +1,7 @@
 /*
- * @(#)LoggingPermission.java	1.9 03/12/19
+ * @(#)LoggingPermission.java	1.11 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.security.*;
  * the security policy file.
  *
  *
- * @version 1.9, 12/19/03
+ * @version 1.11, 04/21/06
  * @since 1.4
  * @see java.security.BasicPermission
  * @see java.security.Permission
@@ -44,7 +44,10 @@ public final class LoggingPermission extends java.security.BasicPermission {
      *
      * @param name Permission name.  Must be "control".
      * @param actions Must be either null or the empty string.
-     * @throws IllegalArgumentException if arguments are invalid
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty or if
+     * arguments are invalid.
      */
     public LoggingPermission(String name, String actions) throws IllegalArgumentException {
         super(name);

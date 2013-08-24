@@ -1,7 +1,7 @@
 /*
- * @(#)PipedOutputStream.java	1.26 03/12/19
+ * @(#)PipedOutputStream.java	1.28 06/06/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,9 +17,12 @@ import java.io.*;
  * read from the connected <code>PipedInputStream</code> by some 
  * other thread. Attempting to use both objects from a single thread 
  * is not recommended as it may deadlock the thread.
+ * The pipe is said to be <a name=BROKEN> <i>broken</i> </a> if a
+ * thread that was reading data bytes from the connected piped input 
+ * stream is no longer alive.
  *
  * @author  James Gosling
- * @version 1.26, 12/19/03
+ * @version 1.28, 06/07/06
  * @see     java.io.PipedInputStream
  * @since   JDK1.0
  */
@@ -87,14 +90,13 @@ class PipedOutputStream extends OutputStream {
 
     /**
      * Writes the specified <code>byte</code> to the piped output stream. 
-     * If a thread was reading data bytes from the connected piped input 
-     * stream, but the thread is no longer alive, then an 
-     * <code>IOException</code> is thrown.
      * <p>
      * Implements the <code>write</code> method of <code>OutputStream</code>.
      *
      * @param      b   the <code>byte</code> to be written.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception IOException if the pipe is <a href=#BROKEN> broken</a>,
+     *		{@link #connect(java.io.PipedInputStream) unconnected},
+     *		closed, or if an I/O error occurs.
      */
     public void write(int b)  throws IOException {
         if (sink == null) {
@@ -106,14 +108,15 @@ class PipedOutputStream extends OutputStream {
     /**
      * Writes <code>len</code> bytes from the specified byte array 
      * starting at offset <code>off</code> to this piped output stream. 
-     * If a thread was reading data bytes from the connected piped input 
-     * stream, but the thread is no longer alive, then an 
-     * <code>IOException</code> is thrown.
+     * This method blocks until all the bytes are written to the output
+     * stream.
      *
      * @param      b     the data.
      * @param      off   the start offset in the data.
      * @param      len   the number of bytes to write.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception IOException if the pipe is <a href=#BROKEN> broken</a>,
+     *          {@link #connect(java.io.PipedInputStream) unconnected},
+     *		closed, or if an I/O error occurs.
      */
     public void write(byte b[], int off, int len) throws IOException {
         if (sink == null) {

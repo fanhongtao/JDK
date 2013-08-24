@@ -1,10 +1,10 @@
 /*
  * @(#)file      Node.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.7
- * @(#)date      04/09/15
+ * @(#)version   4.8
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */

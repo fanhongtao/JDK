@@ -1,7 +1,7 @@
 /*
- * @(#)MatchQueryExp.java	1.25 03/12/19
+ * @(#)MatchQueryExp.java	1.28 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -74,8 +74,11 @@ class MatchQueryExp extends QueryEval implements QueryExp {
      * @exception BadAttributeValueExpException 
      * @exception InvalidApplicationException
      */
-    public boolean apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException  { 
+    public boolean apply(ObjectName name) throws
+        BadStringOperationException,
+        BadBinaryOpValueExpException,
+	BadAttributeValueExpException,
+        InvalidApplicationException {
 
 	ValueExp val = exp.apply(name);	
 	if (!(val instanceof StringValueExp)) {
@@ -98,34 +101,39 @@ class MatchQueryExp extends QueryEval implements QueryExp {
     /*
      * Tests whether string s is matched by pattern p.
      * Supports "?", "*", "[", each of which may be escaped with "\";
-     * Character classes may use "!" for negation and "-" for range.
+     * character classes may use "!" for negation and "-" for range.
      * Not yet supported: internationalization; "\" inside brackets.<P>
      * Wildcard matching routine by Karl Heuer.  Public Domain.<P>
      */
     private static boolean wildmatch(String s, String p) {
-	char c;
+        char c;
         int si = 0, pi = 0;
         int slen = s.length();
         int plen = p.length();
 
-        while (pi < plen) {            // While still string
+        while (pi < plen) { // While still string
             c = p.charAt(pi++);
             if (c == '?') {
                 if (++si > slen)
                     return false;
-            } else if (c == '[') {        // Start of choice
+            } else if (c == '[') { // Start of choice
+                if (si >= slen)
+                    return false;
                 boolean wantit = true;
                 boolean seenit = false;
                 if (p.charAt(pi) == '!') {
                     wantit = false;
                     ++pi;
                 }
-                while (++pi < plen && (c = p.charAt(pi)) != ']') {		
-                    if (p.charAt(pi) == '-' && pi+1 < plen) {
-                        if (s.charAt(si) >= c && s.charAt(si) <= p.charAt(pi+1)) {
-                            seenit = true;		
+                while ((c = p.charAt(pi)) != ']' && ++pi < plen) {
+                    if (p.charAt(pi) == '-' &&
+                        pi+1 < plen &&
+                        p.charAt(pi+1) != ']') {
+                        if (s.charAt(si) >= p.charAt(pi-1) &&
+                            s.charAt(si) <= p.charAt(pi+1)) {
+                            seenit = true;
 			}
-			pi += 1;                    
+			++pi;
                     } else {
                         if (c == s.charAt(si)) {
                             seenit = true;
@@ -134,10 +142,10 @@ class MatchQueryExp extends QueryEval implements QueryExp {
                 }
                 if ((pi >= plen) || (wantit != seenit)) {
                     return false;
-		}
-		++pi;
+                }
+                ++pi;
                 ++si;
-            } else if (c == '*') {   // Wildcard	
+            } else if (c == '*') { // Wildcard
                 if (pi >= plen)
                     return true;
                 do {
@@ -146,15 +154,15 @@ class MatchQueryExp extends QueryEval implements QueryExp {
                 } while (++si < slen);
                 return false;
             } else if (c == '\\') {
-                if (pi >= plen || p.charAt(pi++) != s.charAt(si++))
+                if (pi >= plen || si >= slen ||
+                    p.charAt(pi++) != s.charAt(si++))
                     return false;
             } else {
                 if (si >= slen || c != s.charAt(si++)) {
                     return false;
-		}
+                }
             }
         }
-        return (si == slen);    
+        return (si == slen);
     }
-
  }

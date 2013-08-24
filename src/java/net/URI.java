@@ -1,7 +1,7 @@
 /*
- * @(#)URI.java	1.40 05/11/28
+ * @(#)URI.java	1.48 06/06/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,8 +19,8 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.CharacterCodingException;
+import java.text.Normalizer;
 import sun.nio.cs.ThreadLocalCoders;
-import sun.text.Normalizer;
 
 import java.lang.Character;		// for javadoc
 import java.lang.NullPointerException;	// for javadoc
@@ -436,7 +436,7 @@ import java.lang.NullPointerException;	// for javadoc
  * opening a connection to the specified resource.
  *
  *
- * @version 1.40, 05/11/28
+ * @version 1.48, 06/06/12
  * @author Mark Reinhold
  * @since 1.4
  *
@@ -1525,7 +1525,7 @@ public final class URI
      * java.lang.Comparable#compareTo(Object) Comparable.compareTo}
      * method. </p>
      *
-     * @param   ob
+     * @param   that
      *          The object to which this URI is to be compared
      *
      * @return  A negative integer, zero, or a positive integer as this URI is
@@ -1885,13 +1885,6 @@ public final class URI
 	}
     }
 
-    
-    //
-    // Note for maintainer: sun.net.www.ParseUtil.createURI(...) clones
-    // this method and all necessary auxiliary code to fix 6274990-2127017.
-    // Any change made here should be propagated to sun.net.www.ParseUtil.
-    // The requirement only applies to 5.0 update release.
-    //
     private String toString(String scheme,
 			    String opaquePart,
 			    String authority,
@@ -2687,7 +2680,7 @@ public final class URI
 		return s;
 	}
 
-	String ns = Normalizer.normalize(s, Normalizer.COMPOSE, 0);
+	String ns = Normalizer.normalize(s, Normalizer.Form.NFC);
 	ByteBuffer bb = null;
 	try {
 	    bb = ThreadLocalCoders.encoderFor("UTF-8")

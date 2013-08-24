@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: EnvironmentCheck.java,v 1.26 2004/02/26 04:00:47 zongaro Exp $
+ * $Id: EnvironmentCheck.java,v 1.2.4.1 2005/09/09 07:13:59 pvedula Exp $
  */
 package com.sun.org.apache.xalan.internal.xslt;
 
@@ -85,7 +85,7 @@ import org.w3c.dom.Node;
  * of thing but in a much simpler manner.</p>
  *
  * @author Shane_Curcuru@us.ibm.com
- * @version $Id: EnvironmentCheck.java,v 1.26 2004/02/26 04:00:47 zongaro Exp $
+ * @version $Id: EnvironmentCheck.java,v 1.4 2005/08/30 10:06:03 neerajbj Exp $
  */
 public class EnvironmentCheck
 {
@@ -96,7 +96,7 @@ public class EnvironmentCheck
    * {@link #checkEnvironment(PrintWriter)}.</p>
    * @param args command line args
    */
-  public static void _main(String[] args)
+  public static void main(String[] args)
   {
     // Default to System.out, autoflushing
     PrintWriter sendOutputTo = new PrintWriter(System.out, true);
@@ -255,7 +255,7 @@ public class EnvironmentCheck
     boolean errors = false;
 
     logMsg(
-      "#---- BEGIN writeEnvironmentReport($Revision: 1.26 $): Useful stuff found: ----");
+      "#---- BEGIN writeEnvironmentReport($Revision: 1.4 $): Useful stuff found: ----");
 
     // Fake the Properties-like output
     for (Enumeration keys = h.keys(); 
@@ -324,6 +324,7 @@ public class EnvironmentCheck
   public String[] jarNames =
   {
     "xalan.jar", "xalansamples.jar", "xalanj1compat.jar", "xalanservlet.jar",
+    "serializer.jar",   // Serializer (shared between Xalan & Xerces)
     "xerces.jar",       // Xerces-J 1.x
     "xercesImpl.jar",   // Xerces-J 2.x
     "testxsl.jar", 
@@ -413,7 +414,7 @@ public class EnvironmentCheck
     try
     {
       Element envCheckNode = factory.createElement("EnvironmentCheck");
-      envCheckNode.setAttribute("version", "$Revision: 1.26 $");
+      envCheckNode.setAttribute("version", "$Revision: 1.4 $");
       container.appendChild(envCheckNode);
 
       if (null == h)
@@ -1178,7 +1179,7 @@ public class EnvironmentCheck
    *
    * @see #getApparentVersion(String, long)
    */
-  protected static Hashtable jarVersions = new Hashtable();
+  private static Hashtable jarVersions = new Hashtable();
 
   /** 
    * Static initializer for jarVersions table.  
@@ -1225,6 +1226,7 @@ public class EnvironmentCheck
     jarVersions.put(new Long(113749), "xml-apis.jar from xalan-j_2_4_1 from factoryfinder-build of xml-commons RIVERCOURT1");
     jarVersions.put(new Long(124704), "xml-apis.jar from tck-jaxp-1_2_0 branch of xml-commons");
     jarVersions.put(new Long(124724), "xml-apis.jar from tck-jaxp-1_2_0 branch of xml-commons, tag: xml-commons-external_1_2_01");
+    jarVersions.put(new Long(194205), "xml-apis.jar from head branch of xml-commons, tag: xml-commons-external_1_3_02");
 
     // If the below were more common I would update it to report 
     //  errors better; but this is so old hardly anyone has it
@@ -1249,7 +1251,8 @@ public class EnvironmentCheck
     jarVersions.put(new Long(831587), "xercesImpl.jar from xalan-j_2_4_1 from xerces-2_2"); 
     jarVersions.put(new Long(891817), "xercesImpl.jar from xalan-j_2_5_D1 from xerces-2_3");  
     jarVersions.put(new Long(895924), "xercesImpl.jar from xerces-2_4");
-    jarVersions.put(new Long(1010806), "xercesImpl.jar from Xerces-J-bin.2.6.2");                        
+    jarVersions.put(new Long(1010806), "xercesImpl.jar from Xerces-J-bin.2.6.2"); 
+    jarVersions.put(new Long(1203860), "xercesImpl.jar from Xerces-J-bin.2.7.1");                           
 
     jarVersions.put(new Long(37485), "xalanj1compat.jar from xalan-j_2_0_0");
     jarVersions.put(new Long(38100), "xalanj1compat.jar from xalan-j_2_0_1");

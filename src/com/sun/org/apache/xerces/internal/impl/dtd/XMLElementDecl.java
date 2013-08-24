@@ -59,8 +59,9 @@ package com.sun.org.apache.xerces.internal.impl.dtd;
 
 import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.impl.dtd.models.ContentModelValidator;
+
 /**
- * @version $Id: XMLElementDecl.java,v 1.3 2002/01/29 01:15:10 lehors Exp $
+ * @version $Id: XMLElementDecl.java,v 1.1.2.1 2005/08/01 03:36:34 jeffsuttor Exp $
  */
 public class XMLElementDecl {
 

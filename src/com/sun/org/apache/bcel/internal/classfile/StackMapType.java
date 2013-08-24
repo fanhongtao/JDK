@@ -61,7 +61,7 @@ import  java.io.*;
  * This class represents the type of a local variable or item on stack
  * used in the StackMap entries.
  *
- * @version $Id: StackMapType.java,v 1.1.1.1 2001/10/29 20:00:03 jvanzyl Exp $
+ * @version $Id: StackMapType.java,v 1.1.2.1 2005/07/31 23:46:33 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     StackMapEntry
  * @see     StackMap
@@ -75,7 +75,7 @@ public final class StackMapType implements Cloneable {
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   StackMapType(DataInputStream file, ConstantPool constant_pool) throws IOException
   {
@@ -115,7 +115,7 @@ public final class StackMapType implements Cloneable {
    * Dump type entries to file.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

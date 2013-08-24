@@ -58,11 +58,15 @@ import  com.sun.org.apache.bcel.internal.Constants;
 import  java.io.*;
 
 /**
- * This class is derived from <em>Attribute</em> and declares this class
- * as `synthetic', i.e., it needs special handling.
- * It is instantiated from the <em>Attribute.readAttribute()</em> method.
+ * This class is derived from <em>Attribute</em> and declares this class as
+ * `synthetic', i.e., it needs special handling.  The JVM specification
+ * states "A class member that does not appear in the source code must be
+ * marked using a Synthetic attribute."  It may appear in the ClassFile
+ * attribute table, a field_info table or a method_info table.  This class
+ * is intended to be instantiated from the
+ * <em>Attribute.readAttribute()</em> method.
  *
- * @version $Id: Synthetic.java,v 1.1.1.1 2001/10/29 20:00:03 jvanzyl Exp $
+ * @version $Id: Synthetic.java,v 1.1.2.1 2005/07/31 23:46:39 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -78,11 +82,12 @@ public final class Synthetic extends Attribute {
   }
 
   /**
-   * @param name_index Index in constant pool to CONSTANT_Utf8
-   * @param length Content length in bytes
+   * @param name_index Index in constant pool to CONSTANT_Utf8, which
+   * should represent the string "Synthetic".
+   * @param length Content length in bytes - should be zero.
    * @param bytes Attribute contents
-   * @param constant_pool Array of constants
-   * @param sourcefile_index Index in constant pool to CONSTANT_Utf8
+   * @param constant_pool The constant pool this attribute is associated
+   * with.
    */
   public Synthetic(int name_index, int length, byte[] bytes,
 		   ConstantPool constant_pool)
@@ -97,7 +102,7 @@ public final class Synthetic extends Attribute {
    * @param length Content length in bytes
    * @param file Input stream
    * @param constant_pool Array of constants
-   * @throw IOException
+   * @throws IOException
    */
   Synthetic(int name_index, int length, DataInputStream file,
 	    ConstantPool constant_pool) throws IOException
@@ -124,7 +129,7 @@ public final class Synthetic extends Attribute {
    * Dump source file attribute to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

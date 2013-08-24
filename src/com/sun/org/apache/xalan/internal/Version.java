@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id$
+ * $Id: Version.java,v 1.1.2.1 2005/08/01 02:11:19 jeffsuttor Exp $
  */
 package com.sun.org.apache.xalan.internal;
 

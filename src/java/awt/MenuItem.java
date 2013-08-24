@@ -1,7 +1,7 @@
 /*
- * @(#)MenuItem.java	1.88 04/05/18
+ * @(#)MenuItem.java	1.94 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -48,7 +48,7 @@ import javax.accessibility.*;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.88, 05/18/04
+ * @version 1.94, 07/11/06
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent implements Accessible {
@@ -350,14 +350,40 @@ public class MenuItem extends MenuComponent implements Accessible {
     }
 
     /*
+     * Returns true if the item and all its ancestors are 
+     * enabled, false otherwise
+     */
+    private final boolean isItemEnabled() {
+        // Fix For 6185151: Menu shortcuts of all menuitems within a menu 
+        // should be disabled when the menu itself is disabled
+        if (!isEnabled()) {
+            return false;
+        }
+        MenuContainer container = getParent_NoClientCode();
+        do {
+            if (!(container instanceof Menu)) {
+                return true;
+            } 
+            Menu menu = (Menu)container;
+            if (!menu.isEnabled()) {
+                return false;
+            }
+            container = menu.getParent_NoClientCode();
+        } while (container != null);
+        return true;
+    }
+
+    /*
      * Post an ActionEvent to the target (on
-     * keydown).  Returns true if there is an associated
-     * shortcut.
+     * keydown) and the item is enabled.  
+     * Returns true if there is an associated shortcut.
      */
     boolean handleShortcut(KeyEvent e) {
         MenuShortcut s = new MenuShortcut(e.getKeyCode(),
                              (e.getModifiers() & InputEvent.SHIFT_MASK) > 0);
-        if (s.equals(shortcut) && enabled) {
+        // Fix For 6185151: Menu shortcuts of all menuitems within a menu 
+        // should be disabled when the menu itself is disabled
+        if (s.equals(shortcut) && isItemEnabled()) {
             // MenuShortcut match -- issue an event on keydown.
             if (e.getID() == KeyEvent.KEY_PRESSED) {
                 doMenuEvent(e.getWhen(), e.getModifiers());
@@ -365,7 +391,7 @@ public class MenuItem extends MenuComponent implements Accessible {
                 // silently eat key release.
             }
             return true;
-	}
+        }
         return false;
     }
 
@@ -442,6 +468,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * Adds the specified action listener to receive action events
      * from this menu item.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param      l the action listener.
      * @see        #removeActionListener
@@ -462,6 +490,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * Removes the specified action listener so it no longer receives
      * action events from this menu item.
      * If l is null, no exception is thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param      l the action listener.
      * @see        #addActionListener
@@ -662,8 +692,8 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @exception HeadlessException if
      *   <code>GraphicsEnvironment.isHeadless</code> returns
      *   <code>true</code>
-     * @see #removeActionListener(actionListener)
-     * @see #addActionListener(actionListener)
+     * @see #removeActionListener(ActionListener)
+     * @see #addActionListener(ActionListener)
      * @see #writeObject(ObjectOutputStream)
      */
     private void readObject(ObjectInputStream s)
@@ -702,6 +732,7 @@ public class MenuItem extends MenuComponent implements Accessible {
      *
      * @return an AccessibleAWTMenuItem that serves as the 
      *         AccessibleContext of this MenuItem
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -719,6 +750,7 @@ public class MenuItem extends MenuComponent implements Accessible {
      * This class implements accessibility support for the 
      * <code>MenuItem</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to menu item user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTMenuItem extends AccessibleAWTMenuComponent
         implements AccessibleAction, AccessibleValue
@@ -833,7 +865,7 @@ public class MenuItem extends MenuComponent implements Accessible {
          * @see javax.swing.AbstractButton#isSelected()
          */
         public Number getCurrentAccessibleValue() {
-            return new Integer(0);
+            return Integer.valueOf(0);
         }
 
         /**
@@ -851,7 +883,7 @@ public class MenuItem extends MenuComponent implements Accessible {
          * @return An Integer of 0.
          */
         public Number getMinimumAccessibleValue() {
-            return new Integer(0);
+            return Integer.valueOf(0);
         }
 
         /**
@@ -860,7 +892,7 @@ public class MenuItem extends MenuComponent implements Accessible {
          * @return An Integer of 0.
          */
         public Number getMaximumAccessibleValue() {
-            return new Integer(0);
+            return Integer.valueOf(0);
         }
 
     } // class AccessibleAWTMenuItem

@@ -1,7 +1,7 @@
 /*
- * @(#)Charset-X-Coder.java	1.42 05/03/03
+ * @(#)Charset-X-Coder.java	1.46 06/08/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,14 +98,14 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * specific charset, which is a concrete subclass of this class, need only
  * implement the abstract {@link #decodeLoop decodeLoop} method, which
  * encapsulates the basic decoding loop.  A subclass that maintains internal
- * state should, additionally, override the {@link #flush flush} and {@link
- * #reset reset} methods.
+ * state should, additionally, override the {@link #implFlush implFlush} and
+ * {@link #implReset implReset} methods.
  *
  * <p> Instances of this class are not safe for use by multiple concurrent
  * threads.  </p>
  *
  *
- * @version 1.42, 05/03/03
+ * @version 1.46, 06/08/07
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
@@ -324,8 +324,6 @@ public abstract class CharsetDecoder {
 
 
 
-
-
     /**
      * Returns this decoder's current action for malformed-input errors.  </p>
      *
@@ -450,14 +448,16 @@ public abstract class CharsetDecoder {
      * <ul>
      *
      *   <li><p> {@link CoderResult#UNDERFLOW} indicates that as much of the
-     *   input buffer as possible has been decoded.  If there are no bytes
-     *   remaining and the invoker has no further input then the decoding
-     *   operation is complete.  Otherwise there is insufficient input for the
-     *   operation to proceed, so this method should be invoked again with
-     *   further input.  </p></li>
+     *   input buffer as possible has been decoded.  If there is no further
+     *   input then the invoker can proceed to the next step of the
+     *   <a href="#steps">decoding operation</a>.  Otherwise this method
+     *   should be invoked again with further input.  </p></li>
      *
-     *   <li><p> {@link CoderResult#OVERFLOW} indicates that the output buffer
-     *   is full.  This method should be invoked again with a non-full output
+     *   <li><p> {@link CoderResult#OVERFLOW} indicates that there is
+     *   insufficient space in the output buffer to decode any more bytes.
+     *   This method should be invoked again with an output buffer that has
+     *   more {@linkplain Buffer#remaining remaining} characters. This is
+     *   typically done by draining any decoded characters from the output
      *   buffer.  </p></li>
      *
      *   <li><p> A {@link CoderResult#malformedForLength
@@ -465,7 +465,7 @@ public abstract class CharsetDecoder {
      *   error has been detected.  The malformed bytes begin at the input
      *   buffer's (possibly incremented) position; the number of malformed
      *   bytes may be determined by invoking the result object's {@link
-     *   CoderResult#length length} method.  This case applies only if the
+     *   CoderResult#length() length} method.  This case applies only if the
      *   {@link #onMalformedInput </code>malformed action<code>} of this decoder
      *   is {@link CodingErrorAction#REPORT}; otherwise the malformed input
      *   will be ignored or replaced, as requested.  </p></li>
@@ -475,7 +475,7 @@ public abstract class CharsetDecoder {
      *   unmappable-character error has been detected.  The bytes that
      *   decode the unmappable character begin at the input buffer's (possibly
      *   incremented) position; the number of such bytes may be determined
-     *   by invoking the result object's {@link CoderResult#length length}
+     *   by invoking the result object's {@link CoderResult#length() length}
      *   method.  This case applies only if the {@link #onUnmappableCharacter
      *   </code>unmappable action<code>} of this decoder is {@link
      *   CodingErrorAction#REPORT}; otherwise the unmappable character will be
@@ -608,6 +608,9 @@ public abstract class CharsetDecoder {
      * more room, in order to complete the current <a href="#steps">decoding
      * operation</a>.
      *
+     * <p> If this decoder has already been flushed then invoking this method
+     * has no effect.
+     *
      * <p> This method invokes the {@link #implFlush implFlush} method to
      * perform the actual flushing operation.  </p>
      *
@@ -619,17 +622,24 @@ public abstract class CharsetDecoder {
      *
      * @throws  IllegalStateException
      *          If the previous step of the current decoding operation was an
-     *          invocation neither of the {@link #reset reset} method nor of
+     *          invocation neither of the {@link #flush flush} method nor of
      *          the three-argument {@link
      *          #decode(ByteBuffer,CharBuffer,boolean) decode} method
      *          with a value of <tt>true</tt> for the <tt>endOfInput</tt>
      *          parameter
      */
     public final CoderResult flush(CharBuffer out) {
-	if (state != ST_END)
+	if (state == ST_END) {
+	    CoderResult cr = implFlush(out);
+	    if (cr.isUnderflow())
+		state = ST_FLUSHED;
+	    return cr;
+	}
+
+	if (state != ST_FLUSHED)
 	    throwIllegalStateException(state, ST_FLUSHED);
-	state = ST_FLUSHED;
-	return implFlush(out);
+
+	return CoderResult.UNDERFLOW; // Already flushed
     }
 
     /**
@@ -749,19 +759,19 @@ public abstract class CharsetDecoder {
 	int n = (int)(in.remaining() * averageCharsPerByte());
 	CharBuffer out = CharBuffer.allocate(n);
 
-	if (n == 0)
+	if ((n == 0) && (in.remaining() == 0))
 	    return out;
 	reset();
 	for (;;) {
-	    CoderResult cr;
-	    if (in.hasRemaining())
-		cr = decode(in, out, true);
-	    else
+	    CoderResult cr = in.hasRemaining() ?
+		decode(in, out, true) : CoderResult.UNDERFLOW;
+	    if (cr.isUnderflow())
 		cr = flush(out);
+
 	    if (cr.isUnderflow())
 		break;
 	    if (cr.isOverflow()) {
-		n *= 2;
+		n = 2*n + 1;	// Ensure progress; n might be 0!
 		CharBuffer o = CharBuffer.allocate(n);
 		out.flip();
 		o.put(out);

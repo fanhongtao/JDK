@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ExtendedLexicalHandler.java,v 1.2 2004/02/17 04:18:18 minchau Exp $
+ * $Id: ExtendedLexicalHandler.java,v 1.2.4.1 2005/09/15 08:15:18 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -23,8 +23,9 @@ import org.xml.sax.SAXException;
 /**
  * This interface has extensions to the standard SAX LexicalHandler interface.
  * This interface is intended to be used by a serializer.
+ * @xsl.usage internal
  */
-public interface ExtendedLexicalHandler extends org.xml.sax.ext.LexicalHandler
+abstract interface ExtendedLexicalHandler extends org.xml.sax.ext.LexicalHandler
 {
     /**
      * This method is used to notify of a comment

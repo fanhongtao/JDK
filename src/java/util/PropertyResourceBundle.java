@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyResourceBundle.java	1.27 04/05/05
+ * @(#)PropertyResourceBundle.java	1.32 06/06/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,16 +22,16 @@
 package java.util;
 
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.IOException;
+import sun.util.ResourceBundleEnumeration;
 
 /**
  * <code>PropertyResourceBundle</code> is a concrete subclass of
  * <code>ResourceBundle</code> that manages resources for a locale
  * using a set of static strings from a property file. See
  * {@link ResourceBundle ResourceBundle} for more information about resource
- * bundles. See {@link Properties Properties} for more information
- * about properties files, in particular the
- * <a href="Properties.html#encoding">information on character encodings</a>.
+ * bundles. 
  *
  * <p>
  * Unlike other types of resource bundle, you don't subclass
@@ -81,6 +81,15 @@ import java.io.IOException;
  * </pre>
  * </blockquote>
  *
+ * <p>
+ * <strong>Note:</strong> PropertyResourceBundle can be constructed either 
+ * from an InputStream or a Reader, which represents a property file.  
+ * Constructing a PropertyResourceBundle instance from an InputStream requires 
+ * that the input stream be encoded in ISO-8859-1.  In that case, characters 
+ * that cannot be represented in ISO-8859-1 encoding must be represented by 
+ * <a href="http://java.sun.com/docs/books/jls/third_edition/html/lexical.html#3.3">Unicode Escapes</a>, 
+ * whereas the other constructor which takes a Reader does not have that limitation.
+ *
  * @see ResourceBundle
  * @see ListResourceBundle
  * @see Properties
@@ -88,12 +97,36 @@ import java.io.IOException;
  */
 public class PropertyResourceBundle extends ResourceBundle {
     /**
-     * Creates a property resource bundle.
-     * @param stream property file to read from.
+     * Creates a property resource bundle from an {@link java.io.InputStream
+     * InputStream}.  The property file read with this constructor
+     * must be encoded in ISO-8859-1.
+     *
+     * @param stream an InputStream that represents a property file
+     *        to read from.
+     * @throws IOException if an I/O error occurs
+     * @throws NullPointerException if <code>stream</code> is null
      */
     public PropertyResourceBundle (InputStream stream) throws IOException {
         Properties properties = new Properties();
         properties.load(stream);
+        lookup = new HashMap(properties);
+    }
+
+    /**
+     * Creates a property resource bundle from a {@link java.io.Reader
+     * Reader}.  Unlike the constructor
+     * {@link #PropertyResourceBundle(java.io.InputStream) PropertyResourceBundle(InputStream)}, 
+     * there is no limitation as to the encoding of the input property file.
+     *
+     * @param reader a Reader that represents a property file to
+     *        read from.
+     * @throws IOException if an I/O error occurs
+     * @throws NullPointerException if <code>reader</code> is null
+     * @since 1.6
+     */
+    public PropertyResourceBundle (Reader reader) throws IOException {
+        Properties properties = new Properties();
+        properties.load(reader);
         lookup = new HashMap(properties);
     }
 
@@ -106,7 +139,12 @@ public class PropertyResourceBundle extends ResourceBundle {
     }
 
     /**
-     * Implementation of ResourceBundle.getKeys.
+     * Returns an <code>Enumeration</code> of the keys contained in
+     * this <code>ResourceBundle</code> and its parent bundles.
+     *
+     * @return an <code>Enumeration</code> of the keys contained in
+     *         this <code>ResourceBundle</code> and its parent bundles.
+     * @see #keySet()
      */
     public Enumeration<String> getKeys() {
         ResourceBundle parent = this.parent;
@@ -114,7 +152,20 @@ public class PropertyResourceBundle extends ResourceBundle {
                 (parent != null) ? parent.getKeys() : null);
     }
 
+    /**
+     * Returns a <code>Set</code> of the keys contained
+     * <em>only</em> in this <code>ResourceBundle</code>.
+     *
+     * @return a <code>Set</code> of the keys contained only in this
+     *         <code>ResourceBundle</code>
+     * @since 1.6
+     * @see #keySet()
+     */
+    protected Set<String> handleKeySet() {
+	return lookup.keySet();
+    }
+
     // ==================privates====================
 
-    private Map lookup;
+    private Map<String,Object> lookup;
 }

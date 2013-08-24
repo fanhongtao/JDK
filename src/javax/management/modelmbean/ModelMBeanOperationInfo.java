@@ -1,8 +1,8 @@
 /*
  * @(#)file      ModelMBeanOperationInfo.java
  * @(#)author    IBM Corp.
- * @(#)version   1.35
- * @(#)lastedit      03/12/19
+ * @(#)version   1.41
+ * @(#)lastedit      06/01/17
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -71,6 +71,8 @@ import com.sun.jmx.trace.Trace;
  * <code>currencyTimeLimit</code> field.  To indicate that it is
  * always valid, use a very large number for this field.</p>
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>6532732096650090465L</code>.
+ * 
  * @since 1.5
  */
 
@@ -112,8 +114,8 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: No compat with 1.0
@@ -138,7 +140,10 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 
 	/**
 	 * Constructs a ModelMBeanOperationInfo object with a default
-	 * descriptor.
+	 * descriptor. The {@link Descriptor} of the constructed
+	 * object will include fields contributed by any annotations
+	 * on the {@code Method} object that contain the {@link
+	 * DescriptorKey} meta-annotation.
 	 *
 	 * @param operationMethod The java.lang.reflect.Method object
 	 * describing the MBean operation.
@@ -160,8 +165,11 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 	}
 
 	/**
-	 * Constructs a ModelMBeanOperationInfo object.
-	 *
+	 * Constructs a ModelMBeanOperationInfo object. The {@link
+	 * Descriptor} of the constructed object will include fields
+	 * contributed by any annotations on the {@code Method} object
+	 * that contain the {@link DescriptorKey} meta-annotation.
+         *
 	 * @param operationMethod The java.lang.reflect.Method object
 	 * describing the MBean operation.
 	 * @param description A human readable description of the
@@ -174,11 +182,11 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 	 * added in the descriptor with their default values.
 	 *
 	 * @exception RuntimeOperationsException Wraps an
-	 * IllegalArgumentException. The descriptor is invalid, or
-	 * descriptor field "name" is not equal to operation name, or
+	 * IllegalArgumentException. The descriptor is invalid; or
+	 * descriptor field "name" is not equal to operation name; or
 	 * descriptor field "DescriptorType" is not equal to
-	 * "operation", or descriptor field "role" is not equal to
-	 * "operation".
+	 * "operation"; or descriptor optional field "role" is not equal to
+	 * "operation", "getter", or "setter".
 	 *
 	 */
 
@@ -207,7 +215,7 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 			} else
 			{
 				operationDescriptor = createDefaultDescriptor();
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanOperationInfo constructor"));
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanOperationInfo constructor"));
 			}
 		}
 	}
@@ -252,9 +260,12 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 	* If the descriptor does not contain the fields 
 	* "displayName" or "role" these fields are added in the descriptor with their default values.
 	*
-	* @exception RuntimeOperationsException Wraps an IllegalArgumentException. The descriptor is invalid, or descriptor field "name" 
-	* is not equal to operation name, or descriptor field "DescriptorType" is not equal to "operation", or descriptor field "role" is not equal to 
-	* "operation".
+	* @exception RuntimeOperationsException Wraps an
+	* IllegalArgumentException. The descriptor is invalid; or
+	* descriptor field "name" is not equal to operation name; or
+	* descriptor field "DescriptorType" is not equal to
+	* "operation"; or descriptor optional field "role" is not equal to
+	* "operation", "getter", or "setter".
 	*/
 
 	public ModelMBeanOperationInfo(String name,
@@ -284,7 +295,7 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 			} else
 			{
 				operationDescriptor = createDefaultDescriptor();
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanOperationInfo constructor"));
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanOperationInfo constructor"));
 			}
 
 		}
@@ -320,7 +331,7 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 			} else
 			{
 				operationDescriptor = createDefaultDescriptor();
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanOperationInfo constructor"));
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanOperationInfo constructor"));
 			}
 
 		}
@@ -401,7 +412,7 @@ public class ModelMBeanOperationInfo extends MBeanOperationInfo
 				operationDescriptor = (Descriptor) inDescriptor.clone();
 			} else
 			{
-				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occured in ModelMBeanOperationInfo setDescriptor"));
+				throw new RuntimeOperationsException(new IllegalArgumentException("Invalid descriptor passed in parameter"), ("Exception occurred in ModelMBeanOperationInfo setDescriptor"));
 			}
 		}
 	}

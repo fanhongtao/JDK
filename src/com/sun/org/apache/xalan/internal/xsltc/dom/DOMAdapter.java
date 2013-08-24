@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOMAdapter.java,v 1.23 2004/02/16 22:54:59 minchau Exp $
+ * $Id: DOMAdapter.java,v 1.2.4.1 2005/09/06 06:07:28 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -225,12 +225,22 @@ public final class DOMAdapter implements DOM {
     }
     
     public int getExpandedTypeID(final int node) {
+    	final short[] mapping = getMapping();
+    	final int type;
         if (_enhancedDOM != null) {
-            return getMapping()[_enhancedDOM.getExpandedTypeID2(node)];
+            type = mapping[_enhancedDOM.getExpandedTypeID2(node)];
         }
         else {
-            return getMapping()[_dom.getExpandedTypeID(node)];
+        	if(null != mapping)
+        	{
+            	type = mapping[_dom.getExpandedTypeID(node)];
+        	}
+        	else
+        	{
+        		type = _dom.getExpandedTypeID(node);
+        	}
         }
+        return type;
     }
 
     public int getNamespaceType(final int node) {

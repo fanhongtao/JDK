@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UseAttributeSets.java,v 1.12 2004/02/16 22:25:10 minchau Exp $
+ * $Id: UseAttributeSets.java,v 1.5 2005/09/28 13:48:17 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -98,6 +98,7 @@ final class UseAttributeSets extends Instruction {
 		il.append(methodGen.loadDOM());
 		il.append(methodGen.loadIterator());
 		il.append(methodGen.loadHandler());
+                il.append(methodGen.loadCurrentNode());
 		final int method = cpg.addMethodref(classGen.getClassName(),
 						    methodName, ATTR_SET_SIG);
 		il.append(new INVOKESPECIAL(method));

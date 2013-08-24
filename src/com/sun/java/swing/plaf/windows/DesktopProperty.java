@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.windows;
@@ -17,7 +17,7 @@ import javax.swing.plaf.*;
  * will force the UIs to update all known Frames. You can invoke
  * <code>invalidate</code> to force the value to be fetched again.
  *
- * @version @(#)DesktopProperty.java	1.9 05/03/25
+ * @version @(#)DesktopProperty.java	1.10 05/11/17
  */
 // NOTE: Don't rely on this class staying in this location. It is likely
 // to move to a different package in the future.
@@ -174,6 +174,15 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
     }
 
     /**
+     * Invalidates the current value.
+     *
+     * @param laf the LookAndFeel this DesktopProperty was created with
+     */
+    public void invalidate(LookAndFeel laf) {
+        invalidate();
+    }
+
+    /**
      * Invalides the current value so that the next invocation of
      * <code>createValue</code> will ask for the property again.
      */
@@ -248,7 +257,7 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
         private String key;
         private LookAndFeel laf;
 
-        WeakPCL(Object target, Toolkit kit, String key, LookAndFeel laf) { 
+        WeakPCL(Object target, Toolkit kit, String key, LookAndFeel laf) {
             super(target, queue);
             this.kit = kit;
             this.key = key;
@@ -258,13 +267,13 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
         public void propertyChange(PropertyChangeEvent pce) {
             DesktopProperty property = (DesktopProperty)get();
 
-            if (property == null || laf != UIManager.getLookAndFeel()) { 
+            if (property == null || laf != UIManager.getLookAndFeel()) {
                 // The property was GC'ed, we're no longer interested in
                 // PropertyChanges, remove the listener.
                 dispose();
             }
             else {
-                property.invalidate();
+                property.invalidate(laf);
                 property.updateUI();
             }
         }

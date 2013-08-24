@@ -1,7 +1,7 @@
 /*
- * @(#)KerberosPrincipal.java	1.18 04/02/03
+ * @(#)KerberosPrincipal.java	1.22 06/07/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -18,7 +18,7 @@ import sun.security.util.*;
  * This class encapsulates a Kerberos principal.
  *
  * @author Mayank Upadhyay
- * @version 1.18, 02/03/04
+ * @version 1.22, 07/27/06
  * @since 1.4
  */
 
@@ -87,7 +87,7 @@ public final class KerberosPrincipal
      * is used. The default realm can be specified either in a Kerberos 
      * configuration file or via the java.security.krb5.realm
      * system property. For more information, 
-     * <a href="../../../../../guide/security/jgss/tutorials/index.html">
+     * <a href="../../../../../technotes/guides/security/jgss/tutorials/index.html">
      * Kerberos Requirements </a>
      * 
      * @param name the principal name
@@ -96,10 +96,6 @@ public final class KerberosPrincipal
      * the realm to use and the default realm is not specified
      * in either a Kerberos configuration file or via the 
      * java.security.krb5.realm system property.
-     */
-    /*
-     * TBD:  Research what encoding would be most appropriate to use
-     *       when converting the String to bytes. And document that.
      */
     public KerberosPrincipal(String name) {
 
@@ -132,7 +128,7 @@ public final class KerberosPrincipal
      * is used. The default realm can be specified either in a Kerberos
      * configuration file or via the java.security.krb5.realm
      * system property. For more information, see
-     * <a href="../../../../../guide/security/jgss/tutorials/index.html">
+     * <a href="../../../../../technotes/guides/security/jgss/tutorials/index.html">
      * Kerberos Requirements</a>.
      * 
      * @param name the principal name
@@ -221,7 +217,7 @@ public final class KerberosPrincipal
      *		<a href=http://www.ietf.org/rfc/rfc1510.txt> RFC1510</a>. 
      */ 
 
-    private synchronized void writeObject(ObjectOutputStream oos) 
+    private void writeObject(ObjectOutputStream oos) 
 	throws IOException {
 
 	PrincipalName krb5Principal = null;
@@ -240,7 +236,7 @@ public final class KerberosPrincipal
      * Reads this object from a stream (i.e., deserializes it)
      */
 
-    private synchronized void readObject(ObjectInputStream ois)
+    private void readObject(ObjectInputStream ois)
 	 throws IOException, ClassNotFoundException {
 	byte[] asn1EncPrincipal = (byte [])ois.readObject();
 	byte[] encRealm = (byte [])ois.readObject();

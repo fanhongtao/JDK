@@ -1,10 +1,10 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)AbstractInterruptibleChannel.java	1.16 06/03/22
+ * @(#)AbstractInterruptibleChannel.java	1.17 05/11/17
  */
 
 package java.nio.channels.spi;
@@ -62,7 +62,7 @@ import sun.nio.ch.Interruptible;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.16, 06/03/22
+ * @version 1.17, 05/11/17
  * @since 1.4
  */
 

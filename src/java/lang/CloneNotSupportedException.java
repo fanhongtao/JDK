@@ -1,7 +1,7 @@
 /*
- * @(#)CloneNotSupportedException.java	1.11 03/12/19
+ * @(#)CloneNotSupportedException.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package java.lang;
  * should not be cloned.
  *
  * @author  unascribed
- * @version 1.11, 12/19/03
+ * @version 1.12, 11/17/05
  * @see     java.lang.Cloneable
  * @see     java.lang.Object#clone()
  * @since   JDK1.0

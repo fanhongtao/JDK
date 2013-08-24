@@ -1,7 +1,7 @@
 /*
- * @(#)JPasswordField.java	1.54 04/06/02
+ * @(#)JPasswordField.java	1.60 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -13,6 +13,8 @@ import javax.accessibility.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 
 /**
  * <code>JPasswordField</code> is a lightweight component that allows
@@ -28,6 +30,17 @@ import java.io.IOException;
  * to make it easier to safely change the UI for the
  * <code>JTextField</code> without affecting password entries.
  * <p>
+ * <strong>NOTE:</strong>
+ * By default, JPasswordField disables input methods; otherwise, input
+ * characters could be visible while they were composed using input methods.
+ * If an application needs the input methods support, please use the
+ * inherited method, <code>enableInputMethods(true)</code>.
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -42,7 +55,7 @@ import java.io.IOException;
  * description: Allows the editing of a line of text but doesn't show the characters.
  *
  * @author  Timothy Prinzing
- * @version 1.54 06/02/04
+ * @version 1.60 08/08/06
  */
 public class JPasswordField extends JTextField {
 
@@ -93,7 +106,8 @@ public class JPasswordField extends JTextField {
      * Constructs a new <code>JPasswordField</code> that uses the
      * given text storage model and the given number of columns. 
      * This is the constructor through which the other constructors feed.
-     * The echo character is set to '*'.  If the document model is
+     * The echo character is set to '*', but may be changed by the current
+     * Look and Feel.  If the document model is
      * <code>null</code>, a default one will be created.
      *
      * @param doc  the text storage to use
@@ -105,7 +119,6 @@ public class JPasswordField extends JTextField {
      */
     public JPasswordField(Document doc, String txt, int columns) {
         super(doc, txt, columns);
-        echoChar = '*';
         // We could either leave this on, which wouldn't be secure,
         // or obscure the composted text, which essentially makes displaying
         // it useless. Therefore, we turn off input methods.
@@ -123,9 +136,22 @@ public class JPasswordField extends JTextField {
         return uiClassID;
     }
 
+    
+    /**
+     * {@inheritDoc}
+     * @since 1.6
+     */
+    public void updateUI() {
+        if(!echoCharSet) {
+            echoChar = '*';
+        }
+        super.updateUI();
+    }
 
     /**
      * Returns the character to be used for echoing.  The default is '*'.
+     * The default may be different depending on the currently running Look
+     * and Feel. For example, Metal/Ocean's default is a bullet character.
      *
      * @return the echo character, 0 if unset
      * @see #setEchoChar
@@ -152,6 +178,7 @@ public class JPasswordField extends JTextField {
      */
     public void setEchoChar(char c) {
         echoChar = c;
+        echoCharSet = true;
         repaint();
         revalidate();
     }
@@ -284,6 +311,8 @@ public class JPasswordField extends JTextField {
 
     private char echoChar;
 
+    private boolean echoCharSet = false;
+    
 
     /**
      * Returns a string representation of this <code>JPasswordField</code>.
@@ -299,6 +328,25 @@ public class JPasswordField extends JTextField {
 	",echoChar=" + echoChar;
     }
 
+    
+    /** 
+     * This method is a hack to get around the fact that we cannot
+     * directly override setUIProperty because part of the inheritance heirarchy
+     * goes outside of the javax.swing package, and therefore calling a package
+     * private method isn't allowed. This method should return true if the property
+     * was handled, and false otherwise. 
+     */
+    boolean customSetUIProperty(String propertyName, Object value) {
+        if (propertyName == "echoChar") {
+            if (!echoCharSet) {
+                setEchoChar((Character)value);
+                echoCharSet = false;
+            }
+            return true;
+        }
+        return false;
+    }
+    
 /////////////////
 // Accessibility support
 ////////////////
@@ -349,6 +397,252 @@ public class JPasswordField extends JTextField {
          */
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.PASSWORD_TEXT;
+        }
+
+        /**
+         * Gets the <code>AccessibleText</code> for the <code>JPasswordField</code>.
+         * The returned object also implements the
+         * <code>AccessibleExtendedText</code> interface.
+         *
+         * @return <code>AccessibleText</code> for the JPasswordField
+         * @see javax.accessibility.AccessibleContext
+         * @see javax.accessibility.AccessibleContext#getAccessibleText
+         * @see javax.accessibility.AccessibleText
+         * @see javax.accessibility.AccessibleExtendedText
+         *
+         * @since 1.6
+         */
+        public AccessibleText getAccessibleText() {
+            return this;
+        }
+
+        /*
+         * Returns a String filled with password echo characters. The String
+         * contains one echo character for each character (including whitespace)
+         * that the user entered in the JPasswordField.
+         */
+        private String getEchoString(String str) {
+            if (str == null) {
+                return null;
+            }
+            char[] buffer = new char[str.length()];
+            Arrays.fill(buffer, getEchoChar());
+            return new String(buffer);
+        }
+ 
+        /**
+         * Returns the <code>String</code> at a given <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code> or
+         * <code>SENTENCE</code> to retrieve
+         * @param index an index within the text
+         * @return a <code>String</code> if <code>part</code> and 
+         * <code>index</code> are valid.
+         * Otherwise, <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         *
+         * @since 1.6
+         */
+        public String getAtIndex(int part, int index) {
+           String str = null;
+            if (part == AccessibleText.CHARACTER) {
+                str = super.getAtIndex(part, index);
+            } else {
+                // Treat the text displayed in the JPasswordField
+                // as one word and sentence.
+                char password[] = getPassword();
+                if (password == null ||
+                    index < 0 || index >= password.length) {
+                    return null;
+                }
+                str = new String(password);
+            }
+            return getEchoString(str);
+        }
+ 
+        /**
+         * Returns the <code>String</code> after a given <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code> or
+         * <code>SENTENCE</code> to retrieve
+         * @param index an index within the text
+         * @return a <code>String</code> if <code>part</code> and 
+         * <code>index</code> are valid.
+         * Otherwise, <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         *
+         * @since 1.6
+         */
+        public String getAfterIndex(int part, int index) {
+            if (part == AccessibleText.CHARACTER) {
+                String str = super.getAfterIndex(part, index);
+                return getEchoString(str);
+            } else {
+                // There is no word or sentence after the text
+                // displayed in the JPasswordField.
+                return null;
+            }
+        }
+
+        /**
+         * Returns the <code>String</code> before a given <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code> or
+         * <code>SENTENCE</code> to retrieve
+         * @param index an index within the text
+         * @return a <code>String</code> if <code>part</code> and 
+         * <code>index</code> are valid.
+         * Otherwise, <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         *
+         * @since 1.6
+         */
+        public String getBeforeIndex(int part, int index) {
+            if (part == AccessibleText.CHARACTER) {
+                String str = super.getBeforeIndex(part, index);
+                return getEchoString(str);
+            } else {
+                // There is no word or sentence before the text
+                // displayed in the JPasswordField.
+                return null;
+            }
+        }
+
+        /**
+         * Returns the text between two <code>indices</code>.
+         *
+         * @param startIndex the start index in the text
+         * @param endIndex the end index in the text
+         * @return the text string if the indices are valid.
+         * Otherwise, <code>null</code> is returned
+         *
+         * @since 1.6
+         */
+        public String getTextRange(int startIndex, int endIndex) {
+            String str = super.getTextRange(startIndex, endIndex);
+            return getEchoString(str);
+        }
+ 
+ 
+        /**
+         * Returns the <code>AccessibleTextSequence</code> at a given
+         * <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or <code>ATTRIBUTE_RUN</code> to
+         * retrieve
+         * @param index an index within the text
+         * @return an <code>AccessibleTextSequence</code> specifying the text if
+         * <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        public AccessibleTextSequence getTextSequenceAt(int part, int index) {
+            if (part == AccessibleText.CHARACTER) {
+                AccessibleTextSequence seq = super.getTextSequenceAt(part, index);
+                if (seq == null) {
+                    return null;
+                }
+                return new AccessibleTextSequence(seq.startIndex, seq.endIndex,
+                                                  getEchoString(seq.text));
+            } else {
+                // Treat the text displayed in the JPasswordField
+                // as one word, sentence, line and attribute run
+                char password[] = getPassword();
+                if (password == null ||
+                    index < 0 || index >= password.length) {
+                    return null;
+                }
+                String text = new String(password);
+                return new AccessibleTextSequence(0, password.length - 1,
+                                                  getEchoString(text));
+            }
+        }
+
+        /**
+         * Returns the <code>AccessibleTextSequence</code> after a given
+         * <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or <code>ATTRIBUTE_RUN</code> to
+         * retrieve
+         * @param index an index within the text
+         * @return an <code>AccessibleTextSequence</code> specifying the text if
+         * <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        public AccessibleTextSequence getTextSequenceAfter(int part, int index) {
+            if (part == AccessibleText.CHARACTER) {
+                AccessibleTextSequence seq = super.getTextSequenceAfter(part, index);
+                if (seq == null) {
+                    return null;
+                }
+                return new AccessibleTextSequence(seq.startIndex, seq.endIndex,
+                                                  getEchoString(seq.text));
+            } else {
+                // There is no word, sentence, line or attribute run
+                // after the text displayed in the JPasswordField.
+                return null;
+            }
+        }
+
+        /**
+         * Returns the <code>AccessibleTextSequence</code> before a given
+         * <code>index</code>.
+         *
+         * @param part the <code>CHARACTER</code>, <code>WORD</code>,
+         * <code>SENTENCE</code>, <code>LINE</code> or <code>ATTRIBUTE_RUN</code> to
+         * retrieve
+         * @param index an index within the text
+         * @return an <code>AccessibleTextSequence</code> specifying the text if
+         * <code>part</code> and <code>index</code> are valid.  Otherwise,
+         * <code>null</code> is returned
+         *
+         * @see javax.accessibility.AccessibleText#CHARACTER
+         * @see javax.accessibility.AccessibleText#WORD
+         * @see javax.accessibility.AccessibleText#SENTENCE
+         * @see javax.accessibility.AccessibleExtendedText#LINE
+         * @see javax.accessibility.AccessibleExtendedText#ATTRIBUTE_RUN
+         *
+         * @since 1.6
+         */
+        public AccessibleTextSequence getTextSequenceBefore(int part, int index) {
+            if (part == AccessibleText.CHARACTER) {
+                AccessibleTextSequence seq = super.getTextSequenceBefore(part, index);
+                if (seq == null) {
+                    return null;
+                }
+                return new AccessibleTextSequence(seq.startIndex, seq.endIndex,
+                                                  getEchoString(seq.text));
+            } else {
+                // There is no word, sentence, line or attribute run
+                // before the text displayed in the JPasswordField.
+                return null;
+            }
         }
     }
 }

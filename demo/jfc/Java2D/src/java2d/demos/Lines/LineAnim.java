@@ -1,7 +1,7 @@
 /*
- * @(#)LineAnim.java	1.22 04/07/26
+ * @(#)LineAnim.java	1.24 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)LineAnim.java	1.22 04/07/26
+ * @(#)LineAnim.java	1.24 06/08/29
  */
 
 package java2d.demos.Lines;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.TextLayout;
@@ -55,7 +56,7 @@ public class LineAnim extends AnimatingSurface {
                 BasicStroke.CAP_SQUARE, BasicStroke.CAP_ROUND};
     private static int joins[] = { BasicStroke.JOIN_MITER, 
                 BasicStroke.JOIN_BEVEL, BasicStroke.JOIN_ROUND};
-    private static Color colors[] = {Color.gray, Color.pink, Color.lightGray};
+    private static Color colors[] = {GRAY, PINK, LIGHT_GRAY};
     private static BasicStroke bs1 = new BasicStroke(1.0f);
     private static final int CLOCKWISE = 0;
     private static final int COUNTERCW = 1;
@@ -72,7 +73,7 @@ public class LineAnim extends AnimatingSurface {
 
 
     public LineAnim() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
     public void reset(int w, int h) {
@@ -129,7 +130,7 @@ public class LineAnim extends AnimatingSurface {
     public void render(int w, int h, Graphics2D g2) {
 
         ellipse.setFrame(w/2-size,h/2-size,size*2,size*2);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.draw(ellipse);
 
         for (int i = 0; i < lines.length; i++) {
@@ -147,7 +148,7 @@ public class LineAnim extends AnimatingSurface {
         }
 
         g2.setStroke(bs1);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         for (int i = 0; i < pts.length; i++) {
             ellipse.setFrame(pts[i].getX(), pts[i].getY(), 9, 9);
             g2.draw(ellipse);

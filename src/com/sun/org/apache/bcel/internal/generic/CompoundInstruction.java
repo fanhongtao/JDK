@@ -65,7 +65,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * The interface provides the possibilty for the user to write
  * `templates' or `macros' for such reuseable code patterns.
  *
- * @version $Id: CompoundInstruction.java,v 1.1.1.1 2001/10/29 20:00:08 jvanzyl Exp $
+ * @version $Id: CompoundInstruction.java,v 1.1.2.1 2005/07/31 23:46:02 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see PUSH
  * @see SWITCH

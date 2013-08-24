@@ -1,8 +1,8 @@
 /*
  * @(#)file      XMLParseException.java
  * @(#)author    IBM Corp.
- * @(#)version   1.23
- * @(#)lastedit      03/12/19
+ * @(#)version   1.26
+ * @(#)lastedit      05/12/01
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation. 
  *
@@ -41,7 +41,9 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
 * or when XML formatted strings are being created from ModelMBean objects.
 *
 * It is also used to wrapper exceptions from XML parsers that may be used.
-*
+* 
+* <p>The <b>serialVersionUID</b> of this class is <code>3176664577895105181L</code>.
+* 
 * @since 1.5
 */
 public class XMLParseException
@@ -74,8 +76,8 @@ extends Exception
     private static boolean compat = false;  
     static {
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: No compat with 1.0

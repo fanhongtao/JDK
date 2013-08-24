@@ -1,7 +1,7 @@
 /*
- * @(#)FilterWriter.java	1.16 03/12/19
+ * @(#)FilterWriter.java	1.18 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package java.io;
  * should override some of these methods and may also 
  * provide additional methods and fields.
  *
- * @version 	1.16, 03/12/19
+ * @version 	1.18, 05/11/17
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -40,7 +40,7 @@ public abstract class FilterWriter extends Writer {
     }
 
     /**
-     * Write a single character.
+     * Writes a single character.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -49,7 +49,7 @@ public abstract class FilterWriter extends Writer {
     }
 
     /**
-     * Write a portion of an array of characters.
+     * Writes a portion of an array of characters.
      *
      * @param  cbuf  Buffer of characters to be written
      * @param  off   Offset from which to start reading characters
@@ -62,7 +62,7 @@ public abstract class FilterWriter extends Writer {
     }
 
     /**
-     * Write a portion of a string.
+     * Writes a portion of a string.
      *
      * @param  str  String to be written
      * @param  off  Offset from which to start reading characters
@@ -75,7 +75,7 @@ public abstract class FilterWriter extends Writer {
     }
 
     /**
-     * Flush the stream.
+     * Flushes the stream.
      *
      * @exception  IOException  If an I/O error occurs
      */
@@ -83,11 +83,6 @@ public abstract class FilterWriter extends Writer {
 	out.flush();
     }
 
-    /**
-     * Close the stream.
-     *
-     * @exception  IOException  If an I/O error occurs
-     */
     public void close() throws IOException {
 	out.close();
     }

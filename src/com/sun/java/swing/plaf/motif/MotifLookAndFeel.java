@@ -1,21 +1,18 @@
 /*
- * @(#)MotifLookAndFeel.java	1.171 05/02/08
+ * @(#)MotifLookAndFeel.java	1.185 06/03/29
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
 
-import java.awt.Toolkit;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.util.*;
-
-import java.lang.reflect.*;
 
 import javax.swing.*;
 import javax.swing.plaf.*;
@@ -28,7 +25,7 @@ import javax.swing.plaf.basic.BasicBorders;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * Implements the Motif Look and Feel.
@@ -42,7 +39,7 @@ import com.sun.java.swing.SwingUtilities2;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.171 02/08/05
+ * @version 1.185 03/29/06
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -112,8 +109,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                  "infoText", "#000000"  /* ??? */
         };
 
-        // AWT SystemColors only for for CDE on JDK1.2
-        loadSystemColors(table, defaultSystemColors, false/*is1dot2*/);
+        loadSystemColors(table, defaultSystemColors, false);
     }
 
 
@@ -176,13 +172,13 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
         initResourceBundle(table);
 
-        FontUIResource dialogPlain12 = new FontUIResource("Dialog", 
+        FontUIResource dialogPlain12 = new FontUIResource(Font.DIALOG, 
                                                           Font.PLAIN, 12);
-        FontUIResource serifPlain12 = new FontUIResource("Serif", 
+        FontUIResource serifPlain12 = new FontUIResource(Font.SERIF, 
                                                           Font.PLAIN, 12);
-        FontUIResource sansSerifPlain12 = new FontUIResource("SansSerif", 
+        FontUIResource sansSerifPlain12 = new FontUIResource(Font.SANS_SERIF, 
                                                           Font.PLAIN, 12);
-        FontUIResource monospacedPlain12 = new FontUIResource("Monospaced", 
+        FontUIResource monospacedPlain12 = new FontUIResource(Font.MONOSPACED, 
                                                           Font.PLAIN, 12);
         ColorUIResource red = new ColorUIResource(Color.red);
         ColorUIResource black = new ColorUIResource(Color.black);
@@ -327,8 +323,11 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	              "control B", DefaultEditorKit.backwardAction,
 	              "control D", DefaultEditorKit.deleteNextCharAction,
                      "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+               "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                          "ctrl H", DefaultEditorKit.deletePrevCharAction,
                          "DELETE", DefaultEditorKit.deleteNextCharAction,
+                    "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                           "RIGHT", DefaultEditorKit.forwardAction,
                            "LEFT", DefaultEditorKit.backwardAction,
                        "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -360,6 +359,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                       "control B", DefaultEditorKit.backwardAction,
                       "control D", DefaultEditorKit.deleteNextCharAction,
                      "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+               "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                          "ctrl H", DefaultEditorKit.deletePrevCharAction,
                          "DELETE", DefaultEditorKit.deleteNextCharAction,
                           "RIGHT", DefaultEditorKit.forwardAction,
@@ -393,8 +393,11 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	              "control B", DefaultEditorKit.backwardAction,
 	              "control D", DefaultEditorKit.deleteNextCharAction,
                      "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+               "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                          "ctrl H", DefaultEditorKit.deletePrevCharAction,
                          "DELETE", DefaultEditorKit.deleteNextCharAction,
+                    "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                           "RIGHT", DefaultEditorKit.forwardAction,
                            "LEFT", DefaultEditorKit.backwardAction,
                        "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -559,7 +562,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "Button.font", dialogPlain12,
             "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
                           "SPACE", "pressed",
-                 "released SPACE", "released"
+                 "released SPACE", "released" 
               }),
 
 	    "CheckBox.textIconGap", new Integer(8),
@@ -569,7 +572,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "CheckBox.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
-                   "released SPACE", "released"
+                   "released SPACE", "released" 
 		 }),
 
 	    "RadioButton.margin", new InsetsUIResource(4, 2, 4, 2),
@@ -582,7 +585,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "RadioButton.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
                           "SPACE", "pressed",
-                 "released SPACE", "released"
+                 "released SPACE", "released" 
 	      }),
 
             "ToggleButton.border", toggleButtonBorder,
@@ -593,13 +596,14 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "ToggleButton.focusInputMap",
 	      new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
-                   "released SPACE", "released"
+                   "released SPACE", "released" 
 	        }),
 
 	    // Menus
             "Menu.border", menuMarginBorder,
             "Menu.font", dialogPlain12,
             "Menu.acceleratorFont", dialogPlain12,
+            "Menu.acceleratorSelectionForeground", menuItemPressedForeground,
             "Menu.foreground", table.get("menuText"),
             "Menu.background", table.get("menu"),
             "Menu.selectionForeground", menuItemPressedForeground,
@@ -623,6 +627,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "MenuItem.border", menuMarginBorder,
             "MenuItem.font", dialogPlain12,
             "MenuItem.acceleratorFont", dialogPlain12,
+            "MenuItem.acceleratorSelectionForeground", menuItemPressedForeground,
             "MenuItem.foreground", table.get("menuText"),
             "MenuItem.background", table.get("menu"),
             "MenuItem.selectionForeground", menuItemPressedForeground,
@@ -633,6 +638,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "RadioButtonMenuItem.border", menuMarginBorder,
             "RadioButtonMenuItem.font", dialogPlain12,
             "RadioButtonMenuItem.acceleratorFont", dialogPlain12,
+            "RadioButtonMenuItem.acceleratorSelectionForeground", menuItemPressedForeground,
             "RadioButtonMenuItem.foreground", table.get("menuText"),
             "RadioButtonMenuItem.background", table.get("menu"),
             "RadioButtonMenuItem.selectionForeground", menuItemPressedForeground,
@@ -643,6 +649,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "CheckBoxMenuItem.border", menuMarginBorder,
             "CheckBoxMenuItem.font", dialogPlain12,
             "CheckBoxMenuItem.acceleratorFont", dialogPlain12,
+            "CheckBoxMenuItem.acceleratorSelectionForeground", menuItemPressedForeground,
             "CheckBoxMenuItem.foreground", table.get("menuText"),
             "CheckBoxMenuItem.background", table.get("menu"),
             "CheckBoxMenuItem.selectionForeground", menuItemPressedForeground,
@@ -799,6 +806,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		        "ctrl END", "scrollEnd"
 		 }),
 
+            "Slider.font", dialogPlain12,
             "Slider.border", focusBevelBorder,
             "Slider.foreground", table.get("control"),
             "Slider.background", controlDarker,
@@ -973,6 +981,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
             "Table.focusCellHighlightBorder", focusCellHighlightBorder,
             "Table.scrollPaneBorder", null,
+            "Table.dropLineShortColor", table.get("activeCaptionBorder"),
 
             //      "Table.background", white,  // cell background color
 	    "Table.ancestorInputMap",
@@ -1043,7 +1052,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                                 "SPACE", "addToSelection",
                            "ctrl SPACE", "toggleAndAnchor",
                           "shift SPACE", "extendTo",
-                     "ctrl shift SPACE", "moveSelectionTo"
+                     "ctrl shift SPACE", "moveSelectionTo",
+                                   "F8", "focusHeader"
 		 }),
 
 
@@ -1073,8 +1083,11 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 		        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -1126,6 +1139,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		    "KP_UP", "selectPrevious",
                     "SPACE", "spacePopup",
                     "ENTER", "enterPressed"
+
 	      }),
 
             "TextField.caretForeground", black,
@@ -1191,8 +1205,9 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "FileChooser.enterFileNameLabelMnemonic", new Integer (KeyEvent.VK_N), // 'n'
 	    "FileChooser.ancestorInputMap", 
 	       new UIDefaults.LazyInputMap(new Object[] {
-                     "ESCAPE", "cancelSelection",
-                     "ENTER", "approveSelection"
+		     "ESCAPE", "cancelSelection",
+		     "ENTER", "approveSelection",
+		"ctrl ENTER", "approveSelection"
 		 }),
 
 
@@ -1248,22 +1263,6 @@ public class MotifLookAndFeel extends BasicLookAndFeel
         };
 
         table.putDefaults(defaults);
-    }
-
-    /*
-     * Returns whether this is being run on a JDK 1.2 or later VM.
-     * This is a system-wide, rather than AppContext-wide, state.
-     */
-    /*package-private*/ static boolean is1dot2 = true;
-
-    static {
-        try {
-            // Test if method introduced in 1.2 is available.
-            Method m = Toolkit.class.getMethod("getMaximumCursorColors", null);
-            is1dot2 = (m != null);
-        } catch (NoSuchMethodException e) {
-            is1dot2 = false;
-        }
     }
 
 }

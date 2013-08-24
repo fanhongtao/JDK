@@ -1,7 +1,7 @@
 /*
- * @(#)FocusTraversalPolicy.java	1.7 03/12/19
+ * @(#)FocusTraversalPolicy.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -38,7 +38,7 @@ package java.awt;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.7, 12/19/03
+ * @version 1.9, 11/17/05
  *
  * @see Container#setFocusTraversalPolicy
  * @see Container#getFocusTraversalPolicy
@@ -146,10 +146,13 @@ public abstract class FocusTraversalPolicy {
      * @throws IllegalArgumentException if window is null
      */
     public Component getInitialComponent(Window window) {
+        if ( window == null ){
+            throw new IllegalArgumentException("window cannot be equal to null.");
+        }
         Component def = getDefaultComponent(window);
         if (def == null && window.isFocusableWindow()) {
             def = window;
-	}
+        }
         return def;
     }
 }

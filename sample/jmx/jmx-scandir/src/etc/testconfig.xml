@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ScanManager xmlns="jmx:com.sun.jmx.examples.scandir.config" name="testconfig">
+    <InitialResultLogConfig>
+        <LogFileMaxRecords>2048</LogFileMaxRecords>
+        <LogFileName>build/scandir.log</LogFileName>
+        <MemoryMaxRecords>128</MemoryMaxRecords>
+    </InitialResultLogConfig>
+    <DirectoryScannerList>
+        <DirectoryScanner name="scan-build">
+            <Actions>NOTIFY LOGRESULT</Actions>
+            <ExcludeFiles/>
+            <IncludeFiles>
+                <FileFilter>
+                    <FilePattern>.*\.class</FilePattern>
+                    <SizeExceedsMaxBytes>4096</SizeExceedsMaxBytes>
+                </FileFilter>
+            </IncludeFiles>
+            <RootDirectory>build</RootDirectory>
+        </DirectoryScanner>
+    </DirectoryScannerList>
+</ScanManager>

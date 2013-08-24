@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpPduFactoryBER.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   3.30
- * @(#)date      04/09/15
+ * @(#)version   3.31
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */

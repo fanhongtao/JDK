@@ -2,7 +2,7 @@
 // http://www.saxproject.org
 // Written by David Megginson
 // NO WARRANTY!  This class is in the public domain.
-// $Id: DefaultHandler.java,v 1.1.24.1 2004/05/01 08:34:45 jsuttor Exp $
+// $Id: DefaultHandler.java,v 1.3 2006/04/13 02:06:32 jeffsuttor Exp $
 
 package org.xml.sax.helpers;
 
@@ -74,7 +74,7 @@ public class DefaultHandler
      * in a subclass to do special translations such as catalog lookups
      * or URI redirection.</p>
      *
-     * @param publicId The public identifer, or null if none is
+     * @param publicId The public identifier, or null if none is
      *                 available.
      * @param systemId The system identifier provided in the XML 
      *                 document.
@@ -426,7 +426,7 @@ public class DefaultHandler
      * for each error, such as inserting the message in a log file or
      * printing it to the console.</p>
      *
-     * @param e The warning information encoded as an exception.
+     * @param e The error information encoded as an exception.
      * @exception org.xml.sax.SAXException Any SAX exception, possibly
      *            wrapping another exception.
      * @see org.xml.sax.ErrorHandler#warning

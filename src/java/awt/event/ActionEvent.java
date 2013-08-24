@@ -1,7 +1,7 @@
 /*
- * @(#)ActionEvent.java	1.29 04/01/28
+ * @(#)ActionEvent.java	1.31 06/04/13
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,10 +30,9 @@ import java.awt.Event;
  *  
  * @see ActionListener
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/eventmodel.html">Tutorial: Java 1.1 Event Model</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.29 01/28/04
+ * @version 1.31 04/13/06
  * @since 1.1
  */
 public class ActionEvent extends AWTEvent {

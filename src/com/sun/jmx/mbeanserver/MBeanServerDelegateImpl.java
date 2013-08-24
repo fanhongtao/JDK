@@ -1,38 +1,35 @@
 /*
- * @(#)MBeanServerDelegateImpl.java	1.14 03/12/19
+ * @(#)MBeanServerDelegateImpl.java	1.17 05/12/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.jmx.mbeanserver;
 
-import javax.management.ObjectName;
-import javax.management.MBeanServer;
-import javax.management.MBeanRegistration;
-import javax.management.DynamicMBean;
-import javax.management.AttributeNotFoundException;
-import javax.management.MBeanException; 
-import javax.management.ReflectionException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
-import javax.management.MBeanNotificationInfo;
-import javax.management.JMRuntimeException;
-import javax.management.InvalidAttributeValueException;
+import com.sun.jmx.trace.Trace;
 import javax.management.Attribute;
 import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.DynamicMBean;
+import javax.management.InvalidAttributeValueException;
+import javax.management.JMRuntimeException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanRegistration;
+import javax.management.MBeanServer;
+import javax.management.MBeanServerDelegate;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.RuntimeOperationsException;
-
-
-import com.sun.jmx.defaults.ServiceName;
-import com.sun.jmx.trace.Trace;
 
 /**
  * This class is the MBean implementation of the MBeanServerDelegate.
  *
  * @since 1.5
  */
-final class MBeanServerDelegateImpl 
-    extends javax.management.MBeanServerDelegate 
+final class MBeanServerDelegateImpl
+    extends MBeanServerDelegate
     implements DynamicMBean, MBeanRegistration {
 
     /** The name of this class to be used for tracing */
@@ -93,7 +90,7 @@ final class MBeanServerDelegateImpl
 
     final public ObjectName preRegister (MBeanServer server, ObjectName name) 
 	throws java.lang.Exception {
-	if (name == null) return new ObjectName(ServiceName.DELEGATE);
+	if (name == null) return DELEGATE_NAME;
 	else return name;
     }
     
@@ -185,7 +182,7 @@ final class MBeanServerDelegateImpl
 	    final RuntimeException r = 
 		new IllegalArgumentException("Attribute name cannot be null");
             throw new RuntimeOperationsException(r, 
-                "Exception occured trying to invoke the setter on the MBean");
+                "Exception occurred trying to invoke the setter on the MBean");
         }  
 	
 	// This is a hack: we call getAttribute in order to generate an
@@ -280,7 +277,7 @@ final class MBeanServerDelegateImpl
 	    final RuntimeException r = 
 	      new IllegalArgumentException("Operation name  cannot be null");
             throw new RuntimeOperationsException(r, 
-            "Exception occured trying to invoke the operation on the MBean");
+            "Exception occurred trying to invoke the operation on the MBean");
         } 
 
 	throw new ReflectionException(

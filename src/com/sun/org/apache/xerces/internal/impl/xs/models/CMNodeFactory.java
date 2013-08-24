@@ -1,241 +1,154 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2003 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * Copyright 2003-2004 The Apache Software Foundation.
  * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 
 package com.sun.org.apache.xerces.internal.impl.xs.models;
 
-import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
-import com.sun.org.apache.xerces.internal.impl.dtd.models.CMNode;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
+import com.sun.org.apache.xerces.internal.util.SecurityManager ;
+import com.sun.org.apache.xerces.internal.impl.dtd.models.CMNode;
+import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
+import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
+import com.sun.org.apache.xerces.internal.impl.Constants;
 
 /**
- * <p>Creates nodes.</p>
- * 
+ *
+ * @xerces.internal 
+ *
  * @author  Neeraj Bajaj
- * @version $Revision: 1.2 $, $Date: 2004/01/22 20:36:54 $
+ *
  */
 public class CMNodeFactory {
+    
 
-    /**
-     * Property identifier: error reporter.
-     */
+    /** Property identifier: error reporter. */
     private static final String ERROR_REPORTER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY;
     
-    /**
-     * <p>Output extra debugging messages to {@link System.err}.</p>
-     */
-    private static final boolean DEBUG = false;
+    /** property identifier: security manager. */
+    private static final String SECURITY_MANAGER =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
+
+    private static final boolean DEBUG = false ;
     
-    /**
-     * <p>Count of number of nodes created.</p>
-     */
+    //
+    private static final int MULTIPLICITY = 1 ;
+
+    //count of number of nodes created
     private int nodeCount = 0;
+    
+    //No. of nodes allowed.
+    private int maxNodeLimit ;
+
     
     /**
      * Error reporter. This property identifier is:
      * http://apache.org/xml/properties/internal/error-reporter
      */
-    private XMLErrorReporter fErrorReporter = null;
+    private XMLErrorReporter fErrorReporter;
+
+    // stores defaults for different security holes (maxOccurLimit in current context) if it has
+    // been set on the configuration.
+    private SecurityManager fSecurityManager = null;
     
-    /**
-     * Default constructor.
-     */
+    /** default constructor */
     public CMNodeFactory() {
-
-        if (DEBUG) {
-            System.err.println("CMNodeFactory()");
-        }
     }
     
-    /**
-     * <p>Reset internal state using <code>componentManager</code> provided values.</p>
-     * 
-     * @param componentManager {@link XMLComponentManager} to provide new values for internal state.
-     */
-    public void reset(XMLComponentManager componentManager) {
-        
-        if (DEBUG) {
-            System.err.println("CMNodeFactory#reset("
-            + "componentManager[" + componentManager.toString() + "])");
+    public void reset(XMLComponentManager componentManager){
+        fErrorReporter = (XMLErrorReporter)componentManager.getProperty(ERROR_REPORTER);
+        try {
+            fSecurityManager = (SecurityManager)componentManager.getProperty(SECURITY_MANAGER);
+            //we are setting the limit of number of nodes to 3times the maxOccur value..
+            if(fSecurityManager != null){
+                maxNodeLimit = fSecurityManager.getMaxOccurNodeLimit() * MULTIPLICITY ;
+            }
         }
-
-        // error reporter
-        fErrorReporter = (XMLErrorReporter) componentManager.getProperty(ERROR_REPORTER);
-    } //reset()
+        catch (XMLConfigurationException e) {
+            fSecurityManager = null;
+        }
+        
+    }//reset()
     
-    /**
-     * <p>Create a new leaf node as defined by the params.</p>
-     * 
-     * @param type Type of leaf node to return.
-     * @param leaf Leaf <code>Object</code>
-     * @param id ID of leaf to return.
-     * @param position Position of leaf to return.
-     * 
-     * @return New node as defined by the params.
-     */
     public CMNode getCMLeafNode(int type, Object leaf, int id, int position) {
-        
-        // this is a new node
-        nodeCount++;
-
-        if (DEBUG) {
-            System.err.println("CMNodeFactory#getCMLeafNode("
-            + "type[" + type + "], "
-            + "leaf[" + leaf.toString() + "], "
-            + "id[" + id + "], "
-            + "position[" + position + "])\n"
-            + "\tnodeCount=" + nodeCount);
-        }
-                
-        // create new node as defined by the params
-        return new XSCMLeaf(type, leaf, id, position);
+        return new XSCMLeaf(type, leaf, id, position) ;
     }
     
-    /**
-     * <p>Create a leaf node as defined by the params.</p>
-     * 
-     * @param type Type of node to create.
-     * @param childNode Child node.
-     * 
-     * @return New node as defined by the params.
-     */
     public CMNode getCMUniOpNode(int type, CMNode childNode) {
-
-        // this is a new node
-        nodeCount++;
-
-        if (DEBUG) {
-            System.err.println("CMNodeFactory#getCMUniOpNode("
-            + "type[" + type + "], "
-            + "childNode[" + childNode.toString() + "])\n"
-            + "\tnodeCount=" + nodeCount);
-        }
-        
-        // create new node as defined by the params
-        return new XSCMUniOp(type, childNode);
-    }
-
-    /**
-     * <p>Create a leaf node as defined by the params.</p>
-     * 
-     * @param type Type of node to create.
-     * @param leftNode Left node.
-     * @param rightNode Right node.
-     * 
-     * @return New node as defined by the params.
-     */
-    public CMNode getCMBinOpNode(int type, CMNode leftNode, CMNode rightNode) {
-
-        // this is a new node
-        nodeCount++;
-
-        if (DEBUG) {
-            System.err.println("CMNodeFactory#getCMBinOpNode("
-            + "type[" + type + "], "
-            + "leftNode[" + leftNode.toString() + "], "
-            + "rightNode[" + rightNode.toString() + "])\n"
-            + "\tnodeCount=" + nodeCount);
-        }
-        
-        // create new node as defined by the params
-        return new XSCMBinOp(type, leftNode, rightNode);
-    }
-
-    /**
-     * <p>Reset the internal node count to 0.</p>
-     */
-    public void resetNodeCount() {
-        nodeCount = 0;
-        
-        if (DEBUG) {
-            System.err.println("CMNodeFactory#resetNodeCount: "
-                + "nodeCount=" + nodeCount + " (after reset)");
-        }
+        return new XSCMUniOp(type, childNode) ;
     }
     
-    /**
-     * <p>Sets the value of a property. This method is called by the component
-     * manager any time after reset when a property changes value.</p>
-     * 
-     * <p> <strong>Note:</strong> Components should silently ignore properties
-     * that do not affect the operation of the component.</p>
+    public CMNode getCMBinOpNode(int type, CMNode leftNode, CMNode rightNode) {
+        return new XSCMBinOp(type, leftNode, rightNode) ;
+    }
+    
+    public void nodeCountCheck(){
+        if( fSecurityManager != null && nodeCount++ > maxNodeLimit){
+            if(DEBUG){
+                System.out.println("nodeCount = " + nodeCount ) ;
+                System.out.println("nodeLimit = " + maxNodeLimit ) ;
+            }
+            fErrorReporter.reportError(XSMessageFormatter.SCHEMA_DOMAIN, "maxOccurLimit", new Object[]{ new Integer(maxNodeLimit) }, XMLErrorReporter.SEVERITY_FATAL_ERROR);
+            // similarly to entity manager behaviour, take into accont
+            // behaviour if continue-after-fatal-error is set.
+            nodeCount = 0;
+        }
+        
+    }//nodeCountCheck()
+
+    //reset the node count
+    public void resetNodeCount(){
+        nodeCount = 0 ;
+    }
+        /**
+     * Sets the value of a property. This method is called by the component
+     * manager any time after reset when a property changes value.
+     * <p>
+     * <strong>Note:</strong> Components should silently ignore properties
+     * that do not affect the operation of the component.
      *
      * @param propertyId The property identifier.
-     * @param value The value of the property.
+     * @param value      The value of the property.
+     *
+     * @throws SAXNotRecognizedException The component should not throw
+     *                                   this exception.
+     * @throws SAXNotSupportedException The component should not throw
+     *                                  this exception.
      */
-    public void setProperty(String propertyId, Object value) {
-        
-        if (DEBUG) {
-            System.err.println("CMNodeFactory#setProperty("
-            + "propertyId[" + propertyId + "], "
-            + "value[" + value.toString() + "])");
-        }
+    public void setProperty(String propertyId, Object value)
+        throws XMLConfigurationException {
 
-        // Xerces properties?
+        // Xerces properties
         if (propertyId.startsWith(Constants.XERCES_PROPERTY_PREFIX)) {
-            String property = propertyId.substring(Constants.XERCES_PROPERTY_PREFIX.length());
-                        
-            // error reporter?
-            if (property.equals(Constants.ERROR_REPORTER_PROPERTY)) {
-                fErrorReporter = (XMLErrorReporter) value;
+        	final int suffixLength = propertyId.length() - Constants.XERCES_PROPERTY_PREFIX.length();
+        	
+            if (suffixLength == Constants.SECURITY_MANAGER_PROPERTY.length() && 
+                propertyId.endsWith(Constants.SECURITY_MANAGER_PROPERTY)) {
+                fSecurityManager = (SecurityManager)value;                
+                maxNodeLimit = (fSecurityManager != null) ? fSecurityManager.getMaxOccurNodeLimit() * MULTIPLICITY : 0 ;
                 return;
             }
-            
-            // silently ignore unknown Xerces property
-            return;
-        } else {
-            // silently ignore unknown non-Xerces property
-            return;
+            if (suffixLength == Constants.ERROR_REPORTER_PROPERTY.length() && 
+                propertyId.endsWith(Constants.ERROR_REPORTER_PROPERTY)) {
+                fErrorReporter = (XMLErrorReporter)value;
+                return;
+            }
         }
 
     } // setProperty(String,Object)
-} // CMNodeFactory()
+
+}//CMNodeFactory()

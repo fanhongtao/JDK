@@ -1,7 +1,7 @@
 /*
- * @(#)Permission.java	1.39 03/12/19
+ * @(#)Permission.java	1.40 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -39,7 +39,7 @@ package java.security;
  * @see Permissions
  * @see PermissionCollection
  *
- * @version 1.39 03/12/19
+ * @version 1.40 05/11/17
  *
  * @author Marianne Mueller
  * @author Roland Schemers 

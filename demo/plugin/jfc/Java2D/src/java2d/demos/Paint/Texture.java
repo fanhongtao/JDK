@@ -1,7 +1,7 @@
 /*
- * @(#)Texture.java	1.32 04/07/26
+ * @(#)Texture.java	1.34 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,12 +35,13 @@
  */
 
 /*
- * @(#)Texture.java	1.32 04/07/26
+ * @(#)Texture.java	1.34 06/08/29
  */
 
 package java2d.demos.Paint;
 
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
@@ -61,29 +62,29 @@ public class Texture extends Surface {
     static {
         BufferedImage bi = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
         Graphics2D gi = bi.createGraphics();
-        gi.setBackground(Color.white);
+        gi.setBackground(WHITE);
         gi.clearRect(0,0,10,10);
         GeneralPath p1 = new GeneralPath();
         p1.moveTo(0,0);
         p1.lineTo(5,10);
         p1.lineTo(10,0);
         p1.closePath();
-        gi.setColor(Color.lightGray);
+        gi.setColor(LIGHT_GRAY);
         gi.fill(p1);
         triangles = new TexturePaint(bi,new Rectangle(0,0,10,10));
 
         bi = new BufferedImage(5, 5, BufferedImage.TYPE_INT_RGB);
         gi = bi.createGraphics();
-        gi.setColor(Color.black);
+        gi.setColor(BLACK);
         gi.fillRect(0,0,5,5);
-        gi.setColor(Color.gray);
+        gi.setColor(GRAY);
         gi.fillRect(1,1,4,4);
         blacklines = new TexturePaint(bi,new Rectangle(0,0,5,5));
 
         int w = 30; int h = 30;
         bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         gi = bi.createGraphics();
-        Color oc = Color.white; Color ic = Color.lightGray;
+        Color oc = WHITE; Color ic = LIGHT_GRAY;
         gi.setPaint(new GradientPaint(0,0,oc,w*.35f,h*.35f,ic));
         gi.fillRect(0, 0, w/2, h/2);
         gi.setPaint(new GradientPaint(w,0,oc,w*.65f,h*.35f,ic));
@@ -107,7 +108,7 @@ public class Texture extends Surface {
 
 
     public Texture() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -116,7 +117,7 @@ public class Texture extends Surface {
         Rectangle r = new Rectangle(10,10,w-20,h/2-20);
         g2.setPaint(gradient);
         g2.fill(r);
-        g2.setPaint(Color.green);
+        g2.setPaint(GREEN);
         g2.setStroke(new BasicStroke(20));
         g2.draw(r);
         g2.setPaint(blacklines);
@@ -128,7 +129,7 @@ public class Texture extends Surface {
         int sw = (int) tl.getBounds().getWidth();
         int sh = (int) tl.getBounds().getHeight();
         Shape sha = tl.getOutline(AffineTransform.getTranslateInstance(w/2-sw/2, h*.25+sh/2));
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.setStroke(new BasicStroke(3));
         g2.draw(sha);
         g2.setPaint(greendots);
@@ -140,7 +141,7 @@ public class Texture extends Surface {
         g2.setPaint(blacklines);
         g2.setStroke(new BasicStroke(20));
         g2.draw(r);
-        g2.setPaint(Color.green);
+        g2.setPaint(GREEN);
         g2.setStroke(new BasicStroke(4));
         g2.draw(r);
 
@@ -149,7 +150,7 @@ public class Texture extends Surface {
         sw = (int) tl.getBounds().getWidth();
         sh = (int) tl.getBounds().getHeight();
         sha = tl.getOutline(AffineTransform.getTranslateInstance(w/2-sw/2, h*.75+sh/2));
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.setStroke(new BasicStroke(5));
         g2.draw(sha);
         g2.setPaint(bluedots);

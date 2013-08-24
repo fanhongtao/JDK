@@ -1,7 +1,7 @@
 /*
- * @(#)ImageView.java	1.56 03/12/19
+ * @(#)ImageView.java	1.58 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * as of 1.4.
  *
  * @author  Scott Violet
- * @version 1.56 12/19/03
+ * @version 1.58 11/30/05
  * @see IconView
  * @since 1.4
  */
@@ -45,22 +45,14 @@ public class ImageView extends View {
      */
     private static int sIncRate = 100;
     /**
-     * Icon used while the image is being loaded.
+     * Property name for pending image icon
      */
-    private static Icon sPendingImageIcon;
+    private static final String PENDING_IMAGE = "html.pendingImage";
     /**
-     * Icon used if the image could not be found.
+     * Property name for missing image icon
      */
-    private static Icon sMissingImageIcon;
-    /**
-     * File name for <code>sPendingImageIcon</code>.
-     */
-    private static final String PENDING_IMAGE_SRC = "icons/image-delayed.gif";
-    /**
-     * File name for <code>sMissingImageIcon</code>.
-     */
-    private static final String MISSING_IMAGE_SRC = "icons/image-failed.gif";
-
+    private static final String MISSING_IMAGE = "html.missingImage";
+    
     /**
      * Document property for image cache.
      */
@@ -166,16 +158,14 @@ public class ImageView extends View {
      * Returns the icon to use if the image couldn't be found.
      */
     public Icon getNoImageIcon() {
-        loadDefaultIconsIfNecessary();
-        return sMissingImageIcon;
+        return (Icon) UIManager.getLookAndFeelDefaults().get(MISSING_IMAGE);
     }
 
     /**
      * Returns the icon to use while in the process of loading the image.
      */
     public Icon getLoadingImageIcon() {
-        loadDefaultIconsIfNecessary();
-        return sPendingImageIcon;
+        return (Icon) UIManager.getLookAndFeelDefaults().get(PENDING_IMAGE);
     }
 
     /**
@@ -586,42 +576,6 @@ public class ImageView extends View {
         return 0f;
     }
 
-    private Icon makeIcon(final String gifFile) throws IOException {
-        /* Copy resource into a byte array.  This is
-         * necessary because several browsers consider
-         * Class.getResource a security risk because it
-         * can be used to load additional classes.
-         * Class.getResourceAsStream just returns raw
-         * bytes, which we can convert to an image.
-         */
-	InputStream resource = HTMLEditorKit.getResourceAsStream(gifFile);
-
-        if (resource == null) {
-            System.err.println(ImageView.class.getName() + "/" + 
-                               gifFile + " not found.");
-            return null; 
-        }
-        BufferedInputStream in = 
-            new BufferedInputStream(resource);
-        ByteArrayOutputStream out = 
-            new ByteArrayOutputStream(1024);
-        byte[] buffer = new byte[1024];
-        int n;
-        while ((n = in.read(buffer)) > 0) {
-            out.write(buffer, 0, n);
-        }
-        in.close();
-        out.flush();
-
-        buffer = out.toByteArray();
-        if (buffer.length == 0) {
-            System.err.println("warning: " + gifFile + 
-                               " is zero-length");
-            return null;
-        }
-        return new ImageIcon(buffer);
-    }
-
     /**
      * Request that this view be repainted.
      * Assumes the view is still at its last-drawn location.
@@ -633,17 +587,6 @@ public class ImageView extends View {
     	}
     }
 
-    private void loadDefaultIconsIfNecessary() {
-        try {
-            if (sPendingImageIcon == null)
-            	sPendingImageIcon = makeIcon(PENDING_IMAGE_SRC);
-            if (sMissingImageIcon == null)
-            	sMissingImageIcon = makeIcon(MISSING_IMAGE_SRC);
-	} catch(Exception x) {
-	    System.err.println("ImageView: Couldn't load image icons");
-	}
-    }
-    
     /**
      * Convenience method for getting an integer attribute from the elements
      * AttributeSet.

@@ -1,7 +1,7 @@
 /*
- * @(#)ElementType.java	1.6 04/03/16
+ * @(#)ElementType.java	1.8 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ public enum ElementType {
     /** Class, interface (including annotation type), or enum declaration */
     TYPE,
 
-    /** Field declaration (inlcudes enum constants) */
+    /** Field declaration (includes enum constants) */
     FIELD,
 
     /** Method declaration */

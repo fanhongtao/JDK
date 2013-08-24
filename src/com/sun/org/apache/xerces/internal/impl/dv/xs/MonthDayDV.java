@@ -1,72 +1,36 @@
 /*
- * The Apache Software License, Version 1.1
+ * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
- * reserved.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 2001, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.sun.org.apache.xerces.internal.impl.dv.xs;
+
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.sun.org.apache.xerces.internal.impl.dv.InvalidDatatypeValueException;
 import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
 
 /**
- * Validator for <gMonthDay> datatype (W3C Schema Datatypes)
+ * Validator for &lt;gMonthDay&gt; datatype (W3C Schema Datatypes)
+ *
+ * @xerces.internal 
  *
  * @author Elena Litani
  * @author Gopal Sharma, SUN Microsystem Inc.
  *
- * @version $Id: MonthDayDV.java,v 1.7 2003/01/16 18:34:04 sandygao Exp $
+ * @version $Id: MonthDayDV.java,v 1.2.6.1 2005/09/06 11:43:07 neerajbj Exp $
  */
 
 public class MonthDayDV extends AbstractDateTimeDV {
@@ -82,7 +46,7 @@ public class MonthDayDV extends AbstractDateTimeDV {
      */
     public Object getActualValue(String content, ValidationContext context) throws InvalidDatatypeValueException {
         try{
-            return new DateTimeData(parse(content), this);
+            return parse(content);
         } catch(Exception ex){
             throw new InvalidDatatypeValueException("cvc-datatype-valid.1.2.1", new Object[]{content, "gMonthDay"});
         }
@@ -93,46 +57,47 @@ public class MonthDayDV extends AbstractDateTimeDV {
      *
      * @param str    The lexical representation of gMonthDay object --MM-DD
      *               with possible time zone Z or (-),(+)hh:mm
-     * @param date   uninitialized date object
      * @return normalized date representation
      * @exception SchemaDateTimeException Invalid lexical representation
      */
-    protected int[] parse(String str) throws SchemaDateTimeException{
+    protected DateTimeData parse(String str) throws SchemaDateTimeException{
+        DateTimeData date = new DateTimeData(str, this);
         int len = str.length();
-        int[] date=new int[TOTAL_SIZE];
-        int[] timeZone = new int[2];
 
         //initialize
-        date[CY]=YEAR;
+        date.year=YEAR;
 
         if (str.charAt(0)!='-' || str.charAt(1)!='-') {
             throw new SchemaDateTimeException("Invalid format for gMonthDay: "+str);
         }
-        date[M]=parseInt(str, 2, 4);
+        date.month=parseInt(str, 2, 4);
         int start=4;
 
         if (str.charAt(start++)!='-') {
             throw new SchemaDateTimeException("Invalid format for gMonthDay: " + str);
         }
 
-        date[D]=parseInt(str, start, start+2);
+        date.day=parseInt(str, start, start+2);
 
         if ( MONTHDAY_SIZE<len ) {
-            int sign = findUTCSign(str, MONTHDAY_SIZE, len);
-            if ( sign<0 ) {
+            if (!isNextCharUTCSign(str, MONTHDAY_SIZE, len)) {
                 throw new SchemaDateTimeException ("Error in month parsing:" +str);
             }
             else {
-                getTimeZone(str, date, sign, len, timeZone);
+                getTimeZone(str, date, MONTHDAY_SIZE, len);
             }
         }
         //validate and normalize
 
-        validateDateTime(date, timeZone);
-
-        if ( date[utc]!=0 && date[utc]!='Z' ) {
-            normalize(date, timeZone);
+        validateDateTime(date);
+        
+        //save unnormalized values
+        saveUnnormalized(date);
+        
+        if ( date.utc!=0 && date.utc!='Z' ) {
+            normalize(date);
         }
+        date.position = 1;
         return date;
     }
 
@@ -142,16 +107,20 @@ public class MonthDayDV extends AbstractDateTimeDV {
      * @param date   gmonthDay object
      * @return lexical representation of month: --MM-DD with an optional time zone sign
      */
-    protected String dateToString(int[] date) {
+    protected String dateToString(DateTimeData date) {
         StringBuffer message = new StringBuffer(8);
         message.append('-');
         message.append('-');
-        append(message, date[M], 2);
+        append(message, date.month, 2);
         message.append('-');
-        append(message, date[D], 2);
-        append(message, (char)date[utc], 0);
+        append(message, date.day, 2);
+        append(message, (char)date.utc, 0);
         return message.toString();
     }
-
+    
+    protected XMLGregorianCalendar getXMLGregorianCalendar(DateTimeData date) {
+        return factory.newXMLGregorianCalendar(DatatypeConstants.FIELD_UNDEFINED, date.unNormMonth, date.unNormDay
+                , DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, date.timezoneHr * 60 + date.timezoneMin);
+    }
 }
 

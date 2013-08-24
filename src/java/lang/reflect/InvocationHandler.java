@@ -1,7 +1,7 @@
 /*
- * @(#)InvocationHandler.java	1.9 03/12/19
+ * @(#)InvocationHandler.java	1.11 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,9 +17,9 @@ package java.lang.reflect;
  * method of its invocation handler.
  *
  * @author	Peter Jones
- * @version	1.9, 03/12/19
+ * @version	1.11, 06/04/07
  * @see		Proxy
- * @since	JDK1.3
+ * @since	1.3
  */
 public interface InvocationHandler {
 

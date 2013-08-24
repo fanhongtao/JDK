@@ -1,7 +1,7 @@
 /*
- * @(#)CertPathBuilderSpi.java	1.5 03/12/19
+ * @(#)CertPathBuilderSpi.java	1.6 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.security.InvalidAlgorithmParameterException;
  * manipulating a different <code>CertPathBuilderSpi</code> instance need not
  * synchronize.
  *
- * @version 	1.5 12/19/03
+ * @version 	1.6 11/17/05
  * @since	1.4
  * @author	Sean Mullan
  */

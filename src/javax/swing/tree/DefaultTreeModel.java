@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeModel.java	1.55 04/05/05
+ * @(#)DefaultTreeModel.java	1.57 06/04/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.55 05/05/04
+ * @version 1.57 04/12/06
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -186,8 +186,8 @@ public class DefaultTreeModel implements Serializable, TreeModel {
     }
 
     /**
-     * Invoke this method if you've modified the TreeNodes upon which this
-     * model depends.  The model will notify all of its listeners that the
+     * Invoke this method if you've modified the {@code TreeNode}s upon which
+     * this model depends. The model will notify all of its listeners that the
      * model has changed.
      */
     public void reload() {
@@ -268,9 +268,11 @@ public class DefaultTreeModel implements Serializable, TreeModel {
     }
 
     /**
-     * Invoke this method if you've modified the TreeNodes upon which this
-     * model depends.  The model will notify all of its listeners that the
-     * model has changed below the node <code>node</code> (PENDING).
+     * Invoke this method if you've modified the {@code TreeNode}s upon which
+     * this model depends. The model will notify all of its listeners that the
+     * model has changed below the given node.
+     *
+     * @param node the node below which the model has changed
      */
     public void reload(TreeNode node) {
         if(node != null) {

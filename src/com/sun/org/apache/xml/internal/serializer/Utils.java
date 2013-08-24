@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Utils.java,v 1.3 2004/02/17 04:18:18 minchau Exp $
+ * $Id: Utils.java,v 1.2.4.1 2005/09/15 08:15:30 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 

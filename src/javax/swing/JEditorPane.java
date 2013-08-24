@@ -1,13 +1,14 @@
 /*
- * @(#)JEditorPane.java	1.125 04/07/23
+ * @(#)JEditorPane.java	1.139 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.reflect.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
@@ -54,12 +55,12 @@ import javax.accessibility.*;
  * There are several ways to load content into this component.
  * <ol>
  * <li>
- * The <a href="#setText">setText</a> method can be used to initialize
+ * The {@link #setText setText} method can be used to initialize
  * the component from a string.  In this case the current
  * <code>EditorKit</code> will be used, and the content type will be
  * expected to be of this type.
  * <li>
- * The <a href="#read">read</a> method can be used to initialize the 
+ * The {@link #read read} method can be used to initialize the 
  * component from a <code>Reader</code>.  Note that if the content type is HTML,
  * relative references (e.g. for things like images) can't be resolved 
  * unless the &lt;base&gt; tag is used or the <em>Base</em> property
@@ -67,7 +68,7 @@ import javax.accessibility.*;
  * In this case the current <code>EditorKit</code> will be used,
  * and the content type will be expected to be of this type.
  * <li>
- * The <a href="#setPage">setPage</a> method can be used to initialize
+ * The {@link #setPage setPage} method can be used to initialize
  * the component from a URL.  In this case, the content type will be
  * determined from the URL, and the registered <code>EditorKit</code>
  * for that content type will be set.
@@ -140,12 +141,18 @@ import javax.accessibility.*;
  * (which is an <code>IOException</code>).
  * </ol>
  * <p>
+ * <dl>
  * <dt><b><font size=+1>Newlines</font></b>
  * <dd>
  * For a discussion on how newlines are handled, see
  * <a href="text/DefaultEditorKit.html">DefaultEditorKit</a>.
  * </dl>
  *
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -161,7 +168,7 @@ import javax.accessibility.*;
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.125 07/23/04
+ * @version 1.139 08/08/06
  */
 public class JEditorPane extends JTextComponent {
 
@@ -400,55 +407,53 @@ public class JEditorPane extends JTextComponent {
 	    scrollRectToVisible(new Rectangle(0,0,1,1));
 	}
 	boolean reloaded = false;
-	if ((loaded == null) || (! loaded.sameFile(page))) {
+        Object postData = getPostData();
+        if ((loaded == null) || !loaded.sameFile(page) || (postData != null)) {
+            // different url or POST method, load the new content
 
-	    // different url, load the new content
-	    InputStream in = getStream(page);
-	    if (kit != null) {
-		Document doc = kit.createDefaultDocument();
-		if (pageProperties != null) {
-		    // transfer properties discovered in stream to the
-		    // document property collection.
-		    for (Enumeration e = pageProperties.keys(); e.hasMoreElements() ;) {
-			Object key = e.nextElement();
-			doc.putProperty(key, pageProperties.get(key));
-		    }
-		    pageProperties.clear();
-		}
-		if (doc.getProperty(Document.StreamDescriptionProperty) == null) {
-		    doc.putProperty(Document.StreamDescriptionProperty, page);
-		}
-
-		// At this point, one could either load up the model with no
-		// view notifications slowing it down (i.e. best synchronous
-		// behavior) or set the model and start to feed it on a separate
-		// thread (best asynchronous behavior).
-		synchronized(this) {
-		    if (loading != null) {
-			// we are loading asynchronously, so we need to cancel 
-			// the old stream.
-			loading.cancel();
-			loading = null;
-		    }
-		}
-		if (doc instanceof AbstractDocument) {
-		    AbstractDocument adoc = (AbstractDocument) doc;
-		    int p = adoc.getAsynchronousLoadPriority();
-		    if (p >= 0) {
-			// load asynchronously
-			setDocument(doc);
-			synchronized(this) {
-			    loading = new PageStream(in);
-			    Thread pl = new PageLoader(doc, loading, p, loaded, page);
-			    pl.start();
-			}
-			return;
-		    }
-		}
-		read(in, doc);
-		setDocument(doc);  
-		reloaded = true;
-	    }
+            int p = getAsynchronousLoadPriority(getDocument());
+            if ((postData == null) || (p < 0)) {
+                // Either we do not have POST data, or should submit the data
+                // synchronously.
+                InputStream in = getStream(page);
+                if (kit != null) {
+                    Document doc = initializeModel(kit, page);
+                    
+                    // At this point, one could either load up the model with no
+                    // view notifications slowing it down (i.e. best synchronous
+                    // behavior) or set the model and start to feed it on a separate
+                    // thread (best asynchronous behavior).
+                    synchronized(this) {
+                        if (loading != null) {
+                            // we are loading asynchronously, so we need to cancel
+                            // the old stream.
+                            loading.cancel();
+                            loading = null;
+                        }
+                    }
+                    p = getAsynchronousLoadPriority(doc);
+                    if (p >= 0) {
+                        // load asynchronously
+                        setDocument(doc);
+                        synchronized(this) {
+                            loading = new PageStream(in);
+                            Thread pl = new PageLoader(doc, loading, p, loaded, page);
+                            pl.start();
+                        }
+                        return;
+                    }
+                    read(in, doc);
+                    setDocument(doc);
+                    reloaded = true;
+                }
+            } else {
+                // We have POST data and should send it asynchronously.
+                // Send (and subsequentally read) data in separate thread.
+                // Model initialization is deferred to that thread, too.
+                Thread pl = new PageLoader(null, null, p, loaded, page);
+                pl.start();
+                return;
+            }
 	}
 	final String reference = page.getRef();
 	if (reference != null) {
@@ -468,6 +473,33 @@ public class JEditorPane extends JTextComponent {
         firePropertyChange("page", loaded, page);
     }
 
+    /**
+     * Create model and initialize document properties from page properties.
+     */
+    private Document initializeModel(EditorKit kit, URL page) {
+        Document doc = kit.createDefaultDocument();
+        if (pageProperties != null) {
+            // transfer properties discovered in stream to the
+            // document property collection.
+            for (Enumeration e = pageProperties.keys(); e.hasMoreElements() ;) {
+                Object key = e.nextElement();
+                doc.putProperty(key, pageProperties.get(key));
+            }
+            pageProperties.clear();
+        }
+        if (doc.getProperty(Document.StreamDescriptionProperty) == null) {
+            doc.putProperty(Document.StreamDescriptionProperty, page);
+        }
+        return doc;
+    }
+    
+    /**
+     * Return load priority for the document or -1 if priority not supported.
+     */
+    private int getAsynchronousLoadPriority(Document doc) {
+        return (doc instanceof AbstractDocument ?
+            ((AbstractDocument) doc).getAsynchronousLoadPriority() : -1);
+    }
 
     /**
      * This method initializes from a stream.  If the kit is
@@ -512,6 +544,11 @@ public class JEditorPane extends JTextComponent {
      *
      */
     void read(InputStream in, Document doc) throws IOException {
+        if (! Boolean.TRUE.equals(doc.getProperty("IgnoreCharsetDirective"))) {
+            final int READ_LIMIT = 1024 * 10;
+            in = new BufferedInputStream(in, READ_LIMIT);
+            in.mark(READ_LIMIT);
+        }
 	try {
 	    String charset = (String) getClientProperty("charset");
 	    Reader r = (charset != null) ? new InputStreamReader(in, charset) :
@@ -519,17 +556,27 @@ public class JEditorPane extends JTextComponent {
 	    kit.read(r, doc, 0);
 	} catch (BadLocationException e) {
 	    throw new IOException(e.getMessage());
-	} catch (ChangedCharSetException e1) {
-	    String charSetSpec = e1.getCharSetSpec();
-	    if (e1.keyEqualsCharSet()) {
+	} catch (ChangedCharSetException changedCharSetException) {
+	    String charSetSpec = changedCharSetException.getCharSetSpec();
+	    if (changedCharSetException.keyEqualsCharSet()) {
 		putClientProperty("charset", charSetSpec);
 	    } else {
 		setCharsetFromContentTypeParameters(charSetSpec);
 	    }
-	    in.close();
-	    URL url = (URL)doc.getProperty(Document.StreamDescriptionProperty);
-	    URLConnection conn = url.openConnection();
-	    in = conn.getInputStream();
+            try {
+                in.reset();
+            } catch (IOException exception) {
+                //mark was invalidated
+                in.close();
+                URL url = (URL)doc.getProperty(Document.StreamDescriptionProperty);
+                if (url != null) {
+                    URLConnection conn = url.openConnection();
+                    in = conn.getInputStream();
+                } else {
+                    //there is nothing we can do to recover stream
+                    throw changedCharSetException;
+                }
+            }
 	    try {
 		doc.remove(0, doc.getLength());
 	    } catch (BadLocationException e) {}
@@ -556,6 +603,8 @@ public class JEditorPane extends JTextComponent {
 	    this.doc = doc;
 	}
 
+        boolean pageLoaded = false;
+
 	/**
 	 * Try to load the document, then scroll the view
 	 * to the reference (if specified).  When done, fire
@@ -563,10 +612,39 @@ public class JEditorPane extends JTextComponent {
 	 */
         public void run() {
 	    try {
+                if (in == null) {
+                    in = getStream(page);
+                    if (kit == null) {
+                        // We received document of unknown content type.
+                        UIManager.getLookAndFeel().provideErrorFeedback(
+                                JEditorPane.this);
+                        return;
+                    }
+                    // Access to <code>loading</code> should be synchronized.
+                    synchronized(JEditorPane.this) {
+                        in = loading = new PageStream(in);
+                    }
+                }
+                if (doc == null) {
+                    try {
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            public void run() {
+                                doc = initializeModel(kit, page);
+                                setDocument(doc);
+                            }
+                        });
+                    } catch (InvocationTargetException ex) {
+                        UIManager.getLookAndFeel().provideErrorFeedback(
+                                                            JEditorPane.this);
+                        return;
+                    } catch (InterruptedException ex) {
+                        UIManager.getLookAndFeel().provideErrorFeedback(
+                                                            JEditorPane.this);
+                        return;
+                    }
+                }
+                
 		read(in, doc);
-		synchronized(JEditorPane.this) {
-		    loading = null;
-		}
 		URL page = (URL) doc.getProperty(Document.StreamDescriptionProperty);
 		String reference = page.getRef();
 		if (reference != null) {
@@ -583,12 +661,18 @@ public class JEditorPane extends JTextComponent {
 		    };
 		    SwingUtilities.invokeLater(callScrollToReference);
 		}
+                pageLoaded = true;
 	    } catch (IOException ioe) {
 		UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
 	    } finally {
+                synchronized(JEditorPane.this) {
+                    loading = null;
+                }
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        firePropertyChange("page", old, page);
+                        if (pageLoaded) {
+                            firePropertyChange("page", old, page);
+                        }
                     }
                 });
 	    }
@@ -682,10 +766,14 @@ public class JEditorPane extends JTextComponent {
      * @param page  the URL of the page
      */
     protected InputStream getStream(URL page) throws IOException {
-	URLConnection conn = page.openConnection();
+        final URLConnection conn = page.openConnection();
 	if (conn instanceof HttpURLConnection) {
 	    HttpURLConnection hconn = (HttpURLConnection) conn;
 	    hconn.setInstanceFollowRedirects(false);
+            Object postData = getPostData();
+            if (postData != null) {
+                handlePostData(hconn, postData);
+            }
 	    int response = hconn.getResponseCode();
 	    boolean redirect = (response >= 300 && response <= 399);
 
@@ -703,6 +791,31 @@ public class JEditorPane extends JTextComponent {
 		return getStream(page);
 	    }
 	}
+
+        // Connection properties handler should be forced to run on EDT,
+        // as it instantiates the EditorKit.
+        if (SwingUtilities.isEventDispatchThread()) {
+            handleConnectionProperties(conn);
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        handleConnectionProperties(conn);
+                    }
+                });
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return conn.getInputStream();
+    }
+    
+    /**
+     * Handle URL connection properties (most notably, content type).
+     */
+    private void handleConnectionProperties(URLConnection conn) {
 	if (pageProperties == null) {
 	    pageProperties = new Hashtable();
 	}
@@ -711,15 +824,34 @@ public class JEditorPane extends JTextComponent {
 	    setContentType(type);
 	    pageProperties.put("content-type", type);
 	}
-	pageProperties.put(Document.StreamDescriptionProperty, page);
+        pageProperties.put(Document.StreamDescriptionProperty, conn.getURL());
 	String enc = conn.getContentEncoding();
 	if (enc != null) {
 	    pageProperties.put("content-encoding", enc);
 	}
-	InputStream in = conn.getInputStream();
-	return in;
     }
 
+    private Object getPostData() {
+        return getDocument().getProperty(PostDataProperty);
+    }
+    
+    private void handlePostData(HttpURLConnection conn, Object postData)
+                                                            throws IOException {
+        conn.setDoOutput(true);
+        DataOutputStream os = null;
+        try {
+            conn.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
+            os = new DataOutputStream(conn.getOutputStream());
+            os.writeBytes((String) postData);
+        } finally {
+            if (os != null) {
+                os.close();
+            }
+        }
+    }
+    
+    
     /**
      * Scrolls the view to the given reference location
      * (that is, the value returned by the <code>UL.getRef</code>
@@ -821,6 +953,7 @@ public class JEditorPane extends JTextComponent {
     public EditorKit getEditorKit() {
         if (kit == null) {
             kit = createDefaultEditorKit();
+            isUserSetEditorKit = false;
         }
         return kit;
     }
@@ -880,12 +1013,15 @@ public class JEditorPane extends JTextComponent {
 		setCharsetFromContentTypeParameters(paramList);
 	    }
 	}
-        if ((kit == null) || (! type.equals(kit.getContentType()))) {
+        if ((kit == null) || (! type.equals(kit.getContentType()))
+                || !isUserSetEditorKit) { 
             EditorKit k = getEditorKitForContentType(type);
-            if (k != null) {
+            if (k != null && k != kit) { 
                 setEditorKit(k);
+                isUserSetEditorKit = false;
             }
         }
+
     }
 
     /**
@@ -951,6 +1087,7 @@ public class JEditorPane extends JTextComponent {
      */
     public void setEditorKit(EditorKit kit) {
         EditorKit old = this.kit;
+        isUserSetEditorKit = true;
         if (old != null) {
             old.deinstall(this);
         }
@@ -978,7 +1115,7 @@ public class JEditorPane extends JTextComponent {
      * be reimplemented to use the Java Activation
      * Framework, for example.
      *
-     * @param type the non-</code>null</code> content type
+     * @param type the non-<code>null</code> content type
      * @return the editor kit
      */  
     public EditorKit getEditorKitForContentType(String type) {
@@ -1026,8 +1163,8 @@ public class JEditorPane extends JTextComponent {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param content  the content to replace the selection with.  This
      *   value can be <code>null</code>
@@ -1141,7 +1278,7 @@ public class JEditorPane extends JTextComponent {
      * and can be safely changed 
      * before attempted uses to avoid loading unwanted classes.
      *
-     * @param type the non-</code>null</code> content type
+     * @param type the non-<code>null</code> content type
      * @param classname the class to load later
      * @param loader the <code>ClassLoader</code> to use to load the name
      */
@@ -1190,18 +1327,26 @@ public class JEditorPane extends JTextComponent {
      */
     private static void loadDefaultKitsIfNecessary() {
 	if (SwingUtilities.appContextGet(kitTypeRegistryKey) == null) {
+            synchronized(defaultEditorKitMap) {
+                if (defaultEditorKitMap.size() == 0) {
+                    defaultEditorKitMap.put("text/plain",
+                                            "javax.swing.JEditorPane$PlainEditorKit");
+                    defaultEditorKitMap.put("text/html",
+                                            "javax.swing.text.html.HTMLEditorKit");
+                    defaultEditorKitMap.put("text/rtf",
+                                            "javax.swing.text.rtf.RTFEditorKit");
+                    defaultEditorKitMap.put("application/rtf",
+                                            "javax.swing.text.rtf.RTFEditorKit");                    
+                }
+            }
 	    Hashtable ht = new Hashtable();
 	    SwingUtilities.appContextPut(kitTypeRegistryKey, ht);
 	    ht = new Hashtable();
 	    SwingUtilities.appContextPut(kitLoaderRegistryKey, ht);
-	    registerEditorKitForContentType("text/plain",
-				  "javax.swing.JEditorPane$PlainEditorKit");
-	    registerEditorKitForContentType("text/html",
-				  "javax.swing.text.html.HTMLEditorKit");
-	    registerEditorKitForContentType("text/rtf",
-				  "javax.swing.text.rtf.RTFEditorKit");
-	    registerEditorKitForContentType("application/rtf",
-				  "javax.swing.text.rtf.RTFEditorKit");
+            for (String key : defaultEditorKitMap.keySet()) {
+                registerEditorKitForContentType(key,defaultEditorKitMap.get(key));
+            }
+            
 	}
     }
 
@@ -1293,8 +1438,8 @@ public class JEditorPane extends JTextComponent {
      * <p>
      * This method is thread safe, although most Swing methods
      * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
+     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
+     * to Use Threads</A> for more information.     
      *
      * @param t the new text to be set; if <code>null</code> the old
      *    text will be deleted
@@ -1419,8 +1564,12 @@ public class JEditorPane extends JTextComponent {
      * Current content binding of the editor.
      */
     private EditorKit kit;
+    private boolean isUserSetEditorKit;
 
     private Hashtable pageProperties;
+    
+    /** Should be kept in sync with javax.swing.text.html.FormView counterpart. */
+    final static String PostDataProperty = "javax.swing.JEditorPane.postdata";
 
     /**
      * Table of registered type handlers for this editor.
@@ -1450,7 +1599,7 @@ public class JEditorPane extends JTextComponent {
      * w3c compliant</a> length units are used for html rendering.
      * <p>
      * By default this is not enabled; to enable
-     * it set the client {@link putClientProperty property} with this name
+     * it set the client {@link #putClientProperty property} with this name
      * to <code>Boolean.TRUE</code>.
      *
      * @since 1.5
@@ -1464,12 +1613,14 @@ public class JEditorPane extends JTextComponent {
      * text. 
      * <p>
      * The default varies based on the look and feel;
-     * to enable it set the client {@link putClientProperty property} with
+     * to enable it set the client {@link #putClientProperty property} with
      * this name to <code>Boolean.TRUE</code>.
      *
      * @since 1.5
      */
     public static final String HONOR_DISPLAY_PROPERTIES = "JEditorPane.honorDisplayProperties";
+
+    static final Map<String, String> defaultEditorKitMap = new HashMap<String, String>(0);
 
     /**
      * Returns a string representation of this <code>JEditorPane</code>.
@@ -1508,13 +1659,15 @@ public class JEditorPane extends JTextComponent {
      *         AccessibleContext of this JEditorPane
      */
     public AccessibleContext getAccessibleContext() {
-        if (accessibleContext == null) {
-	    if (JEditorPane.this.getEditorKit() instanceof HTMLEditorKit) {
-		accessibleContext = new AccessibleJEditorPaneHTML();
-	    } else {
-                accessibleContext = new AccessibleJEditorPane();
-	    }
-        }
+        if (getEditorKit() instanceof HTMLEditorKit) {
+            if (accessibleContext == null || accessibleContext.getClass() !=
+                    AccessibleJEditorPaneHTML.class) {
+                accessibleContext = new AccessibleJEditorPaneHTML();
+            }
+        } else if (accessibleContext == null || accessibleContext.getClass() !=
+                       AccessibleJEditorPane.class) {
+            accessibleContext = new AccessibleJEditorPane();
+        } 
         return accessibleContext;
     }
 
@@ -1546,11 +1699,16 @@ public class JEditorPane extends JTextComponent {
          * @see #setAccessibleName
          */
         public String getAccessibleDescription() {
-            if (accessibleDescription != null) {
-                return accessibleDescription;
-            } else {
-                return JEditorPane.this.getContentType();
+            String description = accessibleDescription;
+
+            // fallback to client property
+            if (description == null) {
+                description = (String)getClientProperty(AccessibleContext.ACCESSIBLE_DESCRIPTION_PROPERTY);
             }
+            if (description == null) {
+                description = JEditorPane.this.getContentType();
+            }
+            return description;
         }
 
         /**

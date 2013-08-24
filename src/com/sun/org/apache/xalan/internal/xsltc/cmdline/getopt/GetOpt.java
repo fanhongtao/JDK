@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: GetOpt.java,v 1.5 2004/02/16 21:21:06 minchau Exp $
+ * $Id: GetOpt.java,v 1.2.4.1 2005/08/31 11:46:04 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt; 
@@ -165,8 +165,8 @@ public class GetOpt{
     * gets the argument for the current parsed option. For example,
     * in case of '-d <file>', if current option parsed is 'd' then
     * getOptionArg() would return '<file>'.
-    * @param none
     * @return String - argument for current parsed option.
+    * @param none
     */
     public String getOptionArg(){
 	String retval = null;
@@ -183,9 +183,9 @@ public class GetOpt{
     * such as 'cmd -s -d file file2 file3 file4'  with the usage
     * 'cmd [-s] [-d <file>] <file>...', getCmdArgs() would return
     * the list {file2, file3, file4}.
-    * @params none
     * @return String[] - list of command arguments that may appear
     *                    after options and option arguments.
+    * @params none
     */
     public String[] getCmdArgs(){
 	String[] retval = new String[theCmdArgs.size()];

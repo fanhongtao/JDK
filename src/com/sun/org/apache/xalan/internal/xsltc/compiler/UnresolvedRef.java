@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnresolvedRef.java,v 1.6 2004/02/16 22:25:10 minchau Exp $
+ * $Id: UnresolvedRef.java,v 1.5 2005/09/28 13:48:17 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -30,15 +30,12 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
  */
 final class UnresolvedRef extends VariableRefBase {
 
-    private QName           _variableName = null;
+    private QName _variableName = null;
     private VariableRefBase _ref = null;
-    private VariableBase    _var = null;
-    private Stylesheet      _sheet = null;
 
     public UnresolvedRef(QName name) {
 	super();
 	_variableName = name;
-	_sheet = getStylesheet();
     }
 
     public QName getName() {
@@ -56,23 +53,25 @@ final class UnresolvedRef extends VariableRefBase {
 	// At this point the AST is already built and we should be able to
 	// find any declared global variable or parameter
 	VariableBase ref = parser.lookupVariable(_variableName);
-	if (ref == null) ref = (VariableBase)stable.lookupName(_variableName);
+	if (ref == null) {
+            ref = (VariableBase)stable.lookupName(_variableName);
+        }
 	if (ref == null) {
 	    reportError();
 	    return null;
 	}
 	
-	// Insert the referenced variable as something the parent variable
-	// is dependent of (this class should only be used under variables)
-	if ((_var = findParentVariable()) != null) _var.addDependency(ref);
-
-	// Instanciate a true variable/parameter ref
-	if (ref instanceof Variable)
-	    return(new VariableRef((Variable)ref));
-	else if (ref instanceof Param)
-	    return(new ParameterRef((Param)ref));
-	else
-	    return null;
+        // If in a top-level element, create dependency to the referenced var
+        _variable = ref;
+        addParentDependency();
+        
+	if (ref instanceof Variable) {
+	    return new VariableRef((Variable) ref);
+        }
+	else if (ref instanceof Param) {
+	    return new ParameterRef((Param)ref);
+        }        
+        return null;
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {

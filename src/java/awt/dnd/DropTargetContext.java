@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetContext.java	1.37 04/05/05
+ * @(#)DropTargetContext.java	1.38 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.util.List;
  * drag under feedback, but also to effect the subsequent data transfer
  * if appropriate.
  *
- * @version 	1.37, 05/05/04
+ * @version 	1.38, 11/17/05
  * @since 1.2
  */
 

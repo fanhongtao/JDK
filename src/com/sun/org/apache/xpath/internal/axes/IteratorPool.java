@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IteratorPool.java,v 1.8 2004/02/17 04:32:08 minchau Exp $
+ * $Id: IteratorPool.java,v 1.2.4.1 2005/09/14 19:45:19 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xml.internal.utils.WrappedRuntimeException;
  */
 public class IteratorPool implements java.io.Serializable
 {
+    static final long serialVersionUID = -460927331149566998L;
 
   /** Type of objects in this pool.
    *  @serial          */

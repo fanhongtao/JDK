@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLStringFactoryImpl.java,v 1.6 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XMLStringFactoryImpl.java,v 1.2.4.1 2005/09/10 17:44:29 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -60,7 +60,7 @@ public class XMLStringFactoryImpl extends XMLStringFactory
    * Create a XMLString from a FastStringBuffer.
    *
    *
-   * @param string FastStringBuffer reference, which must be non-null.
+   * @param fsb FastStringBuffer reference, which must be non-null.
    * @param start The start position in the array.
    * @param length The number of characters to read from the array.
    *

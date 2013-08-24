@@ -1,7 +1,7 @@
 /*
- * @(#)DataFlavor.java	1.79 04/05/18
+ * @(#)DataFlavor.java	1.83 06/07/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,18 +15,69 @@ import java.util.*;
 import sun.awt.datatransfer.DataTransferer;
 
 /**
- * Each instance represents the opaque concept of a data format as would
- * appear on a clipboard, during drag and drop, or in a file system.
+ * A {@code DataFlavor} provides meta information about data. {@code DataFlavor}
+ * is typically used to access data on the clipboard, or during
+ * a drag and drop operation.
  * <p>
- * <code>DataFlavor</code> objects are constant and never change once
- * instantiated.
+ * An instance of {@code DataFlavor} encapsulates a content type as
+ * defined in <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC 2045</a>
+ * and <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a>.
+ * A content type is typically referred to as a MIME type.
  * <p>
- * For information on using data transfer with Swing, see
- * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
+ * A content type consists of a media type (referred
+ * to as the primary type), a subtype, and optional parameters. See
+ * <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC 2045</a>
+ * for details on the syntax of a MIME type.
+ * <p>
+ * The JRE data transfer implementation interprets the parameter &quot;class&quot;
+ * of a MIME type as <B>a representation class</b>.
+ * The representation class reflects the class of the object being
+ * transferred. In other words, the representation class is the type of
+ * object returned by {@link Transferable#getTransferData}.
+ * For example, the MIME type of {@link #imageFlavor} is
+ * {@code "image/x-java-image;class=java.awt.Image"},
+ * the primary type is {@code image}, the subtype is
+ * {@code x-java-image}, and the representation class is
+ * {@code java.awt.Image}. When {@code getTransferData} is invoked
+ * with a {@code DataFlavor} of {@code imageFlavor}, an instance of
+ * {@code java.awt.Image} is returned.
+ * It's important to note that {@code DataFlavor} does no error checking
+ * against the representation class. It is up to consumers of
+ * {@code DataFlavor}, such as {@code Transferable}, to honor the representation
+ * class.
+ * <br>
+ * Note, if you do not specify a representation class when
+ * creating a {@code DataFlavor}, the default
+ * representation class is used. See appropriate documentation for
+ * {@code DataFlavor}'s constructors.
+ * <p>
+ * Also, {@code DataFlavor} instances with the &quot;text&quot; primary
+ * MIME type may have a &quot;charset&quot; parameter. Refer to
+ * <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a> and
+ * {@link #selectBestTextFlavor} for details on &quot;text&quot; MIME types
+ * and the &quot;charset&quot; parameter.
+ * <p>
+ * Equality of {@code DataFlavors} is determined by the primary type,
+ * subtype, and representation class. Refer to {@link #equals(DataFlavor)} for
+ * details. When determining equality, any optional parameters are ignored.
+ * For example, the following produces two {@code DataFlavors} that
+ * are considered identical:
+ * <pre>
+ *   DataFlavor flavor1 = new DataFlavor(Object.class, &quot;X-test/test; class=&lt;java.lang.Object&gt;; foo=bar&quot;);
+ *   DataFlavor flavor2 = new DataFlavor(Object.class, &quot;X-test/test; class=&lt;java.lang.Object&gt;; x=y&quot;);
+ *   // The following returns true.
+ *   flavor1.equals(flavor2);
+ * </pre>
+ * As mentioned, {@code flavor1} and {@code flavor2} are considered identical.
+ * As such, asking a {@code Transferable} for either {@code DataFlavor} returns
+ * the same results.
+ * <p>
+ * For more information on the using data transfer with Swing see
+ * the <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
  * How to Use Drag and Drop and Data Transfer</a>,
- * a section in <em>The Java Tutorial</em>, for more information.
+ * section in <em>Java Tutorial</em>.
  *
- * @version     1.79, 05/18/04
+ * @version     1.83, 07/28/06
  * @author      Blake Sullivan
  * @author      Laurence P. G. Cable
  * @author      Jeff Dunn
@@ -463,6 +514,7 @@ public class DataFlavor implements Externalizable, Cloneable {
      *
      * @return a <code>DataFlavor</code> representing plain text
      *    with Unicode encoding
+     * @since 1.3
      */
     public static final DataFlavor getTextPlainUnicodeFlavor() {
 	String encoding = null;
@@ -998,6 +1050,7 @@ public class DataFlavor implements Externalizable, Cloneable {
      * @return <code>true</code> if <code>that</code> is equivalent to this
      *         <code>DataFlavor</code>; <code>false</code> otherwise
      * @see #selectBestTextFlavor
+     * @since 1.3
      */
     public boolean match(DataFlavor that) {
 	return equals(that);

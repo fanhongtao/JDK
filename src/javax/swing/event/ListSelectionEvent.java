@@ -1,7 +1,7 @@
 /*
- * @(#)ListSelectionEvent.java	1.20 03/12/19
+ * @(#)ListSelectionEvent.java	1.23 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,11 +12,12 @@ import javax.swing.*;
 
 
 /** 
- * An event that characterizes a change in the current
- * selection.  The change is limited to a row interval.
- * ListSelectionListeners will generally query the source of
- * the event for the new selected status of each potentially
- * changed row.
+ * An event that characterizes a change in selection. The change is limited to a
+ * a single inclusive interval. The selection of at least one index within the
+ * range will have changed. A decent {@code ListSelectionModel} implementation
+ * will keep the range as small as possible. {@code ListSelectionListeners} will
+ * generally query the source of the event for the new selected status of each
+ * potentially changed row.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -27,7 +28,7 @@ import javax.swing.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.20 12/19/03
+ * @version 1.23 07/11/06
  * @author Hans Muller
  * @author Ray Ryan
  * @see ListSelectionModel
@@ -39,16 +40,15 @@ public class ListSelectionEvent extends EventObject
     private boolean isAdjusting;
 
     /** 
-     * Represents a change in selection status between <code>firstIndex</code>
-     * and <code>lastIndex</code> inclusive
-     * (</code>firstIndex</code> is less than or equal to 
-     * <code>lastIndex</code>).  At least one of the rows within the range will
-     * have changed, a good <code>ListSelectionModel</code> implementation will
-     * keep the range as small as possible.
+     * Represents a change in selection status between {@code firstIndex} and
+     * {@code lastIndex}, inclusive. {@code firstIndex} is less than or equal to
+     * {@code lastIndex}. The selection of at least one index within the range will
+     * have changed. 
      * 
-     * @param firstIndex the first index that changed
-     * @param lastIndex the last index that changed, lastIndex >= firstIndex
-     * @param isAdjusting an indication that this is one of rapid a series of events
+     * @param firstIndex the first index in the range, &lt;= lastIndex
+     * @param lastIndex the last index in the range, &gt;= firstIndex
+     * @param isAdjusting whether or not this is one in a series of
+     *        multiple events, where changes are still being made
      */
     public ListSelectionEvent(Object source, int firstIndex, int lastIndex,
 			      boolean isAdjusting)
@@ -61,6 +61,8 @@ public class ListSelectionEvent extends EventObject
 
     /**
      * Returns the index of the first row whose selection may have changed.
+     * {@code getFirstIndex() &lt;= getLastIndex()}
+     *
      * @return the first row whose selection value may have changed,
      *         where zero is the first row
      */
@@ -68,19 +70,26 @@ public class ListSelectionEvent extends EventObject
 
     /**
      * Returns the index of the last row whose selection may have changed.
+     * {@code getLastIndex() &gt;= getFirstIndex()}
+     *
      * @return the last row whose selection value may have changed,
      *         where zero is the first row
      */
     public int getLastIndex() { return lastIndex; }
 
     /**
-     * Returns true if this is one of multiple change events.
-     * @return true if this is one of a rapid series of events
+     * Returns whether or not this is one in a series of multiple events,
+     * where changes are still being made. See the documentation for
+     * {@link javax.swing.ListSelectionModel#setValueIsAdjusting} for
+     * more details on how this is used.
+     *
+     * @return {@code true} if this is one in a series of multiple events,
+     *         where changes are still being made
      */
     public boolean getValueIsAdjusting() { return isAdjusting; }
 
     /**
-     * Returns a string that displays and identifies this
+     * Returns a {@code String} that displays and identifies this
      * object's properties.
      *
      * @return a String representation of this object

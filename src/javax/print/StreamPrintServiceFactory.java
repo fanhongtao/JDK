@@ -1,7 +1,7 @@
 /*
- * @(#)StreamPrintServiceFactory.java	1.8 03/12/19
+ * @(#)StreamPrintServiceFactory.java	1.10 06/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import sun.misc.Service;
  * <p>
  * This class is implemented by a service and located by the
  * implementation using the 
- * <a href="http:/java.sun.com/products/jdk/1.3/docs/guide/jar/jar.html#Service Provider">
+ * <a href="../../../technotes/guides/jar/jar.html#Service Provider">
  * SPI JAR File specification</a>.
  * <p>
  * Applications locate instances of this class by calling the

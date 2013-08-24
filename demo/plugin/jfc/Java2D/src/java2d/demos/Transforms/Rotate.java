@@ -1,7 +1,7 @@
 /*
- * @(#)Rotate.java	1.26 04/07/26
+ * @(#)Rotate.java	1.29 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)Rotate.java	1.23 03/01/23
+ * @(#)Rotate.java	1.29 06/08/29
  */
 
 package java2d.demos.Transforms;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
@@ -61,7 +62,7 @@ public class Rotate extends ControlsSurface {
 
 
     public Rotate() {
-        setBackground(Color.white);
+        setBackground(WHITE);
         setControls(new Component[] { new DemoControls(this) });
     }
 
@@ -73,26 +74,26 @@ public class Rotate extends ControlsSurface {
         Ellipse2D ellipse = new Ellipse2D.Float(-ew/2, -eh/2, ew, eh);
         for (double angdeg = 0; angdeg < 360; angdeg+=increment) {
             if (angdeg % emphasis == 0) {
-                g2.setColor(Color.gray);
+                g2.setColor(GRAY);
                 g2.setStroke(new BasicStroke(2.0f));
             } else {
-                g2.setColor(Color.lightGray);
+                g2.setColor(LIGHT_GRAY);
                 g2.setStroke(new BasicStroke(0.5f));
             }
             AffineTransform at = AffineTransform.getTranslateInstance(w/2, h/2);
             at.rotate(Math.toRadians(angdeg));
             g2.draw(at.createTransformedShape(ellipse));
         }
-        g2.setColor(Color.blue);
+        g2.setColor(BLUE);
         ellipse.setFrame(w/2-10,h/2-10,20,20);
         g2.fill(ellipse);
-        g2.setColor(Color.gray);
+        g2.setColor(GRAY);
         g2.setStroke(new BasicStroke(6));
         g2.draw(ellipse);
-        g2.setColor(Color.yellow);
+        g2.setColor(YELLOW);
         g2.setStroke(new BasicStroke(4));
         g2.draw(ellipse);
-        g2.setColor(Color.black);
+        g2.setColor(BLACK);
         g2.drawString("Rotate", 5, 15);
     }
 
@@ -111,13 +112,13 @@ public class Rotate extends ControlsSurface {
             super(demo.name);
             this.demo = demo;
             JLabel l = new JLabel("Increment:");
-            l.setForeground(Color.black);
+            l.setForeground(BLACK);
             add(l);
             add(tf1 = new JTextField("5.0"));
             tf1.setPreferredSize(new Dimension(30,24));
             tf1.addActionListener(this);
             add(l = new JLabel("  Emphasis:"));
-            l.setForeground(Color.black);
+            l.setForeground(BLACK);
             add(tf2 = new JTextField("9"));
             tf2.setPreferredSize(new Dimension(30,24));
             tf2.addActionListener(this);

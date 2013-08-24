@@ -59,8 +59,8 @@ import com.sun.org.apache.bcel.internal.generic.InstructionHandle;
 /** 
  * Returnaddress, the type JSR or JSR_W instructions push upon the stack.
  *
- * see vmspec2 &#247;3.3.3
- * @version $Id: ReturnaddressType.java,v 1.1.1.1 2001/10/29 20:00:26 jvanzyl Exp $
+ * see vmspec2 3.3.3
+ * @version $Id: ReturnaddressType.java,v 1.1.2.1 2005/07/31 23:44:52 jeffsuttor Exp $
  * @author  <A HREF="http://www.inf.fu-berlin.de/~ehaase">Enver Haase</A>
  */
 public class ReturnaddressType extends Type {

@@ -1,7 +1,7 @@
 /*
- * @(#)BlockView.java	1.36 04/03/05
+ * @(#)BlockView.java	1.38 06/02/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -18,7 +18,7 @@ import javax.swing.text.*;
  * with CSS specifications.
  *
  * @author  Timothy Prinzing
- * @version 1.36 03/05/04
+ * @version 1.38 02/14/06
  */
 public class BlockView extends BoxView  {
 
@@ -200,10 +200,11 @@ public class BlockView extends BoxView  {
     }
 
     /**
-     * Perform layout for the minor axis of the box (i.e. the
-     * axis orthoginal to the axis that it represents).  The results 
-     * of the layout should be placed in the given arrays which represent 
-     * the allocations to the children along the minor axis.
+     * Performs layout for the minor axis of the box (i.e. the
+     * axis orthoginal to the axis that it represents). The results 
+     * of the layout (the offset and span for each children) are 
+     * placed in the given arrays which represent the allocations to 
+     * the children along the minor axis.
      *
      * @param targetSpan the total span given to the view, which
      *  whould be used to layout the childre.
@@ -213,8 +214,6 @@ public class BlockView extends BoxView  {
      *  filled in by the implementation of this method
      * @param spans the span of each child view; this is a return
      *  value and is filled in by the implementation of this method
-     * @return the offset and span for each child view in the
-     *  offsets and spans parameters
      */
     protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	int n = getViewCount();

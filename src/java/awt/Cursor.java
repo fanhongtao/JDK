@@ -1,7 +1,7 @@
 /*
- * @(#)Cursor.java	1.40 03/12/19
+ * @(#)Cursor.java	1.45 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -26,7 +26,7 @@ import sun.awt.DebugHelper;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.40, 12/19/03
+ * @version 	1.45, 11/17/05
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -184,6 +184,30 @@ public class Cursor implements java.io.Serializable {
      * Hook into native data.
      */
     private transient long pData;
+
+    private transient Object anchor = new Object();
+
+    static class CursorDisposer implements sun.java2d.DisposerRecord {
+        long pData;
+        public void dispose() {
+            finalizeImpl(pData);
+        }
+    }
+    transient CursorDisposer disposer;
+    private void setPData(long pData) {
+        this.pData = pData;
+        if (!GraphicsEnvironment.isHeadless() && pData != 0) {
+            if (disposer == null) {
+                // anchor is null after deserialization
+                if (anchor == null) {
+                    anchor = new Object();
+                }
+                disposer = new CursorDisposer();
+                sun.java2d.Disposer.addRecord(anchor, disposer);
+            }
+            disposer.pData = pData;                
+        }
+    }
 
     /**
      * The user-visible name of the cursor.
@@ -395,14 +419,6 @@ public class Cursor implements java.io.Serializable {
     	}
     }
 
-    // This won't really throw an exception, but it must match the 
-    // signature of Object.finalize
-    protected void finalize() throws Throwable {
-        if (!GraphicsEnvironment.isHeadless()) {
-            finalizeImpl();
-        }
-    }
-
-    private native void finalizeImpl() throws Throwable;
+    private native static void finalizeImpl(long pData);
 }
 

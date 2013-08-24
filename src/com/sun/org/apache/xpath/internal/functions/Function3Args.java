@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Function3Args.java,v 1.14 2004/02/17 04:34:01 minchau Exp $
+ * $Id: Function3Args.java,v 1.2.4.1 2005/09/14 20:18:42 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.XPathVisitor;
  */
 public class Function3Args extends Function2Args
 {
+    static final long serialVersionUID = 7915240747161506646L;
 
   /** The third argument passed to the function (at index 2).
    *  @serial  */
@@ -145,7 +146,7 @@ public class Function3Args extends Function2Args
 
    
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callArgVisitors(XPathVisitor visitor)
   {

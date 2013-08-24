@@ -1,7 +1,7 @@
 /*
- * @(#)GridLayout.java	1.39 03/12/19
+ * @(#)GridLayout.java	1.42 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ package java.awt;
  * been set to non-zero values, either by a constructor or 
  * by the <tt>setRows</tt> and <tt>setColumns</tt> methods, the number of 
  * columns specified is ignored.  Instead, the number of 
- * columns is determined from the specified number or rows 
+ * columns is determined from the specified number of rows 
  * and the total number of components in the layout. So, for 
  * example, if three rows and two columns have been specified 
  * and nine components are added to the layout, they will 
@@ -69,11 +69,16 @@ package java.awt;
  * the number of columns affects the layout only when the 
  * number of rows is set to zero.
  *
- * @version 1.39, 12/19/03
+ * @version 1.42, 11/17/05
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
 public class GridLayout implements LayoutManager, java.io.Serializable {
+    /*
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = -7411804673224730901L;
+
     /**
      * This is the horizontal gap (in pixels) which specifies the space
      * between columns.  They can be changed at any time.

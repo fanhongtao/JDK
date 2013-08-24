@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Function.java,v 1.13 2004/02/17 04:34:00 minchau Exp $
+ * $Id: Function.java,v 1.2.4.1 2005/09/14 20:18:43 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -38,6 +38,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public abstract class Function extends Expression
 {
+    static final long serialVersionUID = 6927661240854599768L;
 
   /**
    * Set an argument expression for a function.  This method is called by the 
@@ -109,7 +110,7 @@ public abstract class Function extends Expression
 
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

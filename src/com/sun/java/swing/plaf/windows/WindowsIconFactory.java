@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsIconFactory.java	1.22 06/03/22
+ * @(#)WindowsIconFactory.java	1.30 06/05/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,9 @@ import javax.swing.plaf.UIResource;
 import java.awt.*;
 import java.io.Serializable;
 
+import static com.sun.java.swing.plaf.windows.TMSchema.*;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 /**
  * Factory object that can vend Icons appropriate for the Windows L & F.
  * <p>
@@ -23,7 +26,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 03/22/06
+ * @version 1.30 05/24/06
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -94,28 +97,28 @@ public class WindowsIconFactory implements Serializable
 
     public static Icon createFrameCloseIcon() {
 	if (frame_closeIcon == null) {
-	    frame_closeIcon = new FrameButtonIcon("window.closebutton");
+	    frame_closeIcon = new FrameButtonIcon(Part.WP_CLOSEBUTTON);
 	}
 	return frame_closeIcon;
     }
 
     public static Icon createFrameIconifyIcon() {
 	if (frame_iconifyIcon == null) {
-	    frame_iconifyIcon = new FrameButtonIcon("window.minbutton");
+	    frame_iconifyIcon = new FrameButtonIcon(Part.WP_MINBUTTON);
 	}
 	return frame_iconifyIcon;
     }
 
     public static Icon createFrameMaximizeIcon() {
 	if (frame_maxIcon == null) {
-	    frame_maxIcon = new FrameButtonIcon("window.maxbutton");
+	    frame_maxIcon = new FrameButtonIcon(Part.WP_MAXBUTTON);
 	}
 	return frame_maxIcon;
     }
 
     public static Icon createFrameMinimizeIcon() {
 	if (frame_minIcon == null) {
-	    frame_minIcon = new FrameButtonIcon("window.restorebutton");
+	    frame_minIcon = new FrameButtonIcon(Part.WP_RESTOREBUTTON);
 	}
 	return frame_minIcon;
     }
@@ -128,10 +131,10 @@ public class WindowsIconFactory implements Serializable
 
 
     private static class FrameButtonIcon implements Icon, Serializable {
-	private String category;
+	private Part part;
 
-	private FrameButtonIcon(String category) {
-	    this.category = category;
+	private FrameButtonIcon(Part part) {
+	    this.part = part;
 	}
 
 	public void paintIcon(Component c, Graphics g, int x0, int y0) {
@@ -140,24 +143,38 @@ public class WindowsIconFactory implements Serializable
 
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		XPStyle.Skin skin = xp.getSkin(c, category);
+		Skin skin = xp.getSkin(c, part);
 		JButton b = (JButton)c;
 		ButtonModel model = b.getModel();
-		int index = 0;
-		if (!model.isEnabled()) {
-		    index = 3;
-		} else if (model.isArmed() && model.isPressed()) {
-		    index = 2;
-		} else if (model.isRollover()) {
-		    index = 1;
-		}
+
 		// Find out if frame is inactive
 		JInternalFrame jif = (JInternalFrame)SwingUtilities.
 					getAncestorOfClass(JInternalFrame.class, b);
-		if (jif != null && !jif.isSelected()) {
-		    index += 4;
+                boolean jifSelected = (jif != null && jif.isSelected());
+
+		State state;
+		if (jifSelected) {
+		    if (!model.isEnabled()) {
+			state = State.DISABLED;
+		    } else if (model.isArmed() && model.isPressed()) {
+			state = State.PUSHED;
+		    } else if (model.isRollover()) {
+			state = State.HOT;
+		    } else {
+			state = State.NORMAL;
+		    }
+		} else {
+		    if (!model.isEnabled()) {
+			state = State.INACTIVEDISABLED;
+		    } else if (model.isArmed() && model.isPressed()) {
+			state = State.INACTIVEPUSHED;
+		    } else if (model.isRollover()) {
+			state = State.INACTIVEHOT;
+		    } else {
+			state = State.INACTIVENORMAL;
+		    }
 		}
-		skin.paintSkin(g, 0, 0, width, height, index);
+		skin.paintSkin(g, 0, 0, width, height, state);
 	    } else {
 		g.setColor(Color.black);
 		int x = width / 12 + 2;
@@ -166,7 +183,7 @@ public class WindowsIconFactory implements Serializable
 		int w = width * 3/4 -3;
 		int thickness2 = Math.max(height / 8, 2);
 		int thickness  = Math.max(width / 15, 1);
-		if (category == "window.closebutton") {
+		if (part == Part.WP_CLOSEBUTTON) {
 		    int lineWidth;
 		    if      (width > 47) lineWidth = 6;
 		    else if (width > 37) lineWidth = 5;
@@ -200,14 +217,14 @@ public class WindowsIconFactory implements Serializable
 			    g.drawLine(x+w-1,   y+i-2, x+i-2,   y+w-1);
 			}
 		    }
-		} else if (category == "window.minbutton") {
+		} else if (part == Part.WP_MINBUTTON) {
 		    g.fillRect(x, y+h-thickness2, w-w/3, thickness2);
-		} else if (category == "window.maxbutton") {
+		} else if (part == Part.WP_MAXBUTTON) {
 		    g.fillRect(x, y, w, thickness2);
 		    g.fillRect(x, y, thickness, h);
 		    g.fillRect(x+w-thickness, y, thickness, h);
 		    g.fillRect(x, y+h-thickness, w, thickness);
-		} else if (category == "window.restorebutton") {
+		} else if (part == Part.WP_RESTOREBUTTON) {
 		    g.fillRect(x+w/3, y, w-w/3, thickness2);
 		    g.fillRect(x+w/3, y, thickness, h/3);
 		    g.fillRect(x+w-thickness, y, thickness, h-h/3);
@@ -225,8 +242,13 @@ public class WindowsIconFactory implements Serializable
 	    int width;
 	    if (XPStyle.getXP() != null) {
 		// Fix for XP bug where sometimes these sizes aren't updated properly
-		// Assume for now that XP buttons are always square
+                // Assume for now that height is correct and derive width using the 
+                // ratio from the uxtheme part
 		width = UIManager.getInt("InternalFrame.titleButtonHeight") -2;
+                Dimension d = XPStyle.getPartSize(Part.WP_CLOSEBUTTON, State.NORMAL);
+                if (d != null && d.width != 0 && d.height != 0) {
+                    width = (int) ((float) width * d.width / d.height);
+                }
 	    } else {
 		width = UIManager.getInt("InternalFrame.titleButtonWidth") -2;
 	    }
@@ -272,18 +294,28 @@ public class WindowsIconFactory implements Serializable
 	    XPStyle xp = XPStyle.getXP();
 
 	    if (xp != null) {
-		int index = 0;
-		if (!model.isEnabled()) {
-		    index = 3;	// disabled
-		} else if (model.isPressed() && model.isArmed()) {
-		    index = 2;	// pressed
-		} else if (model.isRollover()) {
-		    index = 1;	// rollover
-		}
+		State state;
 		if (model.isSelected()) {
-		    index += 4;
+		    state = State.CHECKEDNORMAL;
+		    if (!model.isEnabled()) {
+			state = State.CHECKEDDISABLED;
+		    } else if (model.isPressed() && model.isArmed()) {
+			state = State.CHECKEDPRESSED;
+		    } else if (model.isRollover()) {
+			state = State.CHECKEDHOT;
+		    }
+		} else {
+		    state = State.UNCHECKEDNORMAL;
+		    if (!model.isEnabled()) {
+			state = State.UNCHECKEDDISABLED;
+		    } else if (model.isPressed() && model.isArmed()) {
+			state = State.UNCHECKEDPRESSED;
+		    } else if (model.isRollover()) {
+			state = State.UNCHECKEDHOT;
+		    }
 		}
-		xp.getSkin(c, "button.checkbox").paintSkin(g, x, y, index);
+		Part part = Part.BP_CHECKBOX;
+		xp.getSkin(c, part).paintSkin(g, x, y, state);
 	    } else {
 		// outer bevel
 		if(!cb.isBorderPaintedFlat()) {
@@ -327,7 +359,7 @@ public class WindowsIconFactory implements Serializable
 		}
 
 		if(model.isEnabled()) {
-		    g.setColor(UIManager.getColor("CheckBox.darkShadow"));
+                    g.setColor(UIManager.getColor("CheckBox.foreground"));
 		} else {
 		    g.setColor(UIManager.getColor("CheckBox.shadow"));
 		}
@@ -350,7 +382,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconWidth() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin(null, "button.checkbox").getWidth();
+		return xp.getSkin(null, Part.BP_CHECKBOX).getWidth();
 	    } else {
 		return csize;
 	    }
@@ -359,7 +391,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconHeight() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin(null, "button.checkbox").getHeight();
+		return xp.getSkin(null, Part.BP_CHECKBOX).getHeight();
 	    } else {
 		return csize;
 	    }
@@ -374,19 +406,30 @@ public class WindowsIconFactory implements Serializable
 	    XPStyle xp = XPStyle.getXP();
 
 	    if (xp != null) {
-		XPStyle.Skin skin = xp.getSkin(b, "button.radiobutton");
+		Part part = Part.BP_RADIOBUTTON;
+		Skin skin = xp.getSkin(b, part);
+		State state;
 		int index = 0;
-		if (!model.isEnabled()) {
-		    index = 3;	// disabled
-		} else if (model.isPressed() && model.isArmed()) {
-		    index = 2;	// pressed
-		} else if (model.isRollover()) {
-		    index = 1;	// rollover
-		}
 		if (model.isSelected()) {
-		    index += 4;
+		    state = State.CHECKEDNORMAL;
+		    if (!model.isEnabled()) {
+			state = State.CHECKEDDISABLED;
+		    } else if (model.isPressed() && model.isArmed()) {
+			state = State.CHECKEDPRESSED;
+		    } else if (model.isRollover()) {
+			state = State.CHECKEDHOT;
+		    }
+		} else {
+		    state = State.UNCHECKEDNORMAL;
+		    if (!model.isEnabled()) {
+			state = State.UNCHECKEDDISABLED;
+		    } else if (model.isPressed() && model.isArmed()) {
+			state = State.UNCHECKEDPRESSED;
+		    } else if (model.isRollover()) {
+			state = State.UNCHECKEDHOT;
+		    }
 		}
-		skin.paintSkin(g, x, y, index);
+		skin.paintSkin(g, x, y, state);
 	    } else {
 		// fill interior
 		if((model.isPressed() && model.isArmed()) || !model.isEnabled()) {
@@ -436,9 +479,13 @@ public class WindowsIconFactory implements Serializable
 		g.drawLine(x+9,  y+3,  x+9,  y+3);
 
 
-		// indicate whether selected or not
-		if(model.isSelected()) {
-		    g.setColor(UIManager.getColor("RadioButton.darkShadow"));
+                 // indicate whether selected or not
+                if (model.isSelected()) {
+                    if (model.isEnabled()) {
+                        g.setColor(UIManager.getColor("RadioButton.foreground"));
+                    } else {
+                        g.setColor(UIManager.getColor("RadioButton.shadow"));
+                    }
 		    g.fillRect(x+4, y+5, 4, 2);
 		    g.fillRect(x+5, y+4, 2, 4);
 		} 
@@ -448,7 +495,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconWidth() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin(null, "button.radiobutton").getWidth();
+		return xp.getSkin(null, Part.BP_RADIOBUTTON).getWidth();
 	    } else {
 		return 13;
 	    }
@@ -457,7 +504,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconHeight() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin(null, "button.radiobutton").getHeight();
+		return xp.getSkin(null, Part.BP_RADIOBUTTON).getHeight();
 	    } else {
 		return 13;
 	    }
@@ -496,7 +543,8 @@ public class WindowsIconFactory implements Serializable
 	    AbstractButton b = (AbstractButton) c;
 	    ButtonModel model = b.getModel();
 	    if (b.isSelected() == true) {
-               g.fillArc(0,0,getIconWidth()-2, getIconHeight()-2, 0, 360);
+               g.fillRoundRect(x+3,y+3, getIconWidth()-6, getIconHeight()-6,
+                               4, 4);
 	    }
 	}
 	public int getIconWidth() { return 12; }
@@ -536,7 +584,7 @@ public class WindowsIconFactory implements Serializable
     private static class MenuArrowIcon implements Icon, UIResource, Serializable {
 	public void paintIcon(Component c, Graphics g, int x, int y) {
             g.translate(x,y);
-            if( WindowsUtils.isLeftToRight(c) ) {
+            if( WindowsGraphicsUtils.isLeftToRight(c) ) {
                 g.drawLine( 0, 0, 0, 7 );
                 g.drawLine( 1, 1, 1, 6 );
                 g.drawLine( 2, 2, 2, 5 );

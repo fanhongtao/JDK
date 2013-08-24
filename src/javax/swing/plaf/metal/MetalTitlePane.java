@@ -1,13 +1,14 @@
 /*
- * @(#)MetalTitlePane.java	1.17 03/12/19
+ * @(#)MetalTitlePane.java	1.22 06/07/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
+import sun.awt.SunToolkit;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
@@ -17,6 +18,7 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import java.util.Locale;
+import javax.accessibility.*;
 
 
 /**
@@ -26,7 +28,7 @@ import java.util.Locale;
  * decoration style, and that if the style changes, a new one will
  * be created.
  *
- * @version 1.17 12/19/03
+ * @version 1.22 07/17/06
  * @author Terry Kellerman
  * @since 1.4
  */
@@ -88,6 +90,11 @@ class MetalTitlePane extends JComponent {
      * Icon used for toggleButton when window is maximized.
      */
     private Icon minimizeIcon;
+
+    /**
+     * Image used for the system menu icon
+     */
+    private Image systemIcon;
 
     /**
      * Listens for changes in the state of the Window listener to update
@@ -234,6 +241,7 @@ class MetalTitlePane extends JComponent {
             }
             setActive(window.isActive());
             installListeners();
+            updateSystemIcon();
         }
     }
 
@@ -476,7 +484,8 @@ class MetalTitlePane extends JComponent {
         closeButton.setText(null);
         closeButton.putClientProperty("paintActive", Boolean.TRUE);
         closeButton.setBorder(handyEmptyBorder);
-        closeButton.getAccessibleContext().setAccessibleName("Close");
+        closeButton.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, 
+                                      "Close");
         closeButton.setIcon(UIManager.getIcon("InternalFrame.closeIcon"));
 
         if (getWindowDecorationStyle() == JRootPane.FRAME) {
@@ -488,14 +497,16 @@ class MetalTitlePane extends JComponent {
             iconifyButton.setText(null);
             iconifyButton.putClientProperty("paintActive", Boolean.TRUE);
             iconifyButton.setBorder(handyEmptyBorder);
-            iconifyButton.getAccessibleContext().setAccessibleName("Iconify");
+            iconifyButton.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, 
+                                            "Iconify");
             iconifyButton.setIcon(UIManager.getIcon("InternalFrame.iconifyIcon"));
 
             toggleButton = createTitleButton();
             toggleButton.setAction(restoreAction);
             toggleButton.putClientProperty("paintActive", Boolean.TRUE);
             toggleButton.setBorder(handyEmptyBorder);
-            toggleButton.getAccessibleContext().setAccessibleName("Maximize");
+            toggleButton.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, 
+                                           "Maximize");
             toggleButton.setIcon(maximizeIcon);
         }
     }
@@ -817,16 +828,13 @@ class MetalTitlePane extends JComponent {
      */
     private class SystemMenuBar extends JMenuBar {
         public void paint(Graphics g) {
-            Frame frame = getFrame();
-
             if (isOpaque()) {
                 g.setColor(getBackground());
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
-            Image image = (frame != null) ? frame.getIconImage() : null;
 
-            if (image != null) {
-                g.drawImage(image, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT, null);
+            if (systemIcon != null) {
+                g.drawImage(systemIcon, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT, null);
             } else {
                 Icon icon = UIManager.getIcon("InternalFrame.icon");
 
@@ -962,12 +970,41 @@ class MetalTitlePane extends JComponent {
             else if ("title".equals(name)) {
                 repaint();
             }
-            else if ("componentOrientation".equals(name) ||
-                     "iconImage".equals(name)) {
+            else if ("componentOrientation" == name) {
+                revalidate();
+                repaint();
+            }
+            else if ("iconImage" == name) {
+                updateSystemIcon();
                 revalidate();
                 repaint();
             }
         }
+    }
+
+    /**
+     * Update the image used for the system icon
+     */
+    private void updateSystemIcon() {
+        Window window = getWindow();
+        if (window == null) {
+            systemIcon = null;
+            return;
+        }
+        java.util.List<Image> icons = window.getIconImages();
+        assert icons != null;
+
+        if (icons.size() == 0) {
+            systemIcon = null;
+        }
+        else if (icons.size() == 1) {
+            systemIcon = icons.get(0);
+        }
+        else {
+            systemIcon = SunToolkit.getScaledIconImage(icons,
+                                                       IMAGE_WIDTH,
+                                                       IMAGE_HEIGHT);
+        } 
     }
 
 

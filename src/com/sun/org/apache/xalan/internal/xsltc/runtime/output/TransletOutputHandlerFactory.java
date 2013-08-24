@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TransletOutputHandlerFactory.java,v 1.16 2004/02/16 22:56:25 minchau Exp $
+ * $Id: TransletOutputHandlerFactory.java,v 1.2.4.2 2005/09/15 19:12:05 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime.output;
@@ -24,8 +24,14 @@ import java.io.OutputStream;
 import java.io.Writer;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.util.XMLEventConsumer;
+import javax.xml.stream.XMLStreamWriter;
 
 import com.sun.org.apache.xalan.internal.xsltc.trax.SAX2DOM;
+import com.sun.org.apache.xalan.internal.xsltc.trax.SAX2StAXEventWriter;
+import com.sun.org.apache.xalan.internal.xsltc.trax.SAX2StAXStreamWriter;
+
 import com.sun.org.apache.xml.internal.serializer.ToHTMLSAXHandler;
 import com.sun.org.apache.xml.internal.serializer.ToHTMLStream;
 import com.sun.org.apache.xml.internal.serializer.ToTextSAXHandler;
@@ -47,16 +53,20 @@ public class TransletOutputHandlerFactory {
     public static final int STREAM = 0;
     public static final int SAX    = 1;
     public static final int DOM    = 2;
+    public static final int STAX   = 3;
 
-    private String _encoding       = "utf-8";
-    private String _method         = null;
-    private int    _outputType     = STREAM;
-    private OutputStream _ostream  = System.out;
-    private Writer _writer         = null;
-    private Node           _node   = null;
-    private int _indentNumber      = -1;
-    private ContentHandler _handler    = null;
-    private LexicalHandler _lexHandler = null;
+    private String _encoding                        = "utf-8";
+    private String _method                          = null;
+    private int    _outputType                      = STREAM;
+    private OutputStream _ostream                   = System.out;
+    private Writer _writer                          = null;
+    private Node _node                              = null;
+    private Node   _nextSibling                     = null;
+    private XMLEventWriter _xmlStAXEventWriter      = null;
+    private XMLStreamWriter _xmlStAXStreamWriter    = null;
+    private int _indentNumber                       = -1;
+    private ContentHandler _handler                 = null;
+    private LexicalHandler _lexHandler              = null;
 
     static public TransletOutputHandlerFactory newInstance() {
 	return new TransletOutputHandlerFactory();
@@ -100,7 +110,27 @@ public class TransletOutputHandlerFactory {
 	return (_handler instanceof SAX2DOM) ? ((SAX2DOM)_handler).getDOM() 
 	   : null;
     }
-
+    
+    public void setNextSibling(Node nextSibling) {
+        _nextSibling = nextSibling;
+    }
+    
+    public XMLEventWriter getXMLEventWriter() {
+        return (_handler instanceof SAX2StAXEventWriter) ? ((SAX2StAXEventWriter) _handler).getEventWriter() : null;
+    }
+    
+    public void setXMLEventWriter(XMLEventWriter eventWriter) {
+        _xmlStAXEventWriter = eventWriter;
+    }
+    
+    public XMLStreamWriter getXMLStreamWriter() {
+        return (_handler instanceof SAX2StAXStreamWriter) ? ((SAX2StAXStreamWriter) _handler).getStreamWriter() : null;
+    }
+    
+    public void setXMLStreamWriter(XMLStreamWriter streamWriter) {
+        _xmlStAXStreamWriter = streamWriter;
+    }
+    
     public void setIndentNumber(int value) {
 	_indentNumber = value;
     }
@@ -154,9 +184,17 @@ public class TransletOutputHandlerFactory {
                 return result;
 
             case DOM :
-                _handler = (_node != null) ? new SAX2DOM(_node) : new SAX2DOM();
+                _handler = (_node != null) ? new SAX2DOM(_node, _nextSibling) : new SAX2DOM();
                 _lexHandler = (LexicalHandler) _handler;
                 // falls through
+            case STAX :
+                if (_xmlStAXEventWriter != null) {
+                    _handler =  new SAX2StAXEventWriter(_xmlStAXEventWriter);
+                } else if (_xmlStAXStreamWriter != null) {
+                    _handler =  new SAX2StAXStreamWriter(_xmlStAXStreamWriter);
+                }
+                _lexHandler = (LexicalHandler) _handler;    
+                // again falls through - Padmaja Vedula
             case SAX :
                 if (_method == null)
                 {

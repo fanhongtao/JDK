@@ -1,7 +1,7 @@
 /*
- * @(#)VariableHeightLayoutCache.java	1.21 04/05/05
+ * @(#)VariableHeightLayoutCache.java	1.22 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.21 05/05/04
+ * @version 1.22 11/17/05
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet

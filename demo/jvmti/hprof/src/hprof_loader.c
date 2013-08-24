@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_loader.c	1.17 05/03/03
+ * @(#)hprof_loader.c	1.18 05/11/17
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -57,6 +57,7 @@
 
 typedef struct {
     jobject         globalref;    /* Weak Global reference for object */
+    ObjectIndex     object_index;
 } LoaderInfo;
 
 static LoaderInfo *
@@ -77,6 +78,7 @@ delete_globalref(JNIEnv *env, LoaderInfo *info)
     if ( ref != NULL ) {
 	deleteWeakGlobalReference(env, ref);
     }
+    info->object_index = 0;
 }
 
 static void
@@ -101,8 +103,8 @@ list_item(TableIndex index, void *key_ptr, int key_len,
     HPROF_ASSERT(info_ptr!=NULL);
     
     info        = (LoaderInfo*)info_ptr;
-    debug_message( "Loader 0x%08x: globalref=%p\n",
-                index, (void*)info->globalref);
+    debug_message( "Loader 0x%08x: globalref=%p, object_index=%d\n",
+                index, (void*)info->globalref, info->object_index);
 }
 
 static void
@@ -187,6 +189,7 @@ loader_find_or_create(JNIEnv *env, jobject loader)
 	if ( loader != NULL ) {
 	    HPROF_ASSERT(env!=NULL);
 	    info.globalref = newWeakGlobalReference(env, loader);
+	    info.object_index = 0;
 	}
 	index = table_create_entry(gdata->loader_table, NULL, 0, (void*)&info);
     }
@@ -226,5 +229,39 @@ void
 loader_delete_global_references(JNIEnv *env)
 {
     table_walk_items(gdata->loader_table, &delete_ref_item, (void*)env);
+}
+
+/* Get the object index for a class loader */
+ObjectIndex
+loader_object_index(JNIEnv *env, LoaderIndex index)
+{
+    LoaderInfo *info;
+    ObjectIndex object_index;
+    jobject     wref;
+   
+    /* Assume no object index at first (default class loader) */
+    info = get_info(index);
+    object_index = info->object_index;
+    wref = info->globalref;
+    if ( wref != NULL && object_index == 0 ) {
+        jobject lref;
+	
+	object_index = 0;
+	lref = newLocalReference(env, wref);
+	if ( lref != NULL && !isSameObject(env, lref, NULL) ) {
+	    jlong tag;
+	   
+	    /* Get the tag on the object and extract the object_index */
+	    tag = getTag(lref);
+	    if ( tag != (jlong)0 ) {
+		object_index = tag_extract(tag);
+	    }
+	}
+	if ( lref != NULL ) {
+	    deleteLocalReference(env, lref);
+	}
+	info->object_index = object_index;
+    }
+    return object_index;
 }
 

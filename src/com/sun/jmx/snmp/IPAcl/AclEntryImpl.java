@@ -1,10 +1,10 @@
 /*
  * @(#)file      AclEntryImpl.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.11
- * @(#)date      04/09/15
+ * @(#)version   4.12
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -29,7 +29,7 @@ import java.security.acl.AclEntry;
  * (A principal represents an entity such as an individual machine or a group).
  *
  * @see java.security.acl.AclEntry
- * @version     4.11     12/19/03
+ * @version     4.12     11/17/05
  * @author      Sun Microsystems, Inc
  */
 

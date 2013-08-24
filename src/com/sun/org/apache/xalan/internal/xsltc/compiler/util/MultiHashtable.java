@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MultiHashtable.java,v 1.6 2004/02/16 22:26:44 minchau Exp $
+ * $Id: MultiHashtable.java,v 1.2.4.1 2005/09/05 11:18:51 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -27,6 +27,7 @@ import java.util.Vector;
  * @author Santiago Pericas-Geertsen
  */
 public final class MultiHashtable extends Hashtable {
+    static final long serialVersionUID = -6151608290510033572L;
     public Object put(Object key, Object value) {
 	Vector vector = (Vector)get(key);
 	if (vector == null)

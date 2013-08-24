@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_trace.c	1.36 05/09/30
+ * @(#)hprof_trace.c	1.40 05/11/17
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -61,7 +61,8 @@
 
 typedef struct TraceKey {
     SerialNumber thread_serial_num; /* Thread serial number */
-    jint         n_frames;          /* Number of frames that follow. */
+    short        n_frames;          /* Number of frames that follow. */
+    jvmtiPhase   phase : 8;         /* Makes some traces unique */
     FrameIndex   frames[1];         /* Variable length */
 } TraceKey;
 
@@ -106,8 +107,8 @@ get_info(TraceIndex index)
 }
 
 static TraceIndex
-find_or_create(SerialNumber thread_serial_num, jint n_frames, 
-			FrameIndex *frames, TraceKey *trace_key_buffer)
+find_or_create(SerialNumber thread_serial_num, jint n_frames,
+	    FrameIndex *frames, jvmtiPhase phase, TraceKey *trace_key_buffer)
 {
     TraceInfo * info;
     TraceKey *  pkey;
@@ -125,7 +126,8 @@ find_or_create(SerialNumber thread_serial_num, jint n_frames,
     pkey = trace_key_buffer;
     *pkey = empty_key;
     pkey->thread_serial_num = (gdata->thread_in_traces ? thread_serial_num : 0);
-    pkey->n_frames = n_frames;
+    pkey->n_frames = (short)n_frames;
+    pkey->phase = phase;
     if ( n_frames > 0 ) {
 	(void)memcpy(pkey->frames, frames, (n_frames*(int)sizeof(FrameIndex)));
     }
@@ -188,8 +190,8 @@ clear_cost(TableIndex i, void *key_ptr, int key_len, void *info_ptr, void *arg)
 
 /* Get the names for a frame in order to dump it. */
 static void
-get_frame_details(JNIEnv *env, FrameIndex frame_index, char **pcsig, 
-		ClassIndex *pcnum,
+get_frame_details(JNIEnv *env, FrameIndex frame_index, 
+		SerialNumber *frame_serial_num, char **pcsig, ClassIndex *pcnum,
 		char **pmname, char **pmsig, char **psname, jint *plineno)
 {
     jmethodID method;
@@ -209,7 +211,7 @@ get_frame_details(JNIEnv *env, FrameIndex frame_index, char **pcsig,
     if ( pcnum != NULL ) {
 	*pcnum = 0;
     }
-    frame_get_location(frame_index, &method, &location, &lineno);
+    frame_get_location(frame_index, frame_serial_num, &method, &location, &lineno);
     if ( plineno != NULL ) {
         *plineno = lineno;
     }
@@ -225,7 +227,7 @@ get_frame_details(JNIEnv *env, FrameIndex frame_index, char **pcsig,
 	    loader = getClassLoader(klass);
 	    loader_index = loader_find_or_create(env, loader);
             *pcnum = class_find_or_create(*pcsig, loader_index);
-	    (void)class_new_classref(env, *pcnum, klass);
+	     (void)class_new_classref(env, *pcnum, klass);
 	}
 	if ( psname != NULL ) {
             getSourceFileName(klass, psname);
@@ -245,27 +247,29 @@ output_trace(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void 
     jint n_frames;
     JNIEnv *env;
     int i;
+    char *phase_str;
     struct FrameNames {
+	SerialNumber serial_num;
         char * sname;
         char * csig;
         char * mname;
         int    lineno;
     } *finfo;
 
-    env = (JNIEnv*)arg;
-
-    key = (TraceKey*)key_ptr;
-    n_frames = key->n_frames;
-    thread_serial_num = key->thread_serial_num;
     info = (TraceInfo*)info_ptr;
-    serial_num = info->serial_num;
     if ( info->status != 0 ) {
         return;
     }
+    
+    env = (JNIEnv*)arg;
+
+    key = (TraceKey*)key_ptr;
+    thread_serial_num = key->thread_serial_num;
+    serial_num = info->serial_num;
     info->status = 1;
     finfo = NULL;
    
-    n_frames = key->n_frames;
+    n_frames = (jint)key->n_frames;
     if ( n_frames > 0 ) {
 	finfo = (struct FrameNames *)HPROF_MALLOC(n_frames*(int)sizeof(struct FrameNames));
        
@@ -276,11 +280,13 @@ output_trace(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void 
 	    ClassIndex cnum;
 	    
 	    frame_index = key->frames[i];
-	    get_frame_details(env, frame_index, &finfo[i].csig, &cnum,
+	    get_frame_details(env, frame_index, &finfo[i].serial_num,
+			&finfo[i].csig, &cnum,
 			&finfo[i].mname, &msig, &finfo[i].sname, &finfo[i].lineno);
 	    
 	    if (frame_get_status(frame_index) == 0) {
-		io_write_frame(frame_index, finfo[i].mname, msig, 
+		io_write_frame(frame_index, finfo[i].serial_num,
+			       finfo[i].mname, msig, 
 			       finfo[i].sname, class_get_serial_number(cnum), 
 			       finfo[i].lineno);
 		frame_set_status(frame_index, 1);
@@ -289,17 +295,25 @@ output_trace(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void 
 	}       
     }
 
-    io_write_trace_header(serial_num, thread_serial_num, n_frames);
+    /* Find phase string */
+    if ( key->phase == JVMTI_PHASE_LIVE ) {
+	phase_str = NULL; /* Normal trace, no phase annotation */
+    } else {
+        phase_str =  phaseString(key->phase);
+    }
+
+    io_write_trace_header(serial_num, thread_serial_num, n_frames, phase_str);
     
     for (i = 0; i < n_frames; i++) {
-	io_write_trace_elem(key->frames[i], finfo[i].csig, 
+	io_write_trace_elem(serial_num, key->frames[i], finfo[i].serial_num,
+			    finfo[i].csig, 
                             finfo[i].mname, finfo[i].sname, finfo[i].lineno);
         jvmtiDeallocate(finfo[i].csig);
         jvmtiDeallocate(finfo[i].mname);
 	jvmtiDeallocate(finfo[i].sname);
     }
 
-    io_write_trace_footer();
+    io_write_trace_footer(serial_num, thread_serial_num, n_frames);
    
     if ( finfo != NULL ) {
 	HPROF_FREE(finfo);
@@ -432,7 +446,7 @@ trace_increment_cost(TraceIndex index, jint num_hits, jlong self_cost, jlong tot
 TraceIndex
 trace_find_or_create(SerialNumber thread_serial_num, jint n_frames, FrameIndex *frames, jvmtiFrameInfo *jframes_buffer)
 {
-    return find_or_create(thread_serial_num, n_frames, frames, 
+    return find_or_create(thread_serial_num, n_frames, frames, getPhase(),
 				(TraceKey*)jframes_buffer);
 }
 
@@ -444,7 +458,7 @@ get_real_depth(int depth, jboolean skip_init)
     
     extra_frames = 0;
     /* This is only needed if we are doing BCI */
-    if ( gdata->bci ) {
+    if ( gdata->bci && depth > 0 ) {
 	/* Account for Java and native Tracker methods */
         extra_frames = 2;
 	if ( skip_init ) {
@@ -464,6 +478,12 @@ fill_frame_buffer(int depth, int real_depth,
     int  n_frames;
     jint topframe;
 
+    /* If real_depth is 0, just return 0 */
+    if ( real_depth == 0 ) {
+	return 0;
+    }
+    
+    /* Assume top frame index is 0 for now */
     topframe = 0;
     
     /* Possible top frames belong to the hprof Tracker class, remove them */
@@ -520,15 +540,18 @@ trace_get_current(jthread thread, SerialNumber thread_serial_num,
     real_depth = get_real_depth(depth, skip_init);
 
     /* Get the stack trace for this one thread */
-    getStackTrace(thread, jframes_buffer, real_depth, &frame_count);
+    frame_count = 0;
+    if ( real_depth > 0 ) {
+        getStackTrace(thread, jframes_buffer, real_depth, &frame_count);
+    }
     
     /* Create FrameIndex's */
     n_frames = fill_frame_buffer(depth, real_depth, frame_count, skip_init,
 				 jframes_buffer, frames_buffer);
 
     /* Lookup or create new TraceIndex */
-    index = find_or_create(thread_serial_num, n_frames, frames_buffer,
-                (TraceKey*)jframes_buffer);
+    index = find_or_create(thread_serial_num, n_frames, frames_buffer, 
+		getPhase(), (TraceKey*)jframes_buffer);
     return index;
 }
 
@@ -545,13 +568,16 @@ trace_get_all_current(jint thread_count, jthread *threads,
     int             i;
     FrameIndex     *frames_buffer;
     TraceKey       *trace_key_buffer;
+    jvmtiPhase      phase;
 
     HPROF_ASSERT(threads!=NULL);
     HPROF_ASSERT(thread_serial_nums!=NULL);
     HPROF_ASSERT(traces!=NULL);
     HPROF_ASSERT(thread_count > 0);
-    HPROF_ASSERT(depth > 0);
-    
+
+    /* Find out what the phase is for all these traces */
+    phase = getPhase();
+
     /* We may need to ask for more frames than the user asked for */
     real_depth = get_real_depth(depth, skip_init);
     
@@ -588,7 +614,7 @@ trace_get_all_current(jint thread_count, jthread *threads,
 	    
 	    /* Lookup or create new TraceIndex */
 	    traces[i] = find_or_create(thread_serial_nums[i], 
-			       n_frames, frames_buffer, trace_key_buffer);
+			   n_frames, frames_buffer, phase, trace_key_buffer);
         }
     }
 
@@ -610,7 +636,11 @@ trace_increment_all_sample_costs(jint thread_count, jthread *threads,
     HPROF_ASSERT(threads!=NULL);
     HPROF_ASSERT(thread_serial_nums!=NULL);
     HPROF_ASSERT(thread_count > 0);
-    HPROF_ASSERT(depth > 0);
+    HPROF_ASSERT(depth >= 0);
+    
+    if ( depth == 0 ) {
+	return;
+    }
    
     /* Allocate a traces array */
     nbytes = (int)sizeof(TraceIndex)*thread_count;
@@ -699,7 +729,8 @@ trace_output_cost(JNIEnv *env, double cutoff)
         accum = 0;
                 
         for (i = 0; i < n_items; i++) {
-            TraceInfo *info;
+            SerialNumber frame_serial_num;
+	    TraceInfo *info;
             TraceKey *key;
             TraceIndex trace_index;
             double percent;
@@ -718,8 +749,8 @@ trace_output_cost(JNIEnv *env, double cutoff)
             msig  = NULL;
             
             if (key->n_frames > 0) {
-                get_frame_details(env, key->frames[0], &csig, NULL,
-			&mname, &msig, NULL, NULL);
+                get_frame_details(env, key->frames[0], &frame_serial_num, 
+			&csig, NULL, &mname, &msig, NULL, NULL);
             }
             
             io_write_cpu_samples_elem(i+1, percent, accum, info->num_hits,
@@ -764,6 +795,7 @@ trace_output_cost_in_prof_format(JNIEnv *env)
         io_write_oldprof_header();
 
         for (i = 0; i < trace_table_size; i++) {
+            SerialNumber frame_serial_num;
             TraceInfo *info;
             TraceKey *key;
             TraceIndex trace_index;
@@ -792,15 +824,17 @@ trace_output_cost_in_prof_format(JNIEnv *env)
             mname_caller = NULL;
             msig_caller  = NULL;
             
-            num_frames = key->n_frames;
+            num_frames = (int)key->n_frames;
             
             if (num_frames >= 1) {
-                get_frame_details(env, key->frames[0], &csig_callee, NULL,
+                get_frame_details(env, key->frames[0], &frame_serial_num, 
+			&csig_callee, NULL,
 			&mname_callee, &msig_callee, NULL, NULL);
             }
             
             if (num_frames > 1) {
-                get_frame_details(env, key->frames[1], &csig_caller, NULL,
+                get_frame_details(env, key->frames[1], &frame_serial_num, 
+			&csig_caller, NULL,
 			&mname_caller, &msig_caller, NULL, NULL);
             }
             

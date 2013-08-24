@@ -1,7 +1,7 @@
 /*
- * @(#)FontUIResource.java	1.15 05/11/02
+ * @(#)FontUIResource.java	1.16 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,6 @@ package javax.swing.plaf;
 import java.awt.Font;
 import javax.swing.plaf.UIResource;
 
-import sun.font.FontManager;
 
 /**
  * A subclass of java.awt.Font that implements UIResource. 
@@ -27,7 +26,7 @@ import sun.font.FontManager;
  * Please see {@link java.beans.XMLEncoder}.
  * 
  * @see javax.swing.plaf.UIResource
- * @version 1.15 11/02/05
+ * @version 1.16 11/17/05
  * @author Hans Muller
  * 
  */
@@ -38,7 +37,6 @@ public class FontUIResource extends Font implements UIResource
     }
     
     public FontUIResource(Font font) {
-	super(font.getName(), font.getStyle(), font.getSize());
-        FontManager.setSameHandle(font, this);
+	super(font);
     }
 }

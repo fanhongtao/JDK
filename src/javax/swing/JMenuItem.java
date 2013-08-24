@@ -1,7 +1,7 @@
 /*
- * @(#)JMenuItem.java	1.118 04/03/05
+ * @(#)JMenuItem.java	1.128 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -30,10 +30,24 @@ import javax.accessibility.*;
  * associated with the menu item is performed. A <code>JMenuItem</code>
  * contained in a <code>JPopupMenu</code> performs exactly that function.
  * <p>
+ * Menu items can be configured, and to some degree controlled, by 
+ * <code><a href="Action.html">Action</a></code>s.  Using an
+ * <code>Action</code> with a menu item has many benefits beyond directly
+ * configuring a menu item.  Refer to <a href="Action.html#buttonActions">
+ * Swing Components Supporting <code>Action</code></a> for more
+ * details, and you can find more information in <a
+ * href="http://java.sun.com/docs/books/tutorial/uiswing/misc/action.html">How
+ * to Use Actions</a>, a section in <em>The Java Tutorial</em>.
+ * <p>
  * For further documentation and for examples, see
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>
  * in <em>The Java Tutorial.</em>
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -48,7 +62,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: An item which can be selected in a menu.
  *
- * @version 1.118 03/05/04
+ * @version 1.128 08/08/06
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -132,6 +146,16 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
         init(text, null);
         setMnemonic(mnemonic);
         initFocusability();
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    public void setModel(ButtonModel newModel) {
+        super.setModel(newModel);
+        if(newModel instanceof DefaultButtonModel) {
+            ((DefaultButtonModel)newModel).setMenuItem(true);
+        }
     }
 
     /**
@@ -264,8 +288,9 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      */
     public void setEnabled(boolean b) {
         // Make sure we aren't armed!
-        if (b == false)
+        if (!b && !UIManager.getBoolean("MenuItem.disabledAreNavigable")) {
             setArmed(false);
+        }
         super.setEnabled(b);
     }
 
@@ -310,6 +335,8 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     public void setAccelerator(KeyStroke keyStroke) {
 	KeyStroke oldAccelerator = accelerator;
         this.accelerator = keyStroke;
+        repaint();
+        revalidate();
 	firePropertyChange("accelerator", oldAccelerator, accelerator);
     }
 
@@ -324,84 +351,46 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     }
 
     /**
-     * Factory method which sets the <code>ActionEvent</code> source's
-     * properties according to values from the <code>Action</code> instance.
-     * The properties which are set may differ for subclasses.
-     * By default, this method sets the same properties as
-     * <code>AbstractButton.configurePropertiesFromAction()</code>, plus
-     * <code>Accelerator</code>.
+     * {@inheritDoc}
      *
-     * @param a the <code>Action</code> from which to get the properties,
-     *		or <code>null</code>
      * @since 1.3
-     * @see Action
      */
     protected void configurePropertiesFromAction(Action a) {
         super.configurePropertiesFromAction(a);
+        configureAcceleratorFromAction(a);
+    }
+
+    void setIconFromAction(Action a) {
+        Icon icon = null;
+        if (a != null) {
+            icon = (Icon)a.getValue(Action.SMALL_ICON);
+        }
+        setIcon(icon);
+    }
+
+    void largeIconChanged(Action a) {
+    }
+
+    void smallIconChanged(Action a) {
+        setIconFromAction(a);
+    }
+
+    void configureAcceleratorFromAction(Action a) {
         KeyStroke ks = (a==null) ? null :
             (KeyStroke)a.getValue(Action.ACCELERATOR_KEY);
-        setAccelerator(ks==null ? null : ks);
+        setAccelerator(ks);
     }
 
     /**
-     * Factory method which creates the <code>PropertyChangeListener</code>
-     * used to update the <code>ActionEvent</code> source as properties
-     * change on its <code>Action</code> instance. 
-     * Subclasses may override this in order to provide their own
-     * <code>PropertyChangeListener</code> if the set of
-     * properties which should be kept up to date differs.
-     * <p>
-     * Note that <code>PropertyChangeListeners</code> should avoid holding
-     * strong references to the <code>ActionEvent</code> source,
-     * as this may hinder garbage collection of the <code>ActionEvent</code>
-     * source and all components in its containment hierarchy.  
-     *
-     * @param a the <code>Action</code> from which to get the properties,
-     *		or <code>null</code>
-     *
-     * @since 1.3
-     * @see Action
+     * {@inheritDoc}
+     * @since 1.6
      */
-    protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
-        return new MenuItemPropertyChangeListener(this, a);
-    }
-
-    private static class MenuItemPropertyChangeListener
-                extends AbstractActionPropertyChangeListener
-                implements Serializable {
-
-        MenuItemPropertyChangeListener(JMenuItem m, Action a) {
-            super(m, a);
+    protected void actionPropertyChanged(Action action, String propertyName) {
+        if (propertyName == Action.ACCELERATOR_KEY) {
+            configureAcceleratorFromAction(action);
         }
-
-        public void propertyChange(PropertyChangeEvent e) {	    
-            String propertyName = e.getPropertyName();
-            JMenuItem mi = (JMenuItem)getTarget();
-            if (mi == null) {   //WeakRef GC'ed in 1.2
-                Action action = (Action)e.getSource();
-                action.removePropertyChangeListener(this);
-            } else {
-                if (e.getPropertyName().equals(Action.NAME)) {
-                    String text = (String) e.getNewValue();
-                    mi.setText(text);
-                    mi.repaint();
-                } else if (propertyName.equals("enabled")) {
-                    Boolean enabledState = (Boolean) e.getNewValue();
-                    mi.setEnabled(enabledState.booleanValue());
-                    mi.repaint();
-                } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
-                    Icon icon = (Icon) e.getNewValue();
-                    mi.setIcon(icon);
-                    mi.invalidate();
-                    mi.repaint();
-                } else
-                    if (e.getPropertyName().equals(Action.MNEMONIC_KEY)) {
-                    Integer mn = (Integer) e.getNewValue();
-                    mi.setMnemonic(mn.intValue());
-                    mi.invalidate();
-                    mi.repaint();
-                } 
-            }
+        else {
+            super.actionPropertyChanged(action, propertyName);
         }
     }
 
@@ -423,6 +412,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 		 new MenuDragMouseEvent(e.getComponent(), e.getID(),
 					e.getWhen(),
 					e.getModifiers(), e.getX(), e.getY(),
+                                        e.getXOnScreen(), e.getYOnScreen(),
 					e.getClickCount(), e.isPopupTrigger(),
 					path, manager));
     }
@@ -937,5 +927,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 
         }
     } // inner class AccessibleJMenuItem
+    
+    
 }
 

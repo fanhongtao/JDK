@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSelector.java	1.19 04/05/05
+ * @(#)AbstractSelector.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.19, 04/05/05
+ * @version 1.21, 05/11/17
  * @since 1.4
  */
 
@@ -201,7 +201,7 @@ public abstract class AbstractSelector
     /**
      * Marks the end of an I/O operation that might block indefinitely.
      *
-     * <p> This method should be invoked in tandem with the {@link #end end}
+     * <p> This method should be invoked in tandem with the {@link #begin begin}
      * method, using a <tt>try</tt>&nbsp;...&nbsp;<tt>finally</tt> block as
      * shown <a href="#be">above</a>, in order to implement interruption for
      * this selector.  </p>

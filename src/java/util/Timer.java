@@ -1,7 +1,7 @@
 /*
- * @(#)Timer.java	1.17 04/04/12
+ * @(#)Timer.java	1.19 06/01/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ import java.util.Date;
  * <p>Implementation note: All constructors start a timer thread.
  *
  * @author  Josh Bloch
- * @version 1.17, 04/12/04
+ * @version 1.19, 01/27/06
  * @see     TimerTask
  * @see     Object#wait(long)
  * @since   1.3
@@ -107,7 +107,7 @@ public class Timer {
     }
 
     /**
-     * Creates a new timer whose associated thread may be specified to 
+     * Creates a new timer whose associated thread may be specified to
      * run as a daemon.  A daemon thread is called for if the timer will
      * be used to schedule repeating "maintenance activities", which must
      * be performed as long as the application is running, but should not
@@ -136,7 +136,7 @@ public class Timer {
         thread.setName(name);
         thread.start();
     }
- 
+
     /**
      * Creates a new timer whose associated thread has the specified name,
      * and may be specified to run as a daemon.
@@ -348,7 +348,7 @@ public class Timer {
     private void sched(TimerTask task, long time, long period) {
         if (time < 0)
             throw new IllegalArgumentException("Illegal execution time.");
-        
+
         synchronized(queue) {
             if (!thread.newTasksMayBeScheduled)
                 throw new IllegalStateException("Timer already cancelled.");
@@ -379,7 +379,7 @@ public class Timer {
      * the ongoing task execution is the last task execution that will ever
      * be performed by this timer.
      *
-     * <p>This method may be called repeatedly; the second and subsequent 
+     * <p>This method may be called repeatedly; the second and subsequent
      * calls have no effect.
      */
     public void cancel() {
@@ -530,7 +530,7 @@ class TaskQueue {
      * ordered on the nextExecutionTime field: The TimerTask with the lowest
      * nextExecutionTime is in queue[1] (assuming the queue is nonempty).  For
      * each node n in the heap, and each descendant of n, d,
-     * n.nextExecutionTime <= d.nextExecutionTime. 
+     * n.nextExecutionTime <= d.nextExecutionTime.
      */
     private TimerTask[] queue = new TimerTask[128];
 
@@ -552,13 +552,10 @@ class TaskQueue {
      */
     void add(TimerTask task) {
         // Grow backing store if necessary
-        if (++size == queue.length) {
-            TimerTask[] newQueue = new TimerTask[2*queue.length];
-            System.arraycopy(queue, 0, newQueue, 0, size);
-            queue = newQueue;
-        }
+        if (size + 1 == queue.length)
+	    queue = Arrays.copyOf(queue, 2*queue.length);
 
-        queue[size] = task;
+        queue[++size] = task;
         fixUp(size);
     }
 
@@ -601,7 +598,7 @@ class TaskQueue {
     }
 
     /**
-     * Sets the nextExecutionTime associated with the head task to the 
+     * Sets the nextExecutionTime associated with the head task to the
      * specified value, and adjusts priority queue accordingly.
      */
     void rescheduleMin(long newTime) {

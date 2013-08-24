@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: OpMap.java,v 1.16 2004/02/17 04:32:49 minchau Exp $
+ * $Id: OpMap.java,v 1.1.2.1 2005/08/01 01:30:31 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.compiler;
 

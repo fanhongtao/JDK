@@ -1,7 +1,7 @@
 /*
- * @(#)ClassAttributeValueExp.java	4.21 03/12/19
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)ClassAttributeValueExp.java	4.25 06/02/07
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,9 +18,11 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * the MBean.
  * @serial include
  *
+ * <p>The <b>serialVersionUID</b> of this class is <code>-1081892073854801359L</code>.
+ * 
  * @since 1.5
  */
-class ClassAttributeValueExp extends AttributeValueExp   { 
+class ClassAttributeValueExp extends AttributeValueExp {
 
     // Serialization compatibility stuff:
     // Two serial forms are supported in this class. The selected form depends
@@ -28,39 +30,44 @@ class ClassAttributeValueExp extends AttributeValueExp   {
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = -2212731951078526753L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = -1081892073854801359L;
 
     private static final long serialVersionUID;
     static {
 	boolean compat = false;
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = (String) AccessController.doPrivileged(act);
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+	    String form = AccessController.doPrivileged(act);
 	    compat = (form != null && form.equals("1.0"));
 	} catch (Exception e) {
 	    // OK: exception means no compat with 1.0, too bad
 	}
 	if (compat)
 	    serialVersionUID = oldSerialVersionUID;
-	else 
+	else
 	    serialVersionUID = newSerialVersionUID;
     }
 
     /**
      * @serial The name of the attribute
+     *
+     * <p>The <b>serialVersionUID</b> of this class is <code>-1081892073854801359L</code>.
      */
     private String attr;
 
     /**
      * Basic Constructor.
-     */    
-    public ClassAttributeValueExp() { 
+     */
+    public ClassAttributeValueExp() {
+	/* Compatibility: we have an attr field that we must hold on to
+	   for serial compatibility, even though our parent has one too.  */
+	super("Class");
 	attr = "Class";
-    } 
+    }
 
 
     /**
@@ -71,31 +78,32 @@ class ClassAttributeValueExp extends AttributeValueExp   {
      *
      * @return  The ValueExp.
      *
-     * @exception BadAttributeValueExpException 
+     * @exception BadAttributeValueExpException
      * @exception InvalidApplicationException
      */
-    public ValueExp apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException  { 
-	getAttribute(name);
-	Object result = getValue(name);   
+    public ValueExp apply(ObjectName name)
+	    throws BadStringOperationException, BadBinaryOpValueExpException,
+		   BadAttributeValueExpException, InvalidApplicationException {
+	// getAttribute(name);
+	Object result = getValue(name);
 	if  (result instanceof String) {
 	    return new StringValueExp((String)result);
 	} else {
 	    throw new BadAttributeValueExpException(result);
 	}
-    } 
-    
+    }
+
     /**
      * Returns the string "Class" representing its value
      */
-    public String toString()  { 
+    public String toString()  {
 	return attr;
-    } 
-    
+    }
+
 
     protected Object getValue(ObjectName name) {
-	try {       
-	    // Get the class of the object          
+	try {
+	    // Get the class of the object
 	    MBeanServer server = QueryEval.getMBeanServer();
 	    return server.getObjectInstance(name).getClassName();
 	} catch (Exception re) {
@@ -106,11 +114,11 @@ class ClassAttributeValueExp extends AttributeValueExp   {
 	       discovered it and the time the query is evaluated.
 
 	       Also, the exception could be a SecurityException.
-	    
+
 	       Returning null from here will cause
 	       BadAttributeValueExpException, which will in turn cause
 	       this MBean to be omitted from the query result.  */
 	}
-    }   
+    }
 
- }
+}

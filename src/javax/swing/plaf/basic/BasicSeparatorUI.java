@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSeparatorUI.java	1.24 03/12/19
+ * @(#)BasicSeparatorUI.java	1.25 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import javax.swing.plaf.SeparatorUI;
  * A Basic L&F implementation of SeparatorUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.24 12/19/03
+ * @version 1.25 11/17/05
  * @author Georges Saab
  * @author Jeff Shapiro
  */

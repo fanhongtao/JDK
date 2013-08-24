@@ -1,7 +1,7 @@
 /*
- * @(#)UnresolvedPermission.java	1.29 04/02/03
+ * @(#)UnresolvedPermission.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -78,7 +78,7 @@ import java.security.cert.*;
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.29 04/02/03
+ * @version 1.31 05/11/17
  *
  * @author Roland Schemers
  */
@@ -503,7 +503,7 @@ implements java.io.Serializable
      * followed by the certificate encoding itself which is written out as an
      * array of bytes.
      */
-    private synchronized void writeObject(java.io.ObjectOutputStream oos)
+    private void writeObject(java.io.ObjectOutputStream oos)
         throws IOException
     {
 	oos.defaultWriteObject();
@@ -531,7 +531,7 @@ implements java.io.Serializable
     /**
      * Restores this object from a stream (i.e., deserializes it).
      */
-    private synchronized void readObject(java.io.ObjectInputStream ois)
+    private void readObject(java.io.ObjectInputStream ois)
 	throws IOException, ClassNotFoundException
     {
 	CertificateFactory cf;

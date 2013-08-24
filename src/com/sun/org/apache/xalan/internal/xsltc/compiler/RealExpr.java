@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: RealExpr.java,v 1.5 2004/02/16 22:24:28 minchau Exp $
+ * $Id: RealExpr.java,v 1.2 2005/08/16 22:30:35 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;

@@ -1,7 +1,7 @@
 /*
- * @(#)MotifIconFactory.java	1.28 03/12/19
+ * @(#)MotifIconFactory.java	1.31 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,10 +41,7 @@ public class MotifIconFactory implements Serializable
     private static Icon menuArrowIcon;
 
     public static Icon getMenuItemCheckIcon() {
-	if (menuItemCheckIcon == null) {
-	    menuItemCheckIcon = new MenuItemCheckIcon();
-	}
-	return menuItemCheckIcon;
+        return null;
     }
 
     public static Icon getMenuItemArrowIcon() {
@@ -133,9 +130,6 @@ public class MotifIconFactory implements Serializable
 		    g.fillRect(x+3,y+1,csize-2,csize-2);
 		}
 	    }
-
-            // Padding required to keep focus highlight from intersecting icon.
-            x += (MotifGraphicsUtils.isLeftToRight(c)) ? 2 : -3;
             
 	    if (checkToggleIn) {
 		// toggled from unchecked to checked
@@ -265,9 +259,6 @@ public class MotifIconFactory implements Serializable
 	    int w = getIconWidth();
 	    int h = getIconHeight();
 
-	    // add pad so focus isn't smudged on the x
-            x += (MotifGraphicsUtils.isLeftToRight(c))? 2 : -3;
-
 	    boolean isPressed = model.isPressed();
 	    boolean isArmed = model.isArmed();
 	    boolean isEnabled = model.isEnabled();
@@ -338,11 +329,11 @@ public class MotifIconFactory implements Serializable
 	}
 	
 	public int getIconWidth() {
-	    return 13;
+	    return 14;
 	}
 	
 	public int getIconHeight() {
-	    return 13;
+	    return 14;
 	}
     } // end class RadioButtonIcon
 

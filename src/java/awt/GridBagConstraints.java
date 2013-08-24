@@ -1,7 +1,7 @@
 /*
- * @(#)GridBagConstraints.java	1.34 04/03/15
+ * @(#)GridBagConstraints.java	1.41 06/05/26
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -11,14 +11,15 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version 	1.34, 03/15/04
+ * @version     1.41, 05/26/06
  * @author Doug Stein
+ * @author Bill Spitzak (orignial NeWS & OLIT implementation)
  * @see java.awt.GridBagLayout
  * @since JDK1.0
  */
 public class GridBagConstraints implements Cloneable, java.io.Serializable {
 
-   /**
+    /**
      * Specifies that this component is the next-to-last component in its 
      * column or row (<code>gridwidth</code>, <code>gridheight</code>), 
      * or that this component be placed next to the previously added 
@@ -28,82 +29,82 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see      java.awt.GridBagConstraints#gridx
      * @see      java.awt.GridBagConstraints#gridy
      */
-  public static final int RELATIVE = -1;
+    public static final int RELATIVE = -1;
 
-   /**
+    /**
      * Specifies that this component is the 
      * last component in its column or row. 
      */
-  public static final int REMAINDER = 0;
+    public static final int REMAINDER = 0;
 
-   /**
+    /**
      * Do not resize the component. 
      */
-  public static final int NONE = 0;
+    public static final int NONE = 0;
 
-   /**
+    /**
      * Resize the component both horizontally and vertically. 
      */
-  public static final int BOTH = 1;
+    public static final int BOTH = 1;
 
-   /**
+    /**
      * Resize the component horizontally but not vertically. 
      */
-  public static final int HORIZONTAL = 2;
+    public static final int HORIZONTAL = 2;
 
-   /**
+    /**
      * Resize the component vertically but not horizontally. 
      */
-  public static final int VERTICAL = 3;
+    public static final int VERTICAL = 3;
 
-   /**
-    * Put the component in the center of its display area.
-    */
-  public static final int CENTER = 10;
+    /**
+     * Put the component in the center of its display area.
+     */
+    public static final int CENTER = 10;
 
-   /**
+    /**
      * Put the component at the top of its display area,
      * centered horizontally. 
      */
-  public static final int NORTH = 11;
+    public static final int NORTH = 11;
 
     /**
      * Put the component at the top-right corner of its display area. 
      */
-  public static final int NORTHEAST = 12;
+    public static final int NORTHEAST = 12;
 
     /**
      * Put the component on the right side of its display area, 
      * centered vertically.
      */
-  public static final int EAST = 13;
+    public static final int EAST = 13;
 
     /**
      * Put the component at the bottom-right corner of its display area. 
      */
-  public static final int SOUTHEAST = 14;
+    public static final int SOUTHEAST = 14;
 
     /**
      * Put the component at the bottom of its display area, centered 
      * horizontally. 
      */
-  public static final int SOUTH = 15;
+    public static final int SOUTH = 15;
 
-   /**
+    /**
      * Put the component at the bottom-left corner of its display area. 
      */
-  public static final int SOUTHWEST = 16;
+    public static final int SOUTHWEST = 16;
 
     /**
      * Put the component on the left side of its display area, 
      * centered vertically.
      */
-  public static final int WEST = 17;
+    public static final int WEST = 17;
 
-   /**
+    /**
      * Put the component at the top-left corner of its display area. 
      */
-  public static final int NORTHWEST = 18;
+    public static final int NORTHWEST = 18;
 
     /** 
      * Place the component centered along the edge of its display area
@@ -111,7 +112,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <code>ComponentOrienation</code>.  Equal to NORTH for horizontal
      * orientations. 
      */
-  public static final int PAGE_START = 19;
+    public static final int PAGE_START = 19;
 
     /**
      * Place the component centered along the edge of its display area  
@@ -119,7 +120,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * <code>ComponentOrienation</code>.  Equal to SOUTH for horizontal
      * orientations.
      */
-  public static final int PAGE_END = 20;
+    public static final int PAGE_END = 20;
 
     /**
      * Place the component centered along the edge of its display area where 
@@ -128,7 +129,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * left-to-right orientations and EAST for horizontal, right-to-left 
      * orientations.
      */
-  public static final int LINE_START = 21;
+    public static final int LINE_START = 21;
 
     /**
      * Place the component centered along the edge of its display area where 
@@ -137,7 +138,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * left-to-right orientations and WEST for horizontal, right-to-left 
      * orientations.
      */
-  public static final int LINE_END = 22;
+    public static final int LINE_END = 22;
 
     /**
      * Place the component in the corner of its display area where 
@@ -146,7 +147,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * left-to-right orientations and NORTHEAST for horizontal, right-to-left 
      * orientations.
      */
-  public static final int FIRST_LINE_START = 23;
+    public static final int FIRST_LINE_START = 23;
 
     /**
      * Place the component in the corner of its display area where 
@@ -155,7 +156,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * left-to-right orientations and NORTHWEST for horizontal, right-to-left 
      * orientations.
      */
-  public static final int FIRST_LINE_END = 24;
+    public static final int FIRST_LINE_END = 24;
 
     /**
      * Place the component in the corner of its display area where 
@@ -164,7 +165,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * left-to-right orientations and SOUTHEAST for horizontal, right-to-left 
      * orientations.
      */
-  public static final int LAST_LINE_START = 25;
+    public static final int LAST_LINE_START = 25;
 
     /**
      * Place the component in the corner of its display area where 
@@ -173,9 +174,120 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * left-to-right orientations and SOUTHWEST for horizontal, right-to-left 
      * orientations.
      */
-  public static final int LAST_LINE_END = 26;
+    public static final int LAST_LINE_END = 26;
 
-   /**
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally centered and
+     * vertically aligned along the baseline of the prevailing row.
+     * If the component does not have a baseline it will be vertically
+     * centered.
+     *
+     * @since 1.6
+     */
+    public static final int BASELINE = 0x100;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally placed along the
+     * leading edge.  For components with a left-to-right orientation,
+     * the leading edge is the left edge.  Vertically the component is
+     * aligned along the baseline of the prevailing row.  If the
+     * component does not have a baseline it will be vertically
+     * centered.
+     *
+     * @since 1.6
+     */
+    public static final int BASELINE_LEADING = 0x200;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally placed along the
+     * trailing edge.  For components with a left-to-right
+     * orientation, the trailing edge is the right edge.  Vertically
+     * the component is aligned along the baseline of the prevailing
+     * row.  If the component does not have a baseline it will be
+     * vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int BASELINE_TRAILING = 0x300;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally centered.  Vertically
+     * the component is positioned so that its bottom edge touches
+     * the baseline of the starting row.  If the starting row does not
+     * have a baseline it will be vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int ABOVE_BASELINE = 0x400;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally placed along the
+     * leading edge.  For components with a left-to-right orientation,
+     * the leading edge is the left edge.  Vertically the component is
+     * positioned so that its bottom edge touches the baseline of the
+     * starting row.  If the starting row does not have a baseline it
+     * will be vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int ABOVE_BASELINE_LEADING = 0x500;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally placed along the
+     * trailing edge.  For components with a left-to-right
+     * orientation, the trailing edge is the right edge.  Vertically
+     * the component is positioned so that its bottom edge touches
+     * the baseline of the starting row.  If the starting row does not
+     * have a baseline it will be vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int ABOVE_BASELINE_TRAILING = 0x600;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally centered.  Vertically
+     * the component is positioned so that its top edge touches the
+     * baseline of the starting row.  If the starting row does not
+     * have a baseline it will be vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int BELOW_BASELINE = 0x700;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally placed along the
+     * leading edge.  For components with a left-to-right orientation,
+     * the leading edge is the left edge.  Vertically the component is
+     * positioned so that its top edge touches the baseline of the
+     * starting row.  If the starting row does not have a baseline it
+     * will be vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int BELOW_BASELINE_LEADING = 0x800;
+
+    /**
+     * Possible value for the <code>anchor</code> field.  Specifies
+     * that the component should be horizontally placed along the
+     * trailing edge.  For components with a left-to-right
+     * orientation, the trailing edge is the right edge.  Vertically
+     * the component is positioned so that its top edge touches the
+     * baseline of the starting row.  If the starting row does not
+     * have a baseline it will be vertically centered.
+     *
+     * @since 1.6
+     */
+    public static final int BELOW_BASELINE_TRAILING = 0x900;
+
+    /**
      * Specifies the cell containing the leading edge of the component's 
      * display area, where the first cell in a row has <code>gridx=0</code>. 
      * The leading edge of a component's display area is its left edge for
@@ -193,9 +305,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see java.awt.GridBagConstraints#gridy
      * @see java.awt.ComponentOrientation
      */
-  public int gridx;
+    public int gridx;
 
-   /**
+    /**
      * Specifies the cell at the top of the component's display area, 
      * where the topmost cell has <code>gridy=0</code>. The value 
      * <code>RELATIVE</code> specifies that the component be placed just 
@@ -208,9 +320,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone() 
      * @see java.awt.GridBagConstraints#gridx
      */
-  public int gridy;
+    public int gridy;
 
-   /**
+    /**
      * Specifies the number of cells in a row for the component's 
      * display area. 
      * <p>
@@ -227,9 +339,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone() 
      * @see java.awt.GridBagConstraints#gridheight
      */
-  public int gridwidth;
+    public int gridwidth;
 
-   /**
+    /**
      * Specifies the number of cells in a column for the component's 
      * display area. 
      * <p>
@@ -246,9 +358,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone()
      * @see java.awt.GridBagConstraints#gridwidth
      */
-  public int gridheight;
+    public int gridheight;
 
-   /**
+    /**
      * Specifies how to distribute extra horizontal space. 
      * <p>
      * The grid bag layout manager calculates the weight of a column to 
@@ -267,9 +379,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone() 
      * @see java.awt.GridBagConstraints#weighty
      */
-  public double weightx;
+    public double weightx;
 
-   /**
+    /**
      * Specifies how to distribute extra vertical space. 
      * <p>
      * The grid bag layout manager calculates the weight of a row to be 
@@ -288,32 +400,41 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone()
      * @see java.awt.GridBagConstraints#weightx
      */
-  public double weighty;
+    public double weighty;
 
-   /** 
-    * This field is used when the component is smaller than its display
-     * area. It determines where, within the display area, to place the
-     * component. 
-     * <p>
-     * There are two kinds of possible values: relative and 
-     * absolute.  Relative values are interpreted relative to the container's
-     * component orientation property while absolute values are not.  The absolute
-     * values are:
+    /** 
+     * This field is used when the component is smaller than its
+     * display area. It determines where, within the display area, to
+     * place the component.
+     * <p> There are three kinds of possible values: orientation
+     * relative, baseline relative and absolute.  Orientation relative
+     * values are interpreted relative to the container's component
+     * orientation property, baseline relative values are interpreted
+     * relative to the baseline and absolute values are not.  The
+     * absolute values are:
      * <code>CENTER</code>, <code>NORTH</code>, <code>NORTHEAST</code>,
      * <code>EAST</code>, <code>SOUTHEAST</code>, <code>SOUTH</code>,
      * <code>SOUTHWEST</code>, <code>WEST</code>, and <code>NORTHWEST</code>.
-     * The relative values are: <code>PAGE_START</code>, <code>PAGE_END</code>,
+     * The orientation relative values are: <code>PAGE_START</code>,
+     * <code>PAGE_END</code>,
      * <code>LINE_START</code>, <code>LINE_END</code>, 
      * <code>FIRST_LINE_START</code>, <code>FIRST_LINE_END</code>, 
-     * <code>LAST_LINE_START</code> and <code>LAST_LINE_END</code>.
+     * <code>LAST_LINE_START</code> and <code>LAST_LINE_END</code>.  The
+     * baseline relvative values are:
+     * <code>BASELINE</code>, <code>BASELINE_LEADING</code>,
+     * <code>BASELINE_TRAILING</code>,
+     * <code>ABOVE_BASELINE</code>, <code>ABOVE_BASELINE_LEADING</code>,
+     * <code>ABOVE_BASELINE_TRAILING</code>,
+     * <code>BELOW_BASELINE</code>, <code>BELOW_BASELINE_LEADING</code>,
+     * and <code>BELOW_BASELINE_TRAILING</code>.
      * The default value is <code>CENTER</code>. 
      * @serial
      * @see #clone() 
      * @see java.awt.ComponentOrientation
      */
-  public int anchor;
+    public int anchor;
 
-   /**
+    /**
      * This field is used when the component's display area is larger 
      * than the component's requested size. It determines whether to 
      * resize the component, and if so, how. 
@@ -338,9 +459,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @serial
      * @see #clone()
      */
-  public int fill;
+    public int fill;
 
-   /**
+    /**
      * This field specifies the external padding of the component, the 
      * minimum amount of space between the component and the edges of its 
      * display area. 
@@ -349,9 +470,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @serial
      * @see #clone()
      */
-  public Insets insets;
+    public Insets insets;
 
-   /**
+    /**
      * This field specifies the internal padding of the component, how much 
      * space to add to the minimum width of the component. The width of 
      * the component is at least its minimum width plus 
@@ -362,9 +483,9 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone()
      * @see java.awt.GridBagConstraints#ipady
      */
-  public int ipadx;
+    public int ipadx;
 
-   /**
+    /**
      * This field specifies the internal padding, that is, how much 
      * space to add to the minimum height of the component. The height of 
      * the component is at least its minimum height plus 
@@ -375,132 +496,151 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * @see #clone()
      * @see java.awt.GridBagConstraints#ipadx
      */
-  public int ipady;
+    public int ipady;
 
-   /**
+    /**
      * Temporary place holder for the x coordinate.
      * @serial
      */
-  int tempX;
-   /**
+    int tempX;
+    /**
      * Temporary place holder for the y coordinate.
      * @serial
      */
-  int tempY;
-   /**
+    int tempY;
+    /**
      * Temporary place holder for the Width of the component.
      * @serial
      */
-  int tempWidth;
-   /**
+    int tempWidth;
+    /**
      * Temporary place holder for the Height of the component.
      * @serial
      */
-  int tempHeight;
-   /**
+    int tempHeight;
+    /**
      * The minimum width of the component.  It is used to calculate
      * <code>ipady</code>, where the default will be 0.
      * @serial
      * @see #ipady
      */
-  int minWidth;
-   /**
+    int minWidth;
+    /**
      * The minimum height of the component. It is used to calculate
      * <code>ipadx</code>, where the default will be 0.
      * @serial
      * @see #ipadx
      */
-  int minHeight;
+    int minHeight;
 
-  /*
-   * JDK 1.1 serialVersionUID 
-   */
-  private static final long serialVersionUID = -1000070633030801713L;
+    // The following fields are only used if the anchor is
+    // one of BASELINE, BASELINE_LEADING or BASELINE_TRAILING.
+    // ascent and descent include the insets and ipady values.
+    transient int ascent;
+    transient int descent;
+    transient Component.BaselineResizeBehavior baselineResizeBehavior;
+    // The folllowing two fields are used if the baseline type is
+    // CENTER_OFFSET.
+    // centerPadding is either 0 or 1 and indicates if
+    // the height needs to be padded by one when calculating where the
+    // baseline lands
+    transient int centerPadding;
+    // Where the baseline lands relative to the center of the component.
+    transient int centerOffset;
 
-   /**
+    /*
+     * JDK 1.1 serialVersionUID 
+     */
+    private static final long serialVersionUID = -1000070633030801713L;
+
+    /**
      * Creates a <code>GridBagConstraint</code> object with 
      * all of its fields set to their default value. 
      */
-  public GridBagConstraints () {
-    gridx = RELATIVE;
-    gridy = RELATIVE;
-    gridwidth = 1;
-    gridheight = 1;
+    public GridBagConstraints () {
+        gridx = RELATIVE;
+        gridy = RELATIVE;
+        gridwidth = 1;
+        gridheight = 1;
 
-    weightx = 0;
-    weighty = 0;
-    anchor = CENTER;
-    fill = NONE;
+        weightx = 0;
+        weighty = 0;
+        anchor = CENTER;
+        fill = NONE;
 
-    insets = new Insets(0, 0, 0, 0);
-    ipadx = 0;
-    ipady = 0;
-  }
+        insets = new Insets(0, 0, 0, 0);
+        ipadx = 0;
+        ipady = 0;
+    }
 
-  /**
-    * Creates a <code>GridBagConstraints</code> object with
-    * all of its fields set to the passed-in arguments.
-    * 
-    * Note: Because the use of this constructor hinders readability
-    * of source code, this constructor should only be used by
-    * automatic source code generation tools.
-    * 
-    * @param gridx	The initial gridx value.
-    * @param gridy	The initial gridy value.
-    * @param gridwidth	The initial gridwidth value.
-    * @param gridheight	The initial gridheight value.
-    * @param weightx	The initial weightx value.
-    * @param weighty	The initial weighty value.
-    * @param anchor	The initial anchor value.
-    * @param fill	The initial fill value.
-    * @param insets	The initial insets value.
-    * @param ipadx	The initial ipadx value.
-    * @param ipady	The initial ipady value.
-    * 
-    * @see java.awt.GridBagConstraints#gridx
-    * @see java.awt.GridBagConstraints#gridy
-    * @see java.awt.GridBagConstraints#gridwidth
-    * @see java.awt.GridBagConstraints#gridheight
-    * @see java.awt.GridBagConstraints#weightx
-    * @see java.awt.GridBagConstraints#weighty
-    * @see java.awt.GridBagConstraints#anchor
-    * @see java.awt.GridBagConstraints#fill
-    * @see java.awt.GridBagConstraints#insets
-    * @see java.awt.GridBagConstraints#ipadx
-    * @see java.awt.GridBagConstraints#ipady
-    * 
-    * @since 1.2
-    */
-  public GridBagConstraints(int gridx, int gridy,
-                            int gridwidth, int gridheight,
-                            double weightx, double weighty,
-                            int anchor, int fill,
-                            Insets insets, int ipadx, int ipady) {
-    this.gridx = gridx;
-    this.gridy = gridy;
-    this.gridwidth = gridwidth;
-    this.gridheight = gridheight;
-    this.fill = fill;
-    this.ipadx = ipadx;
-    this.ipady = ipady;
-    this.insets = insets;
-    this.anchor  = anchor;
-    this.weightx = weightx;
-    this.weighty = weighty;
-  }
+    /**
+     * Creates a <code>GridBagConstraints</code> object with
+     * all of its fields set to the passed-in arguments.
+     * 
+     * Note: Because the use of this constructor hinders readability
+     * of source code, this constructor should only be used by
+     * automatic source code generation tools.
+     * 
+     * @param gridx     The initial gridx value.
+     * @param gridy     The initial gridy value.
+     * @param gridwidth The initial gridwidth value.
+     * @param gridheight        The initial gridheight value.
+     * @param weightx   The initial weightx value.
+     * @param weighty   The initial weighty value.
+     * @param anchor    The initial anchor value.
+     * @param fill      The initial fill value.
+     * @param insets    The initial insets value.
+     * @param ipadx     The initial ipadx value.
+     * @param ipady     The initial ipady value.
+     * 
+     * @see java.awt.GridBagConstraints#gridx
+     * @see java.awt.GridBagConstraints#gridy
+     * @see java.awt.GridBagConstraints#gridwidth
+     * @see java.awt.GridBagConstraints#gridheight
+     * @see java.awt.GridBagConstraints#weightx
+     * @see java.awt.GridBagConstraints#weighty
+     * @see java.awt.GridBagConstraints#anchor
+     * @see java.awt.GridBagConstraints#fill
+     * @see java.awt.GridBagConstraints#insets
+     * @see java.awt.GridBagConstraints#ipadx
+     * @see java.awt.GridBagConstraints#ipady
+     * 
+     * @since 1.2
+     */
+    public GridBagConstraints(int gridx, int gridy,
+                              int gridwidth, int gridheight,
+                              double weightx, double weighty,
+                              int anchor, int fill,
+                              Insets insets, int ipadx, int ipady) {
+        this.gridx = gridx;
+        this.gridy = gridy;
+        this.gridwidth = gridwidth;
+        this.gridheight = gridheight;
+        this.fill = fill;
+        this.ipadx = ipadx;
+        this.ipady = ipady;
+        this.insets = insets;
+        this.anchor  = anchor;
+        this.weightx = weightx;
+        this.weighty = weighty;
+    }
 
-   /**
-    * Creates a copy of this grid bag constraint.
-    * @return     a copy of this grid bag constraint
-    */
-  public Object clone () {
-      try { 
-	  GridBagConstraints c = (GridBagConstraints)super.clone();
-	  c.insets = (Insets)insets.clone();
-	  return c;
-      } catch (CloneNotSupportedException e) { 
-	  // this shouldn't happen, since we are Cloneable
-	  throw new InternalError();
-      }
-  }
+    /**
+     * Creates a copy of this grid bag constraint.
+     * @return     a copy of this grid bag constraint
+     */
+    public Object clone () {
+        try { 
+            GridBagConstraints c = (GridBagConstraints)super.clone();
+            c.insets = (Insets)insets.clone();
+            return c;
+        } catch (CloneNotSupportedException e) { 
+            // this shouldn't happen, since we are Cloneable
+            throw new InternalError();
+        }
+    }
+
+    boolean isVerticallyResizable() {
+        return (fill == BOTH || fill == VERTICAL);
+    }
 }

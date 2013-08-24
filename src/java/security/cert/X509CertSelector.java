@@ -1,7 +1,7 @@
 /*
- * @(#)X509CertSelector.java	1.20 04/06/08
+ * @(#)X509CertSelector.java	1.21 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import sun.security.x509.*;
  * @see CertSelector
  * @see X509Certificate
  *
- * @version 	1.20, 06/08/04
+ * @version 	1.21, 11/17/05
  * @since	1.4
  * @author	Steve Hanna
  */

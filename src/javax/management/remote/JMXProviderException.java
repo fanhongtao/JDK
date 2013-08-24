@@ -1,7 +1,7 @@
 /*
- * @(#)JMXProviderException.java	1.11 03/12/19
+ * @(#)JMXProviderException.java	1.13 05/11/17
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,11 +12,12 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * <p>Exception thrown by {@link JMXConnectorFactory} when a provider
- * exists for the required protocol but cannot be used for some
- * reason.</p>
+ * <p>Exception thrown by {@link JMXConnectorFactory} and
+ * {@link JMXConnectorServerFactory} when a provider exists for
+ * the required protocol but cannot be used for some reason.</p>
  *
- * @see JMXConnectorFactory#connect(JMXServiceURL, Map)
+ * @see JMXConnectorFactory#newJMXConnector
+ * @see JMXConnectorServerFactory#newJMXConnectorServer
  * @since 1.5
  * @since.unbundled 1.0
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)MouseWheelEvent.java	1.9 03/12/19
+ * @(#)MouseWheelEvent.java	1.14 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import sun.awt.DebugHelper;
  * reflect the most recent settings.
  *
  * @author Brent Christian
- * @version 1.9 12/19/03
+ * @version 1.14 04/07/06
  * @see MouseWheelListener
  * @see java.awt.ScrollPane
  * @see java.awt.ScrollPane#setWheelScrollingEnabled(boolean)
@@ -117,12 +117,18 @@ public class MouseWheelEvent extends MouseEvent {
      */
     int wheelRotation;
 
-    // serial version id?
+    /*
+     * serialVersionUID
+     */
+
+    private static final long serialVersionUID = 6459879390515399677L;
 
     /**
      * Constructs a <code>MouseWheelEvent</code> object with the
      * specified source component, type, modifiers, coordinates,
      * scroll type, scroll amount, and wheel rotation.
+     * <p>Absolute coordinates xAbs and yAbs are set to source's location on screen plus
+     * relative coordinates x and y. xAbs and yAbs are set to zero if the source is not showing.
      * <p>Note that passing in an invalid <code>id</code> results in
      * unspecified behavior. This method throws an
      * <code>IllegalArgumentException</code> if <code>source</code>
@@ -150,21 +156,68 @@ public class MouseWheelEvent extends MouseEvent {
      *
      * @throws IllegalArgumentException if <code>source</code> is null
      * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, boolean)
+     * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, int, int, boolean, int)
      */
     public MouseWheelEvent (Component source, int id, long when, int modifiers,
                       int x, int y, int clickCount, boolean popupTrigger,
                       int scrollType, int scrollAmount, int wheelRotation) {
 
-        super(source, id, when, modifiers, x, y, clickCount, popupTrigger);
+        this(source, id, when, modifiers, x, y, 0, 0, clickCount,
+             popupTrigger, scrollType, scrollAmount, wheelRotation);
+    }
 
+    /**
+     * Constructs a <code>MouseWheelEvent</code> object with the
+     * specified source component, type, modifiers, coordinates,
+     * absolute coordinates, scroll type, scroll amount, and wheel rotation.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.<p>
+     * Even if inconsistent values for relative and absolute coordinates are
+     * passed to the constructor, the MouseWheelEvent instance is still
+     * created and no exception is thrown. 
+     *
+     * @param source         the <code>Component</code> that originated
+     *                       the event
+     * @param id             the integer that identifies the event
+     * @param when           a long that gives the time the event occurred
+     * @param modifiers      the modifier keys down during event
+     *                       (shift, ctrl, alt, meta)
+     * @param x              the horizontal x coordinate for the mouse location
+     * @param y              the vertical y coordinate for the mouse location
+     * @param xAbs           the absolute horizontal x coordinate for the mouse location
+     * @param yAbs           the absolute vertical y coordinate for the mouse location
+     * @param clickCount     the number of mouse clicks associated with event
+     * @param popupTrigger   a boolean, true if this event is a trigger for a
+     *                       popup-menu 
+     * @param scrollType     the type of scrolling which should take place in
+     *                       response to this event;  valid values are
+     *                       <code>WHEEL_UNIT_SCROLL</code> and
+     *                       <code>WHEEL_BLOCK_SCROLL</code>
+     * @param  scrollAmount  for scrollType <code>WHEEL_UNIT_SCROLL</code>,
+     *                       the number of units to be scrolled
+     * @param wheelRotation  the amount that the mouse wheel was rotated (the
+     *                       number of "clicks")
+     *
+     * @throws IllegalArgumentException if <code>source</code> is null
+     * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, boolean)
+     * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, int, int, boolean, int)
+     * @since 1.6
+     */
+    public MouseWheelEvent (Component source, int id, long when, int modifiers,
+                            int x, int y, int xAbs, int yAbs, int clickCount, boolean popupTrigger,
+                            int scrollType, int scrollAmount, int wheelRotation) {
+
+        super(source, id, when, modifiers, x, y, xAbs, yAbs, clickCount,
+              popupTrigger, MouseEvent.NOBUTTON);
 
         this.scrollType = scrollType;
         this.scrollAmount = scrollAmount;
         this.wheelRotation = wheelRotation;
-
+        
         if (dbg.on) {
             dbg.println("MouseWheelEvent constructor");
-            // Thread.dumpStack();
         }
     }
 
@@ -189,8 +242,9 @@ public class MouseWheelEvent extends MouseEvent {
     }
 
     /**
-     * Returns the number of units that should be scrolled in response to this
-     * event.  Only valid if <code>getScrollType</code> returns 
+     * Returns the number of units that should be scrolled per
+     * click of mouse wheel rotation.
+     * Only valid if <code>getScrollType</code> returns 
      * <code>MouseWheelEvent.WHEEL_UNIT_SCROLL</code>
      *
      * @return number of units to scroll, or an undefined value if

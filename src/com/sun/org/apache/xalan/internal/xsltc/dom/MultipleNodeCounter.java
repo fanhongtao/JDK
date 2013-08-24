@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MultipleNodeCounter.java,v 1.4 2004/02/16 22:54:59 minchau Exp $
+ * $Id: MultipleNodeCounter.java,v 1.2.4.1 2005/09/12 11:49:56 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -23,6 +23,7 @@ import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import com.sun.org.apache.xalan.internal.xsltc.Translet;
 import com.sun.org.apache.xalan.internal.xsltc.util.IntegerArray;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 
 /**
  * @author Jacek Ambroziak
@@ -39,13 +40,18 @@ public abstract class MultipleNodeCounter extends NodeCounter {
     public NodeCounter setStartNode(int node) {
 	_node = node;
 	_nodeType = _document.getExpandedTypeID(node);
-	_precSiblings = _document.getAxisIterator(PRECEDINGSIBLING);
+    _precSiblings = _document.getAxisIterator(Axis.PRECEDINGSIBLING);
 	return this;
     }
 
     public String getCounter() {
 	if (_value != Integer.MIN_VALUE) {
-	    return formatNumbers(_value);
+            //See Errata E24
+            if (_value == 0) return "0";
+            else if (Double.isNaN(_value)) return "NaN";
+            else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
+            else if (Double.isInfinite(_value)) return "Infinity";
+	    else return formatNumbers((int)_value);
 	}
 
 	IntegerArray ancestors = new IntegerArray();

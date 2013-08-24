@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XPATHErrorResources_en.java,v 1.7 2004/02/17 04:36:46 minchau Exp $
+ * $Id: XPATHErrorResources_en.java,v 1.1.2.1 2005/08/01 01:29:50 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.res;
 

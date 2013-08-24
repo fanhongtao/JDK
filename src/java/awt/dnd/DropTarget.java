@@ -1,7 +1,7 @@
 /*
- * @(#)DropTarget.java	1.48 03/12/19
+ * @(#)DropTarget.java	1.51 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import java.awt.dnd.peer.DropTargetPeer;
  * The default <code>FlavorMap</code> hereafter designates the
  * <code>FlavorMap</code> returned by <code>SystemFlavorMap.getDefaultFlavorMap()</code>. 
  * 
- * @version 	1.48, 12/19/03
+ * @version 	1.51, 04/07/06
  * @since 1.2
  */
 
@@ -215,7 +215,7 @@ public class DropTarget implements DropTargetListener, Serializable {
      * Gets the <code>Component</code> associated 
      * with this <code>DropTarget</code>.
      * <P>
-     * @return the current </code>Component</code>
+     * @return the current <code>Component</code>
      */
 
     public synchronized Component getComponent() {
@@ -622,8 +622,8 @@ public class DropTarget implements DropTargetListener, Serializable {
 
 	    Toolkit t  = Toolkit.getDefaultToolkit();
 
-	    Integer    initial  = new Integer(100);
-	    Integer    interval = new Integer(100);
+	    Integer    initial  = Integer.valueOf(100);
+	    Integer    interval = Integer.valueOf(100);
 
 	    try {
 		initial = (Integer)t.getDesktopProperty("DnD.Autoscroll.initialDelay");

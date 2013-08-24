@@ -1,7 +1,7 @@
 /*
- * @(#)Sasl.java	1.21 04/05/05
+ * @(#)Sasl.java	1.27 06/08/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,7 +80,7 @@ public class Sasl {
      * server.  An implementation should allow configuration of the meaning
      * of these values.  An application may use the Java Cryptography
      * Extension (JCE) with JCE-aware mechanisms to control the selection of
-     *cipher suites that match the strength values.
+     * cipher suites that match the strength values.
      * <BR>
      * If this property is absent, the default strength is 
      * <tt>"high,medium,low"</tt>.
@@ -230,12 +230,24 @@ public class Sasl {
     public static final String POLICY_PASS_CREDENTIALS =
     "javax.security.sasl.policy.credentials";
 
+    /**
+     * The name of a property that specifies the credentials to use.
+     * The property contains a mechanism-specific Java credential object.
+     * Mechanism implementations may examine the value of this property 
+     * to determine whether it is a class that they support.
+     * The property may be used to supply credentials to a mechanism that
+     * supports delegated authentication.
+     *<br>
+     * The value of this constant is 
+     * <tt>"javax.security.sasl.credentials"</tt>.
+     */
+    public static final String CREDENTIALS = "javax.security.sasl.credentials";
 
     /**
      * Creates a <tt>SaslClient</tt> using the parameters supplied.
      *
      * This method uses the 
-<a href="http://java.sun.com/j2se/1.4/docs/guide/security/CryptoSpec.html#Provider">JCA Security Provider Framework</a>, described in the 
+<a href="{@docRoot}/../technotes/guides/security/crypto/CryptoSpec.html#Provider">JCA Security Provider Framework</a>, described in the 
      * "Java Cryptography Architecture API Specification & Reference", for
      * locating and selecting a <tt>SaslClient</tt> implementation.
      *
@@ -289,7 +301,8 @@ public class Sasl {
      * SASL mechanism must not be susceptible to simple plain passive attacks.
      * In addition to the standard properties declared in this class, 
      * other, possibly mechanism-specific, properties can be included. 
-     * Properties not relevant to the selected mechanism are ignored.
+     * Properties not relevant to the selected mechanism are ignored,
+     * including any map entries with non-String keys.
      *
      * @param cbh The possibly null callback handler to used by the SASL
      * mechanisms to get further information from the application/library
@@ -383,7 +396,7 @@ public class Sasl {
      * Creates a <tt>SaslServer</tt> for the specified mechanism. 
      *
      * This method uses the 
-<a href="http://java.sun.com/j2se/1.4/docs/guide/security/CryptoSpec.html#Provider">JCA Security Provider Framework</a>, 
+<a href="{@docRoot}/../technotes/guides/security/crypto/CryptoSpec.html#Provider">JCA Security Provider Framework</a>, 
      * described in the 
      * "Java Cryptography Architecture API Specification & Reference", for
      * locating and selecting a <tt>SaslServer</tt> implementation.
@@ -428,7 +441,8 @@ public class Sasl {
      * SASL mechanism must not be susceptible to simple plain passive attacks.
      * In addition to the standard properties declared in this class, 
      * other, possibly mechanism-specific, properties can be included. 
-     * Properties not relevant to the selected mechanism are ignored.
+     * Properties not relevant to the selected mechanism are ignored,
+     * including any map entries with non-String keys.
      *
      * @param cbh The possibly null callback handler to used by the SASL
      * mechanisms to get further information from the application/library

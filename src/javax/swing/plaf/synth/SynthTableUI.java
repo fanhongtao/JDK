@@ -1,39 +1,46 @@
 /*
- * @(#)SynthTableUI.java	1.17 04/07/23
+ * @(#)SynthTableUI.java	1.24 06/03/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.TooManyListenersException;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import java.text.*;
-import javax.swing.border.*;
-import javax.swing.plaf.*;
-import javax.swing.plaf.basic.*;
-import java.util.Date;
-import java.util.EventObject;
-
-import javax.swing.text.*;
-
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DateFormat;
+import java.text.Format;
+import java.text.NumberFormat;
+import java.util.Date;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.LookAndFeel;
+import javax.swing.border.Border;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.UIResource;
+import javax.swing.plaf.basic.BasicTableUI;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+
 import sun.swing.plaf.synth.SynthUI;
 
 /**
  * SynthTableUI implementation
  *
- * @version 1.17, 07/23/04
+ * @version 1.24, 03/16/06
  * @author Philip Milne
  */
 class SynthTableUI extends BasicTableUI implements SynthUI,
@@ -224,25 +231,47 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
     }
 
     protected void paint(SynthContext context, Graphics g) {
-	if (table.getRowCount() <= 0 || table.getColumnCount() <= 0) {
+        Rectangle clip = g.getClipBounds();
+
+        Rectangle bounds = table.getBounds();
+        // account for the fact that the graphics has already been translated
+        // into the table's bounds
+        bounds.x = bounds.y = 0;
+
+        if (table.getRowCount() <= 0 || table.getColumnCount() <= 0 ||
+                // this check prevents us from painting the entire table
+                // when the clip doesn't intersect our bounds at all
+                !bounds.intersects(clip)) {
+
+            paintDropLines(context, g);
 	    return;
 	}
-	Rectangle clip = g.getClipBounds();
-	Point upperLeft = clip.getLocation();
-	Point lowerRight = new Point(clip.x + clip.width - 1, clip.y + clip.height - 1);
+
+        boolean ltr = table.getComponentOrientation().isLeftToRight();
+
+        Point upperLeft = clip.getLocation();
+        if (!ltr) {
+            upperLeft.x++;
+        }
+
+        Point lowerRight = new Point(clip.x + clip.width - (ltr ? 1 : 0),
+                                     clip.y + clip.height);
+
         int rMin = table.rowAtPoint(upperLeft);
         int rMax = table.rowAtPoint(lowerRight);
-        // This should never happen.
+        // This should never happen (as long as our bounds intersect the clip,
+        // which is why we bail above if that is the case).
         if (rMin == -1) {
 	    rMin = 0;
         }
         // If the table does not have enough rows to fill the view we'll get -1.
+        // (We could also get -1 if our bounds don't intersect the clip,
+        // which is why we bail above if that is the case).
         // Replace this with the index of the last row.
         if (rMax == -1) {
 	    rMax = table.getRowCount()-1;
         }
 
-        boolean ltr = table.getComponentOrientation().isLeftToRight();
         int cMin = table.columnAtPoint(ltr ? upperLeft : lowerRight); 
         int cMax = table.columnAtPoint(ltr ? lowerRight : upperLeft);        
         // This should never happen.
@@ -260,6 +289,135 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
 
         // Paint the cells.
 	paintCells(context, g, rMin, rMax, cMin, cMax);
+
+        paintDropLines(context, g);
+    }
+
+    private void paintDropLines(SynthContext context, Graphics g) {
+        JTable.DropLocation loc = table.getDropLocation();
+        if (loc == null) {
+            return;
+        }
+
+        Color color = (Color)style.get(context, "Table.dropLineColor");
+        Color shortColor = (Color)style.get(context, "Table.dropLineShortColor");
+        if (color == null && shortColor == null) {
+            return;
+        }
+
+        Rectangle rect;
+
+        rect = getHDropLineRect(loc);
+        if (rect != null) {
+            int x = rect.x;
+            int w = rect.width;
+            if (color != null) {
+                extendRect(rect, true);
+                g.setColor(color);
+                g.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
+            if (!loc.isInsertColumn() && shortColor != null) {
+                g.setColor(shortColor);
+                g.fillRect(x, rect.y, w, rect.height);
+            }
+        }
+
+        rect = getVDropLineRect(loc);
+        if (rect != null) {
+            int y = rect.y;
+            int h = rect.height;
+            if (color != null) {
+                extendRect(rect, false);
+                g.setColor(color);
+                g.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }
+            if (!loc.isInsertRow() && shortColor != null) {
+                g.setColor(shortColor);
+                g.fillRect(rect.x, y, rect.width, h);
+            }
+        }
+    }
+
+    private Rectangle getHDropLineRect(JTable.DropLocation loc) {
+        if (!loc.isInsertRow()) {
+            return null;
+        }
+
+        int row = loc.getRow();
+        int col = loc.getColumn();
+        if (col >= table.getColumnCount()) {
+            col--;
+        }
+
+        Rectangle rect = table.getCellRect(row, col, true);
+
+        if (row >= table.getRowCount()) {
+            row--;
+            Rectangle prevRect = table.getCellRect(row, col, true);
+            rect.y = prevRect.y + prevRect.height;
+        }
+
+        if (rect.y == 0) {
+            rect.y = -1;
+        } else {
+            rect.y -= 2;
+        }
+
+        rect.height = 3;
+
+        return rect;
+    }
+
+    private Rectangle getVDropLineRect(JTable.DropLocation loc) {
+        if (!loc.isInsertColumn()) {
+            return null;
+        }
+
+        boolean ltr = table.getComponentOrientation().isLeftToRight();
+        int col = loc.getColumn();
+        Rectangle rect = table.getCellRect(loc.getRow(), col, true);
+
+        if (col >= table.getColumnCount()) {
+            col--;
+            rect = table.getCellRect(loc.getRow(), col, true);
+            if (ltr) {
+                rect.x = rect.x + rect.width;
+            }
+        } else if (!ltr) {
+            rect.x = rect.x + rect.width;
+        }
+
+        if (rect.x == 0) {
+            rect.x = -1;
+        } else {
+            rect.x -= 2;
+        }
+        
+        rect.width = 3;
+
+        return rect;
+    }
+
+    private Rectangle extendRect(Rectangle rect, boolean horizontal) {
+        if (rect == null) {
+            return rect;
+        }
+
+        if (horizontal) {
+            rect.x = 0;
+            rect.width = table.getWidth();
+        } else {
+            rect.y = 0;
+
+            if (table.getRowCount() != 0) {
+                Rectangle lastRect = table.getCellRect(table.getRowCount() - 1, 0, true);
+                rect.height = lastRect.y + lastRect.height;
+            } else {
+                rect.height = table.getHeight();
+            }
+        }
+
+        return rect;
     }
 
     /*
@@ -301,16 +459,13 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
                                     x - 1, tableHeight - 1);
 		}
 	    } else {
-		x = damagedArea.x + damagedArea.width;
-		for (int column = cMin; column < cMax; column++) {
-		    int w = cm.getColumn(column).getWidth();
-		    x -= w;
+                x = damagedArea.x;
+                for (int column = cMax; column >= cMin; column--) {
+                    int w = cm.getColumn(column).getWidth();
+                    x += w;
                     synthG.drawLine(context, "Table.grid", g, x - 1, 0, x - 1,
                                     tableHeight - 1);
-		}
-		x -= cm.getColumn(cMax).getWidth();
-                synthG.drawLine(context, "Table.grid", g, x, 0, x,
-                                tableHeight - 1);
+                }
 	    }
 	}
     }
@@ -462,10 +617,12 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
 
     private class SynthBooleanTableCellRenderer extends JCheckBox implements
                       TableCellRenderer {
-	public SynthBooleanTableCellRenderer() {
-	    super();
-	    setHorizontalAlignment(JLabel.CENTER);
-	}
+        private boolean isRowSelected;              
+        
+        public SynthBooleanTableCellRenderer() {
+            super();
+            setHorizontalAlignment(JLabel.CENTER);
+        }
 
         public String getName() {
             String name = super.getName();
@@ -478,35 +635,22 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
         public Component getTableCellRendererComponent(
                             JTable table, Object value, boolean isSelected,
                             boolean hasFocus, int row, int column) {
-	    if (isSelected) {
-	        setForeground(table.getSelectionForeground());
-	        setBackground(table.getSelectionBackground());
-	    }
-	    else {
-	        setForeground(table.getForeground());
-	        setBackground(table.getBackground());
-	    }
+            isRowSelected = isSelected;
+            
+            if (isSelected) {
+                setForeground(table.getSelectionForeground());
+                setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(table.getForeground());
+                setBackground(table.getBackground());
+            }
+            
             setSelected((value != null && ((Boolean)value).booleanValue()));
-            // NOTE: We don't do this as otherwise the the JCheckBox will
-            // think it is selected when it may not be. This means JCheckBox
-            // renderers don't render the selection correctly.
-/*
-            if (!useTableColors && (isSelected || hasFocus)) {
-                SynthLookAndFeel.setSelectedUI((SynthButtonUI)SynthLookAndFeel.
-                             getUIOfType(getUI(), SynthButtonUI.class),
-                                   isSelected, hasFocus, table.isEnabled());
-            }
-            else {
-                SynthLookAndFeel.resetSelectedUI();
-            }
-*/
             return this;
         }
-
-        public void paint(Graphics g) {
-            super.paint(g);
-            // Refer to comment above for why this is commented out.
-            // SynthLookAndFeel.resetSelectedUI();
+        
+        public boolean isOpaque() {
+            return isRowSelected ? true : super.isOpaque();
         }
     }
 
@@ -543,7 +687,7 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
             if (!useTableColors && (isSelected || hasFocus)) {
                 SynthLookAndFeel.setSelectedUI((SynthLabelUI)SynthLookAndFeel.
                              getUIOfType(getUI(), SynthLabelUI.class),
-                                   isSelected, hasFocus, table.isEnabled());
+                                   isSelected, hasFocus, table.isEnabled(), false);
             }
             else {
                 SynthLookAndFeel.resetSelectedUI();

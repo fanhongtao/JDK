@@ -1,7 +1,7 @@
 /*
- * @(#)CropImageFilter.java	1.18 04/07/16
+ * @(#)CropImageFilter.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.18 07/16/04
+ * @version	1.19 11/17/05
  * @author 	Jim Graham
  */
 public class CropImageFilter extends ImageFilter {

@@ -1,12 +1,13 @@
 /*
- * @(#)StreamTokenizer.java	1.44 04/05/18
+ * @(#)StreamTokenizer.java	1.47 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
 
+import java.util.Arrays;
 
 /**
  * The <code>StreamTokenizer</code> class takes an input stream and
@@ -38,7 +39,7 @@ package java.io;
  * it returns the value <code>TT_EOF</code>.
  *
  * @author  James Gosling
- * @version 1.44, 05/18/04
+ * @version 1.47, 11/30/05
  * @see     java.io.StreamTokenizer#nextToken()
  * @see     java.io.StreamTokenizer#TT_EOF
  * @since   JDK1.0
@@ -84,7 +85,7 @@ public class StreamTokenizer {
      * After a call to the <code>nextToken</code> method, this field
      * contains the type of the token just read. For a single character
      * token, its value is the single character, converted to an integer.
-     * For a quoted string token (see , its value is the quote character.
+     * For a quoted string token, its value is the quote character.
      * Otherwise, its value is one of the following:
      * <ul>
      * <li><code>TT_WORD</code> indicates that the token is a word.
@@ -601,9 +602,7 @@ public class StreamTokenizer {
 	    int i = 0;
 	    do {
 		if (i >= buf.length) {
-		    char nb[] = new char[buf.length * 2];
-		    System.arraycopy(buf, 0, nb, 0, buf.length);
-		    buf = nb;
+                    buf = Arrays.copyOf(buf, buf.length * 2);
 		}
 		buf[i++] = (char) c;
 		c = read();
@@ -672,9 +671,7 @@ public class StreamTokenizer {
 		    d = read();
 		}
 		if (i >= buf.length) {
-		    char nb[] = new char[buf.length * 2];
-		    System.arraycopy(buf, 0, nb, 0, buf.length);
-		    buf = nb;
+                    buf = Arrays.copyOf(buf, buf.length * 2);
 		}
 		buf[i++] = (char)c;
 	    }

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicAttributes.java	1.12 04/05/05
+ * @(#)BasicAttributes.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import javax.naming.NamingEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.12 04/05/05
+  * @version 1.13 05/11/17
   *
   * @see DirContext#getAttributes
   * @see DirContext#modifyAttributes

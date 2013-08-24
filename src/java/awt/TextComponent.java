@@ -1,7 +1,7 @@
 /*
- * @(#)TextComponent.java	1.83 04/05/05
+ * @(#)TextComponent.java	1.90 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -35,7 +35,7 @@ import java.awt.im.InputMethodRequests;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.83, 05/05/04
+ * @version	1.90, 07/11/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -140,6 +140,18 @@ public class TextComponent extends Component implements Accessible {
         }
     }
 
+    /**
+     * Enables or disables input method support for this text component. If input
+     * method support is enabled and the text component also processes key events,
+     * incoming events are offered to the current input method and will only be 
+     * processed by the component or dispatched to its listeners if the input method 
+     * does not consume them. Whether and how input method support for this text 
+     * component is enabled or disabled by default is implementation dependent.
+     *
+     * @param enable true to enable, false to disable
+     * @see #processKeyEvent
+     * @since 1.2
+     */
     public void enableInputMethods(boolean enable) {
         checkForEnableIM = false;
         super.enableInputMethods(enable);
@@ -508,7 +520,11 @@ public class TextComponent extends Component implements Accessible {
 	} else {
 	    position = selectionStart;
 	}
-	return position;
+        int maxposition = getText().length();
+        if (position > maxposition) {
+            position = maxposition;
+        }
+        return position;
     }
 
     /**
@@ -516,6 +532,8 @@ public class TextComponent extends Component implements Accessible {
      * from this text component.
      * If <code>l</code> is <code>null</code>, no exception is 
      * thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param l the text event listener
      * @see           	#removeTextListener
@@ -535,6 +553,8 @@ public class TextComponent extends Component implements Accessible {
      * receives text events from this text component
      * If <code>l</code> is <code>null</code>, no exception is 
      * thrown and no action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param         	l     the text listener
      * @see           	#addTextListener
@@ -757,8 +777,8 @@ public class TextComponent extends Component implements Accessible {
      * @exception HeadlessException if
      * <code>GraphicsEnvironment.isHeadless()</code> returns
      * <code>true</code>
-     * @see #removeTextListener()
-     * @see #addTextListener()
+     * @see #removeTextListener
+     * @see #addTextListener
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
     private void readObject(ObjectInputStream s)
@@ -831,6 +851,7 @@ public class TextComponent extends Component implements Accessible {
      *
      * @return an AccessibleAWTTextComponent that serves as the 
      *         AccessibleContext of this TextComponent
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -844,6 +865,7 @@ public class TextComponent extends Component implements Accessible {
      * <code>TextComponent</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to text component user-interface 
      * elements.
+     * @since 1.3
      */
     protected class AccessibleAWTTextComponent extends AccessibleAWTComponent 
         implements AccessibleText, TextListener
@@ -865,7 +887,7 @@ public class TextComponent extends Component implements Accessible {
          * TextListener notification of a text value change.
          */
         public void textValueChanged(TextEvent textEvent)  {
-            Integer cpos = new Integer(TextComponent.this.getCaretPosition());
+            Integer cpos = Integer.valueOf(TextComponent.this.getCaretPosition());
             firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, null, cpos);
         }
 

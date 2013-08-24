@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * DASTORE -  Store into double array
  * <PRE>Stack: ..., arrayref, index, value.word1, value.word2 -&gt; ...</PRE>
  *
- * @version $Id: DASTORE.java,v 1.1.1.1 2001/10/29 20:00:09 jvanzyl Exp $
+ * @version $Id: DASTORE.java,v 1.1.2.1 2005/07/31 23:44:53 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class DASTORE extends ArrayInstruction implements StackConsumer {

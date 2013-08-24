@@ -1,7 +1,7 @@
 /*
- * @(#)AudioInputStream.java	1.32 03/12/19
+ * @(#)AudioInputStream.java	1.34 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.io.IOException;
  * @author David Rivas
  * @author Kara Kytle
  * @author Florian Bomers
- * @version 1.32, 03/12/19
+ * @version 1.34, 05/11/17
  *
  * @see AudioSystem
  * @see Clip#open(AudioInputStream) Clip.open(AudioInputStream)
@@ -189,7 +189,7 @@ public class AudioInputStream extends InputStream {
 	    // we have a weird situation if read(byte[]) returns 0!
 	    return -1;
 	}
-    	return temp & 0xFF;
+    	return data[0] & 0xFF;
     }
 
 

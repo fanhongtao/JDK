@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IntegerArray.java,v 1.8 2004/02/16 22:58:24 minchau Exp $
+ * $Id: IntegerArray.java,v 1.2.4.1 2005/09/06 11:44:56 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.util;
@@ -103,9 +103,10 @@ public final class IntegerArray {
     }
 
     /**
-     * Merge two sorted arrays and eliminate duplicates. 
+     * Merge two sorted arrays and eliminate duplicates.
+     * Elements of the other IntegerArray must not be changed. 
      */
-    public void merge(IntegerArray other) {
+    public void merge(final IntegerArray other) {
 	final int newSize = _free + other._free;
 // System.out.println("IntegerArray.merge() begin newSize = " + newSize);
 	int[] newArray = new int[newSize];

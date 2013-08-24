@@ -1,47 +1,44 @@
 /*
- * @(#)ListIterator.java	1.23 03/12/19
+ * @(#)ListIterator.java	1.28 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
 
 /**
- * 
- * An iterator for lists that allows the programmer 
- * to traverse the list in either direction, modify 
- * the list during iteration, and obtain the iterator's 
- * current position in the list. A <TT>ListIterator</TT> 
- * has no current element; its <I>cursor position</I> always 
- * lies between the element that would be returned by a call 
- * to <TT>previous()</TT> and the element that would be 
- * returned by a call to <TT>next()</TT>. In a list of 
- * length <TT>n</TT>, there are <TT>n+1</TT> valid 
- * index values, from <TT>0</TT> to <TT>n</TT>, inclusive. 
+ *
+ * An iterator for lists that allows the programmer
+ * to traverse the list in either direction, modify
+ * the list during iteration, and obtain the iterator's
+ * current position in the list. A <TT>ListIterator</TT>
+ * has no current element; its <I>cursor position</I> always
+ * lies between the element that would be returned by a call
+ * to <TT>previous()</TT> and the element that would be
+ * returned by a call to <TT>next()</TT>.
+ * An iterator for a list of length <tt>n</tt> has <tt>n+1</tt> possible
+ * cursor positions, as illustrated by the carets (<tt>^</tt>) below:
  * <PRE>
- *
- *          Element(0)   Element(1)   Element(2)   ... Element(n)   
- *        ^            ^            ^            ^               ^
- * Index: 0            1            2            3               n+1
- *
+ *                      Element(0)   Element(1)   Element(2)   ... Element(n-1)
+ * cursor positions:  ^            ^            ^            ^                  ^
  * </PRE>
- * <P>
  * Note that the {@link #remove} and {@link #set(Object)} methods are
  * <i>not</i> defined in terms of the cursor position;  they are defined to
  * operate on the last element returned by a call to {@link #next} or {@link
  * #previous()}.
  * <P>
- * This interface is a member of the 
- * <a href="{@docRoot}/../guide/collections/index.html">
+ * This interface is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.23, 12/19/03
+ * @version 1.28, 04/21/06
  * @see Collection
  * @see List
  * @see Iterator
  * @see Enumeration
+ * @see List#listIterator()
  * @since   1.2
  */
 public interface ListIterator<E> extends Iterator<E> {
@@ -89,7 +86,7 @@ public interface ListIterator<E> extends Iterator<E> {
      * element repeatedly.)
      *
      * @return the previous element in the list.
-     * 
+     *
      * @exception NoSuchElementException if the iteration has no previous
      *            element.
      */
@@ -102,7 +99,7 @@ public interface ListIterator<E> extends Iterator<E> {
      *
      * @return the index of the element that would be returned by a subsequent
      * 	       call to <tt>next</tt>, or list size if list iterator is at end
-     *	       of list. 
+     *	       of list.
      */
     int nextIndex();
 
@@ -114,12 +111,12 @@ public interface ListIterator<E> extends Iterator<E> {
      * @return the index of the element that would be returned by a subsequent
      * 	       call to <tt>previous</tt>, or -1 if list iterator is at
      *	       beginning of list.
-     */ 
+     */
     int previousIndex();
 
 
     // Modification Operations
-    
+
     /**
      * Removes from the list the last element that was returned by
      * <tt>next</tt> or <tt>previous</tt> (optional operation).  This call can
@@ -128,11 +125,11 @@ public interface ListIterator<E> extends Iterator<E> {
      * the last call to <tt>next</tt> or <tt>previous</tt>.
      *
      * @exception UnsupportedOperationException if the <tt>remove</tt>
-     * 		  operation is not supported by this list iterator.
+     *            operation is not supported by this list iterator.
      * @exception IllegalStateException neither <tt>next</tt> nor
-     *		  <tt>previous</tt> have been called, or <tt>remove</tt> or
-     *		  <tt>add</tt> have been called after the last call to *
-     *		  <tt>next</tt> or <tt>previous</tt>.
+     *            <tt>previous</tt> have been called, or <tt>remove</tt> or
+     *            <tt>add</tt> have been called after the last call to
+     *            <tt>next</tt> or <tt>previous</tt>.
      */
     void remove();
 
@@ -143,7 +140,7 @@ public interface ListIterator<E> extends Iterator<E> {
      * <tt>ListIterator.add</tt> have been called after the last call to
      * <tt>next</tt> or <tt>previous</tt>.
      *
-     * @param o the element with which to replace the last element returned by
+     * @param e the element with which to replace the last element returned by
      *          <tt>next</tt> or <tt>previous</tt>.
      * @exception UnsupportedOperationException if the <tt>set</tt> operation
      * 		  is not supported by this list iterator.
@@ -156,7 +153,7 @@ public interface ListIterator<E> extends Iterator<E> {
      *		  <tt>add</tt> have been called after the last call to
      * 		  <tt>next</tt> or <tt>previous</tt>.
      */
-    void set(E o);
+    void set(E e);
 
     /**
      * Inserts the specified element into the list (optional operation).  The
@@ -170,15 +167,15 @@ public interface ListIterator<E> extends Iterator<E> {
      * by one the value that would be returned by a call to <tt>nextIndex</tt>
      * or <tt>previousIndex</tt>.)
      *
-     * @param o the element to insert.
+     * @param e the element to insert.
      * @exception UnsupportedOperationException if the <tt>add</tt> method is
      * 		  not supported by this list iterator.
-     * 
+     *
      * @exception ClassCastException if the class of the specified element
      * 		  prevents it from being added to this list.
-     * 
+     *
      * @exception IllegalArgumentException if some aspect of this element
      *            prevents it from being added to this list.
      */
-    void add(E o);
+    void add(E e);
 }

@@ -58,7 +58,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * DUP2 - Duplicate two top operand stack words
  * <PRE>Stack: ..., word2, word1 -&gt; ..., word2, word1, word2, word1</PRE>
  *
- * @version $Id: DUP2.java,v 1.1.1.1 2001/10/29 20:00:10 jvanzyl Exp $
+ * @version $Id: DUP2.java,v 1.1.2.1 2005/07/31 23:45:11 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class DUP2 extends StackInstruction implements PushInstruction {

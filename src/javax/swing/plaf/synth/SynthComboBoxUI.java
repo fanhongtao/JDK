@@ -1,7 +1,7 @@
 /*
- * @(#)SynthComboBoxUI.java	1.15 03/12/19
+ * @(#)SynthComboBoxUI.java	1.17 06/03/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's ComboBoxUI.
  *
- * @version 1.15, 12/19/03
+ * @version 1.17, 03/16/06
  * @author Scott Violet
  */
 class SynthComboBoxUI extends BasicComboBoxUI implements
@@ -227,7 +227,7 @@ class SynthComboBoxUI extends BasicComboBoxUI implements
                     SynthLookAndFeel.setSelectedUI(
                          (SynthLabelUI)SynthLookAndFeel.getUIOfType(getUI(),
                          SynthLabelUI.class), isSelected, cellHasFocus,
-                         list.isEnabled());
+                         list.isEnabled(), false);
                 }
             }
             else {

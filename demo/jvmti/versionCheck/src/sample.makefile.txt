@@ -1,7 +1,7 @@
 #
-# @(#)sample.makefile.txt	1.3 04/07/27
+# @(#)sample.makefile.txt	1.7 05/11/17
 # 
-# Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -39,30 +39,30 @@
 # Sample GNU Makefile for building JVMTI Demo versionCheck
 #
 #  Example uses:    
-#       gnumake J2SDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparc]
-#       gnumake J2SDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparcv9]
-#       gnumake J2SDK=<java_home> OSNAME=linux   [OPT=true]
-#       gnumake J2SDK=<java_home> OSNAME=win32   [OPT=true]
+#       gnumake JDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparc]
+#       gnumake JDK=<java_home> OSNAME=solaris [OPT=true] [LIBARCH=sparcv9]
+#       gnumake JDK=<java_home> OSNAME=linux   [OPT=true]
+#       gnumake JDK=<java_home> OSNAME=win32   [OPT=true]
 #
 ########################################################################
 
 # Source lists
 LIBNAME=versionCheck
-SOURCES=versionCheck.c
+SOURCES=versionCheck.c ../agent_util/agent_util.c
 
 # Solaris Sun C Compiler Version 5.5
 ifeq ($(OSNAME), solaris)
     # Sun Solaris Compiler options needed
-    COMMON_FLAGS=-mt -xregs=no%appl -KPIC
+    COMMON_FLAGS=-mt -KPIC
     # Options that help find errors
     COMMON_FLAGS+= -Xa -v -xstrconst -xc99=%none
     # Check LIBARCH for any special compiler options
     LIBARCH=$(shell uname -p)
     ifeq ($(LIBARCH), sparc)
-        COMMON_FLAGS+=-xarch=v8
+        COMMON_FLAGS+=-xarch=v8 -xregs=no%appl
     endif
     ifeq ($(LIBARCH), sparcv9)
-        COMMON_FLAGS+=-xarch=v9
+        COMMON_FLAGS+=-xarch=v9 -xregs=no%appl
     endif
     ifeq ($(OPT), true)
         CFLAGS=-xO2 $(COMMON_FLAGS) 
@@ -106,7 +106,7 @@ endif
 ifeq ($(OSNAME), win32)
     CC=cl
     # Compiler options needed to build it
-    COMMON_FLAGS=-Gy
+    COMMON_FLAGS=-Gy -DWIN32
     # Options that help find errors
     COMMON_FLAGS+=-W0 -WX
     ifeq ($(OPT), true)
@@ -127,7 +127,8 @@ endif
 
 # Common -I options
 CFLAGS += -I.
-CFLAGS += -I$(J2SDK)/include -I$(J2SDK)/include/$(OSNAME)
+CFLAGS += -I../agent_util
+CFLAGS += -I$(JDK)/include -I$(JDK)/include/$(OSNAME)
 
 # Default rule
 all: $(LIBRARY)
@@ -142,7 +143,7 @@ clean:
 
 # Simple tester
 test: all
-	LD_LIBRARY_PATH=`pwd` $(J2SDK)/bin/java -agentlib:$(LIBNAME) -version
+	LD_LIBRARY_PATH=`pwd` $(JDK)/bin/java -agentlib:$(LIBNAME) -version
 
 # Compilation rule only needed on Windows
 ifeq ($(OSNAME), win32)

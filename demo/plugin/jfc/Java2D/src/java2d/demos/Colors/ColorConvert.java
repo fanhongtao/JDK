@@ -1,7 +1,7 @@
 /*
- * @(#)ColorConvert.java	1.36 04/07/26
+ * @(#)ColorConvert.java	1.38 06/08/09
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ColorConvert.java	1.36 04/07/26
+ * @(#)ColorConvert.java	1.38 06/08/09
  */
 
 package java2d.demos.Colors;
@@ -49,6 +49,8 @@ import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import java2d.Surface;
 
+import static java.awt.Color.*;
+
 
 /**
  * ColorConvertOp a ColorSpace.TYPE_RGB BufferedImage to a ColorSpace.CS_GRAY 
@@ -57,12 +59,12 @@ import java2d.Surface;
 public class ColorConvert extends Surface {
 
     private static Image img;
-    private static Color colors[] = { Color.red, Color.pink, Color.orange, 
-            Color.yellow, Color.green, Color.magenta, Color.cyan, Color.blue};
+    private static Color colors[] = { red, pink, orange, 
+            yellow, green, magenta, cyan, blue};
 
 
     public ColorConvert() {
-        setBackground(Color.white);
+        setBackground(white);
         img = getImage("clouds.jpg");
     }
 
@@ -73,7 +75,7 @@ public class ColorConvert extends Surface {
         int ih = img.getHeight(this);
         FontRenderContext frc = g2.getFontRenderContext();
         Font font = g2.getFont();
-        g2.setColor(Color.black);
+        g2.setColor(black);
         TextLayout tl = new TextLayout("ColorConvertOp RGB->GRAY", font, frc);
         tl.draw(g2, (float) (w/2-tl.getBounds().getWidth()/2), 
                             tl.getAscent()+tl.getLeading());
@@ -98,7 +100,7 @@ public class ColorConvert extends Surface {
             Shape shape = tl.getOutline(null);
             srcG.setColor(colors[i%colors.length]);
             tl.draw(srcG, (float) (iw/2-tlb.getWidth()/2+charWidth), 
-                        (float) (ih/2+tlb.getHeight()/2));
+                          (float) (ih/2+tlb.getHeight()/2));
             charWidth += (float) shape.getBounds().getWidth();
             srcG.fillRect(i*rw, ih-rh, rw, rh);
             srcG.setColor(colors[colors.length-1-i%colors.length]);
@@ -112,7 +114,7 @@ public class ColorConvert extends Surface {
                 new BufferedImage(iw, ih, BufferedImage.TYPE_INT_RGB);
         theOp.filter(srcImg, dstImg);
 
-        g2.drawImage(srcImg, 10, 20, w/2-20, h-30, null);
+        g2.drawImage(srcImg,     10, 20, w/2-20, h-30, null);
         g2.drawImage(dstImg, w/2+10, 20, w/2-20, h-30, null);
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)JToggleButton.java	1.59 03/12/19
+ * @(#)JToggleButton.java	1.62 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -27,6 +27,20 @@ import java.io.IOException;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>,
  * a section in <em>The Java Tutorial</em>.
  * <p>
+ * Buttons can be configured, and to some degree controlled, by 
+ * <code><a href="Action.html">Action</a></code>s.  Using an
+ * <code>Action</code> with a button has many benefits beyond directly
+ * configuring a button.  Refer to <a href="Action.html#buttonActions">
+ * Swing Components Supporting <code>Action</code></a> for more
+ * details, and you can find more information in <a
+ * href="http://java.sun.com/docs/books/tutorial/uiswing/misc/action.html">How
+ * to Use Actions</a>, a section in <em>The Java Tutorial</em>.
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -42,7 +56,7 @@ import java.io.IOException;
  * 
  * @see JRadioButton
  * @see JCheckBox
- * @version 1.59 12/19/03
+ * @version 1.62 08/08/06
  * @author Jeff Dinkins
  */
 public class JToggleButton extends AbstractButton implements Accessible {
@@ -168,6 +182,14 @@ public class JToggleButton extends AbstractButton implements Accessible {
         return uiClassID;
     }
 
+
+    /**
+     * Overriden to return true, JToggleButton supports
+     * the selected state.
+     */
+    boolean shouldUpdateSelectedStateFromAction() {
+        return true;
+    }
 
     // *********************************************************************
 

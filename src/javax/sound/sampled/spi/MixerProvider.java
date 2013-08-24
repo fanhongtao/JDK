@@ -1,7 +1,7 @@
 /*
- * @(#)MixerProvider.java	1.18 03/12/19
+ * @(#)MixerProvider.java	1.19 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import javax.sound.sampled.Mixer;
  * how resources are managed in creation / management of
  * a mixer.
  *
- * @version 1.18 03/12/19
+ * @version 1.19 05/11/17
  * @author Kara Kytle
  * @since 1.3
  */

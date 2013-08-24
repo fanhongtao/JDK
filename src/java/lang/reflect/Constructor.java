@@ -1,7 +1,7 @@
 /*
- * @(#)Constructor.java	1.49 04/05/04
+ * @(#)Constructor.java	1.56 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,8 @@ import sun.reflect.generics.scope.ConstructorScope;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 import sun.reflect.annotation.AnnotationParser;
-
+import java.lang.annotation.AnnotationFormatError;
+import java.lang.reflect.Modifier;
 
 /**
  * <code>Constructor</code> provides information about, and access to, a single
@@ -27,6 +28,8 @@ import sun.reflect.annotation.AnnotationParser;
  * constructor's formal parameters, but throws an
  * <code>IllegalArgumentException</code> if a narrowing conversion would occur.
  *
+ * @param <T> the class in which the constructor is declared
+ * 
  * @see Member
  * @see java.lang.Class
  * @see java.lang.Class#getConstructors()
@@ -53,6 +56,17 @@ public final
     private byte[]              annotations;
     private byte[]              parameterAnnotations;
 
+    // For non-public members or members in package-private classes,
+    // it is necessary to perform somewhat expensive security checks.
+    // If the security check succeeds for a given class, it will
+    // always succeed (it is not affected by the granting or revoking
+    // of permissions); we speed up the check in the common case by
+    // remembering the last Class for which the check succeeded.
+    private volatile Class securityCheckCache;
+
+    // Modifiers that can be applied to a constructor in source code
+    private static final int LANGUAGE_MODIFIERS = 
+	Modifier.PUBLIC		| Modifier.PROTECTED	| Modifier.PRIVATE;
 
     // Generics infrastructure
     // Accessor for factory
@@ -327,7 +341,7 @@ public final
     public String toString() {
 	try {
 	    StringBuffer sb = new StringBuffer();
-	    int mod = getModifiers();
+	    int mod = getModifiers() & LANGUAGE_MODIFIERS;
 	    if (mod != 0) {
 		sb.append(Modifier.toString(mod) + " ");
 	    }
@@ -385,7 +399,7 @@ public final
     public String toGenericString() {
 	try {
 	    StringBuilder sb = new StringBuilder();
-	    int mod = getModifiers();
+	    int mod = getModifiers() & LANGUAGE_MODIFIERS;
 	    if (mod != 0) {
 		sb.append(Modifier.toString(mod) + " ");
 	    }
@@ -442,6 +456,11 @@ public final
      *
      * <p>If the number of formal parameters required by the underlying constructor
      * is 0, the supplied <code>initargs</code> array may be of length 0 or null.
+     *
+     * <p>If the constructor's declaring class is an inner class in a
+     * non-static context, the first argument to the constructor needs
+     * to be the enclosing instance; see <i>The Java Language
+     * Specification</i>, section 15.9.3.
      *
      * <p>If the required access and argument checks succeed and the
      * instantiation will proceed, the constructor's declaring class
@@ -570,6 +589,10 @@ public final
         return parameterAnnotations;
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
+     */
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
         if (annotationClass == null)
             throw new NullPointerException();
@@ -579,6 +602,9 @@ public final
 
     private static final Annotation[] EMPTY_ANNOTATION_ARRAY=new Annotation[0];
 
+    /**
+     * @since 1.5
+     */
     public Annotation[] getDeclaredAnnotations()  {
         return declaredAnnotations().values().toArray(EMPTY_ANNOTATION_ARRAY);
     }
@@ -598,7 +624,7 @@ public final
     /**
      * Returns an array of arrays that represent the annotations on the formal
      * parameters, in declaration order, of the method represented by
-     * this <tt>Method</tt> object. (Returns an array of length zero if the
+     * this <tt>Constructor</tt> object. (Returns an array of length zero if the
      * underlying method is parameterless.  If the method has one or more
      * parameters, a nested array of length zero is returned for each parameter
      * with no annotations.) The annotation objects contained in the returned
@@ -608,7 +634,7 @@ public final
      *
      * @return an array of arrays that represent the annotations on the formal
      *    parameters, in declaration order, of the method represented by this
-     *    Method object
+     *    Constructor object
      * @since 1.5
      */
     public Annotation[][] getParameterAnnotations() {
@@ -621,9 +647,24 @@ public final
             sun.misc.SharedSecrets.getJavaLangAccess().
                 getConstantPool(getDeclaringClass()),
             getDeclaringClass());
-        if (result.length != numParameters)
-            throw new java.lang.annotation.AnnotationFormatError(
-                "Parameter annotations don't match number of parameters");
+        if (result.length != numParameters) {
+	    Class<?> declaringClass = getDeclaringClass();
+	    if (declaringClass.isEnum() || 
+		declaringClass.isAnonymousClass() || 
+		declaringClass.isLocalClass() )
+		; // Can't do reliable parameter counting
+	    else { 
+		if (!declaringClass.isMemberClass() || // top-level 
+		    // Check for the enclosing instance parameter for
+		    // non-static member classes
+		    (declaringClass.isMemberClass() && 
+		     ((declaringClass.getModifiers() & Modifier.STATIC) == 0)  && 
+		     result.length + 1 != numParameters) ) {
+		    throw new AnnotationFormatError(
+			      "Parameter annotations don't match number of parameters");
+		}
+	    }
+	}
         return result;
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)MLet.java	1.84 04/03/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)MLet.java	1.92 06/06/15
+ *
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,14 +25,14 @@ import java.net.URLStreamHandlerFactory;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.management.ServiceNotFoundException;
 import javax.management.ObjectInstance;
@@ -53,15 +53,17 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
 import com.sun.jmx.defaults.ServiceName;
 import com.sun.jmx.defaults.JmxProperties;
 
+import com.sun.jmx.remote.util.EnvHelp;
+
 import com.sun.jmx.trace.Trace;
 
 
 /**
- * Allows you to instantiate and register one or several MBeans in the MBean server 
- * coming from a remote URL. M-let is a shortcut for management applet. The m-let service does this 
- * by loading an m-let text file, which specifies information on the MBeans to be obtained. 
- * The information on each MBean is specified in a single instance of a tag, called the MLET tag. 
- * The location of the m-let text file is specified by a URL. 
+ * Allows you to instantiate and register one or several MBeans in the MBean server
+ * coming from a remote URL. M-let is a shortcut for management applet. The m-let service does this
+ * by loading an m-let text file, which specifies information on the MBeans to be obtained.
+ * The information on each MBean is specified in a single instance of a tag, called the MLET tag.
+ * The location of the m-let text file is specified by a URL.
  * <p>
  * The <CODE>MLET</CODE> tag has the following syntax:
  * <p>
@@ -90,7 +92,7 @@ import com.sun.jmx.trace.Trace;
  * </DD>
  * <DT><CODE>ARCHIVE = &quot;</CODE><VAR>archiveList</VAR><CODE>&quot;</CODE></DT>
  * <DD>
- * This mandatory attribute specifies one or more <CODE>.jar</CODE> files 
+ * This mandatory attribute specifies one or more <CODE>.jar</CODE> files
  * containing MBeans or other resources used by
  * the MBean to be obtained. One of the <CODE>.jar</CODE> files must contain the file specified by the <CODE>CODE</CODE> or <CODE>OBJECT</CODE> attribute.
  * If archivelist contains more than one file:
@@ -109,24 +111,23 @@ import com.sun.jmx.trace.Trace;
  * <DT><CODE>NAME = </CODE><VAR>mbeanname</VAR></DT>
  * <DD>
  * This optional attribute specifies the object name to be assigned to the
- * MBean instance when the m-let service registers it. If 
- * <VAR>mbeanname</VAR> starts with the colon character (:), the domain 
- * part of the object name is the domain of the agent. The m-let service 
- * invokes the <CODE>getDomain()</CODE> method of the Framework class to 
- * obtain this information.
+ * MBean instance when the m-let service registers it. If
+ * <VAR>mbeanname</VAR> starts with the colon character (:), the domain
+ * part of the object name is the default domain of the MBean server,
+ * as returned by {@link javax.management.MBeanServer#getDefaultDomain()}.
  * </DD>
  * <DT><CODE>VERSION = </CODE><VAR>version</VAR></DT>
  * <DD>
- * This optional attribute specifies the version number of the MBean and 
- * associated <CODE>.jar</CODE> files to be obtained. This version number can 
- * be used to specify that the <CODE>.jar</CODE> files are loaded from the 
+ * This optional attribute specifies the version number of the MBean and
+ * associated <CODE>.jar</CODE> files to be obtained. This version number can
+ * be used to specify that the <CODE>.jar</CODE> files are loaded from the
  * server to update those stored locally in the cache the next time the m-let
- * text file is loaded. <VAR>version</VAR> must be a series of non-negative 
+ * text file is loaded. <VAR>version</VAR> must be a series of non-negative
  * decimal integers each separated by a period from the one that precedes it.
  * </DD>
  * <DT><VAR>arglist</VAR></DT>
  * <DD>
- * This optional attribute specifies a list of one or more parameters for the 
+ * This optional attribute specifies a list of one or more parameters for the
  * MBean to be instantiated. This list describes the parameters to be passed the MBean's constructor.
  * Use the following syntax to specify each item in
  * <VAR>arglist</VAR>:</DD>
@@ -142,17 +143,17 @@ import com.sun.jmx.trace.Trace;
  * (<CODE>java.lang.Boolean, java.lang.Byte, java.lang.Short, java.lang.Long, java.lang.Integer, java.lang.Float, java.lang.Double, java.lang.String</CODE>).
  * </DL>
  *
- * When an m-let text file is loaded, an 
+ * When an m-let text file is loaded, an
  * instance of each MBean specified in the file is created and registered.
  * <P>
- * The m-let Service extends the <CODE>java.net.URLClassLoader</CODE> and can be used to load remote classes
+ * The m-let service extends the <CODE>java.net.URLClassLoader</CODE> and can be used to load remote classes
  * and jar files in the VM of the agent.
  * <p><STRONG>Note - </STRONG> The <CODE>MLet</CODE> class loader uses the {@link javax.management.MBeanServerFactory#getClassLoaderRepository(javax.management.MBeanServer)}
  * to load classes that could not be found in the loaded jar files.
  *
  * @since 1.5
  */
-public class MLet extends java.net.URLClassLoader 
+public class MLet extends java.net.URLClassLoader
      implements MLetMBean, MBeanRegistration, Externalizable {
 
      private static final long serialVersionUID = 3636148327800330130L;
@@ -161,35 +162,35 @@ public class MLet extends java.net.URLClassLoader
      * ------------------------------------------
      *   PRIVATE VARIABLES
      * ------------------------------------------
-     */  
-     
+     */
+
      /**
       * The reference to the MBean server.
       * @serial
       */
      private MBeanServer server = null;
 
-     
+
      /**
-      * The list of instances of the <CODE>MLetContant</CODE> 
+      * The list of instances of the <CODE>MLetContent</CODE>
       * class found at the specified URL.
       * @serial
       */
-     private Vector mletList = new Vector();
-     
-   
+     private List<MLetContent> mletList = new ArrayList<MLetContent>();
+
+
      /**
       * The directory used for storing libraries locally before they are loaded.
       */
      private String libraryDirectory;
-     
-     
+
+
      /**
       * The object name of the MLet Service.
       * @serial
       */
      private ObjectName mletObjectName = null;
-     
+
      /**
       * The URLs of the MLet Service.
       * @serial
@@ -216,7 +217,8 @@ public class MLet extends java.net.URLClassLoader
      /**
       * objects maps from primitive classes to primitive object classes.
       */
-     private  Hashtable primitiveClasses = new Hashtable(8) ;
+     private Map<String,Class<?>> primitiveClasses =
+	 new HashMap<String,Class<?>>(8) ;
      {
 	 primitiveClasses.put(Boolean.TYPE.toString(), Boolean.class);
 	 primitiveClasses.put(Character.TYPE.toString(), Character.class);
@@ -226,9 +228,9 @@ public class MLet extends java.net.URLClassLoader
 	 primitiveClasses.put(Long.TYPE.toString(), Long.class);
 	 primitiveClasses.put(Float.TYPE.toString(), Float.class);
 	 primitiveClasses.put(Double.TYPE.toString(), Double.class);
-	
+
      }
- 
+
 
      /*
       * ------------------------------------------
@@ -244,10 +246,10 @@ public class MLet extends java.net.URLClassLoader
       * it doesn't, which prevents us from having all the constructors
       * but one call this(...args...).
       */
-     
+
      /**
       * Constructs a new MLet using the default delegation parent ClassLoader.
-      */     
+      */
      public MLet() {
 	 this(new URL[0]);
      }
@@ -260,11 +262,11 @@ public class MLet extends java.net.URLClassLoader
       *
       * @param  urls  The URLs from which to load classes and resources.
       *
-      */     
+      */
      public MLet(URL[] urls) {
 	 this(urls, true);
      }
-     
+
      /**
       * Constructs a new MLet for the given URLs. The URLs will be
       * searched in the order specified for classes and resources
@@ -275,11 +277,11 @@ public class MLet extends java.net.URLClassLoader
       * @param  urls  The URLs from which to load classes and resources.
       * @param  parent The parent class loader for delegation.
       *
-      */     
+      */
      public MLet(URL[] urls, ClassLoader parent) {
 	 this(urls, parent, true);
      }
-   
+
      /**
       * Constructs a new MLet for the specified URLs, parent class
       * loader, and URLStreamHandlerFactory. The parent argument will
@@ -291,7 +293,7 @@ public class MLet extends java.net.URLClassLoader
       * @param  parent The parent class loader for delegation.
       * @param  factory  The URLStreamHandlerFactory to use when creating URLs.
       *
-      */     
+      */
      public MLet(URL[] urls,
 		 ClassLoader parent,
 		 URLStreamHandlerFactory factory) {
@@ -310,7 +312,7 @@ public class MLet extends java.net.URLClassLoader
       * to its containing MBeanServer's {@link ClassLoaderRepository}.
       *
       * @since.unbundled JMX 1.2
-      */     
+      */
      public MLet(URL[] urls, boolean delegateToCLR) {
 	 super(urls);
 	 init(delegateToCLR);
@@ -330,7 +332,7 @@ public class MLet extends java.net.URLClassLoader
       * to its containing MBeanServer's {@link ClassLoaderRepository}.
       *
       * @since.unbundled JMX 1.2
-      */     
+      */
      public MLet(URL[] urls, ClassLoader parent, boolean delegateToCLR) {
 	 super(urls, parent);
 	 init(delegateToCLR);
@@ -351,7 +353,7 @@ public class MLet extends java.net.URLClassLoader
       * to its containing MBeanServer's {@link ClassLoaderRepository}.
       *
       * @since.unbundled JMX 1.2
-      */     
+      */
      public MLet(URL[] urls,
 		 ClassLoader parent,
 		 URLStreamHandlerFactory factory,
@@ -375,14 +377,14 @@ public class MLet extends java.net.URLClassLoader
 	 }
      }
 
-     
+
      /*
       * ------------------------------------------
       *  PUBLIC METHODS
       * ------------------------------------------
       */
-     
-     
+
+
      /**
       * Appends the specified URL to the list of URLs to search for classes and
       * resources.
@@ -403,14 +405,14 @@ public class MLet extends java.net.URLClassLoader
 	     if (!Arrays.asList(getURLs()).contains(ur))
 		 super.addURL(ur);
 	 } catch (MalformedURLException e) {
-	     debug("addURL", url + ": Malformed URL. " + e); 
-	     throw new 
+	     debug("addURL", url + ": Malformed URL. " + e);
+	     throw new
 		 ServiceNotFoundException("The specified URL is malformed");
 	 }
      }
-      
-     /** Returns the search path of URLs for loading classes and resources. 
-      * This includes the original list of URLs specified to the constructor, 
+
+     /** Returns the search path of URLs for loading classes and resources.
+      * This includes the original list of URLs specified to the constructor,
       * along with any URLs subsequently appended by the addURL() method.
       */
      public URL[] getURLs() {
@@ -419,66 +421,74 @@ public class MLet extends java.net.URLClassLoader
 
      /**
       * Loads a text file containing MLET tags that define the MBeans to
-      * be added to the agent. The location of the text file is specified by
+      * be added to the MBean server. The location of the text file is specified by
       * a URL. The MBeans specified in the MLET file will be instantiated and
-      * registered by the MBean server.
+      * registered in the MBean server.
       *
       * @param url The URL of the text file to be loaded as URL object.
       *
       * @return  A set containing one entry per MLET tag in the m-let text file loaded.
       * Each entry specifies either the ObjectInstance for the created MBean, or a throwable object
       * (that is, an error or an exception) if the MBean could not be created.
-      *       
+      *
       * @exception ServiceNotFoundException One of the following errors has occurred: The m-let text file does
       * not contain an MLET tag, the m-let text file is not found, a mandatory
       * attribute of the MLET tag is not specified, the value of url is
       * null.
       * @exception IllegalStateException MLet MBean is not registered with an MBeanServer.
-      */      
-     public Set getMBeansFromURL(URL url) throws ServiceNotFoundException  { 
+      */
+     public Set<Object> getMBeansFromURL(URL url)
+	     throws ServiceNotFoundException  {
 	 if (url == null) {
 	     throw new ServiceNotFoundException("The specified URL is null");
 	 }
 	 return getMBeansFromURL(url.toString());
-     } 
+     }
 
      /**
       * Loads a text file containing MLET tags that define the MBeans to
-      * be added to the agent. The location of the text file is specified by
+      * be added to the MBean server. The location of the text file is specified by
       * a URL. The MBeans specified in the MLET file will be instantiated and
-      * registered by the MBean server.
+      * registered in the MBean server.
       *
       * @param url The URL of the text file to be loaded as String object.
       *
-      * @return  A set containing one entry per MLET tag in the m-let text file loaded.
-      * Each entry specifies either the ObjectInstance for the created MBean, or a throwable object
-      * (that is, an error or an exception) if the MBean could not be created.
-      *       
-      * @exception ServiceNotFoundException One of the following errors has occurred: The m-let text file does
-      * not contain an MLET tag, the m-let text file is not found, a mandatory
-      * attribute of the MLET tag is not specified, the url is malformed.
-      * @exception IllegalStateException MLet MBean is not registered with an MBeanServer.
+      * @return A set containing one entry per MLET tag in the m-let
+      * text file loaded.  Each entry specifies either the
+      * ObjectInstance for the created MBean, or a throwable object
+      * (that is, an error or an exception) if the MBean could not be
+      * created.
       *
-      */     
-     public Set getMBeansFromURL(String url) throws ServiceNotFoundException  {
-	 
+      * @exception ServiceNotFoundException One of the following
+      * errors has occurred: The m-let text file does not contain an
+      * MLET tag, the m-let text file is not found, a mandatory
+      * attribute of the MLET tag is not specified, the url is
+      * malformed.
+      * @exception IllegalStateException MLet MBean is not registered
+      * with an MBeanServer.
+      *
+      */
+     public Set<Object> getMBeansFromURL(String url)
+	     throws ServiceNotFoundException  {
+
 	 String mth = "getMBeansFromURL";
 
 	 if (server == null) {
-	     throw new IllegalStateException("This MLet MBean is not registered with an MBeanServer.");
+	     throw new IllegalStateException("This MLet MBean is not " +
+					     "registered with an MBeanServer.");
 	 }
-	 // Parse arguments     
+	 // Parse arguments
 	 if (url == null) {
 	     if (isTraceOn()) {
 		 trace(mth, "URL is null");
-	     }  
+	     }
 	     throw new ServiceNotFoundException("The specified URL is null");
 	 } else {
 	     url = url.replace(File.separatorChar,'/');
 	 }
 	 if (isTraceOn()) {
 	     trace(mth, "<URL = " + url + ">");
-	 }       
+	 }
 
 	 // Parse URL
 	 try {
@@ -491,39 +501,23 @@ public class MLet extends java.net.URLClassLoader
 	     if (isTraceOn()) {
 		 trace(mth, msg);
 	     }
-	     ServiceNotFoundException snfe = new ServiceNotFoundException(msg);
-	     /* Make a best effort to set the cause, but if we don't
-		succeed, too bad, you don't get that useful debugging
-		information.  We jump through hoops here so that we can
-		work on platforms prior to J2SE 1.4 where the
-		Throwable.initCause method was introduced.  If we change
-		the public interface of JMRuntimeException in a future
-		version we can add getCause() so we don't need to do this. */
-	     try {
-		 java.lang.reflect.Method initCause =
-		     Throwable.class.getMethod("initCause",
-					       new Class[] {Throwable.class});
-		 initCause.invoke(snfe, new Object[] {e});
-	     } catch (Exception x) {
-		 // OK: just means we won't have debugging info
-	     }
-	     throw snfe;
+	     throw EnvHelp.initCause(new ServiceNotFoundException(msg), e);
 	 }
 
-	 // Check that the list of MLets is not empty     
+	 // Check that the list of MLets is not empty
 	 if (mletList.size() == 0) {
+	     final String msg =
+		 "File " + url + " not found or MLET tag not defined in file";
 	     if (isTraceOn()) {
-		 trace(mth, "File " + url + " not found or MLET tag not defined in file");
-	     }       
-	     throw new ServiceNotFoundException("File " + url + " not found or MLET tag not defined in file");
+		 trace(mth, msg);
+	     }
+	     throw new ServiceNotFoundException(msg);
 	 }
-	 
-	 // Walk through the list of MLets        
-	 HashSet mbeans = new HashSet();
-	 for(Enumeration e = mletList.elements(); e.hasMoreElements(); ) {	 
-	     // Get MLet item from list	 
-	     MLetContent elmt = (MLetContent) e.nextElement();	 
-	     // Initialise local variables            
+
+	 // Walk through the list of MLets
+	 Set<Object> mbeans = new HashSet<Object>();
+	 for (MLetContent elmt : mletList) {
+	     // Initialize local variables
 	     String code = elmt.getCode();
 	     if (code != null) {
 		 if (code.endsWith(".class")) {
@@ -532,15 +526,14 @@ public class MLet extends java.net.URLClassLoader
 	     }
 	     String name = elmt.getName();
 	     URL codebase = elmt.getCodeBase();
-	     String version = elmt.getVersion();    
-	     String serName = elmt.getSerializedObject(); 
-	     String jarFiles = elmt.getJarFiles(); 
+	     String version = elmt.getVersion();
+	     String serName = elmt.getSerializedObject();
+	     String jarFiles = elmt.getJarFiles();
 	     URL documentBase = elmt.getDocumentBase();
-	     Map attributes = elmt.getAttributes();
-	     
+
 	     // Display debug information
 	     if (isTraceOn()) {
-		 trace(mth, "MLET TAG     = " + attributes.toString());
+		 trace(mth, "MLET TAG     = " + elmt.getAttributes());
 		 trace(mth, "CODEBASE     = " + codebase);
 		 trace(mth, "ARCHIVE      = " + jarFiles);
 		 trace(mth, "CODE         = " + code);
@@ -549,13 +542,14 @@ public class MLet extends java.net.URLClassLoader
 		 trace(mth, "VERSION      = " + version);
 		 trace(mth, "DOCUMENT URL = " + documentBase);
 	     }
-	     
-	     // Load classes from JAR files	    
+
+	     // Load classes from JAR files
 	     StringTokenizer st = new StringTokenizer(jarFiles, ",", false);
 	     while (st.hasMoreTokens()) {
 		 String tok = st.nextToken().trim();
 		 if (isTraceOn()) {
-		     trace(mth, "Load archive for codebase <" + codebase + ">, file <" + tok + ">");
+		     trace(mth, "Load archive for codebase <" + codebase +
+			   ">, file <" + tok + ">");
 		 }
 		 // Check which is the codebase to be used for loading the jar file.
 		 // If we are using the base MLet implementation then it will be
@@ -568,84 +562,91 @@ public class MLet extends java.net.URLClassLoader
 		 } catch (Exception ex) {
 		     if (isDebugOn()) {
 			 debug(mth, "check returned exception: " + ex);
-		     }  
+		     }
 		     mbeans.add(ex);
 		     continue;
 		 }
-		 
-		 // Appends the specified JAR file URL to the list of URLs to search for classes and resources.
+
+		 // Appends the specified JAR file URL to the list of
+		 // URLs to search for classes and resources.
 		 try {
-		     if (!Arrays.asList(getURLs()).contains(new URL(codebase.toString() + tok))) {
+		     if (!Arrays.asList(getURLs())
+			 .contains(new URL(codebase.toString() + tok))) {
 			 addURL(codebase + tok);
-		     }	     
+		     }
 		 } catch (MalformedURLException me) {
-		     // OK : Ignore jar file if its name provokes the URL to be an invalid one.
+		     // OK : Ignore jar file if its name provokes the
+		     // URL to be an invalid one.
 		 }
-		 
+
 	     }
 	     // Instantiate the class specified in the
 	     // CODE or OBJECT section of the MLet tag
 	     //
 	     Object o = null;
 	     ObjectInstance objInst = null;
-	     
+
 	     if (code != null && serName != null) {
+		 final String msg =
+		     "CODE and OBJECT parameters cannot be specified at the " +
+		     "same time in tag MLET";
 		 if (isTraceOn()) {
-		     trace(mth, "CODE and OBJECT parameters cannot be specified at the same time in tag MLET.");
+		     trace(mth, msg);
 		 }
-		 mbeans.add(new Error("CODE and OBJECT parameters cannot be specified at the same time in tag MLET"));
+		 mbeans.add(new Error(msg));
 		 continue;
 	     }
 	     if (code == null && serName == null) {
+		 final String msg =
+		     "Either CODE or OBJECT parameter must be specified in " +
+		     "tag MLET";
 		 if (isTraceOn()) {
-		     trace(mth, "Either CODE or OBJECT parameter must be specified in tag MLET.");
+		     trace(mth, msg);
 		 }
-		 mbeans.add(new Error("Either CODE or OBJECT parameter must be specified in tag MLET"));
+		 mbeans.add(new Error(msg));
 		 continue;
 	     }
 	     try {
 		 if (code != null) {
-		
-		     Vector signat = new Vector();
-		     Vector pars = new Vector();
 
-		     for (Iterator p = attributes.keySet().iterator(); p.hasNext(); ) {	
-			 String param_name = (String) p.next();
-			 if (param_name.equals("types")) {
-			     signat = (Vector)elmt.getParameter(param_name);
-			 }
-			 if (param_name.equals("values")) {
-			     pars = (Vector)elmt.getParameter(param_name);
-			 }			 
-		     }
+		     List<String> signat = elmt.getParameterTypes();
+		     List<String> stringPars = elmt.getParameterValues();
+		     List<Object> objectPars = new ArrayList<Object>();
 
 		     for (int i = 0; i < signat.size(); i++) {
-			 pars.setElementAt(constructParameter((String)pars.elementAt(i), (String)signat.elementAt(i)), i);
-		     }	
+			 objectPars.add(constructParameter(stringPars.get(i),
+							   signat.get(i)));
+		     }
 		     if (signat.isEmpty()) {
 			 if (name == null) {
-			     objInst = server.createMBean(code, null, mletObjectName); 
+			     objInst = server.createMBean(code, null,
+							  mletObjectName);
 			 } else {
-			     objInst = server.createMBean(code, new ObjectName(name), mletObjectName); 
+			     objInst = server.createMBean(code,
+							  new ObjectName(name),
+							  mletObjectName);
 			 }
-		     } else {		     
-			 Object[] parms = pars.toArray();
+		     } else {
+			 Object[] parms = objectPars.toArray();
 			 String[] signature = new String[signat.size()];
-			 for (int i=0;i<signature.length;i++) {
-			     signature[i] = (String) signat.elementAt(i);
-			 }
+			 signat.toArray(signature);
 			 if (isDebugOn()) {
 			     for (int i=0;i<signature.length;i++) {
 				 debug(mth, "Signature     = " + signature[i]);
-				 debug(mth, "Params     = " + parms[i].toString());
+				 debug(mth, "Params     = " + parms[i]);
 			     }
-			 }	
-			 if (name == null) {
-			     objInst = server.createMBean(code, null, mletObjectName, parms, signature); 
-			 } else {
-			     objInst = server.createMBean(code, new ObjectName(name), mletObjectName, parms, signature); 
 			 }
-		     } 		    
+			 if (name == null) {
+			     objInst =
+				 server.createMBean(code, null, mletObjectName,
+						    parms, signature);
+			 } else {
+			     objInst =
+				 server.createMBean(code, new ObjectName(name),
+						    mletObjectName, parms,
+						    signature);
+			 }
+		     }
 		 } else {
 		     o = loadSerializedObject(codebase,serName);
 		     if (name == null) {
@@ -658,16 +659,16 @@ public class MLet extends java.net.URLClassLoader
 	     } catch (ReflectionException  ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "ReflectionException: " + ex.getMessage());
-		 }	
+		 }
 		 mbeans.add(ex);
 		 continue;
 	     } catch (InstanceAlreadyExistsException  ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "InstanceAlreadyExistsException: " + ex.getMessage());
-		 }	
+		 }
 		 mbeans.add(ex);
 		 continue;
-	     } catch (MBeanRegistrationException ex) {      
+	     } catch (MBeanRegistrationException ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "MBeanRegistrationException: " + ex.getMessage());
 		 }
@@ -676,43 +677,43 @@ public class MLet extends java.net.URLClassLoader
 	     } catch (MBeanException  ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "MBeanException: " + ex.getMessage());
-		 }      
+		 }
 		 mbeans.add(ex);
 		 continue;
-	     } catch (NotCompliantMBeanException  ex) {      
+	     } catch (NotCompliantMBeanException  ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "NotCompliantMBeanException: " + ex.getMessage());
-		 }  
+		 }
 		 mbeans.add(ex);
 		 continue;
-	     } catch (InstanceNotFoundException   ex) { 
+	     } catch (InstanceNotFoundException   ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "InstanceNotFoundException: " + ex.getMessage());
-		 }  
+		 }
 		 mbeans.add(ex);
 		 continue;
 	     } catch (IOException ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "IOException: " + ex.getMessage());
-		 }  
+		 }
 		 mbeans.add(ex);
 		 continue;
 	     } catch (SecurityException ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "SecurityException: " + ex.getMessage());
-		 } 
+		 }
 		 mbeans.add(ex);
 		 continue;
 	     } catch (Exception ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "Exception: " + ex.getClass().getName() + ex.getMessage());
-		 } 
+		 }
 		 mbeans.add(ex);
 		 continue;
 	     } catch (Error ex) {
 		 if (isTraceOn()) {
 		     trace(mth, "Error: " + ex.getMessage());
-		 } 
+		 }
 		 mbeans.add(ex);
 		 continue;
 	     }
@@ -720,7 +721,7 @@ public class MLet extends java.net.URLClassLoader
 	 }
 	 return mbeans;
      }
-     
+
      /**
       * Gets the current directory used by the library loader for
       * storing native libraries before they are loaded into memory.
@@ -728,11 +729,14 @@ public class MLet extends java.net.URLClassLoader
       * @return The current directory used by the library loader.
       *
       * @see #setLibraryDirectory
+      *
+      * @throws UnsupportedOperationException if this implementation
+      * does not support storing native libraries in this way.
       */
-     public String getLibraryDirectory() {
+     public synchronized String getLibraryDirectory() {
 	 return libraryDirectory;
      }
-     
+
      /**
       * Sets the directory used by the library loader for storing
       * native libraries before they are loaded into memory.
@@ -740,11 +744,14 @@ public class MLet extends java.net.URLClassLoader
       * @param libdir The directory used by the library loader.
       *
       * @see #getLibraryDirectory
+      *
+      * @throws UnsupportedOperationException if this implementation
+      * does not support storing native libraries in this way.
       */
-     public void setLibraryDirectory(String libdir) {
+     public synchronized void setLibraryDirectory(String libdir) {
 	 libraryDirectory = libdir;
      }
-          
+
      /**
       * Allows the m-let to perform any operations it needs before
       * being registered in the MBean server. If the ObjectName is
@@ -758,12 +765,13 @@ public class MLet extends java.net.URLClassLoader
       *
       * @exception java.lang.Exception This exception should be caught by the MBean server and re-thrown
       *as an MBeanRegistrationException.
-      */    
-     public ObjectName preRegister(MBeanServer server, ObjectName name) throws java.lang.Exception {
-	 
-	 // Initialise local pointer to the MBean server
+      */
+     public ObjectName preRegister(MBeanServer server, ObjectName name)
+	     throws Exception {
+
+	 // Initialize local pointer to the MBean server
 	 setMBeanServer(server);
-	 
+
 	 // If no name is specified return a default name for the MLet
 	 if (name == null) {
 	     name = new ObjectName(server.getDefaultDomain() + ":" + ServiceName.MLET);
@@ -772,30 +780,31 @@ public class MLet extends java.net.URLClassLoader
 	this.mletObjectName = name;
 	return this.mletObjectName;
      }
-     
+
      /**
       * Allows the m-let to perform any operations needed after having been
       * registered in the MBean server or after the registration has failed.
       *
-      * @param registrationDone Indicates whether or not the m-let has been successfully registered in
-      * the MBean server. The value false means that either the registration phase
-      * has failed.
+      * @param registrationDone Indicates whether or not the m-let has
+      * been successfully registered in the MBean server. The value
+      * false means that either the registration phase has failed.
       *
       */
      public void postRegister (Boolean registrationDone) {
      }
-          
+
      /**
       * Allows the m-let to perform any operations it needs before being unregistered
       * by the MBean server.
       *
-      * @exception java.langException  This exception should be caught by the MBean server and re-thrown
-      * as an MBeanRegistrationException.
-      */     
+      * @exception java.langException This exception should be caught
+      * by the MBean server and re-thrown as an
+      * MBeanRegistrationException.
+      */
      public void preDeregister() throws java.lang.Exception {
      }
-     
-     
+
+
      /**
       * Allows the m-let to perform any operations needed after having been
       * unregistered in the MBean server.
@@ -867,23 +876,22 @@ public class MLet extends java.net.URLClassLoader
       *
       * @param name The name of the class we want to load.
       * @param clr  The ClassLoaderRepository that will be used to search
-      *             for the given class, if it is not found in this 
+      *             for the given class, if it is not found in this
       *             ClassLoader.  May be null.
       * @return The resulting Class object.
-      * @exception ClassNotFoundException The specified class could not be 
+      * @exception ClassNotFoundException The specified class could not be
       *            found in this ClassLoader nor in the given
       *            ClassLoaderRepository.
       *
       * @since.unbundled JMX 1.1
       */
-     public synchronized Class loadClass(String name, 
-					 ClassLoaderRepository clr) 
+     public synchronized Class<?> loadClass(String name,
+					    ClassLoaderRepository clr)
 	      throws ClassNotFoundException {
 	 final ClassLoaderRepository before=currentClr;
 	 try {
 	     currentClr = clr;
-	     final Class c = loadClass(name);
-	     return c;
+	     return loadClass(name);
 	 } finally {
 	     currentClr = before;
 	 }
@@ -894,7 +902,7 @@ public class MLet extends java.net.URLClassLoader
       *  PROTECTED METHODS
       * ------------------------------------------
       */
-     
+
      /**
       * This is the main method for class loaders that is being redefined.
       *
@@ -902,10 +910,10 @@ public class MLet extends java.net.URLClassLoader
       *
       * @return The resulting Class object.
       *
-      * @exception ClassNotFoundException The specified class could not be 
+      * @exception ClassNotFoundException The specified class could not be
       *            found.
       */
-     protected Class findClass(String name) throws ClassNotFoundException {
+     protected Class<?> findClass(String name) throws ClassNotFoundException {
 	 /* currentClr is context sensitive - used to avoid recursion
 	    in the class loader repository.  (This is no longer
 	    necessary with the new CLR semantics but is kept for
@@ -919,26 +927,26 @@ public class MLet extends java.net.URLClassLoader
       *
       * @param name The name of the class that we want to load/find.
       * @param clr The ClassLoaderRepository that can be used to search
-      *            for the given class. This parameter is 
+      *            for the given class. This parameter is
       *            <code>null</code> when called from within the
       *            {@link javax.management.MBeanServerFactory#getClassLoaderRepository(javax.management.MBeanServer) Class Loader Repository}.
-      * @exception ClassNotFoundException The specified class could not be 
+      * @exception ClassNotFoundException The specified class could not be
       *            found.
-      *  
+      *
       **/
-     Class findClass(String name, ClassLoaderRepository clr) 
+     Class<?> findClass(String name, ClassLoaderRepository clr)
 	 throws ClassNotFoundException {
-	 Class c = null;
+	 Class<?> c = null;
 	 if (isTraceOn()) {
 	     trace("findClass", name);
-	 }   
+	 }
 	 // Try looking in the JAR:
 	 try {
 	     c = super.findClass(name);
 	     if (isTraceOn()) {
 		 trace("findClass", "Class "+name+
 		       " loaded through mlet classloader");
-	     }     
+	     }
 	 } catch (ClassNotFoundException e) {
 	     // Drop through
 	     debug("findClass", "Class "+name+ " not found locally.");
@@ -948,7 +956,7 @@ public class MLet extends java.net.URLClassLoader
 	     // Try the classloader repository:
 	     //
 	     try {
-		 debug("findClass", "Class "+name+": looking in CLR"); 
+		 debug("findClass", "Class "+name+": looking in CLR");
 		 c = clr.loadClassBefore(this, name);
 		 // The loadClassBefore method never returns null.
 		 // If the class is not found we get an exception.
@@ -969,10 +977,13 @@ public class MLet extends java.net.URLClassLoader
      }
 
      /**
-      * Returns the absolute path name of a native library. The VM invokes this method to locate the native
-      * libraries that belong to classes loaded with this class loader. Libraries are searched in the JAR files
-      * using first just the native library name and if not found the native library name together with the
-      * architecture-specific path name (<code>OSName/OSArch/OSVersion/lib/nativelibname</code>), i.e.
+      * Returns the absolute path name of a native library. The VM
+      * invokes this method to locate the native libraries that belong
+      * to classes loaded with this class loader. Libraries are
+      * searched in the JAR files using first just the native library
+      * name and if not found the native library name together with
+      * the architecture-specific path name
+      * (<code>OSName/OSArch/OSVersion/lib/nativelibname</code>), i.e.
       * <p>
       * the library stat on Solaris SPARC 5.7 will be searched in the JAR file as:
       * <OL>
@@ -984,49 +995,62 @@ public class MLet extends java.net.URLClassLoader
       * <LI>stat.dll
       * <LI>WindowsNT/x86/4.0/lib/stat.dll
       * </OL>
+      *
+      * <p>More specifically, let <em>{@code nativelibname}</em> be the result of
+      * {@link System#mapLibraryName(java.lang.String)
+      * System.mapLibraryName}{@code (libname)}.  Then the following names are
+      * searched in the JAR files, in order:<br>
+      * <em>{@code nativelibname}</em><br>
+      * {@code <os.name>/<os.arch>/<os.version>/lib/}<em>{@code nativelibname}</em><br>
+      * where {@code <X>} means {@code System.getProperty(X)} with any
+      * spaces in the result removed, and {@code /} stands for the
+      * file separator character ({@link File#separator}).
       * <p>
-      * If this method returns <code>null</code>, i.e. the libraries were not found in any of the JAR
-      * files loaded with this class loader, the VM searches the library along the path specified as
-      * the <code>java.library.path</code> property.
+      * If this method returns <code>null</code>, i.e. the libraries
+      * were not found in any of the JAR files loaded with this class
+      * loader, the VM searches the library along the path specified
+      * as the <code>java.library.path</code> property.
       *
       * @param libname The library name.
       *
       * @return The absolute path of the native library.
       */
      protected String findLibrary(String libname) {
-	 
+
 	 String abs_path;
 	 String mth = "findLibrary";
-	 
+
 	 // Get the platform-specific string representing a native library.
 	 //
 	 String nativelibname = System.mapLibraryName(libname);
-	 
+
 	 //
 	 // See if the native library is accessible as a resource through the JAR file.
 	 //
 	 if (isTraceOn()) {
 	     trace(mth, "Search " + libname + " in all JAR files.");
-	 }       
-	 
-	 // First try to locate the library in the JAR file using only the native library name.
-	 // e.g. if user requested a load for "foo" on Solaris SPARC 5.7 we try to load
-	 //      "libfoo.so" from the JAR file.
+	 }
+
+	 // First try to locate the library in the JAR file using only
+	 // the native library name.  e.g. if user requested a load
+	 // for "foo" on Solaris SPARC 5.7 we try to load "libfoo.so"
+	 // from the JAR file.
 	 //
 	 if (isTraceOn()) {
 	     trace(mth, "loadLibraryAsResource(" + nativelibname + ")");
-	 }        
+	 }
 	 abs_path = loadLibraryAsResource(nativelibname);
 	 if (abs_path != null) {
 	     if (isTraceOn()) {
 		 trace(mth, nativelibname + " loaded " + "absolute path = " + abs_path);
-	     }             
+	     }
 	     return abs_path;
 	 }
 
-	 // Next try to locate it using the native library name and the architecture-specific path name.
-	 // e.g. if user requested a load for "foo" on Solaris SPARC 5.7 we try to load
-	 //      "SunOS/sparc/5.7/lib/libfoo.so" from the JAR file.
+	 // Next try to locate it using the native library name and
+	 // the architecture-specific path name.  e.g. if user
+	 // requested a load for "foo" on Solaris SPARC 5.7 we try to
+	 // load "SunOS/sparc/5.7/lib/libfoo.so" from the JAR file.
 	 //
 	 nativelibname = removeSpace(System.getProperty("os.name")) + File.separator +
 	     removeSpace(System.getProperty("os.arch")) + File.separator +
@@ -1034,26 +1058,26 @@ public class MLet extends java.net.URLClassLoader
 	     "lib" + File.separator + nativelibname;
 	 if (isTraceOn()) {
 	     trace(mth, "loadLibraryAsResource(" + nativelibname + ")");
-	 }     
-	 
+	 }
+
 	 abs_path = loadLibraryAsResource(nativelibname);
 	 if (abs_path != null) {
 	     if (isTraceOn()) {
 		 trace(mth, nativelibname + " loaded " + "absolute path = " + abs_path);
-	     }                
+	     }
 	     return abs_path;
 	 }
-	 
+
 	 //
 	 // All paths exhausted, library not found in JAR file.
 	 //
-	 
+
 	 if (isTraceOn()) {
 	     trace(mth, libname + " not found in any JAR file.");
 	     trace(mth, "Search " + libname + " along the path specified as the java.library.path property.");
-	 }     
-	 
-	 
+	 }
+
+
 	 // Let the VM search the library along the path
 	 // specified as the java.library.path property.
 	 //
@@ -1069,7 +1093,7 @@ public class MLet extends java.net.URLClassLoader
 
      private String getTmpDir() {
 	 // JDK 1.4
-	 String tmpDir = (String)System.getProperty("java.io.tmpdir");
+	 String tmpDir = System.getProperty("java.io.tmpdir");
 	 if (tmpDir != null) return tmpDir;
 
 	 // JDK < 1.4
@@ -1086,8 +1110,8 @@ public class MLet extends java.net.URLClassLoader
 	     return null;
 	 } finally {
 	     // Cleanup ...
-	     if (tmpFile!=null) try { 
-		 tmpFile.delete(); 
+	     if (tmpFile!=null) try {
+		 tmpFile.delete();
 	     } catch (Exception x) {
 		 debug("getTmpDir","Failed to delete temporary file: " + x.getMessage());
 	 }
@@ -1095,9 +1119,10 @@ public class MLet extends java.net.URLClassLoader
      }
 
      /**
-      * Search the specified native library in any of the JAR files loaded by this classloader.
-      * If the library is found copy it into the library directory and return the absolute path.
-      * If the library is not found then return null.
+      * Search the specified native library in any of the JAR files
+      * loaded by this classloader.  If the library is found copy it
+      * into the library directory and return the absolute path.  If
+      * the library is not found then return null.
       */
      private synchronized String loadLibraryAsResource(String libname) {
 	 try {
@@ -1125,7 +1150,7 @@ public class MLet extends java.net.URLClassLoader
 	 }
 	 return null;
      }
-     
+
    /**
     * Removes any white space from a string. This is used to
     * convert strings such as "Windows NT" to "WindowsNT".
@@ -1183,24 +1208,27 @@ public class MLet extends java.net.URLClassLoader
 	     throws Exception {
 	 return codebase;
      }
-     	 
+
     /**
-     * Loads the serialized object specified by the <CODE>OBJECT</CODE> 
+     * Loads the serialized object specified by the <CODE>OBJECT</CODE>
      * attribute of the <CODE>MLET</CODE> tag.
      *
      * @param codebase The <CODE>codebase</CODE>.
      * @param filename The name of the file containing the serialized object.
      * @return The serialized object.
-     * @exception ClassNotFoundException The specified serialized object could  not be found.
-     * @exception IOException An I/O error occurred while loading serialized object.
+     * @exception ClassNotFoundException The specified serialized
+     * object could not be found.
+     * @exception IOException An I/O error occurred while loading
+     * serialized object.
      */
-     private Object loadSerializedObject(URL codebase, String filename) throws IOException, ClassNotFoundException {
+     private Object loadSerializedObject(URL codebase, String filename)
+	     throws IOException, ClassNotFoundException {
         if (filename != null) {
             filename = filename.replace(File.separatorChar,'/');
-        }		
+        }
 	if (isTraceOn()) {
 	    trace("loadSerializedObject", codebase.toString() + filename);
-	}	
+	}
         InputStream is = getResourceAsStream(filename);
         if (is != null) {
             try {
@@ -1228,15 +1256,15 @@ public class MLet extends java.net.URLClassLoader
      }
 
      /**
-      * Converts the String value of the constructor's parameter to 
+      * Converts the String value of the constructor's parameter to
       * a basic Java object with the type of the parameter.
       */
      private  Object constructParameter(String param, String type) {
 	 // check if it is a primitive type
-	 Class c = (Class) primitiveClasses.get(type);
+	 Class<?> c = primitiveClasses.get(type);
 	 if (c != null) {
 	    try {
-		Constructor cons =
+		Constructor<?> cons =
 		    c.getConstructor(new Class[] {String.class});
 		Object[] oo = new Object[1];
 		oo[0]=param;
@@ -1244,64 +1272,67 @@ public class MLet extends java.net.URLClassLoader
 
 	    } catch (Exception  e) {
 		if (isDebugOn()) {
-		    debug(dbgTag, "constructParameter", "Unexpected Exception" + e.getClass().getName() + " occured");
+		    debug(dbgTag, "constructParameter",
+			  "Unexpected Exception" + e.getClass().getName() +
+			  " occurred");
 		}
 	    }
 	}
-	if (type.compareTo("java.lang.Boolean") == 0) 
+	if (type.compareTo("java.lang.Boolean") == 0)
 	     return new Boolean(param);
-	if (type.compareTo("java.lang.Byte") == 0) 
+	if (type.compareTo("java.lang.Byte") == 0)
 	     return new Byte(param);
-	if (type.compareTo("java.lang.Short") == 0) 
+	if (type.compareTo("java.lang.Short") == 0)
 	     return new Short(param);
-	if (type.compareTo("java.lang.Long") == 0) 
+	if (type.compareTo("java.lang.Long") == 0)
 	     return new Long(param);
-	if (type.compareTo("java.lang.Integer") == 0) 
+	if (type.compareTo("java.lang.Integer") == 0)
 	     return new Integer(param);
-	if (type.compareTo("java.lang.Float") == 0) 
+	if (type.compareTo("java.lang.Float") == 0)
 	     return new Float(param);
-	if (type.compareTo("java.lang.Double") == 0) 
+	if (type.compareTo("java.lang.Double") == 0)
 	     return new Double(param);
-	if (type.compareTo("java.lang.String") == 0) 
+	if (type.compareTo("java.lang.String") == 0)
 	     return param;
-	
+
 	return param;
      }
 
     private synchronized void setMBeanServer(final MBeanServer server) {
-	 this.server = server;
-        currentClr = (ClassLoaderRepository)
-            AccessController.doPrivileged(new PrivilegedAction() {
-                    public Object run() {
-                        return server.getClassLoaderRepository();
-     }
-                });
+	this.server = server;
+	PrivilegedAction<ClassLoaderRepository> act =
+            new PrivilegedAction<ClassLoaderRepository>() {
+		public ClassLoaderRepository run() {
+		    return server.getClassLoaderRepository();
+		}
+	    };
+        currentClr = AccessController.doPrivileged(act);
     }
 
-     // TRACES & DEBUG
-     //---------------
-     
-     private boolean isTraceOn() {
+    // TRACES & DEBUG
+    //---------------
+
+    private boolean isTraceOn() {
         return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MLET);
-     }
-     
-     private void trace(String clz, String func, String info) {
-	 Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MLET, clz, func, info);
-     }
-     
-     private void trace(String func, String info) {
-	 trace(dbgTag, func, info);
-     }
-     
-     private boolean isDebugOn() {
-	 return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MLET);
-     }
-     
-     private void debug(String clz, String func, String info) {
-	 Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MLET, clz, func, info);
-     }
-     
-     private void debug(String func, String info) {
-	 debug(dbgTag, func, info);
-     }     
- }
+    }
+
+    private void trace(String clz, String func, String info) {
+	Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MLET, clz, func, info);
+    }
+
+    private void trace(String func, String info) {
+	trace(dbgTag, func, info);
+    }
+
+    private boolean isDebugOn() {
+	return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MLET);
+    }
+
+    private void debug(String clz, String func, String info) {
+	Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MLET, clz, func, info);
+    }
+
+    private void debug(String func, String info) {
+	debug(dbgTag, func, info);
+    }
+}

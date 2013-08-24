@@ -54,6 +54,7 @@ package com.sun.org.apache.bcel.internal.classfile;
  * <http://www.apache.org/>.
  */
 import com.sun.org.apache.bcel.internal.Constants;
+import com.sun.org.apache.bcel.internal.generic.Type;
 import java.io.*;
 
 /**
@@ -61,7 +62,7 @@ import java.io.*;
  * for a method in the class. See JVM specification for details.
  * A method has access flags, a name, a signature and a number of attributes.
  *
- * @version $Id: Method.java,v 1.1.1.1 2001/10/29 20:00:02 jvanzyl Exp $
+ * @version $Id: Method.java,v 1.1.2.1 2005/07/31 23:46:20 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class Method extends FieldOrMethod {
@@ -82,11 +83,11 @@ public final class Method extends FieldOrMethod {
   /**
    * Construct object from file stream.
    * @param file Input stream
-   * @throw IOException
-   * @throw ClassFormatError
+   * @throws IOException
+   * @throws ClassFormatException
    */
   Method(DataInputStream file, ConstantPool constant_pool)
-       throws IOException, ClassFormatError
+    throws IOException, ClassFormatException
   {
     super(file, constant_pool);
   }
@@ -164,17 +165,14 @@ public final class Method extends FieldOrMethod {
 
   /**
    * Return string representation close to declaration format,
-   * `public static void main(String[] args) throws IOException', e.g.
+   * `public static void _main(String[] args) throws IOException', e.g.
    *
    * @return String representation of the method.
    */
   public final String toString() {
     ConstantUtf8  c;
-    ConstantValue cv;
     String        name, signature, access; // Short cuts to constant pool
-    String        exceptions;
     StringBuffer  buf;
-    Attribute[]   attr;
 
     access = Utility.accessToString(access_flags);
 
@@ -212,5 +210,19 @@ public final class Method extends FieldOrMethod {
    */
   public final Method copy(ConstantPool constant_pool) {
     return (Method)copy_(constant_pool);
+  }
+
+  /**
+   * @return return type of method
+   */
+  public Type getReturnType() {
+    return Type.getReturnType(getSignature());
+  }
+
+  /**
+   * @return array of method argument types
+   */
+  public Type[] getArgumentTypes() {
+    return Type.getArgumentTypes(getSignature());
   }
 }

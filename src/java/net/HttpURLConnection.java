@@ -1,7 +1,7 @@
 /*
- * @(#)HttpURLConnection.java	1.42 04/06/07
+ * @(#)HttpURLConnection.java	1.45 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,6 +41,7 @@ abstract public class HttpURLConnection extends URLConnection {
     /** 
      * The chunk-length when using chunked encoding streaming mode for output.
      * A value of <code>-1</code> means chunked encoding is disabled for output.
+     * @since 1.5
      */
     protected int chunkLength = -1;
 
@@ -48,6 +49,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * The fixed content-length when using fixed-length streaming mode.
      * A value of <code>-1</code> means fixed-length streaming mode is disabled
      * for output.
+     * @since 1.5
      */
     protected int fixedContentLength = -1;
 
@@ -94,6 +96,7 @@ abstract public class HttpURLConnection extends URLConnection {
      *		zero is specified.
      *
      * @see     #setChunkedStreamingMode(int)
+     * @since 1.5
      */ 
     public void setFixedLengthStreamingMode (int contentLength) {
 	if (connected) {
@@ -137,6 +140,7 @@ abstract public class HttpURLConnection extends URLConnection {
      *		or if a different streaming mode is already enabled.
      *
      * @see     #setFixedLengthStreamingMode(int)
+     * @since 1.5
      */ 
     public void setChunkedStreamingMode (int chunklen) {
 	if (connected) {
@@ -273,6 +277,7 @@ abstract public class HttpURLConnection extends URLConnection {
      *
      * @see    java.net.HttpURLConnection#instanceFollowRedirects
      * @see #getInstanceFollowRedirects
+     * @since 1.3
      */
      public void setInstanceFollowRedirects(boolean followRedirects) {
  	instanceFollowRedirects = followRedirects;
@@ -286,6 +291,7 @@ abstract public class HttpURLConnection extends URLConnection {
      *          <code>instanceFollowRedirects</code> field.
      * @see     java.net.HttpURLConnection#instanceFollowRedirects
      * @see #setInstanceFollowRedirects(boolean)
+     * @since 1.3
      */
      public boolean getInstanceFollowRedirects() {
          return instanceFollowRedirects;
@@ -437,7 +443,6 @@ abstract public class HttpURLConnection extends URLConnection {
     public long getHeaderFieldDate(String name, long Default) {
 	String dateString = getHeaderField(name);
 	try {
-	    dateString.trim();
 	    if (dateString.indexOf("GMT") == -1) {
 	        dateString = dateString+" GMT";
 	    }

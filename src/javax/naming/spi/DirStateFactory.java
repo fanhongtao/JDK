@@ -1,7 +1,7 @@
 /*
- * @(#)DirStateFactory.java	1.11 04/07/16
+ * @(#)DirStateFactory.java	1.12 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.naming.spi;
@@ -57,7 +57,7 @@ import java.util.Hashtable;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.11 04/07/16
+  * @version 1.12 05/11/17
   *
   * @see DirectoryManager#getStateToBind
   * @see DirObjectFactory

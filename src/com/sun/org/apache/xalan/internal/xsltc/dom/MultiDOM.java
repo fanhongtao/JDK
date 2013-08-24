@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: MultiDOM.java,v 1.31 2004/02/16 22:54:59 minchau Exp $
+ * $Id: MultiDOM.java,v 1.5 2005/09/28 13:48:36 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.dom;
@@ -26,6 +26,7 @@ import com.sun.org.apache.xalan.internal.xsltc.TransletException;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.BasisLibrary;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 import com.sun.org.apache.xml.internal.dtm.DTM;
+import com.sun.org.apache.xml.internal.dtm.Axis;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
 import com.sun.org.apache.xml.internal.dtm.DTMManager;
 import com.sun.org.apache.xml.internal.dtm.ref.DTMAxisIteratorBase;
@@ -129,7 +130,7 @@ public final class MultiDOM implements DOM {
         }
     
         public boolean isReverse() {
-	    return Axis.isReverse[_axis];
+            return Axis.isReverse(_axis);
         }
     
         public void setMark() {
@@ -609,6 +610,10 @@ public final class MultiDOM implements DOM {
             id--;
         }
         return id;
+    }
+
+    public DOM getDTM(int nodeHandle) {
+        return _adapters[getDTMId(nodeHandle)];
     }
     
     public int getNodeIdent(int nodeHandle)

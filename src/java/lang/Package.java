@@ -1,7 +1,7 @@
 /*
- * @(#)Package.java	1.45 04/04/26
+ * @(#)Package.java	1.48 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -90,8 +90,10 @@ public class Package implements java.lang.reflect.AnnotatedElement {
     /**
      * Return the name of this package.
      *
-     * @return The name of this package using the Java language dot notation
-     * 		for the package. i.e  java.lang
+     * @return  The fully-qualified name of this package as defined in the
+     *          <em>Java Language Specification, Third Edition</em>
+     *          <a href="http://java.sun.com/docs/books/jls/third_edition/html/names.html#6.5.3">
+     *          &sect;6.5.3</a>, for example, <tt>java.lang</tt>
      */
     public String getName() {
 	return pkgName;
@@ -357,20 +359,33 @@ public class Package implements java.lang.reflect.AnnotatedElement {
         return packageInfo;
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
+     */
     public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
         return getPackageInfo().getAnnotation(annotationClass);
     }
 
+    /**
+     * @throws NullPointerException {@inheritDoc}
+     * @since 1.5
+     */
     public boolean isAnnotationPresent(
-        Class<? extends Annotation> annotationClass)
-    {
+        Class<? extends Annotation> annotationClass) {
         return getPackageInfo().isAnnotationPresent(annotationClass);
     }
 
+    /**
+     * @since 1.5
+     */
     public Annotation[] getAnnotations() { 
         return getPackageInfo().getAnnotations();
     }
 
+    /**
+     * @since 1.5
+     */
     public Annotation[] getDeclaredAnnotations()  {
         return getPackageInfo().getDeclaredAnnotations();
     }

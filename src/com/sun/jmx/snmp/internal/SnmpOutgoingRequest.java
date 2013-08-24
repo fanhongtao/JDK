@@ -1,10 +1,10 @@
 /*
  * @(#)file      SnmpOutgoingRequest.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.18
- * @(#)date      04/09/15
+ * @(#)version   1.20
+ * @(#)date      06/11/29
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
@@ -56,7 +56,7 @@ public interface SnmpOutgoingRequest {
      * @param p The PDU to be encoded.
      * @param maxDataLength The maximum length permitted for the data field.
      *
-     * @exception SnmpStatusException If the specified PDU <CODE>p/CODE> is 
+     * @exception SnmpStatusException If the specified PDU <CODE>p</CODE> is 
      *    not valid.
      * @exception SnmpTooBigException If the resulting encoding does not fit
      *    into <CODE>maxDataLength</CODE> bytes.

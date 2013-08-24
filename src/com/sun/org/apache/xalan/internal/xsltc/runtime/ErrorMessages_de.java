@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages_de.java,v 1.2 2004/02/16 22:55:54 minchau Exp $
+ * $Id: ErrorMessages_de.java,v 1.2.4.1 2005/09/14 05:13:15 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
@@ -75,7 +75,13 @@ public class ErrorMessages_de extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final Object[][] m_errorMessages = {
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] {
 
         /*
          * Note to translators:  the substitution text in the following message
@@ -218,9 +224,6 @@ public class ErrorMessages_de extends ListResourceBundle {
         {BasisLibrary.CANT_RESOLVE_RELATIVE_URI_ERR,
         "Der URI-Verweis ''{0}'' konnte nicht aufgel\u00f6st werden."}
     };
-
-    public Object[][] getContents() {
-        return m_errorMessages;
     }
 
 }

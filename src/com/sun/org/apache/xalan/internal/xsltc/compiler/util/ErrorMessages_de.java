@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages_de.java,v 1.2 2004/02/16 22:26:44 minchau Exp $
+ * $Id: ErrorMessages_de.java,v 1.2.4.1 2005/09/15 10:02:28 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -86,7 +86,13 @@ public class ErrorMessages_de extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final String[][] m_errorMessages = {
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] {
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
         "In einer Datei sind mehrere Formatvorlagen definiert."},
 
@@ -839,9 +845,5 @@ public class ErrorMessages_de extends ListResourceBundle {
         {ErrorMsg.RUNTIME_ERROR_KEY,
         "Translet-Fehler:"}
     };
-
-
-    public Object[][] getContents() {
-        return m_errorMessages;
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TransletException.java,v 1.4 2004/02/16 20:54:58 minchau Exp $
+ * $Id: TransletException.java,v 1.2.4.1 2005/08/31 10:47:50 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc;
@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
  * @author Morten Jorgensen
  */
 public final class TransletException extends SAXException {
+    static final long serialVersionUID = -878916829521217293L;
 
     public TransletException() {
 	super("Translet error");

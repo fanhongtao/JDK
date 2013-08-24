@@ -1,12 +1,12 @@
 /*
- * @(#)MotifGraphicsUtils.java	1.45 03/12/19
+ * @(#)MotifGraphicsUtils.java	1.48 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.Color;
@@ -24,7 +24,7 @@ import javax.swing.plaf.basic.*;
 import javax.swing.text.View;
 
 /*
- * @version 1.45 12/19/03
+ * @version 1.48 11/30/05
  * @author Jeff Dinkins
  * @author Dave Kloba
  */
@@ -121,7 +121,11 @@ public class MotifGraphicsUtils implements SwingConstants
         SwingUtilities2.drawString(c, g, aString, startX, startY);
     }
 
-
+  /**
+   * This method is not being used to paint menu item since
+   * 6.0 This code left for compatibility only. Do not use or
+   * override it, this will not cause any visible effect.
+   */
   public static void paintMenuItem(Graphics g, JComponent c,
                                    Icon checkIcon, Icon arrowIcon,
                                    Color background, Color foreground,

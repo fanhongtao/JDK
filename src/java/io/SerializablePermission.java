@@ -1,7 +1,7 @@
 /*
- * @(#)SerializablePermission.java	1.19 04/01/12
+ * @(#)SerializablePermission.java	1.23 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.19, 01/12/04
+ * @version 1.23, 04/21/06
  *
  * @author Joe Fialli
  * @since 1.2
@@ -73,6 +73,8 @@ import java.util.StringTokenizer;
 /* code was borrowed originally from java.lang.RuntimePermission. */
 
 public final class SerializablePermission extends BasicPermission {
+
+    private static final long serialVersionUID = 8537212141160296410L;
 
     /**
      * @serial
@@ -85,9 +87,10 @@ public final class SerializablePermission extends BasicPermission {
      * "enableSubstitution", etc.
      *
      * @param name the name of the SerializablePermission.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
-
-
     public SerializablePermission(String name)
     {
 	super(name);
@@ -100,6 +103,9 @@ public final class SerializablePermission extends BasicPermission {
      *
      * @param name the name of the SerializablePermission.
      * @param actions currently unused and must be set to null
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty.
      */
 
     public SerializablePermission(String name, String actions)

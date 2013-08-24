@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsInternalFrameUI.java	1.24 06/03/22
+ * @(#)WindowsInternalFrameUI.java	1.26 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,9 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.plaf.ComponentUI;
+
+import static com.sun.java.swing.plaf.windows.TMSchema.*;
+import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
 /**
  * Windows rendition of the component.
@@ -68,9 +71,9 @@ public class WindowsInternalFrameUI extends BasicInternalFrameUI
     }
 
     private class XPBorder extends AbstractBorder {
-	private XPStyle.Skin leftSkin   = xp.getSkin(frame, "window.frameleft");
-	private XPStyle.Skin rightSkin  = xp.getSkin(frame, "window.frameright");
-	private XPStyle.Skin bottomSkin = xp.getSkin(frame, "window.framebottom");
+	private Skin leftSkin   = xp.getSkin(frame, Part.WP_FRAMELEFT);
+	private Skin rightSkin  = xp.getSkin(frame, Part.WP_FRAMERIGHT);
+	private Skin bottomSkin = xp.getSkin(frame, Part.WP_FRAMEBOTTOM);
 
 	/**
 	 * @param x the x position of the painted border
@@ -79,20 +82,20 @@ public class WindowsInternalFrameUI extends BasicInternalFrameUI
 	 * @param height the height of the painted border
 	 */
 	public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-	    boolean isSelected = ((JInternalFrame)c).isSelected();
+	    State state = ((JInternalFrame)c).isSelected() ? State.ACTIVE : State.INACTIVE;
 	    int topBorderHeight  = (titlePane != null) ? titlePane.getSize().height : 0;
 
 	    bottomSkin.paintSkin(g, 0, height-bottomSkin.getHeight(),
 				 width, bottomSkin.getHeight(),
-				 isSelected ? 0 : 1);
+				 state);
 
 	    leftSkin.paintSkin(g, 0, topBorderHeight-1,
 			       leftSkin.getWidth(), height-topBorderHeight-bottomSkin.getHeight()+2,
-			       isSelected ? 0 : 1);
+			       state);
 
 	    rightSkin.paintSkin(g, width-rightSkin.getWidth(), topBorderHeight-1,
 				rightSkin.getWidth(), height-topBorderHeight-bottomSkin.getHeight()+2,
-				isSelected ? 0 : 1);
+				state);
 
 	}
 

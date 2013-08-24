@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages_zh_CN.java,v 1.2 2004/02/16 22:55:54 minchau Exp $
+ * $Id: ErrorMessages_zh_CN.java,v 1.2.4.1 2005/09/14 05:52:21 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
@@ -75,7 +75,13 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    private static final Object[][] m_errorMessages = {
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return new Object[][] {
 
         /*
          * Note to translators:  the substitution text in the following message
@@ -218,9 +224,6 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
         {BasisLibrary.CANT_RESOLVE_RELATIVE_URI_ERR,
         "\u65e0\u6cd5\u89e3\u6790 URI \u5f15\u7528\u201c{0}\u201d\u3002"}
     };
-
-    public Object[][] getContents() {
-        return m_errorMessages;
     }
 
 }

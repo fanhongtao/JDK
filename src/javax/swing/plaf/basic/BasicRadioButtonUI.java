@@ -1,7 +1,7 @@
 /*
- * @(#)BasicRadioButtonUI.java	1.69 03/12/19
+ * @(#)BasicRadioButtonUI.java	1.71 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,13 +13,13 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.69 12/19/03
+ * @version 1.71 11/30/05
  * @author Jeff Dinkins
  */
 public class BasicRadioButtonUI extends BasicToggleButtonUI 

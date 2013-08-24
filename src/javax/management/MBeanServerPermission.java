@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanServerPermission.java	1.26 03/12/19
+ * @(#)MBeanServerPermission.java	1.29 06/04/21
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -117,7 +117,12 @@ public class MBeanServerPermission extends BasicPermission {
 	@exception IllegalArgumentException if the name is not
 	<code>*</code> or one of the allowed names or a comma-separated
         list of the allowed names, or if <code>actions</code> is a non-null
-        non-empty string.  */
+        non-empty string.  
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>name</code> is empty or
+     * if arguments are invalid.
+     */
     public MBeanServerPermission(String name, String actions) {
         super(getCanonicalName(parseMask(name)), actions);
 
@@ -338,12 +343,12 @@ class MBeanServerPermissionCollection extends PermissionCollection {
 		collectionPermission.implies(permission));
     }
 
-    public synchronized Enumeration elements() {
-	Set set;
+    public synchronized Enumeration<Permission> elements() {
+	Set<Permission> set;
 	if (collectionPermission == null)
-	    set = Collections.EMPTY_SET;
+	    set = Collections.emptySet();
 	else
-	    set = Collections.singleton(collectionPermission);
+	    set = Collections.singleton((Permission) collectionPermission);
 	return Collections.enumeration(set);
     }
 }

@@ -60,7 +60,7 @@ import java.io.*;
 /** 
  * This class represents a constant pool reference to an interface method.
  *
- * @version $Id: ConstantInterfaceMethodref.java,v 1.1.1.1 2001/10/29 19:59:59 jvanzyl Exp $
+ * @version $Id: ConstantInterfaceMethodref.java,v 1.1.2.1 2005/07/31 23:46:32 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class ConstantInterfaceMethodref extends ConstantCP {
@@ -75,7 +75,7 @@ public final class ConstantInterfaceMethodref extends ConstantCP {
    * Initialize instance from file data.
    *
    * @param file input stream
-   * @throw IOException
+   * @throws IOException
    */
   ConstantInterfaceMethodref(DataInputStream file) throws IOException
   {

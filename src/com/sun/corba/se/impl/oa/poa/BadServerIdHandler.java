@@ -1,11 +1,11 @@
 /*
- * @(#)BadServerIdHandler.java	1.12 03/12/19
+ * @(#)BadServerIdHandler.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
- * @(#)BadServerIdHandler.java 1.12 04/09/15
+ * @(#)BadServerIdHandler.java 1.13 06/11/29
  *
  * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road,
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.

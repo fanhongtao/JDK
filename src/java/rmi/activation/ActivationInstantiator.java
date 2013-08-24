@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationInstantiator.java	1.15 03/12/19
+ * @(#)ActivationInstantiator.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.rmi.RemoteException;
  * method to handle creating objects within the group.
  *
  * @author 	Ann Wollrath
- * @version	1.15, 12/19/03
+ * @version	1.17, 11/17/05
  * @see 	ActivationGroup
  * @since	1.2
  */
@@ -53,7 +53,7 @@ public interface ActivationInstantiator extends Remote {
     * @exception RemoteException if remote call fails
     * @since 1.2
     */
-    public MarshalledObject newInstance(ActivationID id, ActivationDesc desc)
+    public MarshalledObject<? extends Remote> newInstance(ActivationID id,
+							  ActivationDesc desc)
 	throws ActivationException, RemoteException;
-
 }

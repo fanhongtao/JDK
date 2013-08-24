@@ -1,7 +1,7 @@
 /*
- * @(#)PlainView.java	1.74 04/04/15
+ * @(#)PlainView.java	1.77 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,7 +17,7 @@ import javax.swing.event.*;
  * child element as a line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.74 04/15/04
+ * @version 1.77 04/07/06
  * @see     View
  */
 public class PlainView extends View implements TabExpander {
@@ -321,6 +321,9 @@ public class PlainView extends View implements TabExpander {
         Document doc = getDocument();
         Element map = getElement();
         int lineIndex = map.getElementIndex(pos);
+        if (lineIndex < 0) {
+            return lineToRect(a, 0);
+        }
         Rectangle lineArea = lineToRect(a, lineIndex);
         
         // determine span from the start of the line
@@ -483,7 +486,7 @@ public class PlainView extends View implements TabExpander {
     
     // --- local methods ------------------------------------------------
 
-    /*
+    /**
      * Repaint the region of change covered by the given document
      * event.  Damages the line that begins the range to cover
      * the case when the insert/remove is only on one line.  
@@ -628,6 +631,9 @@ public class PlainView extends View implements TabExpander {
      * and font metrics are up-to-date.
      */
     private int getLineWidth(Element line) {
+        if (line == null) {
+            return 0;
+        }
 	int p0 = line.getStartOffset();
 	int p1 = line.getEndOffset();
 	int w;

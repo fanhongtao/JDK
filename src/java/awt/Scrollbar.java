@@ -1,7 +1,7 @@
 /*
- * @(#)Scrollbar.java	1.108 04/05/18
+ * @(#)Scrollbar.java	1.112 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -140,7 +140,7 @@ import javax.accessibility.*;
  * encounter issues with painting, key handling, sizing and 
  * positioning.
  *
- * @version 	1.108, 05/18/04
+ * @version 	1.112, 07/11/06
  * @author 	Sami Shaio
  * @see         java.awt.event.AdjustmentEvent
  * @see         java.awt.event.AdjustmentListener
@@ -889,8 +889,8 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
         if ((oldValue != value) && (accessibleContext != null))  {
             accessibleContext.firePropertyChange(
                     AccessibleContext.ACCESSIBLE_VALUE_PROPERTY,
-                    new Integer(oldValue),
-                    new Integer(value));
+                    Integer.valueOf(oldValue),
+                    Integer.valueOf(value));
         }
     }
 
@@ -936,6 +936,8 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      * <code>AdjustmentEvent</code> from this scroll bar.
      * If l is <code>null</code>, no exception is thrown and no
      * action is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param        l the adjustment listener
      * @see          #removeAdjustmentListener
@@ -957,6 +959,8 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      * receives instances of <code>AdjustmentEvent</code> from this scroll bar.
      * If l is <code>null</code>, no exception is thrown and no action
      * is performed.
+     * <p>Refer to <a href="doc-files/AWTThreadIssues.html#ListenersThreads"
+     * >AWT Threading Issues</a> for details on AWT's threading model.
      *
      * @param        	l    the adjustment listener
      * @see          	#addAdjustmentListener
@@ -1198,6 +1202,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      *
      * @return an <code>AccessibleAWTScrollBar</code> that serves as the 
      *         <code>AccessibleContext</code> of this <code>ScrollBar</code>
+     * @since 1.3
      */
     public AccessibleContext getAccessibleContext() {
         if (accessibleContext == null) {
@@ -1211,6 +1216,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      * <code>Scrollbar</code> class.  It provides an implementation of
      * the Java Accessibility API appropriate to scrollbar
      * user-interface elements.
+     * @since 1.3
      */
     protected class AccessibleAWTScrollBar extends AccessibleAWTComponent
         implements AccessibleValue
@@ -1269,7 +1275,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
          * @return The current value of this object.
          */
         public Number getCurrentAccessibleValue() {
-            return new Integer(getValue());
+            return Integer.valueOf(getValue());
         }
 
         /**
@@ -1292,7 +1298,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
          * @return The minimum value of this object.
          */
         public Number getMinimumAccessibleValue() {
-            return new Integer(getMinimum());
+            return Integer.valueOf(getMinimum());
         }
 
         /**
@@ -1301,7 +1307,7 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
          * @return The maximum value of this object.
          */
         public Number getMaximumAccessibleValue() {
-            return new Integer(getMaximum());
+            return Integer.valueOf(getMaximum());
         }
 
     } // AccessibleAWTScrollBar

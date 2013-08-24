@@ -1,7 +1,7 @@
 /*
- * @(#)ServiceRegistry.java	1.22 04/05/05
+ * @(#)ServiceRegistry.java	1.24 06/06/28
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -72,7 +72,7 @@ import sun.misc.Service;
  *
  * <p> For more details on declaring service providers, and the JAR
  * format in general, see the <a
- * href="http://java.sun.com/products/jdk/1.3/docs/guide/jar/jar.html">
+ * href="../../../../technotes/guides/jar/jar.html">
  * JAR File Specification</a>.
  *
  * @see RegisterableService

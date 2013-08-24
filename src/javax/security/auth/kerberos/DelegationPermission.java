@@ -1,7 +1,7 @@
 /*
- * @(#)DelegationPermission.java	1.9 03/12/19
+ * @(#)DelegationPermission.java	1.12 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.io.IOException;
  *  DelegationPermission("\"backup/bar.example.com@EXAMPLE.COM\" \"nfs/home.EXAMPLE.COM@EXAMPLE.COM\"");
  * </pre>
  *
- * @since JDK1.4
+ * @since 1.4
  */
 
 public final class DelegationPermission extends BasicPermission 
@@ -59,6 +59,9 @@ public final class DelegationPermission extends BasicPermission
      * <p>
      *
      * @param principals the name of the subordinate and target principals
+     *
+     * @throws NullPointerException if <code>principals</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>principals</code> is empty.
      */
     public DelegationPermission(String principals) {
 	super(principals);
@@ -73,6 +76,9 @@ public final class DelegationPermission extends BasicPermission
      * @param principals the name of the subordinate and target principals 
      * <p>
      * @param actions should be null.
+     *
+     * @throws NullPointerException if <code>principals</code> is <code>null</code>.
+     * @throws IllegalArgumentException if <code>principals</code> is empty.
      */
     public DelegationPermission(String principals, String actions) {
 	super(principals, actions);

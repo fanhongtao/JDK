@@ -1,7 +1,7 @@
 /*
- * @(#)MediaSize.java	1.14 04/05/05
+ * @(#)MediaSize.java	1.16 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -759,6 +759,7 @@ public class MediaSize extends Size2DSyntax implements Attribute {
 
 	/**
 	 * Specifies the tabloid size, 11 inches by 17 inches.
+	 * @since 1.5
 	 */
 	public static final MediaSize
 	    TABLOID = new MediaSize(11.0f, 17.0f, Size2DSyntax.INCH,

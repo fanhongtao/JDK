@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: PathComponent.java,v 1.4 2004/02/17 04:32:08 minchau Exp $
+ * $Id: PathComponent.java,v 1.1.2.1 2005/08/01 01:30:27 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.axes;
 

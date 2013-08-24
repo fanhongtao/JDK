@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ExsltDatetime.java,v 1.13 2004/02/11 17:56:36 minchau Exp $
+ * $Id: ExsltDatetime.java,v 1.2.4.1 2005/09/10 18:50:49 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.lib;
@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import com.sun.org.apache.xpath.internal.objects.XBoolean;
@@ -196,7 +197,7 @@ public class ExsltDatetime
       if (time == null || zone == null) 
         return EMPTY_STR;
                     
-      String[] formatsIn = {dt, d};
+      String[] formatsIn = {dt, d, t};
       String formatOut =  t;
       Date date = testFormats(time, formatsIn);
       if (date == null) return EMPTY_STR;
@@ -212,8 +213,14 @@ public class ExsltDatetime
     {
       String datetime = dateTime().toString();
       String time = datetime.substring(datetime.indexOf("T")+1);
-      String zone = datetime.substring(getZoneStart(datetime));      
-      return (time + zone);
+      
+	  // The datetime() function returns the zone on the datetime string.  If we
+	  // append it, we get the zone substring duplicated.
+	  // Fix for JIRA 2013
+
+      // String zone = datetime.substring(getZoneStart(datetime));      
+      // return (time + zone);
+      return (time);
     } 
        
     /**
@@ -258,7 +265,7 @@ public class ExsltDatetime
     }
     
     /**
-     * The date:year function returns the month of a date as a number. If no argument 
+     * The date:month-in-year function returns the month of a date as a number. If no argument 
      * is given, then the current local date/time, as returned by date:date-time is used 
      * as a default argument. 
      * The date/time string specified as the first argument is a left or right-truncated 
@@ -282,7 +289,7 @@ public class ExsltDatetime
         return Double.NaN;      
       
       String[] formats = {dt, d, gym, gm, gmd};
-      return getNumber(datetime, formats, Calendar.MONTH);
+      return getNumber(datetime, formats, Calendar.MONTH) + 1;
     }
     
     /**
@@ -291,7 +298,7 @@ public class ExsltDatetime
     public static double monthInYear()
     {      
       Calendar cal = Calendar.getInstance();
-      return cal.get(Calendar.MONTH);
+      return cal.get(Calendar.MONTH) + 1;
    }
     
     /**
@@ -885,7 +892,7 @@ public class ExsltDatetime
       {
         try
         {
-          SimpleDateFormat dateFormat = new SimpleDateFormat(formatsIn[i]);
+          SimpleDateFormat dateFormat = new SimpleDateFormat(formatsIn[i], Locale.ENGLISH);
           dateFormat.setLenient(false);
           Date dt = dateFormat.parse(in);          
           dateFormat.applyPattern(formatOut);
@@ -904,7 +911,7 @@ public class ExsltDatetime
     private static String getNameOrAbbrev(String format)
     {
       Calendar cal = Calendar.getInstance();
-      SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+      SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.ENGLISH);
       return dateFormat.format(cal.getTime());
     }
 

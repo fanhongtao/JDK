@@ -1,7 +1,7 @@
 /*
- * @(#)java.c	1.123 05/08/03
+ * @(#)java.c	1.138 06/04/14
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@
  * options are turned into "-foo" options to the vm.  This option
  * filtering is handled in a number of places in the launcher, some of
  * it in machine-dependent code.  In this file, the function
- * CheckJVMType removes vm style options and TranslateDashJArgs
+ * CheckJVMType removes vm style options and TranslateApplicationArgs
  * removes "-J" prefixes.  On unix platforms, the
  * CreateExecutionEnvironment function from the unix java_md.c file
  * processes and removes -d<n> options.  However, in case
@@ -40,9 +40,12 @@
 #include <string.h>
 
 #include <jni.h>
+#include <jvm.h>
 #include "java.h"
 #include "manifest_info.h"
 #include "version_comp.h"
+#include "wildcard.h"
+#include "splashscreen.h"
 
 #ifndef FULL_VERSION
 #define FULL_VERSION JDK_MAJOR_VERSION "." JDK_MINOR_VERSION
@@ -72,10 +75,22 @@
  */
 #define ENV_ENTRY "_JAVA_VERSION_SET"
 
+#define SPLASH_FILE_ENV_ENTRY "_JAVA_SPLASH_FILE"
+#define SPLASH_JAR_ENV_ENTRY "_JAVA_SPLASH_JAR"
+
 static jboolean printVersion = JNI_FALSE; /* print and exit */
 static jboolean showVersion = JNI_FALSE;  /* print but continue */
 static char *progname;
 jboolean _launcher_debug = JNI_FALSE;
+
+/*
+ * Entries for splash screen environment variables.
+ * putenv is performed in SelectVersion. We need
+ * them in memory until UnsetEnv, so they are made static 
+ * global instead of auto local.
+ */
+static char* splash_file_entry = NULL;
+static char* splash_jar_entry = NULL;
 
 /*
  * List of VM options to be specified when the VM is created.
@@ -86,11 +101,10 @@ static int numOptions, maxOptions;
 /*
  * Prototypes for functions internal to launcher.
  */
-static void AddOption(char *str, void *info);
-static void SetClassPath(char *s);
+static void SetClassPath(const char *s);
 static void SelectVersion(int argc, char **argv, char **main_class);
 static jboolean ParseArguments(int *pargc, char ***pargv, char **pjarfile,
-			       char **pclassname, int *pret);
+			       char **pclassname, int *pret, const char *jvmpath);
 static jboolean InitializeJVM(JavaVM **pvm, JNIEnv **penv,
 			      InvocationFunctions *ifn);
 static jstring NewPlatformString(JNIEnv *env, char *s);
@@ -101,13 +115,13 @@ static void SetJavaCommandLineProp(char* classname, char* jarfile, int argc, cha
 static void SetJavaLauncherProp(void);
 
 #ifdef JAVA_ARGS
-static void TranslateDashJArgs(int *pargc, char ***pargv);
+static void TranslateApplicationArgs(int *pargc, char ***pargv);
 static jboolean AddApplicationOptions(void);
 #endif
 
 static void PrintJavaVersion(JNIEnv *env);
 static void PrintUsage(void);
-static jint PrintXUsage(void);
+static jint PrintXUsage(const char *jvmpath);
 
 static void SetPaths(int argc, char **argv);
 
@@ -134,6 +148,7 @@ static int knownVMsLimit = 0;
 static void GrowKnownVMs();
 static int  KnownVMIndex(const char* name);
 static void FreeKnownVMs(); 
+static void ShowSplashScreen();
 
 jboolean ServerClassMachine();
 
@@ -141,33 +156,36 @@ jboolean ServerClassMachine();
 static int noExitErrorMessage = 0;
 
 /*
+ * Running Java code in primordial thread caused many problems. We will
+ * create a new thread to invoke JVM. See 6316197 for more information.
+ */
+static jlong threadStackSize = 0;  /* stack size of the new thread */
+
+int JNICALL JavaMain(void * args); /* entry point                  */
+
+struct JavaMainArgs {
+  int     argc;
+  char ** argv;
+  char *  jarfile;
+  char *  classname;
+  InvocationFunctions ifn;
+};
+
+/*
  * Entry point.
  */
 int
 main(int argc, char ** argv)
 {
-    JavaVM *vm = 0;
-    JNIEnv *env = 0;
     char *jarfile = 0;
     char *classname = 0;
     char *s = 0;
     char *main_class = NULL;
-    jstring mainClassName;
-    jclass mainClass;
-    jmethodID mainID;
-    jobjectArray mainArgs;
     int ret;
     InvocationFunctions ifn;
     jlong start, end;
     char jrepath[MAXPATHLEN], jvmpath[MAXPATHLEN];
     char ** original_argv = argv;
-
-    /* 
-     * Error message to print or display; by default the message will
-     * only be displayed in a window.
-     */
-    char * message = "Fatal exception occurred.  Program will exit.";
-    jboolean messageDest = JNI_FALSE;
 
     if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
 	_launcher_debug = JNI_TRUE;
@@ -196,7 +214,7 @@ main(int argc, char ** argv)
     /* copy original argv */
     {
       int i;
-      original_argv = (char**)MemAlloc(sizeof(char*)*(argc+1));
+      original_argv = (char**)JLI_MemAlloc(sizeof(char*)*(argc+1));
       for(i = 0; i < argc+1; i++)
 	original_argv[i] = argv[i];
     }
@@ -205,6 +223,7 @@ main(int argc, char ** argv)
 			       jrepath, sizeof(jrepath),
 			       jvmpath, sizeof(jvmpath),
 			       original_argv);
+
     ifn.CreateJavaVM = 0;
     ifn.GetDefaultJavaVMInitArgs = 0;
 
@@ -216,9 +235,9 @@ main(int argc, char ** argv)
     if (_launcher_debug) {
       end   = CounterGet();
       printf("%ld micro seconds to LoadJavaVM\n",
-	     (long)(jint)Counter2Micros(end-start));
+             (long)(jint)Counter2Micros(end-start));
     }
-    
+
 #ifdef JAVA_ARGS  /* javac, jar and friends. */
     progname = "java";
 #else             /* java, oldjava, javaw and friends */
@@ -236,7 +255,7 @@ main(int argc, char ** argv)
 
 #ifdef JAVA_ARGS
     /* Preprocess wrapper arguments */
-    TranslateDashJArgs(&argc, &argv);
+    TranslateApplicationArgs(&argc, &argv);
     if (!AddApplicationOptions()) {
 	exit(1);
     }
@@ -254,7 +273,7 @@ main(int argc, char ** argv)
      *  Parse command line options; if the return value of
      *  ParseArguments is false, the program should exit.
      */
-    if (!ParseArguments(&argc, &argv, &jarfile, &classname, &ret)) {
+    if (!ParseArguments(&argc, &argv, &jarfile, &classname, &ret, jvmpath)) {
       exit(ret);
     }
 
@@ -269,11 +288,76 @@ main(int argc, char ** argv)
     /* Set the -Dsun.java.launcher pseudo property */
     SetJavaLauncherProp();
 
+    /* set the -Dsun.java.launcher.* platform properties */
+    SetJavaLauncherPlatformProps();
+
+    /* Show the splash screen if needed */
+    ShowSplashScreen();
+
     /*
      * Done with all command line processing and potential re-execs so
      * clean up the environment.
      */
     (void)UnsetEnv(ENV_ENTRY);
+    (void)UnsetEnv(SPLASH_FILE_ENV_ENTRY);
+    (void)UnsetEnv(SPLASH_JAR_ENV_ENTRY);
+
+    JLI_MemFree(splash_jar_entry);
+    JLI_MemFree(splash_file_entry);
+
+    /*
+     * If user doesn't specify stack size, check if VM has a preference.
+     * Note that HotSpot no longer supports JNI_VERSION_1_1 but it will 
+     * return its default stack size through the init args structure.
+     */
+    if (threadStackSize == 0) {
+      struct JDK1_1InitArgs args1_1;
+      memset((void*)&args1_1, 0, sizeof(args1_1));
+      args1_1.version = JNI_VERSION_1_1;
+      ifn.GetDefaultJavaVMInitArgs(&args1_1);  /* ignore return value */
+      if (args1_1.javaStackSize > 0) {
+         threadStackSize = args1_1.javaStackSize;
+      }
+    }
+
+    { /* Create a new thread to create JVM and invoke main method */
+      struct JavaMainArgs args;
+
+      args.argc = argc;
+      args.argv = argv;
+      args.jarfile = jarfile;
+      args.classname = classname;
+      args.ifn = ifn;
+
+      return ContinueInNewThread(JavaMain, threadStackSize, (void*)&args);
+    }
+}
+
+int JNICALL
+JavaMain(void * _args)
+{
+    struct JavaMainArgs *args = (struct JavaMainArgs *)_args;
+    int argc = args->argc;
+    char **argv = args->argv;
+    char *jarfile = args->jarfile;
+    char *classname = args->classname;
+    InvocationFunctions ifn = args->ifn;
+
+    JavaVM *vm = 0;
+    JNIEnv *env = 0;
+    jstring mainClassName;
+    jclass mainClass;
+    jmethodID mainID;
+    jobjectArray mainArgs;
+    int ret = 0;
+    jlong start, end;
+
+    /* 
+     * Error message to print or display; by default the message will
+     * only be displayed in a window.
+     */
+    char * message = "Fatal exception occurred.  Program will exit.";
+    jboolean messageDest = JNI_FALSE;
 
     /* Initialize the virtual machine */
 
@@ -357,7 +441,7 @@ main(int argc, char ** argv)
 	if (mainClassName == NULL) {
 	  const char * format = "Failed to load Main-Class manifest "
 	                        "attribute from\n%s";
-	  message = (char*)MemAlloc((strlen(format) + strlen(jarfile)) *
+	  message = (char*)JLI_MemAlloc((strlen(format) + strlen(jarfile)) *
 				    sizeof(char));
 	  sprintf(message, format, jarfile);
 	  messageDest = JNI_TRUE;
@@ -379,7 +463,7 @@ main(int argc, char ** argv)
       mainClassName = NewPlatformString(env, classname);
       if (mainClassName == NULL) {
 	const char * format = "Failed to load Main Class: %s";
-	message = (char *)MemAlloc((strlen(format) + strlen(classname)) * 
+	message = (char *)JLI_MemAlloc((strlen(format) + strlen(classname)) * 
 				   sizeof(char) );
 	sprintf(message, format, classname); 
 	messageDest = JNI_TRUE;
@@ -509,7 +593,7 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     argc = *pargc;
 
     /* To make things simpler we always copy the argv array */
-    newArgv = MemAlloc((argc + 1) * sizeof(char *));
+    newArgv = JLI_MemAlloc((argc + 1) * sizeof(char *));
 
     /* The program name is always present */
     newArgv[newArgvIdx++] = (*argv)[0];
@@ -648,11 +732,51 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     return jvmtype;
 }
 
+# define KB (1024UL)
+# define MB (1024UL * KB)
+# define GB (1024UL * MB)
+
+/* copied from HotSpot function "atomll()" */
+static int
+parse_stack_size(const char *s, jlong *result) {
+  jlong n = 0;
+  int args_read = sscanf(s, jlong_format_specifier(), &n);
+  if (args_read != 1) {
+    return 0;
+  }
+  while (*s != '\0' && *s >= '0' && *s <= '9') {
+    s++;
+  }
+  // 4705540: illegal if more characters are found after the first non-digit
+  if (strlen(s) > 1) {
+    return 0;
+  }
+  switch (*s) {
+    case 'T': case 't':
+      *result = n * GB * KB;
+      return 1;
+    case 'G': case 'g':
+      *result = n * GB;
+      return 1;
+    case 'M': case 'm':
+      *result = n * MB;
+      return 1;
+    case 'K': case 'k':
+      *result = n * KB;
+      return 1;
+    case '\0':
+      *result = n;
+      return 1;
+    default:
+      /* Create JVM with default stack and let VM handle malformed -Xss string*/
+      return 0;
+  }
+}
 
 /*
  * Adds a new VM option with the given given name and value.
  */
-static void
+void
 AddOption(char *str, void *info)
 {
     /*
@@ -662,24 +786,33 @@ AddOption(char *str, void *info)
     if (numOptions >= maxOptions) {
 	if (options == 0) {
 	    maxOptions = 4;
-	    options = MemAlloc(maxOptions * sizeof(JavaVMOption));
+	    options = JLI_MemAlloc(maxOptions * sizeof(JavaVMOption));
 	} else {
 	    JavaVMOption *tmp;
 	    maxOptions *= 2;
-	    tmp = MemAlloc(maxOptions * sizeof(JavaVMOption));
+	    tmp = JLI_MemAlloc(maxOptions * sizeof(JavaVMOption));
 	    memcpy(tmp, options, numOptions * sizeof(JavaVMOption));
-	    free(options);
+	    JLI_MemFree(options);
 	    options = tmp;
 	}
     }
     options[numOptions].optionString = str;
     options[numOptions++].extraInfo = info;
+
+    if (strncmp(str, "-Xss", 4) == 0) {
+      jlong tmp;
+      if (parse_stack_size(str + 4, &tmp)) {
+        threadStackSize = tmp;
+      }
+    }
 }
 
 static void
-SetClassPath(char *s)
+SetClassPath(const char *s)
 {
-    char *def = MemAlloc(strlen(s) + 40);
+    char *def;
+    s = JLI_WildcardExpandClasspath(s);
+    def = JLI_MemAlloc(strlen(s) + 40);
     sprintf(def, "-Djava.class.path=%s", s);
     AddOption(def, NULL);
 }
@@ -689,6 +822,8 @@ SetClassPath(char *s)
  * the JRE is running.  The specification for the appropriate version
  * is obtained from either the manifest of a jar file (preferred) or
  * from command line options.
+ * The routine also parses splash screen command line options and
+ * passes on their values in private environment variables.
  */
 static void
 SelectVersion(int argc, char **argv, char **main_class)
@@ -700,9 +835,12 @@ SelectVersion(int argc, char **argv, char **main_class)
     char    *version = NULL;
     char    *jre = NULL;
     int     jarflag = 0;
+    int     headlessflag = 0;
     int     restrict_search = -1;		/* -1 implies not known */
     manifest_info info;
     char    env_entry[MAXNAMELEN + 24] = ENV_ENTRY "=";
+    char    *splash_file_name = NULL;
+    char    *splash_jar_name = NULL;
     char    *env_in;
     int     res;
 
@@ -713,7 +851,7 @@ SelectVersion(int argc, char **argv, char **main_class)
      */
     if ((env_in = getenv(ENV_ENTRY)) != NULL) {
 	if (*env_in != '\0')
-	    *main_class = strdup(env_in);
+	    *main_class = JLI_StringDup(env_in);
 	return;
     }
 
@@ -729,8 +867,13 @@ SelectVersion(int argc, char **argv, char **main_class)
      * As the scan is performed, make a copy of the argument list with
      * the version specification options (new to 1.5) removed, so that
      * a version less than 1.5 can be exec'd.
+     *
+     * Note that due to the syntax of the native Windows interface
+     * CreateProcess(), processing similar to the following exists in
+     * the Windows platform specific routine ExecJRE (in java_md.c).
+     * Changes here should be reproduced there.
      */
-    new_argv = MemAlloc((argc + 1) * sizeof(char*));
+    new_argv = JLI_MemAlloc((argc + 1) * sizeof(char*));
     new_argv[0] = argv[0];
     new_argp = &new_argv[1];
     argc--;
@@ -753,6 +896,18 @@ SelectVersion(int argc, char **argv, char **main_class)
 		argv++;
 		arg = *argv;
 	    }
+            
+	    /*
+	     * Checking for headless toolkit option in the some way as AWT does:
+	     * "true" means true and any other value means false
+	     */
+	    if (strcmp(arg, "-Djava.awt.headless=true") == 0) {
+		headlessflag = 1;
+	    } else if (strncmp(arg, "-Djava.awt.headless=", 20) == 0) {
+		headlessflag = 0;
+            } else if (strncmp(arg, "-splash:", 8) == 0) {
+	        splash_file_name = arg+8;
+	    } 
 	    *new_argp++ = arg;
 	}
 	argc--;
@@ -778,7 +933,7 @@ SelectVersion(int argc, char **argv, char **main_class)
      * this data around.
      */
     if (jarflag && operand) {
-	if ((res = parse_manifest(operand, &info)) != 0) {
+	if ((res = JLI_ParseManifest(operand, &info)) != 0) {
 	    if (res == -1)
 		ReportErrorMessage2("Unable to access jarfile %s",
 		  operand, JNI_TRUE);
@@ -787,11 +942,38 @@ SelectVersion(int argc, char **argv, char **main_class)
 		  operand, JNI_TRUE);
 	    exit(1);
 	}
+        
+	/*
+	 * Command line splash screen option should have precedence
+	 * over the manifest, so the manifest data is used only if 
+	 * splash_file_name has not been initialized above during command
+	 * line parsing
+	 */
+	if (!headlessflag && !splash_file_name && info.splashscreen_image_file_name) {
+	    splash_file_name = info.splashscreen_image_file_name;
+	    splash_jar_name = operand;
+	}
     } else {
 	info.manifest_version = NULL;
 	info.main_class = NULL;
 	info.jre_version = NULL;
 	info.jre_restrict_search = 0;
+    }
+    
+    /* 
+     * Passing on splash screen info in environment variables
+     */
+    if (splash_file_name && !headlessflag) {
+	char* splash_file_entry = JLI_MemAlloc(strlen(SPLASH_FILE_ENV_ENTRY "=")+strlen(splash_file_name)+1);
+	strcpy(splash_file_entry, SPLASH_FILE_ENV_ENTRY "=");
+	strcat(splash_file_entry, splash_file_name);
+	putenv(splash_file_entry);
+    }
+    if (splash_jar_name && !headlessflag) {
+	char* splash_jar_entry = JLI_MemAlloc(strlen(SPLASH_JAR_ENV_ENTRY "=")+strlen(splash_jar_name)+1);
+	strcpy(splash_jar_entry, SPLASH_JAR_ENV_ENTRY "=");
+	strcat(splash_jar_entry, splash_jar_name);
+	putenv(splash_jar_entry);
     }
 
     /*
@@ -808,22 +990,22 @@ SelectVersion(int argc, char **argv, char **main_class)
      * main_class as a side-effect of this routine.
      */
     if (info.main_class != NULL)
-	*main_class = strdup(info.main_class);
+	*main_class = JLI_StringDup(info.main_class);
 
     /*
      * If no version selection information is found either on the command
      * line or in the manifest, simply return.
      */
     if (info.jre_version == NULL) {
-	free_manifest();
-	free(new_argv);
+	JLI_FreeManifest();
+	JLI_MemFree(new_argv);
 	return;
     }
 
     /*
      * Check for correct syntax of the version specification (JSR 56).
      */
-    if (!valid_version_string(info.jre_version)) {
+    if (!JLI_ValidVersionString(info.jre_version)) {
 	ReportErrorMessage2("Syntax error in version specification \"%s\"",
 	  info.jre_version, JNI_TRUE);
 	exit(1);
@@ -842,9 +1024,9 @@ SelectVersion(int argc, char **argv, char **main_class)
           (info.jre_version?info.jre_version:"null"),
           (info.jre_restrict_search?"true":"false"), (jre?jre:"null"));
     if (jre == NULL) {
-	if (acceptable_release(FULL_VERSION, info.jre_version)) {
-	    free_manifest();
-	    free(new_argv);
+	if (JLI_AcceptableRelease(FULL_VERSION, info.jre_version)) {
+	    JLI_FreeManifest();
+	    JLI_MemFree(new_argv);
 	    return;
 	} else {
 	    ReportErrorMessage2(
@@ -870,8 +1052,8 @@ SelectVersion(int argc, char **argv, char **main_class)
 	(void)strcat(env_entry, info.main_class);
     (void)putenv(env_entry);
     ExecJRE(jre, new_argv);
-    free_manifest();
-    free(new_argv);
+    JLI_FreeManifest();
+    JLI_MemFree(new_argv);
     return;
 }
 
@@ -884,7 +1066,7 @@ SelectVersion(int argc, char **argv, char **main_class)
  */
 static jboolean
 ParseArguments(int *pargc, char ***pargv, char **pjarfile,
-		       char **pclassname, int *pret)
+		       char **pclassname, int *pret, const char *jvmpath)
 {
     int argc = *pargc;
     char **argv = *pargv;
@@ -917,7 +1099,7 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 	} else if (strcmp(arg, "-showversion") == 0) {
 	    showVersion = JNI_TRUE;
 	} else if (strcmp(arg, "-X") == 0) {
-	    *pret = PrintXUsage();
+	    *pret = PrintXUsage(jvmpath);
 	    return JNI_FALSE;
 /*
  * The following case provide backward compatibility with old-style
@@ -950,7 +1132,7 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
             noExitErrorMessage = 1;
 	} else if (strncmp(arg, "-prof", 5) == 0) {
 	    char *p = arg + 5;
-	    char *tmp = MemAlloc(strlen(arg) + 50);
+	    char *tmp = JLI_MemAlloc(strlen(arg) + 50);
 	    if (*p) {
 	        sprintf(tmp, "-Xrunhprof:cpu=old,file=%s", p + 1);
 	    } else {
@@ -961,7 +1143,7 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 		   strncmp(arg, "-oss", 4) == 0 ||
 		   strncmp(arg, "-ms", 3) == 0 ||
 		   strncmp(arg, "-mx", 3) == 0) {
-	    char *tmp = MemAlloc(strlen(arg) + 6);
+	    char *tmp = JLI_MemAlloc(strlen(arg) + 6);
 	    sprintf(tmp, "-X%s", arg + 1); /* skip '-' */
 	    AddOption(tmp, NULL);
 	} else if (strcmp(arg, "-checksource") == 0 ||
@@ -973,7 +1155,8 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 		    arg);
         } else if (strncmp(arg, "-version:", 9) == 0 ||
                    strcmp(arg, "-no-jre-restrict-search") == 0 ||
-                   strcmp(arg, "-jre-restrict-search") == 0) {
+                   strcmp(arg, "-jre-restrict-search") == 0 ||
+                   strncmp(arg, "-splash:", 8) == 0) {
 	    ; /* Ignore machine independent options already handled */
 	} else if (RemovableMachineDependentOption(arg) ) {
 	    ; /* Do not pass option to vm. */
@@ -1027,28 +1210,13 @@ InitializeJVM(JavaVM **pvm, JNIEnv **penv, InvocationFunctions *ifn)
     }
 
     r = ifn->CreateJavaVM(pvm, (void **)penv, &args);
-    free(options);
+    JLI_MemFree(options);
     return r == JNI_OK;
 }
 
 
 #define NULL_CHECK0(e) if ((e) == 0) return 0
 #define NULL_CHECK(e) if ((e) == 0) return
-
-/*
- * Returns a pointer to a block of at least 'size' bytes of memory.
- * Prints error message and exits if the memory could not be allocated.
- */
-void *
-MemAlloc(size_t size)
-{
-    void *p = malloc(size);
-    if (p == 0) {
-	perror("malloc");
-	exit(1);
-    }
-    return p;
-}
 
 static jstring platformEncoding = NULL;
 static jstring getPlatformEncoding(JNIEnv *env) {
@@ -1077,7 +1245,7 @@ static jboolean isEncodingSupported(JNIEnv *env, jstring enc) {
 	                   env, cls, 
 		           "isSupported",
 		           "(Ljava/lang/String;)Z"));
-    return (jboolean)(*env)->CallStaticObjectMethod (env, cls, mid, enc);
+    return (*env)->CallStaticBooleanMethod(env, cls, mid, enc);
 }
 
 /*
@@ -1153,7 +1321,7 @@ NewPlatformStringArray(JNIEnv *env, char **strv, int strc)
 static jclass
 LoadClass(JNIEnv *env, char *name)
 {
-    char *buf = MemAlloc(strlen(name) + 1);
+    char *buf = JLI_MemAlloc(strlen(name) + 1);
     char *s = buf, *t = name, c;
     jclass cls;
     jlong start, end;
@@ -1166,7 +1334,7 @@ LoadClass(JNIEnv *env, char *name)
 	*s++ = (c == '.') ? '/' : c;
     } while (c != '\0');
     cls = (*env)->FindClass(env, buf);
-    free(buf);
+    JLI_MemFree(buf);
 
     if (_launcher_debug) {
 	end   = CounterGet();
@@ -1222,16 +1390,18 @@ static char *java_args[] = JAVA_ARGS;
 static char *app_classpath[] = APP_CLASSPATH;
 
 /*
- * For tools convert 'javac -J-ms32m' to 'java -ms32m ...'
+ * For tools, convert command line args thus:
+ *   javac -cp foo:foo/"*" -J-ms32m ...
+ *   java -ms32m -cp JLI_WildcardExpandClasspath(foo:foo/"*") ...
  */
 static void
-TranslateDashJArgs(int *pargc, char ***pargv)
+TranslateApplicationArgs(int *pargc, char ***pargv)
 {
     const int NUM_ARGS = (sizeof(java_args) / sizeof(char *));
     int argc = *pargc;
     char **argv = *pargv;
     int nargc = argc + NUM_ARGS;
-    char **nargv = MemAlloc((nargc + 1) * sizeof(char *));
+    char **nargv = JLI_MemAlloc((nargc + 1) * sizeof(char *));
     int i;
 
     *pargc = nargc;
@@ -1266,9 +1436,22 @@ TranslateDashJArgs(int *pargc, char ***pargv)
     }
     for (i = 0; i < argc; i++) {
 	char *arg = argv[i];
-	if (arg[0] != '-' || arg[1] != 'J') {
-	    *nargv++ = arg;
+	if (arg[0] == '-') {
+	    if (arg[1] == 'J')
+		continue;
+#ifdef EXPAND_CLASSPATH_WILDCARDS
+	    if (arg[1] == 'c'
+		&& (strcmp(arg, "-cp") == 0 ||
+		    strcmp(arg, "-classpath") == 0)
+		&& i < argc - 1) {
+		*nargv++ = arg;
+		*nargv++ = (char *) JLI_WildcardExpandClasspath(argv[i+1]);
+		i++;
+		continue;
+	    }
+#endif
 	}
+	*nargv++ = arg;
     }
     *nargv = 0;
 }
@@ -1290,18 +1473,21 @@ static jboolean
 AddApplicationOptions()
 {
     const int NUM_APP_CLASSPATH = (sizeof(app_classpath) / sizeof(char *));
-    char *s, *envcp, *appcp, *apphome;
+    char *envcp, *appcp, *apphome;
     char home[MAXPATHLEN]; /* application home */
     char separator[] = { PATH_SEPARATOR, '\0' };
     int size, i;
     int strlenHome;
 
-    s = getenv("CLASSPATH");
-    if (s) {
-	/* 40 for -Denv.class.path= */
-	envcp = (char *)MemAlloc(strlen(s) + 40);
-	sprintf(envcp, "-Denv.class.path=%s", s);
-	AddOption(envcp, NULL);
+    {
+	const char *s = getenv("CLASSPATH");
+	if (s) {
+	    s = (char *) JLI_WildcardExpandClasspath(s);
+	    /* 40 for -Denv.class.path= */
+	    envcp = (char *)JLI_MemAlloc(strlen(s) + 40);
+	    sprintf(envcp, "-Denv.class.path=%s", s);
+	    AddOption(envcp, NULL);
+	}
     }
 
     if (!GetApplicationHome(home, sizeof(home))) {
@@ -1310,7 +1496,7 @@ AddApplicationOptions()
     }
 
     /* 40 for '-Dapplication.home=' */
-    apphome = (char *)MemAlloc(strlen(home) + 40);
+    apphome = (char *)JLI_MemAlloc(strlen(home) + 40);
     sprintf(apphome, "-Dapplication.home=%s", home);
     AddOption(apphome, NULL);
 
@@ -1320,7 +1506,7 @@ AddApplicationOptions()
     for (i = 0; i < NUM_APP_CLASSPATH; i++) {
 	size += strlenHome + (int)strlen(app_classpath[i]) + 1; /* 1: separator */
     }
-    appcp = (char *)MemAlloc(size + 1);
+    appcp = (char *)JLI_MemAlloc(size + 1);
     strcpy(appcp, "-Djava.class.path=");
     for (i = 0; i < NUM_APP_CLASSPATH; i++) {
 	strcat(appcp, home);			/* c:\program files\myapp */
@@ -1331,7 +1517,7 @@ AddApplicationOptions()
     AddOption(appcp, NULL);
     return JNI_TRUE;
 }
-#endif
+#endif /* JAVA_ARGS */
 
 /*
  * inject the -Dsun.java.command pseudo property into the args structure
@@ -1373,7 +1559,7 @@ SetJavaCommandLineProp(char *classname, char *jarfile,
     }
 
     /* allocate the memory */
-    javaCommand = (char*) MemAlloc(len + strlen(dashDstr) + 1);
+    javaCommand = (char*) JLI_MemAlloc(len + strlen(dashDstr) + 1);
 
     /* build the -D string */
     *javaCommand = '\0';
@@ -1504,6 +1690,8 @@ PrintUsage(void)
 "                  load native agent library by full pathname\n"
 "    -javaagent:<jarpath>[=<options>]\n"
 "                  load Java programming language agent, see java.lang.instrument\n"
+"    -splash:<imagepath>\n"
+"                  show splash screen with specified image\n"
 
 	    ,PATH_SEPARATOR);
 }
@@ -1512,14 +1700,21 @@ PrintUsage(void)
  * Print usage message for -X options.
  */
 static jint
-PrintXUsage(void)
+PrintXUsage(const char *jvmpath)
 {
-    char path[MAXPATHLEN];
+    /* 
+       A 32 bit cushion to prevent buffer overrun, noting that 
+       fopen(3C) may fail if the buffer exceeds MAXPATHLEN.
+    */
+    char path[MAXPATHLEN+32];
     char buf[128];
     size_t n;
     FILE *fp;
+    static const char Xusage_txt[] = "/Xusage.txt";
 
-    GetXUsagePath(path, sizeof(path));
+    strcpy(path, jvmpath);
+    /* Note the FILE_SEPARATOR is platform dependent */
+    strcpy(strrchr(path, FILE_SEPARATOR), Xusage_txt);
     fp = fopen(path, "r");
     if (fp == 0) {
         fprintf(stderr, "Can't open %s\n", path);
@@ -1595,8 +1790,8 @@ ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative)
     jlong start, end;
     int vmType;
     char *tmpPtr;
-    char *altVMName;
-    char *serverClassVMName;
+    char *altVMName = NULL;
+    char *serverClassVMName = NULL;
     static char *whiteSpace = " \t";
     if (_launcher_debug) {
         start = CounterGet();
@@ -1635,7 +1830,7 @@ ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative)
             fprintf(stderr, "Warning: missing VM type on line %d of `%s'\n",
                     lineno, jvmCfgName);
         } else {
-            /* Null-terminate this string for strdup below */
+            /* Null-terminate this string for JLI_StringDup below */
             *tmpPtr++ = 0;
             tmpPtr += strspn(tmpPtr, whiteSpace);
             if (*tmpPtr == 0) {
@@ -1693,20 +1888,20 @@ ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative)
         if (_launcher_debug)
             printf("jvm.cfg[%d] = ->%s<-\n", cnt, line);
         if (vmType != VM_UNKNOWN) {
-            knownVMs[cnt].name = strdup(line);
+            knownVMs[cnt].name = JLI_StringDup(line);
             knownVMs[cnt].flag = vmType;
             switch (vmType) {
             default:
                 break;
             case VM_ALIASED_TO:
-                knownVMs[cnt].alias = strdup(altVMName);
+                knownVMs[cnt].alias = JLI_StringDup(altVMName);
                 if (_launcher_debug) {
                     printf("    name: %s  vmType: %s  alias: %s\n", 
                            knownVMs[cnt].name, "VM_ALIASED_TO", knownVMs[cnt].alias);
                 }
                 break;
             case VM_IF_SERVER_CLASS:
-                knownVMs[cnt].server_class = strdup(serverClassVMName);
+                knownVMs[cnt].server_class = JLI_StringDup(serverClassVMName);
                 if (_launcher_debug) {
                     printf("    name: %s  vmType: %s  server_class: %s\n", 
                            knownVMs[cnt].name, "VM_IF_SERVER_CLASS", knownVMs[cnt].server_class);
@@ -1739,11 +1934,11 @@ GrowKnownVMs(int minimum)
     if (newMax <= minimum) {
         newMax = minimum;
     }
-    newKnownVMs = (struct vmdesc*) MemAlloc(newMax * sizeof(struct vmdesc));
+    newKnownVMs = (struct vmdesc*) JLI_MemAlloc(newMax * sizeof(struct vmdesc));
     if (knownVMs != NULL) {
         memcpy(newKnownVMs, knownVMs, knownVMsLimit * sizeof(struct vmdesc));
     }
-    free(knownVMs);
+    JLI_MemFree(knownVMs);
     knownVMs = newKnownVMs;
     knownVMsLimit = newMax;
 }
@@ -1768,8 +1963,37 @@ FreeKnownVMs()
 {
     int i;
     for (i = 0; i < knownVMsCount; i++) {
-        free(knownVMs[i].name);
+        JLI_MemFree(knownVMs[i].name);
         knownVMs[i].name = NULL;
     }
-    free(knownVMs);
+    JLI_MemFree(knownVMs);
 }
+
+
+/* 
+ * Displays the splash screen according to the jar file name
+ * and image file names stored in environment variables
+ */
+static void
+ShowSplashScreen()
+{
+    const char *jar_name = getenv(SPLASH_JAR_ENV_ENTRY);
+    const char *file_name = getenv(SPLASH_FILE_ENV_ENTRY);
+    int data_size;
+    void *image_data;
+    if (jar_name) {
+        image_data = JLI_JarUnpackFile(jar_name, file_name, &data_size);
+        if (image_data) {
+            DoSplashInit();
+            DoSplashLoadMemory(image_data, data_size);
+            JLI_MemFree(image_data);
+        }
+    } else if (file_name) {
+        DoSplashInit();
+        DoSplashLoadFile(file_name);
+    } else {
+        return;
+    }
+    DoSplashSetFileJarName(file_name, jar_name);
+}
+

@@ -68,9 +68,9 @@ import java.util.*;
  * use the `removeNOPs' method to get rid off them.
  * The resulting method object can be obtained via the `getMethod()' method.
  *
- * @version $Id: MethodGen.java,v 1.1.1.1 2001/10/29 20:00:24 jvanzyl Exp $
+ * @version $Id: MethodGen.java,v 1.1.2.1 2005/07/31 23:45:36 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
- * @author  <A HREF="http://www.vmeng.com/beard">Patrick C. Beard</A>
+ * @author  <A HREF="http://www.vmeng.com/beard">Patrick C. Beard</A> [setMaxStack()]
  * @see     InstructionList
  * @see     Method
  */
@@ -123,33 +123,47 @@ public class MethodGen extends FieldGenOrMethodGen {
     setInstructionList(il);
     setConstantPool(cp);
 
-    if((access_flags & (Constants.ACC_ABSTRACT | Constants.ACC_NATIVE)) == 0) {
-      InstructionHandle start = il.getStart();
-      InstructionHandle end   = il.getEnd();
+    boolean abstract_ = isAbstract() || isNative();
+    InstructionHandle start = null;
+    InstructionHandle end   = null;
+
+    if(!abstract_) {
+      start = il.getStart();
+      end   = il.getEnd();
 
       /* Add local variables, namely the implicit `this' and the arguments
        */
-      if(!isStatic() && (class_name != null)) // Instance method -> `this' is local var 0
+      if(!isStatic() && (class_name != null)) { // Instance method -> `this' is local var 0
 	addLocalVariable("this", new ObjectType(class_name), start, end);
+      }
+    }
 
-      if(arg_types != null) {
-	int size = arg_types.length;
-	
-	if(arg_names != null) { // Names for variables provided?
-	  if(size != arg_names.length)
-	    throw new ClassGenException("Mismatch in argument array lengths: " +
-					size + " vs. " + arg_names.length);
-	} else { // Give them dummy names
-	  arg_names = new String[size];
+    if(arg_types != null) {
+      int size = arg_types.length;
 
-	  for(int i=0; i < size; i++)
-	    arg_names[i] = "arg" + i;
-
-	  setArgumentNames(arg_names);
+      for(int i=0; i < size; i++) {
+	if(Type.VOID == arg_types[i]) {
+	  throw new ClassGenException("'void' is an illegal argument type for a method");
 	}
-
+      }
+	
+      if(arg_names != null) { // Names for variables provided?
+	if(size != arg_names.length)
+	  throw new ClassGenException("Mismatch in argument array lengths: " +
+				      size + " vs. " + arg_names.length);
+      } else { // Give them dummy names
+	arg_names = new String[size];
+	
 	for(int i=0; i < size; i++)
+	  arg_names[i] = "arg" + i;
+	
+	setArgumentNames(arg_names);
+      }
+      
+      if(!abstract_) {
+	for(int i=0; i < size; i++) {
 	  addLocalVariable(arg_names[i], arg_types[i], start, end);
+	}
       }
     }
   }
@@ -214,22 +228,29 @@ public class MethodGen extends FieldGenOrMethodGen {
 
 	  if(a instanceof LineNumberTable) {
 	    LineNumber[] ln = ((LineNumberTable)a).getLineNumberTable();
+
 	    for(int k=0; k < ln.length; k++) {
 	      LineNumber l = ln[k];
 	      addLineNumber(il.findHandle(l.getStartPC()), l.getLineNumber());
 	    }
 	  } else if(a instanceof LocalVariableTable) {
 	    LocalVariable[] lv = ((LocalVariableTable)a).getLocalVariableTable();
+
+	    removeLocalVariables();
+
 	    for(int k=0; k < lv.length; k++) {
 	      LocalVariable     l     = lv[k];
 	      InstructionHandle start = il.findHandle(l.getStartPC());
 	      InstructionHandle end   = il.findHandle(l.getStartPC() + l.getLength());
 
 	      // Repair malformed handles
-	      if(start == null)
+	      if(null == start) {
 		start = il.getStart();
-	      if(end == null)
+	      }
+
+	      if(null == end) {
 		end = il.getEnd();
+	      }
 
 	      addLocalVariable(l.getName(), Type.getType(l.getSignature()),
 			       l.getIndex(), start, end);
@@ -261,20 +282,28 @@ public class MethodGen extends FieldGenOrMethodGen {
   public LocalVariableGen addLocalVariable(String name, Type type, int slot,
 					   InstructionHandle start,
 					   InstructionHandle end) {
-    byte t   = type.getType();
-    int  add = type.getSize();
+    byte t = type.getType();
+
+    if(t != Constants.T_ADDRESS) {
+      int  add = type.getSize();
     
-    if(slot + add > max_locals) 
-      max_locals = slot + add;
+      if(slot + add > max_locals) 
+	max_locals = slot + add;
+      
+      LocalVariableGen l = new LocalVariableGen(slot, name, type, start, end);
+      int i;
+      
+      if((i = variable_vec.indexOf(l)) >= 0) // Overwrite if necessary
+	variable_vec.set(i, l);
+      else
+	variable_vec.add(l);
 
-    LocalVariableGen l = new LocalVariableGen(slot, name, type, start, end);
-    int i;
-
-    if((i = variable_vec.indexOf(l)) >= 0) // Overwrite if necessary
-      variable_vec.set(i, l);
-    else
-      variable_vec.add(l);
-    return l;
+      return l;
+    } else {
+      throw new IllegalArgumentException("Can not use " + type + 
+					 " as type for local variable");
+					 
+    }
   }
 
   /**
@@ -431,7 +460,7 @@ public class MethodGen extends FieldGenOrMethodGen {
    * @param start_pc Start of region (inclusive)
    * @param end_pc End of region (inclusive)
    * @param handler_pc Where handling is done
-   * @param catch_type fully qualified class name of handled exception or null if any
+   * @param catch_type class type of handled exception or null if any
    * exception is handled
    * @return new exception handler object
    */
@@ -586,7 +615,6 @@ public class MethodGen extends FieldGenOrMethodGen {
     if(il != null)
       byte_code = il.getByteCode();
 
-    
     LineNumberTable    lnt = null;
     LocalVariableTable lvt = null;
 
@@ -610,7 +638,17 @@ public class MethodGen extends FieldGenOrMethodGen {
     int             exc_len = c_exc.length * 8; // Every entry takes 8 bytes
 
     Code code = null;
+
     if((il != null) && !isAbstract()) {
+      // Remove any stale code attribute
+      Attribute[] attributes = getAttributes();
+      for(int i=0; i < attributes.length; i++) {
+	Attribute a = attributes[i];
+
+	if(a instanceof Code)
+	  removeAttribute(a);
+      }
+
       code = new Code(cp.addUtf8("Code"),
 		      8 + byte_code.length + // prologue byte code
 		      2 + exc_len +          // exceptions
@@ -710,7 +748,6 @@ public class MethodGen extends FieldGenOrMethodGen {
 
   /**
    * Computes max. stack size by performing control flow analysis.
-   * @author  <A HREF="http://www.vmeng.com/beard">Patrick C. Beard</A>
    */
   public void setMaxStack() {
     if(il != null)
@@ -901,7 +938,7 @@ public class MethodGen extends FieldGenOrMethodGen {
 
   /**
    * Return string representation close to declaration format,
-   * `public static void main(String[]) throws IOException', e.g.
+   * `public static void _main(String[]) throws IOException', e.g.
    *
    * @return String representation of the method.
    */

@@ -1,7 +1,7 @@
 /*
- * @(#)JRadioButtonMenuItem.java	1.49 03/12/19
+ * @(#)JRadioButtonMenuItem.java	1.52 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -29,10 +29,24 @@ import javax.accessibility.*;
  * To control the selected state of a group of radio button menu items,  
  * use a <code>ButtonGroup</code> object.
  * <p>
+ * Menu items can be configured, and to some degree controlled, by 
+ * <code><a href="Action.html">Action</a></code>s.  Using an
+ * <code>Action</code> with a menu item has many benefits beyond directly
+ * configuring a menu item.  Refer to <a href="Action.html#buttonActions">
+ * Swing Components Supporting <code>Action</code></a> for more
+ * details, and you can find more information in <a
+ * href="http://java.sun.com/docs/books/tutorial/uiswing/misc/action.html">How
+ * to Use Actions</a>, a section in <em>The Java Tutorial</em>.
+ * <p>
  * For further documentation and examples see
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
  * a section in <em>The Java Tutorial.</em>
+ * <p>
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -47,7 +61,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component within a group of menu items which can be selected.
  *
- * @version 1.49 12/19/03
+ * @version 1.52 08/08/06
  * @author Georges Saab
  * @author David Karlton
  * @see ButtonGroup
@@ -190,6 +204,14 @@ public class JRadioButtonMenuItem extends JMenuItem implements Accessible {
      */
     protected String paramString() {
 	return super.paramString();
+    }
+
+    /**
+     * Overriden to return true, JRadioButtonMenuItem supports
+     * the selected state.
+     */
+    boolean shouldUpdateSelectedStateFromAction() {
+        return true;
     }
 
 /////////////////                                                 

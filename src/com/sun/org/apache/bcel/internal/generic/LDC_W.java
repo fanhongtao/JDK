@@ -61,7 +61,7 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
  *
  * <PRE>Stack: ... -&gt; ..., item.word1, item.word2</PRE>
  *
- * @version $Id: LDC_W.java,v 1.1.1.1 2001/10/29 20:00:21 jvanzyl Exp $
+ * @version $Id: LDC_W.java,v 1.1.2.1 2005/07/31 23:45:57 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LDC_W extends LDC {
@@ -82,6 +82,7 @@ public class LDC_W extends LDC {
        throws IOException
   {
     setIndex(bytes.readUnsignedShort());
-    length = 3;
+    // Override just in case it has been changed
+    opcode = com.sun.org.apache.bcel.internal.Constants.LDC_W;
   }
 }

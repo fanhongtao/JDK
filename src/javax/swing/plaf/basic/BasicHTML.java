@@ -1,7 +1,7 @@
 /*
- * @(#)BasicHTML.java	1.22 04/07/23
+ * @(#)BasicHTML.java	1.27 06/04/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -14,7 +14,7 @@ import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.text.html.*;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * Support for providing html views for the swing components.
@@ -23,7 +23,8 @@ import com.sun.java.swing.SwingUtilities2;
  * layout semantics.
  *
  * @author  Timothy Prinzing
- * @version 1.22 07/23/04
+ * @version 1.27 04/07/06
+ * @since 1.3
  */
 public class BasicHTML {
 
@@ -48,6 +49,112 @@ public class BasicHTML {
 	View hview = f.create(doc.getDefaultRootElement());
 	View v = new Renderer(c, f, hview);
 	return v;
+    }
+
+    /**
+     * Returns the baseline for the html renderer.
+     *
+     * @param view the View to get the baseline for
+     * @param w the width to get the baseline for
+     * @param h the height to get the baseline for
+     * @throws IllegalArgumentException if width or height is &lt; 0
+     * @return baseline or a value &lt; 0 indicating there is no reasonable
+     *                  baseline
+     * @see java.awt.FontMetrics
+     * @see javax.swing.JComponent#getBaseline(int,int)
+     * @since 1.6
+     */
+    public static int getHTMLBaseline(View view, int w, int h) {
+        if (w < 0 || h < 0) {
+            throw new IllegalArgumentException(
+                    "Width and height must be >= 0");
+        }
+        if (view instanceof Renderer) {
+            return getBaseline(view.getView(0), w, h);
+        }
+        return -1;
+    }
+
+    /**
+     * Gets the baseline for the specified component.  This digs out
+     * the View client property, and if non-null the baseline is calculated
+     * from it.  Otherwise the baseline is the value <code>y + ascent</code>.
+     */
+    static int getBaseline(JComponent c, int y, int ascent,
+                                  int w, int h) {
+        View view = (View)c.getClientProperty(BasicHTML.propertyKey);
+        if (view != null) {
+            int baseline = getHTMLBaseline(view, w, h);
+            if (baseline < 0) {
+                return baseline;
+            }
+            return y + baseline;
+        }
+        return y + ascent;
+    }
+
+    /**
+     * Gets the baseline for the specified View.
+     */
+    static int getBaseline(View view, int w, int h) {
+        if (hasParagraph(view)) {
+            view.setSize(w, h);
+            return getBaseline(view, new Rectangle(0, 0, w, h));
+        }
+        return -1;
+    }
+
+    private static int getBaseline(View view, Shape bounds) {
+        if (view.getViewCount() == 0) {
+            return -1;
+        }
+        AttributeSet attributes = view.getElement().getAttributes();
+        Object name = null;
+        if (attributes != null) {
+            name = attributes.getAttribute(StyleConstants.NameAttribute);
+        }
+        int index = 0;
+        if (name == HTML.Tag.HTML && view.getViewCount() > 1) {
+            // For html on widgets the header is not visible, skip it.
+            index++;
+        }
+        bounds = view.getChildAllocation(index, bounds);
+        if (bounds == null) {
+            return -1;
+        }
+        View child = view.getView(index);
+        if (view instanceof javax.swing.text.ParagraphView) {
+            Rectangle rect;
+            if (bounds instanceof Rectangle) {
+                rect = (Rectangle)bounds;
+            }
+            else {
+                rect = bounds.getBounds();
+            }
+            return rect.y + (int)(rect.height *
+                                  child.getAlignment(View.Y_AXIS));
+        }
+        return getBaseline(child, bounds);
+    }
+
+    private static boolean hasParagraph(View view) {
+        if (view instanceof javax.swing.text.ParagraphView) {
+            return true;
+        }
+        if (view.getViewCount() == 0) {
+            return false;
+        }
+        AttributeSet attributes = view.getElement().getAttributes();
+        Object name = null;
+        if (attributes != null) {
+            name = attributes.getAttribute(StyleConstants.NameAttribute);
+        }
+        int index = 0;
+        if (name == HTML.Tag.HTML && view.getViewCount() > 1) {
+            // For html on widgets the header is not visible, skip it.
+            index = 1;
+        }
+        return hasParagraph(view.getView(index));
     }
 
     /**
@@ -238,7 +345,7 @@ public class BasicHTML {
          * a custom font or color.
          */
 	private void setFontAndColor(Font font, Color fg) {
-            getStyleSheet().addRule(com.sun.java.swing.SwingUtilities2.
+            getStyleSheet().addRule(sun.swing.SwingUtilities2.
                                     displayPropertiesToCSS(font,fg));
 	}
     }

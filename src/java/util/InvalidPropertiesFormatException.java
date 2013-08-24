@@ -1,7 +1,7 @@
 /*
- * 1.3 03/12/19
+ * 1.4 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.io.IOException;
  * interface from Exception, it is not intended to be Serializable. Appropriate
  * serialization methods are implemented to throw NotSerializableException.
  *
- * @version 1.3 03/12/19
+ * @version 1.4 05/11/17
  * @see     Properties
  * @since   1.5
  * @serial exclude

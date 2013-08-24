@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WithParam.java,v 1.17 2004/02/24 02:57:28 zongaro Exp $
+ * $Id: WithParam.java,v 1.2.4.1 2005/09/12 11:38:01 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -30,7 +30,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ReferenceType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -112,7 +112,7 @@ final class WithParam extends Instruction {
     public void parseContents(Parser parser) {
 	final String name = getAttribute("name");
 	if (name.length() > 0) {
-            if (!XMLChar.isValidQName(name)) {
+            if (!XML11Char.isXML11ValidQName(name)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name,
                                             this);
                 parser.reportError(Constants.ERROR, err);

@@ -1,7 +1,7 @@
 /*
- * @(#)EventQueue.java	1.97 06/07/19
+ * @(#)EventQueue.java	1.105 06/07/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,6 +19,7 @@ import java.awt.event.WindowEvent;
 import java.awt.ActiveEvent;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
+import java.awt.TrayIcon;
 import java.util.EmptyStackException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
@@ -65,15 +66,14 @@ import sun.awt.AppContext;
  * for more information.
  * <p>
  * For information on the threading issues of the event dispatch
- * machinery, see <a href="doc-files/AWTThreadIssues.html">AWT Threading
- * Issues</a>.
-
+ * machinery, see <a href="doc-files/AWTThreadIssues.html#Autoshutdown"
+ * >AWT Threading Issues</a>.
  *
  * @author Thomas Ball
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.97, 07/19/06
+ * @version 	1.105, 07/11/06
  * @since 	1.1
  */
 public class EventQueue {
@@ -187,25 +187,49 @@ public class EventQueue {
     final void postEventPrivate(AWTEvent theEvent) {
         theEvent.isPosted = true;
         synchronized(this) {
-            int id = theEvent.getID();
+            if (dispatchThread == null && nextQueue == null) {
+                if (theEvent.getSource() == AWTAutoShutdown.getInstance()) {
+                    return;
+                } else {
+                    initDispatchThread();
+                }
+            }
             if (nextQueue != null) {
                 // Forward event to top of EventQueue stack.
                 nextQueue.postEventPrivate(theEvent);
-            } else if (theEvent instanceof PeerEvent &&
-                           (((PeerEvent)theEvent).getFlags() & 
-                            PeerEvent.ULTIMATE_PRIORITY_EVENT) != 0) {
-                postEvent(theEvent, ULTIMATE_PRIORITY);
-            } else if (theEvent instanceof PeerEvent &&
-                       (((PeerEvent)theEvent).getFlags() & 
-                                       PeerEvent.PRIORITY_EVENT) != 0) {
-                postEvent(theEvent, HIGH_PRIORITY);
-            } else if (id == PaintEvent.PAINT ||
-                       id == PaintEvent.UPDATE) {
-                postEvent(theEvent, LOW_PRIORITY);
-            } else {
-                postEvent(theEvent, NORM_PRIORITY);
+                return;
             }
+            postEvent(theEvent, getPriority(theEvent));
         }
+    }
+    
+    private static int getPriority(AWTEvent theEvent) {
+  	if (theEvent instanceof PeerEvent &&
+            (((PeerEvent)theEvent).getFlags() & 
+                PeerEvent.ULTIMATE_PRIORITY_EVENT) != 0) 
+        {
+            return ULTIMATE_PRIORITY;
+        } 
+
+        if (theEvent instanceof PeerEvent &&
+            (((PeerEvent)theEvent).getFlags() & 
+                PeerEvent.PRIORITY_EVENT) != 0) 
+        {
+            return HIGH_PRIORITY;
+        } 
+
+        if (theEvent instanceof PeerEvent &&
+            (((PeerEvent)theEvent).getFlags() & 
+                PeerEvent.LOW_PRIORITY_EVENT) != 0) 
+        {
+            return LOW_PRIORITY;
+        } 
+
+        int id = theEvent.getID();           
+        if (id == PaintEvent.PAINT || id == PaintEvent.UPDATE) {
+            return LOW_PRIORITY;
+        }            
+        return NORM_PRIORITY;
     }
 
     /**
@@ -217,31 +241,19 @@ public class EventQueue {
      * @param priority  the desired priority of the event
      */
     private void postEvent(AWTEvent theEvent, int priority) {
+        Object source = theEvent.getSource();
 
-        if (dispatchThread == null) {
-            if (theEvent.getSource() == AWTAutoShutdown.getInstance()) {
-                return;
-            } else {
-                initDispatchThread();
-            }
+        if (coalesceEvent(theEvent, priority)) {
+            return;
         }
-
-	Object source = theEvent.getSource();
-
-	// Expanding RepaintArea
-	if (source instanceof Component) {
-	    ComponentPeer sourcePeer = ((Component)source).peer;
-	    if (sourcePeer != null && theEvent instanceof PaintEvent &&
-                !(sourcePeer instanceof LightweightPeer)) { 
-		sourcePeer.coalescePaintEvent((PaintEvent)theEvent);
-	    }
-	}
 
         EventQueueItem newItem = new EventQueueItem(theEvent);
 
+        cacheEQItem(newItem);
+
         boolean notifyID = (theEvent.getID() == this.waitForID);
 	
-	if (queues[priority].head == null) {
+        if (queues[priority].head == null) {
             boolean shouldNotify = noEvents();
 	    queues[priority].head = queues[priority].tail = newItem;
 
@@ -254,41 +266,6 @@ public class EventQueue {
                 notifyAll();
             }
 	} else {
-	    boolean isPeerEvent = theEvent instanceof PeerEvent;
-           
-	    // For Component source events, traverse the entire list,
-	    // trying to coalesce events
-	    if (source instanceof Component) {
-                EventQueueItem q = queues[priority].head;
-
-                if (theEvent.id == Event.MOUSE_MOVE ||
-                    theEvent.id == Event.MOUSE_DRAG) {
-                    EventQueueItem qm;
-                    for(qm = q; qm != null; qm = qm.next) {
-                        if ((qm.event instanceof MouseEvent) &&
-                            qm.id != theEvent.id) {
-                            q = qm;
-                        }
-                    }
-                }
-
-		for (; q != null; q = q.next)  {
-		    // Give Component.coalesceEvents a chance
-		    if (q.event.getSource() == source && q.id == newItem.id) {
-			AWTEvent coalescedEvent = ((Component)source).coalesceEvents(q.event, theEvent);
-			if (isPeerEvent && coalescedEvent == null && q.event instanceof PeerEvent) {
-			    coalescedEvent = ((PeerEvent)q.event).coalesceEvents((PeerEvent)theEvent);
-			}
-			if (coalescedEvent != null) {
-			    // Remove debugging statement because
-			    // calling AWTEvent.toString here causes a
-			    // deadlock.
-			    q.event = coalescedEvent;
-			    return;
-			}
-		    }
-		}
-	    }
             // The event was not coalesced or has non-Component source.
             // Insert it at the end of the appropriate Queue.
 	    queues[priority].tail.next = newItem;
@@ -298,6 +275,162 @@ public class EventQueue {
             }
 	}
     }
+
+    private boolean coalescePaintEvent(PaintEvent e) {                                 
+        ComponentPeer sourcePeer = ((Component)e.getSource()).peer;                
+        if (sourcePeer != null) {                                                  
+            sourcePeer.coalescePaintEvent(e);                                      
+        }                                                                          
+        EventQueueItem[] cache = ((Component)e.getSource()).eventCache;               
+        if (cache == null) {                                                       
+            return false;                                                          
+        }                                                                          
+        int index = eventToCacheIndex(e);                                          
+                                                                                   
+        if (index != -1 && cache[index] != null) {
+            PaintEvent merged = mergePaintEvents(e, (PaintEvent)cache[index].event);
+            if (merged != null) {
+            	cache[index].event = merged;
+            	return true;
+            }
+        }
+        return false;
+    }
+
+    private PaintEvent mergePaintEvents(PaintEvent a, PaintEvent b) {
+    	Rectangle aRect = a.getUpdateRect();
+        Rectangle bRect = b.getUpdateRect();
+        if (bRect.contains(aRect)) {
+            return b;
+        }
+        if (aRect.contains(bRect)) {
+            return a;
+        }
+        return null;
+    }
+
+    private boolean coalesceMouseEvent(MouseEvent e) {                             
+        EventQueueItem[] cache = ((Component)e.getSource()).eventCache;               
+        if (cache == null) {                                                       
+            return false;                                                          
+        }                                                                          
+        int index = eventToCacheIndex(e);                                          
+        if (index != -1 && cache[index] != null) {                                 
+            cache[index].event = e;                                                
+            return true;                                                           
+        }                                                                          
+        return false;                                                              
+    }                                                                              
+                                                                                   
+    private boolean coalescePeerEvent(PeerEvent e) {                               
+        EventQueueItem[] cache = ((Component)e.getSource()).eventCache;               
+        if (cache == null) {                                                       
+            return false;                                                          
+        }                                                                          
+        int index = eventToCacheIndex(e);                                          
+        if (index != -1 && cache[index] != null) {                                 
+            e = e.coalesceEvents((PeerEvent)cache[index].event);                   
+            if (e != null) {                                                       
+                cache[index].event = e;                                            
+                return true;                                                       
+            } else {                                                               
+                cache[index] = null;                                               
+            }                                                                      
+        }                                                                          
+        return false;                                                              
+    }                                                                              
+
+    /*                                                                               
+     * Should avoid of calling this method by any means                            
+     * as it's working time is dependant on EQ length.                             
+     * In the wors case this method alone can slow down the entire application     
+     * 10 times by stalling the Event processing.                                  
+     * Only here by backward compatibility reasons.                                
+     */                                                                            
+    private boolean coalesceOtherEvent(AWTEvent e, int priority) {                 
+        int id = e.getID();                                                        
+        Component source = (Component)e.getSource();                               
+        for (EventQueueItem entry = queues[priority].head;                         
+            entry != null; entry = entry.next)                                     
+        {                                                                          
+            // Give Component.coalesceEvents a chance                              
+            if (entry.event.getSource() == source && entry.id == id) {             
+                AWTEvent coalescedEvent = source.coalesceEvents(                   
+                    entry.event, e);                                               
+                if (coalescedEvent != null) {                                      
+                    entry.event = coalescedEvent;                                  
+                    return true;                                                   
+                }                                                                  
+            }                                                                      
+        }                                                                          
+        return false;                                                              
+    }                                                                              
+                                                                                   
+    private boolean coalesceEvent(AWTEvent e, int priority) {                      
+        if (!(e.getSource() instanceof Component)) {                               
+            return false;                                                          
+        }                                                                          
+        if (e instanceof PeerEvent) {                                              
+            return coalescePeerEvent((PeerEvent)e);                                
+        }                                                                          
+        // The worst case                                                          
+        if (((Component)e.getSource()).isCoalescingEnabled()
+            && coalesceOtherEvent(e, priority)) 
+        {
+            return true;
+        }                                                                          
+        if (e instanceof PaintEvent) {                                             
+            return coalescePaintEvent((PaintEvent)e);                              
+        }                                                                          
+        if (e instanceof MouseEvent) {                                             
+            return coalesceMouseEvent((MouseEvent)e);                              
+        }                                                                          
+        return false;                                                              
+    }                                                                              
+                                                                                   
+    private void cacheEQItem(EventQueueItem entry) {                               
+        int index = eventToCacheIndex(entry.event);                                
+        if (index != -1 && entry.event.getSource() instanceof Component) {         
+            Component source = (Component)entry.event.getSource();                                       
+            if (source.eventCache == null) {
+                source.eventCache = new EventQueueItem[CACHE_LENGTH];      
+            }                                                                      
+            source.eventCache[index] = entry;                                                  
+        }                                                                          
+    }                                                                              
+                                                                                   
+    private void uncacheEQItem(EventQueueItem entry) {                             
+        int index = eventToCacheIndex(entry.event);                                
+        if (index != -1 && entry.event.getSource() instanceof Component) {         
+            Component source = (Component)entry.event.getSource();                 
+            if (source.eventCache == null) {                                                   
+                return;                                                            
+            }                                                                      
+            source.eventCache[index] = null;                                                   
+        }                                                                          
+    }                                                                              
+                                                                                   
+    private static final int PAINT = 0;                                            
+    private static final int UPDATE = 1;                                           
+    private static final int MOVE = 2;                                             
+    private static final int DRAG = 3;                                             
+    private static final int PEER = 4;                                             
+    private static final int CACHE_LENGTH = 5;                                     
+                                                                                   
+    private static int eventToCacheIndex(AWTEvent e) {                             
+        switch(e.getID()) {                                                        
+        case PaintEvent.PAINT:                                                     
+            return PAINT;                                                          
+        case PaintEvent.UPDATE:                                                    
+            return UPDATE;                                                         
+        case MouseEvent.MOUSE_MOVED:                                               
+            return MOVE;                                                           
+        case MouseEvent.MOUSE_DRAGGED:                                             
+            return DRAG;                                                           
+        default:                                                                   
+            return e instanceof PeerEvent ? PEER : -1;                             
+        }                                                                          
+    }                                                                              
 
     /**
      * Returns whether an event is pending on any of the separate
@@ -320,7 +453,7 @@ public class EventQueue {
      * been posted by another thread.
      * @return the next <code>AWTEvent</code>
      * @exception InterruptedException 
-     *            if another thread has interrupted this thread
+     *            if any thread has interrupted this thread
      */
     public AWTEvent getNextEvent() throws InterruptedException {
         do {
@@ -333,12 +466,13 @@ public class EventQueue {
             synchronized (this) {
                 for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
                     if (queues[i].head != null) {
-                        EventQueueItem eqi = queues[i].head;
-                        queues[i].head = eqi.next;
-                        if (eqi.next == null) {
+                        EventQueueItem entry = queues[i].head;
+                        queues[i].head = entry.next;
+                        if (entry.next == null) {
                             queues[i].tail = null;
                         }
-                        return eqi.event;
+                        uncacheEQItem(entry);
+                        return entry.event;
                     }
                 }
                 AWTAutoShutdown.getInstance().notifyThreadFree(dispatchThread);
@@ -369,6 +503,7 @@ public class EventQueue {
                             if (queues[i].tail == entry) {
                                 queues[i].tail = prev;
                             }
+                            uncacheEQItem(entry);
                             return entry.event;
                         }
                     }
@@ -450,6 +585,7 @@ public class EventQueue {
      * @param event an instance of <code>java.awt.AWTEvent</code>,
      * 		or a subclass of it
      * @throws NullPointerException if <code>event</code> is <code>null</code>
+     * @since           1.2
      */
     protected void dispatchEvent(AWTEvent event) {
         event.isPosted = true;
@@ -464,6 +600,8 @@ public class EventQueue {
             event.dispatched();
         } else if (src instanceof MenuComponent) {
             ((MenuComponent)src).dispatchEvent(event);
+        } else if (src instanceof TrayIcon) {
+            ((TrayIcon)src).dispatchEvent(event);
         } else if (src instanceof AWTAutoShutdown) {
             if (noEvents()) {
                 dispatchThread.stopDispatching();
@@ -545,6 +683,7 @@ public class EventQueue {
      *		(or subclass thereof) instance to be use
      * @see      java.awt.EventQueue#pop
      * @throws NullPointerException if <code>newEventQueue</code> is <code>null</code>
+     * @since           1.2
      */
     public synchronized void push(EventQueue newEventQueue) {
 	if (debug) {
@@ -604,6 +743,7 @@ public class EventQueue {
      * @exception EmptyStackException if no previous push was made
      *	on this <code>EventQueue</code>
      * @see      java.awt.EventQueue#push
+     * @since           1.2
      */
     protected void pop() throws EmptyStackException {
 	if (debug) {
@@ -661,6 +801,7 @@ public class EventQueue {
      *
      * @return true if running on the current AWT
      *  <code>EventQueue</code>'s dispatch thread
+     * @since           1.2
      */
     public static boolean isDispatchThread() {
 	EventQueue eq = Toolkit.getEventQueue();
@@ -750,6 +891,7 @@ public class EventQueue {
                         } else {
                             prev.next = entry.next;
                         }
+                        uncacheEQItem(entry);
                     } else {
                         prev = entry;
                     }
@@ -798,7 +940,8 @@ public class EventQueue {
 
     /**
      * Causes <code>runnable</code> to have its <code>run</code>
-     * method called in the dispatch thread of the <code>EventQueue</code>.
+     * method called in the dispatch thread of 
+     * {@link Toolkit#getSystemEventQueue the system EventQueue}.
      * This will happen after all pending events are processed.
      *
      * @param runnable  the <code>Runnable</code> whose <code>run</code>
@@ -814,7 +957,8 @@ public class EventQueue {
 
     /**
      * Causes <code>runnable</code> to have its <code>run</code>
-     * method called in the dispatch thread of the <code>EventQueue</code>.
+     * method called in the dispatch thread of
+     * {@link Toolkit#getSystemEventQueue the system EventQueue}.
      * This will happen after all pending events are processed.
      * The call blocks until this has happened.  This method
      * will throw an Error if called from the event dispatcher thread.
@@ -822,7 +966,7 @@ public class EventQueue {
      * @param runnable  the <code>Runnable</code> whose <code>run</code>
      *                  method should be executed
      *                  synchronously on the <code>EventQueue</code>
-     * @exception       InterruptedException  if another thread has
+     * @exception       InterruptedException  if any thread has
      *                  interrupted this thread
      * @exception       InvocationTargetException  if an throwable is thrown
      *                  when running <code>runnable</code>
@@ -895,3 +1039,4 @@ class EventQueueItem {
         id = evt.getID();
     }
 }
+

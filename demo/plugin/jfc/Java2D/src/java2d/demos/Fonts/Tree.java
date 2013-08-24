@@ -1,7 +1,7 @@
 /*
- * @(#)Tree.java	1.26 04/07/26
+ * @(#)Tree.java	1.28 06/08/29
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,11 +35,12 @@
  */
 
 /*
- * @(#)Tree.java	1.26 04/07/26
+ * @(#)Tree.java	1.28 06/08/29
  */
 
 package java2d.demos.Fonts;
 
+import static java.awt.Color.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
@@ -58,7 +59,7 @@ public class Tree extends AnimatingSurface {
 
 
     public Tree() {
-        setBackground(Color.white);
+        setBackground(WHITE);
     }
 
 
@@ -94,9 +95,9 @@ public class Tree extends AnimatingSurface {
     static double Twidth = 0.6;
     static double Rwidth = 0.6;
     static double FontHeight = 0.75;
-    static Color colors[] = {Color.blue,
-                             Color.red.darker(),
-                             Color.green.darker()};
+    static Color colors[] = {BLUE,
+                             RED.darker(),
+                             GREEN.darker()};
 
 
     public void tree(Graphics2D g2d, double size, int phase) {

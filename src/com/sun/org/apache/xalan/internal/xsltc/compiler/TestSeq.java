@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TestSeq.java,v 1.11 2004/02/16 22:25:10 minchau Exp $
+ * $Id: TestSeq.java,v 1.2.4.1 2005/09/12 11:31:38 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -238,10 +238,10 @@ final class TestSeq {
 	    il.append(methodGen.loadCurrentNode());
 
 	    // Apply the test-code compiled for the pattern
-	    InstructionList ilist = _mode.getInstructionList(pattern);
+	    InstructionList ilist = methodGen.getInstructionList(pattern);
 	    if (ilist == null) {
 		ilist = pattern.compile(classGen, methodGen);
-		_mode.addInstructionList(pattern, ilist);
+		methodGen.addInstructionList(pattern, ilist);
 	    }
 
 	    // Make a copy of the instruction list for backpatching

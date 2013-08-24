@@ -1,59 +1,19 @@
 /*
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.apache.org.  For more
- * information on the Apache Software Foundation, please see
- * <http://www.apache.org/>.
+ * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 
 
 // Sep 14, 2000:
@@ -79,13 +39,13 @@ import java.io.Writer;
 import java.util.Enumeration;
 
 import com.sun.org.apache.xerces.internal.dom.DOMMessageFormatter;
-import org.w3c.dom.DOMError;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.util.XMLSymbols;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
 import org.w3c.dom.Attr;
+import org.w3c.dom.DOMError;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -124,7 +84,7 @@ import org.xml.sax.helpers.AttributesImpl;
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  * @author <a href="mailto:rahul.srivastava@sun.com">Rahul Srivastava</a>
  * @author Elena Litani IBM
- * @version $Revision: 1.60 $ $Date: 2004/04/13 17:30:01 $
+ * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:18 $
  * @see Serializer
  */
 public class XMLSerializer
@@ -164,6 +124,11 @@ extends BaseMarkupSerializer {
      */
     protected boolean fNamespaces = false;
 
+    /**
+     * Controls whether namespace prefixes will be printed out during serialization
+     */
+    protected boolean fNamespacePrefixes = true;
+	
 
     private boolean fPreserveSpace;
 
@@ -777,7 +742,7 @@ extends BaseMarkupSerializer {
                         if (fDOMErrorHandler != null) {
                             String msg = DOMMessageFormatter.formatMessage(
                                 DOMMessageFormatter.XML_DOMAIN,"CantBindXMLNS",null );
-                            modifyDOMError(msg,  DOMError.SEVERITY_ERROR, attr);
+                            modifyDOMError(msg,  DOMError.SEVERITY_ERROR, null, attr);
                             boolean continueProcess = fDOMErrorHandler.handleError(fDOMError);
                             if (!continueProcess) {
                                 // stop the namespace fixup and validation
@@ -881,7 +846,9 @@ extends BaseMarkupSerializer {
                     // the prefix is either undeclared 
                     // or
                     // conflict: the prefix is bound to another URI
-                    printNamespaceAttr(prefix, uri);
+                    if (fNamespacePrefixes) {
+                        printNamespaceAttr(prefix, uri);
+                    }
                     fLocalNSBinder.declarePrefix(prefix, uri);
                     fNSBinder.declarePrefix(prefix, uri);
                 }
@@ -892,7 +859,7 @@ extends BaseMarkupSerializer {
                         String msg = DOMMessageFormatter.formatMessage(
                             DOMMessageFormatter.DOM_DOMAIN, "NullLocalElementName", 
                             new Object[]{elem.getNodeName()});
-                        modifyDOMError(msg,DOMError.SEVERITY_ERROR, elem);
+                        modifyDOMError(msg,DOMError.SEVERITY_ERROR, null, elem);
                         boolean continueProcess = fDOMErrorHandler.handleError(fDOMError);
                         // REVISIT: should we terminate upon request?
                         if (!continueProcess) {
@@ -908,7 +875,9 @@ extends BaseMarkupSerializer {
                     if (uri !=null && uri.length() > 0) {
                         // there is a default namespace decl that is bound to
                         // non-zero length uri, output xmlns=""
-                        printNamespaceAttr(XMLSymbols.EMPTY_STRING, XMLSymbols.EMPTY_STRING);
+                        if (fNamespacePrefixes) {
+                            printNamespaceAttr(XMLSymbols.EMPTY_STRING, XMLSymbols.EMPTY_STRING);
+                        }
                         fLocalNSBinder.declarePrefix(XMLSymbols.EMPTY_STRING, XMLSymbols.EMPTY_STRING);
                         fNSBinder.declarePrefix(XMLSymbols.EMPTY_STRING, XMLSymbols.EMPTY_STRING);
                     }
@@ -958,7 +927,7 @@ extends BaseMarkupSerializer {
                         // check if we need to output this declaration
                         prefix = attr.getPrefix();
                         prefix = (prefix == null || 
-                                  prefix.length() == 0) ? XMLSymbols.EMPTY_STRING :fSymbolTable.addSymbol(prefix);
+                                  prefix.length() == 0) ? XMLSymbols.EMPTY_STRING : fSymbolTable.addSymbol(prefix);
                         localpart = fSymbolTable.addSymbol( attr.getLocalName());
                         if (prefix == XMLSymbols.PREFIX_XMLNS) { //xmlns:prefix
                             localUri = fLocalNSBinder.getURI(localpart);  // local prefix mapping
@@ -966,7 +935,13 @@ extends BaseMarkupSerializer {
                             if (value.length() != 0 ) {
                                 if (localUri == null) {
                                     // declaration was not printed while fixing element namespace binding
-                                    printNamespaceAttr(localpart, value);
+                                    
+                                    // If the DOM Level 3 namespace-prefixes feature is set to false
+                                    // do not print xmlns attributes
+                                    if (fNamespacePrefixes) {
+                                        printNamespaceAttr(localpart, value);
+                                    }
+                                    	
                                     // case 4: <elem xmlns:xx="foo" xx:attr=""/>
                                     // where attribute is bound to "bar". 
                                     // If the xmlns:xx is output here first, later we should not
@@ -988,7 +963,9 @@ extends BaseMarkupSerializer {
                             value = fSymbolTable.addSymbol(value);
                             if (localUri == null ){
                                 // declaration was not printed while fixing element namespace binding
-                                printNamespaceAttr(XMLSymbols.EMPTY_STRING, value);
+                                if (fNamespacePrefixes) {
+                                    printNamespaceAttr(XMLSymbols.EMPTY_STRING, value);
+                                }
                                 // case 4 does not apply here since attributes can't use
                                 // default namespace
                             }
@@ -1037,7 +1014,9 @@ extends BaseMarkupSerializer {
                                 name=prefix+":"+localpart;
                             }
                             // add declaration for the new prefix
-                            printNamespaceAttr(prefix, uri);
+                            if (fNamespacePrefixes) {
+                                printNamespaceAttr(prefix, uri);
+                            }
                             value = fSymbolTable.addSymbol(value);
                             fLocalNSBinder.declarePrefix(prefix, value);
                             fNSBinder.declarePrefix(prefix, uri);
@@ -1053,7 +1032,7 @@ extends BaseMarkupSerializer {
                             String msg = DOMMessageFormatter.formatMessage(
                                 DOMMessageFormatter.DOM_DOMAIN, 
                                 "NullLocalAttrName", new Object[]{attr.getNodeName()});                            
-                            modifyDOMError(msg, DOMError.SEVERITY_ERROR, attr);
+                            modifyDOMError(msg, DOMError.SEVERITY_ERROR, null, attr);
                             boolean continueProcess = fDOMErrorHandler.handleError(fDOMError);
                             if (!continueProcess) {
                                 // stop the namespace fixup and validation
@@ -1359,12 +1338,11 @@ extends BaseMarkupSerializer {
             // consolidating spaces. If a line terminator is used, a line
             // break will occur.
             while ( length-- > 0 ) {
-                ch = chars[ start ];
-                ++start;
+                ch = chars[start++];
                 if (!XMLChar.isValid(ch)) {
                     // check if it is surrogate
-                    if (++start <length) {
-                        surrogates(ch, chars[start]);
+                    if ( length-- > 0 ) {
+                        surrogates(ch, chars[start++]);
                     } else {
                         fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
                     }
@@ -1382,13 +1360,11 @@ extends BaseMarkupSerializer {
             // by printing mechanism. Line terminator is treated
             // no different than other text part.
             while ( length-- > 0 ) {
-                ch = chars[ start ];
-                ++start;
-
+                ch = chars[start++];
                 if (!XMLChar.isValid(ch)) {
                     // check if it is surrogate
-                    if (++start <length) {
-                        surrogates(ch, chars[start]);
+                    if ( length-- > 0 ) {
+                        surrogates(ch, chars[start++]);
                     } else {
                         fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
                     }
@@ -1434,6 +1410,8 @@ extends BaseMarkupSerializer {
 		 	    //If a NamespaceURI is not declared for the current
 		 	    //node's prefix, raise a fatal error.
 		 	    String prefix = child.getPrefix();
+                prefix = (prefix == null || 
+                        prefix.length() == 0) ? XMLSymbols.EMPTY_STRING : fSymbolTable.addSymbol(prefix);
 		 	    if (fNSBinder.getURI(prefix) == null && prefix != null) {
 					fatalError("The replacement text of the entity node '" 
 								+ node.getNodeName()  
@@ -1450,6 +1428,8 @@ extends BaseMarkupSerializer {
 					for (int i = 0; i< attrs.getLength(); i++ ) {
 						
 				 	    String attrPrefix = attrs.item(i).getPrefix();
+                        attrPrefix = (attrPrefix == null || 
+                                attrPrefix.length() == 0) ? XMLSymbols.EMPTY_STRING : fSymbolTable.addSymbol(attrPrefix);
 				 	    if (fNSBinder.getURI(attrPrefix) == null && attrPrefix != null) {
 							fatalError("The replacement text of the entity node '" 
 										+ node.getNodeName()  

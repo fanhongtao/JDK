@@ -1,7 +1,7 @@
 /*
- * @(#)JComboBox.java	1.126 04/05/05
+ * @(#)JComboBox.java	1.142 06/08/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -28,11 +28,11 @@ import javax.accessibility.*;
  * The user can select a value from the drop-down list, which appears at the 
  * user's request. If you make the combo box editable, then the combo box
  * includes an editable field into which the user can type a value.
- * 
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JComboBox"><code>JComboBox</code> key assignments</a>.
+ * <strong>Warning:</strong> Swing is not thread safe. For more
+ * information see <a
+ * href="package-summary.html#threading">Swing's Threading
+ * Policy</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -55,7 +55,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.126 05/05/04
+ * @version 1.142 08/08/06
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -148,7 +148,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     private boolean selectingItem = false;
 
     /**
-     * Creates a <code>JComboBox</code> that takes it's items from an
+     * Creates a <code>JComboBox</code> that takes its items from an
      * existing <code>ComboBoxModel</code>.  Since the
      * <code>ComboBoxModel</code> is provided, a combo box created using
      * this constructor does not create a default combo box model and
@@ -181,7 +181,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     /**
      * Creates a <code>JComboBox</code> that contains the elements
      * in the specified Vector.  By default the first item in the vector
-     * and therefore the data model) becomes selected.
+     * (and therefore the data model) becomes selected.
      *
      * @param items  an array of vectors to insert into the combo box
      * @see DefaultComboBoxModel
@@ -245,6 +245,11 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
     public void updateUI() {
         setUI((ComboBoxUI)UIManager.getUI(this));
+
+        ListCellRenderer renderer = getRenderer();
+        if (!(renderer instanceof UIResource) && renderer instanceof Component) {
+            SwingUtilities.updateComponentTreeUI((Component)renderer);
+        }
     }
 
 
@@ -528,6 +533,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      */
     public void setSelectedItem(Object anObject) {
 	Object oldSelection = selectedItemReminder;
+        Object objectToSelect = anObject;
 	if (oldSelection == null || !oldSelection.equals(anObject)) {
 
 	    if (anObject != null && !isEditable()) {
@@ -535,8 +541,10 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 		// will be rejected.
 		boolean found = false;
 		for (int i = 0; i < dataModel.getSize(); i++) {
-		    if (anObject.equals(dataModel.getElementAt(i))) {
+                    Object element = dataModel.getElementAt(i);
+		    if (anObject.equals(element)) {
 			found = true;
+                        objectToSelect = element;
 			break;
 		    }
 		}
@@ -548,7 +556,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	    // Must toggle the state of this flag since this method
 	    // call may result in ListDataEvents being fired.
 	    selectingItem = true;
-	    dataModel.setSelectedItem(anObject);
+	    dataModel.setSelectedItem(objectToSelect);
 	    selectingItem = false;
 
 	    if (selectedItemReminder != dataModel.getSelectedItem()) {
@@ -877,7 +885,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * Adds a <code>PopupMenu</code> listener which will listen to notification
      * messages from the popup portion of the combo box. 
      * <p>
-     * For all standard look and feels shipped with Java 2, the popup list  
+     * For all standard look and feels shipped with Java, the popup list  
      * portion of combo box is implemented as a <code>JPopupMenu</code>.
      * A custom look and feel may not implement it this way and will 
      * therefore not receive the notification.
@@ -1011,15 +1019,23 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * If the <code>Action</code> is already a registered
      * <code>ActionListener</code> for the <code>ActionEvent</code> source,
      * it is not re-registered.
-     *
      * <p>
-     * A side-effect of setting the <code>Action</code> is that the
-     * <code>ActionEvent</code> source's properties are immedately set
-     * from the values in the <code>Action</code> (performed by the method 
-     * <code>configurePropertiesFromAction</code>) and subsequently
-     * updated as the <code>Action</code>'s properties change (via a
-     * <code>PropertyChangeListener</code> created by the method
-     * <code>createActionPropertyChangeListener</code>.
+     * Setting the <code>Action</code> results in immediately changing
+     * all the properties described in <a href="Action.html#buttonActions">
+     * Swing Components Supporting <code>Action</code></a>.
+     * Subsequently, the combobox's properties are automatically updated
+     * as the <code>Action</code>'s properties change.
+     * <p>
+     * This method uses three other methods to set
+     * and help track the <code>Action</code>'s property values.
+     * It uses the <code>configurePropertiesFromAction</code> method
+     * to immediately change the combobox's properties.
+     * To track changes in the <code>Action</code>'s property values,
+     * this method registers the <code>PropertyChangeListener</code>
+     * returned by <code>createActionPropertyChangeListener</code>. The
+     * default {@code PropertyChangeListener} invokes the
+     * {@code actionPropertyChanged} method when a property in the
+     * {@code Action} changes. 
      *
      * @param a the <code>Action</code> for the <code>JComboBox</code>,
      *			or <code>null</code>.
@@ -1028,6 +1044,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * @see #getAction
      * @see #configurePropertiesFromAction
      * @see #createActionPropertyChangeListener
+     * @see #actionPropertyChanged 
      * @beaninfo
      *        bound: true
      *    attribute: visualUpdate true
@@ -1053,8 +1070,6 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 		action.addPropertyChangeListener(actionPropertyChangeListener);
 	    }
 	    firePropertyChange("action", oldValue, action);
-	    revalidate();
-	    repaint();
 	}
     }
 
@@ -1085,61 +1100,91 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     }
 
     /**
-     * Factory method which sets the <code>ActionEvent</code> source's
-     * properties according to values from the <code>Action</code> instance.
-     * The properties which are set may differ for subclasses.
-     * By default, the properties which get set are 
-     * <code>Enabled</code> and <code>ToolTipText</code>.
+     * Sets the properties on this combobox to match those in the specified 
+     * <code>Action</code>.  Refer to <a href="Action.html#buttonActions">
+     * Swing Components Supporting <code>Action</code></a> for more
+     * details as to which properties this sets.
      *
      * @param a the <code>Action</code> from which to get the properties,
-     *				or <code>null</code>
+     *          or <code>null</code>
      * @since 1.3
      * @see Action
      * @see #setAction
      */
     protected void configurePropertiesFromAction(Action a) {
-	setEnabled((a!=null?a.isEnabled():true));
- 	setToolTipText((a!=null?(String)a.getValue(Action.SHORT_DESCRIPTION):null));	
+        AbstractAction.setEnabledFromAction(this, a);
+        AbstractAction.setToolTipTextFromAction(this, a);
+        setActionCommandFromAction(a);
     }
 
     /**
-     * Factory method which creates the <code>PropertyChangeListener</code>
-     * used to update the <code>ActionEvent</code> source as properties change
-     * on its <code>Action</code> instance.
-     * Subclasses may override this in order to provide their own
-     * <code>PropertyChangeListener</code> if the set of
-     * properties which should be kept up to date differs from the
-     * default properties (Text, Icon, Enabled, ToolTipText).
+     * Creates and returns a <code>PropertyChangeListener</code> that is
+     * responsible for listening for changes from the specified
+     * <code>Action</code> and updating the appropriate properties.
+     * <p>
+     * <b>Warning:</b> If you subclass this do not create an anonymous
+     * inner class.  If you do the lifetime of the combobox will be tied to
+     * that of the <code>Action</code>.
      *
-     * Note that <code>PropertyChangeListeners</code> should avoid holding
-     * strong references to the <code>ActionEvent</code> source,
-     * as this may hinder garbage collection of the <code>ActionEvent</code>
-     * source and all components in its containment hierarchy.  
-     *
+     * @param a the combobox's action
      * @since 1.3
      * @see Action
      * @see #setAction
      */
     protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
-        return new AbstractActionPropertyChangeListener(this, a) {
-	    public void propertyChange(PropertyChangeEvent e) {	    
-		String propertyName = e.getPropertyName();
-		JComboBox comboBox = (JComboBox)getTarget();
-		if (comboBox == null) {   //WeakRef GC'ed in 1.2
-		    Action action = (Action)e.getSource();
-		    action.removePropertyChangeListener(this);
-		} else {
-		    if (e.getPropertyName().equals(Action.SHORT_DESCRIPTION)) {
-			String text = (String) e.getNewValue();
-			comboBox.setToolTipText(text);
-		    } else if (propertyName.equals("enabled")) {
-			Boolean enabledState = (Boolean) e.getNewValue();
-			comboBox.setEnabled(enabledState.booleanValue());
-			comboBox.repaint();
-		    } 
-		}
-	    }
-	};
+        return new ComboBoxActionPropertyChangeListener(this, a);
+    }
+
+    /**
+     * Updates the combobox's state in response to property changes in
+     * associated action. This method is invoked from the
+     * {@code PropertyChangeListener} returned from
+     * {@code createActionPropertyChangeListener}. Subclasses do not normally
+     * need to invoke this. Subclasses that support additional {@code Action}
+     * properties should override this and
+     * {@code configurePropertiesFromAction}.
+     * <p>
+     * Refer to the table at <a href="Action.html#buttonActions">
+     * Swing Components Supporting <code>Action</code></a> for a list of
+     * the properties this method sets.
+     *
+     * @param action the <code>Action</code> associated with this combobox
+     * @param propertyName the name of the property that changed
+     * @since 1.6
+     * @see Action
+     * @see #configurePropertiesFromAction
+     */
+    protected void actionPropertyChanged(Action action, String propertyName) {
+        if (propertyName == Action.ACTION_COMMAND_KEY) {
+            setActionCommandFromAction(action);
+        } else if (propertyName == "enabled") {
+            AbstractAction.setEnabledFromAction(this, action);
+        } else if (Action.SHORT_DESCRIPTION == propertyName) {
+            AbstractAction.setToolTipTextFromAction(this, action);
+        }
+    }
+
+    private void setActionCommandFromAction(Action a) {
+        setActionCommand((a != null) ?
+                             (String)a.getValue(Action.ACTION_COMMAND_KEY) :
+                             null);
+    }
+
+
+    private static class ComboBoxActionPropertyChangeListener
+                 extends ActionPropertyChangeListener<JComboBox> {
+        ComboBoxActionPropertyChangeListener(JComboBox b, Action a) {
+            super(b, a);
+        }
+        protected void actionPropertyChanged(JComboBox cb,
+                                             Action action,
+                                             PropertyChangeEvent e) {
+            if (AbstractAction.shouldReconfigure(e)) {
+                cb.configurePropertiesFromAction(action);
+            } else {
+                cb.actionPropertyChanged(action, e.getPropertyName());
+            }
+        }
     }
 
     /**
@@ -1477,7 +1522,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     /** 
      * See <code>readObject</code> and <code>writeObject</code> in
-     * </code>JComponent</code> for more 
+     * <code>JComponent</code> for more 
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -1560,9 +1605,13 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
 	/**
 	 * Returns an AccessibleJComboBox instance
+	 * @since 1.4
 	 */
 	public AccessibleJComboBox() {
-	    // TIGER - 4894944  4894434 
+            // set the combo box editor's accessible name and description
+	    JComboBox.this.addPropertyChangeListener(new AccessibleJComboBoxPropertyChangeListener());
+	    setEditorNameAndDescription();
+
 	    // Get the popup list
             Accessible a = getUI().getAccessibleChild(JComboBox.this, 0);
             if (a instanceof javax.swing.plaf.basic.ComboPopup) {
@@ -1574,6 +1623,38 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	    // Listen for popup menu show/hide events
 	    JComboBox.this.addPopupMenuListener(
 	      new AccessibleJComboBoxPopupMenuListener());
+	}
+
+        /*
+         * JComboBox PropertyChangeListener
+         */
+	private class AccessibleJComboBoxPropertyChangeListener 
+	    implements PropertyChangeListener {
+
+	    public void propertyChange(PropertyChangeEvent e) {
+		if (e.getPropertyName() == "editor") {
+		    // set the combo box editor's accessible name 
+                    // and description
+		    setEditorNameAndDescription();
+		}
+	    }
+	}
+
+	/*
+	 * Sets the combo box editor's accessible name and descripton
+	 */
+	private void setEditorNameAndDescription() {
+	    ComboBoxEditor editor = JComboBox.this.getEditor();
+	    if (editor != null) {
+		Component comp = editor.getEditorComponent();
+		if (comp instanceof Accessible) {
+		    AccessibleContext ac = ((Accessible)comp).getAccessibleContext();
+		    if (ac != null) { // may be null
+			ac.setAccessibleName(getAccessibleName());
+			ac.setAccessibleDescription(getAccessibleDescription());
+		    }
+		}
+	    }
 	}
 
 	/*
@@ -1811,6 +1892,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 * If no children are selected, the return value will be 0.
 	 *
 	 * @return the number of items currently selected.
+	 * @since 1.3
 	 */
 	public int getAccessibleSelectionCount() {
 	    Object o = JComboBox.this.getSelectedItem();
@@ -1832,6 +1914,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 * @param i the zero-based index of selected children
 	 * @return the i-th selected child
 	 * @see #getAccessibleSelectionCount
+	 * @since 1.3
 	 */
 	public Accessible getAccessibleSelection(int i) {
             // Get the popup
@@ -1863,6 +1946,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 * @param i the zero-based index of the child in this Accessible
 	 * object.
 	 * @see AccessibleContext#getAccessibleChild
+	 * @since 1.3
 	 */
 	public boolean isAccessibleChildSelected(int i) {
 	    return JComboBox.this.getSelectedIndex() == i;
@@ -1877,6 +1961,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 *
 	 * @param i the zero-based index of the child
 	 * @see AccessibleContext#getAccessibleChild
+	 * @since 1.3
 	 */
 	public void addAccessibleSelection(int i) {
             // TIGER - 4856195 
@@ -1891,6 +1976,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 *
 	 * @param i the zero-based index of the child
 	 * @see AccessibleContext#getAccessibleChild
+	 * @since 1.3
 	 */
 	public void removeAccessibleSelection(int i) {
 	    if (JComboBox.this.getSelectedIndex() == i) {
@@ -1901,6 +1987,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	/**
 	 * Clears the selection in the object, so that no children in the
 	 * object are selected.
+	 * @since 1.3
 	 */
 	public void clearAccessibleSelection() {
 	    JComboBox.this.setSelectedIndex(-1);
@@ -1909,6 +1996,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	/**
 	 * Causes every child of the object to be selected
 	 * if the object supports multiple selections.
+	 * @since 1.3
 	 */
 	public void selectAllAccessibleSelection() {
 	    // do nothing since multiple selection is not supported

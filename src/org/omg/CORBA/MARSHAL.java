@@ -1,7 +1,7 @@
 /*
- * @(#)MARSHAL.java	1.32 03/12/19
+ * @(#)MARSHAL.java	1.34 06/04/21
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package org.omg.CORBA;
  * what caused the exception, and a completion status. It may also contain
  * a string describing the exception.
  * <P>
- * See the section <A href="../../../../guide/idl/jidlExceptions.html#minorcodemeanings">Minor
+ * See the section <A href="../../../../technotes/guides/idl/jidlExceptions.html#minorcodemeanings">Minor
  * Code Meanings</A> to see the minor codes for this exception.
  *
  * @version     1.18, 09/09/97

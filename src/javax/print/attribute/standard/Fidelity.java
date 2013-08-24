@@ -1,7 +1,7 @@
 /*
- * @(#)Fidelity.java	1.8 04/05/05
+ * @(#)Fidelity.java	1.10 06/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -26,7 +26,7 @@ import javax.print.attribute.PrintRequestAttribute;
  * <CODE>getName()</CODE> is the IPP attribute name.  The enumeration's 
  * integer value is the IPP enum value.  The <code>toString()</code> method 
  * returns the IPP string representation of the attribute value.
- * See <a href="www.ietf.org/rfc/rfc2911.txt">RFC 2911</a> Section 15.1 for 
+ * See <a href="http://www.ietf.org/rfc/rfc2911.txt">RFC 2911</a> Section 15.1 for 
  * a fuller description of the IPP fidelity attribute.
  * <P>
  *

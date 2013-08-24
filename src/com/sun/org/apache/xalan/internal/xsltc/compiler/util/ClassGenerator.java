@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ClassGenerator.java,v 1.7 2004/02/16 22:26:44 minchau Exp $
+ * $Id: ClassGenerator.java,v 1.2.4.1 2005/09/05 11:07:09 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -43,7 +43,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.Stylesheet;
  * @author Santiago Pericas-Geertsen
  */
 public class ClassGenerator extends ClassGen {
-    protected static int TRANSLET_INDEX = 0;
+    protected final static int TRANSLET_INDEX = 0;
     protected static int INVALID_INDEX  = -1;
 
     private Stylesheet _stylesheet;
@@ -53,7 +53,8 @@ public class ClassGenerator extends ClassGen {
     private final String _domClass;
     private final String _domClassSig;
     private final String _applyTemplatesSig;
-
+	private final String _applyTemplatesSigForImport;
+    
     public ClassGenerator(String class_name, String super_class_name,
 			  String file_name,
 			  int access_flags, String[] interfaces,
@@ -76,7 +77,14 @@ public class ClassGenerator extends ClassGen {
 	    + Constants.DOM_INTF_SIG
 	    + Constants.NODE_ITERATOR_SIG
 	    + Constants.TRANSLET_OUTPUT_SIG
-	    + ")V"; 
+	    + ")V";
+
+    _applyTemplatesSigForImport = "(" 
+        + Constants.DOM_INTF_SIG
+        + Constants.NODE_ITERATOR_SIG
+        + Constants.TRANSLET_OUTPUT_SIG
+        + Constants.NODE_FIELD_SIG
+        + ")V";  
     }
 
     public final Parser getParser() {
@@ -109,6 +117,10 @@ public class ClassGenerator extends ClassGen {
 
     public final String getApplyTemplatesSig() {
 	return _applyTemplatesSig;
+    }
+    
+    public final String getApplyTemplatesSigForImport() {
+    return _applyTemplatesSigForImport;
     }
 
     /**

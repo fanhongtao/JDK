@@ -1,7 +1,7 @@
 /*
- * @(#)XADataSource.java	1.9 03/12/19
+ * @(#)XADataSource.java	1.12 06/04/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.sql.*;
  * @since 1.4
  */
 
-public interface XADataSource {
+public interface XADataSource extends CommonDataSource {
 
   /**
    * Attempts to establish a physical database connection that can be
@@ -29,6 +29,9 @@ public interface XADataSource {
    *          physical connection to a data source, that can be used in
    *          a distributed transaction
    * @exception SQLException if a database access error occurs
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
+   * @since 1.4
    */
   XAConnection getXAConnection() throws SQLException;
       
@@ -43,70 +46,12 @@ public interface XADataSource {
    *          physical connection to a data source, that can be used in
    *          a distributed transaction
    * @exception SQLException if a database access error occurs
+   * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
+   * this method
+   * @since 1.4
    */
   XAConnection getXAConnection(String user, String password) 
-    throws SQLException;
-      
-  /**
-   * <p>Retrieves the log writer for this <code>XADataSource</code> object.
-   *
-   * @return the log writer for this data source; <code>null</code> if no log
-   *          writer has been set, which means that logging is disabled
-   * @exception SQLException if a database access error occurs  
-   * @see #setLogWriter
-   */
-  java.io.PrintWriter getLogWriter() throws SQLException;
-
-  /**
-   * Sets the log writer for this <code>XADataSource</code> object
-   * to the given <code>java.io.PrintWriter</code> object.
-   * <P>
-   * The log writer is a character output stream to which all logging
-   * and tracing messages for this <code>XADataSource</code> object will be
-   * printed.  This includes messages printed by the methods of this
-   * object, messages printed by methods of other objects manufactured
-   * by this object, and so on.  Messages printed to a log writer that is
-   * specific to a data source are not printed to the log writer associated
-   * with the <code>java.sql.DriverManager</code> class. When a data source
-   * object is created, the log writer is initially <code>null</code>.
-   *
-   * @param out the new log writer; to disable logging, set to <code>null</code>
-   * @exception SQLException if a database access error occurs  
-   * @see #getLogWriter
-   */
-  void setLogWriter(java.io.PrintWriter out) throws SQLException;
-
-  /**
-   * <p>Sets the maximum time in seconds that this data source will wait
-   * while attempting to connect to a data source.  A value of zero
-   * specifies that the timeout is the default system timeout 
-   * if there is one; otherwise, it specifies that there is no timeout.
-   * When a data source object is created, the login timeout is
-   * initially zero.
-   *
-   * @param seconds the data source login time limit
-   * @exception SQLException if a database access error occurs
-   * @see #getLoginTimeout
-   */
-  void setLoginTimeout(int seconds) throws SQLException;
-     
-  /**
-   * Retrieves the maximum time in seconds that this data source can wait
-   * while attempting to connect to a data source.  A value of zero
-   * means that the timeout is the default system timeout 
-   * if there is one; otherwise, it means that there is no timeout.
-   * When a data source object is created, the login timeout is
-   * initially zero.
-   *
-   * @return the number of seconds that is the login time limit for this
-   *         <code>XADataSource</code> object or zero if there is no
-   *         no timeout limit or the timeout limit is the default system
-   *         timeout limit if there is one
-   * @exception SQLException if a database access error occurs
-   * @see #setLoginTimeout
-   */
-  int getLoginTimeout() throws SQLException;
-   
+    throws SQLException;        
  } 
 
 

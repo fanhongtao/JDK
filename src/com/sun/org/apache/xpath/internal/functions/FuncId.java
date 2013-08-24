@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncId.java,v 1.14 2004/02/17 04:34:01 minchau Exp $
+ * $Id: FuncId.java,v 1.2.4.1 2005/09/14 20:18:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -35,6 +35,7 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class FuncId extends FunctionOneArg
 {
+    static final long serialVersionUID = 8930573966143567310L;
 
   /**
    * Fill in a list with nodes that match a space delimited list if ID 

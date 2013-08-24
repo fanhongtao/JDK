@@ -1,7 +1,7 @@
 /*
- * @(#)URLClassLoader.java	1.85 04/08/02
+ * @(#)URLClassLoader.java	1.89 06/08/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,12 +50,12 @@ import sun.security.util.SecurityConstants;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.85, 08/02/04
+ * @version 1.89, 08/03/06
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
     /* The search path for classes and resources */
-    private URLClassPath ucp;
+    URLClassPath ucp;
 
     /* The context to be used when loading classes and resources */
     private AccessControlContext acc;
@@ -125,7 +125,7 @@ public class URLClassLoader extends SecureClassLoader {
      * class loader, and URLStreamHandlerFactory. The parent argument
      * will be used as the parent class loader for delegation. The
      * factory argument will be used as the stream handler factory to
-     * obtain protocol handlers when creating new URLs.
+     * obtain protocol handlers when creating new jar URLs.
      *
      * <p>If there is a security manager, this method first
      * calls the security manager's <code>checkCreateClassLoader</code> method
@@ -422,6 +422,10 @@ public class URLClassLoader extends SecureClassLoader {
      * The implementation of this method first calls super.getPermissions
      * and then adds permissions based on the URL of the codesource.
      * <p>
+     * If the protocol of this URL is "jar", then the permission granted 
+     * is based on the permission that is required by the URL of the Jar 
+     * file.
+     * <p>
      * If the protocol is "file"
      * and the path specifies a file, then permission to read that
      * file is granted. If protocol is "file" and the path is
@@ -552,6 +556,16 @@ public class URLClassLoader extends SecureClassLoader {
 	// not the one inside the privileged block...
 	ucl.acc = acc;
 	return ucl;
+    }
+
+    static {
+    	sun.misc.SharedSecrets.setJavaNetAccess (
+	    new sun.misc.JavaNetAccess() {
+		public URLClassPath getURLClassPath (URLClassLoader u) {
+		    return u.ucp;
+		}
+	    }
+	);
     }
 }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Method.java,v 1.2 2004/02/17 04:18:19 minchau Exp $
+ * $Id: Method.java,v 1.2.4.1 2005/09/15 08:15:19 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -22,33 +22,45 @@ package com.sun.org.apache.xml.internal.serializer;
  * This class defines the constants which are the names of the four default
  * output methods.
  * <p>
- * Four default output methods are defined: XML, HTML, XHTML and TEXT.
- * Serializers may support additional output methods. The names of
- * these output methods should be encoded as <tt>namespace:local</tt>.
- *
- * @version Alpha
- * @author <a href="mailto:arkin@exoffice.com">Assaf Arkin</a>
+ * Three default output methods are defined: XML, HTML, and TEXT. 
+ * These constants can be used as an argument to the
+ * OutputPropertiesFactory.getDefaultMethodProperties() method to get
+ * the properties to create a serializer.
+ * 
+ * This class is a public API.
+ * 
+ * @see OutputPropertiesFactory
+ * @see Serializer
+ * 
+ * @xsl.usage general
  */
 public final class Method
 {
+    /**
+     * A private constructor to prevent the creation of such a class.
+     */
+    private Method() {
+        
+    }
 
   /**
-   * The output method for XML documents: <tt>xml</tt>.
+   * The output method type for XML documents: <tt>xml</tt>.
    */
   public static final String XML = "xml";
 
   /**
-   * The output method for HTML documents: <tt>html</tt>.
+   * The output method type for HTML documents: <tt>html</tt>.
    */
   public static final String HTML = "html";
 
   /**
-   * The output method for XHTML documents: <tt>xhtml</tt>.
+   * The output method for XHTML documents,
+   * this method type is not currently supported: <tt>xhtml</tt>.
    */
   public static final String XHTML = "xhtml";
 
   /**
-   * The output method for text documents: <tt>text</tt>.
+   * The output method type for text documents: <tt>text</tt>.
    */
   public static final String TEXT = "text";
   

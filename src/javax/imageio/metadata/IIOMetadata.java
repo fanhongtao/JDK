@@ -1,7 +1,7 @@
 /*
- * @(#)IIOMetadata.java	1.39 04/03/19
+ * @(#)IIOMetadata.java	1.41 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -419,8 +419,8 @@ public abstract class IIOMetadata {
                 }
             }
             
-            Method meth = cls.getMethod("getInstance", null);
-            return (IIOMetadataFormat) meth.invoke(null, null);
+            Method meth = cls.getMethod("getInstance");
+            return (IIOMetadataFormat) meth.invoke(null);
         } catch (Exception e) {
             RuntimeException ex = 
                 new IllegalStateException ("Can't obtain format");

@@ -1,7 +1,7 @@
 /*
- * @(#)DemoModule.java	1.21 05/03/25
+ * @(#)DemoModule.java	1.23 05/11/17
  * 
- * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)DemoModule.java	1.21 05/03/25
+ * @(#)DemoModule.java	1.23 05/11/17
  */
 
 import javax.swing.*;
@@ -57,7 +57,7 @@ import java.net.*;
 /**
  * A generic SwingSet2 demo module
  *
- * @version 1.21 03/25/05
+ * @version 1.23 11/17/05
  * @author Jeff Dinkins
  */
 public class DemoModule extends JApplet {
@@ -176,7 +176,7 @@ public class DemoModule extends JApplet {
 	    try {
 		url = getClass().getResource(filename); 
 		is = url.openStream();
-		isr = new InputStreamReader(is);
+		isr = new InputStreamReader(is, "UTF-8");
 		BufferedReader reader = new BufferedReader(isr);
 		
 		// Read one line at a time, htmlize using super-spiffy

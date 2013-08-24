@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 /*
- * $Id: DOM2DTMdefaultNamespaceDeclarationNode.java,v
+ * $Id: DOM2DTMdefaultNamespaceDeclarationNode.java,v 1.2.4.1 2005/09/15 08:15:11 suresh_emailid Exp $
  */
+
 package com.sun.org.apache.xml.internal.dtm.ref.dom2dtm;
 
 import com.sun.org.apache.xml.internal.dtm.DTMException;
@@ -94,36 +95,40 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
   public Document getOwnerDocument() {return pseudoparent.getOwnerDocument();}
   public Node cloneNode(boolean deep) {throw new DTMException(NOT_SUPPORTED_ERR);}
 	
-	/** Non-DOM method, part of the temporary kluge
-	 * %REVIEW% This would be a pruning problem, but since it will always be
-	 * added to the root element and we prune on elements, we shouldn't have 
-	 * to worry.
-	 */
-	public int getHandleOfNode()		
-	{
-		return handle;
-	}
-//RAMESH: PENDING=> Add proper implementation for the below DOM L3 additions
+    /** Non-DOM method, part of the temporary kluge
+     * %REVIEW% This would be a pruning problem, but since it will always be
+     * added to the root element and we prune on elements, we shouldn't have 
+     * to worry.
+     */
+    public int getHandleOfNode()		
+    {
+        return handle;
+    }
+
+    //RAMESH: PENDING=> Add proper implementation for the below DOM L3 additions
 
     /**
      * @see org.w3c.dom.TypeInfo#getTypeName()
      */
     public String getTypeName() {return null; }
-     /**
+     
+    /**
      * @see org.w3c.dom.TypeInfo#getTypeNamespace()
      */
     public String getTypeNamespace() { return null;}
+    
     /**
      * @see or.gw3c.dom.TypeInfo#isDerivedFrom(String,String,int)
      */
     public boolean isDerivedFrom( String ns, String localName, int derivationMethod ) {
         return false;
     }
-    
+
     public TypeInfo getSchemaTypeInfo() { return this; }
+    
     public boolean isId( ) { return false; }
 
-      /**
+    /**
      * Associate an object to a key on this node. The object can later be
      * retrieved from this node by calling <code>getUserData</code> with the
      * same key.
@@ -155,7 +160,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
         return getOwnerDocument().getUserData( key);
     } 
 
-      /**
+    /**
      *  This method returns a specialized object which implements the
      * specialized APIs of the specified feature and version. The
      * specialized object may also be obtained by using binding-specific
@@ -290,7 +295,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
              return true;
     }
 
-      /**
+    /**
      * DOM Level 3 - Experimental:
      * Look up the namespace URI associated to the given prefix, starting from this node.
      * Use lookupNamespaceURI(null) to lookup the default namespace
@@ -380,7 +385,6 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
 
         }
     }
-
     
     /**
      *  DOM Level 3: Experimental
@@ -457,7 +461,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
 
     }
 
-      /**
+    /**
      *
      * DOM Level 3 - Experimental:
      * Look up the prefix associated to the given namespace URI, starting from this node.
@@ -512,7 +516,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
          }
     }
 
-     /**
+    /**
      * Returns whether this node is the same node as the given one.
      * <br>This method provides a way to determine whether two
      * <code>Node</code> references returned by the implementation reference
@@ -531,7 +535,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
         return this == other;
     }
 
-      /**
+    /**
      * This attribute returns the text content of this node and its
      * descendants. When it is defined to be null, setting it has no effect.
      * When set, any possible children this node may have are removed and
@@ -574,12 +578,13 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
      *   DOMSTRING_SIZE_ERR: Raised when it would return more characters than
      *   fit in a <code>DOMString</code> variable on the implementation
      *   platform.
-       * @since DOM Level 3
+     * @since DOM Level 3
      */
     public void setTextContent(String textContent)
         throws DOMException {
         setNodeValue(textContent);
     }
+    
     /**
      * This attribute returns the text content of this node and its
      * descendants. When it is defined to be null, setting it has no effect.
@@ -629,7 +634,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
         return getNodeValue();  // overriden in some subclasses
     }
 
-     /**
+    /**
      * Compares a node with this node with regard to their position in the
      * document.
      * @param other The node to compare against this node.
@@ -641,7 +646,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
         return 0;
     }
 
-     /**
+    /**
      * The absolute base URI of this node or <code>null</code> if undefined.
      * This value is computed according to . However, when the
      * <code>Document</code> supports the feature "HTML" , the base URI is
@@ -668,8 +673,5 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
     public String getBaseURI() {
         return null;
     }
-
-
-
 }
 

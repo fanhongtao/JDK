@@ -1,118 +1,90 @@
 /*
- *
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, Sun Microsystems, Inc.,
- * http://www.sun.com.  For more information on the Apache Software
- * Foundation, please see <http://www.apache.org/>.
+ * Copyright 2000-2002,2004,2005 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 
 package com.sun.org.apache.xerces.internal.jaxp;
 
 import java.util.Hashtable;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
-import com.sun.org.apache.xerces.internal.dom.DOMMessageFormatter;
 
-import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
+import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 /**
  * @author Rajiv Mordani
  * @author Edwin Goei
- * @version $Id: DocumentBuilderFactoryImpl.java,v 1.14 2004/02/24 23:15:58 mrglavas Exp $
+ * @version $Id: DocumentBuilderFactoryImpl.java,v 1.3 2005/09/26 13:02:47 sunithareddy Exp $
  */
 public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
     /** These are DocumentBuilderFactory attributes not DOM attributes */
     private Hashtable attributes;
+    private Hashtable features;
     private Schema grammar;
     private boolean isXIncludeAware;
     
+    /**
+     * State of the secure processing feature, initially <code>false</code>
+     */
+    private boolean fSecureProcess = true;
+
     /**
      * Creates a new instance of a {@link javax.xml.parsers.DocumentBuilder}
      * using the currently configured parameters.
      */
     public DocumentBuilder newDocumentBuilder()
-    throws ParserConfigurationException {
-        // check the consistency between the specified schema and
-        // the schema property. I thought about putting this into
-        // DocumentBuilderImpl, but because of the hack in the getAttribute method,
-        // we can't really do that. -KK
-        if( attributes!= null &&  attributes.containsKey("http://java.sun.com/xml/jaxp/properties/schemaLanguage") &&  grammar!=null )
-            throw new ParserConfigurationException(
-            DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
-            "jaxp-schema-support",null));
-        
+        throws ParserConfigurationException 
+    {
+        /** Check that if a Schema has been specified that neither of the schema properties have been set. */
+        if (grammar != null && attributes != null) {
+            if (attributes.containsKey(JAXPConstants.JAXP_SCHEMA_LANGUAGE)) {
+                throw new ParserConfigurationException(
+                        SAXMessageFormatter.formatMessage(null, 
+                        "schema-already-specified", new Object[] {JAXPConstants.JAXP_SCHEMA_LANGUAGE}));
+            }
+            else if (attributes.containsKey(JAXPConstants.JAXP_SCHEMA_SOURCE)) {
+                throw new ParserConfigurationException(
+                        SAXMessageFormatter.formatMessage(null, 
+                        "schema-already-specified", new Object[] {JAXPConstants.JAXP_SCHEMA_SOURCE}));                
+            }
+        }
         
         try {
-            return new DocumentBuilderImpl(this, attributes);
+            return new DocumentBuilderImpl(this, attributes, features, fSecureProcess);
         } catch (SAXException se) {
             // Handles both SAXNotSupportedException, SAXNotRecognizedException
             throw new ParserConfigurationException(se.getMessage());
         }
     }
-    
+
     /**
-     * Allows the user to set specific attributes on the underlying
+     * Allows the user to set specific attributes on the underlying 
      * implementation.
      * @param name    name of attribute
      * @param value   null means to remove attribute
      */
     public void setAttribute(String name, Object value)
-    throws IllegalArgumentException {
+        throws IllegalArgumentException
+    {
         // This handles removal of attributes
         if (value == null) {
             if (attributes != null) {
@@ -124,28 +96,30 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
         
         // This is ugly.  We have to collect the attributes and then
         // later create a DocumentBuilderImpl to verify the attributes.
-        
+
         // Create Hashtable if none existed before
         if (attributes == null) {
             attributes = new Hashtable();
         }
-        
+
         attributes.put(name, value);
-        
+
         // Test the attribute name by possibly throwing an exception
         try {
-            new DocumentBuilderImpl(this, attributes);
+            new DocumentBuilderImpl(this, attributes, features);
         } catch (Exception e) {
             attributes.remove(name);
             throw new IllegalArgumentException(e.getMessage());
         }
     }
-    
+
     /**
-     * Allows the user to retrieve specific attributes on the underlying
+     * Allows the user to retrieve specific attributes on the underlying 
      * implementation.
      */
-    public Object getAttribute(String name) throws IllegalArgumentException {
+    public Object getAttribute(String name)
+        throws IllegalArgumentException
+    {
         // See if it's in the attributes Hashtable
         if (attributes != null) {
             Object val = attributes.get(name);
@@ -153,13 +127,13 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
                 return val;
             }
         }
-        
+
         DOMParser domParser = null;
         try {
             // We create a dummy DocumentBuilderImpl in case the attribute
             // name is not one that is in the attributes hashtable.
             domParser =
-            new DocumentBuilderImpl(this, attributes).getDOMParser();
+                new DocumentBuilderImpl(this, attributes, features).getDOMParser();
             return domParser.getProperty(name);
         } catch (SAXException se1) {
             // assert(name is not recognized or not supported), try feature
@@ -190,38 +164,49 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
         this.isXIncludeAware = state;
     }
     
-    public  void setFeature(String name, boolean value)
-    throws ParserConfigurationException{
-        
-        //Revisit::
-        //for now use attributes itself. we just support on feature.
-        //If we need to use setFeature in full fledge we should
-        //document what is supported by setAttribute
-        //and what is by setFeature.
-        //user should not use setAttribute("xyz",Boolean.TRUE)
-        //instead of setFeature("xyz",true);
-        if(attributes == null)
-            attributes = new Hashtable();
-        if(name.equals(Constants.FEATURE_SECURE_PROCESSING)){
-            attributes.put(Constants.FEATURE_SECURE_PROCESSING,Boolean.valueOf(value));
-        } else throw new ParserConfigurationException(
-        DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
-        "jaxp_feature_not_supported",
-        new Object[] {name}));
-        
+    public boolean getFeature(String name) 
+        throws ParserConfigurationException {
+        if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+            return fSecureProcess;
+        }
+        // See if it's in the features Hashtable
+        if (features != null) {
+            Object val = features.get(name);
+            if (val != null) {
+                return ((Boolean) val).booleanValue();
+            }
+        }
+        try {
+            DOMParser domParser = new DocumentBuilderImpl(this, attributes, features).getDOMParser();
+            return domParser.getFeature(name);
+        }
+        catch (SAXException e) {
+            throw new ParserConfigurationException(e.getMessage());
+        }
     }
     
-    public  boolean getFeature(String name)
-    throws ParserConfigurationException {
-        
-        if (name.equals(Constants.FEATURE_SECURE_PROCESSING)){
-            Object ob =  attributes.get(Constants.FEATURE_SECURE_PROCESSING);
-            if(ob == null) return false;
-            return ((Boolean)ob).booleanValue();
+    public void setFeature(String name, boolean value) 
+        throws ParserConfigurationException {
+        // If this is the secure processing feature, save it then return.
+        if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+            fSecureProcess = value;
+            return;
         }
-        else
-            throw new ParserConfigurationException(DOMMessageFormatter.formatMessage(
-            DOMMessageFormatter.DOM_DOMAIN,"jaxp_feature_not_supported",
-            new Object[] {name}));
+        if (features == null) {
+            features = new Hashtable();
+        }
+        features.put(name, value ? Boolean.TRUE : Boolean.FALSE);
+        // Test the feature by possibly throwing SAX exceptions
+        try {
+            new DocumentBuilderImpl(this, attributes, features);
+        } 
+        catch (SAXNotSupportedException e) {
+            features.remove(name);
+            throw new ParserConfigurationException(e.getMessage());
+        } 
+        catch (SAXNotRecognizedException e) {
+            features.remove(name);
+            throw new ParserConfigurationException(e.getMessage());
+        }
     }
 }

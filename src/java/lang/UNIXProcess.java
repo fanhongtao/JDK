@@ -1,5 +1,5 @@
 /*
- * @(#)UNIXProcess.java.linux	1.37 04/01/12
+ * @(#)UNIXProcess.java.linux	1.38 05/09/05
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -186,4 +186,10 @@ final class UNIXProcess extends Process {
         }
     }
 
+    /* This routine initializes JNI field offsets for the class */
+    private static native void initIDs();
+
+    static {
+	initIDs();
+    }
 }

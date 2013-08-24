@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IdKeyPattern.java,v 1.10 2004/02/16 22:24:29 minchau Exp $
+ * $Id: IdKeyPattern.java,v 1.5 2005/09/28 13:48:10 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -111,20 +111,10 @@ abstract class IdKeyPattern extends LocationPathPattern {
 	il.append(new PUSH(cpg,_value));
 	if (this instanceof IdPattern)
 	{
-		il.append(SWAP);
-		il.append(methodGen.loadDOM());
-		il.append(SWAP);
-	    il.append(new INVOKEINTERFACE(getNodeIdent, 2));
-	    il.append(SWAP);
 	    il.append(new INVOKEVIRTUAL(lookupId));
 	}
 	else
 	{
-		il.append(SWAP);
-		il.append(methodGen.loadDOM());
-		il.append(SWAP);
-	    il.append(new INVOKEINTERFACE(getNodeIdent, 2));
-	    il.append(SWAP);
 	    il.append(new INVOKEVIRTUAL(lookupKey));
 	}
 

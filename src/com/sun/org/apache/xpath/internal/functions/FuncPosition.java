@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FuncPosition.java,v 1.12 2004/02/17 04:34:00 minchau Exp $
+ * $Id: FuncPosition.java,v 1.2.4.1 2005/09/14 20:18:45 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.functions;
 
@@ -32,6 +32,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
  */
 public class FuncPosition extends Function
 {
+    static final long serialVersionUID = -9092846348197271582L;
   private boolean m_isTopLevel;
   
   /**

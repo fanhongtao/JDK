@@ -1,7 +1,7 @@
 /*
- * @(#)Runtime.java	1.74 04/05/18
+ * @(#)Runtime.java	1.78 06/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.74, 05/18/04
+ * @version 1.78, 04/10/06
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -132,7 +132,9 @@ public class Runtime {
      * particular, be written to be thread-safe and to avoid deadlocks insofar
      * as possible.  They should also not rely blindly upon services that may
      * have registered their own shutdown hooks and therefore may themselves in
-     * the process of shutting down.
+     * the process of shutting down.  Attempts to use other thread-based
+     * services such as the AWT event-dispatch thread, for example, may lead to
+     * deadlocks.
      *
      * <p> Shutdown hooks should also finish their work quickly.  When a
      * program invokes <tt>{@link #exit exit}</tt> the expectation is
@@ -155,11 +157,11 @@ public class Runtime {
      * stop running without shutting down cleanly.  This occurs when the
      * virtual machine is terminated externally, for example with the
      * <tt>SIGKILL</tt> signal on Unix or the <tt>TerminateProcess</tt> call on
-     * Microsoft Windows.  The virtual machine may also abort if a native method goes awry
-     * by, for example, corrupting internal data structures or attempting to
-     * access nonexistent memory.  If the virtual machine aborts then no
-     * guarantee can be made about whether or not any shutdown hooks will be
-     * run. <p>
+     * Microsoft Windows.  The virtual machine may also abort if a native
+     * method goes awry by, for example, corrupting internal data structures or
+     * attempting to access nonexistent memory.  If the virtual machine aborts
+     * then no guarantee can be made about whether or not any shutdown hooks
+     * will be run. <p>
      *
      * @param   hook
      *          An initialized but unstarted <tt>{@link Thread}</tt> object
@@ -187,7 +189,7 @@ public class Runtime {
 	if (sm != null) {
 	    sm.checkPermission(new RuntimePermission("shutdownHooks"));
 	}
-	Shutdown.add(hook);
+	ApplicationShutdownHooks.add(hook);
     }
 
     /**
@@ -215,7 +217,7 @@ public class Runtime {
 	if (sm != null) {
 	    sm.checkPermission(new RuntimePermission("shutdownHooks"));
 	}
-	return Shutdown.remove(hook);
+	return ApplicationShutdownHooks.remove(hook);
     }
 
     /**
@@ -726,9 +728,8 @@ public class Runtime {
 
     /**
      * Loads the specified filename as a dynamic library. The filename 
-     * argument must be a complete path name. 
-     * From <code>java_g</code> it will automagically insert "_g" before the
-     * ".so" (for example
+     * argument must be a complete path name,
+     * (for example
      * <code>Runtime.getRuntime().load("/home/avh/lib/libX11.so");</code>).
      * <p>
      * First, if there is a security manager, its <code>checkLink</code> 

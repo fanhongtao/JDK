@@ -1,7 +1,7 @@
 /*
- * @(#)LoggingMXBean.java	1.7 04/04/20
+ * @(#)LoggingMXBean.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.util.logging;
  *
  * <p>There is a single global instance of the <tt>LoggingMXBean</tt>.
  * This instance is an 
- * <a href="ManagementFactory.html#MXBean">MXBean</a>
+ * <a href="../../lang/management/ManagementFactory.html#MXBean">MXBean</a>
  * can be obtained by calling
  * the {@link LogManager#getLoggingMXBean} method or from the 
  * {@link java.lang.management.ManagementFactory#getPlatformMBeanServer
@@ -29,7 +29,7 @@ package java.util.logging;
  *
  * @author  Ron Mann 
  * @author  Mandy Chung
- * @version 1.7, 04/20/04
+ * @version 1.9, 11/17/05
  * @since   1.5
  *
  */

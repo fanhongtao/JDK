@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StringVector.java,v 1.7 2004/02/17 04:21:14 minchau Exp $
+ * $Id: StringVector.java,v 1.2.4.1 2005/09/15 08:15:56 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -25,6 +25,7 @@ package com.sun.org.apache.xml.internal.utils;
  */
 public class StringVector implements java.io.Serializable
 {
+    static final long serialVersionUID = 4995234972032919748L;
 
   /** @serial Size of blocks to allocate           */
   protected int m_blocksize;

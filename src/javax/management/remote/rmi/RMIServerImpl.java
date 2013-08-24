@@ -1,20 +1,24 @@
 /*
- * @(#)RMIServerImpl.java	1.56 05/08/31
+ * @(#)RMIServerImpl.java	1.58 05/12/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.remote.rmi;
 
+import com.sun.jmx.remote.internal.ArrayNotificationBuffer;
+import com.sun.jmx.remote.internal.NotificationBuffer;
+import com.sun.jmx.remote.security.JMXPluggableAuthenticator;
+import com.sun.jmx.remote.util.ClassLogger;
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.rmi.Remote;
-import java.rmi.server.RemoteObject;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
-import java.security.Principal;
 import java.security.AccessController;
+import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,29 +26,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.management.MBeanServer;
 import javax.management.remote.JMXAuthenticator;
-import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXConnectorServer;
-
 import javax.security.auth.Subject;
-
-import com.sun.jmx.remote.security.JMXPluggableAuthenticator;
-import com.sun.jmx.remote.util.ClassLogger;
-import com.sun.jmx.remote.internal.ArrayNotificationBuffer;
-import com.sun.jmx.remote.internal.NotificationBuffer;
 
 /**
  * <p>An RMI object representing a connector server.  Remote clients
  * can make connections using the {@link #newClient(Object)} method.  This
  * method returns an RMI object representing the connection.</p>
  *
- * <p>User code does not usually reference this class directly.  RMI
- * connection servers are usually created with the class {@link
+ * <p>User code does not usually reference this class directly.
+ * RMI connection servers are usually created with the class {@link
  * RMIConnectorServer}.  Remote clients usually create connections
- * either with {@link JMXConnectorFactory} or by instantiating {@link
- * RMIConnector}.</p>
+ * either with {@link javax.management.remote.JMXConnectorFactory}
+ * or by instantiating {@link RMIConnector}.</p>
  *
  * <p>This is an abstract class.  Concrete subclasses define the
  * details of the client connection objects, such as whether they use
@@ -53,7 +49,7 @@ import com.sun.jmx.remote.internal.NotificationBuffer;
  * @since 1.5
  * @since.unbundled 1.0
  */
-public abstract class RMIServerImpl implements RMIServer {
+public abstract class RMIServerImpl implements Closeable, RMIServer {
     /**
      * <p>Constructs a new <code>RMIServerImpl</code>.</p>
      *
@@ -356,7 +352,7 @@ public abstract class RMIServerImpl implements RMIServer {
      * makeClient}, its {@link RMIConnection#close() close} method is
      * called.</p>
      *
-     * <p>The behaviour when this method is called more than once is
+     * <p>The behavior when this method is called more than once is
      * unspecified.</p>
      *
      * <p>If {@link #closeServer()} throws an

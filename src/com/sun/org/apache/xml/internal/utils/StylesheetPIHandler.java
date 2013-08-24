@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: StylesheetPIHandler.java,v 1.2 2004/02/17 04:21:14 minchau Exp $
+ * $Id: StylesheetPIHandler.java,v 1.2.4.1 2005/09/15 08:15:57 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -307,10 +307,10 @@ public class StylesheetPIHandler extends DefaultHandler
    * so, at least for right now, I'm going to go ahead an throw a TransformerException
    * in order to stop the parse.
    *
-   * @param uri The Namespace URI, or an empty string.
+   * @param namespaceURI The Namespace URI, or an empty string.
    * @param localName The local name (without prefix), or empty string if not namespace processing.
-   * @param rawName The qualified name (with prefix).
-   * @param attributes The specified or defaulted attributes.
+   * @param qName The qualified name (with prefix).
+   * @param atts  The specified or defaulted attributes.
    *
    * @throws StopParseException since there can be no valid xml-stylesheet processing 
    *                            instructions past the first element.

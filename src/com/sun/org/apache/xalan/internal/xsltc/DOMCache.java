@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOMCache.java,v 1.8 2004/02/16 20:54:58 minchau Exp $
+ * $Id: DOMCache.java,v 1.2.4.1 2005/08/31 10:23:55 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc;

@@ -1,7 +1,7 @@
 /*
- * @(#)X509CRLEntry.java	1.16 03/12/19
+ * @(#)X509CRLEntry.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import javax.security.auth.x500.X500Principal;
  * @see X509Extension
  *
  * @author Hemma Prafullchandra
- * @version 1.16 03/12/19
+ * @version 1.17 05/11/17
  */
 
 public abstract class X509CRLEntry implements X509Extension {

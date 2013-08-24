@@ -1,7 +1,7 @@
 /*
- * @(#)File.java	1.122 04/05/05
+ * @(#)File.java	1.139 06/06/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,9 +35,11 @@ import sun.security.action.GetPropertyAction;
  * <li> A sequence of zero or more string <em>names</em>.
  * </ol>
  *
- * Each name in an abstract pathname except for the last denotes a directory;
- * the last name may denote either a directory or a file.  The <em>empty</em>
- * abstract pathname has no prefix and an empty name sequence.
+ * The first name in an abstract pathname may be a directory name or, in the
+ * case of Microsoft Windows UNC pathnames, a hostname.  Each subsequent name
+ * in an abstract pathname denotes a directory; the last name may denote
+ * either a directory or a file.  The <em>empty</em> abstract pathname has no
+ * prefix and an empty name sequence.
  *
  * <p> The conversion of a pathname string to or from an abstract pathname is
  * inherently system-dependent.  When an abstract pathname is converted into a
@@ -60,6 +62,15 @@ import sun.security.action.GetPropertyAction;
  * <code>user.dir</code>, and is typically the directory in which the Java
  * virtual machine was invoked.
  *
+ * <p> The <em>parent</em> of an abstract pathname may be obtained by invoking
+ * the {@link #getParent} method of this class and consists of the pathname's
+ * prefix and each name in the pathname's name sequence except for the last.
+ * Each directory's absolute pathname is an ancestor of any <tt>File</tt>
+ * object with an absolute abstract pathname which begins with the directory's
+ * absolute pathname.  For example, the directory denoted by the abstract
+ * pathname <tt>"/usr"</tt> is an ancestor of the directory denoted by the
+ * pathname <tt>"/usr/local/bin"</tt>.
+ *
  * <p> The prefix concept is used to handle root directories on UNIX platforms,
  * and drive specifiers, root directories and UNC pathnames on Microsoft Windows platforms,
  * as follows:
@@ -80,11 +91,28 @@ import sun.security.action.GetPropertyAction;
  *
  * </ul>
  *
+ * <p> Instances of this class may or may not denote an actual file-system
+ * object such as a file or a directory.  If it does denote such an object
+ * then that object resides in a <i>partition</i>.  A partition is an
+ * operating system-specific portion of storage for a file system.  A single
+ * storage device (e.g. a physical disk-drive, flash memory, CD-ROM) may
+ * contain multiple partitions.  The object, if any, will reside on the
+ * partition <a name="partName">named</a> by some ancestor of the absolute
+ * form of this pathname.
+ *
+ * <p> A file system may implement restrictions to certain operations on the
+ * actual file-system object, such as reading, writing, and executing.  These
+ * restrictions are collectively known as <i>access permissions</i>.  The file
+ * system may have multiple sets of access permissions on a single object.
+ * For example, one set may apply to the object's <i>owner</i>, and another
+ * may apply to all other users.  The access permissions on an object may
+ * cause some methods in this class to fail.
+ *
  * <p> Instances of the <code>File</code> class are immutable; that is, once
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.122, 05/05/04
+ * @version 1.139, 06/20/06
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -475,7 +503,7 @@ public class File
 
     /**
      * Returns the absolute form of this abstract pathname.  Equivalent to
-     * <code>new&nbsp;File(this.{@link #getAbsolutePath}())</code>.
+     * <code>new&nbsp;File(this.{@link #getAbsolutePath})</code>.
      *
      * @return  The absolute abstract pathname denoting the same file or
      *          directory as this abstract pathname
@@ -533,7 +561,7 @@ public class File
 
     /**
      * Returns the canonical form of this abstract pathname.  Equivalent to
-     * <code>new&nbsp;File(this.{@link #getCanonicalPath}())</code>.
+     * <code>new&nbsp;File(this.{@link #getCanonicalPath})</code>.
      *
      * @return  The canonical pathname string denoting the same file or
      *          directory as this abstract pathname
@@ -573,12 +601,6 @@ public class File
      * the file denoted by this abstract pathname is a directory, then the
      * resulting URL will end with a slash.
      *
-     * <p> <b>Usage note:</b> This method does not automatically escape
-     * characters that are illegal in URLs.  It is recommended that new code
-     * convert an abstract pathname into a URL by first converting it into a
-     * URI, via the {@link #toURI() toURI} method, and then converting the URI
-     * into a URL via the {@link java.net.URI#toURL() URI.toURL} method.
-     *
      * @return  A URL object representing the equivalent file URL
      *
      * @throws  MalformedURLException
@@ -589,7 +611,14 @@ public class File
      * @see     java.net.URI#toURL()
      * @see     java.net.URL
      * @since   1.2
+     *
+     * @deprecated This method does not automatically escape characters that
+     * are illegal in URLs.  It is recommended that new code convert an
+     * abstract pathname into a URL by first converting it into a URI, via the
+     * {@link #toURI() toURI} method, and then converting the URI into a URL
+     * via the {@link java.net.URI#toURL() URI.toURL} method.
      */
+    @Deprecated
     public URL toURL() throws MalformedURLException {
 	return new URL("file", "", slashify(getAbsolutePath(), isDirectory()));
     }
@@ -618,6 +647,8 @@ public class File
      * @return  An absolute, hierarchical URI with a scheme equal to
      *          <tt>"file"</tt>, a path representing this abstract pathname,
      *          and undefined authority, query, and fragment components
+     * @throws SecurityException If a required system property value cannot
+     * be accessed.
      *
      * @see #File(java.net.URI)
      * @see java.net.URI
@@ -657,7 +688,7 @@ public class File
 	if (security != null) {
 	    security.checkRead(path);
 	}
-	return fs.checkAccess(this, false);
+	return fs.checkAccess(this, FileSystem.ACCESS_READ);
     }
 
     /**
@@ -679,7 +710,7 @@ public class File
 	if (security != null) {
 	    security.checkWrite(path);
 	}
-	return fs.checkAccess(this, true);
+	return fs.checkAccess(this, FileSystem.ACCESS_WRITE);
     }
 
     /**
@@ -800,7 +831,9 @@ public class File
      * The return value is unspecified if this pathname denotes a directory.
      *
      * @return  The length, in bytes, of the file denoted by this abstract
-     *          pathname, or <code>0L</code> if the file does not exist
+     *          pathname, or <code>0L</code> if the file does not exist.  Some
+     *          operating systems may return <code>0L</code> for pathnames
+     *          denoting system-dependent entities such as devices or pipes.
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
@@ -874,6 +907,9 @@ public class File
     /**
      * Requests that the file or directory denoted by this abstract 
      * pathname be deleted when the virtual machine terminates.  
+     * Files (or directories) are deleted in the reverse order that 
+     * they are registered. Invoking this method to delete a file or 
+     * directory that is already registered for deletion has no effect. 
      * Deletion will be attempted only for normal termination of the 
      * virtual machine, as defined by the Java Language Specification. 
      *
@@ -900,7 +936,7 @@ public class File
 	if (security != null) {
 	    security.checkDelete(path);
 	}
-	fs.deleteOnExit(this);
+	DeleteOnExitHook.add(path);
     }
 
     /**
@@ -975,7 +1011,7 @@ public class File
 		v.add(names[i]);
 	    }
 	}
-	return (String[])(v.toArray(new String[0]));
+	return (String[])(v.toArray(new String[v.size()]));
     }
 
     /**
@@ -1059,7 +1095,7 @@ public class File
 		v.add(new File(ss[i], this));
 	    }
 	}
-	return (File[])(v.toArray(new File[0]));
+	return (File[])(v.toArray(new File[v.size()]));
     }
 
     /**
@@ -1099,7 +1135,7 @@ public class File
 		v.add(f);
 	    }
 	}
-	return (File[])(v.toArray(new File[0]));
+	return (File[])(v.toArray(new File[v.size()]));
     }
 
     /**
@@ -1252,6 +1288,229 @@ public class File
 	return fs.setReadOnly(this);
     }
 
+   /**
+     * Sets the owner's or everybody's write permission for this abstract
+     * pathname.
+     *
+     * @param   writable
+     *          If <code>true</code>, sets the access permission to allow write
+     *          operations; if <code>false</code> to disallow write operations
+     *
+     * @param   ownerOnly
+     *          If <code>true</code>, the write permission applies only to the
+     *          owner's write permission; otherwise, it applies to everybody.  If
+     *          the underlying file system can not distinguish the owner's write
+     *          permission from that of others, then the permission will apply to
+     *          everybody, regardless of this value.
+     *
+     * @return  <code>true</code> if and only if the operation succeeded. The
+     *          operation will fail if the user does not have permission to change
+     *          the access permissions of this abstract pathname.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the named file
+     *
+     * @since 1.6
+     */
+    public boolean setWritable(boolean writable, boolean ownerOnly) {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkWrite(path);
+	}
+	return fs.setPermission(this, FileSystem.ACCESS_WRITE, writable, ownerOnly);
+    }
+
+    /**
+     * A convenience method to set the owner's write permission for this abstract
+     * pathname.
+     *
+     * <p> An invocation of this method of the form <tt>file.setWritable(arg)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     file.setWritable(arg, true) </pre>
+     *
+     * @param   writable
+     *          If <code>true</code>, sets the access permission to allow write
+     *          operations; if <code>false</code> to disallow write operations
+     *
+     * @return  <code>true</code> if and only if the operation succeeded.  The
+     *          operation will fail if the user does not have permission to
+     *          change the access permissions of this abstract pathname.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
+     *
+     * @since 1.6
+     */
+    public boolean setWritable(boolean writable) {
+	return setWritable(writable, true);
+    }
+
+    /**
+     * Sets the owner's or everybody's read permission for this abstract
+     * pathname.
+     *
+     * @param   readable
+     *          If <code>true</code>, sets the access permission to allow read
+     *          operations; if <code>false</code> to disallow read operations
+     *
+     * @param   ownerOnly
+     *          If <code>true</code>, the read permission applies only to the
+     *          owner's read permission; otherwise, it applies to everybody.  If
+     *          the underlying file system can not distinguish the owner's read
+     *          permission from that of others, then the permission will apply to
+     *          everybody, regardless of this value.
+     *
+     * @return  <code>true</code> if and only if the operation succeeded.  The
+     *          operation will fail if the user does not have permission to
+     *          change the access permissions of this abstract pathname.  If
+     *          <code>readable</code> is <code>false</code> and the underlying
+     *          file system does not implement a read permission, then the
+     *          operation will fail.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
+     *
+     * @since 1.6
+     */
+    public boolean setReadable(boolean readable, boolean ownerOnly) {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkWrite(path);
+	}
+	return fs.setPermission(this, FileSystem.ACCESS_READ, readable, ownerOnly);
+    }
+
+    /**
+     * A convenience method to set the owner's read permission for this abstract
+     * pathname.
+     *
+     * <p>An invocation of this method of the form <tt>file.setReadable(arg)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     file.setReadable(arg, true) </pre>
+     *
+     * @param  readable
+     *          If <code>true</code>, sets the access permission to allow read
+     *          operations; if <code>false</code> to disallow read operations
+     *
+     * @return  <code>true</code> if and only if the operation succeeded.  The
+     *          operation will fail if the user does not have permission to
+     *          change the access permissions of this abstract pathname.  If
+     *          <code>readable</code> is <code>false</code> and the underlying
+     *          file system does not implement a read permission, then the
+     *          operation will fail.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
+     *
+     * @since 1.6
+     */
+    public boolean setReadable(boolean readable) {
+        return setReadable(readable, true);
+    }
+
+    /**
+     * Sets the owner's or everybody's execute permission for this abstract
+     * pathname.
+     *
+     * @param   executable
+     *          If <code>true</code>, sets the access permission to allow execute
+     *          operations; if <code>false</code> to disallow execute operations
+     *
+     * @param   ownerOnly
+     *          If <code>true</code>, the execute permission applies only to the
+     *          owner's execute permission; otherwise, it applies to everybody.
+     *          If the underlying file system can not distinguish the owner's
+     *          execute permission from that of others, then the permission will
+     *          apply to everybody, regardless of this value.
+     *
+     * @return  <code>true</code> if and only if the operation succeeded.  The
+     *          operation will fail if the user does not have permission to
+     *          change the access permissions of this abstract pathname.  If
+     *          <code>executable</code> is <code>false</code> and the underlying
+     *          file system does not implement an execute permission, then the
+     *          operation will fail.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
+     *
+     * @since 1.6
+     */
+    public boolean setExecutable(boolean executable, boolean ownerOnly) {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkWrite(path);
+	}
+	return fs.setPermission(this, FileSystem.ACCESS_EXECUTE, executable, ownerOnly);
+    }
+
+    /**
+     * A convenience method to set the owner's execute permission for this abstract
+     * pathname.
+     *
+     * <p>An invocation of this method of the form <tt>file.setExcutable(arg)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     file.setExecutable(arg, true) </pre>
+     *
+     * @param   executable
+     *          If <code>true</code>, sets the access permission to allow execute
+     *          operations; if <code>false</code> to disallow execute operations
+     *
+     * @return   <code>true</code> if and only if the operation succeeded.  The
+     *           operation will fail if the user does not have permission to
+     *           change the access permissions of this abstract pathname.  If
+     *           <code>executable</code> is <code>false</code> and the underlying
+     *           file system does not implement an excute permission, then the
+     *           operation will fail.
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
+     *          method denies write access to the file
+     *
+     * @since 1.6
+     */
+    public boolean setExecutable(boolean executable) {
+        return setExecutable(executable, true);
+    }
+
+    /**
+     * Tests whether the application can execute the file denoted by this
+     * abstract pathname.
+     *
+     * @return  <code>true</code> if and only if the abstract pathname exists
+     *          <em>and</em> the application is allowed to execute the file
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkExec(java.lang.String)}</code>
+     *          method denies execute access to the file
+     *
+     * @since 1.6
+     */
+    public boolean canExecute() {
+	SecurityManager security = System.getSecurityManager();
+	if (security != null) {
+	    security.checkExec(path);
+	}
+	return fs.checkAccess(this, FileSystem.ACCESS_EXECUTE);
+    }
+
 
     /* -- Filesystem interface -- */
 
@@ -1302,6 +1561,106 @@ public class File
     }
 
 
+    /* -- Disk usage -- */
+    
+    /**
+     * Returns the size of the partition <a href="#partName">named</a> by this
+     * abstract pathname.
+     *
+     * @return  The size, in bytes, of the partition or <tt>0L</tt> if this
+     *          abstract pathname does not name a partition
+     *
+     * @throws  SecurityException
+     *          If a security manager has been installed and it denies
+     *          {@link RuntimePermission}<tt>("getFileSystemAttributes")</tt>
+     *          or its {@link SecurityManager#checkRead(String)} method denies
+     *          read access to the file named by this abstract pathname
+     *
+     * @since  1.6
+     */
+    public long getTotalSpace() {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("getFileSystemAttributes"));
+	    sm.checkRead(path);
+	}
+	return fs.getSpace(this, FileSystem.SPACE_TOTAL);
+    }
+
+    /**
+     * Returns the number of unallocated bytes in the partition <a
+     * href="#partName">named</a> by this abstract path name.
+     *
+     * <p> The returned number of unallocated bytes is a hint, but not
+     * a guarantee, that it is possible to use most or any of these
+     * bytes.  The number of unallocated bytes is most likely to be
+     * accurate immediately after this call.  It is likely to be made
+     * inaccurate by any external I/O operations including those made
+     * on the system outside of this virtual machine.  This method
+     * makes no guarantee that write operations to this file system
+     * will succeed.
+     *
+     * @return  The number of unallocated bytes on the partition <tt>0L</tt>
+     *          if the abstract pathname does not name a partition.  This
+     *          value will be less than or equal to the total file system size
+     *          returned by {@link #getTotalSpace}.
+     *
+     * @throws  SecurityException
+     *          If a security manager has been installed and it denies
+     *          {@link RuntimePermission}<tt>("getFileSystemAttributes")</tt>
+     *          or its {@link SecurityManager#checkRead(String)} method denies
+     *          read access to the file named by this abstract pathname
+     *
+     * @since  1.6
+     */
+    public long getFreeSpace() {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("getFileSystemAttributes"));
+	    sm.checkRead(path);
+	}
+	return fs.getSpace(this, FileSystem.SPACE_FREE);
+    }
+    
+    /**
+     * Returns the number of bytes available to this virtual machine on the
+     * partition <a href="#partName">named</a> by this abstract pathname.  When
+     * possible, this method checks for write permissions and other operating
+     * system restrictions and will therefore usually provide a more accurate
+     * estimate of how much new data can actually be written than {@link
+     * #getFreeSpace}.
+     *
+     * <p> The returned number of available bytes is a hint, but not a
+     * guarantee, that it is possible to use most or any of these bytes.  The
+     * number of unallocated bytes is most likely to be accurate immediately
+     * after this call.  It is likely to be made inaccurate by any external
+     * I/O operations including those made on the system outside of this
+     * virtual machine.  This method makes no guarantee that write operations
+     * to this file system will succeed.
+     *
+     * @return  The number of available bytes on the partition or <tt>0L</tt>
+     *          if the abstract pathname does not name a partition.  On
+     *          systems where this information is not available, this method
+     *          will be equivalent to a call to {@link #getFreeSpace}.
+     *
+     * @throws  SecurityException
+     *          If a security manager has been installed and it denies
+     *          {@link RuntimePermission}<tt>("getFileSystemAttributes")</tt>
+     *          or its {@link SecurityManager#checkRead(String)} method denies
+     *          read access to the file named by this abstract pathname
+     *
+     * @since  1.6
+     */
+    public long getUsableSpace() {
+    	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    sm.checkPermission(new RuntimePermission("getFileSystemAttributes"));
+	    sm.checkRead(path);
+	}
+	return fs.getSpace(this, FileSystem.SPACE_USABLE);
+    }
+    
+    
     /* -- Temporary files -- */
 
     private static final Object tmpFileLock = new Object();
@@ -1525,7 +1884,8 @@ public class File
      * <code>1234321</code>.  On Microsoft Windows systems, the hash
      * code is equal to the exclusive <em>or</em> of the hash code of
      * its pathname string converted to lower case and the decimal
-     * value <code>1234321</code>.
+     * value <code>1234321</code>.  Locale is not taken into account on
+     * lowercasing the pathname string.
      *
      * @return  A hash code for this abstract pathname
      */
@@ -1547,6 +1907,8 @@ public class File
      * WriteObject is called to save this filename.
      * The separator character is saved also so it can be replaced
      * in case the path is reconstituted on a different host type.
+     * <p>
+     * @serialData  Default fields followed by separator character.
      */
     private synchronized void writeObject(java.io.ObjectOutputStream s)
         throws IOException
@@ -1574,5 +1936,18 @@ public class File
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 301077366599181567L;
+
+    // Set up JavaIODeleteOnExitAccess in SharedSecrets
+    // Added here as DeleteOnExitHook is package-private and SharedSecrets cannot easily access it.
+    static {
+	sun.misc.SharedSecrets.setJavaIODeleteOnExitAccess(
+            new sun.misc.JavaIODeleteOnExitAccess() {
+                public void run() {
+                    DeleteOnExitHook.hook().run();
+		}
+            }
+	);
+    }
+
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2004 The Apache Software Foundation.
+ * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SAX2DTM2.java,v 1.10 2004/02/24 04:22:12 zongaro Exp $
+ * $Id: SAX2DTM2.java,v 1.2.4.1 2005/09/15 08:15:12 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref.sax2dtm;
 
@@ -30,17 +30,17 @@ import com.sun.org.apache.xml.internal.serializer.SerializationHandler;
 
 import javax.xml.transform.Source;
 import java.util.Vector;
-import com.sun.org.apache.xml.internal.utils.IntStack;
+import com.sun.org.apache.xml.internal.utils.SuballocatedIntVector;
 import org.xml.sax.*;
 
 /**
  * SAX2DTM2 is an optimized version of SAX2DTM which is used in non-incremental situation.
  * It is used as the super class of the XSLTC SAXImpl. Many of the interfaces in SAX2DTM
- * and DTMDefaultBase are overridden in SAX2DTM2 in order to allow fast, efficient 
+ * and DTMDefaultBase are overridden in SAX2DTM2 in order to allow fast, efficient
  * access to the DTM model. Some nested iterators in DTMDefaultBaseIterators
  * are also overridden in SAX2DTM2 for performance reasons.
  * <p>
- * Performance is the biggest consideration in the design of SAX2DTM2. To make the code most 
+ * Performance is the biggest consideration in the design of SAX2DTM2. To make the code most
  * efficient, the incremental support is dropped in SAX2DTM2, which means that you should not
  * use it in incremental situation. To reduce the overhead of pulling data from the DTM model,
  * a few core interfaces in SAX2DTM2 have direct access to the internal arrays of the
@@ -50,7 +50,7 @@ import org.xml.sax.*;
  * SAX2DTM model, please extend from SAX2DTM instead of this class.
  * <p>
  * TODO: This class is currently only used by XSLTC. We need to investigate the possibility
- * of also using it in Xalan-J Interpretive. Xalan's performance is likely to get an instant 
+ * of also using it in Xalan-J Interpretive. Xalan's performance is likely to get an instant
  * boost if we use SAX2DTM2 instead of SAX2DTM in non-incremental case.
  * <p>
  * %MK% The code in this class is critical to the XSLTC_DTM performance. Be very careful
@@ -62,7 +62,7 @@ public class SAX2DTM2 extends SAX2DTM
   /****************************************************************
    *       Optimized version of the nested iterators
    ****************************************************************/
-   
+
   /**
    * Iterator that returns all immediate children of a given node
    */
@@ -143,12 +143,12 @@ public class SAX2DTM2 extends SAX2DTM
       if (_isRestartable)
       {
         _startNode = node;
-        
+
         if (node != DTM.NULL)
           _currentNode = _parent2(makeNodeIdentity(node));
         else
           _currentNode = DTM.NULL;
-        
+
         return resetPosition();
       }
 
@@ -195,15 +195,15 @@ public class SAX2DTM2 extends SAX2DTM
           _currentNode = END;
 	  return returnNode(makeNodeHandle(result));
         }
-      } 
+      }
       else {
         if (_nodeType == _type2(result)) {
 	  _currentNode = END;
-	  return returnNode(makeNodeHandle(result));          
+	  return returnNode(makeNodeHandle(result));
         }
       }
-      
-      return DTM.NULL;      
+
+      return DTM.NULL;
     }
   }  // end of ParentIterator
 
@@ -275,7 +275,7 @@ public class SAX2DTM2 extends SAX2DTM
         }
       }
       // %OPT% If the nodeType is element (matching child::*), we only
-      // need to compare the expType with DTM.NTYPES. A child node of 
+      // need to compare the expType with DTM.NTYPES. A child node of
       // an element can be either an element, text, comment or
       // processing instruction node. Only element node has an extended
       // type greater than or equal to DTM.NTYPES.
@@ -307,19 +307,19 @@ public class SAX2DTM2 extends SAX2DTM
     {
       if (position <= 0)
         return DTM.NULL;
-      
-      int node = _currentNode; 
+
+      int node = _currentNode;
       int pos = 0;
-      
+
       final int nodeType = _nodeType;
-      if (nodeType != DTM.ELEMENT_NODE) {   
+      if (nodeType != DTM.ELEMENT_NODE) {
         while (node != DTM.NULL) {
           if (_exptype2(node) == nodeType) {
             pos++;
             if (pos == position)
               return makeNodeHandle(node);
           }
-          
+
           node = _nextsib2(node);
         }
         return NULL;
@@ -340,7 +340,7 @@ public class SAX2DTM2 extends SAX2DTM
   }  // end of TypedChildrenIterator
 
   /**
-   * Iterator that returns the namespace nodes as defined by the XPath data model 
+   * Iterator that returns the namespace nodes as defined by the XPath data model
    * for a given node, filtered by extended type ID.
    */
   public class TypedRootIterator extends RootIterator
@@ -379,13 +379,13 @@ public class SAX2DTM2 extends SAX2DTM
         if (_nodeType == expType) {
           return returnNode(node);
         }
-      } 
+      }
       else {
         if (expType < DTM.NTYPES) {
           if (expType == _nodeType) {
             return returnNode(node);
           }
-        } 
+        }
         else {
           if (m_extendedTypes[expType].getNodeType() == _nodeType) {
             return returnNode(node);
@@ -481,7 +481,7 @@ public class SAX2DTM2 extends SAX2DTM
       else {
         while ((node = _nextsib2(node)) != DTM.NULL && _exptype2(node) < DTM.NTYPES) {}
       }
-      
+
       _currentNode = node;
 
       return (node == DTM.NULL)
@@ -596,7 +596,7 @@ public class SAX2DTM2 extends SAX2DTM
 
       final int node = _currentNode;
 
-      // singleton iterator, since there can only be one attribute of 
+      // singleton iterator, since there can only be one attribute of
       // a given type.
       _currentNode = NULL;
 
@@ -650,7 +650,7 @@ public class SAX2DTM2 extends SAX2DTM
         }
 
         int type = _type2(node);
-        if(ExpandedNameTable.ATTRIBUTE == type 
+        if(ExpandedNameTable.ATTRIBUTE == type
            || ExpandedNameTable.NAMESPACE == type )
         {
           _currentNode = node;
@@ -659,7 +659,7 @@ public class SAX2DTM2 extends SAX2DTM
         {
           // Be careful to handle the Document node properly
           _currentNode = _parent2(node);
-          if(NULL!=_currentNode)	
+          if(NULL!=_currentNode)
             _currentNode = _firstch2(_currentNode);
           else
             _currentNode = node;
@@ -731,7 +731,7 @@ public class SAX2DTM2 extends SAX2DTM
         while (node != NULL && node != startNodeID && _exptype2(node) != nodeType) {
           node = _nextsib2(node);
         }
-      } 
+      }
       else {
         while (node != NULL && node != startNodeID && _exptype2(node) < DTM.NTYPES) {
           node = _nextsib2(node);
@@ -747,21 +747,21 @@ public class SAX2DTM2 extends SAX2DTM
         return returnNode(makeNodeHandle(node));
       }
     }
-    
+
     /**
      * Return the index of the last node in this iterator.
-     */    
+     */
     public int getLast()
     {
       if (_last != -1)
         return _last;
-      
+
       setMark();
-      
+
       int node = _currentNode;
       final int nodeType = _nodeType;
       final int startNodeID = _startNodeID;
-      
+
       int last = 0;
       if (nodeType != DTM.ELEMENT_NODE) {
         while (node != NULL && node != startNodeID) {
@@ -777,11 +777,11 @@ public class SAX2DTM2 extends SAX2DTM
             last++;
           }
           node = _nextsib2(node);
-        }      
+        }
       }
-      
+
       gotoMark();
-      
+
       return (_last = last);
     }
   }  // end of TypedPrecedingSiblingIterator
@@ -871,7 +871,7 @@ public class SAX2DTM2 extends SAX2DTM
 
         _startNode = node;
         _stack[index = 0] = node;
-        
+
        	parent=node;
 	while ((parent = _parent2(parent)) != NULL)
 	{
@@ -883,7 +883,7 @@ public class SAX2DTM2 extends SAX2DTM
 	  }
 	  _stack[index] = parent;
         }
-        
+
         if(index>0)
 	  --index; // Pop actual root node (if not start) back off the stack
 
@@ -988,13 +988,13 @@ public class SAX2DTM2 extends SAX2DTM
           if (_sp < 0) {
             node = NULL;
             break;
-          } 
+          }
           else if (node >= _stack[_sp]) {
             if (--_sp < 0) {
               node = NULL;
               break;
             }
-          } 
+          }
           else if (_exptype2(node) == nodeType) {
             break;
           }
@@ -1033,7 +1033,7 @@ public class SAX2DTM2 extends SAX2DTM
       }
 
       _currentNode = node;
-             
+
       return (node == NULL) ? NULL : returnNode(makeNodeHandle(node));
     }
   }  // end of TypedPrecedingIterator
@@ -1044,7 +1044,7 @@ public class SAX2DTM2 extends SAX2DTM
   public class FollowingIterator extends InternalAxisIteratorBase
   {
     //DTMAxisTraverser m_traverser; // easier for now
-    
+
     public FollowingIterator()
     {
       //m_traverser = getAxisTraverser(Axis.FOLLOWING);
@@ -1068,7 +1068,7 @@ public class SAX2DTM2 extends SAX2DTM
         _startNode = node;
 
         //_currentNode = m_traverser.first(node);
-        
+
         node = makeNodeIdentity(node);
 
         int first;
@@ -1133,7 +1133,7 @@ public class SAX2DTM2 extends SAX2DTM
         return returnNode(node);
       }
     }
-    
+
   }  // end of FollowingIterator
 
   /**
@@ -1169,7 +1169,7 @@ public class SAX2DTM2 extends SAX2DTM
 
       final int nodeType = _nodeType;
       int currentNodeID = makeNodeIdentity(_currentNode);
-      
+
       if (nodeType >= DTM.NTYPES) {
         do {
           node = currentNodeID;
@@ -1178,11 +1178,11 @@ public class SAX2DTM2 extends SAX2DTM
           do {
             current++;
             type = _type2(current);
-          } 
+          }
           while (type != NULL && (ATTRIBUTE_NODE == type || NAMESPACE_NODE == type));
-        
-          currentNodeID = (type != NULL) ? current : NULL;    
-        } 
+
+          currentNodeID = (type != NULL) ? current : NULL;
+        }
         while (node != DTM.NULL && _exptype2(node) != nodeType);
       }
       else {
@@ -1193,13 +1193,13 @@ public class SAX2DTM2 extends SAX2DTM
           do {
             current++;
             type = _type2(current);
-          } 
+          }
           while (type != NULL && (ATTRIBUTE_NODE == type || NAMESPACE_NODE == type));
-        
-          currentNodeID = (type != NULL) ? current : NULL;    
-        } 
+
+          currentNodeID = (type != NULL) ? current : NULL;
+        }
         while (node != DTM.NULL
-               && (_exptype2(node) != nodeType && _type2(node) != nodeType));      
+               && (_exptype2(node) != nodeType && _type2(node) != nodeType));
       }
 
       _currentNode = makeNodeHandle(currentNodeID);
@@ -1215,20 +1215,20 @@ public class SAX2DTM2 extends SAX2DTM
   {
     // The initial size of the ancestor array
     private static final int m_blocksize = 32;
-    
+
     // The array for ancestor nodes. This array will grow dynamically.
     int[] m_ancestors = new int[m_blocksize];
-    
-    // Number of ancestor nodes in the array    
+
+    // Number of ancestor nodes in the array
     int m_size = 0;
-    
+
     int m_ancestorsPos;
 
     int m_markedPos;
-    
+
     /** The real start node for this axes, since _startNode will be adjusted. */
     int m_realStartNode;
-    
+
     /**
      * Get start to END should 'close' the iterator,
      * i.e. subsequent call to next() should return END.
@@ -1293,14 +1293,14 @@ public class SAX2DTM2 extends SAX2DTM
       {
         int nodeID = makeNodeIdentity(node);
         m_size = 0;
-        
+
         if (nodeID == DTM.NULL) {
           _currentNode = DTM.NULL;
           m_ancestorsPos = 0;
           return this;
         }
 
-        // Start from the current node's parent if 
+        // Start from the current node's parent if
         // _includeSelf is false.
         if (!_includeSelf) {
           nodeID = _parent2(nodeID);
@@ -1317,12 +1317,12 @@ public class SAX2DTM2 extends SAX2DTM
             System.arraycopy(m_ancestors, 0, newAncestors, 0, m_ancestors.length);
             m_ancestors = newAncestors;
           }
-          
+
           m_ancestors[m_size++] = node;
           nodeID = _parent2(nodeID);
           node = makeNodeHandle(nodeID);
         }
-        
+
         m_ancestorsPos = m_size - 1;
 
         _currentNode = (m_ancestorsPos>=0)
@@ -1361,12 +1361,12 @@ public class SAX2DTM2 extends SAX2DTM
     {
 
       int next = _currentNode;
-      
+
       int pos = --m_ancestorsPos;
 
       _currentNode = (pos >= 0) ? m_ancestors[m_ancestorsPos]
                                 : DTM.NULL;
-      
+
       return returnNode(next);
     }
 
@@ -1420,13 +1420,13 @@ public class SAX2DTM2 extends SAX2DTM
       {
         int nodeID = makeNodeIdentity(node);
         m_size = 0;
-        
+
         if (nodeID == DTM.NULL) {
           _currentNode = DTM.NULL;
           m_ancestorsPos = 0;
           return this;
         }
-        
+
         final int nodeType = _nodeType;
 
         if (!_includeSelf) {
@@ -1493,10 +1493,10 @@ public class SAX2DTM2 extends SAX2DTM
       else
         return DTM.NULL;
     }
-    
-    /** 
+
+    /**
      * Returns the position of the last node within the iteration, as
-     * defined by XPath.    
+     * defined by XPath.
      */
     public int getLast() {
       return m_size;
@@ -1601,17 +1601,17 @@ public class SAX2DTM2 extends SAX2DTM
             return END;
           }
         } while(ATTRIBUTE_NODE == type || TEXT_NODE == type
-                 || NAMESPACE_NODE == type);      
+                 || NAMESPACE_NODE == type);
       }
 
       _currentNode = node;
       return returnNode(makeNodeHandle(node));  // make handle.
     }
-  
+
     /**
      * Reset.
      *
-     */ 
+     */
   public DTMAxisIterator reset()
   {
 
@@ -1625,7 +1625,7 @@ public class SAX2DTM2 extends SAX2DTM
 
     return this;
   }
-    
+
   }  // end of DescendantIterator
 
   /**
@@ -1664,7 +1664,7 @@ public class SAX2DTM2 extends SAX2DTM
 
       int expType;
       final int nodeType = _nodeType;
-      
+
       if (nodeType != DTM.ELEMENT_NODE)
       {
         do
@@ -1677,7 +1677,7 @@ public class SAX2DTM2 extends SAX2DTM
             return END;
           }
         }
-        while (expType != nodeType);      
+        while (expType != nodeType);
       }
       // %OPT% If the start node is root (e.g. in the case of //node),
       // we can save the isDescendant() check, because all nodes are
@@ -1693,7 +1693,7 @@ public class SAX2DTM2 extends SAX2DTM
 	    _currentNode = NULL;
 	    return END;
 	  }
-	} while (expType < DTM.NTYPES 
+	} while (expType < DTM.NTYPES
 	        || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);
       }
       else
@@ -1708,10 +1708,10 @@ public class SAX2DTM2 extends SAX2DTM
             return END;
           }
         }
-        while (expType < DTM.NTYPES 
-	       || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);      
+        while (expType < DTM.NTYPES
+	       || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);
       }
-      
+
       _currentNode = node;
       return returnNode(makeNodeHandle(node));
     }
@@ -1748,14 +1748,14 @@ public class SAX2DTM2 extends SAX2DTM
       final int result = _currentNode;
       if (result == END)
         return DTM.NULL;
-      
+
       _currentNode = END;
 
       if (_nodeType >= DTM.NTYPES) {
         if (_exptype2(makeNodeIdentity(result)) == _nodeType) {
           return returnNode(result);
         }
-      } 
+      }
       else {
         if (_type2(makeNodeIdentity(result)) == _nodeType) {
           return returnNode(result);
@@ -1767,11 +1767,11 @@ public class SAX2DTM2 extends SAX2DTM
   }  // end of TypedSingletonIterator
 
   /*******************************************************************
-   *                End of nested iterators          
+   *                End of nested iterators
    *******************************************************************/
 
 
-  // %OPT% Array references which are used to cache the map0 arrays in 
+  // %OPT% Array references which are used to cache the map0 arrays in
   // SuballocatedIntVectors. Using the cached arrays reduces the level
   // of indirection and results in better performance than just calling
   // SuballocatedIntVector.elementAt().
@@ -1779,7 +1779,7 @@ public class SAX2DTM2 extends SAX2DTM
   private int[] m_nextsib_map0;
   private int[] m_firstch_map0;
   private int[] m_parent_map0;
-  
+
   // Double array references to the map arrays in SuballocatedIntVectors.
   private int[][] m_exptype_map;
   private int[][] m_nextsib_map;
@@ -1788,8 +1788,8 @@ public class SAX2DTM2 extends SAX2DTM
 
   // %OPT% Cache the array of extended types in this class
   protected ExtendedType[] m_extendedTypes;
-  
-  // A Vector which is used to store the values of attribute, namespace, 
+
+  // A Vector which is used to store the values of attribute, namespace,
   // comment and PI nodes.
   //
   // %OPT% These values are unlikely to be equal. Storing
@@ -1798,42 +1798,42 @@ public class SAX2DTM2 extends SAX2DTM
   //
   // %REVISIT% Do we need a custom class (e.g. StringVector) here?
   protected Vector m_values;
-  
+
   // The current index into the m_values Vector.
   private int m_valueIndex = 0;
-  
+
   // The maximum value of the current node index.
   private int m_maxNodeIndex;
-  
+
   // Cache the shift and mask values for the SuballocatedIntVectors.
   protected int m_SHIFT;
   protected int m_MASK;
   protected int m_blocksize;
-  
+
   /** %OPT% If the offset and length of a Text node are within certain limits,
    * we store a bitwise encoded value into an int, using 10 bits (max. 1024)
    * for length and 21 bits for offset. We can save two SuballocatedIntVector
-   * calls for each getStringValueX() and dispatchCharacterEvents() call by 
+   * calls for each getStringValueX() and dispatchCharacterEvents() call by
    * doing this.
    */
   // The number of bits for the length of a Text node.
   protected final static int TEXT_LENGTH_BITS = 10;
-  
+
   // The number of bits for the offset of a Text node.
   protected final static int TEXT_OFFSET_BITS = 21;
-  
+
   // The maximum length value
   protected final static int TEXT_LENGTH_MAX = (1<<TEXT_LENGTH_BITS) - 1;
-  
+
   // The maximum offset value
   protected final static int TEXT_OFFSET_MAX = (1<<TEXT_OFFSET_BITS) - 1;
-  
+
   // True if we want to build the ID index table.
   protected boolean m_buildIdIndex = true;
-      
+
   // Constant for empty String
   private static final String EMPTY_STR = "";
-  
+
   // Constant for empty XMLString
   private static final XMLString EMPTY_XML_STR = new XMLStringDefault("");
 
@@ -1849,7 +1849,7 @@ public class SAX2DTM2 extends SAX2DTM
     this(mgr, source, dtmIdentity, whiteSpaceFilter,
           xstringfactory, doIndexing, DEFAULT_BLOCKSIZE, true, true, false);
   }
- 
+
   /**
    * Construct a SAX2DTM2 object using the given block size.
    */
@@ -1865,40 +1865,40 @@ public class SAX2DTM2 extends SAX2DTM
 
     super(mgr, source, dtmIdentity, whiteSpaceFilter,
           xstringfactory, doIndexing, blocksize, usePrevsib, newNameTable);
-        
+
     // Initialize the values of m_SHIFT and m_MASK.
     int shift;
     for(shift=0; (blocksize>>>=1) != 0; ++shift);
-    
+
     m_blocksize = 1<<shift;
     m_SHIFT = shift;
     m_MASK = m_blocksize - 1;
-    
+
     m_buildIdIndex = buildIdIndex;
-    
+
     // Some documents do not have attribute nodes. That is why
     // we set the initial size of this Vector to be small and set
     // the increment to a bigger number.
     m_values = new Vector(32, 512);
-    
+
     m_maxNodeIndex = 1 << DTMManager.IDENT_DTM_NODE_BITS;
-    
+
     // Set the map0 values in the constructor.
     m_exptype_map0 = m_exptype.getMap0();
     m_nextsib_map0 = m_nextsib.getMap0();
     m_firstch_map0 = m_firstch.getMap0();
     m_parent_map0  = m_parent.getMap0();
   }
-  
+
   /**
    * Override DTMDefaultBase._exptype() by dropping the incremental code.
-   * 
+   *
    * <p>This one is less efficient than _exptype2. It is only used during
    * DTM building. _exptype2 is used after the document is fully built.
    */
   public final int _exptype(int identity)
   {
-    return m_exptype.elementAt(identity);    
+    return m_exptype.elementAt(identity);
   }
 
   /************************************************************************
@@ -1910,7 +1910,7 @@ public class SAX2DTM2 extends SAX2DTM
    * the SuballocatedIntVectors. The final modifier also has a noticeable
    * impact on performance.
    ***********************************************************************/
- 
+
   /**
    * The optimized version of DTMDefaultBase._exptype().
    *
@@ -1920,13 +1920,13 @@ public class SAX2DTM2 extends SAX2DTM
   public final int _exptype2(int identity)
   {
     //return m_exptype.elementAt(identity);
-    
+
     if (identity < m_blocksize)
       return m_exptype_map0[identity];
     else
-      return m_exptype_map[identity>>>m_SHIFT][identity&m_MASK];    
+      return m_exptype_map[identity>>>m_SHIFT][identity&m_MASK];
   }
-  
+
   /**
    * The optimized version of DTMDefaultBase._nextsib().
    *
@@ -1936,13 +1936,13 @@ public class SAX2DTM2 extends SAX2DTM
   public final int _nextsib2(int identity)
   {
     //return m_nextsib.elementAt(identity);
-    
+
     if (identity < m_blocksize)
       return m_nextsib_map0[identity];
     else
-      return m_nextsib_map[identity>>>m_SHIFT][identity&m_MASK];     
+      return m_nextsib_map[identity>>>m_SHIFT][identity&m_MASK];
   }
-  
+
   /**
    * The optimized version of DTMDefaultBase._firstch().
    *
@@ -1952,13 +1952,13 @@ public class SAX2DTM2 extends SAX2DTM
   public final int _firstch2(int identity)
   {
     //return m_firstch.elementAt(identity);
-    
+
     if (identity < m_blocksize)
       return m_firstch_map0[identity];
     else
-      return m_firstch_map[identity>>>m_SHIFT][identity&m_MASK];    
+      return m_firstch_map[identity>>>m_SHIFT][identity&m_MASK];
   }
-  
+
   /**
    * The optimized version of DTMDefaultBase._parent().
    *
@@ -1968,13 +1968,13 @@ public class SAX2DTM2 extends SAX2DTM
   public final int _parent2(int identity)
   {
     //return m_parent.elementAt(identity);
-    
+
     if (identity < m_blocksize)
       return m_parent_map0[identity];
     else
-      return m_parent_map[identity>>>m_SHIFT][identity&m_MASK];    
+      return m_parent_map[identity>>>m_SHIFT][identity&m_MASK];
   }
-  
+
   /**
    * The optimized version of DTMDefaultBase._type().
    *
@@ -1988,14 +1988,14 @@ public class SAX2DTM2 extends SAX2DTM
     if (identity < m_blocksize)
       eType = m_exptype_map0[identity];
     else
-      eType = m_exptype_map[identity>>>m_SHIFT][identity&m_MASK];    
-  	
+      eType = m_exptype_map[identity>>>m_SHIFT][identity&m_MASK];
+
     if (NULL != eType)
       return m_extendedTypes[eType].getNodeType();
     else
       return NULL;
   }
-    
+
   /**
    * The optimized version of DTMDefaultBase.getExpandedTypeID(int).
    *
@@ -2005,23 +2005,23 @@ public class SAX2DTM2 extends SAX2DTM
   public final int getExpandedTypeID2(int nodeHandle)
   {
     int nodeID = makeNodeIdentity(nodeHandle);
-    
+
     //return (nodeID != NULL) ? _exptype2(nodeID) : NULL;
-    
+
     if (nodeID != NULL) {
       if (nodeID < m_blocksize)
         return m_exptype_map0[nodeID];
       else
-        return m_exptype_map[nodeID>>>m_SHIFT][nodeID&m_MASK]; 
+        return m_exptype_map[nodeID>>>m_SHIFT][nodeID&m_MASK];
     }
     else
       return NULL;
   }
-  
+
   /*************************************************************************
    *                 END of DTM base accessor interfaces
    *************************************************************************/
-   
+
 
   /**
    * Return the node type from the expanded type
@@ -2031,7 +2031,7 @@ public class SAX2DTM2 extends SAX2DTM
     if (NULL != exptype)
       return m_extendedTypes[exptype].getNodeType();
     else
-      return NULL;    
+      return NULL;
   }
 
   /**
@@ -2064,8 +2064,6 @@ public class SAX2DTM2 extends SAX2DTM
    * each element (such as allocating a new tree node or writing
    * output to a file).</p>
    *
-   * @param name The element type name.
-   *
    * @param uri The Namespace URI, or the empty string if the
    *        element has no Namespace URI or if Namespace
    *        processing is not being performed.
@@ -2082,11 +2080,11 @@ public class SAX2DTM2 extends SAX2DTM
   public void startElement(String uri, String localName, String qName, Attributes attributes)
       throws SAXException
   {
-		
+
     charactersFlush();
 
     int exName = m_expandedNameTable.getExpandedTypeID(uri, localName, DTM.ELEMENT_NODE);
-    
+
     int prefixIndex = (qName.length() != localName.length())
                       ? m_valuesOrPrefixes.stringToIndex(qName) : 0;
 
@@ -2095,7 +2093,7 @@ public class SAX2DTM2 extends SAX2DTM
 
     if(m_indexing)
       indexNode(exName, elemNode);
-    
+
     m_parents.push(elemNode);
 
     int startDecls = m_contextIndexes.peek();
@@ -2141,7 +2139,7 @@ public class SAX2DTM2 extends SAX2DTM
       String valString = attributes.getValue(i);
 
       int nodeType;
-      
+
       String attrLocalName = attributes.getLocalName(i);
 
       if ((null != attrQName)
@@ -2211,9 +2209,6 @@ public class SAX2DTM2 extends SAX2DTM
    * each element (such as finalising a tree node or writing
    * output to a file).</p>
    *
-   * @param name The element type name.
-   * @param attributes The specified or defaulted attributes.
-   *
    * @param uri The Namespace URI, or the empty string if the
    *        element has no Namespace URI or if Namespace
    *        processing is not being performed.
@@ -2273,7 +2268,7 @@ public class SAX2DTM2 extends SAX2DTM
 
     m_previous = addNode(DTM.COMMENT_NODE, DTM.COMMENT_NODE,
                          m_parents.peek(), m_previous, dataIndex, false);
-  }  
+  }
 
   /**
    * Receive notification of the beginning of the document.
@@ -2284,7 +2279,7 @@ public class SAX2DTM2 extends SAX2DTM
    */
   public void startDocument() throws SAXException
   {
-		
+
     int doc = addNode(DTM.DOCUMENT_NODE,
                       DTM.DOCUMENT_NODE,
                       DTM.NULL, DTM.NULL, 0, true);
@@ -2294,7 +2289,7 @@ public class SAX2DTM2 extends SAX2DTM
 
     m_contextIndexes.push(m_prefixMappings.size());  // for the next element.
   }
-  
+
   /**
    * Receive notification of the end of the document.
    *
@@ -2305,14 +2300,14 @@ public class SAX2DTM2 extends SAX2DTM
   public void endDocument() throws SAXException
   {
     super.endDocument();
-        
+
     // Add a NULL entry to the end of the node arrays as
     // the end indication.
     m_exptype.addElement(NULL);
     m_parent.addElement(NULL);
     m_nextsib.addElement(NULL);
     m_firstch.addElement(NULL);
-    
+
     // Set the cached references after the document is built.
     m_extendedTypes = m_expandedNameTable.getExtendedTypes();
     m_exptype_map = m_exptype.getMap();
@@ -2404,31 +2399,32 @@ public class SAX2DTM2 extends SAX2DTM
         doStrip = m_chars.isWhitespace(m_textPendingStart, length);
       }
 
-      if (doStrip)
+      if (doStrip) {
         m_chars.setLength(m_textPendingStart);  // Discard accumulated text
-      else
-      {
-        // If the offset and length do not exceed the given limits
-        // (offset < 2^21 and length < 2^10), then save both the offset
-        // and length in a bitwise encoded value.
-        if (length <= TEXT_LENGTH_MAX && m_textPendingStart <= TEXT_OFFSET_MAX)
-        {
-          m_previous = addNode(m_coalescedTextType, DTM.TEXT_NODE,
+      } else {
+        // Guard against characters/ignorableWhitespace events that
+        // contained no characters.  They should not result in a node.
+        if (length > 0) {
+          // If the offset and length do not exceed the given limits
+          // (offset < 2^21 and length < 2^10), then save both the offset
+          // and length in a bitwise encoded value.
+          if (length <= TEXT_LENGTH_MAX
+                  && m_textPendingStart <= TEXT_OFFSET_MAX) {
+            m_previous = addNode(m_coalescedTextType, DTM.TEXT_NODE,
                              m_parents.peek(), m_previous,
                              length + (m_textPendingStart << TEXT_LENGTH_BITS),
                              false);
-          
-        }
-        else
-        {
-          // Store the offset and length in the m_data array if one of them
-          // exceeds the given limits. Use a negative dataIndex as an indication. 
-          int dataIndex = m_data.size();
-          m_previous = addNode(m_coalescedTextType, DTM.TEXT_NODE,
-                             m_parents.peek(), m_previous, -dataIndex, false);
 
-          m_data.addElement(m_textPendingStart);
-          m_data.addElement(length);
+          } else {
+            // Store offset and length in the m_data array if one exceeds 
+            // the given limits. Use a negative dataIndex as an indication.
+            int dataIndex = m_data.size();
+            m_previous = addNode(m_coalescedTextType, DTM.TEXT_NODE,
+                               m_parents.peek(), m_previous, -dataIndex, false);
+
+            m_data.addElement(m_textPendingStart);
+            m_data.addElement(length);
+          }
         }
       }
 
@@ -2444,9 +2440,9 @@ public class SAX2DTM2 extends SAX2DTM
    * %OPT% This one is different from SAX2DTM.processingInstruction()
    * in that we do not use extended types for PI nodes. The name of
    * the PI is saved in the DTMStringPool.
-   * 
+   *
    * Receive notification of a processing instruction.
-   * 
+   *
    * @param target The processing instruction target.
    * @param data The processing instruction data, or null if
    *             none is supplied.
@@ -2461,7 +2457,7 @@ public class SAX2DTM2 extends SAX2DTM
     charactersFlush();
 
     int dataIndex = m_data.size();
-    m_previous = addNode(DTM.PROCESSING_INSTRUCTION_NODE, 
+    m_previous = addNode(DTM.PROCESSING_INSTRUCTION_NODE,
 			 DTM.PROCESSING_INSTRUCTION_NODE,
 			 m_parents.peek(), m_previous,
 			 -dataIndex, false);
@@ -2486,7 +2482,7 @@ public class SAX2DTM2 extends SAX2DTM
 
     if (nodeID == DTM.NULL)
       return DTM.NULL;
-    
+
     int type = _type2(nodeID);
 
     if (DTM.ELEMENT_NODE == type)
@@ -2589,16 +2585,16 @@ public class SAX2DTM2 extends SAX2DTM
    * @return Handle of attribute of the required type, or DTM.NULL to indicate
    * none exists.
    */
-  protected final int getTypedAttribute(int nodeHandle, int attType) 
+  protected final int getTypedAttribute(int nodeHandle, int attType)
   {
-          
+
     int nodeID = makeNodeIdentity(nodeHandle);
-    
+
     if (nodeID == DTM.NULL)
       return DTM.NULL;
-    
+
     int type = _type2(nodeID);
-    
+
     if (DTM.ELEMENT_NODE == type)
     {
       int expType;
@@ -2606,7 +2602,7 @@ public class SAX2DTM2 extends SAX2DTM
       {
 	nodeID++;
 	expType = _exptype2(nodeID);
-	
+
 	if (expType != DTM.NULL)
 	  type = m_extendedTypes[expType].getNodeType();
 	else
@@ -2629,7 +2625,7 @@ public class SAX2DTM2 extends SAX2DTM
   /**
    * Override SAX2DTM.getLocalName() in SAX2DTM2.
    * <p>Processing for PIs is different.
-   * 
+   *
    * Given a node handle, return its XPath- style localname. (As defined in
    * Namespaces, this is the portion of the name after any colon character).
    *
@@ -2639,12 +2635,12 @@ public class SAX2DTM2 extends SAX2DTM
   public String getLocalName(int nodeHandle)
   {
     int expType = _exptype(makeNodeIdentity(nodeHandle));
-    
+
     if (expType == DTM.PROCESSING_INSTRUCTION_NODE)
     {
       int dataIndex = _dataOrQName(makeNodeIdentity(nodeHandle));
       dataIndex = m_data.elementAt(-dataIndex);
-      return m_valuesOrPrefixes.indexToString(dataIndex);     
+      return m_valuesOrPrefixes.indexToString(dataIndex);
     }
     else
       return m_expandedNameTable.getLocalName(expType);
@@ -2664,16 +2660,16 @@ public class SAX2DTM2 extends SAX2DTM
 
     int nodeID = makeNodeIdentity(nodeHandle);
     int eType = _exptype2(nodeID);
-    
+
     if (eType == DTM.PROCESSING_INSTRUCTION_NODE)
     {
       int dataIndex = _dataOrQName(nodeID);
       dataIndex = m_data.elementAt(-dataIndex);
-      return m_valuesOrPrefixes.indexToString(dataIndex);           
+      return m_valuesOrPrefixes.indexToString(dataIndex);
     }
-    
+
     final ExtendedType extType = m_extendedTypes[eType];
-                         
+
     if (extType.getNamespace().length() == 0)
     {
       return extType.getLocalName();
@@ -2684,7 +2680,7 @@ public class SAX2DTM2 extends SAX2DTM
 
       if (qnameIndex == 0)
         return extType.getLocalName();
-      
+
       if (qnameIndex < 0)
       {
 	qnameIndex = -qnameIndex;
@@ -2716,8 +2712,8 @@ public class SAX2DTM2 extends SAX2DTM
     if (extType.getNamespace().length() == 0)
     {
       int type = extType.getNodeType();
-      
-      String localName = extType.getLocalName(); 
+
+      String localName = extType.getLocalName();
       if (type == DTM.NAMESPACE_NODE)
       {
 	if (localName.length() == 0)
@@ -2729,14 +2725,14 @@ public class SAX2DTM2 extends SAX2DTM
       {
 	int dataIndex = _dataOrQName(nodeID);
 	dataIndex = m_data.elementAt(-dataIndex);
-	return m_valuesOrPrefixes.indexToString(dataIndex);           	
+	return m_valuesOrPrefixes.indexToString(dataIndex);
       }
       else if (localName.length() == 0)
       {
-	return m_fixednames[type];
+        return getFixedNames(type);
       }
       else
-	return localName;      
+	return localName;
     }
     else
     {
@@ -2744,7 +2740,7 @@ public class SAX2DTM2 extends SAX2DTM
 
       if (qnameIndex == 0)
         return extType.getLocalName();
-      
+
       if (qnameIndex < 0)
       {
 	qnameIndex = -qnameIndex;
@@ -2777,7 +2773,7 @@ public class SAX2DTM2 extends SAX2DTM
     int identity = makeNodeIdentity(nodeHandle);
     if (identity == DTM.NULL)
       return EMPTY_XML_STR;
-    
+
     int type= _type2(identity);
 
     if (type == DTM.ELEMENT_NODE || type == DTM.DOCUMENT_NODE)
@@ -2789,21 +2785,21 @@ public class SAX2DTM2 extends SAX2DTM
 	int offset = -1;
 	int length = 0;
 
-	do 
+	do
 	{
 	  type = _exptype2(identity);
 
 	  if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
 	  {
 	    int dataIndex = m_dataOrQName.elementAt(identity);
-	    if (dataIndex > 0)
+	    if (dataIndex >= 0)
 	    {
 	      if (-1 == offset)
 	      {
                 offset = dataIndex >>> TEXT_LENGTH_BITS;
 	      }
 
-	      length += dataIndex & TEXT_LENGTH_MAX;	      
+	      length += dataIndex & TEXT_LENGTH_MAX;
 	    }
 	    else
 	    {
@@ -2831,17 +2827,17 @@ public class SAX2DTM2 extends SAX2DTM
       }
       else
         return EMPTY_XML_STR;
-    } 
+    }
     else if (DTM.TEXT_NODE == type || DTM.CDATA_SECTION_NODE == type)
     {
       int dataIndex = m_dataOrQName.elementAt(identity);
-      if (dataIndex > 0)
+      if (dataIndex >= 0)
       {
       	if (m_xstrf != null)
-      	  return m_xstrf.newstr(m_chars, dataIndex >>> TEXT_LENGTH_BITS, 
+      	  return m_xstrf.newstr(m_chars, dataIndex >>> TEXT_LENGTH_BITS,
       	                 dataIndex & TEXT_LENGTH_MAX);
       	else
-      	  return new XMLStringDefault(m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS, 
+      	  return new XMLStringDefault(m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
       	                              dataIndex & TEXT_LENGTH_MAX));
       }
       else
@@ -2850,7 +2846,7 @@ public class SAX2DTM2 extends SAX2DTM
           return m_xstrf.newstr(m_chars, m_data.elementAt(-dataIndex),
                                 m_data.elementAt(-dataIndex+1));
         else
-          return new XMLStringDefault(m_chars.getString(m_data.elementAt(-dataIndex), 
+          return new XMLStringDefault(m_chars.getString(m_data.elementAt(-dataIndex),
                                    m_data.elementAt(-dataIndex+1)));
       }
     }
@@ -2870,14 +2866,14 @@ public class SAX2DTM2 extends SAX2DTM
         return new XMLStringDefault((String)m_values.elementAt(dataIndex));
     }
   }
-  
+
   /**
    * The optimized version of SAX2DTM.getStringValue(int).
    * <p>
    * %OPT% This is one of the most often used interfaces. Performance is
    * critical here. This one is different from SAX2DTM.getStringValue(int) in
    * that it returns a String instead of a XMLString.
-   * 
+   *
    * Get the string- value of a node as a String object (see http: //www. w3.
    * org/TR/xpath#data- model for the definition of a node's string- value).
    *
@@ -2890,7 +2886,7 @@ public class SAX2DTM2 extends SAX2DTM
     int identity = makeNodeIdentity(nodeHandle);
     if (identity == DTM.NULL)
       return EMPTY_STR;
-    
+
     int type= _type2(identity);
 
     if (type == DTM.ELEMENT_NODE || type == DTM.DOCUMENT_NODE)
@@ -2902,21 +2898,21 @@ public class SAX2DTM2 extends SAX2DTM
 	int offset = -1;
 	int length = 0;
 
-	do 
+	do
 	{
 	  type = _exptype2(identity);
 
 	  if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
 	  {
 	    int dataIndex = m_dataOrQName.elementAt(identity);
-	    if (dataIndex > 0)
+	    if (dataIndex >= 0)
 	    {
 	      if (-1 == offset)
 	      {
                 offset = dataIndex >>> TEXT_LENGTH_BITS;
 	      }
 
-	      length += dataIndex & TEXT_LENGTH_MAX;	      
+	      length += dataIndex & TEXT_LENGTH_MAX;
 	    }
 	    else
 	    {
@@ -2941,18 +2937,18 @@ public class SAX2DTM2 extends SAX2DTM
       }
       else
         return EMPTY_STR;
-    } 
+    }
     else if (DTM.TEXT_NODE == type || DTM.CDATA_SECTION_NODE == type)
     {
       int dataIndex = m_dataOrQName.elementAt(identity);
-      if (dataIndex > 0)
+      if (dataIndex >= 0)
       {
-      	return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS, 
+      	return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
       	                          dataIndex & TEXT_LENGTH_MAX);
       }
       else
       {
-        return m_chars.getString(m_data.elementAt(-dataIndex), 
+        return m_chars.getString(m_data.elementAt(-dataIndex),
                                   m_data.elementAt(-dataIndex+1));
       }
     }
@@ -2977,20 +2973,20 @@ public class SAX2DTM2 extends SAX2DTM
   {
     int child = _firstch2(ROOTNODE);
     if (child == DTM.NULL) return EMPTY_STR;
-      
-    // optimization: only create StringBuffer if > 1 child      
+
+    // optimization: only create StringBuffer if > 1 child
     if ((_exptype2(child) == DTM.TEXT_NODE) && (_nextsib2(child) == DTM.NULL))
     {
       int dataIndex = m_dataOrQName.elementAt(child);
-      if (dataIndex > 0)
+      if (dataIndex >= 0)
         return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS, dataIndex & TEXT_LENGTH_MAX);
       else
-        return m_chars.getString(m_data.elementAt(-dataIndex), 
-                                  m_data.elementAt(-dataIndex + 1));      
+        return m_chars.getString(m_data.elementAt(-dataIndex),
+                                  m_data.elementAt(-dataIndex + 1));
     }
     else
       return getStringValueX(getDocument());
-    
+
   }
 
   /**
@@ -3018,10 +3014,10 @@ public class SAX2DTM2 extends SAX2DTM
   {
 
     int identity = makeNodeIdentity(nodeHandle);
-    
+
     if (identity == DTM.NULL)
       return;
-    
+
     int type = _type2(identity);
 
     if (type == DTM.ELEMENT_NODE || type == DTM.DOCUMENT_NODE)
@@ -3033,7 +3029,7 @@ public class SAX2DTM2 extends SAX2DTM
 	int offset = -1;
 	int length = 0;
 
-	do 
+	do
 	{
 	  type = _exptype2(identity);
 
@@ -3041,14 +3037,14 @@ public class SAX2DTM2 extends SAX2DTM
 	  {
 	    int dataIndex = m_dataOrQName.elementAt(identity);
 
-	    if (dataIndex > 0)
+	    if (dataIndex >= 0)
 	    {
 	      if (-1 == offset)
 	      {
                 offset = dataIndex >>> TEXT_LENGTH_BITS;
 	      }
 
-	      length += dataIndex & TEXT_LENGTH_MAX;	      
+	      length += dataIndex & TEXT_LENGTH_MAX;
 	    }
 	    else
 	    {
@@ -3072,12 +3068,12 @@ public class SAX2DTM2 extends SAX2DTM
 	    m_chars.sendSAXcharacters(ch, offset, length);
 	}
       }
-    } 
+    }
     else if (DTM.TEXT_NODE == type || DTM.CDATA_SECTION_NODE == type)
     {
       int dataIndex = m_dataOrQName.elementAt(identity);
 
-      if (dataIndex > 0)
+      if (dataIndex >= 0)
       {
       	if (normalize)
       	  m_chars.sendNormalizedSAXcharacters(ch, dataIndex >>> TEXT_LENGTH_BITS,
@@ -3089,10 +3085,10 @@ public class SAX2DTM2 extends SAX2DTM
       else
       {
         if (normalize)
-          m_chars.sendNormalizedSAXcharacters(ch, m_data.elementAt(-dataIndex), 
-                                              m_data.elementAt(-dataIndex+1));          
+          m_chars.sendNormalizedSAXcharacters(ch, m_data.elementAt(-dataIndex),
+                                              m_data.elementAt(-dataIndex+1));
         else
-          m_chars.sendSAXcharacters(ch, m_data.elementAt(-dataIndex), 
+          m_chars.sendSAXcharacters(ch, m_data.elementAt(-dataIndex),
                                     m_data.elementAt(-dataIndex+1));
       }
     }
@@ -3105,9 +3101,9 @@ public class SAX2DTM2 extends SAX2DTM
         dataIndex = -dataIndex;
         dataIndex = m_data.elementAt(dataIndex + 1);
       }
-      
+
       String str = (String)m_values.elementAt(dataIndex);
-      
+
       if(normalize)
         FastStringBuffer.sendNormalizedSAXcharacters(str.toCharArray(),
                                                      0, str.length(), ch);
@@ -3136,12 +3132,12 @@ public class SAX2DTM2 extends SAX2DTM
       int dataIndex = _dataOrQName(identity);
       if (dataIndex > 0)
       {
-      	return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS, 
+      	return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
       	                          dataIndex & TEXT_LENGTH_MAX);
       }
       else
       {
-        return m_chars.getString(m_data.elementAt(-dataIndex), 
+        return m_chars.getString(m_data.elementAt(-dataIndex),
                                   m_data.elementAt(-dataIndex+1));
       }
     }
@@ -3172,7 +3168,7 @@ public class SAX2DTM2 extends SAX2DTM
     {
         if (nodeID != DTM.NULL) {
       	    int dataIndex = m_dataOrQName.elementAt(nodeID);
-            if (dataIndex > 0) {
+            if (dataIndex >= 0) {
                 m_chars.sendSAXcharacters(handler,
                                           dataIndex >>> TEXT_LENGTH_BITS,
                                           dataIndex & TEXT_LENGTH_MAX);
@@ -3180,7 +3176,7 @@ public class SAX2DTM2 extends SAX2DTM
                 m_chars.sendSAXcharacters(handler, m_data.elementAt(-dataIndex),
                                           m_data.elementAt(-dataIndex+1));
             }
-        }      
+        }
     }
 
     /**
@@ -3198,25 +3194,25 @@ public class SAX2DTM2 extends SAX2DTM
         final ExtendedType extType = m_extendedTypes[exptype];
         String uri = extType.getNamespace();
         String name = extType.getLocalName();
-      
+
         if (uri.length() == 0) {
             handler.startElement(name);
-            return name;           
+            return name;
         }
         else {
             int qnameIndex = m_dataOrQName.elementAt(nodeID);
-    
+
             if (qnameIndex == 0) {
                 handler.startElement(name);
                 handler.namespaceAfterStartElement(EMPTY_STR, uri);
                 return name;
             }
-          
+
             if (qnameIndex < 0) {
     	        qnameIndex = -qnameIndex;
     	        qnameIndex = m_data.elementAt(qnameIndex);
             }
-    
+
             String qName = m_valuesOrPrefixes.indexToString(qnameIndex);
             handler.startElement(qName);
             int prefixIndex = qName.indexOf(':');
@@ -3228,12 +3224,12 @@ public class SAX2DTM2 extends SAX2DTM
                 prefix = null;
             }
             handler.namespaceAfterStartElement(prefix, uri);
-            return qName;           
-        }        
-             
+            return qName;
+        }
+
     }
-    
-     /**
+
+    /**
      * Copy  namespace nodes.
      *
      * @param nodeID The Element node identity
@@ -3241,42 +3237,109 @@ public class SAX2DTM2 extends SAX2DTM
      * @param inScope  true if all namespaces in scope should be copied,
      *  false if only the namespace declarations should be copied.
      */
+    protected final void copyNS(final int nodeID, SerializationHandler handler, boolean inScope)
+        throws SAXException
+    {
+        // %OPT% Optimization for documents which does not have any explicit
+        // namespace nodes. For these documents, there is an implicit
+        // namespace node (xmlns:xml="http://www.w3.org/XML/1998/namespace")
+        // declared on the root element node. In this case, there is no
+        // need to do namespace copying. We can safely return without
+        // doing anything.
+        if (m_namespaceDeclSetElements != null &&
+            m_namespaceDeclSetElements.size() == 1 &&
+            m_namespaceDeclSets != null &&
+            ((SuballocatedIntVector)m_namespaceDeclSets.elementAt(0))
+            .size() == 1)
+            return;
 
-  protected final void copyNS(final int nodeID, SerializationHandler handler, boolean inScope)
-        throws SAXException{
-       final int node = makeNodeHandle(nodeID);
-       for(int current = getFirstNamespaceNode(node, inScope); current != DTM.NULL; 
-           current = getNextNamespaceNode(node, current, inScope)){               
-                handler.namespaceAfterStartElement(getNodeNameX(current), getNodeValue(current));                             
-       }
-      
+        SuballocatedIntVector nsContext = null;
+        int nextNSNode;
+
+        // Find the first namespace node
+        if (inScope) {
+            nsContext = findNamespaceContext(nodeID);
+            if (nsContext == null || nsContext.size() < 1)
+                return;
+            else
+                nextNSNode = makeNodeIdentity(nsContext.elementAt(0));
+        }
+        else
+            nextNSNode = getNextNamespaceNode2(nodeID);
+
+        int nsIndex = 1;
+        while (nextNSNode != DTM.NULL) {
+            // Retrieve the name of the namespace node
+            int eType = _exptype2(nextNSNode);
+            String nodeName = m_extendedTypes[eType].getLocalName();
+
+            // Retrieve the node value of the namespace node
+            int dataIndex = m_dataOrQName.elementAt(nextNSNode);
+
+            if (dataIndex < 0) {
+                dataIndex = -dataIndex;
+                dataIndex = m_data.elementAt(dataIndex + 1);
+            }
+
+            String nodeValue = (String)m_values.elementAt(dataIndex);
+
+            handler.namespaceAfterStartElement(nodeName, nodeValue);
+
+            if (inScope) {
+                if (nsIndex < nsContext.size()) {
+                    nextNSNode = makeNodeIdentity(nsContext.elementAt(nsIndex));
+                    nsIndex++;
+                }
+                else
+                    return;
+            }
+            else
+                nextNSNode = getNextNamespaceNode2(nextNSNode);
+        }
     }
-   
+
+    /**
+     * Return the next namespace node following the given base node.
+     *
+     * @baseID The node identity of the base node, which can be an
+     * element, attribute or namespace node.
+     * @return The namespace node immediately following the base node.
+     */
+    protected final int getNextNamespaceNode2(int baseID) {
+        int type;
+        while ((type = _type2(++baseID)) == DTM.ATTRIBUTE_NODE);
+
+        if (type == DTM.NAMESPACE_NODE)
+            return baseID;
+        else
+            return NULL;
+    }
+
     /**
      * Copy  attribute nodes from an element .
      *
      * @param nodeID The Element node identity
      * @param handler The SerializationHandler
      */
-protected final void copyAttributes(final int nodeID, SerializationHandler handler)
-        throws SAXException{      
-       
-       for(int current = getFirstAttributeIdentity(nodeID); current != DTM.NULL; current = getNextAttributeIdentity(current)){               
+    protected final void copyAttributes(final int nodeID, SerializationHandler handler)
+        throws SAXException{
+
+       for(int current = getFirstAttributeIdentity(nodeID); current != DTM.NULL; current = getNextAttributeIdentity(current)){
             int eType = _exptype2(current);
             copyAttribute(current, eType, handler);
-       }     
+       }
     }
 
- 
-  
+
+
     /**
      * Copy an Attribute node to a SerializationHandler
      *
      * @param nodeID The node identity
      * @param exptype The expanded type of the Element node
-     * @param handler The SerializationHandler     
+     * @param handler The SerializationHandler
      */
-    protected final void copyAttribute(int nodeID, int exptype, 
+    protected final void copyAttribute(int nodeID, int exptype,
         SerializationHandler handler)
         throws SAXException
     {
@@ -3291,12 +3354,11 @@ protected final void copyAttributes(final int nodeID, SerializationHandler handl
         final ExtendedType extType = m_extendedTypes[exptype];
         final String uri = extType.getNamespace();
         final String localName = extType.getLocalName();
-        
+
         String prefix = null;
         String qname = null;
         int dataIndex = _dataOrQName(nodeID);
         int valueIndex = dataIndex;
-        
             if (dataIndex <= 0) {
                 int prefixIndex = m_data.elementAt(-dataIndex);
                 valueIndex = m_data.elementAt(-dataIndex+1);
@@ -3307,13 +3369,13 @@ protected final void copyAttributes(final int nodeID, SerializationHandler handl
                 }
             }
             if (uri.length() != 0) {
-                handler.namespaceAfterStartElement(prefix, uri);           
+                handler.namespaceAfterStartElement(prefix, uri);
             }
-        
+
         String nodeName = (prefix != null) ? qname : localName;
         String nodeValue = (String)m_values.elementAt(valueIndex);
-        
+
         handler.addAttribute(nodeName, nodeValue);
     }
-    
+
 }

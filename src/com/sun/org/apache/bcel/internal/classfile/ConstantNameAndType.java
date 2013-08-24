@@ -63,7 +63,7 @@ import  java.io.*;
  * and represents a reference to the name and signature
  * of a field or method.
  *
- * @version $Id: ConstantNameAndType.java,v 1.1.1.1 2001/10/29 19:59:59 jvanzyl Exp $
+ * @version $Id: ConstantNameAndType.java,v 1.1.2.1 2005/07/31 23:46:26 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */
@@ -82,7 +82,7 @@ public final class ConstantNameAndType extends Constant {
    * Initialize instance from file data.
    *
    * @param file Input stream
-   * @throw IOException
+   * @throws IOException
    */
   ConstantNameAndType(DataInputStream file) throws IOException
   {    
@@ -116,7 +116,7 @@ public final class ConstantNameAndType extends Constant {
    * Dump name and signature index to file stream in binary format.
    *
    * @param file Output file stream
-   * @throw IOException
+   * @throws IOException
    */ 
   public final void dump(DataOutputStream file) throws IOException
   {

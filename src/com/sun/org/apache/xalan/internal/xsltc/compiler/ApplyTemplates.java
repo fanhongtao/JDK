@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ApplyTemplates.java,v 1.21 2004/02/24 03:55:47 zongaro Exp $
+ * $Id: ApplyTemplates.java,v 1.2.4.1 2005/09/12 09:59:21 pvedula Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -36,7 +36,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ResultTreeType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
+import com.sun.org.apache.xml.internal.utils.XML11Char;
 
 /**
  * @author Jacek Ambroziak
@@ -73,7 +73,7 @@ final class ApplyTemplates extends Instruction {
 	}
 	
 	if (mode.length() > 0) {
-            if (!XMLChar.isValidQName(mode)) {
+            if (!XML11Char.isXML11ValidQName(mode)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, mode, this);
                 parser.reportError(Constants.ERROR, err);           
             }		

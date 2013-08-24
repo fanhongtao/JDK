@@ -1,7 +1,7 @@
 /*
- * @(#)SynthSplitPaneDivider.java	1.7 03/12/19
+ * @(#)SynthSplitPaneDivider.java	1.9 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import sun.swing.DefaultLookup;
 /**
  * Synth's SplitPaneDivider.
  *
- * @version 1.7, 12/19/03
+ * @version 1.9, 11/17/05
  * @author Scott Violet
  */
 class SynthSplitPaneDivider extends BasicSplitPaneDivider {
@@ -56,7 +56,8 @@ class SynthSplitPaneDivider extends BasicSplitPaneDivider {
         bounds.x = bounds.y = 0;
         SynthLookAndFeel.updateSubregion(context, g, bounds);
         context.getPainter().paintSplitPaneDividerBackground(context,
-                          g, 0, 0, bounds.width, bounds.height);
+                          g, 0, 0, bounds.width, bounds.height,
+                          splitPane.getOrientation());
 
         SynthPainter foreground = null;
 

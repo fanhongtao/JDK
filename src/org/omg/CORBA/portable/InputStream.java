@@ -1,7 +1,7 @@
 /*
- * @(#)InputStream.java	1.36 04/05/18
+ * @(#)InputStream.java	1.37 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA.portable;

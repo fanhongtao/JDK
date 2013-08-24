@@ -1,7 +1,7 @@
 /*
- * @(#)BasicLookAndFeel.java	1.242 06/08/16
+ * @(#)BasicLookAndFeel.java	1.275 06/08/25
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import javax.sound.sampled.*;
 import sun.awt.AppContext;
 
 import sun.swing.SwingLazyValue;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.LookAndFeel;
 import javax.swing.AbstractAction;
@@ -54,15 +54,23 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.JInternalFrame;
+import java.beans.PropertyVetoException;
+import java.awt.Window;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
 
 /**
- * Implements the a standard base LookAndFeel class from which
- * standard desktop LookAndFeel classes (JLF, Mac, Windows, etc.)
- * can be derived.  This class cannot be instantiated directly,
- * however the UI classes "Basic" defines can be.
+ * A base class to use in creating a look and feel for Swing.
+ * <p>
+ * Each of the {@code ComponentUI}s provided by {@code
+ * BasicLookAndFeel} derives its behavior from the defaults
+ * table. Unless otherwise noted each of the {@code ComponentUI}
+ * implementations in this package document the set of defaults they
+ * use. Unless otherwise noted the defaults are installed at the time
+ * {@code installUI} is invoked, and follow the recommendations
+ * outlined in {@code LookAndFeel} for installing defaults.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -73,7 +81,7 @@ import java.beans.PropertyChangeEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.242 08/16/06
+ * @version 1.275 08/25/06
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -81,7 +89,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     /**
      * Whether or not the developer has created a JPopupMenu.
      */
-    static boolean hasPopups;
+    static boolean needsEventHelper;
 
     /**
      * Lock used when manipulating clipPlaying.
@@ -92,39 +100,78 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
      */
     private Clip clipPlaying;
 
-    PopupInvocationHelper invocator = null;
+    AWTEventHelper invocator = null;
 
     /*
      * Listen for our AppContext being disposed
      */
     private PropertyChangeListener disposer = null;
 
+    /**
+     * Returns the look and feel defaults. The returned {@code UIDefaults}
+     * is populated by invoking, in order, {@code initClassDefaults}, 
+     * {@code initSystemColorDefaults} and {@code initComponentDefaults}.
+     * <p>
+     * While this method is public, it should only be invoked by the
+     * {@code UIManager} when the look and feel is set as the current
+     * look and feel and after {@code initialize} has been invoked.
+     *
+     * @return the look and feel defaults
+     *
+     * @see #initClassDefaults
+     * @see #initSystemColorDefaults
+     * @see #initComponentDefaults
+     */
     public UIDefaults getDefaults() {
-	UIDefaults table = new UIDefaults();
+        UIDefaults table = new UIDefaults(610, 0.75f);
 
-	initClassDefaults(table);
-	initSystemColorDefaults(table);
-	initComponentDefaults(table);
+        initClassDefaults(table);
+        initSystemColorDefaults(table);
+        initComponentDefaults(table);
 
-	return table;
+        return table;
     }
 
     /**
-     * UIManager.setLookAndFeel calls this method before the first call
-     * (and typically the only call) to getDefaults().
+     * {@inheritDoc}
      */
     public void initialize() {
-        if (hasPopups) {
-            createdPopup();
+        if (needsEventHelper) {
+            installAWTEventListener();
+        }
+    }
+
+    void installAWTEventListener() {
+        if (invocator == null) {
+            invocator = new AWTEventHelper();
+            needsEventHelper = true;
+
+            // Add a PropertyChangeListener to our AppContext so we're alerted
+            // when the AppContext is disposed(), at which time this laf should
+            // be uninitialize()d.
+            disposer = new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent prpChg) {
+                    uninitialize();
+                }
+            };
+            AppContext.getAppContext().addPropertyChangeListener(
+                                                        AppContext.GUI_DISPOSED,
+                                                        disposer);
         }
     }
 
     /**
-     * UIManager.setLookAndFeel calls this method just
-     * before we're replaced by a new default look and feel.
+     * {@inheritDoc}
      */
     public void uninitialize() {
-        Toolkit tk = Toolkit.getDefaultToolkit();
+        synchronized (BasicPopupMenuUI.MOUSE_GRABBER_KEY) {
+            Object grabber = AppContext.getAppContext().get(
+                                          BasicPopupMenuUI.MOUSE_GRABBER_KEY);
+            if (grabber != null) {
+                ((BasicPopupMenuUI.MouseGrabber)grabber).uninstall();
+            }
+        }
+
         if(invocator != null) {
             AccessController.doPrivileged(invocator);
             invocator = null;
@@ -143,12 +190,18 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     }
 
     /**
-     * Initialize the uiClassID to BasicComponentUI mapping.
-     * The JComponent classes define their own uiClassID constants
-     * (see AbstractComponent.getUIClassID).  This table must
-     * map those constants to a BasicComponentUI class of the
-     * appropriate type.
+     * Populates {@code table} with mappings from {@code uiClassID} to the
+     * fully qualified name of the ui class. The value for a
+     * particular {@code uiClassID} is {@code
+     * "javax.swing.plaf.basic.Basic + uiClassID"}. For example, the
+     * value for the {@code uiClassID} {@code TreeUI} is {@code
+     * "javax.swing.plaf.basic.BasicTreeUI"}.
      *
+     * @param table the {@code UIDefaults} instance the entries are
+     *        added to
+     * @throws NullPointerException if {@code table} is {@code null}
+     *
+     * @see javax.swing.LookAndFeel
      * @see #getDefaults
      */
     protected void initClassDefaults(UIDefaults table)
@@ -203,12 +256,43 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     }
 
     /**
-     * Load the SystemColors into the defaults table.  The keys
-     * for SystemColor defaults are the same as the names of
-     * the public fields in SystemColor.  If the table is being
-     * created on a native Windows platform we use the SystemColor
-     * values, otherwise we create color objects whose values match
-     * the defaults Windows95 colors.
+     * Populates {@code table} with system colors. This creates an
+     * array of {@code name-color} pairs and invokes {@code
+     * loadSystemColors}. 
+     * <p>
+     * The name is a {@code String} that corresponds to the name of
+     * one of the static {@code SystemColor} fields in the {@code
+     * SystemColor} class.  A name-color pair is created for every
+     * such {@code SystemColor} field.
+     * <p>
+     * The {@code color} corresponds to a hex {@code String} as
+     * understood by {@code Color.decode}. For example, one of the
+     * {@code name-color} pairs is {@code
+     * "desktop"-"#005C5C"}. This corresponds to the {@code
+     * SystemColor} field {@code desktop}, with a color value of
+     * {@code new Color(0x005C5C)}.
+     * <p>
+     * The following shows two of the {@code name-color} pairs:
+     * <pre>
+     *   String[] nameColorPairs = new String[] {
+     *          "desktop", "#005C5C",
+     *    "activeCaption", "#000080" };
+     *   loadSystemColors(table, nameColorPairs, isNativeLookAndFeel());
+     * </pre>
+     *
+     * As previously stated, this invokes {@code loadSystemColors}
+     * with the supplied {@code table} and {@code name-color} pair
+     * array. The last argument to {@code loadSystemColors} indicates
+     * whether the value of the field in {@code SystemColor} should be
+     * used. This method passes the value of {@code
+     * isNativeLookAndFeel()} as the last argument to {@code loadSystemColors}.
+     *
+     * @param table the {@code UIDefaults} object the values are added to
+     * @throws NullPointerException if {@code table} is {@code null}
+     *
+     * @see java.awt.SystemColor
+     * @see #getDefaults
+     * @see #loadSystemColors
      */
     protected void initSystemColorDefaults(UIDefaults table)
     {
@@ -246,10 +330,49 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 
     /**
-     * If this is the native look and feel the initial values for the
-     * system color properties are the same as the SystemColor constants.
-     * If not we use the integer color values in the <code>systemColors</code>
-     * argument.
+     * Populates {@code table} with the {@code name-color} pairs in
+     * {@code systemColors}. Refer to
+     * {@link #initSystemColorDefaults(UIDefaults)} for details on
+     * the format of {@code systemColors}.
+     * <p>
+     * An entry is added to {@code table} for each of the {@code name-color}
+     * pairs in {@code systemColors}. The entry key is
+     * the {@code name} of the {@code name-color} pair.
+     * <p>
+     * The value of the entry corresponds to the {@code color} of the
+     * {@code name-color} pair.  The value of the entry is calculated
+     * in one of two ways. With either approach the value is always a
+     * {@code ColorUIResource}.
+     * <p>
+     * If {@code useNative} is {@code false}, the {@code color} is
+     * created by using {@code Color.decode} to convert the {@code
+     * String} into a {@code Color}. If {@code decode} can not convert
+     * the {@code String} into a {@code Color} ({@code
+     * NumberFormatException} is thrown) then a {@code
+     * ColorUIResource} of black is used.
+     * <p>
+     * If {@code useNative} is {@code true}, the {@code color} is the
+     * value of the field in {@code SystemColor} with the same name as
+     * the {@code name} of the {@code name-color} pair. If the field
+     * is not valid, a {@code ColorUIResource} of black is used.
+     *
+     * @param table the {@code UIDefaults} object the values are added to
+     * @param systemColors array of {@code name-color} pairs as described
+     *        in {@link #initSystemColorDefaults(UIDefaults)}
+     * @param useNative whether the color is obtained from {@code SystemColor}
+     *        or {@code Color.decode}
+     * @throws NullPointerException if {@code systemColors} is {@code null}; or
+     *         {@code systemColors} is not empty, and {@code table} is
+     *         {@code null}; or one of the
+     *         names of the {@code name-color} pairs is {@code null}; or
+     *         {@code useNative} is {@code false} and one of the
+     *         {@code colors} of the {@code name-color} pairs is {@code null}
+     * @throws ArrayIndexOutOfBoundsException if {@code useNative} is
+     *         {@code false} and {@code systemColors.length} is odd
+     *
+     * @see #initSystemColorDefaults(javax.swing.UIDefaults)
+     * @see java.awt.SystemColor
+     * @see java.awt.Color#decode(String)
      */
     protected void loadSystemColors(UIDefaults table, String[] systemColors, boolean useNative)
     {
@@ -292,6 +415,13 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         table.addResourceBundle( "com.sun.swing.internal.plaf.basic.resources.basic" );
     }
 
+    /**
+     * Populates {@code table} with the defaults for the basic look and
+     * feel.
+     *
+     * @param table the {@code UIDefaults} to add the values to
+     * @throws NullPointerException if {@code table} is {@code null}
+     */
     protected void initComponentDefaults(UIDefaults table)
     {
 
@@ -310,23 +440,23 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	Object dialogPlain12 = new SwingLazyValue(
 			  "javax.swing.plaf.FontUIResource",
 			  null,
-			  new Object[] {"Dialog", fontPlain, twelve});
+			  new Object[] {Font.DIALOG, fontPlain, twelve});
 	Object serifPlain12 = new SwingLazyValue(
 			  "javax.swing.plaf.FontUIResource",
 			  null,
-			  new Object[] {"Serif", fontPlain, twelve});
+			  new Object[] {Font.SERIF, fontPlain, twelve});
 	Object sansSerifPlain12 =  new SwingLazyValue(
 			  "javax.swing.plaf.FontUIResource",
 			  null,
-			  new Object[] {"SansSerif", fontPlain, twelve});
+			  new Object[] {Font.SANS_SERIF, fontPlain, twelve});
 	Object monospacedPlain12 = new SwingLazyValue(
 			  "javax.swing.plaf.FontUIResource",
 			  null,
-			  new Object[] {"MonoSpaced", fontPlain, twelve});
+			  new Object[] {Font.MONOSPACED, fontPlain, twelve});
 	Object dialogBold12 = new SwingLazyValue(
 			  "javax.swing.plaf.FontUIResource",
 			  null,
-			  new Object[] {"Dialog", fontBold, twelve});
+			  new Object[] {Font.DIALOG, fontBold, twelve});
 
 
 	// *** Shared Colors
@@ -355,7 +485,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
         // *** Shared Insets
         InsetsUIResource zeroInsets = new InsetsUIResource(0,0,0,0);
-        InsetsUIResource twoInsets = new InsetsUIResource(2, 2, 2, 2);
+        InsetsUIResource twoInsets = new InsetsUIResource(2,2,2,2);
+        InsetsUIResource threeInsets = new InsetsUIResource(3,3,3,3);
 
         // *** Shared Borders
 	Object marginBorder = new SwingLazyValue(
@@ -409,7 +540,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** FileChooser / FileView value objects
 
-        Object newFolderIcon = SwingUtilities2.makeIcon(getClass(),
+	Object newFolderIcon = SwingUtilities2.makeIcon(getClass(),
                                                         BasicLookAndFeel.class,
                                                         "icons/NewFolder.gif");
         Object upFolderIcon = SwingUtilities2.makeIcon(getClass(),
@@ -568,7 +699,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getTextFieldBorder");
 
-        Object editorMargin = new InsetsUIResource(3,3,3,3);
+        Object editorMargin = threeInsets;
 
 	Object caretBlinkRate = fiveHundred;
 	Integer four = new Integer(4);
@@ -618,7 +749,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                          "SPACE", "pressed",
                 "released SPACE", "released",
                          "ENTER", "pressed",
-                "released ENTER", "released"
+                "released ENTER", "released"                
               }),
 
 	    "ToggleButton.font", dialogPlain12,
@@ -694,6 +825,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ComboBox.disabledBackground", control,
             "ComboBox.disabledForeground", textInactiveText,
  	    "ComboBox.timeFactor", oneThousand,
+            "ComboBox.isEnterSelectablePopup", Boolean.FALSE,                
 	    "ComboBox.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		      "ESCAPE", "hidePopup",
@@ -770,8 +902,13 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		"ctrl SPACE", "showSystemMenu",
 	            "ESCAPE", "hideSystemMenu"},
 
-	    "DesktopIcon.border", internalFrameBorder,
+            "InternalFrameTitlePane.iconifyButtonOpacity", Boolean.TRUE,
+            "InternalFrameTitlePane.maximizeButtonOpacity", Boolean.TRUE,
+            "InternalFrameTitlePane.closeButtonOpacity", Boolean.TRUE,
 
+        "DesktopIcon.border", internalFrameBorder,
+
+            "Desktop.minOnScreenInsets", threeInsets,
 	    "Desktop.background", table.get("desktop"),
 	    "Desktop.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -821,6 +958,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "List.selectionBackground", textHighlight,
 	    "List.selectionForeground", textHighlightText,
 	    "List.focusCellHighlightBorder", focusCellHighlightBorder,
+            "List.dropLineColor", controlShadow,
 	    "List.border", null,
 	    "List.cellRenderer", listCellRendererActiveValue,
 	    "List.timeFactor", oneThousand,
@@ -832,6 +970,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                              "COPY", "copy",
                             "PASTE", "paste",
                               "CUT", "cut",
+                   "control INSERT", "copy",
+                     "shift INSERT", "paste",
+                     "shift DELETE", "cut",
 		               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
@@ -1008,6 +1149,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		   "RIGHT", "selectChild",
 		"KP_RIGHT", "selectChild",
 		   "ENTER", "return",
+              "ctrl ENTER", "return",
 		   "SPACE", "return"
 	    },
 	    "PopupMenu.selectedWindowInputMapBindings.RightToLeft", new Object[] {
@@ -1030,7 +1172,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "OptionPane.messageAreaBorder", zeroBorder,
             "OptionPane.buttonAreaBorder", optionPaneButtonAreaBorder,
             "OptionPane.minimumSize", optionPaneMinimumSize,
-            "OptionPane.errorIcon", SwingUtilities2.makeIcon(getClass(),
+	    "OptionPane.errorIcon", SwingUtilities2.makeIcon(getClass(),
                                                              BasicLookAndFeel.class,
                                                              "icons/Error.gif"),
             "OptionPane.informationIcon", SwingUtilities2.makeIcon(getClass(),
@@ -1146,6 +1288,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Viewport.foreground", textText,
 
 	    // *** Slider
+	    "Slider.font", dialogPlain12,
 	    "Slider.foreground", control,
 	    "Slider.background", control,
 	    "Slider.highlight", controlLtHighlight,
@@ -1197,6 +1340,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                           "KP_DOWN", "decrement",
                }),
 	    "Spinner.editorBorderPainted", Boolean.FALSE,
+            "Spinner.editorAlignment", JTextField.TRAILING,
 
 	    // *** SplitPane
 	    "SplitPane.background", control,
@@ -1277,6 +1421,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Table.background", window,  // cell background color
 	    "Table.selectionForeground", textHighlightText,
 	    "Table.selectionBackground", textHighlight,
+            "Table.dropLineColor", controlShadow,
+            "Table.dropLineShortColor", black,
       	    "Table.gridColor", gray,  // grid line color
             "Table.focusCellBackground", window,
             "Table.focusCellForeground", controlText,
@@ -1290,6 +1436,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                                  "COPY", "copy",
                                 "PASTE", "paste",
                                   "CUT", "cut",
+                       "control INSERT", "copy",
+                         "shift INSERT", "paste",
+                         "shift DELETE", "cut",
                                 "RIGHT", "selectNextColumn",
                              "KP_RIGHT", "selectNextColumn",
                           "shift RIGHT", "selectNextColumnExtendSelection",
@@ -1350,7 +1499,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                                 "SPACE", "addToSelection",
                            "ctrl SPACE", "toggleAndAnchor",
                           "shift SPACE", "extendTo",
-                     "ctrl shift SPACE", "moveSelectionTo"
+                     "ctrl shift SPACE", "moveSelectionTo",
+                                   "F8", "focusHeader"
 		 }),
 	    "Table.ancestorInputMap.RightToLeft",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -1375,11 +1525,43 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
 		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
 		 }),
+            "Table.ascendingSortIcon",  new SwingLazyValue(
+		     "sun.swing.icon.SortArrowIcon",
+                     null, new Object[] { Boolean.TRUE,
+                                          "Table.sortIconColor" }),
+            "Table.descendingSortIcon",  new SwingLazyValue(
+		     "sun.swing.icon.SortArrowIcon",
+                     null, new Object[] { Boolean.FALSE,
+                                          "Table.sortIconColor" }),
+            "Table.sortIconColor", controlShadow,
 
 	    "TableHeader.font", dialogPlain12,
 	    "TableHeader.foreground", controlText, // header text color
 	    "TableHeader.background", control, // header background
 	    "TableHeader.cellBorder", tableHeaderBorder,
+            
+            // Support for changing the background/border of the currently
+            // selected header column when the header has the keyboard focus.
+            "TableHeader.focusCellBackground", table.getColor("text"), // like text component bg
+            "TableHeader.focusCellForeground", null,
+            "TableHeader.focusCellBorder", null,         
+            "TableHeader.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                                "SPACE", "toggleSortOrder",
+                                 "LEFT", "selectColumnToLeft",
+                              "KP_LEFT", "selectColumnToLeft",
+                                "RIGHT", "selectColumnToRight",
+                             "KP_RIGHT", "selectColumnToRight",
+                             "alt LEFT", "moveColumnLeft",
+                          "alt KP_LEFT", "moveColumnLeft",
+                            "alt RIGHT", "moveColumnRight",
+                         "alt KP_RIGHT", "moveColumnRight",
+                       "alt shift LEFT", "resizeLeft",
+                    "alt shift KP_LEFT", "resizeLeft",
+                      "alt shift RIGHT", "resizeRight",
+                   "alt shift KP_RIGHT", "resizeRight",
+                               "ESCAPE", "focusTable",
+               }),
 
 	    // *** Text
 	    "TextField.font", sansSerifPlain12,
@@ -1417,6 +1599,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                              "COPY", DefaultEditorKit.copyAction,
                             "PASTE", DefaultEditorKit.pasteAction,
                               "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
                        "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                       "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -1435,8 +1620,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                        "shift HOME", DefaultEditorKit.selectionBeginLineAction,
                         "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -1462,6 +1650,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "PasswordField.caretBlinkRate", caretBlinkRate,
 	    "PasswordField.border", textFieldBorder,
             "PasswordField.margin", zeroInsets,
+            "PasswordField.echoChar", '*',
 
 	    "TextArea.font", monospacedPlain12,
 	    "TextArea.background", window,
@@ -1496,6 +1685,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "EditorPane.border", marginBorder,
             "EditorPane.margin", editorMargin,
 
+            "html.pendingImage", SwingUtilities2.makeIcon(getClass(),
+                                    BasicLookAndFeel.class,
+                                    "icons/image-delayed.png"),
+            "html.missingImage", SwingUtilities2.makeIcon(getClass(),
+                                    BasicLookAndFeel.class,
+                                    "icons/image-failed.png"),
 	    // *** TitledBorder
             "TitledBorder.font", dialogPlain12,
             "TitledBorder.titleColor", controlText,
@@ -1534,8 +1729,18 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "ToolTip.border", blackLineBorder,
             // ToolTips also support backgroundInactive, borderInactive,
             // and foregroundInactive
-
-	    // *** Tree
+            
+        // *** ToolTipManager
+            // ToolTipManager.enableToolTipMode currently supports: 
+            // "allWindows" (default): 
+            //     enables tool tips for all windows of all java applications,
+            //     whether the windows are active or inactive 
+            // "activeApplication"
+            //     enables tool tips for windows of an application only when 
+            //     the application has an active window
+            "ToolTipManager.enableToolTipMode", "allWindows",
+            
+        // *** Tree
 	    "Tree.paintLines", Boolean.TRUE,
 	    "Tree.lineTypeDashed", Boolean.FALSE,
 	    "Tree.font", dialogPlain12,
@@ -1547,12 +1752,13 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Tree.selectionForeground", textHighlightText,
 	    "Tree.selectionBackground", textHighlight,
 	    "Tree.selectionBorderColor", black,
+            "Tree.dropLineColor", controlShadow,
 	    "Tree.editorBorder", blackLineBorder,
 	    "Tree.leftChildIndent", new Integer(7),
 	    "Tree.rightChildIndent", new Integer(13),
 	    "Tree.rowHeight", new Integer(16),
 	    "Tree.scrollsOnExpand", Boolean.TRUE,
-            "Tree.openIcon", SwingUtilities2.makeIcon(getClass(),
+	    "Tree.openIcon", SwingUtilities2.makeIcon(getClass(),
                                                       BasicLookAndFeel.class,
                                                       "icons/TreeOpen.gif"),
             "Tree.closedIcon", SwingUtilities2.makeIcon(getClass(),
@@ -1574,6 +1780,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                                    "COPY", "copy",
                                   "PASTE", "paste",
                                     "CUT", "cut",
+                         "control INSERT", "copy",
+                           "shift INSERT", "paste",
+                           "shift DELETE", "cut",
 		                     "UP", "selectPrevious",
 		                  "KP_UP", "selectPrevious",
 		               "shift UP", "selectPreviousExtendSelection",
@@ -1639,6 +1848,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "RootPane.ancestorInputMap",
                 new UIDefaults.LazyInputMap(new Object[] {
                      "shift F10", "postPopup",
+                  "CONTEXT_MENU", "postPopup"
                   }),
 
 	    // These bindings are only enabled when there is a default
@@ -1670,23 +1880,49 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     // also see the "AuditoryCues" section of the defaults table
 
     /**
-     * Returns an <code>ActionMap</code>.
+     * Returns an <code>ActionMap</code> containing the audio actions
+     * for this look and feel.
      * <P>
-     * This <code>ActionMap</code> contains <code>Actions</code> that 
+     * The returned <code>ActionMap</code> contains <code>Actions</code> that 
      * embody the ability to render an auditory cue. These auditory 
      * cues map onto user and system activities that may be useful 
      * for an end user to know about (such as a dialog box appearing).
      * <P>
-     * At the appropriate time in a <code>JComponent</code> UI's lifecycle, 
-     * the ComponentUI is responsible for getting the appropriate 
+     * At the appropriate time,
+     * the {@code ComponentUI} is responsible for obtaining an 
      * <code>Action</code> out of the <code>ActionMap</code> and passing 
-     * it on to <code>playSound</code>.
+     * it to <code>playSound</code>.
      * <P>
-     * The <code>Actions</code> in this <code>ActionMap</code> are 
-     * created by the <code>createAudioAction</code> method.
+     * This method first looks up the {@code ActionMap} from the
+     * defaults using the key {@code "AuditoryCues.actionMap"}.
+     * <p>
+     * If the value is {@code non-null}, it is returned. If the value
+     * of the default {@code "AuditoryCues.actionMap"} is {@code null}
+     * and the value of the default {@code "AuditoryCues.cueList"} is
+     * {@code non-null}, an {@code ActionMapUIResource} is created and
+     * populated. Population is done by iterating over each of the
+     * elements of the {@code "AuditoryCues.cueList"} array, and
+     * invoking {@code createAudioAction()} to create an {@code
+     * Action} for each element.  The resulting {@code Action} is
+     * placed in the {@code ActionMapUIResource}, using the array
+     * element as the key.  For example, if the {@code
+     * "AuditoryCues.cueList"} array contains a single-element, {@code
+     * "audioKey"}, the {@code ActionMapUIResource} is created, then
+     * populated by way of {@code actionMap.put(cueList[0],
+     * createAudioAction(cueList[0]))}.
+     * <p>
+     * If the value of the default {@code "AuditoryCues.actionMap"} is
+     * {@code null} and the value of the default
+     * {@code "AuditoryCues.cueList"} is {@code null}, an empty
+     * {@code ActionMapUIResource} is created.
+     * 
      *
-     * @return      an ActionMap containing Actions
-     *              responsible for rendering auditory cues
+     * @return      an ActionMap containing {@code Actions}
+     *              responsible for playing auditory cues
+     * @throws ClassCastException if the value of the
+     *         default {@code "AuditoryCues.actionMap"} is not an
+     *         {@code ActionMap}, or the value of the default
+     *         {@code "AuditoryCues.cueList"} is not an {@code Object[]}
      * @see #createAudioAction
      * @see #playSound(Action)
      * @since 1.4
@@ -1710,18 +1946,18 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     }
 
     /**
-     * Returns an <code>Action</code>.
-     * <P>
-     * This Action contains the information and logic to render an
-     * auditory cue. The <code>Object</code> that is passed to this
-     * method contains the information needed to render the auditory 
-     * cue. Normally, this <code>Object</code> is a <code>String</code> 
-     * that points to an audio file relative to the current package.
-     * This <code>Action</code>'s <code>actionPerformed</code> method
-     * is fired by the <code>playSound</code> method.
+     * Creates and returns an {@code Action} used to play a sound.
+     * <p>
+     * If {@code key} is {@code non-null}, an {@code Action} is created
+     * using the value from the defaults with key {@code key}. The value
+     * identifies the sound resource to load when
+     * {@code actionPerformed} is invoked on the {@code Action}. The
+     * sound resource is loaded into a {@code byte[]} by way of
+     * {@code getClass().getResourceAsStream()}.
      *
-     * @return      an Action which knows how to render the auditory
-     *              cue for one particular system or user activity
+     * @param key the key identifying the audio action
+     * @return      an {@code Action} used to play the source, or {@code null}
+     *              if {@code key} is {@code null}
      * @see #playSound(Action)
      * @since 1.4
      */
@@ -1881,18 +2117,20 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     }
 
     /**
-     * Decides whether to fire the <code>Action</code> that is passed into
-     * it and, if needed, fires the <code>Action</code>'s 
-     * <code>actionPerformed</code> method. This has the effect
-     * of rendering the audio appropriate for the situation.
-     * <P>
-     * The set of possible cues to be played are stored in the default 
-     * table value "AuditoryCues.cueList". The cues that will be played
-     * are stored in "AuditoryCues.playList".
+     * If necessary, invokes {@code actionPerformed} on
+     * {@code audioAction} to play a sound. 
+     * The {@code actionPerformed} method is invoked if the value of
+     * the {@code "AuditoryCues.playList"} default is a {@code
+     * non-null} {@code Object[]} containing a {@code String} entry
+     * equal to the name of the {@code audioAction}.
      *
      * @param audioAction an Action that knows how to render the audio
      *                    associated with the system or user activity
-     *                    that is occurring
+     *                    that is occurring; a value of {@code null}, is
+     *                    ignored
+     * @throws ClassCastException if {@code audioAction} is {@code non-null}
+     *         and the value of the default {@code "AuditoryCues.playList"}
+     *         is not an {@code Object[]}
      * @since 1.4
      */
     protected void playSound(Action audioAction) {
@@ -1950,68 +2188,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         }
     }
 
-
-    // At this point we need this method here. But we assume that there
-    // will be a common method for this purpose in the future releases.
-    static Component compositeRequestFocus(Component component) {
- 	if (component instanceof Container) {
- 	    Container container = (Container)component;
- 	    if (container.isFocusCycleRoot()) {
- 		FocusTraversalPolicy policy = container.getFocusTraversalPolicy();
- 		Component comp = policy.getDefaultComponent(container);
- 		if (comp!=null) {
- 		    comp.requestFocus();
- 		    return comp;
- 		}
- 	    }
- 	    Container rootAncestor = container.getFocusCycleRootAncestor();
- 	    if (rootAncestor!=null) {
- 		FocusTraversalPolicy policy = rootAncestor.getFocusTraversalPolicy();
- 		Component comp = policy.getComponentAfter(rootAncestor, container);
- 		
- 		if (comp!=null && SwingUtilities.isDescendingFrom(comp, container)) {
- 		    comp.requestFocus();
- 		    return comp;
- 		}
- 	    }
- 	}
-        if (component.isFocusable()) {
- 	    component.requestFocus();
-            return component;
-        }
-        return null;
-    }
-
-    /**
-     * This is invoked from BasicPopupUI when an instance of BasicPopupUI
-     * is created.  This gives us an opportunity to register Popup specific
-     * listeners.
-     */
-    void createdPopup() {
-        if (invocator == null) {
-            invocator = new PopupInvocationHelper();
-            hasPopups = true;
-
-            // Add a PropertyChangeListener to our AppContext so we're alerted
-            // when the AppContext is disposed(), at which time this laf should
-            // be uninitialize()d.
-            disposer = new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent prpChg) {
-                    uninitialize();
-                }
-            };
-            AppContext.getAppContext().addPropertyChangeListener(
-                                                        AppContext.GUI_DISPOSED,
-                                                        disposer);
-        }
-    }
-
     /**
      * This class contains listener that watches for all the mouse
      * events that can possibly invoke popup on the component
      */
-    class PopupInvocationHelper implements AWTEventListener,PrivilegedAction {
-        PopupInvocationHelper() {
+    class AWTEventHelper implements AWTEventListener,PrivilegedAction {
+        AWTEventHelper() {
             super();
             AccessController.doPrivileged(this);
         }
@@ -2028,7 +2210,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         }
 
         public void eventDispatched(AWTEvent ev) {
-            if((ev.getID() & AWTEvent.MOUSE_EVENT_MASK) != 0) {
+            int eventID = ev.getID();
+            if((eventID & AWTEvent.MOUSE_EVENT_MASK) != 0) {
                 MouseEvent me = (MouseEvent) ev;
                 if(me.isPopupTrigger()) {
                     MenuElement[] elems = MenuSelectionManager
@@ -2039,16 +2222,46 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                         // We shall not interfere with already opened menu
                     }
                     Object c = me.getSource();
+                    JComponent src = null;
                     if(c instanceof JComponent) {
-                        JComponent src = (JComponent) c;
+                        src = (JComponent) c;
+                    } else if(c instanceof BasicSplitPaneDivider) {
+                        // Special case - if user clicks on divider we must
+                        // invoke popup from the SplitPane
+                        src = (JComponent)
+                            ((BasicSplitPaneDivider)c).getParent();
+                    }
+                    if(src != null) {
                         if(src.getComponentPopupMenu() != null) {
                             Point pt = src.getPopupLocation(me);
                             if(pt == null) {
                                 pt = me.getPoint();
+                                pt = SwingUtilities.convertPoint((Component)c,
+                                                                  pt, src);
                             }
                             src.getComponentPopupMenu().show(src, pt.x, pt.y);
                             me.consume();
                         }
+                    }
+                }
+            }
+            /* Activate a JInternalFrame if necessary. */
+            if (eventID == MouseEvent.MOUSE_PRESSED) {
+                Object object = ev.getSource();
+                if (!(object instanceof Component)) {
+                    return;
+                }
+                Component component = (Component)object;
+                if (component != null) {
+                    Component parent = component;
+                    while (parent != null && !(parent instanceof Window)) {
+                        if (parent instanceof JInternalFrame) {
+                            // Activate the frame.
+                            try { ((JInternalFrame)parent).setSelected(true); }
+                            catch (PropertyVetoException e1) { }
+                            break;
+                        }
+                        parent = parent.getParent();
                     }
                 }
             }

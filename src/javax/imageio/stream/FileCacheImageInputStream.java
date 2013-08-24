@@ -1,7 +1,7 @@
 /*
- * @(#)FileCacheImageInputStream.java	1.29 05/08/17
+ * @(#)FileCacheImageInputStream.java	1.32 06/01/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import com.sun.imageio.stream.StreamCloser;
+import com.sun.imageio.stream.StreamFinalizer;
+import sun.java2d.Disposer;
+import sun.java2d.DisposerRecord;
 
 /**
  * An implementation of <code>ImageInputStream</code> that gets its
@@ -36,6 +39,12 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
     private long length = 0L;
 
     private boolean foundEOF = false;
+
+    /** The referent to be registered with the Disposer. */
+    private final Object disposerReferent;
+
+    /** The DisposerRecord that closes the underlying cache. */
+    private final DisposerRecord disposerRecord;
 
     /**
      * Constructs a <code>FileCacheImageInputStream</code> that will read
@@ -71,7 +80,15 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
         this.cacheFile =
             File.createTempFile("imageio", ".tmp", cacheDir);
         this.cache = new RandomAccessFile(cacheFile, "rw");
-	StreamCloser.addToQueue(this);
+        StreamCloser.addToQueue(this);
+
+        disposerRecord = new StreamDisposerRecord(cacheFile, cache);
+        if (getClass() == FileCacheImageInputStream.class) {
+            disposerReferent = new Object();
+            Disposer.addRecord(disposerReferent, disposerRecord);
+        } else {
+            disposerReferent = new StreamFinalizer(this);
+        }
     }
 
     /**
@@ -111,6 +128,7 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
     }
 
     public int read() throws IOException {
+        checkClosed();
         bitOffset = 0;
         long next = streamPos + 1;
         long pos = readUntil(next);
@@ -123,20 +141,22 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
+        checkClosed();
+
         if (b == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("b == null!");
         }
         // Fix 4430357 - if off + len < 0, overflow occurred
         if (off < 0 || len < 0 || off + len > b.length || off + len < 0) {
-            throw new IndexOutOfBoundsException();
+            throw new IndexOutOfBoundsException
+                ("off < 0 || len < 0 || off+len > b.length || off+len < 0!");
         }
+
+        bitOffset = 0;
+
         if (len == 0) {
             return 0;
         }
-
-        checkClosed();
-
-        bitOffset = 0;
 
         long pos = readUntil(streamPos + len);
 
@@ -202,9 +222,47 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
      */
     public void close() throws IOException {
         super.close();
-        cache.close();
-        cacheFile.delete();
+        disposerRecord.dispose(); // this will close/delete the cache file
         stream = null;
-	StreamCloser.removeFromQueue(this);
+        cache = null;
+        cacheFile = null;
+        StreamCloser.removeFromQueue(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected void finalize() throws Throwable {
+        // Empty finalizer: for performance reasons we instead use the
+        // Disposer mechanism for ensuring that the underlying
+        // RandomAccessFile is closed/deleted prior to garbage collection
+    }
+
+    private static class StreamDisposerRecord implements DisposerRecord {
+        private File cacheFile;
+        private RandomAccessFile cache;
+
+        public StreamDisposerRecord(File cacheFile, RandomAccessFile cache) {
+            this.cacheFile = cacheFile;
+            this.cache = cache;
+        }
+
+        public synchronized void dispose() {
+            if (cache != null) {
+                try {
+                    cache.close();
+                } catch (IOException e) {
+                } finally {
+                    cache = null;
+                }
+            }
+            if (cacheFile != null) {
+                cacheFile.delete();
+                cacheFile = null;
+            }
+            // Note: Explicit removal of the stream from the StreamCloser
+            // queue is not mandatory in this case, as it will be removed
+            // automatically by GC shortly after this method is called.
+        }
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)UISwitchListener.java	1.10 04/07/26
+ * @(#)UISwitchListener.java	1.11 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)UISwitchListener.java	1.10 04/07/26
+ * @(#)UISwitchListener.java	1.11 05/11/17
  */
 
 import java.awt.*;
@@ -48,7 +48,7 @@ import javax.swing.event.*;
 /**
   * This class listens for UISwitches, and updates a given component.
   *
-  * @version 1.10 07/26/04
+  * @version 1.11 11/17/05
   * @author Steve Wilson
   */
 public class UISwitchListener implements PropertyChangeListener {

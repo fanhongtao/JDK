@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_blocks.c	1.3 04/07/27
+ * @(#)hprof_blocks.c	1.5 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -127,12 +127,12 @@ blocks_alloc(Blocks *blocks, int nbytes)
     }
     
     block = blocks->current_block;
+    nbytes = real_size(blocks->alignment, nbytes);
     if ( block == NULL || block->bytes_left < nbytes ) {
         add_block(blocks, nbytes);
         block = blocks->current_block;
     }
     pos = block->next_pos;
-    nbytes = real_size(blocks->alignment, nbytes);
     ptr = (void*)(((char*)block)+pos);
     block->next_pos   += nbytes;
     block->bytes_left -= nbytes;

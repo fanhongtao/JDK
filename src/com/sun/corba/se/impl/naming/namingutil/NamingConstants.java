@@ -1,7 +1,7 @@
 /*
- * @(#)NamingConstants.java	1.6 05/01/04
+ * @(#)NamingConstants.java	1.6 05/11/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.corba.se.impl.naming.namingutil;

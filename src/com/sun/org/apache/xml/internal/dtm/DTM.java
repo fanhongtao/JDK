@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTM.java,v 1.13 2004/02/16 23:03:44 minchau Exp $
+ * $Id: DTM.java,v 1.2.4.1 2005/09/15 08:14:51 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm;
 
@@ -367,7 +367,7 @@ public interface DTM
    * @param nodeHandle the id of the node.
    * @return int Node handle of owning document, or DTM.NULL if the node was
    * a Document.
-   * @see getDocumentRoot(int nodeHandle)
+   * @see #getDocumentRoot(int nodeHandle)
    */
   public int getOwnerDocument(int nodeHandle);
 
@@ -378,7 +378,7 @@ public interface DTM
    * @return int Node handle of owning document, or the node itself if it was
    * a Document. (Note difference from DOM, where getOwnerDocument returns
    * null for the Document node.)
-   * @see getOwnerDocument(int nodeHandle)
+   * @see #getOwnerDocument(int nodeHandle)
    */
   public int getDocumentRoot(int nodeHandle);
 
@@ -438,8 +438,6 @@ public interface DTM
    * exist in the internal tables, the entry will be created, and the ID will
    * be returned.  Any additional nodes that are created that have this
    * expanded name will use this ID.
-   *
-   * @param nodeHandle The handle to the node in question.
    *
    * NEEDSDOC @param namespace
    * NEEDSDOC @param localName
@@ -502,7 +500,6 @@ public interface DTM
    * Given a node handle, return the prefix used to map to the namespace.
    * (As defined in Namespaces, this is the portion of the name before any
    * colon character).
-   * @param postition int Handle of the node.
    *
    * <p> %REVIEW% Are you sure you want "" for no prefix?  </p>
    *
@@ -516,8 +513,6 @@ public interface DTM
    * Given a node handle, return its DOM-style namespace URI
    * (As defined in Namespaces, this is the declared URI which this node's
    * prefix -- or default in lieu thereof -- was mapped to.)
-   * @param postition int Handle of the node.
-   *
    * @param nodeHandle the id of the node.
    * @return String URI value of this node's namespace, or null if no
    * namespace was resolved.
@@ -621,10 +616,7 @@ public interface DTM
    * beginning of the document entity, and has no value if there is no XML
    * declaration.
    *
-   * @param the document handle
-   *
-   * NEEDSDOC @param documentHandle
-   *
+   * @param documentHandle the document handle
    * @return the document version String object
    */
   public String getDocumentVersion(int documentHandle);
@@ -656,8 +648,6 @@ public interface DTM
    * normalized as described in 4.2.2 External Entities [XML]. If there is
    * no external subset or if it has no public identifier, this property
    * has no value.
-   *
-   * @param the document type declaration handle
    *
    * @return the public identifier String object, or null if there is none.
    */
@@ -787,9 +777,6 @@ public interface DTM
    *        descriptions below) may be unknown. If it is true, those properties
    *        are never unknown.
    *
-   *
-   * @param the document handle
-   *
    * @param documentHandle A node handle that must identify a document.
    * @return <code>true</code> if all declarations were processed;
    *         <code>false</code> otherwise.
@@ -801,9 +788,7 @@ public interface DTM
    *        specified in the start-tag of its element, or was defaulted from the
    *        DTD (or schema).
    *
-   * @param the attribute handle
-   *
-   * NEEDSDOC @param attributeHandle
+   * @param attributeHandle The attribute handle
    * @return <code>true</code> if the attribute was specified;
    *         <code>false</code> if it was defaulted or the handle doesn't
    *            refer to an attribute node.

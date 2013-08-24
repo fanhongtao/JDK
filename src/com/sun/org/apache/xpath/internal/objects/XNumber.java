@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XNumber.java,v 1.19 2004/02/17 04:34:38 minchau Exp $
+ * $Id: XNumber.java,v 1.2.4.2 2005/09/14 20:34:46 jeffsuttor Exp $
  */
 package com.sun.org.apache.xpath.internal.objects;
 
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.XPathVisitor;
  */
 public class XNumber extends XObject
 {
+    static final long serialVersionUID = -2720400709619020193L;
 
   /** Value of the XNumber object.
    *  @serial         */
@@ -49,7 +50,7 @@ public class XNumber extends XObject
   /**
    * Construct a XNodeSet object.
    *
-   * @param d Value of the object
+   * @param num Value of the object
    */
   public XNumber(Number num)
   {
@@ -423,7 +424,7 @@ public class XNumber extends XObject
   }
   
   /**
-   * @see XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
+   * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {

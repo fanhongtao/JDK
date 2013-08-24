@@ -23,6 +23,8 @@ import org.w3c.dom.DOMImplementation;
 /**
  * <p>This class implements the DOM Level 3 Core interface DOMImplementationList.</p>
  * 
+ * @xerces.internal
+ * 
  * @author Neil Delima, IBM
  * @since DOM Level 3 Core
  */

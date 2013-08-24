@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutControlPanel.java	1.10 04/07/26
+ * @(#)LayoutControlPanel.java	1.12 05/11/17
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)LayoutControlPanel.java	1.10 04/07/26
+ * @(#)LayoutControlPanel.java	1.12 05/11/17
  */
 
 import javax.swing.*;
@@ -306,12 +306,10 @@ public class LayoutControlPanel extends JPanel implements SwingConstants {
             AbstractButton x = (AbstractButton) c;
             x.setHorizontalTextPosition(hPos);
             x.setVerticalTextPosition(vPos);
-            x.revalidate();
         } else if(c instanceof JLabel) {
             JLabel x = (JLabel) c;
             x.setHorizontalTextPosition(hPos);
             x.setVerticalTextPosition(vPos);
-            x.revalidate();
         }
     }
 

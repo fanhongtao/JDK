@@ -1,7 +1,7 @@
 /*
- * @(#)CRLException.java	1.12 03/12/19
+ * @(#)CRLException.java	1.13 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.security.GeneralSecurityException;
  * CRL (Certificate Revocation List) Exception.
  *
  * @author Hemma Prafullchandra
- * 1.12
+ * 1.13
  */
 public class CRLException extends GeneralSecurityException {
 

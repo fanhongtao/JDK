@@ -63,7 +63,7 @@ import java.util.zip.*;
 /**
  * Utility functions that do not really belong to any class in particular.
  *
- * @version $Id: Utility.java,v 1.1.1.1 2001/10/29 20:00:05 jvanzyl Exp $
+ * @version $Id: Utility.java,v 1.1.2.1 2005/07/31 23:46:27 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Utility {
@@ -169,7 +169,7 @@ public abstract class Utility {
     } catch(IOException e) {
       System.out.println(buf.toString());
       e.printStackTrace();
-      throw new ClassFormatError("Byte code error: " + e);
+      throw new ClassFormatException("Byte code error: " + e);
     }
 
     return buf.toString();
@@ -536,7 +536,7 @@ public abstract class Utility {
    * @return Byte code representation of method signature
    */
   public final static String methodTypeToSignature(String ret, String[] argv)
-    throws ClassFormatError
+    throws ClassFormatException
   {
     StringBuffer buf = new StringBuffer("(");
     String       str;
@@ -546,7 +546,7 @@ public abstract class Utility {
 	str = getSignature(argv[i]);
 
 	if(str.endsWith("V")) // void can't be a method argument
-	  throw new ClassFormatError("Invalid type: " + argv[i]);
+	  throw new ClassFormatException("Invalid type: " + argv[i]);
 
 	buf.append(str);
       }
@@ -561,10 +561,10 @@ public abstract class Utility {
   /**
    * @param  signature    Method signature
    * @return Array of argument types
-   * @throw  ClassFormatError  
+   * @throws  ClassFormatException  
    */
   public static final String[] methodSignatureArgumentTypes(String signature)
-    throws ClassFormatError 
+    throws ClassFormatException 
   {
     return methodSignatureArgumentTypes(signature, true);
   }    
@@ -573,11 +573,11 @@ public abstract class Utility {
    * @param  signature    Method signature
    * @param chopit Shorten class names ?
    * @return Array of argument types
-   * @throw  ClassFormatError  
+   * @throws  ClassFormatException  
    */
   public static final String[] methodSignatureArgumentTypes(String signature,
 							    boolean chopit)
-    throws ClassFormatError
+    throws ClassFormatException
   {
     ArrayList vec = new ArrayList();
     int       index;
@@ -585,7 +585,7 @@ public abstract class Utility {
 
     try { // Read all declarations between for `(' and `)'
       if(signature.charAt(0) != '(')
-	throw new ClassFormatError("Invalid method signature: " + signature);
+	throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = 1; // current string position
 
@@ -594,7 +594,7 @@ public abstract class Utility {
 	index += consumed_chars; // update position
       }
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
 	
     types = new String[vec.size()];
@@ -604,10 +604,10 @@ public abstract class Utility {
   /**
    * @param  signature    Method signature
    * @return return type of method
-   * @throw  ClassFormatError  
+   * @throws  ClassFormatException  
    */
   public static final String methodSignatureReturnType(String signature)
-       throws ClassFormatError 
+       throws ClassFormatException 
   {
     return methodSignatureReturnType(signature, true);
   }    
@@ -615,11 +615,11 @@ public abstract class Utility {
    * @param  signature    Method signature
    * @param chopit Shorten class names ?
    * @return return type of method
-   * @throw  ClassFormatError  
+   * @throws  ClassFormatException  
    */
   public static final String methodSignatureReturnType(String signature,
 						       boolean chopit)
-       throws ClassFormatError
+       throws ClassFormatException
   {
     int    index;
     String type;
@@ -629,7 +629,7 @@ public abstract class Utility {
       index = signature.lastIndexOf(')') + 1; 
       type = signatureToString(signature.substring(index), chopit);
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
 
     return type;
@@ -657,7 +657,7 @@ public abstract class Utility {
   }
 
   /**
-   * A return&#255;type signature represents the return value from a method.
+   * A return type signature represents the return value from a method.
    * It is a series of bytes in the following grammar:
    *
    * <return_signature> ::= <field_type> | V
@@ -674,21 +674,21 @@ public abstract class Utility {
    * <arguments_signature>::= <argument_signature>*
    *
    * This method converts such a string into a Java type declaration like
-   * `void main(String[])' and throws a `ClassFormatError' when the parsed 
+   * `void _main(String[])' and throws a `ClassFormatException' when the parsed 
    * type is invalid.
    *
    * @param  signature    Method signature
    * @param  name         Method name
    * @param  access       Method access rights
    * @return Java type declaration
-   * @throw  ClassFormatError  
+   * @throws  ClassFormatException  
    */
   public static final String methodSignatureToString(String signature,
 						     String name,
 						     String access,
 						     boolean chopit,
 						     LocalVariableTable vars)
-    throws ClassFormatError
+    throws ClassFormatException
   {
     StringBuffer buf = new StringBuffer("(");
     String       type;
@@ -697,12 +697,13 @@ public abstract class Utility {
 
     try { // Read all declarations between for `(' and `)'
       if(signature.charAt(0) != '(')
-	throw new ClassFormatError("Invalid method signature: " + signature);
+	throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = 1; // current string position
 
       while(signature.charAt(index) != ')') {
-	buf.append(signatureToString(signature.substring(index), chopit));
+	String param_type = signatureToString(signature.substring(index), chopit);
+	buf.append(param_type);
 
 	if(vars != null) {
 	  LocalVariable l = vars.getLocalVariable(var_index);
@@ -712,7 +713,11 @@ public abstract class Utility {
 	} else
 	  buf.append(" arg" + var_index);
 
-	var_index++;
+	if("double".equals(param_type) || "long".equals(param_type))
+	  var_index += 2;
+	else
+	  var_index++;
+
 	buf.append(", ");
 	index += consumed_chars; // update position
       }
@@ -723,7 +728,7 @@ public abstract class Utility {
       type = signatureToString(signature.substring(index), chopit);
 
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
 
     if(buf.length() > 1) // Tack off the extra ", "
@@ -810,13 +815,13 @@ public abstract class Utility {
    * </PRE>
    *
    * This method converts this string into a Java type declaration such as
-   * `String[]' and throws a `ClassFormatError' when the parsed type is 
+   * `String[]' and throws a `ClassFormatException' when the parsed type is 
    * invalid.
    *
    * @param  signature  Class signature
    * @param chopit Flag that determines whether chopping is executed or not
    * @return Java type declaration
-   * @throws ClassFormatError
+   * @throws ClassFormatException
    */
   public static final String signatureToString(String signature,
 					       boolean chopit)
@@ -836,7 +841,7 @@ public abstract class Utility {
 	int    index = signature.indexOf(';'); // Look for closing `;'
 
 	if(index < 0)
-	  throw new ClassFormatError("Invalid signature: " + signature);
+	  throw new ClassFormatException("Invalid signature: " + signature);
 	
 	consumed_chars = index + 1; // "Lblabla;" `L' and `;' are removed
 
@@ -870,11 +875,11 @@ public abstract class Utility {
 
       case 'V' : return "void";
 
-      default  : throw new ClassFormatError("Invalid signature: `" +
+      default  : throw new ClassFormatException("Invalid signature: `" +
 					    signature + "'");
       }
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
-      throw new ClassFormatError("Invalid signature: " + e + ":" + signature);
+      throw new ClassFormatException("Invalid signature: " + e + ":" + signature);
     }
   }
 
@@ -977,18 +982,18 @@ public abstract class Utility {
    * @see    Constants
    */
   public static final byte typeOfMethodSignature(String signature)
-    throws ClassFormatError
+    throws ClassFormatException
   {
     int index;
 
     try {
       if(signature.charAt(0) != '(')
-	throw new ClassFormatError("Invalid method signature: " + signature);
+	throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = signature.lastIndexOf(')') + 1;
       return typeOfSignature(signature.substring(index));
     } catch(StringIndexOutOfBoundsException e) {
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
   }
 
@@ -1000,7 +1005,7 @@ public abstract class Utility {
    * @see    Constants
    */
   public static final byte typeOfSignature(String signature)
-    throws ClassFormatError
+    throws ClassFormatException
   {
     try {
       switch(signature.charAt(0)) {
@@ -1016,10 +1021,10 @@ public abstract class Utility {
       case 'Z' : return Constants.T_BOOLEAN;
       case 'S' : return Constants.T_SHORT;
       default:  
-	throw new ClassFormatError("Invalid method signature: " + signature);
+	throw new ClassFormatException("Invalid method signature: " + signature);
       }
     } catch(StringIndexOutOfBoundsException e) {
-      throw new ClassFormatError("Invalid method signature: " + signature);
+      throw new ClassFormatException("Invalid method signature: " + signature);
     }
   }
 
@@ -1128,6 +1133,11 @@ public abstract class Utility {
   }
 
   public static final String printArray(Object[] obj, boolean braces) {
+    return printArray(obj, braces, false);
+  }
+
+  public static final String printArray(Object[] obj, boolean braces,
+					boolean quote) {
     if(obj == null)
       return null;
 
@@ -1136,13 +1146,15 @@ public abstract class Utility {
       buf.append('{');
 
     for(int i=0; i < obj.length; i++) {
-      if(obj[i] != null)
-	buf.append(obj[i].toString());
-      else
+      if(obj[i] != null) {
+	buf.append((quote? "\"" : "") + obj[i].toString() + (quote? "\"" : ""));
+      } else {
 	buf.append("null");
+      }
 
-      if(i < obj.length - 1)
+      if(i < obj.length - 1) {
 	buf.append(", ");
+      }
     }
 
     if(braces)
@@ -1351,5 +1363,32 @@ public abstract class Utility {
     public void write(String str, int off, int len) throws IOException {
       write(str.toCharArray(), off, len);
     }
+  }
+
+  /**
+   * Escape all occurences of newline chars '\n', quotes \", etc.
+   */
+  public static final String convertString(String label) {
+    char[]       ch  = label.toCharArray();
+    StringBuffer buf = new StringBuffer();
+
+    for(int i=0; i < ch.length; i++) {
+      switch(ch[i]) {
+      case '\n':
+	buf.append("\\n"); break;
+      case '\r':
+	buf.append("\\r"); break;
+      case '\"':
+	buf.append("\\\""); break;
+      case '\'':
+	buf.append("\\'"); break;
+      case '\\':
+	buf.append("\\\\"); break;
+      default:
+	buf.append(ch[i]); break;
+      }
+    }
+
+    return buf.toString();
   }
 }

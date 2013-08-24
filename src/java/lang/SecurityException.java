@@ -1,7 +1,7 @@
 /*
- * @(#)SecurityException.java	1.16 03/12/19
+ * @(#)SecurityException.java	1.17 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.lang;
@@ -10,7 +10,7 @@ package java.lang;
  * Thrown by the security manager to indicate a security violation. 
  *
  * @author  unascribed
- * @version 1.16, 12/19/03
+ * @version 1.17, 11/17/05
  * @see     java.lang.SecurityManager
  * @since   JDK1.0
  */

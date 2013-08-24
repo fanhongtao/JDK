@@ -1,13 +1,15 @@
 /*
- * @(#)MetalLookAndFeel.java	1.182 04/04/02
+ * @(#)MetalLookAndFeel.java	1.206 06/07/12
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.plaf.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.*;
@@ -22,47 +24,38 @@ import java.awt.SystemColor;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.lang.reflect.*;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.io.Serializable;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import sun.awt.AppContext;
+import sun.awt.SunToolkit;
 import sun.security.action.GetPropertyAction;
+import sun.swing.DefaultLayoutStyle;
 import sun.swing.SwingLazyValue;
-
+import sun.swing.SwingUtilities2;
 
 /**
- * Implements the Java look and feel (codename: Metal).
+ * The Java Look and Feel, otherwise known as Metal.
  * <p>
- * By default metal uses bold fonts for many controls.  To make all
- * controls (with the exception of the internal frame title bars and
- * client decorated frame title bars) use plain fonts you can do either of
- * the following:
- * <ul>
- * <li>Set the system property <code>swing.boldMetal</code> to
- *     <code>false</code>.  For example,
- *     <code>java&nbsp;-Dswing.boldMetal=false&nbsp;MyApp</code>.
- * <li>Set the defaults property <code>swing.boldMetal</code> to
- *     <code>Boolean.FALSE</code>.  For example:
- *     <code>UIManager.put("swing.boldMetal",&nbsp;Boolean.FALSE);</code>
- * </ul>
- * The defaults property <code>swing.boldMetal</code>, if set,
- * takes precendence over the system property of the same name. After
- * setting this defaults property you need to re-install the
- * <code>MetalLookAndFeel</code>, as well as update the UI
- * of any previously created widgets. Otherwise the results are undefined.
- * These lines of code show you how to accomplish this:
- * <pre>
- *   // turn off bold fonts
- *   UIManager.put("swing.boldMetal", Boolean.FALSE);
- *
- *   // re-install the Metal Look and Feel
- *   UIManager.setLookAndFeel(new MetalLookAndFeel());
- *
- *   // only needed to update existing widgets
- *   SwingUtilities.updateComponentTreeUI(rootComponent);
- * </pre>
+ * Each of the {@code ComponentUI}s provided by {@code
+ * MetalLookAndFeel} derives its behavior from the defaults
+ * table. Unless otherwise noted each of the {@code ComponentUI}
+ * implementations in this package document the set of defaults they
+ * use. Unless otherwise noted the defaults are installed at the time
+ * {@code installUI} is invoked, and follow the recommendations
+ * outlined in {@code LookAndFeel} for installing defaults.
+ * <p>
+ * {@code MetalLookAndFeel} derives it's color palette and fonts from
+ * {@code MetalTheme}. The default theme is {@code OceanTheme}. The theme
+ * can be changed using the {@code setCurrentTheme} method, refer to it
+ * for details on changing the theme. Prior to 1.5 the default 
+ * theme was {@code DefaultMetalTheme}. The system property
+ * {@code "swing.metalTheme"} can be set to {@code "steel"} to indicate
+ * the default should be {@code DefaultMetalTheme}.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -73,7 +66,11 @@ import sun.swing.SwingLazyValue;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version @(#)MetalLookAndFeel.java	1.182 04/04/02
+ * @see MetalTheme
+ * @see DefaultMetalTheme
+ * @see OceanTheme
+ *
+ * @version @(#)MetalLookAndFeel.java	1.206 06/07/12
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
@@ -169,38 +166,62 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         return (getCurrentTheme() instanceof OceanTheme);
     }
 
+    /**
+     * Returns the name of this look and feel. This returns 
+     * {@code "Metal"}.
+     *
+     * @return the name of this look and feel
+     */
     public String getName() {
         return "Metal";
     }
 
+    /**
+     * Returns an identifier for this look and feel. This returns
+     * {@code "Metal"}.
+     *
+     * @return the identifier of this look and feel
+     */
     public String getID() {
         return "Metal";
     }
 
+    /**
+     * Returns a short description of this look and feel. This returns
+     * {@code "The Java(tm) Look and Feel"}.
+
+     * @return a short description for the look and feel
+     */
     public String getDescription() {
         return "The Java(tm) Look and Feel";
     }
 
-    
+    /**
+     * Returns {@code false}; {@code MetalLookAndFeel} is not a native
+     * look and feel.
+     *
+     * @return {@code false}
+     */
     public boolean isNativeLookAndFeel() {
         return false;
     }
 
-
+    /**
+     * Returns {@code true}; {@code MetalLookAndFeel} can be run on
+     * any platform.
+     *
+     * @return {@code true}
+     */
     public boolean isSupportedLookAndFeel() {
         return true;
     }
     
     /**
-     * Returns true if the <code>LookAndFeel</code> returned
-     * <code>RootPaneUI</code> instances support providing Window decorations
-     * in a <code>JRootPane</code>.
-     * <p>
-     * This implementation returns true, since it does support providing
-     * these border and window title pane decorations.
+     * Returns {@code true}; metal can provide {@code Window}
+     * decorations.
      *
-     * @return True if the RootPaneUI instances created support client side
-     *              decorations
+     * @return {@code true}
+     *
      * @see JDialog#setDefaultLookAndFeelDecorated
      * @see JFrame#setDefaultLookAndFeelDecorated
      * @see JRootPane#setWindowDecorationStyle
@@ -211,18 +232,22 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     /** 
-     * Creates the mapping from
-     * UI class IDs to <code>ComponentUI</code> classes,
-     * putting the ID-<code>ComponentUI</code> pairs
-     * in the passed-in defaults table.
-     * Each <code>JComponent</code> class
-     * specifies its own UI class ID string.
-     * For example, 
-     * <code>JButton</code> has the UI class ID "ButtonUI",
-     * which this method maps to "javax.swing.plaf.metal.MetalButtonUI".
+     * Populates {@code table} with mappings from {@code uiClassID} to
+     * the fully qualified name of the ui class. {@code
+     * MetalLookAndFeel} registers an entry for each of the classes in
+     * the package {@code javax.swing.plaf.metal} that are named
+     * MetalXXXUI. The string {@code XXX} is one of Swing's uiClassIDs. For
+     * the {@code uiClassIDs} that do not have a class in metal, the
+     * corresponding class in {@code javax.swing.plaf.basic} is
+     * used. For example, metal does not have a class named {@code
+     * "MetalColorChooserUI"}, as such, {@code
+     * javax.swing.plaf.basic.BasicColorChooserUI} is used.
      * 
-     * @see BasicLookAndFeel#getDefaults
-     * @see javax.swing.JComponent#getUIClassID
+     * @param table the {@code UIDefaults} instance the entries are
+     *        added to
+     * @throws NullPointerException if {@code table} is {@code null}
+     *
+     * @see javax.swing.plaf.basic.BasicLookAndFeel#initClassDefaults
      */
     protected void initClassDefaults(UIDefaults table)
     {
@@ -258,9 +283,97 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     /**
-     * Load the SystemColors into the defaults table.  The keys
-     * for SystemColor defaults are the same as the names of
-     * the public fields in SystemColor.
+     * Populates {@code table} with system colors. The following values are
+     * added to {@code table}:
+     * <table border="1" cellpadding="1" cellspacing="0" 
+     *         summary="Metal's system color mapping"
+     *         valign="top" >
+     *  <tr valign="top"  align="left">
+     *    <th bgcolor="#CCCCFF" align="left">Key
+     *    <th bgcolor="#CCCCFF" align="left">Value
+     *  <tr valign="top"  align="left">
+     *    <td>"desktop"
+     *    <td>{@code theme.getDesktopColor()}
+     *  <tr valign="top"  align="left">
+     *    <td>"activeCaption"
+     *    <td>{@code theme.getWindowTitleBackground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"activeCaptionText"
+     *    <td>{@code theme.getWindowTitleForeground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"activeCaptionBorder"
+     *    <td>{@code theme.getPrimaryControlShadow()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"inactiveCaption"
+     *    <td>{@code theme.getWindowTitleInactiveBackground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"inactiveCaptionText"
+     *    <td>{@code theme.getWindowTitleInactiveForeground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"inactiveCaptionBorder"
+     *    <td>{@code theme.getControlShadow()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"window"
+     *    <td>{@code theme.getWindowBackground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"windowBorder"
+     *    <td>{@code theme.getControl()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"windowText"
+     *    <td>{@code theme.getUserTextColor()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"menu"
+     *    <td>{@code theme.getMenuBackground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"menuText"
+     *    <td>{@code theme.getMenuForeground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"text"
+     *    <td>{@code theme.getWindowBackground()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"textText"
+     *    <td>{@code theme.getUserTextColor()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"textHighlight"
+     *    <td>{@code theme.getTextHighlightColor()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"textHighlightText"
+     *    <td>{@code theme.getHighlightedTextColor()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"textInactiveText"
+     *    <td>{@code theme.getInactiveSystemTextColor()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"control"
+     *    <td>{@code theme.getControl()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"controlText"
+     *    <td>{@code theme.getControlTextColor()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"controlHighlight"
+     *    <td>{@code theme.getControlHighlight()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"controlLtHighlight"
+     *    <td>{@code theme.getControlHighlight()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"controlShadow"
+     *    <td>{@code theme.getControlShadow()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"controlDkShadow"
+     *    <td>{@code theme.getControlDarkShadow()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"scrollbar"
+     *    <td>{@code theme.getControl()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"info"
+     *    <td>{@code theme.getPrimaryControl()} 
+     *  <tr valign="top"  align="left">
+     *    <td>"infoText"
+     *    <td>{@code theme.getPrimaryControlInfo()} 
+     * </table>
+     * The value {@code theme} corresponds to the current {@code MetalTheme}.
+     * 
+     * @param table the {@code UIDefaults} object the values are added to
+     * @throws NullPointerException if {@code table} is {@code null}
      */
     protected void initSystemColorDefaults(UIDefaults table)
     {
@@ -306,6 +419,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         table.addResourceBundle( "com.sun.swing.internal.plaf.metal.resources.metal" );
     }
 
+    /**
+     * Populates {@code table} with the defaults for metal.
+     *
+     * @param table the {@code UIDefaults} to add the values to
+     * @throws NullPointerException if {@code table} is {@code null}
+     */
     protected void initComponentDefaults(UIDefaults table) {
         super.initComponentDefaults( table );
 
@@ -350,6 +469,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			     "COPY", DefaultEditorKit.copyAction,
 			    "PASTE", DefaultEditorKit.pasteAction,
 			      "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
 		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
 		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -368,8 +490,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 		        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -386,6 +511,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "COPY", DefaultEditorKit.copyAction,
                             "PASTE", DefaultEditorKit.pasteAction,
                               "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
                        "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                       "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -404,6 +532,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                        "shift HOME", DefaultEditorKit.selectionBeginLineAction,
                         "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
@@ -422,6 +551,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			     "COPY", DefaultEditorKit.copyAction,
 			    "PASTE", DefaultEditorKit.pasteAction,
 			      "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
 		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
 		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -456,8 +588,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		    "shift KP_DOWN", DefaultEditorKit.selectionDownAction,
 			    "ENTER", DefaultEditorKit.insertBreakAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction, 
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -568,6 +703,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // passwordField.font should actually map to
             // win.ansiFixed.font.height on windows.
             "PasswordField.font", userTextValue,
+            "PasswordField.echoChar", (char)0x2022,
 
             // TextArea.font should actually map to win.ansiFixed.font.height
             // on windows.
@@ -596,6 +732,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 			     "COPY", DefaultEditorKit.copyAction,
 			    "PASTE", DefaultEditorKit.pasteAction,
 			      "CUT", DefaultEditorKit.cutAction,
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
 		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
 		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -614,8 +753,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
 		        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
+                 "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
                            "DELETE", DefaultEditorKit.deleteNextCharAction,
+                      "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
+                  "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
@@ -651,8 +793,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "CheckBox.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
-                   "released SPACE", "released"
+                   "released SPACE", "released"  
 		 }),
+            // margin is 2 all the way around, BasicBorders.RadioButtonBorder
+            // (checkbox uses RadioButtonBorder) is 2 all the way around too.
+            "CheckBox.totalInsets", new Insets(4, 4, 4, 4),
 
             "RadioButton.disabledText", inactiveControlTextColor,
             "RadioButton.select", controlShadow,
@@ -662,8 +807,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "RadioButton.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
                           "SPACE", "pressed",
-                 "released SPACE", "released"
+                 "released SPACE", "released" 
 	      }),
+            // margin is 2 all the way around, BasicBorders.RadioButtonBorder
+            // is 2 all the way around too.
+            "RadioButton.totalInsets", new Insets(4, 4, 4, 4),
 
             "ToggleButton.select", controlShadow,
             "ToggleButton.disabledText", inactiveControlTextColor,
@@ -673,7 +821,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "ToggleButton.focusInputMap",
 	      new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
-                   "released SPACE", "released"
+                   "released SPACE", "released" 
 	        }),
 
 
@@ -701,7 +849,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		     "F2", "editFileName",
 		     "F5", "refresh",
 		     "BACK_SPACE", "Go Up",
-		     "ENTER", "approveSelection"
+		     "ENTER", "approveSelection",
+		"ctrl ENTER", "approveSelection"
 		 }),
 
 
@@ -712,8 +861,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToolTip.backgroundInactive", control,
             "ToolTip.foregroundInactive", controlDarkShadow,
             "ToolTip.hideAccelerator", Boolean.FALSE,
+                
+            // ToolTipManager
+            "ToolTipManager.enableToolTipMode", "activeApplication",
  
             // Slider Defaults
+            "Slider.font", controlTextValue,
             "Slider.border", null,
             "Slider.foreground", primaryControlShadow,
             "Slider.focus", focusColor,
@@ -869,6 +1022,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "COPY", "copy",
                             "PASTE", "paste",
                               "CUT", "cut",
+                   "control INSERT", "copy",
+                     "shift INSERT", "paste",
+                     "shift DELETE", "cut",
 		               "UP", "selectPreviousRow",
 		            "KP_UP", "selectPreviousRow",
 		         "shift UP", "selectPreviousRowExtendSelection",
@@ -1007,6 +1163,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "Table.font", userTextValue,
             "Table.focusCellHighlightBorder", focusCellHighlightBorder,
             "Table.scrollPaneBorder", scrollPaneBorder,
+            "Table.dropLineColor", focusColor,
+            "Table.dropLineShortColor", primaryControlDarkShadow,
       	    "Table.gridColor", controlShadow,  // grid line color
 	    "Table.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -1016,6 +1174,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                                  "COPY", "copy",
                                 "PASTE", "paste",
                                   "CUT", "cut",
+                       "control INSERT", "copy",
+                         "shift INSERT", "paste",
+                         "shift DELETE", "cut",
 		                "RIGHT", "selectNextColumn",
 		             "KP_RIGHT", "selectNextColumn",
                           "shift RIGHT", "selectNextColumnExtendSelection",
@@ -1076,8 +1237,15 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                                 "SPACE", "addToSelection",
                            "ctrl SPACE", "toggleAndAnchor",
                           "shift SPACE", "extendTo",
-                     "ctrl shift SPACE", "moveSelectionTo"
+                     "ctrl shift SPACE", "moveSelectionTo",
+                                   "F8", "focusHeader"
 		 }),
+            "Table.ascendingSortIcon",
+                SwingUtilities2.makeIcon(getClass(), MetalLookAndFeel.class,
+                "icons/sortUp.png"),
+            "Table.descendingSortIcon",
+                SwingUtilities2.makeIcon(getClass(), MetalLookAndFeel.class,
+                "icons/sortDown.png"),
 
 	    "TableHeader.font", userTextValue,
 	    "TableHeader.cellBorder", new SwingLazyValue(
@@ -1261,6 +1429,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                                    "COPY", "copy",
                                   "PASTE", "paste",
                                     "CUT", "cut",
+                         "control INSERT", "copy",
+                           "shift INSERT", "paste",
+                           "shift DELETE", "cut",
 		                     "UP", "selectPrevious",
 		                  "KP_UP", "selectPrevious",
 		               "shift UP", "selectPreviousExtendSelection",
@@ -1378,12 +1549,40 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             };
             table.putDefaults(defaults);
         }
+
+        flushUnreferenced(); // Remove old listeners
+
+        boolean lafCond = SwingUtilities2.isLocalDisplay();
+        Object aaTextInfo = SwingUtilities2.AATextInfo.getAATextInfo(lafCond);
+        table.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
+        new AATextListener(this);
     }
 
+    /**
+     * Ensures the current {@code MetalTheme} is {@code non-null}. This is
+     * a cover method for {@code getCurrentTheme}.
+     *
+     * @see #getCurrentTheme
+     */
     protected void createDefaultTheme() {
         getCurrentTheme();
     }
 
+    /**
+     * Returns the look and feel defaults. This invokes, in order,
+     * {@code createDefaultTheme()}, {@code super.getDefaults()} and
+     * {@code getCurrentTheme().addCustomEntriesToTable(table)}.
+     * <p>
+     * While this method is public, it should only be invoked by the
+     * {@code UIManager} when the look and feel is set as the current
+     * look and feel and after {@code initialize} has been invoked.
+     *
+     * @return the look and feel defaults
+     *
+     * @see #createDefaultTheme
+     * @see javax.swing.plaf.basic.BasicLookAndFeel#getDefaults()
+     * @see MetalTheme#addCustomEntriesToTable(UIDefaults)
+     */
     public UIDefaults getDefaults() {
         // PENDING: move this to initialize when API changes are allowed
         METAL_LOOK_AND_FEEL_INITED = true;
@@ -1396,51 +1595,34 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     /**
-     * <p>
-     * Invoked when the user attempts an invalid operation, 
-     * such as pasting into an uneditable <code>JTextField</code> 
-     * that has focus.
-     * </p>
-     * <p>
-     * If the user has enabled visual error indication on
-     * the desktop, this method will flash the caption bar
-     * of the active window. The user can also set the
-     * property awt.visualbell=true to achieve the same
-     * results.
-     * </p>
+     * {@inheritDoc}
      *
-     * @param component Component the error occured in, may be 
-     *			null indicating the error condition is 
-     *			not directly associated with a 
-     *			<code>Component</code>.
-     * 
-     * @see javax.swing.LookAndFeel#provideErrorFeedback
+     * @since 1.4
      */
     public void provideErrorFeedback(Component component) {
 	super.provideErrorFeedback(component);
     }
 
     /**
-     * Set the theme to be used by <code>MetalLookAndFeel</code>.
-     * This may not be null.
-     * <br>
-     * After setting the theme, you need to re-install the
-     * <code>MetalLookAndFeel</code>, as well as update the UI
-     * of any previously created widgets. Otherwise the results are undefined.
-     * These lines of code show you how to accomplish this:
+     * Set the theme used by <code>MetalLookAndFeel</code>.
+     * <p>
+     * After the theme is set, {@code MetalLookAndFeel} needs to be
+     * re-installed and the uis need to be recreated. The following
+     * shows how to do this:
      * <pre>
-     *   // turn off bold fonts
      *   MetalLookAndFeel.setCurrentTheme(theme);
      *
      *   // re-install the Metal Look and Feel
      *   UIManager.setLookAndFeel(new MetalLookAndFeel());
      *
-     *   // only needed to update existing widgets
+     *   // Update the ComponentUIs for all Components. This
+     *   // needs to be invoked for all windows.
      *   SwingUtilities.updateComponentTreeUI(rootComponent);
      * </pre>
+     * If this is not done the results are undefined. 
      *
-     * @param theme the theme to be used, non-null
-     * @throws NullPointerException if given a null parameter
+     * @param theme the theme to use
+     * @throws NullPointerException if {@code theme} is {@code null}
      * @see #getCurrentTheme
      */
     public static void setCurrentTheme(MetalTheme theme) {
@@ -1457,8 +1639,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
     /**
      * Return the theme currently being used by <code>MetalLookAndFeel</code>.
-     * This will always be non-null, as it will set the current theme if one
-     * hasn't been set already.
+     * If the current theme is {@code null}, the default theme is created.
      *
      * @return the current theme
      * @see #setCurrentTheme
@@ -1554,54 +1735,451 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         return super.getDisabledSelectedIcon(component, icon);
     }
 
+    /**
+     * Returns the control text font of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlTextColor()}.
+     *
+     * @return the control text font
+     *
+     * @see MetalTheme
+     */
     public static FontUIResource getControlTextFont() { return getCurrentTheme().getControlTextFont();}
+
+    /**
+     * Returns the sytem text font of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getSystemTextFont()}.
+     *
+     * @return the system text font
+     *
+     * @see MetalTheme
+     */
     public static FontUIResource getSystemTextFont() { return getCurrentTheme().getSystemTextFont();}
+
+    /**
+     * Returns the user text font of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getUserTextFont()}.
+     *
+     * @return the user text font
+     *
+     * @see MetalTheme
+     */
     public static FontUIResource getUserTextFont() { return getCurrentTheme().getUserTextFont();}
+
+    /**
+     * Returns the menu text font of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getMenuTextFont()}.
+     *
+     * @return the menu text font
+     *
+     * @see MetalTheme
+     */
     public static FontUIResource getMenuTextFont() { return getCurrentTheme().getMenuTextFont();}
+
+    /**
+     * Returns the window title font of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getWindowTitleFont()}.
+     *
+     * @return the window title font
+     *
+     * @see MetalTheme
+     */
     public static FontUIResource getWindowTitleFont() { return getCurrentTheme().getWindowTitleFont();}
+
+    /**
+     * Returns the sub-text font of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getSubTextFont()}.
+     *
+     * @return the sub-text font
+     *
+     * @see MetalTheme
+     */
     public static FontUIResource getSubTextFont() { return getCurrentTheme().getSubTextFont();}
 
+    /**
+     * Returns the desktop color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getDesktopColor()}.
+     *
+     * @return the desktop color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getDesktopColor() { return getCurrentTheme().getDesktopColor(); }
+
+    /**
+     * Returns the focus color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getFocusColor()}.
+     *
+     * @return the focus color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getFocusColor() { return getCurrentTheme().getFocusColor(); }
 
+    /**
+     * Returns the white color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getWhite()}.
+     *
+     * @return the white color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getWhite() { return getCurrentTheme().getWhite(); }
+
+    /**
+     * Returns the black color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getBlack()}.
+     *
+     * @return the black color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getBlack() { return getCurrentTheme().getBlack(); }
+
+    /**
+     * Returns the control color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControl()}.
+     *
+     * @return the control color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControl() { return getCurrentTheme().getControl(); }
+
+    /**
+     * Returns the control shadow color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlShadow()}.
+     *
+     * @return the control shadow color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControlShadow() { return getCurrentTheme().getControlShadow(); }
+
+    /**
+     * Returns the control dark shadow color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlDarkShadow()}.
+     *
+     * @return the control dark shadow color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControlDarkShadow() { return getCurrentTheme().getControlDarkShadow(); }
+
+    /**
+     * Returns the control info color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlInfo()}.
+     *
+     * @return the control info color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControlInfo() { return getCurrentTheme().getControlInfo(); } 
+
+    /**
+     * Returns the control highlight color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlHighlight()}.
+     *
+     * @return the control highlight color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControlHighlight() { return getCurrentTheme().getControlHighlight(); }
+
+    /**
+     * Returns the control disabled color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlDisabled()}.
+     *
+     * @return the control disabled color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControlDisabled() { return getCurrentTheme().getControlDisabled(); }
 
+    /**
+     * Returns the primary control color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getPrimaryControl()}.
+     *
+     * @return the primary control color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getPrimaryControl() { return getCurrentTheme().getPrimaryControl(); }  
+
+    /**
+     * Returns the primary control shadow color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getPrimaryControlShadow()}.
+     *
+     * @return the primary control shadow color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getPrimaryControlShadow() { return getCurrentTheme().getPrimaryControlShadow(); }  
+
+    /**
+     * Returns the primary control dark shadow color of the current
+     * theme. This is a cover method for {@code
+     * getCurrentTheme().getPrimaryControlDarkShadow()}.
+     *
+     * @return the primary control dark shadow color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getPrimaryControlDarkShadow() { return getCurrentTheme().getPrimaryControlDarkShadow(); }  
+
+    /**
+     * Returns the primary control info color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getPrimaryControlInfo()}.
+     *
+     * @return the primary control info color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getPrimaryControlInfo() { return getCurrentTheme().getPrimaryControlInfo(); } 
+
+    /**
+     * Returns the primary control highlight color of the current
+     * theme. This is a cover method for {@code
+     * getCurrentTheme().getPrimaryControlHighlight()}.
+     *
+     * @return the primary control highlight color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getPrimaryControlHighlight() { return getCurrentTheme().getPrimaryControlHighlight(); }  
 
+    /**
+     * Returns the system text color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getSystemTextColor()}.
+     *
+     * @return the system text color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getSystemTextColor() { return getCurrentTheme().getSystemTextColor(); }
+
+    /**
+     * Returns the control text color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getControlTextColor()}.
+     *
+     * @return the control text color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getControlTextColor() { return getCurrentTheme().getControlTextColor(); }  
+
+    /**
+     * Returns the inactive control text color of the current theme. This is a
+     * cover method for {@code
+     * getCurrentTheme().getInactiveControlTextColor()}.
+     *
+     * @return the inactive control text color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getInactiveControlTextColor() { return getCurrentTheme().getInactiveControlTextColor(); }  
+
+    /**
+     * Returns the inactive system text color of the current theme. This is a
+     * cover method for {@code
+     * getCurrentTheme().getInactiveSystemTextColor()}.
+     *
+     * @return the inactive system text color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getInactiveSystemTextColor() { return getCurrentTheme().getInactiveSystemTextColor(); }
+
+    /**
+     * Returns the user text color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getUserTextColor()}.
+     *
+     * @return the user text color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getUserTextColor() { return getCurrentTheme().getUserTextColor(); }
+
+    /**
+     * Returns the text highlight color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getTextHighlightColor()}.
+     *
+     * @return the text highlight color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getTextHighlightColor() { return getCurrentTheme().getTextHighlightColor(); }
+
+    /**
+     * Returns the highlighted text color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getHighlightedTextColor()}.
+     *
+     * @return the highlighted text color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getHighlightedTextColor() { return getCurrentTheme().getHighlightedTextColor(); }
 
+    /**
+     * Returns the window background color of the current theme. This is a
+     * cover method for {@code getCurrentTheme().getWindowBackground()}.
+     *
+     * @return the window background color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getWindowBackground() { return getCurrentTheme().getWindowBackground(); }
+
+    /**
+     * Returns the window title background color of the current
+     * theme. This is a cover method for {@code
+     * getCurrentTheme().getWindowTitleBackground()}.
+     *
+     * @return the window title background color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getWindowTitleBackground() { return getCurrentTheme().getWindowTitleBackground(); }
+
+    /**
+     * Returns the window title foreground color of the current
+     * theme. This is a cover method for {@code
+     * getCurrentTheme().getWindowTitleForeground()}.
+     *
+     * @return the window title foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getWindowTitleForeground() { return getCurrentTheme().getWindowTitleForeground(); }
+
+    /**
+     * Returns the window title inactive background color of the current
+     * theme. This is a cover method for {@code
+     * getCurrentTheme().getWindowTitleInactiveBackground()}.
+     *
+     * @return the window title inactive background color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getWindowTitleInactiveBackground() { return getCurrentTheme().getWindowTitleInactiveBackground(); }
+
+    /**
+     * Returns the window title inactive foreground color of the current
+     * theme. This is a cover method for {@code
+     * getCurrentTheme().getWindowTitleInactiveForeground()}.
+     *
+     * @return the window title inactive foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getWindowTitleInactiveForeground() { return getCurrentTheme().getWindowTitleInactiveForeground(); }
 
+    /**
+     * Returns the menu background color of the current theme. This is
+     * a cover method for {@code getCurrentTheme().getMenuBackground()}.
+     *
+     * @return the menu background color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getMenuBackground() { return getCurrentTheme().getMenuBackground(); }
+
+    /**
+     * Returns the menu foreground color of the current theme. This is
+     * a cover method for {@code getCurrentTheme().getMenuForeground()}.
+     *
+     * @return the menu foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getMenuForeground() { return getCurrentTheme().getMenuForeground(); }
+
+    /**
+     * Returns the menu selected background color of the current theme. This is
+     * a cover method for
+     * {@code getCurrentTheme().getMenuSelectedBackground()}.
+     *
+     * @return the menu selected background color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getMenuSelectedBackground() { return getCurrentTheme().getMenuSelectedBackground(); }
+
+    /**
+     * Returns the menu selected foreground color of the current theme. This is
+     * a cover method for
+     * {@code getCurrentTheme().getMenuSelectedForeground()}.
+     *
+     * @return the menu selected foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getMenuSelectedForeground() { return getCurrentTheme().getMenuSelectedForeground(); }
+
+    /**
+     * Returns the menu disabled foreground color of the current theme. This is
+     * a cover method for
+     * {@code getCurrentTheme().getMenuDisabledForeground()}.
+     *
+     * @return the menu disabled foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getMenuDisabledForeground() { return getCurrentTheme().getMenuDisabledForeground(); }
+
+    /**
+     * Returns the separator background color of the current theme. This is
+     * a cover method for {@code getCurrentTheme().getSeparatorBackground()}.
+     *
+     * @return the separator background color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getSeparatorBackground() { return getCurrentTheme().getSeparatorBackground(); }
+
+    /**
+     * Returns the separator foreground color of the current theme. This is
+     * a cover method for {@code getCurrentTheme().getSeparatorForeground()}.
+     *
+     * @return the separator foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getSeparatorForeground() { return getCurrentTheme().getSeparatorForeground(); }
+
+    /**
+     * Returns the accelerator foreground color of the current theme. This is
+     * a cover method for {@code getCurrentTheme().getAcceleratorForeground()}.
+     *
+     * @return the separator accelerator foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getAcceleratorForeground() { return getCurrentTheme().getAcceleratorForeground(); }
+
+    /**
+     * Returns the accelerator selected foreground color of the
+     * current theme. This is a cover method for {@code
+     * getCurrentTheme().getAcceleratorSelectedForeground()}.
+     *
+     * @return the accelerator selected foreground color
+     *
+     * @see MetalTheme
+     */
     public static ColorUIResource getAcceleratorSelectedForeground() { return getCurrentTheme().getAcceleratorSelectedForeground(); }
+
+
+    /**
+     * Returns a {@code LayoutStyle} implementing the Java look and feel
+     * design guidelines as specified at
+     * <a href="http://java.sun.com/products/jlf/ed2/book/HIG.Visual2.html">http://java.sun.com/products/jlf/ed2/book/HIG.Visual2.html</a>.
+     *
+     * @return LayoutStyle implementing the Java look and feel design
+     *         guidelines
+     * @since 1.6
+     */
+    public LayoutStyle getLayoutStyle() {
+        return MetalLayoutStyle.INSTANCE;
+    }
 
 
     /**
@@ -1647,7 +2225,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                     }
                 });
                 if (method != null) {
-                    return method.invoke(null, null);
+                    return method.invoke(null, (Object[])null);
                 }
             } catch (ClassNotFoundException cnfe) {
             } catch (InstantiationException ie) {
@@ -1694,6 +2272,238 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                 break;
             }
             return value;
+        }
+    }
+
+    static ReferenceQueue queue = new ReferenceQueue();
+
+    static void flushUnreferenced() {
+        AATextListener aatl;
+        while ((aatl = (AATextListener)queue.poll()) != null) {
+            aatl.dispose();
+        }
+    }
+
+    static class AATextListener
+        extends WeakReference implements PropertyChangeListener {
+
+        private String key = SunToolkit.DESKTOPFONTHINTS;
+
+        AATextListener(LookAndFeel laf) {
+            super(laf, queue);
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            tk.addPropertyChangeListener(key, this);
+        }
+
+        public void propertyChange(PropertyChangeEvent pce) {
+            LookAndFeel laf = (LookAndFeel)get();
+            if (laf == null || laf != UIManager.getLookAndFeel()) {
+                dispose();
+                return;
+            }
+            UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+            boolean lafCond = SwingUtilities2.isLocalDisplay();
+            Object aaTextInfo =
+                SwingUtilities2.AATextInfo.getAATextInfo(lafCond);
+            defaults.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
+            updateUI();
+        }
+
+        void dispose() {
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            tk.removePropertyChangeListener(key, this);
+        }
+
+        /**
+         * Updates the UI of the passed in window and all its children.
+         */
+        private static void updateWindowUI(Window window) {
+            SwingUtilities.updateComponentTreeUI(window);
+            Window ownedWins[] = window.getOwnedWindows();
+            for (int i=0; i < ownedWins.length; i++) {
+                updateWindowUI(ownedWins[i]);
+            }
+        }
+
+        /**
+         * Updates the UIs of all the known Frames.
+         */
+        private static void updateAllUIs() {
+            Frame appFrames[] = Frame.getFrames();
+            for (int j=0; j < appFrames.length; j++) {
+                updateWindowUI(appFrames[j]);
+            }
+        }
+
+        /**
+         * Indicates if an updateUI call is pending.
+         */
+        private static boolean updatePending;
+    
+        /**
+         * Sets whether or not an updateUI call is pending.
+         */
+        private static synchronized void setUpdatePending(boolean update) {
+            updatePending = update;
+        }
+
+        /**
+         * Returns true if a UI update is pending.
+         */
+        private static synchronized boolean isUpdatePending() {
+            return updatePending;
+    }
+
+        protected void updateUI() {
+            if (!isUpdatePending()) {
+                setUpdatePending(true);
+                Runnable uiUpdater = new Runnable() {
+                        public void run() {
+                            updateAllUIs();
+                            setUpdatePending(false);
+                        }
+                    };
+                SwingUtilities.invokeLater(uiUpdater);
+            }
+        }
+    }
+
+    // From the JLF Design Guidelines:
+    // http://java.sun.com/products/jlf/ed2/book/HIG.Visual2.html
+    private static class MetalLayoutStyle extends DefaultLayoutStyle {
+        private static MetalLayoutStyle INSTANCE = new MetalLayoutStyle();
+
+        @Override
+        public int getPreferredGap(JComponent component1,
+                JComponent component2, ComponentPlacement type, int position,
+                Container parent) {
+            // Checks args
+            super.getPreferredGap(component1, component2, type, position,
+                                  parent);
+
+            int offset = 0;
+
+            switch(type) {
+            case INDENT:
+                // Metal doesn't spec this.
+                if (position == SwingConstants.EAST ||
+                        position == SwingConstants.WEST) {
+                    int indent = getIndent(component1, position);
+                    if (indent > 0) {
+                        return indent;
+                    }
+                    return 12;
+                }
+                // Fall through to related.
+            case RELATED:
+                if (component1.getUIClassID() == "ToggleButtonUI" &&
+                        component2.getUIClassID() == "ToggleButtonUI") {
+                    ButtonModel sourceModel = ((JToggleButton)component1).
+                            getModel();
+                    ButtonModel targetModel = ((JToggleButton)component2).
+                            getModel();
+                    if ((sourceModel instanceof DefaultButtonModel) &&
+                        (targetModel instanceof DefaultButtonModel) &&
+                        (((DefaultButtonModel)sourceModel).getGroup() ==
+                         ((DefaultButtonModel)targetModel).getGroup()) &&
+                        ((DefaultButtonModel)sourceModel).getGroup() != null) {
+                        // When toggle buttons are exclusive (that is,
+                        // they form a radio button set), separate
+                        // them with 2 pixels. This rule applies
+                        // whether the toggle buttons appear in a
+                        // toolbar or elsewhere in the interface.
+                        // Note: this number does not appear to
+                        // include any borders and so is not adjusted
+                        // by the border of the toggle button
+                        return 2;
+                    }
+                    // When toggle buttons are independent (like
+                    // checkboxes) and used outside a toolbar,
+                    // separate them with 5 pixels.
+                    if (usingOcean()) {
+                        return 6;
+                    }
+                    return 5;
+                }
+                offset = 6;
+                break;
+            case UNRELATED:
+                offset = 12;
+                break;
+            }
+            if (isLabelAndNonlabel(component1, component2, position)) {
+                // Insert 12 pixels between the trailing edge of a
+                // label and any associated components. Insert 12
+                // pixels between the trailing edge of a label and the
+                // component it describes when labels are
+                // right-aligned. When labels are left-aligned, insert
+                // 12 pixels between the trailing edge of the longest
+                // label and its associated component
+                return getButtonGap(component1, component2, position,
+                                    offset + 6);
+            }
+            return getButtonGap(component1, component2, position, offset);
+        }
+
+        @Override
+        public int getContainerGap(JComponent component, int position,
+                                   Container parent) {
+            super.getContainerGap(component, position, parent);
+            // Include 11 pixels between the bottom and right
+            // borders of a dialog box and its command
+            // buttons. (To the eye, the 11-pixel spacing appears
+            // to be 12 pixels because the white borders on the
+            // lower and right edges of the button components are
+            // not visually significant.)
+            // NOTE: this last text was designed with Steel in mind,
+            // not Ocean.
+            //
+            // Insert 12 pixels between the edges of the panel and the
+            // titled border. Insert 11 pixels between the top of the
+            // title and the component above the titled border. Insert 12
+            // pixels between the bottom of the title and the top of the
+            // first label in the panel. Insert 11 pixels between
+            // component groups and between the bottom of the last
+            // component and the lower border.
+            return getButtonGap(component, position, 12 -
+                                getButtonAdjustment(component, position));
+        }
+
+        @Override
+        protected int getButtonGap(JComponent source, JComponent target,
+                                   int position, int offset) {
+            offset = super.getButtonGap(source, target, position, offset);
+            if (offset > 0) {
+                int buttonAdjustment = getButtonAdjustment(source, position);
+                if (buttonAdjustment == 0) {
+                    buttonAdjustment = getButtonAdjustment(
+                            target, flipDirection(position));
+                }
+                offset -= buttonAdjustment;
+            }
+            if (offset < 0) {
+                return 0;
+            }
+            return offset;
+        }
+
+        private int getButtonAdjustment(JComponent source, int edge) {
+            String classID = source.getUIClassID();
+            if (classID == "ButtonUI" || classID == "ToggleButtonUI") {
+                if (!usingOcean() && (edge == SwingConstants.EAST ||
+                                      edge == SwingConstants.SOUTH)) {
+                    if (source.getBorder() instanceof UIResource) {
+                        return 1;
+                    }
+                }
+            }
+            else if (edge == SwingConstants.SOUTH) {
+                if ((classID == "RadioButtonUI" || classID == "CheckBoxUI") &&
+                        !usingOcean()) {
+                    return 1;
+                }
+            }
+            return 0;
         }
     }
 }

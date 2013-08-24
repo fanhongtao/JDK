@@ -1,7 +1,7 @@
 /*
- * @(#)MidiEvent.java	1.10 03/12/19
+ * @(#)MidiEvent.java	1.11 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package javax.sound.midi;
  * contained in a <code>Sequence</code>. 
  *
  *
- * @version 1.10 03/12/19
+ * @version 1.11 05/11/17
  * @author David Rivas
  * @author Kara Kytle
  */

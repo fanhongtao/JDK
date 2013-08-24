@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteObjectInvocationHandler.java	1.3 03/12/19
+ * @(#)RemoteObjectInvocationHandler.java	1.5 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -29,7 +29,7 @@ import sun.rmi.server.WeakClassHashMap;
  * or {@link Activatable} has an instance of this class as that proxy's
  * invocation handler.
  *
- * @version 1.3, 03/12/19
+ * @version 1.5, 05/11/17
  * @author  Ann Wollrath
  * @since   1.5
  **/
@@ -143,16 +143,15 @@ public class RemoteObjectInvocationHandler
 	String name = method.getName();
 
 	if (name.equals("hashCode")) {
-	    return new Integer(hashCode());
+	    return hashCode();
 
 	} else if (name.equals("equals")) {
 	    Object obj = args[0];
-	    boolean b =
+	    return
 		proxy == obj ||
 		(obj != null &&
 		 Proxy.isProxyClass(obj.getClass()) &&
 		 equals(Proxy.getInvocationHandler(obj)));
-	    return Boolean.valueOf(b);
 
 	} else if (name.equals("toString")) {
 	    return proxyToString(proxy);
@@ -180,7 +179,7 @@ public class RemoteObjectInvocationHandler
 			      getMethodHash(method));
 	} catch (Exception e) {
 	    if (!(e instanceof RuntimeException)) {
-		Class cl = proxy.getClass();
+		Class<?> cl = proxy.getClass();
 		try {
 		    method = cl.getMethod(method.getName(),
 					  method.getParameterTypes());
@@ -188,10 +187,9 @@ public class RemoteObjectInvocationHandler
 		    throw (IllegalArgumentException)
 			new IllegalArgumentException().initCause(nsme);
 		}
-		Class[] exTypes = method.getExceptionTypes();
-		Class thrownType = e.getClass();
-		for (int i = 0; i < exTypes.length; i++) {
-		    if (exTypes[i].isAssignableFrom(thrownType)) {
+		Class<?> thrownType = e.getClass();
+		for (Class<?> declaredType : method.getExceptionTypes()) {
+		    if (declaredType.isAssignableFrom(thrownType)) {
 			throw e;
 		    }
 		}
@@ -206,7 +204,7 @@ public class RemoteObjectInvocationHandler
      * handler.
      **/
     private String proxyToString(Object proxy) {
-	Class[] interfaces = proxy.getClass().getInterfaces();
+	Class<?>[] interfaces = proxy.getClass().getInterfaces();
 	if (interfaces.length == 0) {
 	    return "Proxy[" + this + "]";
 	}
@@ -240,29 +238,28 @@ public class RemoteObjectInvocationHandler
      * @return the method hash for the specified method
      */
     private static long getMethodHash(Method method) {
-	Map map = methodToHash_Maps.getMap(method.getDeclaringClass());
-	Long hash = (Long) map.get(method);
-	return hash.longValue();
+	return methodToHash_Maps.get(method.getDeclaringClass()).get(method);
     }
 
     /**
      * A weak hash map, mapping classes to weak hash maps that map
      * method objects to method hashes.
      **/ 
-    private static class MethodToHash_Maps extends WeakClassHashMap {
-	
+    private static class MethodToHash_Maps
+	extends WeakClassHashMap<Map<Method,Long>>
+    {
 	MethodToHash_Maps() {}
-	
-	protected Map createMap(Class remoteClass) {
-	    return new WeakHashMap() {
-		public synchronized Object get(Object key) {
-		    Object hash = super.get(key);
+
+	protected Map<Method,Long> computeValue(Class<?> remoteClass) {
+	    return new WeakHashMap<Method,Long>() {
+		public synchronized Long get(Object key) {
+		    Long hash = super.get(key);
 		    if (hash == null) {
 			Method method = (Method) key;
-			hash = new Long(Util.computeMethodHash(method));
+			hash = Util.computeMethodHash(method);
 			put(method, hash);
 		    }
-		    return (Long) hash;
+		    return hash;
 		}
 	    };
 	}

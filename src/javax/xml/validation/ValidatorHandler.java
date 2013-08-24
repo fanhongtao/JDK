@@ -1,10 +1,28 @@
-// $Id: ValidatorHandler.java,v 1.23.16.1 2004/06/28 18:26:43 ndw Exp $
+/*
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ *
+ * You can obtain a copy of the license at
+ * https://jaxp.dev.java.net/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jaxp.dev.java.net/CDDLv1.0.html
+ * If applicable add the following below this CDDL HEADER
+ * with the fields enclosed by brackets "[]" replaced with
+ * your own identifying information: Portions Copyright
+ * [year] [name of copyright owner]
+ */
 
 /*
- * @(#)ValidatorHandler.java	1.7 04/07/26
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * $Id: ValidatorHandler.java,v 1.5 2005/11/03 19:34:24 jeffsuttor Exp $
+ * @(#)ValidatorHandler.java	1.17 05/12/07
+ *
+ * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
 
 package javax.xml.validation;
@@ -19,7 +37,7 @@ import org.xml.sax.SAXNotSupportedException;
  * Streaming validator that works on SAX stream.
  * 
  * <p>
- * A {@link ValidatorHandler} object is a thread-unsafe, non-reentrant object.
+ * A {@link ValidatorHandler} object is not thread-safe and not reentrant.
  * In other words, it is the application's responsibility to make
  * sure that one {@link ValidatorHandler} object is not used from
  * more than one thread at any given time.
@@ -92,25 +110,23 @@ import org.xml.sax.SAXNotSupportedException;
  * <p>This feature is set to <code>false</code> by default.</p>
  * 
  * @author  <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.23.16.1 $, $Date: 2004/06/28 18:26:43 $
+ * @version $Revision: 1.5 $, $Date: 2005/11/03 19:34:24 $
  * @since 1.5
  */
 public abstract class ValidatorHandler implements ContentHandler {
-    
+
     /**
-     * Constructor for derived classes.
-     * 
-     * <p>
-     * The constructor does nothing.
-     * 
-     * <p>
-     * Derived classes must create {@link ValidatorHandler} objects that have
-     * <tt>null</tt> {@link ErrorHandler} and
-     * <tt>null</tt> {@link LSResourceResolver}.
+     * <p>Constructor for derived classes.</p>
+     *
+     * <p>The constructor does nothing.</p>
+     *
+     * <p>Derived classes must create {@link ValidatorHandler} objects that have
+     * <code>null</code> {@link ErrorHandler} and
+     * <code>null</code> {@link LSResourceResolver}.</p>
      */
     protected ValidatorHandler() {
     }
-    
+
     /**
      * Sets the {@link ContentHandler} which receives
      * the augmented validation result.
@@ -327,56 +343,78 @@ public abstract class ValidatorHandler implements ContentHandler {
      * using names built on their own URIs.</p>
      *
      * @param name The feature name, which is a non-null fully-qualified URI.
+     *
      * @return The current value of the feature (true or false).
-     * @exception org.xml.sax.SAXNotRecognizedException If the feature
-     *            value can't be assigned or retrieved.
-     * @exception org.xml.sax.SAXNotSupportedException When the
-     *            {@link ValidatorHandler} recognizes the feature name but 
-     *            cannot determine its value at this time.
-     * @throws NullPointerException
-     *          When the name parameter is null.
+     *
+     * @throws SAXNotRecognizedException If the feature
+     *   value can't be assigned or retrieved.
+     * @throws SAXNotSupportedException When the
+     *   {@link ValidatorHandler} recognizes the feature name but
+     *   cannot determine its value at this time.
+     * @throws NullPointerException When <code>name</code> is <code>null</code>.
+     *
      * @see #setFeature(String, boolean)
      */
-    public boolean getFeature(String name) throws SAXNotRecognizedException, SAXNotSupportedException {
-        if(name==null)
+    public boolean getFeature(String name)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
+        if (name == null) {
             throw new NullPointerException();
+        }
+
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
-     * Set the value of a feature flag.
+     * <p>Set a feature for this <code>ValidatorHandler</code>.</p>
      *
-     * <p>
-     * Feature can be used to control the way a {@link ValidatorHandler}
-     * parses schemas, although {@link ValidatorHandler}s are not required
-     * to recognize any specific property names.</p>
+     * <p>Feature can be used to control the way a
+     * {@link ValidatorHandler} parses schemas. The feature name is
+     * any fully-qualified URI. It is possible for a
+     * {@link SchemaFactory} to
+     * expose a feature value but to be unable to change the current
+     * value. Some feature values may be immutable or mutable only in
+     * specific contexts, such as before, during, or after a
+     * validation.</p>
      *
-     * <p>The feature name is any fully-qualified URI.  It is
-     * possible for a {@link ValidatorHandler} to expose a feature value but
-     * to be unable to change the current value.
-     * Some feature values may be immutable or mutable only 
-     * in specific contexts, such as before, during, or after 
-     * a validation.</p>
+     * <p>All implementations are required to support the {@link javax.xml.XMLConstants#FEATURE_SECURE_PROCESSING} feature.
+     * When the feature is:</p>
+     * <ul>
+     *   <li>
+     *     <code>true</code>: the implementation will limit XML processing to conform to implementation limits.
+     *     Examples include enity expansion limits and XML Schema constructs that would consume large amounts of resources.
+     *     If XML processing is limited for security reasons, it will be reported via a call to the registered
+     *    {@link ErrorHandler#fatalError(SAXParseException exception)}.
+     *     See {@link #setErrorHandler(ErrorHandler errorHandler)}.
+     *   </li>
+     *   <li>
+     *     <code>false</code>: the implementation will processing XML according to the XML specifications without
+     *     regard to possible implementation limits.
+     *   </li>
+     * </ul>
      *
      * @param name The feature name, which is a non-null fully-qualified URI.
      * @param value The requested value of the feature (true or false).
      * 
-     * @exception org.xml.sax.SAXNotRecognizedException If the feature
-     *            value can't be assigned or retrieved.
-     * @exception org.xml.sax.SAXNotSupportedException When the
-     *            {@link ValidatorHandler} recognizes the feature name but 
-     *            cannot set the requested value.
-     * @throws NullPointerException
-     *          When the name parameter is null.
-     * 
+     * @throws SAXNotRecognizedException If the feature
+     *   value can't be assigned or retrieved.
+     * @throws SAXNotSupportedException When the
+     *   {@link ValidatorHandler} recognizes the feature name but
+     *   cannot set the requested value.
+     * @throws NullPointerException When <code>name</code> is <code>null</code>.
+     *
      * @see #getFeature(String)
      */
-    public void setFeature(String name, boolean value) throws SAXNotRecognizedException, SAXNotSupportedException {
-        if(name==null)
+    public void setFeature(String name, boolean value)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
+        if (name == null) {
             throw new NullPointerException();
+        }
+
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
      * Set the value of a property.
      *
@@ -392,21 +430,24 @@ public abstract class ValidatorHandler implements ContentHandler {
      *
      * @param name The property name, which is a non-null fully-qualified URI.
      * @param object The requested value for the property.
-     * 
-     * @exception org.xml.sax.SAXNotRecognizedException If the property
-     *            value can't be assigned or retrieved.
-     * @exception org.xml.sax.SAXNotSupportedException When the
-     *            {@link ValidatorHandler} recognizes the property name but 
-     *            cannot set the requested value.
-     * @throws NullPointerException
-     *          When the name parameter is null.
+     *
+     * @throws SAXNotRecognizedException If the property
+     *   value can't be assigned or retrieved.
+     * @throws SAXNotSupportedException When the
+     *   {@link ValidatorHandler} recognizes the property name but
+     *   cannot set the requested value.
+     * @throws NullPointerException When <code>name</code> is <code>null</code>.
      */
-    public void setProperty(String name, Object object) throws SAXNotRecognizedException, SAXNotSupportedException {
-        if(name==null)
+    public void setProperty(String name, Object object)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
+        if (name == null) {
             throw new NullPointerException();
+        }
+
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
      * Look up the value of a property.
      *
@@ -423,19 +464,25 @@ public abstract class ValidatorHandler implements ContentHandler {
      * using names built on their own URIs.</p>
      *
      * @param name The property name, which is a non-null fully-qualified URI.
+     *
      * @return The current value of the property.
-     * @exception org.xml.sax.SAXNotRecognizedException If the property
-     *            value can't be assigned or retrieved.
-     * @exception org.xml.sax.SAXNotSupportedException When the
-     *            XMLReader recognizes the property name but 
-     *            cannot determine its value at this time.
-     * @throws NullPointerException
-     *          When the name parameter is null.
+     *
+     * @throws SAXNotRecognizedException If the property
+     *   value can't be assigned or retrieved.
+     * @throws SAXNotSupportedException When the
+     *   XMLReader recognizes the property name but
+     *   cannot determine its value at this time.
+     * @throws NullPointerException When <code>name</code> is <code>null</code>.
+     *
      * @see #setProperty(String, Object)
      */
-    public Object getProperty(String name) throws SAXNotRecognizedException, SAXNotSupportedException {
-        if(name==null)
+    public Object getProperty(String name)
+        throws SAXNotRecognizedException, SAXNotSupportedException {
+
+        if (name == null) {
             throw new NullPointerException();
+        }
+
         throw new SAXNotRecognizedException(name);
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicScrollPaneUI.java	1.70 03/12/19
+ * @(#)BasicScrollPaneUI.java	1.73 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,11 +29,12 @@ import java.awt.Graphics;
 import java.awt.event.*;
 import java.io.Serializable;
 import java.awt.Toolkit;
+import java.awt.ComponentOrientation;
 
 /**
  * A default L&F implementation of ScrollPaneUI.
  *
- * @version 1.70 12/19/03
+ * @version 1.73 11/17/05
  * @author Hans Muller
  */
 public class BasicScrollPaneUI
@@ -335,6 +336,81 @@ public class BasicScrollPaneUI
 	}
     }
 
+    /**
+     * Returns the baseline.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public int getBaseline(JComponent c, int width, int height) {
+        JViewport viewport = scrollpane.getViewport();
+        Insets spInsets = scrollpane.getInsets();
+        int y = spInsets.top;
+        height = height - spInsets.top - spInsets.bottom;
+        width = width - spInsets.left - spInsets.right;
+        JViewport columnHeader = scrollpane.getColumnHeader();
+        if (columnHeader != null && columnHeader.isVisible()) {
+            Component header = columnHeader.getView();
+            if (header != null && header.isVisible()) {
+                // Header is always given it's preferred size.
+                Dimension headerPref = header.getPreferredSize();
+                int baseline = header.getBaseline(headerPref.width,
+                                                  headerPref.height);
+                if (baseline >= 0) {
+                    return y + baseline;
+                }
+            }
+            Dimension columnPref = columnHeader.getPreferredSize();
+            height -= columnPref.height;
+            y += columnPref.height;
+        }
+        Component view = (viewport == null) ? null : viewport.getView();
+        if (view != null && view.isVisible() &&
+                view.getBaselineResizeBehavior() ==
+                Component.BaselineResizeBehavior.CONSTANT_ASCENT) {
+            Border viewportBorder = scrollpane.getViewportBorder();
+            if (viewportBorder != null) {
+                Insets vpbInsets = viewportBorder.getBorderInsets(scrollpane);
+                y += vpbInsets.top;
+                height = height - vpbInsets.top - vpbInsets.bottom;
+                width = width - vpbInsets.left - vpbInsets.right;
+            }
+            if (view.getWidth() > 0 && view.getHeight() > 0) {
+                Dimension min = view.getMinimumSize();
+                width = Math.max(min.width, view.getWidth());
+                height = Math.max(min.height, view.getHeight());
+            }
+            if (width > 0 && height > 0) {
+                int baseline = view.getBaseline(width, height);
+                if (baseline > 0) {
+                    return y + baseline;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns an enum indicating how the baseline of the component
+     * changes as the size changes.
+     *
+     * @throws NullPointerException {@inheritDoc}
+     * @see javax.swing.JComponent#getBaseline(int, int)
+     * @since 1.6
+     */
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior(
+            JComponent c) {
+        super.getBaselineResizeBehavior(c);
+        // Baseline is either from the header, in which case it's always
+        // the same size and therefor can be created as CONSTANT_ASCENT.
+        // If the header doesn't have a baseline than the baseline will only
+        // be valid if it's BaselineResizeBehavior is
+        // CONSTANT_ASCENT, so, return CONSTANT_ASCENT.
+        return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
+    }
+
 
     /**
      * Listener for viewport events.
@@ -532,11 +608,11 @@ public class BasicScrollPaneUI
     }
 
     private void updateHorizontalScrollBar(PropertyChangeEvent pce) {
-	updateScrollBar(pce, hsbChangeListener, hsbPropertyChangeListener);
+        updateScrollBar(pce, hsbChangeListener, hsbPropertyChangeListener);
     }
 
     private void updateVerticalScrollBar(PropertyChangeEvent pce) {
-	updateScrollBar(pce, vsbChangeListener, vsbPropertyChangeListener);
+        updateScrollBar(pce, vsbChangeListener, vsbPropertyChangeListener);
     }
 
     private void updateScrollBar(PropertyChangeEvent pce, ChangeListener cl,
@@ -558,7 +634,7 @@ public class BasicScrollPaneUI
             if (pcl != null) {
                 sb.addPropertyChangeListener(pcl);
             }
-	}
+        }
     }
 
     public class PropertyChangeHandler implements PropertyChangeListener
@@ -763,20 +839,154 @@ public class BasicScrollPaneUI
         //
         public void mouseWheelMoved(MouseWheelEvent e) {
             if (scrollpane.isWheelScrollingEnabled() &&
-                e.getScrollAmount() != 0) {
+                e.getWheelRotation() != 0) {
                 JScrollBar toScroll = scrollpane.getVerticalScrollBar();
-                int direction = 0;
+                int direction = e.getWheelRotation() < 0 ? -1 : 1;
+                int orientation = SwingConstants.VERTICAL;
+
                 // find which scrollbar to scroll, or return if none
                 if (toScroll == null || !toScroll.isVisible()) { 
                     toScroll = scrollpane.getHorizontalScrollBar();
                     if (toScroll == null || !toScroll.isVisible()) { 
                         return;
                     }
+                    orientation = SwingConstants.HORIZONTAL;
                 }
-                direction = e.getWheelRotation() < 0 ? -1 : 1;
+
                 if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
-                    BasicScrollBarUI.scrollByUnits(toScroll, direction,
-                                                         e.getScrollAmount());
+                    JViewport vp = scrollpane.getViewport();
+                    if (vp == null) { return; }
+                    Component comp = vp.getView();
+                    int units = Math.abs(e.getUnitsToScroll());
+
+                    // When the scrolling speed is set to maximum, it's possible
+                    // for a single wheel click to scroll by more units than
+                    // will fit in the visible area.  This makes it
+                    // hard/impossible to get to certain parts of the scrolling
+                    // Component with the wheel.  To make for more accurate
+                    // low-speed scrolling, we limit scrolling to the block
+                    // increment if the wheel was only rotated one click.
+                    boolean limitScroll = Math.abs(e.getWheelRotation()) == 1;
+
+                    // Check if we should use the visibleRect trick
+                    Object fastWheelScroll = toScroll.getClientProperty(
+                                               "JScrollBar.fastWheelScrolling");
+                    if (Boolean.TRUE == fastWheelScroll &&
+                        comp instanceof Scrollable) {
+                        // 5078454: Under maximum acceleration, we may scroll
+                        // by many 100s of units in ~1 second.
+                        //
+                        // BasicScrollBarUI.scrollByUnits() can bog down the EDT
+                        // with repaints in this situation.  However, the
+                        // Scrollable interface allows us to pass in an
+                        // arbitrary visibleRect.  This allows us to accurately
+                        // calculate the total scroll amount, and then update
+                        // the GUI once.  This technique provides much faster
+                        // accelerated wheel scrolling.
+                        Scrollable scrollComp = (Scrollable) comp;
+                        Rectangle viewRect = vp.getViewRect();
+                        int startingX = viewRect.x;
+                        boolean leftToRight =
+                                 comp.getComponentOrientation().isLeftToRight();
+                        int scrollMin = toScroll.getMinimum();
+                        int scrollMax = toScroll.getMaximum() -
+                                        toScroll.getModel().getExtent();
+
+                        if (limitScroll) {
+                            int blockIncr =
+                                scrollComp.getScrollableBlockIncrement(viewRect,
+                                                                    orientation,
+                                                                    direction);
+                            if (direction < 0) {
+                                scrollMin = Math.max(scrollMin,
+                                               toScroll.getValue() - blockIncr);
+                            }
+                            else {
+                                scrollMax = Math.min(scrollMax,
+                                               toScroll.getValue() + blockIncr);
+                            }
+                        }
+
+                        for (int i = 0; i < units; i++) {
+                            int unitIncr =
+                                scrollComp.getScrollableUnitIncrement(viewRect,
+                                                        orientation, direction);
+                            // Modify the visible rect for the next unit, and
+                            // check to see if we're at the end already.
+                            if (orientation == SwingConstants.VERTICAL) {
+                                if (direction < 0) {
+                                    viewRect.y -= unitIncr;
+                                    if (viewRect.y <= scrollMin) {
+                                        viewRect.y = scrollMin;
+                                        break;
+                                    }
+                                }
+                                else { // (direction > 0
+                                    viewRect.y += unitIncr;
+                                    if (viewRect.y >= scrollMax) {
+                                        viewRect.y = scrollMax;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                // Scroll left
+                                if ((leftToRight && direction < 0) ||
+                                    (!leftToRight && direction > 0)) {
+                                    viewRect.x -= unitIncr;
+                                    if (leftToRight) {
+                                        if (viewRect.x < scrollMin) {
+                                            viewRect.x = scrollMin;
+                                            break;
+                                        }
+                                    }
+                                }
+                                // Scroll right
+                                else if ((leftToRight && direction > 0) ||
+                                    (!leftToRight && direction < 0)) {
+                                    viewRect.x += unitIncr;
+                                    if (leftToRight) {
+                                        if (viewRect.x > scrollMax) {
+                                            viewRect.x = scrollMax;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    assert false : "Non-sensical ComponentOrientation / scroll direction";
+                                }
+                            }
+                        }
+                        // Set the final view position on the ScrollBar
+                        if (orientation == SwingConstants.VERTICAL) {
+                            toScroll.setValue(viewRect.y);
+                        }
+                        else {
+                            if (leftToRight) {
+                                toScroll.setValue(viewRect.x);
+                            }
+                            else {
+                                // rightToLeft scrollbars are oriented with 
+                                // minValue on the right and maxValue on the
+                                // left.
+                                int newPos = toScroll.getValue() -
+                                                       (viewRect.x - startingX);
+                                if (newPos < scrollMin) {
+                                    newPos = scrollMin;
+                                }
+                                else if (newPos > scrollMax) {
+                                    newPos = scrollMax;
+                                }
+                                toScroll.setValue(newPos);
+                            }
+                        }
+                    }
+                    else {
+                        // Viewport's view is not a Scrollable, or fast wheel
+                        // scrolling is not enabled.
+                        BasicScrollBarUI.scrollByUnits(toScroll, direction,
+                                                       units, limitScroll);
+                    }
                 }
                 else if (e.getScrollType() ==
                          MouseWheelEvent.WHEEL_BLOCK_SCROLL) {
@@ -784,7 +994,6 @@ public class BasicScrollPaneUI
                 }
             }
         }
-
 
         //
         // ChangeListener: This is added to the vieport, and hsb/vsb models.

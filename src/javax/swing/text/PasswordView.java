@@ -1,12 +1,12 @@
 /*
- * @(#)PasswordView.java	1.20 04/04/15
+ * @(#)PasswordView.java	1.22 05/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 import java.awt.*;
 import javax.swing.JPasswordField;
 
@@ -18,7 +18,7 @@ import javax.swing.JPasswordField;
  * component to a JPasswordField).
  *
  * @author  Timothy Prinzing
- * @version 1.20 04/15/04
+ * @version 1.22 11/30/05
  * @see     View
  */
 public class PasswordView extends FieldView {

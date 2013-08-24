@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
@@ -15,13 +14,13 @@
  * limitations under the License.
  */
 /*
- * $Id: AbstractTranslet.java,v 1.52 2004/02/16 22:55:55 minchau Exp $
+ * $Id: AbstractTranslet.java,v 1.6 2006/06/19 19:49:03 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
 
-import java.io.FileWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMImplementation;
 import javax.xml.parsers.ParserConfigurationException;
-   
 
 import com.sun.org.apache.xml.internal.dtm.DTM;
 
@@ -125,6 +123,7 @@ public abstract class AbstractTranslet implements Translet {
      */
     public final DOMAdapter makeDOMAdapter(DOM dom)
 	throws TransletException {
+        setRootForKeys(dom.getDocument());
 	return new DOMAdapter(dom, namesArray, urisArray, typesArray, namespaceArray);
     }
 
@@ -311,7 +310,8 @@ public abstract class AbstractTranslet implements Translet {
      * The index contains the element node index (int) and Id value (String).
      */
     private final void buildIDIndex(DOM document) {
-        
+        setRootForKeys(document.getDocument());
+
         if (document instanceof DOMEnhancedForDTM) {
             DOMEnhancedForDTM enhancedDOM = (DOMEnhancedForDTM)document;
             
@@ -337,7 +337,10 @@ public abstract class AbstractTranslet implements Translet {
 
                 while (idValues.hasMoreElements()) {
             	    final Object idValue = idValues.nextElement();
-            	    final int element = ((Integer)elementsByID.get(idValue)).intValue();
+            	    final int element =
+                            document.getNodeHandle(
+                                        ((Integer)elementsByID.get(idValue))
+                                                .intValue());
 
             	    buildKeyIndex(ID_INDEX_NAME, element, idValue);
             	    hasIDValues = true;
@@ -410,6 +413,7 @@ public abstract class AbstractTranslet implements Translet {
     private Hashtable _keyIndexes = null;
     private KeyIndex  _emptyKeyIndex = null;
     private int       _indexSize = 0;
+    private int       _currentRootForKeys = 0;
 
     /**
      * This method is used to pass the largest DOM size to the translet.
@@ -428,9 +432,9 @@ public abstract class AbstractTranslet implements Translet {
 
     /**
      * Adds a value to a key/id index
-     *   @name is the name of the index (the key or ##id)
-     *   @node is the node id of the node to insert
-     *   @value is the value that will look up the node in the given index
+     *   @param name is the name of the index (the key or ##id)
+     *   @param node is the node handle of the node to insert
+     *   @param value is the value that will look up the node in the given index
      */
     public void buildKeyIndex(String name, int node, Object value) {
 	if (_keyIndexes == null) _keyIndexes = new Hashtable();
@@ -439,13 +443,13 @@ public abstract class AbstractTranslet implements Translet {
 	if (index == null) {
 	    _keyIndexes.put(name, index = new KeyIndex(_indexSize));
 	}
-	index.add(value, node);
+	index.add(value, node, _currentRootForKeys);
     }
 
     /**
      * Create an empty KeyIndex in the DOM case
-     *   @name is the name of the index (the key or ##id)
-     *   @node is the DOM
+     *   @param name is the name of the index (the key or ##id)
+     *   @param dom is the DOM
      */
     public void buildKeyIndex(String name, DOM dom) {
 	if (_keyIndexes == null) _keyIndexes = new Hashtable();
@@ -454,7 +458,7 @@ public abstract class AbstractTranslet implements Translet {
 	if (index == null) {
 	    _keyIndexes.put(name, index = new KeyIndex(_indexSize));
 	}
-	index.setDom(dom);
+	index.setDom(dom, dom.getDocument());
     }
 
     /**
@@ -482,6 +486,10 @@ public abstract class AbstractTranslet implements Translet {
 	return(index);
     }
 
+    private void setRootForKeys(int root) {
+        _currentRootForKeys = root;
+    }
+
     /**
      * This method builds key indexes - it is overridden in the compiled
      * translet in cases where the <xsl:key> element is used
@@ -497,8 +505,7 @@ public abstract class AbstractTranslet implements Translet {
      * translet in cases where the <xsl:key> element is used
      */
     public void setKeyIndexDom(String name, DOM document) {
-    	getKeyIndex(name).setDom(document);
-			  	
+    	getKeyIndex(name).setDom(document, document.getDocument());			  	
     }
 
     /************************************************************************
@@ -591,7 +598,11 @@ public abstract class AbstractTranslet implements Translet {
      */
     public final void transform(DOM document, SerializationHandler handler) 
 	throws TransletException {
-	transform(document, document.getIterator(), handler);
+        try {
+            transform(document, document.getIterator(), handler);
+        } finally {
+            _keyIndexes = null;
+        }
     }
 	
     /**
@@ -649,7 +660,7 @@ public abstract class AbstractTranslet implements Translet {
 		    handler.setVersion(_version);
 		}
 		handler.setIndent(_indent);
-        handler.setIndentAmount(_indentamount);
+		handler.setIndentAmount(_indentamount);
 		if (_doctypeSystem != null) {
 		    handler.setDoctype(_doctypeSystem, _doctypePublic);
 		}
@@ -722,19 +733,19 @@ public abstract class AbstractTranslet implements Translet {
     public void setTemplates(Templates templates) {
     	_templates = templates;
     }    
-      
-   /************************************************************************
-    * DOMImplementation caching for basis library
-    ************************************************************************/
-    protected DOMImplementation _domImplementation = null;      
+    
+    /************************************************************************
+     * DOMImplementation caching for basis library
+     ************************************************************************/
+    protected DOMImplementation _domImplementation = null;
     
     public Document newDocument(String uri, String qname) 
-          throws ParserConfigurationException 
+        throws ParserConfigurationException 
     {
         if (_domImplementation == null) {
             _domImplementation = DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().getDOMImplementation();
-        }       
-        return _domImplementation.createDocument(uri, qname, null);   
-    }     
+        }
+        return _domImplementation.createDocument(uri, qname, null);
+    }
 }

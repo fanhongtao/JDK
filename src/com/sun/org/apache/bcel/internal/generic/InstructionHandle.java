@@ -71,7 +71,7 @@ import java.util.HashMap;
  * can traverse the list via an Enumeration returned by
  * InstructionList.elements().
  *
- * @version $Id: InstructionHandle.java,v 1.1.1.1 2001/10/29 20:00:19 jvanzyl Exp $
+ * @version $Id: InstructionHandle.java,v 1.1.2.1 2005/07/31 23:45:01 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Instruction
  * @see BranchHandle

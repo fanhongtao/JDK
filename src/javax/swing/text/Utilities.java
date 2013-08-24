@@ -1,7 +1,7 @@
 /*
- * @(#)Utilities.java	1.49 06/04/10
+ * @(#)Utilities.java	1.52 06/03/01
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -23,14 +23,14 @@ import java.text.*;
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 import javax.swing.text.ParagraphView.Row;
-import com.sun.java.swing.SwingUtilities2;
+import sun.swing.SwingUtilities2;
 
 /**
  * A collection of methods to deal with various text
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.49 04/10/06
+ * @version 1.52 03/01/06
  */
 public class Utilities {
     /**
@@ -456,7 +456,10 @@ public class Utilities {
 	int lastOffs = offs;
 	int y = r.y;
 	while ((r != null) && (y == r.y)) {
-	    offs = lastOffs;
+            // Skip invisible elements
+            if(r.height !=0) {
+	        offs = lastOffs;
+            }
 	    lastOffs -= 1;
 	    r = (lastOffs >= 0) ? c.modelToView(lastOffs) : null;
 	}
@@ -484,7 +487,10 @@ public class Utilities {
 	int lastOffs = offs;
 	int y = r.y;
 	while ((r != null) && (y == r.y)) {
-	    offs = lastOffs;
+            // Skip invisible elements
+            if (r.height !=0) {
+	        offs = lastOffs;
+            }
 	    lastOffs += 1;
 	    r = (lastOffs <= n) ? c.modelToView(lastOffs) : null;
 	}

@@ -1,7 +1,7 @@
 /*
- * @(#)RMIConnectorServer.java	1.61 04/06/21
+ * @(#)RMIConnectorServer.java	1.69 05/12/30
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -102,7 +102,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
      *
      * @exception MalformedURLException if <code>url</code> does not
      * conform to the syntax for an RMI connector, or if its protocol
-     * is not recognized by this implementation. Only "rmi" and "jrmp"
+     * is not recognized by this implementation. Only "rmi" and "iiop"
      * are valid when this constructor is used.
      *
      * @exception IOException if the connector server cannot be created
@@ -136,7 +136,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
      *
      * @exception MalformedURLException if <code>url</code> does not
      * conform to the syntax for an RMI connector, or if its protocol
-     * is not recognized by this implementation. Only "rmi" and "jrmp"
+     * is not recognized by this implementation. Only "rmi" and "iiop"
      * are valid when this constructor is used.
      *
      * @exception IOException if the connector server cannot be created
@@ -174,7 +174,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
      *
      * @exception MalformedURLException if <code>url</code> does not
      * conform to the syntax for an RMI connector, or if its protocol
-     * is not recognized by this implementation. Only "rmi" and "jrmp"
+     * is not recognized by this implementation. Only "rmi" and "iiop"
      * are recognized when <var>rmiServerImpl</var> is null.
      *
      * @exception IOException if the connector server cannot be created
@@ -242,7 +242,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
      * stub cannot be created.
      **/
     public JMXConnector toJMXConnector(Map<String,?> env) throws IOException {
-        // The serialized for of rmiServerImpl is automagically
+        // The serialized for of rmiServerImpl is automatically
         // a RMI server stub.
         if (!isActive()) throw new 
             IllegalStateException("Connector is not active");
@@ -271,7 +271,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
      * when the connector server has been stopped will generate an
      * <code>IOException</code>.</p>
      *
-     * <p>The behaviour of this method when called for the first time
+     * <p>The behavior of this method when called for the first time
      * depends on the parameters that were supplied at construction,
      * as described below.</p>
      *
@@ -335,8 +335,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
 	    throw new IOException("The server has been stopped.");
 	}
 
-        MBeanServer mbs = getMBeanServer();
-        if (mbs == null)
+        if (getMBeanServer() == null)
 	    throw new IllegalStateException("This connector server is not " +
 					    "attached to an MBean server");
 
@@ -356,24 +355,23 @@ public class RMIConnectorServer extends JMXConnectorServer {
 		try {
 		    mbsf = new MBeanServerFileAccessController(accessFile);
 		} catch (IOException e) {
-		    throw (IllegalArgumentException)
-			EnvHelp.initCause(
-			   new IllegalArgumentException(e.getMessage()), e);
+		    throw EnvHelp.initCause(
+                        new IllegalArgumentException(e.getMessage()), e);
 		}
 		// Set the MBeanServerForwarder
 		//
 		setMBeanServerForwarder(mbsf);
-		mbs = getMBeanServer();
 	    }
 	}
 
         try {
 	    if (tracing) logger.trace("start", "setting default class loader");
-            defaultClassLoader = EnvHelp.resolveServerClassLoader(attributes, mbs);
+            defaultClassLoader =
+                EnvHelp.resolveServerClassLoader(attributes, getMBeanServer());
         } catch (InstanceNotFoundException infc) {
             IllegalArgumentException x = new 
                 IllegalArgumentException("ClassLoader not found: "+infc);
-            throw (IllegalArgumentException)EnvHelp.initCause(x,infc);
+            throw EnvHelp.initCause(x,infc);
         }
 
 	if (tracing) logger.trace("start", "setting RMIServer object");
@@ -384,7 +382,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
 	else
             rmiServer = newServer();
 
-        rmiServer.setMBeanServer(mbs);
+        rmiServer.setMBeanServer(getMBeanServer());
         rmiServer.setDefaultClassLoader(defaultClassLoader);
 	rmiServer.setRMIConnectorServer(this);
 	rmiServer.export();
@@ -399,16 +397,9 @@ public class RMIConnectorServer extends JMXConnectorServer {
                 if (tracing)
                     logger.trace("start", "Using external directory: " + jndiUrl);
 
-                final boolean rebind;
-
-                String rebindS = (String)
-                    attributes.get(JNDI_REBIND_ATTRIBUTE);
-                if (rebindS == null)                        rebind = false;
-                else if (rebindS.equalsIgnoreCase("true"))  rebind = true;
-                else if (rebindS.equalsIgnoreCase("false")) rebind = false;
-                else throw new
-                    IllegalArgumentException(JNDI_REBIND_ATTRIBUTE + "must" +
-                                             " be \"true\" or \"false\"");
+                final boolean rebind = EnvHelp.computeBooleanFromString(
+                    attributes,
+                    JNDI_REBIND_ATTRIBUTE);
 
                 if (tracing)
                     logger.trace("start", JNDI_REBIND_ATTRIBUTE + "=" + rebind);
@@ -417,14 +408,9 @@ public class RMIConnectorServer extends JMXConnectorServer {
                     if (tracing) logger.trace("start", "binding to " + jndiUrl);
 
                     final Hashtable usemap = EnvHelp.mapToHashtable(attributes);
-                    final boolean isIiop = isIiopURL(address, true);
-                    if (isIiop) {
-                        // Make sure java.naming.corba.orb is in the Map.
-                        usemap.put(EnvHelp.DEFAULT_ORB,
-                                   RMIConnector.resolveOrb(attributes));
-                    }
-
+                    
                     bind(jndiUrl, usemap, objref, rebind);
+                    
                     boundJndiUrl = jndiUrl;
                 } catch (NamingException e) {
                     // fit e in the nested exception if we are on 1.4
@@ -554,15 +540,12 @@ public class RMIConnectorServer extends JMXConnectorServer {
 			  "unbind from external directory: " + boundJndiUrl);
 		
 		final Hashtable usemap = EnvHelp.mapToHashtable(attributes);
-		final boolean isIiop = isIiopURL(address, true);
-		if (isIiop) {
-		    // Make sure java.naming.corba.orb is in the Map.
-		    usemap.put(EnvHelp.DEFAULT_ORB, 
-			       RMIConnector.resolveOrb(attributes));
-		}
+		
                 InitialContext ctx = 
                     new InitialContext(usemap);
+                
                 ctx.unbind(boundJndiUrl);
+                
                 ctx.close();
             } catch (NamingException e) {
 		if (tracing) logger.trace("stop", "failed to unbind RMI server: "+e);
@@ -591,6 +574,13 @@ public class RMIConnectorServer extends JMXConnectorServer {
     public Map<String,?> getAttributes() {
 	Map map = EnvHelp.filterAttributes(attributes);
         return Collections.unmodifiableMap(map);
+    }
+
+    public synchronized
+        void setMBeanServerForwarder(MBeanServerForwarder mbsf) {
+        super.setMBeanServerForwarder(mbsf);
+        if (rmiServerImpl != null)
+            rmiServerImpl.setMBeanServer(getMBeanServer());
     }
 
     /* We repeat the definitions of connection{Opened,Closed,Failed}
@@ -812,7 +802,7 @@ public class RMIConnectorServer extends JMXConnectorServer {
     private static IOException newIOException(String message, 
                                               Throwable cause) {
         final IOException x = new IOException(message);
-        return (IOException)EnvHelp.initCause(x,cause);
+        return EnvHelp.initCause(x,cause);
     }
 
 

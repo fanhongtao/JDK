@@ -1,7 +1,7 @@
 /*
- * @(#)BorderFactory.java	1.30 03/12/19
+ * @(#)BorderFactory.java	1.35 05/11/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -20,7 +20,7 @@ import javax.swing.border.*;
  to Use Borders</a>,
  * a section in <em>The Java Tutorial</em>.
  *
- * @version 1.30 12/19/03
+ * @version 1.35 11/17/05
  * @author David Kloba
  */
 public class BorderFactory 
@@ -236,11 +236,11 @@ public class BorderFactory
 
 //// TitledBorder ////////////////////////////////////////////////////////////
     /**
-     * Creates a new title border specifying the text of the title, using
-     * the default border (etched), using the default text position
-     * (sitting on the top
-     * line) and default justification (leading) and using the default
-     * font and text color determined by the current look and feel.
+     * Creates a new titled border with the specified title,
+     * the default border type (determined by the current look and feel),
+     * the default text position (sitting on the top line),
+     * the default justification (leading), and the default
+     * font and text color (determined by the current look and feel).
      *
      * @param title      a <code>String</code> containing the text of the title
      * @return the <code>TitledBorder</code> object
@@ -250,14 +250,15 @@ public class BorderFactory
     }
 
     /**
-     * Creates a new title border with an empty title specifying the
-     * border object, using the default text position (sitting on the top
-     * line) and default justification (leading) and using the default
-     * font, and text color.
+     * Creates a new titled border with an empty title,
+     * the specified border object,
+     * the default text position (sitting on the top line),
+     * the default justification (leading), and the default
+     * font and text color (determined by the current look and feel).
      *
-     * @param border     the <code>Border</code> object to add the title to, if
-     *                   null the <code>Border</code> is determined by the
-     *                   current look and feel.
+     * @param border     the <code>Border</code> object to add the title to; if
+     *                   <code>null</code> the <code>Border</code> is determined
+     *                   by the current look and feel.
      * @return the <code>TitledBorder</code> object
      */
     public static TitledBorder createTitledBorder(Border border)       {
@@ -265,10 +266,10 @@ public class BorderFactory
     }
 
     /**
-     * Adds a title to an existing border, specifying the text of
-     * the title, using the default positioning (sitting on the top
-     * line) and default justification (leading) and using the default
-     * font and text color determined by the current look and feel.
+     * Adds a title to an existing border,
+     * with default positioning (sitting on the top line),
+     * default justification (leading) and the default
+     * font and text color (determined by the current look and feel).
      *
      * @param border     the <code>Border</code> object to add the title to
      * @param title      a <code>String</code> containing the text of the title
@@ -280,9 +281,9 @@ public class BorderFactory
     }
 
     /**
-     * Adds a title to an existing border, specifying the text of
-     * the title along with its positioning, using the default
-     * font and text color determined by the current look and feel.
+     * Adds a title to an existing border, with the specified
+     * positioning and using the default
+     * font and text color (determined by the current look and feel).
      *
      * @param border      the <code>Border</code> object to add the title to
      * @param title       a <code>String</code> containing the text of the title
@@ -293,14 +294,14 @@ public class BorderFactory
      *<li><code>TitledBorder.CENTER</code>
      *<li><code>TitledBorder.RIGHT</code>
      *<li><code>TitledBorder.LEADING</code>
-     *<li><code>TitledBorder.TRAILING<code>
+     *<li><code>TitledBorder.TRAILING</code>
      *<li><code>TitledBorder.DEFAULT_JUSTIFICATION</code> (leading)
      *</ul>
      * @param titlePosition       an integer specifying the vertical position of
      *        the text in relation to the border -- one of the following:
      *<ul>
      *<li><code> TitledBorder.ABOVE_TOP</code>
-     *<li>TitledBorder.TOP</code> (sitting on the top line)
+     *<li><code>TitledBorder.TOP</code> (sitting on the top line)
      *<li><code>TitledBorder.BELOW_TOP</code>
      *<li><code>TitledBorder.ABOVE_BOTTOM</code>
      *<li><code>TitledBorder.BOTTOM</code> (sitting on the bottom line)
@@ -318,9 +319,9 @@ public class BorderFactory
     }
 
     /**
-     * Adds a title to an existing border, specifying the text of
-     * the title along with its positioning and font, using the
-     * default text color determined by the current look and feel.
+     * Adds a title to an existing border, with the specified
+     * positioning and font, and using the default text color
+     * (determined by the current look and feel).
      *
      * @param border      the <code>Border</code> object to add the title to
      * @param title       a <code>String</code> containing the text of the title
@@ -331,14 +332,14 @@ public class BorderFactory
      *<li><code>TitledBorder.CENTER</code>
      *<li><code>TitledBorder.RIGHT</code>
      *<li><code>TitledBorder.LEADING</code>
-     *<li><code>TitledBorder.TRAILING<code>
+     *<li><code>TitledBorder.TRAILING</code>
      *<li><code>TitledBorder.DEFAULT_JUSTIFICATION</code> (leading)
      *</ul>
      * @param titlePosition       an integer specifying the vertical position of
      *        the text in relation to the border -- one of the following:
      *<ul>
      *<li><code> TitledBorder.ABOVE_TOP</code>
-     *<li>TitledBorder.TOP</code> (sitting on the top line)
+     *<li><code>TitledBorder.TOP</code> (sitting on the top line)
      *<li><code>TitledBorder.BELOW_TOP</code>
      *<li><code>TitledBorder.ABOVE_BOTTOM</code>
      *<li><code>TitledBorder.BOTTOM</code> (sitting on the bottom line)
@@ -358,8 +359,8 @@ public class BorderFactory
     }
 
     /**
-     * Adds a title to an existing border, specifying the text of
-     * the title along with its positioning, font, and color.
+     * Adds a title to an existing border, with the specified
+     * positioning, font and color.
      *
      * @param border      the <code>Border</code> object to add the title to
      * @param title       a <code>String</code> containing the text of the title
@@ -370,14 +371,14 @@ public class BorderFactory
      *<li><code>TitledBorder.CENTER</code>
      *<li><code>TitledBorder.RIGHT</code>
      *<li><code>TitledBorder.LEADING</code>
-     *<li><code>TitledBorder.TRAILING<code>
+     *<li><code>TitledBorder.TRAILING</code>
      *<li><code>TitledBorder.DEFAULT_JUSTIFICATION</code> (leading)
      *</ul>
      * @param titlePosition       an integer specifying the vertical position of
      *        the text in relation to the border -- one of the following:
      *<ul>
      *<li><code> TitledBorder.ABOVE_TOP</code>
-     *<li>TitledBorder.TOP</code> (sitting on the top line)
+     *<li><code>TitledBorder.TOP</code> (sitting on the top line)
      *<li><code>TitledBorder.BELOW_TOP</code>
      *<li><code>TitledBorder.ABOVE_BOTTOM</code>
      *<li><code>TitledBorder.BOTTOM</code> (sitting on the bottom line)

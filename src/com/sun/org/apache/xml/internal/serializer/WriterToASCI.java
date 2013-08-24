@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: WriterToASCI.java,v 1.2 2004/02/17 04:18:18 minchau Exp $
+ * $Id: WriterToASCI.java,v 1.2.4.1 2005/09/15 08:15:31 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -29,8 +29,12 @@ import java.io.Writer;
  * moment it does not do buffering, though I reserve the right to do some
  * buffering down the line if I can prove that it will be faster even if the
  * output stream is buffered.
+ * 
+ * This class is only used internally within Xalan.
+ * 
+ * @xsl.usage internal
  */
-public class WriterToASCI extends Writer
+class WriterToASCI extends Writer implements WriterChain
 {
 
   /** The byte stream to write to.  */
@@ -89,7 +93,7 @@ public class WriterToASCI extends Writer
   /**
    * Write a string.
    *
-   * @param  str  String to be written
+   * @param  s String to be written
    *
    * @exception  IOException  If an I/O error occurs
    */
@@ -139,4 +143,11 @@ public class WriterToASCI extends Writer
     return m_os;
   }
 
+  /**
+   * Get the writer that this writer directly chains to.
+   */
+  public Writer getWriter()
+  {
+      return null;
+  }
 }
