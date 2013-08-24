@@ -1,5 +1,5 @@
 /*
- * @(#)CorbaMessageMediatorImpl.java	1.98 04/06/21
+ * @(#)CorbaMessageMediatorImpl.java	1.99 08/10/03
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1648,7 +1648,9 @@ public class CorbaMessageMediatorImpl
 	((CDRInputObject)messageMediator.getInputObject()).unmarshalHeader();
 
         ORB orb = (ORB)messageMediator.getBroker();
-	orb.checkShutdownState();
+	synchronized (orb) {
+	    orb.checkShutdownState();
+	}
 
 	ObjectKey okey = messageMediator.getObjectKey();
         if (orb.subcontractDebugFlag) {

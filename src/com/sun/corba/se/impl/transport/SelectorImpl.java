@@ -1,5 +1,5 @@
 /*
- * @(#)SelectorImpl.java	1.17 04/04/07
+ * @(#)SelectorImpl.java	1.18 08/10/03
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -50,7 +50,7 @@ public class SelectorImpl
     private HashMap listenerThreads;
     private HashMap readerThreads;
     private boolean selectorStarted;
-    private boolean closed;
+    private volatile boolean closed;
     private ORBUtilSystemException wrapper ;
 
 

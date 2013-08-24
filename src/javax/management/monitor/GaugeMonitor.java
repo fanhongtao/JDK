@@ -1,5 +1,5 @@
 /*
- * @(#)GaugeMonitor.java	1.73 04/05/18
+ * @(#)GaugeMonitor.java	1.74 09/01/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -72,7 +72,7 @@ import javax.management.ReflectionException;
  * (<CODE>Byte</CODE>, <CODE>Integer</CODE>, <CODE>Short</CODE>,
  * <CODE>Long</CODE>, <CODE>Float</CODE>, <CODE>Double</CODE>).
  *
- * @version     1.73     05/18/04
+ * @version     1.74     01/12/09
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -518,20 +518,27 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      * name of the Java class of the notification and the notification
      * types sent by the gauge monitor.
      */
-    public MBeanNotificationInfo[] getNotificationInfo() {
-        String[] types  = { MonitorNotification.RUNTIME_ERROR,
-                            MonitorNotification.OBSERVED_OBJECT_ERROR,
-                            MonitorNotification.OBSERVED_ATTRIBUTE_ERROR,
-                            MonitorNotification.OBSERVED_ATTRIBUTE_TYPE_ERROR,
-                            MonitorNotification.THRESHOLD_ERROR,
-                            MonitorNotification.THRESHOLD_HIGH_VALUE_EXCEEDED,
-                            MonitorNotification.THRESHOLD_LOW_VALUE_EXCEEDED};
-        MBeanNotificationInfo[] notifsInfo = {
-	    new MBeanNotificationInfo(types,
-				      "javax.management.monitor.MonitorNotification",
-				      "Notifications sent by the GaugeMonitor MBean")
+
+
+    private static final   String[] types  = {
+            MonitorNotification.RUNTIME_ERROR,
+            MonitorNotification.OBSERVED_OBJECT_ERROR,
+            MonitorNotification.OBSERVED_ATTRIBUTE_ERROR,
+            MonitorNotification.OBSERVED_ATTRIBUTE_TYPE_ERROR,
+            MonitorNotification.THRESHOLD_ERROR,
+            MonitorNotification.THRESHOLD_HIGH_VALUE_EXCEEDED,
+            MonitorNotification.THRESHOLD_LOW_VALUE_EXCEEDED
+     };
+
+    private static final    MBeanNotificationInfo[] notifsInfo = {
+        new MBeanNotificationInfo(
+            types,
+	    "javax.management.monitor.MonitorNotification",
+	    "Notifications sent by the GaugeMonitor MBean")
 	};
-        return notifsInfo;
+
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return notifsInfo.clone();
     }
 
     /*

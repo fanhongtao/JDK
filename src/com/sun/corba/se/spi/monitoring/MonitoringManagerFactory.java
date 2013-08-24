@@ -1,5 +1,5 @@
 /*
- * @(#)MonitoringManagerFactory.java	1.2 03/12/19
+ * @(#)MonitoringManagerFactory.java	1.3 08/10/03
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,4 +22,6 @@ public interface MonitoringManagerFactory {
      */
     MonitoringManager createMonitoringManager( String nameOfTheRoot,
         String description );
+
+    void remove( String nameOfTheRoot ) ;
 }

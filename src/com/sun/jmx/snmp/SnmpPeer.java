@@ -1,8 +1,8 @@
 /*
  * @(#)file      SnmpPeer.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   3.42
- * @(#)date      04/09/15
+ * @(#)version   3.43
+ * @(#)date      09/02/25
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,13 +18,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.Serializable;
 
-// JMX imports
-//
-import com.sun.jmx.snmp.SnmpPduFactory ;
-
-// SNMP Runtime imports
-//
-import com.sun.jmx.snmp.SnmpPduFactoryBER ;
 
 /**
  * Holds information about an SNMP agent. This information is used to communicate with the agent.  
@@ -78,13 +71,13 @@ public class SnmpPeer implements Serializable {
      * <BR>The maximum size is initially set to Ethernet maximum transfer unit (MTU).   
      */
      
-    public static int defaultSnmpRequestPktSize = 2 * 1024 ;
+    public static final int defaultSnmpRequestPktSize = 2 * 1024 ;
 
     /**
      * The default SNMP packet size of an SNMP response (8 * 1024).
      * <BR>This will be the default size that the session socket uses when receiving a packet.
      */
-    public static int defaultSnmpResponsePktSize = 8 * 1024 ;
+    public static final int defaultSnmpResponsePktSize = 8 * 1024 ;
     
     
     // PRIVATE VARIABLES
@@ -271,26 +264,6 @@ public class SnmpPeer implements Serializable {
         return _snmpParameter.allowSnmpSets() ;
     }
 
-    /**
-     * Compares the two peer objects to determine whether they are the same. This is used
-     * to determine whether requests can be multiplexed.
-     * @param obj The object to compare <CODE>this</CODE> with.
-     * @return <CODE>true</CODE> if they are referring to same peer and using same address;
-     * <CODE>false</CODE> otherwise.
-     */
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true ;
-        /*
-          if (obj instanceof SnmpPeer) {
-          SnmpPeer peer = (SnmpPeer) obj ;
-          if (_devAddr.equals(peer.getDestAddr()) && 
-          portNum == peer.getDestPort())
-          return true ;
-          }
-        */
-        return false ;
-    }
 
     /**
      * Gets the list of alternate <CODE>InetAddress</CODE> configured for this peer.

@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.36 07/03/09
+ * @(#)DefaultKeyboardFocusManager.java	1.37 08/04/08
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.awt.SunToolkit;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.36, 03/09/07
+ * @version 1.37, 04/08/08
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -1001,7 +1001,12 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     focusNextComponent(focusedComponent);
                 }
                 return;
-            }
+            } else if (e.getID() == KeyEvent.KEY_PRESSED) 
+		    {
+		        // Fix for 6637607: consumeNextKeyTyped should be reset.
+		        consumeNextKeyTyped = false;
+			}
+
 
             toTest = focusedComponent.getFocusTraversalKeys(
                 KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);

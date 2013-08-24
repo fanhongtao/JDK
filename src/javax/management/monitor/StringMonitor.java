@@ -1,5 +1,5 @@
 /*
- * @(#)StringMonitor.java	4.41 04/05/18
+ * @(#)StringMonitor.java	4.42 09/01/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ import javax.management.ReflectionException;
  *      the attribute value matches the string to compare value.
  * </UL>
  *
- * @version     4.41     05/18/04
+ * @version     4.42     01/12/09
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -398,7 +398,7 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      * and the notification types sent by the string monitor.
      */
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return notifsInfo;
+        return notifsInfo.clone();
     }
 
     /*

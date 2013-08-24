@@ -5,7 +5,9 @@
 
 package com.sun.corba.se.spi.orbutil.threadpool;
 
-public interface ThreadPoolManager 
+import java.io.Closeable ;
+
+public interface ThreadPoolManager extends Closeable 
 { 
     /** 
     * This method will return an instance of the threadpool given a threadpoolId, 

@@ -5,8 +5,13 @@
 
 package com.sun.corba.se.spi.orbutil.threadpool;
 
+import java.io.Closeable ;
 
-public interface ThreadPool 
+/** This interface defines a thread pool execution service.  The ORB uses this
+ * interface, which preceeds the JDK 5 ExecutorService.  Note that the close
+ * method must be called in order to reclaim thread resources.
+ */
+public interface ThreadPool extends Closeable
 { 
     /** 
     * This method will return any instance of the WorkQueue. If the ThreadPool 

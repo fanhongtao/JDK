@@ -1,5 +1,5 @@
 /*
- * @(#)MediaSize.java	1.14 04/05/05
+ * @(#)MediaSize.java	1.15 09/01/08
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -105,8 +105,10 @@ public class MediaSize extends Size2DSyntax implements Attribute {
 	if (x > y) {
 	    throw new IllegalArgumentException("X dimension > Y dimension");
 	}
-	mediaName = media;
-	mediaMap.put(mediaName, this);
+	if (media != null && mediaMap.get(media) == null) {
+	    mediaName = media;
+	    mediaMap.put(mediaName, this);
+	}
 	sizeVector.add(this);
     }
 
@@ -129,8 +131,10 @@ public class MediaSize extends Size2DSyntax implements Attribute {
 	if (x > y) {
 	    throw new IllegalArgumentException("X dimension > Y dimension");
 	}
-	mediaName = media;
-	mediaMap.put(mediaName, this);
+	if (media != null && mediaMap.get(media) == null) {
+	    mediaName = media;
+	    mediaMap.put(mediaName, this);
+	}
 	sizeVector.add(this);
     }
 

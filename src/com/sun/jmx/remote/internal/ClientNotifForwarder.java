@@ -1,5 +1,5 @@
 /*
- * @(#)ClientNotifForwarder.java	1.40 08/09/02
+ * @(#)ClientNotifForwarder.java	1.41 09/01/14
  * 
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import javax.security.auth.Subject;
@@ -35,6 +36,9 @@ import com.sun.jmx.remote.util.EnvHelp;
 
 
 public abstract class ClientNotifForwarder {
+
+    private final AccessControlContext acc;
+    
     public ClientNotifForwarder(Map env) {
 	this(null, env);
     }
@@ -63,8 +67,9 @@ public abstract class ClientNotifForwarder {
     */
     private static class LinearExecutor implements Executor {
 	public synchronized void execute(Runnable command) {
-	    if (this.command != null)
+	    if (this.command != null) {
 		throw new IllegalArgumentException("More than one command");
+            }
 	    this.command = command;
 	    if (thread == null) {
 		thread = new Thread() {
@@ -104,13 +109,15 @@ public abstract class ClientNotifForwarder {
            an Executor that executes tasks in the caller's thread.  */
 	Executor ex = (Executor)
 	    env.get("jmx.remote.x.fetch.notifications.executor");
-	if (ex == null)
+	if (ex == null) {
             ex = new LinearExecutor();
-        else if (logger.traceOn())
+        } else if (logger.traceOn()) {
             logger.trace("ClientNotifForwarder", "executor is " + ex);
+        }
 
 	this.defaultClassLoader = defaultClassLoader;
 	this.executor = ex;
+        this.acc = AccessController.getContext();
     }
 
     /**
@@ -144,7 +151,7 @@ public abstract class ClientNotifForwarder {
 
 	if (logger.traceOn()) {
 	    logger.trace("addNotificationListener",
-			 "Add the listener "+listener+" at "+name);
+			 "Add the listener " + listener + " at " + name);
 	}
 
 	infoList.put(listenerID, 
@@ -159,8 +166,7 @@ public abstract class ClientNotifForwarder {
 	init(false);
     }            
 
-    public synchronized Integer[]
-	removeNotificationListener(ObjectName name,
+    public synchronized Integer[] removeNotificationListener(ObjectName name,
 				   NotificationListener listener)
 	throws ListenerNotFoundException, IOException {
 
@@ -168,13 +174,13 @@ public abstract class ClientNotifForwarder {
 	    
 	if (logger.traceOn()) {
 	    logger.trace("removeNotificationListener",
-			 "Remove the listener "+listener+" from "+name);
+			 "Remove the listener " + listener + " from " + name);
 	}
 	    
 	ArrayList ids = new ArrayList();
 	ArrayList values = new ArrayList(infoList.values());
-	for (int i=values.size()-1; i>=0; i--) {
-	    ClientListenerInfo li = (ClientListenerInfo)values.get(i);
+	for (int i=values.size() - 1; i >= 0; i--) {
+	    ClientListenerInfo li = (ClientListenerInfo) values.get(i);
 
 	    if (li.sameAs(name, listener)) {
 		ids.add(li.getListenerID());
@@ -183,14 +189,14 @@ public abstract class ClientNotifForwarder {
 	    }
 	}
 
-	if (ids.isEmpty())
+	if (ids.isEmpty()) {
 	    throw new ListenerNotFoundException("Listener not found");
+        }
 
-	return (Integer[])ids.toArray(new Integer[0]);
+	return (Integer[]) ids.toArray(new Integer[0]);
     }
 
-    public synchronized Integer
-	removeNotificationListener(ObjectName name, 
+    public synchronized Integer removeNotificationListener(ObjectName name, 
 				   NotificationListener listener,
 				   NotificationFilter filter,
 				   Object handback)
@@ -198,7 +204,7 @@ public abstract class ClientNotifForwarder {
 
 	if (logger.traceOn()) {
 	    logger.trace("removeNotificationListener",
-			 "Remove the listener "+listener+" from "+name);
+			 "Remove the listener " + listener + " from " + name);
 	}
 
         beforeRemove();
@@ -206,10 +212,10 @@ public abstract class ClientNotifForwarder {
 	Integer id = null;
 
 	ArrayList values = new ArrayList(infoList.values());
-	for (int i=values.size()-1; i>=0; i--) {
-	    ClientListenerInfo li = (ClientListenerInfo)values.get(i);
+	for (int i=values.size() - 1; i >= 0; i--) {
+	    ClientListenerInfo li = (ClientListenerInfo) values.get(i);
 	    if (li.sameAs(name, listener, filter, handback)) {
-		id=li.getListenerID();
+		id = li.getListenerID();
 
 		infoList.remove(id);
 
@@ -217,8 +223,9 @@ public abstract class ClientNotifForwarder {
 	    }
 	}
 
-	if (id == null)
+	if (id == null) {
 	    throw new ListenerNotFoundException("Listener not found");
+        }
 
 	return id;	
     }
@@ -226,14 +233,14 @@ public abstract class ClientNotifForwarder {
     public synchronized Integer[] removeNotificationListener(ObjectName name) {
 	if (logger.traceOn()) {
 	    logger.trace("removeNotificationListener",
-			 "Remove all listeners registered at "+name);
+			 "Remove all listeners registered at " + name);
 	}
 
 	ArrayList ids = new ArrayList();
 
 	ArrayList values = new ArrayList(infoList.values());
-	for (int i=values.size()-1; i>=0; i--) {
-	    ClientListenerInfo li = (ClientListenerInfo)values.get(i);
+	for (int i=values.size() - 1; i >= 0; i--) {
+	    ClientListenerInfo li = (ClientListenerInfo) values.get(i);
 	    if (li.sameAs(name)) {
 		ids.add(li.getListenerID());
 		    
@@ -290,10 +297,10 @@ public abstract class ClientNotifForwarder {
 	final boolean trace = logger.traceOn();
 	final int len   = listenerInfos.length;
 
-	for (int i=0; i<len; i++) {
+	for (int i = 0; i < len; i++) {
 	    if (trace) {
 		logger.trace("addNotificationListeners",
-			     "Add a listener at "+
+			     "Add a listener at " +
 			     listenerInfos[i].getListenerID());
 	    }
 
@@ -355,24 +362,79 @@ public abstract class ClientNotifForwarder {
 // -------------------------------------------------
 // private classes
 // -------------------------------------------------
-    //
+//
     private class NotifFetcher implements Runnable {
+
+         private volatile boolean alreadyLogged = false;
+ 
+         private void logOnce(String msg, SecurityException x) {
+             if (alreadyLogged) return;
+             // Log only once.
+             logger.config("setContextClassLoader",msg);
+             if (x != null) logger.fine("setContextClassLoader", x);
+             alreadyLogged = true;
+         }
+ 
+         // Set new context class loader, returns previous one.
+         private final ClassLoader setContextClassLoader(final ClassLoader loader) {
+             final AccessControlContext ctxt = ClientNotifForwarder.this.acc;
+             // if ctxt is null, log a config message and throw a
+             // SecurityException.
+             if (ctxt == null) {
+                 logOnce("AccessControlContext must not be null.",null);
+                 throw new SecurityException("AccessControlContext must not be null");
+             }
+             return AccessController.doPrivileged(
+                 new PrivilegedAction<ClassLoader>() {
+                     public ClassLoader run() {
+                         try {
+                             // get context class loader - may throw
+                             // SecurityException - though unlikely.
+                             final ClassLoader previous =
+                                 Thread.currentThread().getContextClassLoader();
+ 
+                             // if nothing needs to be done, break here...
+                             if (loader == previous) return previous;
+ 
+                             // reset context class loader - may throw
+                             // SecurityException
+                             Thread.currentThread().setContextClassLoader(loader);
+                             return previous;
+                         } catch (SecurityException x) {
+                             logOnce("Permission to set ContextClassLoader missing. " +
+                                     "Notifications will not be dispatched. " +
+                                     "Please check your Java policy configuration: " +
+                                     x, x);
+                             throw x;
+                         }
+                     }
+                 }, ctxt);
+         }
+
 	public void run() {
+            final ClassLoader previous;
+            if (defaultClassLoader != null) {
+                previous = setContextClassLoader(defaultClassLoader);
+            } else {
+                previous = null;
+            }
+            try {
+                doRun();
+            } finally {
+                if (defaultClassLoader != null) {
+                    setContextClassLoader(previous);
+                }
+            }
+        }
+
+        private void doRun() {
             synchronized (ClientNotifForwarder.this) {
 		currentFetchThread = Thread.currentThread();
 
-                if (state == STARTING)
+                if (state == STARTING) {
                     setState(STARTED);
-            }
+                }
 
-	    if (defaultClassLoader != null) {
-		AccessController.doPrivileged(new PrivilegedAction() {
-			public Object run() {
-			    Thread.currentThread().
-				setContextClassLoader(defaultClassLoader);
-			    return null;
-			}
-		    });
 	    }
 
 	    NotificationResult nr = null;
@@ -387,7 +449,7 @@ public abstract class ClientNotifForwarder {
 
 		long missed = 0;
 
-		synchronized(ClientNotifForwarder.this) {
+		synchronized (ClientNotifForwarder.this) {
 		    // check sequence number.
 		    //
 		    if (clientSequenceNumber >= 0) {
@@ -400,7 +462,7 @@ public abstract class ClientNotifForwarder {
 		    final int size = infoList.size();
 		    listeners  = new HashMap(((size>len)?len:size));
 
-		    for (int i = 0 ; i < len ; i++) {
+		    for (int i = 0; i < len; i++) {
 			final TargetedNotification tn = notifs[i];
 			final Integer listenerID = tn.getListenerID();
 			
@@ -408,8 +470,9 @@ public abstract class ClientNotifForwarder {
 			if (!listenerID.equals(mbeanRemovedNotifID)) {
 			    final ListenerInfo li = 
 				(ListenerInfo) infoList.get(listenerID);
-			    if (li != null) 
+			    if (li != null) {
 				listeners.put(listenerID,li);
+                            }
 			    continue;
 			}
 			final Notification notif = tn.getNotification();
@@ -437,9 +500,9 @@ public abstract class ClientNotifForwarder {
 		}
 
 		// forward
-		for (int i = 0 ; i < len ; i++) {
+		for (int i = 0; i < len; i++) {
 		    final TargetedNotification tn = notifs[i];
-		    dispatchNotification(tn,myListenerID,listeners);
+		    dispatchNotification(tn, myListenerID, listeners);
 		}
 	    }
 
@@ -466,7 +529,9 @@ public abstract class ClientNotifForwarder {
 	    final Notification notif = tn.getNotification();
 	    final Integer listenerID = tn.getListenerID();
 	    
-	    if (listenerID.equals(myListenerID)) return;
+	    if (listenerID.equals(myListenerID)) {
+                 return;
+            }
 	    final ListenerInfo li = (ClientListenerInfo) 
 		listeners.get(listenerID);
 
@@ -492,12 +557,12 @@ public abstract class ClientNotifForwarder {
 	private NotificationResult fetchNotifs() {
 	    try {
 		NotificationResult nr = ClientNotifForwarder.this.
-		    fetchNotifs(clientSequenceNumber,maxNotifications,
+		    fetchNotifs(clientSequenceNumber, maxNotifications,
 				timeout);
 
 		if (logger.traceOn()) {
 		    logger.trace("NotifFetcher-run",
-				 "Got notifications from the server: "+nr);
+				 "Got notifications from the server: " + nr);
 		}
 
 		return nr;
@@ -512,7 +577,7 @@ public abstract class ClientNotifForwarder {
 		    logger.error("NotifFetcher-run",
 				 "Failed to fetch notification, " +
 				 "stopping thread. Error is: " + ioe, ioe);
-		    logger.debug("NotifFetcher-run",ioe);
+		    logger.debug("NotifFetcher-run", ioe);
 		}
 
 		// no more fetching
@@ -556,16 +621,18 @@ public abstract class ClientNotifForwarder {
 		} catch (ClassNotFoundException e) {
 		    logger.warning("NotifFetcher.fetchOneNotif",
 				   "Impossible exception: " + e);
-		    logger.debug("NotifFetcher.fetchOneNotif",e);
+		    logger.debug("NotifFetcher.fetchOneNotif", e);
 		    return null;
 		} catch (IOException e) {
-		    if (!shouldStop())
+		    if (!shouldStop()) {
 			logger.trace("NotifFetcher.fetchOneNotif", e);
+                    }
 		    return null;
 		}
 
-		if (shouldStop())
+		if (shouldStop()) {
 		    return null;
+                }
 
 		startSequenceNumber = nr.getNextSequenceNumber();
 
@@ -573,10 +640,11 @@ public abstract class ClientNotifForwarder {
 		    // 1 notif to skip possible missing class
 		    result = cnf.fetchNotifs(startSequenceNumber, 1, 0L);
 		} catch (Exception e) {
-		    if (e instanceof ClassNotFoundException
-			|| e instanceof NotSerializableException) {
+		    if (e instanceof ClassNotFoundException ||
+			    e instanceof NotSerializableException) {
 			logger.warning("NotifFetcher.fetchOneNotif",
-				     "Failed to deserialize a notification: "+e.toString());
+				     "Failed to deserialize a notification: " +
+                                      e.toString());
 			if (logger.traceOn()) {
 			    logger.trace("NotifFetcher.fetchOneNotif",
 					 "Failed to deserialize a notification.", e);
@@ -585,8 +653,9 @@ public abstract class ClientNotifForwarder {
 			notFoundCount++;
 			startSequenceNumber++;
 		    } else {
-			if (!shouldStop())
+			if (!shouldStop()) {
 			    logger.trace("NotifFetcher.fetchOneNotif", e);
+                        }
 			return null;
 		    }
 		}
@@ -687,8 +756,8 @@ public abstract class ClientNotifForwarder {
 		    clientSequenceNumber = nr.getNextSequenceNumber();
 		} catch (ClassNotFoundException e) {
 		    // can't happen
-		    logger.warning("init", "Impossible exception: "+ e);
-		    logger.debug("init",e);
+		    logger.warning("init", "Impossible exception: " + e);
+		    logger.debug("init", e);
 		}
 	    }
 

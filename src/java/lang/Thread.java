@@ -1372,16 +1372,24 @@ class Thread implements Runnable {
                 security.checkPermission(
                     SecurityConstants.GET_STACK_TRACE_PERMISSION);
             }
-        }
+            // optimization so we do not call in to the vm for threads that
+            // have not yet started or have terminated
+            if (!isAlive()) {
+                return EMPTY_STACK_TRACE;
+            }
+            StackTraceElement[][] stackTraceArray = dumpThreads(new Thread[] {this});
+            StackTraceElement[] stackTrace = stackTraceArray[0];
+            // a thread that was alive during the previous is alive call may have
+            // since terminated, therefore not having stacktrace.
+            if(stackTrace == null) {
+               stackTrace = EMPTY_STACK_TRACE;
+            } 
+            return stackTrace; 
 
-        if (!isAlive()) {
-            return EMPTY_STACK_TRACE;
+        } else {
+           // Don't need JVM help for current thread
+           return (new Exception()).getStackTrace();
         }
-
-        Thread[] threads = new Thread[1];
-        threads[0] = this;
-        StackTraceElement[][] result = dumpThreads(threads);
-        return result[0]; 
     }
 
     /**
@@ -1435,13 +1443,14 @@ class Thread implements Runnable {
         Map<Thread, StackTraceElement[]> m
 	    = new HashMap<Thread, StackTraceElement[]>(threads.length);
         for (int i = 0; i < threads.length; i++) {
-            if (threads[i].isAlive()) { 
-                StackTraceElement[] stackTrace = traces[i];
-                if (stackTrace == null) {
-                    stackTrace = EMPTY_STACK_TRACE;
-                } 
-                m.put(threads[i], stackTrace);
+
+            StackTraceElement[] stackTrace = traces[i];
+            if (stackTrace != null) {
+
+
+               m.put(threads[i], stackTrace);
             }
+            // else terminated so we don't put it in the map
         }
         return m;
     }

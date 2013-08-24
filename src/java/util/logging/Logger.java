@@ -1,5 +1,5 @@
 /*
- * @(#)Logger.java	1.46 06/04/12
+ * @(#)Logger.java	1.47 08/06/27
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -138,7 +138,7 @@ import java.lang.ref.WeakReference;
  * All the other logging methods are implemented as calls on this
  * log(LogRecord) method.
  *
- * @version 1.46, 04/12/06
+ * @version 1.47, 06/27/08
  * @since 1.4
  */
 
@@ -250,15 +250,10 @@ public class Logger {
      * @return a suitable Logger
      * @throws NullPointerException if the name is null.
      */
+    
     public static synchronized Logger getLogger(String name) {
 	LogManager manager = LogManager.getLogManager();
-	Logger result = manager.getLogger(name);
-	if (result == null) {
-	    result = new Logger(name, null);
-	    manager.addLogger(result);
-	    result = manager.getLogger(name);
-	}
-	return result;
+	return manager.demandLogger(name);
     }
 
     /**
@@ -290,17 +285,10 @@ public class Logger {
      * @throws IllegalArgumentException if the Logger already exists and uses
      *		   a different resource bundle name.
      * @throws NullPointerException if the name is null.
-     */
+     */    
     public static synchronized Logger getLogger(String name, String resourceBundleName) {
 	LogManager manager = LogManager.getLogManager();
-	Logger result = manager.getLogger(name);
-	if (result == null) {
-	    // Create a new logger.
-	    // Note: we may get a MissingResourceException here.
-	    result = new Logger(name, resourceBundleName);
-	    manager.addLogger(result);
-	    result = manager.getLogger(name);
-	}
+        Logger result = manager.demandLogger(name);
 	if (result.resourceBundleName == null) {
 	    // Note: we may get a MissingResourceException here.
 	    result.setupResourceInfo(resourceBundleName);
@@ -309,7 +297,7 @@ public class Logger {
 				" != " + resourceBundleName);
 	}
 	return result;
-    }
+    }    
 
 
     /**

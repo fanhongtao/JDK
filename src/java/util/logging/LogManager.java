@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.48 07/01/08
+ * @(#)LogManager.java	1.49 08/06/27
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.48, 01/08/07
+ * @version 1.49, 06/27/08
  * @since 1.4
 */
 
@@ -305,6 +305,22 @@ public class LogManager {
 	checkAccess();
 	changes.removePropertyChangeListener(l);
     }
+    
+    // Package-level method.
+    // Find or create a specified logger instance. If a logger has
+    // already been created with the given name it is returned.
+    // Otherwise a new logger instance is created and registered
+    // in the LogManager global namespace.
+    synchronized Logger demandLogger(String name) {
+        Logger result = getLogger(name);
+        if (result == null) {
+            result = new Logger(name, null);
+            addLogger(result);
+            result = getLogger(name);
+        }
+        return result;
+    }        
+    
 
     /**
      * Add a named logger.  This does nothing and returns false if a logger
@@ -396,7 +412,7 @@ public class LogManager {
 	    String pname = name.substring(0,ix2);
 	    if (getProperty(pname+".level") != null) {
 		// This pname has a level definition.  Make sure it exists.
-		Logger plogger = Logger.getLogger(pname);
+                Logger plogger = demandLogger(pname);
 	    }
             // While we are walking up the tree I can check for our
             // own root logger and get its handlers initialized too with
@@ -425,7 +441,7 @@ public class LogManager {
                             // Probably a bad level. Drop through.
                            }
                            if (getLogger(nname) == null ) {
-                               Logger nplogger=Logger.getLogger(nname);
+                               Logger nplogger=demandLogger(nname);
                                addLogger(nplogger);
                            }
                            boolean useParent = getBooleanProperty(nname + ".useParentHandlers", true);

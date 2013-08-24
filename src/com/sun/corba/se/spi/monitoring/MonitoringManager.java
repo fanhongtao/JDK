@@ -1,11 +1,12 @@
 /*
- * @(#)MonitoringManager.java	1.2 03/12/19
+ * @(#)MonitoringManager.java	1.3 08/10/03
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.corba.se.spi.monitoring;
 
+import java.io.Closeable ;
 import com.sun.corba.se.spi.orb.ORB;
 import com.sun.corba.se.spi.monitoring.MonitoredObject;
 import java.util.*;
@@ -21,7 +22,7 @@ import java.util.*;
  * @author Hemanth Puttaswamy
  * </p>
  */
-public interface MonitoringManager {
+public interface MonitoringManager extends Closeable {
 
   ///////////////////////////////////////
   // operations

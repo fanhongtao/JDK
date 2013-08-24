@@ -1,5 +1,5 @@
 /*
- * @(#)CounterMonitor.java	1.74 04/05/18
+ * @(#)CounterMonitor.java	1.75 09/01/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -63,7 +63,7 @@ import javax.management.ReflectionException;
  * attribute to be of the type integer (<CODE>Byte</CODE>,
  * <CODE>Integer</CODE>, <CODE>Short</CODE>, <CODE>Long</CODE>).
  *
- * @version     1.74     05/18/04
+ * @version     1.75     01/12/09
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -649,19 +649,28 @@ public class CounterMonitor extends Monitor implements CounterMonitorMBean {
      * name of the Java class of the notification and the notification
      * types sent by the counter monitor.
      */
+
+
+    private static final  String[] types  = {
+        MonitorNotification.RUNTIME_ERROR,
+        MonitorNotification.OBSERVED_OBJECT_ERROR,
+        MonitorNotification.OBSERVED_ATTRIBUTE_ERROR,
+        MonitorNotification.OBSERVED_ATTRIBUTE_TYPE_ERROR,
+        MonitorNotification.THRESHOLD_ERROR,
+        MonitorNotification.THRESHOLD_VALUE_EXCEEDED
+    };
+ 
+
+
+   private static final   MBeanNotificationInfo[] notifsInfo = {
+	    new MBeanNotificationInfo(
+                types,
+	        "javax.management.monitor.MonitorNotification",
+	        "Notifications sent by the CounterMonitor MBean")
+   };
+
     public MBeanNotificationInfo[] getNotificationInfo() {
-        String[] types  = { MonitorNotification.RUNTIME_ERROR,
-                            MonitorNotification.OBSERVED_OBJECT_ERROR,
-                            MonitorNotification.OBSERVED_ATTRIBUTE_ERROR,
-                            MonitorNotification.OBSERVED_ATTRIBUTE_TYPE_ERROR,
-                            MonitorNotification.THRESHOLD_ERROR,
-                            MonitorNotification.THRESHOLD_VALUE_EXCEEDED};
-        MBeanNotificationInfo[] notifsInfo = {
-	    new MBeanNotificationInfo(types,
-				      "javax.management.monitor.MonitorNotification",
-				      "Notifications sent by the CounterMonitor MBean")
-	};
-        return notifsInfo;
+        return notifsInfo.clone();
     }
 
     /*

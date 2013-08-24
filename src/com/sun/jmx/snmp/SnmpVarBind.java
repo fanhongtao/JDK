@@ -1,8 +1,8 @@
 /*
  * @(#)file      SnmpVarBind.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.12
- * @(#)date      04/09/15
+ * @(#)version   4.13
+ * @(#)date      09/02/25
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Keeps the legend for the value part of the <CODE>SnmpVarBind</CODE>.
      */
-    static final public String statusLegend[] = { "Status Mapper", "Value not initialized", 
+    static final private String statusLegend[] = { "Status Mapper", "Value not initialized", 
                                                   "Valid Value", "No such object",
                                                   "No such Instance", "End of Mib View" } ;
 
@@ -472,7 +472,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      */
     public SnmpOidRecord resolveVarName(String name) throws SnmpStatusException {
         
-        SnmpOidTable mibTable = oid.getSnmpOidTable();
+        SnmpOidTable mibTable = SnmpOid.getSnmpOidTable();
         if (mibTable == null)
             throw new SnmpStatusException(SnmpStatusException.noSuchName);
         int index = name.indexOf('.');

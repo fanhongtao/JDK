@@ -1,5 +1,5 @@
 /*
- * @(#)ORB.java	1.55 05/01/04
+ * @(#)ORB.java	1.56 08/10/03
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -206,6 +206,14 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 	globalPM.setStubFactoryFactory( false, 
 	    PresentationDefaults.getStaticStubFactoryFactory() ) ;
 	globalPM.setStubFactoryFactory( true, dynamicStubFactoryFactory ) ; 
+    }
+
+    public void destroy() {
+        wrapper = null ;
+        omgWrapper = null ;
+        typeCodeMap = null ;
+        primitiveTypeCodeConstants = null ;
+        byteBufferPool = null ;
     }
 
     /** Get the single instance of the PresentationManager
