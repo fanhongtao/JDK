@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageReader.java	1.50 09/03/06
+ * @(#)JPEGImageReader.java	1.51 09/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,6 +23,7 @@ import java.awt.Rectangle;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_Profile;
 import java.awt.color.ICC_ColorSpace;
+import java.awt.color.CMMException;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
@@ -642,6 +643,17 @@ public class JPEGImageReader extends ImageReader {
             !java.util.Arrays.equals(oldData, newData))
         {
             iccCS = new ICC_ColorSpace(newProfile);               
+            // verify new color space
+            try {
+                float[] colors = iccCS.fromRGB(new float[] {1f, 0f, 0f});
+            } catch (CMMException e) {
+                /*
+                 * Embedded profile seems to be corrupted.
+                 * Ignore this profile.
+                 */
+                iccCS = null;
+                warningOccurred(WARNING_IGNORE_INVALID_ICC);
+            }
         }       
     }
 

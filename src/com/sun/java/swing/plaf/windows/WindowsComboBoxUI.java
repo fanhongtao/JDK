@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.50 09/02/17
+ * @(#)WindowsComboBoxUI.java	1.51 09/08/10
  *
  * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.swing.DefaultLookup;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.50, 02/17/09
+ * @version 1.51, 08/10/09
  * @author Tom Santos
  * @author Igor Kushnirskiy
  */
@@ -453,7 +453,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
      */ 
     private static class WindowsComboBoxRenderer  
           extends BasicComboBoxRenderer.UIResource { 
-        private static final Object BORDER_KEY = new StringBuilder("BORDER_KEY"); 
+        private static final Object BORDER_KEY = new Object(); // BORDER_KEY
         private static final Border NULL_BORDER = new EmptyBorder(0, 0, 0, 0); 
         /** 
          * {@inheritDoc} 

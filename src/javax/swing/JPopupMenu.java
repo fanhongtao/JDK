@@ -1,5 +1,5 @@
 /*
- * @(#)JPopupMenu.java	1.191 04/05/18
+ * @(#)JPopupMenu.java	1.192 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,16 +15,11 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.beans.*;
 
-import java.util.Locale;
 import java.util.Vector;
-import java.util.Hashtable;
 import javax.accessibility.*;
 import javax.swing.plaf.PopupMenuUI;
-import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicComboPopup;
 import javax.swing.event.*;
-
-import java.applet.Applet;
 
 /**
  * An implementation of a popup menu -- a small window that pops up
@@ -53,7 +48,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.191 @(#)JPopupMenu.java	1.191
+ * @version 1.192 @(#)JPopupMenu.java	1.192
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -69,8 +64,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     /**
      * Key used in AppContext to determine if light way popups are the default.
      */
-    private static final Object defaultLWPopupEnabledKey = 
-        new StringBuffer("JPopupMenu.defaultLWPopupEnabledKey");
+    private static final Object defaultLWPopupEnabledKey = new Object(); // JPopupMenu.defaultLWPopupEnabledKey
 
     /** Bug#4425878-Property javax.swing.adjustPopupLocationToFit introduced */
     static boolean popupPostionFixDisabled = false;

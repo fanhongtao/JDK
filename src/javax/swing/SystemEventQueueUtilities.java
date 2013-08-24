@@ -1,5 +1,5 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.39 04/02/18
+ * @(#)SystemEventQueueUtilities.java	1.40 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,8 +11,6 @@ import java.awt.event.*;
 import java.awt.image.*;
 
 import java.util.*;
-
-import java.lang.reflect.InvocationTargetException;
 
 import sun.awt.AppContext;
 
@@ -34,9 +32,7 @@ class SystemEventQueueUtilities
 {
     private static final Object classLock = new Object();
 
-
-    private static final Object rootTableKey =
-                new StringBuffer("SystemEventQueueUtilties.rootTableKey");
+    private static final Object rootTableKey = new Object(); // SystemEventQueueUtilties.rootTableKey
 
     private static Map getRootTable() {
 	Map rt = (Map)AppContext.getAppContext().get(rootTableKey);

@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.248 06/05/23
+ * @(#)JComponent.java	2.251 09/08/10
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,7 +8,6 @@ package javax.swing;
 
 
 import java.util.Hashtable;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Vector;
@@ -21,10 +20,8 @@ import java.util.HashMap;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.VolatileImage;
-import java.awt.Graphics2D;
 import java.awt.peer.LightweightPeer;
 import java.awt.dnd.DropTarget;
-import java.awt.font.FontRenderContext;
 import java.beans.*;
 
 import java.applet.Applet;
@@ -168,20 +165,17 @@ public abstract class JComponent extends Container implements Serializable
     /**
      * Key used in client properties for the AncestorNotifier.
      */
-    private static final StringBuffer ANCESTOR_NOTIFIER_KEY = new StringBuffer(
-                                               "AncestorNotifier");
+    private static final Object ANCESTOR_NOTIFIER_KEY = new Object(); // AncestorNotifier
 
     /**
      * Key used in client properties for the TransferHandler.
      */
-    private static final StringBuffer TRANSFER_HANDLER_KEY = new StringBuffer(
-                                               "TransferHandler");
+    private static final Object TRANSFER_HANDLER_KEY = new Object(); // TransferHandler
 
     /**
      * Key used in client properties for the InputVerifier.
      */
-    private static final StringBuffer INPUT_VERIFIER_KEY = new StringBuffer(
-                                               "InputVerifier");
+    private static final Object INPUT_VERIFIER_KEY = new Object(); // InputVerifier
 
     /**
      * @see #readObject

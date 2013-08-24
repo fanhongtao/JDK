@@ -1,5 +1,5 @@
 /*
- * @(#)JTextComponent.java	1.213 06/04/10
+ * @(#)JTextComponent.java	1.214 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -249,7 +249,7 @@ import sun.awt.AppContext;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.213 04/10/06
+ * @version 1.214 08/10/09
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -2867,8 +2867,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         return modifiers;
     }
 
-    private static final Object KEYMAP_TABLE = 
-        new StringBuilder("JTextComponent_KeymapTable");
+    private static final Object KEYMAP_TABLE = new Object(); // JTextComponent_KeymapTable
     private JTextComponent editor;
     //
     // member variables used for on-the-spot input method 
@@ -3202,8 +3201,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	}
     }
 
-    private static final Object FOCUSED_COMPONENT = 
-        new StringBuilder("JTextComponent_FocusedComponent");
+    private static final Object FOCUSED_COMPONENT = new Object(); // JTextComponent_FocusedComponent
     
     /**
      * The default keymap that will be shared by all

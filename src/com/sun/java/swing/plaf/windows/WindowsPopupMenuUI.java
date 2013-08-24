@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsPopupMenuUI.java	1.22 07/01/18
+ * @(#)WindowsPopupMenuUI.java	1.23 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,10 +10,7 @@ package com.sun.java.swing.plaf.windows;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.KeyEventPostProcessor;
-import java.awt.KeyboardFocusManager;
 import java.awt.Window;
-import java.awt.event.KeyEvent;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
@@ -33,14 +30,13 @@ import com.sun.java.swing.plaf.windows.XPStyle.Skin;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  * 
- * @version 1.22 01/18/07
+ * @version 1.23 08/10/09
  * @author Igor Kushnirskiy
  */
 public class WindowsPopupMenuUI extends BasicPopupMenuUI {
 
     static MnemonicListener mnemonicListener = null;
-    static final Object GUTTER_OFFSET_KEY = 
-        new StringBuilder("GUTTER_OFFSET_KEY"); 
+    static final Object GUTTER_OFFSET_KEY = new Object(); // GUTTER_OFFSET_KEY
 
     public static ComponentUI createUI(JComponent c) {
 	return new WindowsPopupMenuUI();

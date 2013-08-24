@@ -1,5 +1,5 @@
 /*
- * @(#)JInternalFrame.java	1.147 04/05/18
+ * @(#)JInternalFrame.java	1.148 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,13 +8,10 @@
 package javax.swing;
  
 import java.awt.*;
-import java.awt.event.*;
 
 import java.beans.PropertyVetoException;
 import java.beans.PropertyChangeEvent;
-import java.util.EventListener;
 
-import javax.swing.border.Border;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.plaf.*;
@@ -22,7 +19,6 @@ import javax.swing.plaf.*;
 import javax.accessibility.*;
 
 import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 
 
@@ -78,7 +74,7 @@ import java.io.IOException;
  * @see JRootPane
  * @see javax.swing.RootPaneContainer
  *
- * @version 1.147 05/18/04
+ * @version 1.148 08/10/09
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo

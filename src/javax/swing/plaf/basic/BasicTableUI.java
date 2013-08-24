@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.148 06/04/18
+ * @(#)BasicTableUI.java	1.149 09/08/10
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,13 +12,10 @@ import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
 import java.util.Enumeration;
-import java.util.EventObject;
-import java.util.Hashtable;
 import java.util.TooManyListenersException;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
-import javax.swing.text.*;
 import javax.swing.table.*;
 import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
 import com.sun.java.swing.SwingUtilities2;
@@ -34,7 +31,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.148 04/18/06
+ * @version 1.149 08/10/09
  * @author Philip Milne
  * @author Shannon Hickey (improved drag recognition)
  */

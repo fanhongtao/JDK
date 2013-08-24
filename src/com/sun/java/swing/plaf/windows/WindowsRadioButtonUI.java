@@ -1,11 +1,13 @@
 /*
- * @(#)WindowsRadioButtonUI.java	1.24 03/12/19
+ * @(#)WindowsRadioButtonUI.java	1.25 09/07/30
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
+
+import sun.awt.AppContext;
 
 import javax.swing.plaf.basic.*;
 import javax.swing.*;
@@ -26,7 +28,7 @@ import java.awt.*;
  */
 public class WindowsRadioButtonUI extends BasicRadioButtonUI
 {
-    private static final WindowsRadioButtonUI windowsRadioButtonUI = new WindowsRadioButtonUI();
+    private static final Object WINDOWS_RADIO_BUTTON_UI_KEY = new Object();
 
     protected int dashedRectGapX;
     protected int dashedRectGapY;
@@ -41,6 +43,13 @@ public class WindowsRadioButtonUI extends BasicRadioButtonUI
     //          Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent c) {
+	AppContext appContext = AppContext.getAppContext();
+        WindowsRadioButtonUI windowsRadioButtonUI = 
+                (WindowsRadioButtonUI) appContext.get(WINDOWS_RADIO_BUTTON_UI_KEY);
+        if (windowsRadioButtonUI == null) {
+            windowsRadioButtonUI = new WindowsRadioButtonUI();
+            appContext.put(WINDOWS_RADIO_BUTTON_UI_KEY, windowsRadioButtonUI);
+        }
 	return windowsRadioButtonUI;
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)GTKStyle.java	1.116 04/06/24
+ * @(#)GTKStyle.java	1.117 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import sun.awt.AppContext;
  * SynthStyle implementation used in GTK. All painting is mapped to
  * a <code>GTKEngine</code>.
  *
- * @version 1.116, 06/24/04
+ * @version 1.117, 08/10/09
  * @author Scott Violet
  */
 public class GTKStyle extends DefaultSynthStyle implements GTKConstants {
@@ -1060,7 +1060,7 @@ public class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         private String key;
         private GTKIconSource[] sources;
         private static Map<String,Integer> ICON_TYPE_MAP;
-        private static final Object ICON_SIZE_KEY = new StringBuffer("IconSize");
+        private static final Object ICON_SIZE_KEY = new Object(); // IconSize
         
         GTKStockIconInfo(String key, GTKIconSource[] sources) {
             this.key = key.intern();

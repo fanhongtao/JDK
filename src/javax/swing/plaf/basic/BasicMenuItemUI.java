@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.129 07/01/18
+ * @(#)BasicMenuItemUI.java	1.130 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,6 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
 
@@ -25,7 +24,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.129 01/18/07
+ * @version 1.130 08/10/09
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.123 06/12/20
+ * @(#)BasicPopupMenuUI.java	1.124 09/08/10
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,33 +10,25 @@ package javax.swing.plaf.basic;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
-import javax.swing.plaf.basic.*;
-import javax.swing.border.*;
 
 import java.applet.Applet;
 
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.*;
 import java.awt.AWTEvent;
 import java.awt.Toolkit;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
 import java.util.*;
 
-import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
 
 /**
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.123 12/20/06
+ * @version 1.124 08/10/09
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

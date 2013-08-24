@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.110 05/05/03
+ * @(#)BasicListUI.java	1.111 09/08/10
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,6 @@ import java.awt.event.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 
-import java.util.ArrayList;
 import java.util.TooManyListenersException;
 
 import java.beans.PropertyChangeListener;
@@ -34,7 +33,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.110 05/03/05
+ * @version 1.111 08/10/09
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (improved drag recognition)

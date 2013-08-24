@@ -1,5 +1,5 @@
 /*
- * @(#)JFrame.java	1.104 03/12/19
+ * @(#)JFrame.java	1.105 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,10 +8,6 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeListener;
-import java.util.Locale;
-import java.util.Vector;
-import java.io.Serializable;
 
 import javax.accessibility.*;
 
@@ -84,7 +80,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.104 12/19/03
+ * @version 1.105 08/10/09
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -105,8 +101,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * Key into the AppContext, used to check if should provide decorations
      * by default.
      */
-    private static final Object defaultLookAndFeelDecoratedKey = 
-    	    new StringBuffer("JFrame.defaultLookAndFeelDecorated");
+    private static final Object defaultLookAndFeelDecoratedKey = new Object(); // JFrame.defaultLookAndFeelDecorated
 
     private int defaultCloseOperation = HIDE_ON_CLOSE;
 

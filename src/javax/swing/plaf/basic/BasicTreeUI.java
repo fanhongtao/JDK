@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.178 06/04/18
+ * @(#)BasicTreeUI.java	1.179 09/08/10
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,14 +14,12 @@ import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.beans.*;
-import java.io.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.TooManyListenersException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.TreeUI;
@@ -38,7 +36,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.178 04/18/06
+ * @version 1.179 08/10/09
  * @author Scott Violet
  * @author Shannon Hickey (improved drag recognition)
  */

@@ -1,5 +1,5 @@
 /*
- * @(#)KeyboardFocusManager.java	1.66 07/03/13
+ * @(#)KeyboardFocusManager.java	1.68 09/09/09
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -67,7 +67,7 @@ import java.security.PrivilegedAction;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.66, 03/13/07 
+ * @version 1.68, 09/09/09 
  *
  * @see Window
  * @see Frame
@@ -570,8 +570,10 @@ public abstract class KeyboardFocusManager
     }
 
     void setNativeFocusOwner(Component comp) {
-        focusLog.log(Level.FINEST, "Calling peer {0} setCurrentFocusOwner for {1}",
-                     new Object[] {peer, comp});
+	if (focusLog.isLoggable(Level.FINEST)) {
+            focusLog.log(Level.FINEST, "Calling peer {0} setCurrentFocusOwner for {1}",
+                     new Object[] {String.valueOf(peer), String.valueOf(comp)});
+	}
         peer.setCurrentFocusOwner(comp);
     }
       
@@ -2276,22 +2278,22 @@ public abstract class KeyboardFocusManager
         Window nativeFocusedWindow = thisManager.getNativeFocusedWindow();
         if (focusLog.isLoggable(Level.FINER)) {
             focusLog.log(Level.FINER, "SNFH for {0} in {1}", 
-                         new Object[] {descendant, heavyweight});
+                         new Object[] {String.valueOf(descendant), String.valueOf(heavyweight)});
         }
         if (focusLog.isLoggable(Level.FINEST)) {
             focusLog.log(Level.FINEST, "0. Current focus owner {0}", 
-                         currentFocusOwner);
+                         String.valueOf(currentFocusOwner));
             focusLog.log(Level.FINEST, "0. Native focus owner {0}", 
-                         nativeFocusOwner);
+                         String.valueOf(nativeFocusOwner));
             focusLog.log(Level.FINEST, "0. Native focused window {0}", 
-                         nativeFocusedWindow);
+                         String.valueOf(nativeFocusedWindow));
         }
         synchronized (heavyweightRequests) {
             HeavyweightFocusRequest hwFocusRequest = (HeavyweightFocusRequest)
                 ((heavyweightRequests.size() > 0)
                  ? heavyweightRequests.getLast() : null);
             if (focusLog.isLoggable(Level.FINEST)) {
-                focusLog.log(Level.FINEST, "Request {0}", hwFocusRequest);
+                focusLog.log(Level.FINEST, "Request {0}", String.valueOf(hwFocusRequest));
             }
             if (hwFocusRequest == null &&
                 heavyweight == nativeFocusOwner)
@@ -2300,7 +2302,7 @@ public abstract class KeyboardFocusManager
                     // Redundant request.
                     if (focusLog.isLoggable(Level.FINEST)) {
                         focusLog.log(Level.FINEST, "1. SNFH_FAILURE for {0}", 
-                                     descendant);
+                                     String.valueOf(descendant));
                     }
                     return SNFH_FAILURE;
                 }
@@ -2331,7 +2333,7 @@ public abstract class KeyboardFocusManager
                                      newFocusOwnerEvent);
 
                 if (focusLog.isLoggable(Level.FINEST)) {
-                    focusLog.log(Level.FINEST, "2. SNFH_HANDLED for {0}", descendant);
+                    focusLog.log(Level.FINEST, "2. SNFH_HANDLED for {0}", String.valueOf(descendant));
                 }
                 return SNFH_SUCCESS_HANDLED;
             } else if (hwFocusRequest != null &&
@@ -2838,11 +2840,11 @@ public abstract class KeyboardFocusManager
         KeyboardFocusManager manager = getCurrentKeyboardFocusManager();
         if (focusLog.isLoggable(Level.FINE)) {
             if (event instanceof FocusEvent || event instanceof WindowEvent) {
-                focusLog.log(Level.FINE, ">>> {0}", new Object[] {event});
+                focusLog.log(Level.FINE, ">>> {0}", new Object[] {String.valueOf(event)});
             }
             if (focusLog.isLoggable(Level.FINER) && event instanceof KeyEvent) {
-                focusLog.log(Level.FINER, "    focus owner is {0}", new Object[] {manager.getGlobalFocusOwner()});
-                focusLog.log(Level.FINER, ">>> {0}", new Object[] {event});
+                focusLog.log(Level.FINER, "    focus owner is {0}", new Object[] {String.valueOf(manager.getGlobalFocusOwner())});
+                focusLog.log(Level.FINER, ">>> {0}", new Object[] {String.valueOf(event)});
             }
         }
 

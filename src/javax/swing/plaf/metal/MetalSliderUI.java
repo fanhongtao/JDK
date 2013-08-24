@@ -1,5 +1,5 @@
 /*
- * @(#)MetalSliderUI.java	1.36 05/10/31
+ * @(#)MetalSliderUI.java	1.37 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,23 +9,12 @@ package javax.swing.plaf.metal;
 
 import javax.swing.plaf.basic.BasicSliderUI;
 
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Dimension;
 import java.awt.Rectangle;
-import java.awt.Point;
-import java.awt.Insets;
 import java.awt.Color;
-import java.io.Serializable;
-import java.awt.IllegalComponentStateException;
-import java.awt.Polygon;
 import java.beans.*;
-
-import javax.swing.border.AbstractBorder;
-
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.plaf.*;
 
 /**
@@ -40,19 +29,20 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 10/31/05
+ * @version 1.37 08/10/09
  * @author Tom Santos
  */
 public class MetalSliderUI extends BasicSliderUI {
 
     protected final int TICK_BUFFER = 4;
     protected boolean filledSlider = false;
-    // NOTE: these next three variables are currently unused.
+    // NOTE: these next five variables are currently unused.
     protected static Color thumbColor;
     protected static Color highlightColor;
     protected static Color darkShadowColor;
     protected static int trackWidth;
     protected static int tickLength;
+    private int safeLength;
     
     protected static Icon horizThumbIcon;
     
@@ -90,7 +80,7 @@ public class MetalSliderUI extends BasicSliderUI {
 
     public void installUI( JComponent c ) {
         trackWidth = ((Integer)UIManager.get( "Slider.trackWidth" )).intValue();
-        tickLength = ((Integer)UIManager.get( "Slider.majorTickLength" )).intValue();
+        tickLength = safeLength = ((Integer)UIManager.get( "Slider.majorTickLength" )).intValue();
         horizThumbIcon = SAFE_HORIZ_THUMB_ICON =
                 UIManager.getIcon( "Slider.horizontalThumbIcon" );
         vertThumbIcon = SAFE_VERT_THUMB_ICON =
@@ -438,8 +428,8 @@ public class MetalSliderUI extends BasicSliderUI {
      * determine the tick area rectangle.
      */
     public int getTickLength() {
-        return slider.getOrientation() == JSlider.HORIZONTAL ? tickLength + TICK_BUFFER + 1 :
-        tickLength + TICK_BUFFER + 3;
+        return slider.getOrientation() == JSlider.HORIZONTAL ? safeLength + TICK_BUFFER + 1 :
+        safeLength + TICK_BUFFER + 3;
     }
 
     /**
@@ -484,22 +474,22 @@ public class MetalSliderUI extends BasicSliderUI {
 
     protected void paintMinorTickForHorizSlider( Graphics g, Rectangle tickBounds, int x ) {
         g.setColor( slider.isEnabled() ? slider.getForeground() : MetalLookAndFeel.getControlShadow() );
-        g.drawLine( x, TICK_BUFFER, x, TICK_BUFFER + (tickLength / 2) );
+        g.drawLine( x, TICK_BUFFER, x, TICK_BUFFER + (safeLength / 2) );
     }
 
     protected void paintMajorTickForHorizSlider( Graphics g, Rectangle tickBounds, int x ) {
         g.setColor( slider.isEnabled() ? slider.getForeground() : MetalLookAndFeel.getControlShadow() );
-        g.drawLine( x, TICK_BUFFER , x, TICK_BUFFER + (tickLength - 1) );
+        g.drawLine( x, TICK_BUFFER , x, TICK_BUFFER + (safeLength - 1) );
     }
 
     protected void paintMinorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
         g.setColor( slider.isEnabled() ? slider.getForeground() : MetalLookAndFeel.getControlShadow() );
 
 	if (MetalUtils.isLeftToRight(slider)) {
-	    g.drawLine( TICK_BUFFER, y, TICK_BUFFER + (tickLength / 2), y );
+            g.drawLine( TICK_BUFFER, y, TICK_BUFFER + (safeLength / 2), y );
 	}
 	else {
-	    g.drawLine( 0, y, tickLength/2, y );
+            g.drawLine( 0, y, safeLength/2, y );
 	}
     }
 
@@ -507,10 +497,10 @@ public class MetalSliderUI extends BasicSliderUI {
         g.setColor( slider.isEnabled() ? slider.getForeground() : MetalLookAndFeel.getControlShadow() );
 
 	if (MetalUtils.isLeftToRight(slider)) {
-	    g.drawLine( TICK_BUFFER, y, TICK_BUFFER + tickLength, y );
+            g.drawLine( TICK_BUFFER, y, TICK_BUFFER + safeLength, y );
 	}
 	else {
-	    g.drawLine( 0, y, tickLength, y );
+            g.drawLine( 0, y, safeLength, y );
 	}
     }
 }

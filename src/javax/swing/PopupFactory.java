@@ -1,5 +1,5 @@
 /*
- * @(#)PopupFactory.java	1.24 03/12/19
+ * @(#)PopupFactory.java	1.25 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.24 12/19/03
+ * @version 1.25 08/10/09
  * @since 1.4
  */
 public class PopupFactory {
@@ -43,8 +43,7 @@ public class PopupFactory {
      * <code>AppContext</code>. This is the key used in the
      * <code>AppContext</code> to locate the <code>PopupFactory</code>.
      */
-    private static final Object SharedInstanceKey = 
-        new StringBuffer("PopupFactory.SharedInstanceKey");
+    private static final Object SharedInstanceKey = new Object(); // PopupFactory.SharedInstanceKey
 
     /**
      * Max number of items to store in any one particular cache.
@@ -75,10 +74,9 @@ public class PopupFactory {
      * Key used for client property to force heavy weight popups for a
      * component.
      */
-    static final StringBuffer forceHeavyWeightPopupKey =
-            new StringBuffer("__force_heavy_weight_popup__");
+    static final Object forceHeavyWeightPopupKey = new Object(); // __force_heavy_weight_popup__
 
-
+ 
     /**
      * Sets the <code>PopupFactory</code> that will be used to obtain
      * <code>Popup</code>s.
@@ -280,8 +278,7 @@ public class PopupFactory {
      * Popup implementation that uses a Window as the popup.
      */
     private static class HeavyWeightPopup extends Popup {
-        private static final Object heavyWeightPopupCacheKey = 
-                 new StringBuffer("PopupFactory.heavyWeightPopupCache");
+        private static final Object heavyWeightPopupCacheKey = new Object(); // PopupFactory.heavyWeightPopupCache
 
         /**
          * Returns either a new or recycled <code>Popup</code> containing
@@ -607,8 +604,7 @@ public class PopupFactory {
      * Popup implementation that uses a JPanel as the popup.
      */
     private static class LightWeightPopup extends ContainerPopup {
-        private static final Object lightWeightPopupCacheKey = 
-                         new StringBuffer("PopupFactory.lightPopupCache");
+        private static final Object lightWeightPopupCacheKey = new Object(); // PopupFactory.lightPopupCache
 
         /**
          * Returns a light weight <code>Popup</code> implementation. If
@@ -761,8 +757,7 @@ public class PopupFactory {
      * Popup implementation that uses a Panel as the popup.
      */
     private static class MediumWeightPopup extends ContainerPopup {
-        private static final Object mediumWeightPopupCacheKey = 
-                             new StringBuffer("PopupFactory.mediumPopupCache");
+        private static final Object mediumWeightPopupCacheKey = new Object(); // PopupFactory.mediumPopupCache
 
         /** Child of the panel. The contents are added to this. */
 	private JRootPane rootPane;

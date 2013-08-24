@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.80 04/05/18
+ * @(#)BasicSplitPaneUI.java	1.81 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,14 +13,12 @@ import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
 import java.beans.*;
 import java.util.*;
-import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.UIResource;
@@ -29,7 +27,7 @@ import javax.swing.plaf.UIResource;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.80 05/18/04
+ * @version 1.81 08/10/09
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -88,13 +86,13 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Keys to use for forward focus traversal when the JComponent is
      * managing focus.
      */
-    private static Set managingFocusForwardTraversalKeys;
+    private Set managingFocusForwardTraversalKeys;
 
     /**
      * Keys to use for backward focus traversal when the JComponent is
      * managing focus.
      */
-    private static Set managingFocusBackwardTraversalKeys;
+    private Set managingFocusBackwardTraversalKeys;
 
 
     /**
@@ -656,7 +654,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * @return increment via keyboard methods.
      */
     int getKeyboardMoveIncrement() {
-	return KEYBOARD_DIVIDER_MOVE_OFFSET;
+        return 3;
     }
 
     /**

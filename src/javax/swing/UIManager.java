@@ -1,5 +1,5 @@
 /*
- * @(#)UIManager.java	1.115 03/12/19
+ * @(#)UIManager.java	1.116 09/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,8 +7,6 @@
 package javax.swing;
 
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Window;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.Insets;
@@ -26,20 +24,12 @@ import javax.swing.border.Border;
 
 import javax.swing.event.SwingPropertyChangeSupport;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -85,7 +75,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @see javax.swing.plaf.metal
  *
- * @version 1.115 12/19/03
+ * @version 1.116 08/10/09
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -112,6 +102,8 @@ public class UIManager implements Serializable
         LookAndFeel multiLookAndFeel = null;
         Vector auxLookAndFeels = null;
         SwingPropertyChangeSupport changeSupport;
+
+        LookAndFeelInfo[] installedLAFs;
 
         UIDefaults getLookAndFeelDefaults() { return tables[0]; }
         void setLookAndFeelDefaults(UIDefaults x) { tables[0] = x; }
@@ -147,18 +139,6 @@ public class UIManager implements Serializable
      */
     private static final Object classLock = new Object();
 
-
-    /* Cache the last referenced LAFState to improve performance 
-     * when accessing it.  The cache is based on last thread rather
-     * than last AppContext because of the cost of looking up the
-     * AppContext each time.  Since most Swing UI work is on the 
-     * EventDispatchThread, this hits often enough to justify the
-     * overhead.  (4193032)
-     */
-    private static Thread currentLAFStateThread = null;
-    private static LAFState currentLAFState = null;
-
-
     /**
      * Return the <code>LAFState</code> object, lazily create one if necessary.
      * All access to the <code>LAFState</code> fields is done via this method,
@@ -168,13 +148,6 @@ public class UIManager implements Serializable
      * </pre>
      */
     private static LAFState getLAFState() {
-	// First check whether we're running on the same thread as
-	// the last request.
-	Thread thisThread = Thread.currentThread();
-	if (thisThread == currentLAFStateThread) {
-	    return currentLAFState;
-	}
-
         LAFState rv = (LAFState)SwingUtilities.appContextGet(lafStateACKey);
         if (rv == null) {
 	    synchronized (classLock) {
@@ -185,10 +158,6 @@ public class UIManager implements Serializable
 		}
 	    }
         }
-
-	currentLAFStateThread = thisThread;
-	currentLAFState = rv;
-
 	return rv;
     }
 
@@ -346,7 +315,10 @@ public class UIManager implements Serializable
      */
     public static LookAndFeelInfo[] getInstalledLookAndFeels() {
         maybeInitialize();
-        LookAndFeelInfo[] ilafs = installedLAFs;
+        LookAndFeelInfo[] ilafs = getLAFState().installedLAFs;
+        if (ilafs == null) {
+            ilafs = installedLAFs;
+        }
         LookAndFeelInfo[] rv = new LookAndFeelInfo[ilafs.length];
         System.arraycopy(ilafs, 0, rv, 0, ilafs.length);
         return rv;
@@ -362,9 +334,10 @@ public class UIManager implements Serializable
     public static void setInstalledLookAndFeels(LookAndFeelInfo[] infos)
         throws SecurityException
     {
+        maybeInitialize();
         LookAndFeelInfo[] newInfos = new LookAndFeelInfo[infos.length];
         System.arraycopy(infos, 0, newInfos, 0, infos.length);
-        installedLAFs = newInfos;
+        getLAFState().installedLAFs = newInfos;
     }
 
 
@@ -1140,9 +1113,10 @@ public class UIManager implements Serializable
             }
         }
 
-        installedLAFs = new LookAndFeelInfo[ilafs.size()];
+        LookAndFeelInfo[] installedLAFs = new LookAndFeelInfo[ilafs.size()];
         for(int i = 0; i < ilafs.size(); i++) {
             installedLAFs[i] = (LookAndFeelInfo)(ilafs.elementAt(i));
+        getLAFState().installedLAFs = installedLAFs;
         }
     }
 

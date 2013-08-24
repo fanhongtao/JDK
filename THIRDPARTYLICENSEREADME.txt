@@ -476,7 +476,8 @@ using and/or copying this work, you (the licensee) agree that you have read,
 understood, and will comply with the following terms and conditions:
 
 Permission to use, copy, modify, and distribute this software and its
-documentation, with or without modification, for any purpose and without fee or royalty is hereby granted, provided that you include the following on ALL copies
+documentation, with or without modification, for any purpose and without fee or 
+royalty is hereby granted, provided that you include the following on ALL copies
 of the software and documentation or portions thereof, including modifications,
 that you make:
 
@@ -739,8 +740,8 @@ copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESSOR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALLBRIAN PAUL BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER INAN ACTION OF
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL BRIAN PAUL BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  
 
@@ -836,7 +837,7 @@ the terms of this License, Recipient may, so long as without derogation
 of any of SGI's rights in and to the Original Code, distribute the source 
 code and/or executable version(s) of Covered Code under (1) this License; 
 (2) a license identical to this License but for only such changes as are
-necessary in o rder to clarify Recipient's role as licensor of Modifications;
+necessary in order to clarify Recipient's role as licensor of Modifications;
 and/or (3) a license of Recipient's choosing, containing terms different from
 this License, provided that the license terms include this Section 3 and
 Sections 4, 6, 7, 10, 12, and 13, which terms may not be modified or superseded
@@ -850,7 +851,7 @@ SGI, as it has actually been granted by SGI in this License.
 3.3 Indemnity.  Recipient hereby agrees to indemnify SGI for any liability 
 incurred by SGI as a result of any such alternative license terms Recipient 
 offers.
-4.  Termination.  This License and the rig hts granted hereunder will 
+4.  Termination.  This License and the rights granted hereunder will 
 terminate automatically if Recipient breaches any term herein and fails 
 to cure such breach within 30 days thereof.  Any sublicense to the Covered 
 Code that is properly granted shall survive any termination of this License,
@@ -880,7 +881,7 @@ statutory, to which, under any applicable law, it might be deemed to have been
 subject.
 7.  Claims of Infringement.  If Recipient learns of any third party
 claim that any disposition of Covered Code and/or functionality wholly or
-partially infringes the third party's intellectual property rights, Recipi ent
+partially infringes the third party's intellectual property rights, Recipient
 will promptly notify SGI of such claim.
 8.  Versions of the License.  SGI may publish revised and/or new versions 
 of the License from time to time, each with a distinguishing version number.  
@@ -893,8 +894,9 @@ modify the terms applicable to Covered Code created under this License.
 9.  DISCLAIMER OF WARRANTY.  COVERED CODE IS PROVIDED "AS IS."  ALL EXPRESS AND
 IMPLIED WARRANTIES AND CONDITIONS ARE DISCLAIMED, INCLUDING, WITHOUT LIMITATION,
 ANY IMPLIED WARRANTIES AND CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  SGI ASSUMES NO RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE.  SHOULD THE SOFTWARE PROVE
-DEFECTIVE IN ANY RE SPECT, SGI ASSUMES NO COST OR LIABILITY FOR SERVICING,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  SGI ASSUMES NO RISK AS 
+TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE.  SHOULD THE SOFTWARE PROVE
+DEFECTIVE IN ANY RESPECT, SGI ASSUMES NO COST OR LIABILITY FOR SERVICING,
 REPAIR OR CORRECTION.  THIS DISCLAIMER OF WARRANTY IS AN ESSENTIAL PART OF THIS
 LICENSE.  NO USE OF ANY COVERED CODE IS AUTHORIZED HEREUNDER EXCEPT SUBJECT TO
 THIS DISCLAIMER.
@@ -908,7 +910,7 @@ COMMERCIAL DAMAGES OR LOSSES, EVEN IF SUCH PARTY SHALL HAVE BEEN INFORMED OF THE
 POSSIBILITY OF SUCH DAMAGES.  THIS LIMITATION OF LIABILITY SHALL NOT APPLY TO
 LIABILITY FOR DEATH OR PERSONAL INJURY RESULTING FROM SGI's NEGLIGENCE TO THE
 EXTENT APPLICABLE LAW PROHIBITS SUCH LIMITATION.  SOME JURISDICTIONS DO NOT
-ALLOW THE EXCLUSION OR LIMITATION OF INC IDENTAL OR CONSEQUENTIAL DAMAGES, SO
+ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO
 THAT EXCLUSION AND LIMITATION MAY NOT APPLY TO RECIPIENT.
 11.  Indemnity.  Recipient shall be solely responsible for damages arising, 
 directly or indirectly, out of its utilization of rights under this License.  
@@ -923,7 +925,7 @@ title 48 of the Code of Federal Regulations and all U.S.  Government End Users
 acquire only the rights set forth in this License and are subject to the terms
 of this License.
 13.  Miscellaneous.  This License represents the complete agreement concerning 
-the its subject matter.  If any provis ion of this License is held to be 
+the its subject matter.  If any provision of this License is held to be 
 unenforceable, such provision shall be reformed so as to achieve as nearly 
 as possible the same legal and economic effect as the original provision 
 and the remainder of this License will remain in effect.  This License
@@ -936,8 +938,8 @@ absent subject matter jurisdiction in such courts, the courts of the State of
 California), with venue lying exclusively in Santa Clara County, California,
 with the losing party responsible for costs, including without limitation, court
 costs and reasonable attorneys fees and expenses.  The application of the United
-Nations Convention on Contracts for the International Sale of Goods is expre
-ssly excluded.  Any law or regulation that provides that the language of a
+Nations Convention on Contracts for the International Sale of Goods is 
+expressly excluded.  Any law or regulation that provides that the language of a
 contract shall be construed against the drafter shall not apply to this License.
 Exhibit A License Applicability.  Except to the extent portions of this file are
 made subject to an alternative license as permitted in the SGI Free Software
@@ -957,7 +959,7 @@ version number, and release date], developed by Silicon Graphics, Inc.  The
 Original Code is Copyright (c) [dates of first publication, as appearing in the
 Notice in the Original Code] Silicon Graphics, Inc.  Copyright in any portions
 created by third parties is as indicated elsewhere herein.  All Rights
-Reserved.Additional Notice Provisions:  [such additional provisions, if any, as
+Reserved. Additional Notice Provisions:  [such additional provisions, if any, as
 appear in the Notice in the Original Code under the heading "Additional Notice
 Provisions"] 
 
@@ -968,53 +970,53 @@ by the terms of the license below:  Apache Software License
 /* ==================================================================== 
  * The Apache Software License, Version 1.1 
  * 
- * Copyright (c) 2001 The Apache Software Foundation.  Allrights 
+ * Copyright (c) 2001 The Apache Software Foundation.  All rights 
  * reserved.  
  * 
- * Redistribution and use in source and binary forms, withor without 
- * modification, are permitted provided that the followingconditions 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions 
  * are met:  
  * 
- * 1.  Redistributions of source code must retain the abovecopyright 
- * notice, this list of conditions and the followingdisclaimer.  
+ * 1.  Redistributions of source code must retain the above copyright 
+ * notice, this list of conditions and the following disclaimer.  
  * 
- * 2.  Redistributions in binary form must reproduce theabove copyright 
- * notice, this list of conditions and the followingdisclaimer in 
- * the documentation and/or other materials providedwith the 
+ * 2.  Redistributions in binary form must reproduce the above copyright 
+ * notice, this list of conditions and the following disclaimer in 
+ * the documentation and/or other materials provided with the 
  * distribution.
 
  * 
- * 3.  The end-user documentation included with theredistribution, 
+ * 3.  The end-user documentation included with the redistribution, 
  * if any, must include the following acknowledgment:  
  * "This product includes software developed by the 
  * Apache Software Foundation (http://www.apache.org/)."  
- * Alternately, this acknowledgment may appear in thesoftware itself, 
- * if and wherever such third-party acknowledgmentsnormally appear.  
+ * Alternately, this acknowledgment may appear in the software itself, 
+ * if and wherever such third-party acknowledgments normally appear.  
  * 
- * 4.  The names "Apache" and "Apache Software Foundation"and 
- * "Apache BCEL" must not be used to endorse or promoteproducts 
- * derived from this software without prior writtenpermission.  For 
+ * 4.  The names "Apache" and "Apache Software Foundation" and 
+ * "Apache BCEL" must not be used to endorse or promote products 
+ * derived from this software without prior written permission.  For 
  * written permission, please contact apache@apache.org.
  * 
- * 5.  Products derived from this software may not be called"Apache", 
- * "Apache BCEL", nor may "Apache" appear in their name,without 
- * prior written permission of the Apache SoftwareFoundation.  
+ * 5.  Products derived from this software may not be called "Apache", 
+ * "Apache BCEL", nor may "Apache" appear in their name, without 
+ * prior written permission of the Apache Software Foundation.  
  * 
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED ORIMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIEDWARRANTIES 
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSEARE 
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWAREFOUNDATION OR 
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF 
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVERCAUSED AND 
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICTLIABILITY, 
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING INANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THEPOSSIBILITY OF 
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+ * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR 
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF 
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND 
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE.  
  * ==================================================================== 
  * 
- * This software consists of voluntary contributions madeby many 
+ * This software consists of voluntary contributions made by many 
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org>
@@ -1186,9 +1188,9 @@ Copyright © 1995-2003 The Cryptix Foundation Limited. All rights reserved.
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-1.Redistributions of source code must retain the copyright notice, this list of
+1. Redistributions of source code must retain the copyright notice, this list of
 conditions and the following disclaimer.  
-2.Redistributions in binary form must reproduce the above copyright notice, 
+2. Redistributions in binary form must reproduce the above copyright notice, 
 this list of conditions and the following disclaimer in the documentation 
 and/or other materials provided with the distribution.
 

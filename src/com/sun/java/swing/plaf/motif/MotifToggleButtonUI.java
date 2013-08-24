@@ -1,11 +1,13 @@
 /*
- * @(#)MotifToggleButtonUI.java	1.21 03/12/19
+ * @(#)MotifToggleButtonUI.java	1.22 09/07/30
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package com.sun.java.swing.plaf.motif;
+
+import sun.awt.AppContext;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -26,12 +28,12 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 12/19/03
+ * @version 1.22 07/30/09
  * @author Rich Schiavi
  */
 public class MotifToggleButtonUI extends BasicToggleButtonUI 
 {
-    private final static MotifToggleButtonUI motifToggleButtonUI = new MotifToggleButtonUI();
+    private static final Object MOTIF_TOGGLE_BUTTON_UI_KEY = new Object();
 
     protected Color selectColor;
 
@@ -41,6 +43,13 @@ public class MotifToggleButtonUI extends BasicToggleButtonUI
     //         Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent b) {
+	AppContext appContext = AppContext.getAppContext();
+        MotifToggleButtonUI motifToggleButtonUI = 
+                (MotifToggleButtonUI) appContext.get(MOTIF_TOGGLE_BUTTON_UI_KEY);
+        if (motifToggleButtonUI == null) {
+            motifToggleButtonUI = new MotifToggleButtonUI();
+            appContext.put(MOTIF_TOGGLE_BUTTON_UI_KEY, motifToggleButtonUI);
+        }
 	return motifToggleButtonUI;
     }
 

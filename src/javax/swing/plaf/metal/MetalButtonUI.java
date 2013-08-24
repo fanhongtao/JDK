@@ -1,5 +1,5 @@
 /*
- * @(#)MetalButtonUI.java	1.37 04/04/02
+ * @(#)MetalButtonUI.java	1.38 09/07/30
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,8 @@
 package javax.swing.plaf.metal;
 
 import com.sun.java.swing.SwingUtilities2;
+import sun.awt.AppContext;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
@@ -28,24 +30,30 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.37 04/02/04
+ * @version 1.38 07/30/09
  * @author Tom Santos
  */
 public class MetalButtonUI extends BasicButtonUI {
-
-    private final static MetalButtonUI metalButtonUI = new MetalButtonUI(); 
-
     // NOTE: These are not really needed, but at this point we can't pull
     // them. Their values are updated purely for historical reasons.
     protected Color focusColor;
     protected Color selectColor;
     protected Color disabledTextColor;
  
+    private static final Object METAL_BUTTON_UI_KEY = new Object();
+
     // ********************************
     //          Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent c) {
-        return metalButtonUI;
+        AppContext appContext = AppContext.getAppContext();
+        MetalButtonUI metalButtonUI = 
+                (MetalButtonUI) appContext.get(METAL_BUTTON_UI_KEY);
+        if (metalButtonUI == null) {
+            metalButtonUI = new MetalButtonUI();
+            appContext.put(METAL_BUTTON_UI_KEY, metalButtonUI);
+        }
+	return metalButtonUI;
     }
  
     // ********************************

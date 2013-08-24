@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoader.java	1.186 04/08/02
+ * @(#)ClassLoader.java	1.187 09/08/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.lang;
@@ -135,7 +135,7 @@ import sun.security.util.SecurityConstants;
  *   "java.net.URLClassLoader$3$1"
  * </pre></blockquote>
  *
- * @version  1.186, 08/02/04
+ * @version  1.187, 08/04/09
  * @see      #resolveClass(Class)
  * @since 1.0
  */
@@ -200,6 +200,7 @@ public abstract class ClassLoader {
 	if (security != null) {
 	    security.checkCreateClassLoader();
 	}
+	if (parent != null) check(parent);
 	this.parent = parent;
 	initialized = true;
     }
@@ -610,7 +611,7 @@ public abstract class ClassLoader {
 					 ProtectionDomain protectionDomain)
 	throws ClassFormatError
     {
-	check();
+	check(this);
 	protectionDomain = preDefineClass(name, protectionDomain);
 
 	Class c = null;
@@ -692,7 +693,7 @@ public abstract class ClassLoader {
 					 ProtectionDomain protectionDomain)
 	throws ClassFormatError
     {
-	check();
+	check(this);
 
 	int len = b.remaining();
 
@@ -841,7 +842,7 @@ public abstract class ClassLoader {
      * @see  #defineClass(String, byte[], int, int)
      */
     protected final void resolveClass(Class<?> c) {
-	check();
+	check(this);
 	resolveClass0(c);
     }
 
@@ -872,7 +873,7 @@ public abstract class ClassLoader {
     protected final Class<?> findSystemClass(String name)
 	throws ClassNotFoundException
     {
-	check();
+	check(this);
 	ClassLoader system = getSystemClassLoader();
 	if (system == null) {
 	    if (!checkName(name))
@@ -885,7 +886,7 @@ public abstract class ClassLoader {
     private Class findBootstrapClass0(String name)
 	throws ClassNotFoundException
     {
-	check();
+	check(this);
 	if (!checkName(name))
 	    throw new ClassNotFoundException(name);
 	return findBootstrapClass(name);
@@ -895,10 +896,11 @@ public abstract class ClassLoader {
 	throws ClassNotFoundException;
 
     // Check to make sure the class loader has been initialized.
-    private void check() {
-	if (!initialized) {
-	    throw new SecurityException("ClassLoader object not initialized");
-	}
+    private static void check(ClassLoader cl) {
+        if (!cl.initialized) {
+            throw new SecurityException("Uninitialized class loader: " +
+                                        cl); 
+        }
     }
 
     /**
@@ -916,7 +918,7 @@ public abstract class ClassLoader {
      * @since  1.1
      */
     protected final Class<?> findLoadedClass(String name) {
-	check();
+	check(this);
 	if (!checkName(name))
 	    return null;
 	return findLoadedClass0(name);
@@ -937,7 +939,7 @@ public abstract class ClassLoader {
      * @since  1.1
      */
     protected final void setSigners(Class<?> c, Object[] signers) {
-        check();
+	check(this);
 	c.setSigners(signers);
     }
 
@@ -1521,7 +1523,7 @@ public abstract class ClassLoader {
      * the VM when it loads the library, and used by the VM to pass the correct
      * version of JNI to the native methods.  </p>
      *
-     * @version  1.186 08/02/04
+     * @version  1.187 08/04/09
      * @see      ClassLoader
      * @since    1.2
      */
