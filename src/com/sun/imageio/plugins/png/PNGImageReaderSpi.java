@@ -1,5 +1,5 @@
 /*
- * @(#)PNGImageReaderSpi.java	1.25 03/12/19
+ * @(#)PNGImageReaderSpi.java	1.26 09/05/07
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ public class PNGImageReaderSpi extends ImageReaderSpi {
               suffixes,
               MIMETypes,
               readerClassName,
-              STANDARD_INPUT_TYPE,
+              new Class[] { ImageInputStream.class },
               writerSpiNames,
               false,
               null, null,

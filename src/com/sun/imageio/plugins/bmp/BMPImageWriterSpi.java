@@ -1,5 +1,5 @@
 /*
- * @(#)BMPImageWriterSpi.java	1.3 04/05/05 05:42:00
+ * @(#)BMPImageWriterSpi.java	1.4 09/05/07 09:38:31
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,7 @@ import java.awt.image.SinglePixelPackedSampleModel;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.spi.ServiceRegistry;
 import javax.imageio.spi.IIORegistry;
+import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.ImageWriter;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.IIOException;
@@ -37,7 +38,7 @@ public class BMPImageWriterSpi extends ImageWriterSpi {
               entensions,
               mimeType,
               "com.sun.imageio.plugins.bmp.BMPImageWriter",
-              STANDARD_OUTPUT_TYPE,
+              new Class[] { ImageOutputStream.class },
               readerSpiNames,
               false,
               null, null, null, null,

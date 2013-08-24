@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleTimeZone.java	1.49 04/01/12
+ * @(#)SimpleTimeZone.java	1.50 09/06/16
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -126,7 +126,7 @@ import sun.util.calendar.Gregorian;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.49 01/12/04
+ * @version  1.50 06/16/09
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 
@@ -1355,7 +1355,7 @@ public class SimpleTimeZone extends TimeZone {
                 throw new IllegalArgumentException(
                         "Illegal start month " + startMonth);
             }
-            if (startTime < 0 || startTime >= millisPerDay) {
+            if (startTime < 0 || startTime > millisPerDay) {
                 throw new IllegalArgumentException(
                         "Illegal start time " + startTime);
             }
@@ -1402,7 +1402,7 @@ public class SimpleTimeZone extends TimeZone {
                 throw new IllegalArgumentException(
                         "Illegal end month " + endMonth);
             }
-            if (endTime < 0 || endTime >= millisPerDay) {
+            if (endTime < 0 || endTime > millisPerDay) {
                 throw new IllegalArgumentException(
                         "Illegal end time " + endTime);
             }

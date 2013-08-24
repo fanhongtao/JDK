@@ -1,7 +1,7 @@
 /*
- * @(#)Provider.java	1.64 05/04/08
+ * @(#)Provider.java	1.66 09/05/11
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,7 +62,7 @@ import java.security.cert.CertStoreParameters;
  *     <td><code>provider.getClass().getName()</code></td>
  * </table>
  *
- * @version 1.64, 04/08/05
+ * @version 1.66, 05/11/09
  * @author Benjamin Renaud
  * @author Andreas Sterbenz
  */
@@ -100,6 +100,7 @@ public abstract class Provider extends Properties {
     private transient Set entrySet = null;
     private transient int entrySetCallCount = 0;
 
+    private transient boolean initialized;
 
     /**
      * Constructs a provider with the specified name, version number,
@@ -116,6 +117,7 @@ public abstract class Provider extends Properties {
 	this.version = version;
 	this.info = info;
 	putId();
+	initialized = true;
     }
 
     /**
@@ -233,6 +235,7 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public synchronized Set<Map.Entry<Object,Object>> entrySet() {
+	checkInitialized();
 	if (entrySet == null) {
 	    if (entrySetCallCount++ == 0)  // Initial call
 		entrySet = Collections.unmodifiableMap(this).entrySet();
@@ -258,6 +261,7 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public Set<Object> keySet() {
+	checkInitialized();
 	return Collections.unmodifiableSet(super.keySet());
     }
 
@@ -268,6 +272,7 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public Collection<Object> values() {
+	checkInitialized();
 	return Collections.unmodifiableCollection(super.values());
     }
 
@@ -343,7 +348,38 @@ public abstract class Provider extends Properties {
 	return implRemove(key);
     }
 
-    private static void check(String directive) {
+    // let javadoc show doc from superclass
+    public Object get(Object key) {
+        checkInitialized();
+        return super.get(key);
+    }
+    
+    // let javadoc show doc from superclass
+    public Enumeration<Object> keys() {
+        checkInitialized();
+        return super.keys();
+    }
+
+    // let javadoc show doc from superclass
+    public Enumeration<Object> elements() {
+        checkInitialized();
+        return super.elements();
+    }
+
+    // let javadoc show doc from superclass
+    public String getProperty(String key) {
+        checkInitialized();
+        return super.getProperty(key);
+    }
+    
+    private void checkInitialized() {
+        if (!initialized) {
+            throw new IllegalStateException();
+        }
+    }
+
+    private void check(String directive) {
+        checkInitialized();
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
             security.checkSecurityAccess(directive);
@@ -367,7 +403,7 @@ public abstract class Provider extends Properties {
     private transient Map<ServiceKey,Service> legacyMap;
     
     // Set<Service>
-    // set of all services. initialized on demand, cleared on modification
+    // Unmodifiable set of all services. Initialized on demand.
     private transient Set<Service> serviceSet;
     
     // register the id attributes for this provider
@@ -380,6 +416,20 @@ public abstract class Provider extends Properties {
 	super.put("Provider.id info", String.valueOf(info));
 	super.put("Provider.id className", this.getClass().getName());
     }
+
+    private void readObject(ObjectInputStream in)
+              throws IOException, ClassNotFoundException {
+      Map<Object,Object> copy = new HashMap<Object,Object>();
+      for (Map.Entry<Object,Object> entry : super.entrySet()) {
+          copy.put(entry.getKey(), entry.getValue());
+      }
+      defaults = null;
+      in.defaultReadObject();
+      implClear();
+      initialized = true;
+      putAll(copy);
+    }
+
 
     /**
      * Copies all of the mappings from the specified Map to this provider.
@@ -423,8 +473,6 @@ public abstract class Provider extends Properties {
     }
     
     private void implClear() {
-	super.clear();
-	putId();
 	if (legacyStrings != null) {
 	    legacyStrings.clear();
 	}
@@ -437,6 +485,8 @@ public abstract class Provider extends Properties {
 	legacyChanged = false;
 	servicesChanged = false;
 	serviceSet = null;
+	super.clear();
+	putId();
     }
     
     // used as key in the serviceMap and legacyMap HashMaps
@@ -610,6 +660,7 @@ public abstract class Provider extends Properties {
      * @since 1.5
      */
     public synchronized Service getService(String type, String algorithm) {
+	checkInitialized();
 	// avoid allocating a new key object if possible
 	ServiceKey key = previousKey;
 	if (key.matches(type, algorithm) == false) {
@@ -645,20 +696,22 @@ public abstract class Provider extends Properties {
      * @since 1.5
      */
     public synchronized Set<Service> getServices() {
+	checkInitialized();
 	if (legacyChanged || servicesChanged) {
 	    serviceSet = null;
-	} else if (serviceSet != null) {
-	    return serviceSet;
 	}
-	ensureLegacyParsed();
-	serviceSet = new LinkedHashSet<Service>();
-	if (serviceMap != null) {
-	    serviceSet.addAll(serviceMap.values());
-	}
-	if (legacyMap != null) {
-	    serviceSet.addAll(legacyMap.values());
-	}
-	servicesChanged = false;
+        if (serviceSet == null) {
+            ensureLegacyParsed();
+            Set<Service> set = new LinkedHashSet<Service>();
+            if (serviceMap != null) {
+            set.addAll(serviceMap.values());
+            }
+            if (legacyMap != null) {
+            set.addAll(legacyMap.values());
+            }
+            serviceSet = Collections.unmodifiableSet(set);
+            servicesChanged = false;
+        }
 	return serviceSet;
     }
 
@@ -954,6 +1007,9 @@ public abstract class Provider extends Properties {
 	
 	// names of the supported key (super) classes
 	private Class[] supportedClasses;
+
+        // whether this service has been registered with the Provider
+        private boolean registered;
 	
 	private static final Class[] CLASS0 = new Class[0];
 	
@@ -1112,6 +1168,14 @@ public abstract class Provider extends Properties {
 	 */
 	public Object newInstance(Object constructorParameter) 
 		throws NoSuchAlgorithmException {
+            if (registered == false) {
+                if (provider.getService(type, algorithm) != this) {
+                    throw new NoSuchAlgorithmException
+                        ("Service not registered with Provider "
+                        + provider.getName() + ": " + this);
+                }
+                registered = true;
+            }
 	    try {
 		EngineDescription cap = knownEngines.get(type);
 		if (cap == null) {

@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.142 05/05/29
+ * @(#)Introspector.java	1.144 09/05/06
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,6 +25,7 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.TreeMap;
+import sun.awt.AppContext;
 import sun.reflect.misc.ReflectUtil;
 
 /**
@@ -91,9 +92,7 @@ public class Introspector {
     // Static Caches to speed up introspection.
     private static Map declaredMethodCache = 
 	Collections.synchronizedMap(new WeakHashMap());
-    private static Map beanInfoCache = 
-	Collections.synchronizedMap(new WeakHashMap());
-
+    private static final Object BEANINFO_CACHE = new Object();
     private Class beanClass;
     private BeanInfo explicitBeanInfo;
     private BeanInfo superBeanInfo;
@@ -154,10 +153,18 @@ public class Introspector {
 	if (!ReflectUtil.isPackageAccessible(beanClass)) {
 	    return (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
 	}
-	BeanInfo bi = (BeanInfo)beanInfoCache.get(beanClass);
+        Map<Class<?>, BeanInfo> map;
+        synchronized (BEANINFO_CACHE) {
+              map = (Map<Class<?>, BeanInfo>) AppContext.getAppContext().get(BEANINFO_CACHE);
+              if (map == null) {
+                  map = Collections.synchronizedMap(new WeakHashMap<Class<?>, BeanInfo>());
+                  AppContext.getAppContext().put(BEANINFO_CACHE, map);
+              }
+        }
+        BeanInfo bi = map.get(beanClass);
 	if (bi == null) {
 	    bi = (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
-	    beanInfoCache.put(beanClass, bi);
+            map.put(beanClass, bi);
 	}
 	return bi;
     }
@@ -306,7 +313,11 @@ public class Introspector {
      */
 
     public static void flushCaches() {
-	beanInfoCache.clear();
+       	 Map map = (Map) AppContext.getAppContext().get(BEANINFO_CACHE);
+         if (map != null) {
+             map.clear();
+         }
+
 	declaredMethodCache.clear();
     }
 
@@ -329,7 +340,11 @@ public class Introspector {
 	if (clz == null) {
 	    throw new NullPointerException();
 	}
-	beanInfoCache.remove(clz);
+         Map map = (Map) AppContext.getAppContext().get(BEANINFO_CACHE);
+         if (map != null) {
+             map.remove(clz);
+         }
+
 	declaredMethodCache.remove(clz);
     }
 

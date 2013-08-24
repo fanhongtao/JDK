@@ -1,7 +1,7 @@
 /*
- * @(#)Hashtable.java	1.105 03/12/19
+ * @(#)Hashtable.java	1.106 09/05/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -92,7 +92,7 @@ import java.io.*;
  * @author  Arthur van Hoff
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.105, 12/19/03
+ * @version 1.106, 05/11/09
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -839,7 +839,7 @@ public class Hashtable<K,V>
 	if (origlength > 0 && length > origlength)
 	    length = origlength;
 
-	table = new Entry[length];
+	Entry[] table = new Entry[length];
 	count = 0;
 
 	// Read the number of elements and then all the key/value objects
@@ -847,8 +847,9 @@ public class Hashtable<K,V>
 	    K key = (K)s.readObject();
 	    V value = (V)s.readObject();
             // synch could be eliminated for performance
-            reconstitutionPut(key, value); 
+            reconstitutionPut(table, key, value);
 	}
+	this.table = table;
     }
 
     /**
@@ -862,7 +863,7 @@ public class Hashtable<K,V>
      * because we are creating a new instance. Also, no return value
      * is needed.
      */
-    private void reconstitutionPut(K key, V value)
+    private void reconstitutionPut(Entry[] tab, K key, V value)
         throws StreamCorruptedException
     {
         if (value == null) {
@@ -870,7 +871,6 @@ public class Hashtable<K,V>
         }
         // Makes sure the key is not already in the hashtable.
         // This should not happen in deserialized version.
-        Entry[] tab = table;
         int hash = key.hashCode();
         int index = (hash & 0x7FFFFFFF) % tab.length;
         for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {

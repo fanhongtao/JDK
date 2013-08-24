@@ -1,7 +1,7 @@
 /*
- * @(#)Field.java	1.42 04/05/11
+ * @(#)Field.java	1.43 09/05/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,7 +63,8 @@ class Field extends AccessibleObject implements Member {
 
     // More complicated security check cache needed here than for
     // Class.newInstance() and Constructor.newInstance()
-    private volatile Class      securityCheckTargetClassCache;
+    private Class securityCheckCache;
+    private Class securityCheckTargetClassCache;
 
     // Generics infrastructure
 
@@ -949,9 +950,14 @@ class Field extends AccessibleObject implements Member {
                 Class targetClass = ((obj == null || !Modifier.isProtected(modifiers))
                                      ? clazz
                                      : obj.getClass());
-                if (securityCheckCache != caller ||
-                    targetClass != securityCheckTargetClassCache) {
-                    Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
+                synchronized (this) {
+                    if ((securityCheckCache == caller)
+                         && (securityCheckTargetClassCache == targetClass)) {
+                        return;
+                    }
+                }
+                Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
+                synchronized (this) {
                     securityCheckCache = caller;
                     securityCheckTargetClassCache = targetClass;
                 }

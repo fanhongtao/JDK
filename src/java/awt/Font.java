@@ -1,7 +1,7 @@
 /*
- * @(#)Font.java	1.202 09/01/14
+ * @(#)Font.java	1.203 09/06/16
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -134,7 +134,7 @@ import sun.font.CoreMetrics;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.202, 01/14/09
+ * @version 	1.203, 06/16/09
  */
 public class Font implements java.io.Serializable
 {
@@ -763,7 +763,9 @@ public class Font implements java.io.Serializable
              final File tFile = AccessController.doPrivileged(
                  new PrivilegedExceptionAction<File>() {
                      public File run() throws IOException {
-                         return File.createTempFile("+~JF", ".tmp", null);
+                         File tFile =  File.createTempFile("+~JF", ".tmp", null);
+                         tFile.deleteOnExit();
+                         return tFile;
                      }
                 }
             );

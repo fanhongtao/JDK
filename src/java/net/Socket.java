@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.112 07/09/11
+ * @(#)Socket.java	1.114 09/05/11
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,6 @@ package java.net;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.nio.channels.SocketChannel;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
@@ -28,7 +27,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.112, 09/11/07
+ * @version 1.114, 05/11/09
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -97,9 +96,14 @@ class Socket {
      * @since   1.5
      */
     public Socket(Proxy proxy) {
-	if (proxy != null && proxy.type() == Proxy.Type.SOCKS) {
+        // Create a copy of Proxy as a security measure
+        if (proxy == null) {
+            throw new IllegalArgumentException("Invalid Proxy");
+        }
+        Proxy p = proxy == Proxy.NO_PROXY ? proxy : sun.net.ApplicationProxy.create(proxy);
+        if (p.type() == Proxy.Type.SOCKS) {
 	    SecurityManager security = System.getSecurityManager();
-	    InetSocketAddress epoint = (InetSocketAddress) proxy.address();
+            InetSocketAddress epoint = (InetSocketAddress) p.address();
 	    if (security != null) {
 		if (epoint.isUnresolved())
 		    epoint = new InetSocketAddress(epoint.getHostName(), epoint.getPort());
@@ -109,10 +113,10 @@ class Socket {
 		    security.checkConnect(epoint.getAddress().getHostAddress(),
 				          epoint.getPort());
 	    }
-	    impl = new SocksSocketImpl(proxy);
+            impl = new SocksSocketImpl(p);
 	    impl.setSocket(this);
 	} else {
-	    if (proxy == Proxy.NO_PROXY) {
+            if (p == Proxy.NO_PROXY) {
 		if (factory == null) {
 		    impl = new PlainSocketImpl();
 		    impl.setSocket(this);

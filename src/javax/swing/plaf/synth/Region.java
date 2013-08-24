@@ -1,10 +1,12 @@
 /*
- * @(#)Region.java	1.30 04/02/19
+ * @(#)Region.java	1.31 09/04/28
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
+
+import sun.awt.AppContext;
 
 import javax.swing.*;
 import java.util.*;
@@ -45,13 +47,15 @@ import java.util.*;
  * &lt;bind style="splitPaneStyle" type="region" key="SplitPane"/>
  * </pre>
  *
- * @version 1.30, 02/19/04
+ * @version 1.31, 04/28/09
  * @since 1.5
  * @author Scott Violet
  */
 public class Region {
-    private static final Map uiToRegionMap = new HashMap();
-    private static final Map lowerCaseNameMap = new HashMap();
+    private static final Object UI_TO_REGION_MAP_KEY = 
+            new StringBuilder("uiToRegionMapKey");
+    private static final Object LOWER_CASE_NAME_MAP_KEY = 
+            new StringBuilder("lowerCaseNameMapKey");
 
     /**
      * ArrowButton's are special types of buttons that also render a
@@ -432,17 +436,21 @@ public class Region {
     private String name;
     private boolean subregion;
 
+    private static Map getMapFromAppContext(Object key) {
+        Map map = (Map) AppContext.getAppContext().get(key);
+        if (map == null) {
+            map = new HashMap();
+            AppContext.getAppContext().put(key, map);
+        }
+        return map;
+    }
 
     static Region getRegion(JComponent c) {
-        return (Region)uiToRegionMap.get(c.getUIClassID());
+        return (Region) getMapFromAppContext(UI_TO_REGION_MAP_KEY).get(c.getUIClassID());
     }
 
     static void registerUIs(UIDefaults table) {
-        Iterator uis = uiToRegionMap.keySet().iterator();
-
-        while (uis.hasNext()) {
-            Object key = uis.next();
-
+        for (Object key : getMapFromAppContext(UI_TO_REGION_MAP_KEY).keySet()) {
             table.put(key, "javax.swing.plaf.synth.SynthLookAndFeel");
         }
     }
@@ -473,7 +481,7 @@ public class Region {
         }
         this.name = name;
         if (ui != null) {
-            uiToRegionMap.put(ui, this);
+            getMapFromAppContext(UI_TO_REGION_MAP_KEY).put(ui, this);
         }
         this.subregion = subregion;
     }
@@ -503,15 +511,14 @@ public class Region {
      * Returns the name, in lowercase.
      */
     String getLowerCaseName() {
-        synchronized(lowerCaseNameMap) {
-            String lowerCaseName = (String)lowerCaseNameMap.get(this);
-            if (lowerCaseName == null) {
-                lowerCaseName = getName().toLowerCase();
-                lowerCaseNameMap.put(this, lowerCaseName);
-            }
-            return lowerCaseName;
+        Map lowerCaseNameMap = getMapFromAppContext(LOWER_CASE_NAME_MAP_KEY);
+        String lowerCaseName = (String) lowerCaseNameMap.get(this);
+        if (lowerCaseName == null) {
+            lowerCaseName = getName().toLowerCase();
+            lowerCaseNameMap.put(this, lowerCaseName);
         }
-    }
+        return lowerCaseName;
+        }
 
     /**
      * Returns the name of the Region.

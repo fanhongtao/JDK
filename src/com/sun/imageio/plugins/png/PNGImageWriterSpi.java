@@ -1,5 +1,5 @@
 /*
- * @(#)PNGImageWriterSpi.java	1.22 03/12/19
+ * @(#)PNGImageWriterSpi.java	1.23 09/05/07
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,6 +16,7 @@ import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.metadata.IIOMetadataFormat;
 import javax.imageio.metadata.IIOMetadataFormatImpl;
 import javax.imageio.spi.ImageWriterSpi;
+import javax.imageio.stream.ImageOutputStream;
 
 /**
  * @version 0.5
@@ -46,7 +47,7 @@ public class PNGImageWriterSpi extends ImageWriterSpi {
                 suffixes,
                 MIMETypes,
                 writerClassName,
-                STANDARD_OUTPUT_TYPE,
+                new Class[] { ImageOutputStream.class },
                 readerSpiNames,
                 false,
                 null, null,

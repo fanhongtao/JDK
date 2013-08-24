@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleResourceBundle.java	1.32 04/05/18
+ * @(#)AccessibleResourceBundle.java	1.33 09/04/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.util.ListResourceBundle;
  * package.  This is meant only for internal use by Java Accessibility and
  * is not meant to be used by assistive technologies or applications.
  *
- * @version     1.32 05/18/04 21:18:13
+ * @version     1.33 04/27/09 15:35:43
  * @author      Willie Walker
  * @deprecated This class is deprecated as of version 1.3 of the 
  *             Java 2 Platform.
@@ -27,15 +27,10 @@ public class AccessibleResourceBundle extends ListResourceBundle {
      * localized display strings.
      */
     public Object[][] getContents() {
-	return contents;
-    }
-
-    /** 
-     * The table holding the mapping between the programmatic keys
-     * and the display strings for the en_US locale.
-     */
-    static final Object[][] contents = {
-    // LOCALIZE THIS
+	// The table holding the mapping between the programmatic keys
+	// and the display strings for the en_US locale.
+	return new Object[][] {
+        // LOCALIZE THIS
         // Role names
 //        { "application","application" },
 //        { "border","border" },
@@ -133,6 +128,7 @@ public class AccessibleResourceBundle extends ListResourceBundle {
         { "visible","visible" },
         { "vertical","vertical" },
         { "horizontal","horizontal" }
-    // END OF MATERIAL TO LOCALIZE
-    };
+        // END OF MATERIAL TO LOCALIZE
+        };
+    }
 }

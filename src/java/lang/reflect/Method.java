@@ -1,7 +1,7 @@
 /*
- * @(#)Method.java	1.50 04/06/22
+ * @(#)Method.java	1.51 09/05/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -69,7 +69,8 @@ public final
 
     // More complicated security check cache needed here than for
     // Class.newInstance() and Constructor.newInstance()
-    private volatile Class      securityCheckTargetClassCache;
+    private Class securityCheckCache;
+    private Class securityCheckTargetClassCache;
 
     // Generics infrastructure
 
@@ -573,11 +574,17 @@ public final
                 Class targetClass = ((obj == null || !Modifier.isProtected(modifiers))
                                      ? clazz
                                      : obj.getClass());
-                if (securityCheckCache != caller ||
-                    targetClass != securityCheckTargetClassCache) {
+                boolean cached;
+                synchronized (this) {
+                    cached = (securityCheckCache == caller)
+                             && (securityCheckTargetClassCache == targetClass);
+                }
+                if (!cached) {
                     Reflection.ensureMemberAccess(caller, clazz, obj, modifiers);
-                    securityCheckCache = caller;
-                    securityCheckTargetClassCache = targetClass;
+                    synchronized (this) {
+                        securityCheckCache = caller;
+                        securityCheckTargetClassCache = targetClass;
+                    }
                 }
             }
         }

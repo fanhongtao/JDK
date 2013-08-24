@@ -1,7 +1,7 @@
 /*
- * @(#)Cursor.java	1.43 06/10/23
+ * @(#)Cursor.java	1.45 09/06/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -26,7 +26,7 @@ import sun.awt.DebugHelper;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.43, 10/23/06
+ * @version 	1.45, 06/08/09
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -102,6 +102,11 @@ public class Cursor implements java.io.Serializable {
     public static final int	MOVE_CURSOR			= 13;
 
     protected static Cursor predefined[] = new Cursor[14];
+
+    /**
+     * This field is a private replacement for 'predefined' array.
+     */
+    private final static Cursor[] predefinedPrivate = new Cursor[14];
 
     /* Localization names and default values */
     static final String[][] cursorProperties = {
@@ -229,10 +234,15 @@ public class Cursor implements java.io.Serializable {
 	if (type < Cursor.DEFAULT_CURSOR || type > Cursor.MOVE_CURSOR) {
 	    throw new IllegalArgumentException("illegal cursor type");
 	}
-	if (predefined[type] == null) {
-	    predefined[type] = new Cursor(type);
+	Cursor c = predefinedPrivate[type];
+	if (c == null) {
+	    predefinedPrivate[type] = c = new Cursor(type);
 	}
-	return predefined[type];
+	// fill 'predefined' array for backwards compatibility.
+	if (predefined[type] == null) {
+	    predefined[type] = c;
+	}
+	return c;
     }
 
     /**

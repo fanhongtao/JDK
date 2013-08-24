@@ -1,27 +1,27 @@
 /*
- * @(#)LayoutQueue.java	1.6 03/12/19
+ * @(#)LayoutQueue.java	1.8 09/06/05
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
 import java.util.Vector;
+import sun.awt.AppContext;
 
 /**
  * A queue of text layout tasks. 
  *
  * @author  Timothy Prinzing
- * @version 1.6 12/19/03
+ * @version 1.8 06/05/09
  * @see     AsyncBoxView
  * @since   1.3 
  */
 public class LayoutQueue {
 
-    Vector tasks;
-    Thread worker;
-
-    static LayoutQueue defaultQueue;
+    private static final Object DEFAULT_QUEUE = new Object();
+    private Vector<Runnable> tasks;
+    private Thread worker;
 
     /**
      * Construct a layout queue.
@@ -34,19 +34,31 @@ public class LayoutQueue {
      * Fetch the default layout queue.
      */
     public static LayoutQueue getDefaultQueue() {
-	if (defaultQueue == null) {
-	    defaultQueue = new LayoutQueue();
+	AppContext ac = AppContext.getAppContext();
+	synchronized (DEFAULT_QUEUE) {
+	    LayoutQueue defaultQueue = (LayoutQueue) ac.get(DEFAULT_QUEUE);
+	    if (defaultQueue == null) {
+	        defaultQueue = new LayoutQueue();
+	        ac.put(DEFAULT_QUEUE, defaultQueue);
+	    }
+	    return defaultQueue;
 	}
-	return defaultQueue;
     }
 
     /**
      * Set the default layout queue.
      *
-     * @param q the new queue.
+     * @param defaultQueue the new queue.
      */
-    public static void setDefaultQueue(LayoutQueue q) {
-	defaultQueue = q;
+    public static void setDefaultQueue(LayoutQueue defaultQueue) {
+	synchronized (DEFAULT_QUEUE) {
+	    AppContext ac = AppContext.getAppContext();
+	    if (defaultQueue == null) {
+	        ac.remove(DEFAULT_QUEUE);
+	    } else {
+	        ac.put(DEFAULT_QUEUE, defaultQueue);
+	    }
+	}
     }
 
     /**

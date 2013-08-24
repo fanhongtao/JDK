@@ -1,5 +1,5 @@
 /*
- * @(#)WBMPImageReaderSpi.java	1.6 04/05/05 05:42:00
+ * @(#)WBMPImageReaderSpi.java	1.7 09/05/07 09:40:19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ public class WBMPImageReaderSpi extends ImageReaderSpi {
               entensions,
               mimeType,
               "com.sun.imageio.plugins.wbmp.WBMPImageReader",
-              STANDARD_INPUT_TYPE,
+              new Class[] { ImageInputStream.class },
               writerSpiNames,
               true,
               null, null, null, null,

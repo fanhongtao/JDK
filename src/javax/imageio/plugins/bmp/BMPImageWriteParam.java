@@ -1,5 +1,5 @@
 /*
- * @(#)BMPImageWriteParam.java	1.4 04/01/06
+ * @(#)BMPImageWriteParam.java	1.5 09/05/07
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -60,7 +60,7 @@ public class BMPImageWriteParam extends ImageWriteParam {
         super(locale);
 
         // Set compression types ("BI_RGB" denotes uncompressed).
-        compressionTypes = BMPConstants.compressionTypeNames;
+        compressionTypes = BMPConstants.compressionTypeNames.clone();
 
         // Set compression flag.
         canWriteCompressed = true;

@@ -1,5 +1,5 @@
 /*
- * @(#)SocksSocketImpl.java	1.18 05/08/04
+ * @(#)SocksSocketImpl.java	1.19 09/05/11
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,6 +30,9 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
     private InputStream cmdIn = null;
     private OutputStream cmdOut = null;
 
+    /* true if the Proxy has been set programatically */
+    private boolean applicationSetProxy;  /* false */
+
     SocksSocketImpl() {
 	// Nothing needed
     }
@@ -46,6 +49,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	    // Use getHostString() to avoid reverse lookups
 	    server = ad.getHostString();
 	    port = ad.getPort();
+	    applicationSetProxy = true;
 	}
     }
 
@@ -149,9 +153,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 			throw (IOException) pae.getException();
 		    }
 		} else {
-		    userName = 
-			(String) java.security.AccessController.doPrivileged(
-									     new sun.security.action.GetPropertyAction("user.name"));
+		    userName = getUserName();
 		}
 	    }
 	    if (userName == null)
@@ -252,8 +254,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	out.write((endpoint.getPort() >> 8) & 0xff);
 	out.write((endpoint.getPort() >> 0) & 0xff);
 	out.write(endpoint.getAddress().getAddress());
-	String userName = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction("user.name"));
+	String userName = getUserName();
 	try {
 	    out.write(userName.getBytes("ISO-8859-1"));
 	} catch (java.io.UnsupportedEncodingException uee) {
@@ -574,8 +575,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	out.write((super.getLocalPort() >> 8) & 0xff);
 	out.write((super.getLocalPort() >> 0) & 0xff);
 	out.write(addr1);
-	String userName = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction("user.name"));
+	String userName = getUserName();
 	try {
 	    out.write(userName.getBytes("ISO-8859-1"));
 	} catch (java.io.UnsupportedEncodingException uee) {
@@ -1028,6 +1028,19 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	    cmdsock.close();
 	cmdsock = null;
 	super.close();
+    }
+
+    private String getUserName() {
+        String userName = "";
+        if (applicationSetProxy) {
+            try {
+                userName = System.getProperty("user.name");
+            } catch (SecurityException se) { /* swallow Exception */ }
+        } else {
+            userName = (String) java.security.AccessController.doPrivileged(
+                new sun.security.action.GetPropertyAction("user.name"));
+        }
+        return userName;
     }
 
 }

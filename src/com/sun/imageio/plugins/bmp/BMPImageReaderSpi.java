@@ -1,5 +1,5 @@
 /*
- * @(#)BMPImageReaderSpi.java	1.5 04/05/05 05:42:00
+ * @(#)BMPImageReaderSpi.java	1.6 09/05/07 09:38:16
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ public class BMPImageReaderSpi extends ImageReaderSpi {
               entensions,
               mimeType,
               "com.sun.imageio.plugins.bmp.BMPImageReader",
-              STANDARD_INPUT_TYPE,
+              new Class[] { ImageInputStream.class },
               writerSpiNames,
               false,
               null, null, null, null,

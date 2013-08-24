@@ -1,5 +1,5 @@
 /*
- * @(#)FileCacheImageInputStream.java	1.29 05/08/17
+ * @(#)FileCacheImageInputStream.java	1.30 09/05/07
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,6 +37,10 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
 
     private boolean foundEOF = false;
 
+    /** The CloseAction that closes the stream in
+     *  the StreamCloser's shutdown hook                     */
+    private final StreamCloser.CloseAction closeAction;
+
     /**
      * Constructs a <code>FileCacheImageInputStream</code> that will read
      * from a given <code>InputStream</code>.
@@ -71,7 +75,8 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
         this.cacheFile =
             File.createTempFile("imageio", ".tmp", cacheDir);
         this.cache = new RandomAccessFile(cacheFile, "rw");
-	StreamCloser.addToQueue(this);
+        this.closeAction = StreamCloser.createCloseAction(this);
+        StreamCloser.addToQueue(closeAction);
     }
 
     /**
@@ -205,6 +210,6 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
         cache.close();
         cacheFile.delete();
         stream = null;
-	StreamCloser.removeFromQueue(this);
+	StreamCloser.removeFromQueue(closeAction);
     }
 }

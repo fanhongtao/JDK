@@ -1,7 +1,7 @@
 /*
- * @(#)Constructor.java	1.49 04/05/04
+ * @(#)Constructor.java	1.50 09/05/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,6 +53,13 @@ public final
     private byte[]              annotations;
     private byte[]              parameterAnnotations;
 
+    // For non-public members or members in package-private classes,
+    // it is necessary to perform somewhat expensive security checks.
+    // If the security check succeeds for a given class, it will
+    // always succeed (it is not affected by the granting or revoking
+    // of permissions); we speed up the check in the common case by
+    // remembering the last Class for which the check succeeded.
+    private volatile Class securityCheckCache;
 
     // Generics infrastructure
     // Accessor for factory

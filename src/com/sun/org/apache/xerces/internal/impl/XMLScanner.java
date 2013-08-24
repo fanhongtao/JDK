@@ -1049,6 +1049,9 @@ public abstract class XMLScanner
                     int c = fEntityScanner.peekChar();
                     if (XMLChar.isMarkup(c) || c == ']') {
                         fStringBuffer.append((char)fEntityScanner.scanChar());
+                    } else if (c != -1 && isInvalidLiteral(c)) {
+                        reportFatalError("InvalidCharInSystemID",
+                            new Object[] {Integer.toString(c, 16)});
                     }
                 } while (fEntityScanner.scanLiteral(quote, ident) != quote);
                 fStringBuffer.append(ident);
