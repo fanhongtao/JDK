@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTabbedPaneUI.java	1.18 05/03/03
+ * @(#)WindowsTabbedPaneUI.java	1.19 06/03/22
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -100,7 +100,7 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
     protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null && (contentOpaque || tabPane.isOpaque())) {
-	    XPStyle.Skin skin = xp.getSkin("tab.pane");
+	    XPStyle.Skin skin = xp.getSkin(tabPane, "tab.pane");
 	    if (skin != null) {
 		Insets insets = tabPane.getInsets();
 		// Note: don't call getTabAreaInsets(), because it causes rotation.
@@ -124,12 +124,6 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 			y += (tabHeight - tabAreaInsets.bottom);
 		    }
 		    h -= (tabHeight - tabAreaInsets.bottom);
-		}
-
-		Color borderColor = xp.getColor("tab.pane.bordercolorhint", null);
-		if (borderColor != null) {
-		    g.setColor(borderColor);
-		    g.fillRect(x, y, w, h);
 		}
 
 		paintRotatedSkin(g, skin, tabPlacement, x, y, w, h, 0); 
@@ -177,7 +171,7 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 		index = 1;
 	    }
 
-	    paintRotatedSkin(g, xp.getSkin(category), tabPlacement, x, y, w, h, index);
+	    paintRotatedSkin(g, xp.getSkin(tabPane, category), tabPlacement, x, y, w, h, index);
 	} else {
 	    super.paintTabBorder(g, tabPlacement, tabIndex, x, y, w, h, isSelected);
 	}

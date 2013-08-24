@@ -1,5 +1,5 @@
 /*
- * @(#)System.java	1.149 04/06/02
+ * @(#)System.java	1.150 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,6 +16,7 @@ import java.security.AllPermission;
 import java.nio.channels.Channel;
 import java.nio.channels.spi.SelectorProvider;
 import sun.net.InetAddressCachePolicy;
+import sun.nio.ch.Interruptible;
 import sun.reflect.Reflection;
 import sun.security.util.SecurityConstants;
 import sun.reflect.annotation.AnnotationType;
@@ -31,7 +32,7 @@ import sun.reflect.annotation.AnnotationType;
  * method for quickly copying a portion of an array.
  *
  * @author  unascribed
- * @version 1.149, 06/02/04
+ * @version 1.150, 03/22/06
  * @since   JDK1.0
  */
 public final class System {
@@ -1081,6 +1082,9 @@ public final class System {
             }
             public AnnotationType getAnnotationType(Class klass) {
                 return klass.getAnnotationType();
+            }
+            public void blockedOn(Thread t, Interruptible b) {
+                t.blockedOn(b);
             }
         });
     }

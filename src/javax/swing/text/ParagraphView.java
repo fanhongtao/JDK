@@ -1,11 +1,12 @@
 /*
- * @(#)ParagraphView.java	1.93 05/08/19
+ * @(#)ParagraphView.java	1.94 06/04/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
+import java.util.Arrays;
 import java.awt.*;
 import java.awt.font.TextAttribute;
 import javax.swing.event.*;
@@ -25,7 +26,8 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.90 04/16/03
+ * @author  Igor Kushnirskiy
+ * @version 1.94 04/10/06
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
@@ -783,8 +785,15 @@ public class ParagraphView extends FlowView implements TabExpander {
                 case StyleConstants.ALIGN_RIGHT:
                     return 1;
                 case StyleConstants.ALIGN_CENTER:
-                case StyleConstants.ALIGN_JUSTIFIED:
                     return 0.5f;
+                case StyleConstants.ALIGN_JUSTIFIED:
+                    float rv = 0.5f;
+                    //if we can justifiy the content always align to
+                    //the left.
+                    if (isJustifiableDocument()) {
+                        rv = 0f;
+                    }
+                    return rv;
                 }
             }
             return super.getAlignment(axis);
@@ -876,6 +885,31 @@ public class ParagraphView extends FlowView implements TabExpander {
 	    return baselineRequirements(axis, r);
 	}
 
+
+        private boolean isLastRow() {
+            View parent;
+            return ((parent = getParent()) == null
+                    || this == parent.getView(parent.getViewCount() - 1));
+        }
+        
+        private boolean isBrokenRow() {
+            boolean rv = false;
+            int viewsCount = getViewCount();
+            if (viewsCount > 0) {
+                View lastView = getView(viewsCount - 1);
+                if (lastView.getBreakWeight(X_AXIS, 0, 0) >= 
+                      ForcedBreakWeight) {
+                    rv = true;
+                }
+            } 
+            return rv;
+        }
+        
+        private boolean isJustifiableDocument() {
+            return (! Boolean.TRUE.equals(getDocument().getProperty(
+                          AbstractDocument.I18NProperty)));
+        }
+        
         /**
          * Whether we need to justify this {@code Row}.
          * At this time (jdk1.6) we support justification on for non
@@ -883,11 +917,18 @@ public class ParagraphView extends FlowView implements TabExpander {
          *
          * @return {@code true} if this {@code Row} should be justified.
          */
-        boolean isJustifyEnabled() {
+        private boolean isJustifyEnabled() {
             boolean ret = (justification == StyleConstants.ALIGN_JUSTIFIED);
-            ret = ret 
-                && (! Boolean.TRUE.equals(getDocument().getProperty(
-                          AbstractDocument.I18NProperty)));
+
+            //no justification for i18n documents
+            ret = ret && isJustifiableDocument();
+
+            //no justification for the last row
+            ret = ret && ! isLastRow();
+            
+            //no justification for the broken rows
+            ret = ret && ! isBrokenRow();
+
             return ret;
         }
 
@@ -930,28 +971,47 @@ public class ParagraphView extends FlowView implements TabExpander {
             // leading and trailing spaces are not extendable.
             //
             // GlyphPainter1 uses 
-            // justificationData[spaceAddon,startJustifiableContent,
-            //     endJustifiableContent]
+            // justificationData
             // for all painting and measurement.
 
             int extendableSpaces = 0;
             int startJustifiableContent = -1;
             int endJustifiableContent = -1;
             int lastLeadingSpaces = 0;
+
+            int rowStartOffset = getStartOffset();
+            int rowEndOffset = getEndOffset();
+            int spaceMap[] = new int[rowEndOffset - rowStartOffset];
+            Arrays.fill(spaceMap, 0);
             for (int i = getViewCount() - 1; i >= 0 ; i--) {
                 View view = getView(i);
                 if (view instanceof GlyphView) {
                     GlyphView.JustificationInfo justificationInfo = 
-                        ((GlyphView) view).getJustificationInfo();
+                        ((GlyphView) view).getJustificationInfo(rowStartOffset);
+                    final int viewStartOffset = view.getStartOffset();
+                    final int offset = viewStartOffset - rowStartOffset;
+                    for (int j = 0; j < justificationInfo.spaceMap.length(); j++) {
+                        if (justificationInfo.spaceMap.get(j)) {
+                            spaceMap[j + offset] = 1;
+                        }
+                    }
+                    if (startJustifiableContent > 0) {
+                        if (justificationInfo.end >= 0) {
+                            extendableSpaces += justificationInfo.trailingSpaces;
+                        } else {
+                            lastLeadingSpaces += justificationInfo.trailingSpaces;
+                        }
+                    }
                     if (justificationInfo.start >= 0) {
-                        startJustifiableContent = justificationInfo.start;
+                        startJustifiableContent = 
+                            justificationInfo.start + viewStartOffset;
                         extendableSpaces += lastLeadingSpaces;
                     }
-                    if (justificationInfo.end >= 0) {
-                        endJustifiableContent = justificationInfo.end; 
-                    } else {
-                        extendableSpaces += justificationInfo.trailingSpaces;
-                    }
+                    if (justificationInfo.end >= 0 
+                          && endJustifiableContent < 0) {
+                        endJustifiableContent = 
+                            justificationInfo.end + viewStartOffset; 
+                    } 
                     extendableSpaces += justificationInfo.contentSpaces;
                     lastLeadingSpaces = justificationInfo.leadingSpaces;
                     if (justificationInfo.hasTab) {
@@ -959,16 +1019,33 @@ public class ParagraphView extends FlowView implements TabExpander {
                     }
                 }
             }
+            if (extendableSpaces <= 0) {
+                //there is nothing we can do to justify
+                return;
+            }
+            int adjustment = (targetSpan - currentSpan);
             int spaceAddon = (extendableSpaces > 0)
-                ? (targetSpan - currentSpan) / extendableSpaces
+                ?  adjustment / extendableSpaces
                 : 0;
-            if (spaceAddon > 0) {
+            int spaceAddonLeftoverEnd = -1;
+            for (int i = startJustifiableContent - rowStartOffset,
+                     leftover = adjustment - spaceAddon * extendableSpaces;
+                     leftover > 0;
+                     leftover -= spaceMap[i],
+                     i++) {
+                spaceAddonLeftoverEnd = i;
+            }
+            if (spaceAddon > 0 || spaceAddonLeftoverEnd >= 0) {
                 justificationData = (oldJustficationData != null) 
                     ? oldJustficationData
-                    : new int[3];
+                    : new int[END_JUSTIFIABLE + 1];
                 justificationData[SPACE_ADDON] = spaceAddon;
-                justificationData[START_JUSTIFIABLE] = startJustifiableContent;
-                justificationData[END_JUSTIFIABLE] = endJustifiableContent;
+                justificationData[SPACE_ADDON_LEFTOVER_END] = 
+                    spaceAddonLeftoverEnd;
+                justificationData[START_JUSTIFIABLE] = 
+                    startJustifiableContent - rowStartOffset;
+                justificationData[END_JUSTIFIABLE] = 
+                    endJustifiableContent - rowStartOffset;
                 super.layoutMajorAxis(targetSpan, axis, offsets, spans);
             }
         }
@@ -1032,13 +1109,12 @@ public class ParagraphView extends FlowView implements TabExpander {
 			   lineSpacing);
 	}
 
-        // justificationData[0] by what amount we need to extend
-        // extendable spaces
-        // justificationData[1] from what position do we extend spaces
-        // justificationData[2] to what position do we extend spaces
         final static int SPACE_ADDON = 0;
-        final static int START_JUSTIFIABLE = 1;
-        final static int END_JUSTIFIABLE = 2;            
+        final static int SPACE_ADDON_LEFTOVER_END = 1;
+        final static int START_JUSTIFIABLE = 2;
+        //this should be the last index in justificationData
+        final static int END_JUSTIFIABLE = 3;
+
         int justificationData[] = null;
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.46 05/03/25
+ * @(#)WindowsComboBoxUI.java	1.47 06/03/22
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.46, 03/25/05
+ * @version 1.47, 03/22/06
  * @author Tom Santos
  */
 
@@ -149,7 +149,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
 
     private static class XPComboBoxButton extends XPStyle.GlyphButton {
         public XPComboBoxButton() {
-	    super("combobox.dropdownbutton");
+	    super(null, "combobox.dropdownbutton");
 	    setRequestFocusEnabled(false);
 	}   
 

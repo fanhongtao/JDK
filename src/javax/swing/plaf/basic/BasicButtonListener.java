@@ -1,5 +1,5 @@
 /*
- * @(#)BasicButtonListener.java	1.63 04/01/19
+ * @(#)BasicButtonListener.java	1.64 06/01/30
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.63 01/19/04
+ * @version 1.64 01/30/06
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -177,7 +177,9 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 	   }
 	}
 
-        b.getModel().setArmed(false);
+        ButtonModel model = b.getModel();
+        model.setArmed(false);
+        model.setPressed(false);
 
 	b.repaint();
     }

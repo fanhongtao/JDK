@@ -1,7 +1,7 @@
 /*
- * @(#)java_crw_demo.c	1.24 04/10/04
+ * @(#)java_crw_demo.c	1.27 06/02/02
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -1409,7 +1409,7 @@ write_instruction(MethodImage *mi)
                             new_opcode = opc_jsr_w;
                             break;
                         case opc_goto:
-                            new_opcode = opc_jsr_w;
+                            new_opcode = opc_goto_w;
                             break;
                         default:
                             CRW_FATAL(ci, "unexpected opcode");
@@ -1474,7 +1474,7 @@ write_instruction(MethodImage *mi)
                     writeU1(ci, new_opcode);    /* write inverse branch */
                     writeU2(ci, 3 + 5);         /* beyond if and goto_w */
                     writeU1(ci, opc_goto_w);    /* add a goto_w */
-                    writeU4(ci, new_delta); /* write new and wide delta */
+                    writeU4(ci, new_delta-3); /* write new and wide delta */
                 } else {
                     CRW_FATAL(ci, "Unexpected widening");
                 }
@@ -1977,6 +1977,7 @@ inject_class(struct CrwClassImage *ci,
     CrwCpoolIndex               this_class;
     CrwCpoolIndex               super_class;
     unsigned                    magic;
+    unsigned                    classfileVersion;
     unsigned                    interface_count;
 
     CRW_ASSERT_CI(ci);
@@ -2009,8 +2010,9 @@ inject_class(struct CrwClassImage *ci,
     /* minor version number not used */
     (void)copyU2(ci);
     /* major version number not used */
-    (void)copyU2(ci);
-    
+    classfileVersion = copyU2(ci);
+    CRW_ASSERT(ci, classfileVersion <= 49); /* Tiger class files or less */
+
     cpool_setup(ci);
 
     ci->access_flags        = copyU2(ci);

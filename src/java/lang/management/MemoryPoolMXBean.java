@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryPoolMXBean.java	1.19 05/01/05
+ * @(#)MemoryPoolMXBean.java	1.21 06/03/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -117,7 +117,7 @@ package java.lang.management;
  * <p>
  * The memory usage of the system can be monitored using 
  * <a href="#Polling">polling</a> or 
- * <a href="#Notification">threshold notification</a> mechanisms.
+ * <a href="#ThresholdNotification">threshold notification</a> mechanisms.
  *
  * <ol type="a">
  *   <li><a name="Polling"><b>Polling</b></a>
@@ -337,7 +337,7 @@ package java.lang.management;
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.19, 01/05/05 
+ * @version 1.21, 03/08/06 
  * @since   1.5
  */
 public interface MemoryPoolMXBean {

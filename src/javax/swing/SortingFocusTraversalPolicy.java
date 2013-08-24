@@ -1,5 +1,5 @@
 /*
- * @(#)SortingFocusTraversalPolicy.java	1.7 04/05/05
+ * @(#)SortingFocusTraversalPolicy.java	1.8 06/03/16
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import java.util.logging.*;
  * policy is used to perform the search operation.
  *
  * @author David Mendenhall
- * @version 1.7, 05/05/04
+ * @version 1.8, 03/16/06
  *
  * @see java.util.Comparator
  * @since 1.4
@@ -252,11 +252,20 @@ public class SortingFocusTraversalPolicy
 	}
 
 	if (index < 0) {
-	    // If we're not in the cycle, then binarySearch returns
-	    // (-(insertion point) - 1). The next element is our insertion
-	    // point.
-
-	    index = -index - 2;
+	    // Fix for 5070991.
+            // A workaround for a transitivity problem caused by ROW_TOLERANCE,
+            // because of that the component may be missed in the binary search.
+            // Try to search it again directly.
+            int i = cycle.indexOf(aComponent);
+            if (i >= 0) {
+                index = i;
+            } else {
+                // If we're not in the cycle, then binarySearch returns
+                // (-(insertion point) - 1). The next element is our insertion
+                // point.
+  
+                index = -index - 2;
+            }
 	}
 
 	Component defComp = (Component)defaults.get(new Integer(index));

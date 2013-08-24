@@ -1,5 +1,5 @@
 /*
- * @(#)Utilities.java	1.48 05/08/19
+ * @(#)Utilities.java	1.49 06/04/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.awt.font.TextAttribute;
 import java.text.*;
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
-
+import javax.swing.text.ParagraphView.Row;
 import com.sun.java.swing.SwingUtilities2;
 
 /**
@@ -30,7 +30,7 @@ import com.sun.java.swing.SwingUtilities2;
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.48 08/19/05
+ * @version 1.49 04/10/06
  */
 public class Utilities {
     /**
@@ -96,10 +96,6 @@ public class Utilities {
     // one:
     // @param justificationData justificationData for the row.
     // if null not justification is needed
-    // justificationData[0] by what amount we need to extend
-    // extendable spaces
-    // justificationData[1] from what position do we extend spaces
-    // justificationData[2] to what position do we extend spaces
     static final int drawTabbedText(View view,
                                 Segment s, int x, int y, Graphics g, 
                                 TabExpander e, int startOffset, 
@@ -112,21 +108,33 @@ public class Utilities {
 	int flushLen = 0;
 	int flushIndex = s.offset;
         int spaceAddon = 0;
+        int spaceAddonLeftoverEnd = -1;
         int startJustifiableContent = 0;
         int endJustifiableContent = 0;
         if (justificationData != null) {
             int offset = - startOffset + txtOffset;
-            spaceAddon = justificationData[0];
-            startJustifiableContent = justificationData[1] + offset;
-            endJustifiableContent = justificationData[2] + offset;
+            View parent = null;
+            if (view != null
+                  && (parent = view.getParent()) != null) {
+                offset += parent.getStartOffset();
+            }
+            spaceAddon = 
+                justificationData[Row.SPACE_ADDON];
+            spaceAddonLeftoverEnd =
+                justificationData[Row.SPACE_ADDON_LEFTOVER_END] + offset;
+            startJustifiableContent = 
+                justificationData[Row.START_JUSTIFIABLE] + offset;
+            endJustifiableContent = 
+                justificationData[Row.END_JUSTIFIABLE] + offset;
         }
 	int n = s.offset + s.count;
 	for (int i = txtOffset; i < n; i++) {
             if (txt[i] == '\t'
-                    || ((spaceAddon != 0) && (txt[i] == ' ')
-                        && startJustifiableContent <= i
-                        && i <= endJustifiableContent
-                        )) {
+                || ((spaceAddon != 0 || i <= spaceAddonLeftoverEnd) 
+                    && (txt[i] == ' ')
+                    && startJustifiableContent <= i
+                    && i <= endJustifiableContent
+                    )) {
 		if (flushLen > 0) {
 		    nextX = SwingUtilities2.drawChars(component, g, txt,
                                                 flushIndex, flushLen, x, y);
@@ -141,6 +149,9 @@ public class Utilities {
                     }
                 } else if (txt[i] == ' ') {
                     nextX += metrics.charWidth(' ') + spaceAddon;
+                    if (i <= spaceAddonLeftoverEnd) {
+                        nextX++;
+                    }
                 }
 		x = nextX;
 	    } else if ((txt[i] == '\n') || (txt[i] == '\r')) {
@@ -177,7 +188,7 @@ public class Utilities {
      */
     public static final int getTabbedTextWidth(Segment s, FontMetrics metrics, int x, 
 					       TabExpander e, int startOffset) {
-        return getTabbedTextWidth(s, metrics, x, e, startOffset, null);
+        return getTabbedTextWidth(null, s, metrics, x, e, startOffset, null);
     }
 
 
@@ -188,11 +199,7 @@ public class Utilities {
     // one:
     // @param justificationData justificationData for the row.
     // if null not justification is needed
-    // justificationData[0] by what amount we need to extend
-    // extendable spaces
-    // justificationData[1] from what position do we extend spaces
-    // justificationData[2] to what position do we extend spaces
-    static final int getTabbedTextWidth(Segment s, FontMetrics metrics, int x, 
+    static final int getTabbedTextWidth(View view, Segment s, FontMetrics metrics, int x, 
                                         TabExpander e, int startOffset, 
                                         int[] justificationData) {
 	int nextX = x;
@@ -201,21 +208,33 @@ public class Utilities {
 	int n = s.offset + s.count;
         int charCount = 0;
         int spaceAddon = 0;
+        int spaceAddonLeftoverEnd = -1;
         int startJustifiableContent = 0;
         int endJustifiableContent = 0;
         if (justificationData != null) {
             int offset = - startOffset + txtOffset;
-            spaceAddon = justificationData[0];
-            startJustifiableContent = justificationData[1] + offset;
-            endJustifiableContent = justificationData[2] + offset;
+            View parent = null;
+            if (view != null 
+                  && (parent = view.getParent()) != null) {
+                offset += parent.getStartOffset();
+            }
+            spaceAddon = 
+                justificationData[Row.SPACE_ADDON];
+            spaceAddonLeftoverEnd =
+                justificationData[Row.SPACE_ADDON_LEFTOVER_END] + offset;
+            startJustifiableContent = 
+                justificationData[Row.START_JUSTIFIABLE] + offset;
+            endJustifiableContent = 
+                justificationData[Row.END_JUSTIFIABLE] + offset;
         }
 
 	for (int i = txtOffset; i < n; i++) {
             if (txt[i] == '\t'
-                    || ((spaceAddon != 0) && (txt[i] == ' ')
-                        && startJustifiableContent <= i
-                        && i <= endJustifiableContent
-                        )) {
+                || ((spaceAddon != 0 || i <= spaceAddonLeftoverEnd) 
+                    && (txt[i] == ' ')
+                    && startJustifiableContent <= i
+                    && i <= endJustifiableContent
+                    )) {
                 nextX += metrics.charsWidth(txt, i-charCount, charCount);
                 charCount = 0;
                 if (txt[i] == '\t') {
@@ -227,6 +246,9 @@ public class Utilities {
                     }
                 } else if (txt[i] == ' ') {
                     nextX += metrics.charWidth(' ') + spaceAddon;
+                    if (i <= spaceAddonLeftoverEnd) {
+                        nextX++;
+                    }
                 }
 	    } else if(txt[i] == '\n') {
 	    // Ignore newlines, they take up space and we shouldn't be
@@ -264,11 +286,11 @@ public class Utilities {
 	return getTabbedTextOffset(s, metrics, x0, x, e, startOffset, true);
     }
 
-    static final int getTabbedTextOffset(Segment s, FontMetrics metrics, 
+    static final int getTabbedTextOffset(View view, Segment s, FontMetrics metrics, 
                                          int x0, int x, TabExpander e,
                                          int startOffset, 
                                          int[] justificationData) {
-        return getTabbedTextOffset(s, metrics, x0, x, e, startOffset, true, 
+        return getTabbedTextOffset(view, s, metrics, x0, x, e, startOffset, true, 
                                    justificationData);
     }
 
@@ -277,7 +299,7 @@ public class Utilities {
 						int x0, int x, TabExpander e,
 						int startOffset, 
 						boolean round) {
-        return getTabbedTextOffset(s, metrics, x0, x, e, startOffset, round, null);
+        return getTabbedTextOffset(null, s, metrics, x0, x, e, startOffset, round, null);
     }
 
     // In addition to the previous method it can extend spaces for 
@@ -287,11 +309,8 @@ public class Utilities {
     // one:
     // @param justificationData justificationData for the row.
     // if null not justification is needed
-    // justificationData[0] by what amount we need to extend
-    // extendable spaces
-    // justificationData[1] from what position do we extend spaces
-    // justificationData[2] to what position do we extend spaces
-    static final int getTabbedTextOffset(Segment s, 
+    static final int getTabbedTextOffset(View view,
+                                         Segment s, 
                                          FontMetrics metrics,
                                          int x0, int x, TabExpander e,
                                          int startOffset, 
@@ -309,21 +328,33 @@ public class Utilities {
 	int txtOffset = s.offset;
 	int txtCount = s.count;
         int spaceAddon = 0 ;
+        int spaceAddonLeftoverEnd = -1;
         int startJustifiableContent = 0 ;
         int endJustifiableContent = 0;
         if (justificationData != null) {
             int offset = - startOffset + txtOffset;
-            spaceAddon = justificationData[0];
-            startJustifiableContent = justificationData[1] + offset;
-            endJustifiableContent = justificationData[2] + offset;
+            View parent = null;
+            if (view != null 
+                  && (parent = view.getParent()) != null) {
+                offset += parent.getStartOffset();
+            }
+            spaceAddon = 
+                justificationData[Row.SPACE_ADDON];
+            spaceAddonLeftoverEnd =
+                justificationData[Row.SPACE_ADDON_LEFTOVER_END] + offset;
+            startJustifiableContent = 
+                justificationData[Row.START_JUSTIFIABLE] + offset;
+            endJustifiableContent = 
+                justificationData[Row.END_JUSTIFIABLE] + offset;
         }
 	int n = s.offset + s.count;
 	for (int i = s.offset; i < n; i++) {
             if (txt[i] == '\t'
-                || ((spaceAddon != 0) && (txt[i] == ' ')
-                        && startJustifiableContent <= i
-                        && i <= endJustifiableContent
-                        )){
+                || ((spaceAddon != 0 || i <= spaceAddonLeftoverEnd) 
+                    && (txt[i] == ' ')
+                    && startJustifiableContent <= i
+                    && i <= endJustifiableContent
+                    )){
                 if (txt[i] == '\t') {
                     if (e != null) {
                         nextX = (int) e.nextTabStop((float) nextX,
@@ -333,6 +364,9 @@ public class Utilities {
                     }
                 } else if (txt[i] == ' ') {
                     nextX += metrics.charWidth(' ') + spaceAddon;
+                    if (i <= spaceAddonLeftoverEnd) {
+                        nextX++;
+                    }
                 }
 	    } else {
 		nextX += metrics.charWidth(txt[i]);

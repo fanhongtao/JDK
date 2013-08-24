@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsToggleButtonUI.java	1.29 03/12/19
+ * @(#)WindowsToggleButtonUI.java	1.30 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import javax.swing.plaf.*;
 import javax.swing.*;
 
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 
 
 
@@ -26,7 +27,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.29 12/19/03
+ * @version 1.30 03/22/06
  * @author Jeff Dinkins
  */
 public class WindowsToggleButtonUI extends BasicToggleButtonUI
@@ -47,6 +48,13 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
     }
 
     // ********************************
+    //         Create Listeners
+    // ********************************
+    protected BasicButtonListener createButtonListener(AbstractButton b) {
+        return new WindowsButtonListener(b);
+    }
+
+    // ********************************
     //            Defaults
     // ********************************
     protected void installDefaults(AbstractButton b) {
@@ -63,7 +71,7 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
 
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    b.setBorder(xp.getBorder("button.pushbutton"));
+	    b.setBorder(xp.getBorder(b, WindowsButtonUI.getXPButtonType(b)));
 	    LookAndFeel.installProperty(b, "opaque", Boolean.FALSE);
 	    LookAndFeel.installProperty(b, "rolloverEnabled", Boolean.TRUE);
 	}

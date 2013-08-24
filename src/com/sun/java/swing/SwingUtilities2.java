@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities2.java	1.28 05/08/08
+ * @(#)SwingUtilities2.java	1.29 06/04/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,6 +20,7 @@ import javax.swing.plaf.*;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DefaultCaret;
 import javax.swing.table.TableCellRenderer;
 import sun.swing.PrintColorUIResource;
 import sun.print.ProxyPrintGraphics;
@@ -38,7 +39,7 @@ import java.io.*;
  * releases and even patch releases. You should not rely on this class even
  * existing.
  *
- * @version 1.28 08/08/05
+ * @version 1.29 04/18/06
  */
 public class SwingUtilities2 {
     // Maintain a cache of CACHE_SIZE fonts and the left side bearing
@@ -94,6 +95,13 @@ public class SwingUtilities2 {
      */
     public static final Object AA_TEXT_PROPERTY_KEY =
                           new StringBuffer("AATextPropertyKey");
+
+    /**
+     * Used to tell a text component, being used as an editor for table
+     * or tree, how many clicks it took to start editing.
+     */
+    private static final StringBuilder SKIP_CLICK_COUNT =
+        new StringBuilder("skipClickCount");
 
     /**
      * Whether or not the system proprety 'sun.swing.enableImprovedDragGesture'
@@ -1097,5 +1105,43 @@ public class SwingUtilities2 {
                 return new IconUIResource(new ImageIcon(buffer));
             }
         };
+    }
+
+    /**
+     * Sets the {@code SKIP_CLICK_COUNT} client property on the component
+     * if it is an instance of {@code JTextComponent} with a
+     * {@code DefaultCaret}. This property, used for text components acting
+     * as editors in a table or tree, tells {@code DefaultCaret} how many
+     * clicks to skip before starting selection.
+     */
+    public static void setSkipClickCount(Component comp, int count) {
+        if (comp instanceof JTextComponent
+                && ((JTextComponent) comp).getCaret() instanceof DefaultCaret) {
+
+            ((JTextComponent) comp).putClientProperty(SKIP_CLICK_COUNT, count);
+        }
+    }
+
+    /**
+     * Return the MouseEvent's click count, possibly reduced by the value of
+     * the component's {@code SKIP_CLICK_COUNT} client property. Clears
+     * the {@code SKIP_CLICK_COUNT} property if the mouse event's click count
+     * is 1. In order for clearing of the property to work correctly, there
+     * must be a mousePressed implementation on the caller with this
+     * call as the first line.
+     */
+    public static int getAdjustedClickCount(JTextComponent comp, MouseEvent e) {
+        int cc = e.getClickCount();
+
+        if (cc == 1) {
+            comp.putClientProperty(SKIP_CLICK_COUNT, null);
+        } else {
+            Integer sub = (Integer) comp.getClientProperty(SKIP_CLICK_COUNT);
+            if (sub != null) {
+                return cc - sub;
+            }
+        }
+
+        return cc;
     }
 }

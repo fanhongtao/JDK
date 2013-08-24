@@ -97,6 +97,8 @@ public final class TransformerImpl extends Transformer
 	"http://xml.org/sax/properties/lexical-handler";
     private static final String NAMESPACE_FEATURE =
 	"http://xml.org/sax/features/namespaces";
+    private static final String NAMESPACE_PREFIXES_FEATURE =
+	"http://xml.org/sax/features/namespace-prefixes";
     
     /**
      * A reference to the translet or null if the identity transform.
@@ -529,6 +531,7 @@ public final class TransformerImpl extends Transformer
                 // Hook up reader and output handler 
                 try {
                     reader.setProperty(LEXICAL_HANDLER_PROPERTY, handler);
+		    reader.setFeature(NAMESPACE_PREFIXES_FEATURE, true);
                 }
                 catch (SAXException e) {
                     // Falls through
@@ -574,6 +577,7 @@ public final class TransformerImpl extends Transformer
                 // Hook up reader and output handler 
                 try {
                     reader.setProperty(LEXICAL_HANDLER_PROPERTY, handler);
+		    reader.setFeature(NAMESPACE_PREFIXES_FEATURE, true);
                 }
                 catch (SAXException e) {
                     // Falls through

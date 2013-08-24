@@ -1,5 +1,5 @@
 /*
- * @(#)JColorChooser.java	1.47 03/12/19
+ * @(#)JColorChooser.java	1.48 06/04/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -56,7 +56,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.47 12/19/03
+ * @version 1.48 04/10/06
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -158,8 +158,6 @@ public class JColorChooser extends JComponent implements Accessible {
             dialog = new ColorChooserDialog((Dialog)window, title, modal, c, chooserPane,
 					    okListener, cancelListener);
         }
-        dialog.addWindowListener(new ColorChooserDialog.Closer());
-        dialog.addComponentListener(new ColorChooserDialog.DisposeOnClose());
 	return dialog;
     }
 
@@ -585,7 +583,7 @@ public class JColorChooser extends JComponent implements Accessible {
 class ColorChooserDialog extends JDialog {
     private Color initialColor;
     private JColorChooser chooserPane;
-    static private JButton cancelButton;
+    private JButton cancelButton;
 
     public ColorChooserDialog(Dialog owner, String title, boolean modal,
         Component c, JColorChooser chooserPane,
@@ -688,6 +686,9 @@ class ColorChooserDialog extends JDialog {
 
         pack();
         setLocationRelativeTo(c);
+
+        this.addWindowListener(new Closer());
+        this.addComponentListener(new DisposeOnClose());
     }
 
     public void show() {
@@ -699,9 +700,9 @@ class ColorChooserDialog extends JDialog {
         chooserPane.setColor(initialColor);
     }
 
-    static class Closer extends WindowAdapter implements Serializable{
+    class Closer extends WindowAdapter implements Serializable{
         public void windowClosing(WindowEvent e) {
-            cancelButton.doClick();
+            cancelButton.doClick(0);
             Window w = e.getWindow();
             w.hide();
         }

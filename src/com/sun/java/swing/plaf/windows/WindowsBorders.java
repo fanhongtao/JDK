@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsBorders.java	1.30 03/12/19
+ * @(#)WindowsBorders.java	1.31 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the Windows 95 L & F.
- * @version 1.30 12/19/03
+ * @version 1.31 03/22/06
  * @author Rich Schiavi
  */
 
@@ -136,7 +136,6 @@ public class WindowsBorders {
     public static class ToolBarBorder extends AbstractBorder implements UIResource, SwingConstants {
         protected Color shadow;
         protected Color highlight;
-	private XPStyle xp = XPStyle.getXP();
 
         public ToolBarBorder(Color shadow, Color highlight) {
             this.highlight = highlight;
@@ -147,8 +146,9 @@ public class WindowsBorders {
                                 int width, int height) {
 	    g.translate(x, y);
 
+            XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		Border xpBorder = xp.getBorder("toolbar");
+		Border xpBorder = xp.getBorder(c, "toolbar");
 		if (xpBorder != null) {
 		    xpBorder.paintBorder(c, g, 0, 0, width, height);
 		}
@@ -158,7 +158,7 @@ public class WindowsBorders {
 
 		if (xp != null) {
 		    String category = vertical ? "rebar.grippervert" : "rebar.gripper";
-		    XPStyle.Skin skin = xp.getSkin(category);
+		    XPStyle.Skin skin = xp.getSkin(c, category);
 		    int dx, dy, dw, dh;
 		    if (vertical) {
 			dx = 0;

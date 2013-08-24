@@ -1,5 +1,5 @@
 /*
- * @(#)WindowPeer.java	1.18 03/12/19
+ * @(#)WindowPeer.java	1.19 06/04/11
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,6 +21,7 @@ public interface WindowPeer extends ContainerPeer {
     void toFront();
     void toBack();
     void updateAlwaysOnTop();
+    void updateFocusableWindowState();
     boolean requestWindowFocus();
 }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)HashMap.java	1.65 05/03/03
+ * @(#)HashMap.java	1.68 06/06/27
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -251,23 +251,45 @@ public class HashMap<K,V>
     }
 
     /**
-     * Returns a hash value for the specified object.  In addition to 
-     * the object's own hashCode, this method applies a "supplemental
-     * hash function," which defends against poor quality hash functions.
-     * This is critical because HashMap uses power-of two length 
-     * hash tables.<p>
+     * Whether to prefer the old supplemental hash function, for
+     * compatibility with broken applications that rely on the
+     * internal hashing order.
      *
-     * The shift distances in this function were chosen as the result
-     * of an automated search over the entire four-dimensional search space.
+     * Set to true only by hotspot when invoked via
+     * -XX:+UseNewHashFunction or -XX:+AggressiveOpts
      */
-    static int hash(Object x) {
-        int h = x.hashCode();
+    private static final boolean useNewHash;
+    static { useNewHash = false; }
 
+    private static int oldHash(int h) {
         h += ~(h << 9);
         h ^=  (h >>> 14);
         h +=  (h << 4);
         h ^=  (h >>> 10);
         return h;
+    }
+
+    private static int newHash(int h) {
+        // This function ensures that hashCodes that differ only by
+        // constant multiples at each bit position have a bounded
+        // number of collisions (approximately 8 at default load factor).
+        h ^= (h >>> 20) ^ (h >>> 12);
+        return h ^ (h >>> 7) ^ (h >>> 4);
+    }
+
+    /**
+     * Applies a supplemental hash function to a given hashCode, which
+     * defends against poor quality hash functions.  This is critical
+     * because HashMap uses power-of-two length hash tables, that
+     * otherwise encounter collisions for hashCodes that do not differ
+     * in lower bits.
+     */
+    static int hash(int h) {
+	return useNewHash ? newHash(h) : oldHash(h);
+    }
+
+    static int hash(Object key) {
+	return hash(key.hashCode());
     }
 
     /** 
@@ -316,14 +338,27 @@ public class HashMap<K,V>
      * @see #put(Object, Object)
      */
     public V get(Object key) {
-        Object k = maskNull(key);
-        int hash = hash(k);
+	if (key == null)
+	    return getForNullKey();
+        int hash = hash(key.hashCode());
+        for (Entry<K,V> e = table[indexFor(hash, table.length)];
+             e != null;
+             e = e.next) {
+            Object k;
+            if (e.hash == hash && ((k = e.key) == key || key.equals(k)))
+                return e.value;
+        }
+        return null;
+    }
+
+    private V getForNullKey() {
+        int hash = hash(NULL_KEY.hashCode());
         int i = indexFor(hash, table.length);
-        Entry<K,V> e = table[i]; 
+        Entry<K,V> e = table[i];
         while (true) {
             if (e == null)
                 return null;
-            if (e.hash == hash && eq(k, e.key)) 
+            if (e.key == NULL_KEY)
                 return e.value;
             e = e.next;
         }
@@ -339,7 +374,7 @@ public class HashMap<K,V>
      */
     public boolean containsKey(Object key) {
         Object k = maskNull(key);
-        int hash = hash(k);
+        int hash = hash(k.hashCode());
         int i = indexFor(hash, table.length);
         Entry e = table[i]; 
         while (e != null) {
@@ -357,7 +392,7 @@ public class HashMap<K,V>
      */
     Entry<K,V> getEntry(Object key) {
         Object k = maskNull(key);
-        int hash = hash(k);
+        int hash = hash(k.hashCode());
         int i = indexFor(hash, table.length);
         Entry<K,V> e = table[i]; 
         while (e != null && !(e.hash == hash && eq(k, e.key)))
@@ -378,12 +413,13 @@ public class HashMap<K,V>
      *	       <tt>null</tt> with the specified key.
      */
     public V put(K key, V value) {
-	K k = maskNull(key);
-        int hash = hash(k);
+	if (key == null)
+	    return putForNullKey(value);
+        int hash = hash(key.hashCode());
         int i = indexFor(hash, table.length);
-
         for (Entry<K,V> e = table[i]; e != null; e = e.next) {
-            if (e.hash == hash && eq(k, e.key)) {
+            Object k;
+            if (e.hash == hash && ((k = e.key) == key || key.equals(k))) {
                 V oldValue = e.value;
                 e.value = value;
                 e.recordAccess(this);
@@ -392,7 +428,25 @@ public class HashMap<K,V>
         }
 
         modCount++;
-        addEntry(hash, k, value, i);
+        addEntry(hash, key, value, i);
+        return null;
+    }
+
+    private V putForNullKey(V value) {
+        int hash = hash(NULL_KEY.hashCode());
+        int i = indexFor(hash, table.length);
+
+        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
+            if (e.key == NULL_KEY) {
+                V oldValue = e.value;
+                e.value = value;
+                e.recordAccess(this);
+                return oldValue;
+            }
+        }
+
+        modCount++;
+        addEntry(hash, (K) NULL_KEY, value, i);
         return null;
     }
 
@@ -404,7 +458,7 @@ public class HashMap<K,V>
      */
     private void putForCreate(K key, V value) {
         K k = maskNull(key);
-        int hash = hash(k);
+        int hash = hash(k.hashCode());
         int i = indexFor(hash, table.length);
 
         /**
@@ -538,7 +592,7 @@ public class HashMap<K,V>
      */
     Entry<K,V> removeEntryForKey(Object key) {
         Object k = maskNull(key);
-        int hash = hash(k);
+        int hash = hash(k.hashCode());
         int i = indexFor(hash, table.length);
         Entry<K,V> prev = table[i];
         Entry<K,V> e = prev;
@@ -571,7 +625,7 @@ public class HashMap<K,V>
 
         Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
         Object k = maskNull(entry.getKey());
-        int hash = hash(k);
+        int hash = hash(k.hashCode());
         int i = indexFor(hash, table.length);
         Entry<K,V> prev = table[i];
         Entry<K,V> e = prev;

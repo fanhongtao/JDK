@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsToolBarUI.java	1.14 03/12/19
+ * @(#)WindowsToolBarUI.java	1.15 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -56,11 +56,7 @@ public class WindowsToolBarUI extends BasicToolBarUI {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    String category = "toolbar";
-	    String subCategory = (String)c.getClientProperty("XPStyle.subClass");
-	    if (subCategory != null) {
-		category = subCategory + "::" + category;
-	    }
-	    xp.getSkin(category).paintSkin(g, 0, 0, c.getSize().width, c.getSize().height, 0);
+	    xp.getSkin(c, category).paintSkin(g, 0, 0, c.getWidth(), c.getHeight(), 0);
 	} else {
 	    super.paint(g, c);
 	}

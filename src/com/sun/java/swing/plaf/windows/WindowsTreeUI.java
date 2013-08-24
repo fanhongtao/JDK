@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTreeUI.java	1.23 03/12/19
+ * @(#)WindowsTreeUI.java	1.24 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import javax.swing.tree.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 12/19/03
+ * @version 1.24 03/22/06
  * @author Scott Violet
  */
 public class WindowsTreeUI extends BasicTreeUI {
@@ -100,14 +100,18 @@ public class WindowsTreeUI extends BasicTreeUI {
      * long term persistence.
      */
     public static class ExpandedIcon implements Icon, Serializable {
-	XPStyle xp = XPStyle.getXP();
-	XPStyle.Skin skin = (xp != null) ? xp.getSkin("treeview.glyph") : null;
 
         static public Icon createExpandedIcon() {
 	    return new ExpandedIcon();
 	}
 
+	XPStyle.Skin getSkin(Component c) {
+	    XPStyle xp = XPStyle.getXP();
+	    return (xp != null) ? xp.getSkin(c, "treeview.glyph") : null;
+	}
+
 	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    XPStyle.Skin skin = getSkin(c);
 	    if (skin != null) {
 		skin.paintSkin(g, x, y, 1);
 		return;
@@ -125,8 +129,16 @@ public class WindowsTreeUI extends BasicTreeUI {
 	    g.setColor(Color.black);
 	    g.drawLine(x + 2, y + HALF_SIZE, x + (SIZE - 3), y + HALF_SIZE);
 	}
-	public int getIconWidth() { return (skin != null) ? skin.getWidth() : SIZE; }
-	public int getIconHeight() { return (skin != null) ? skin.getHeight() : SIZE; }
+
+	public int getIconWidth() {
+	    XPStyle.Skin skin = getSkin(null);
+	    return (skin != null) ? skin.getWidth() : SIZE;
+	}
+
+	public int getIconHeight() {
+	    XPStyle.Skin skin = getSkin(null);
+	    return (skin != null) ? skin.getHeight() : SIZE;
+	}
     }
 
     /**
@@ -145,6 +157,7 @@ public class WindowsTreeUI extends BasicTreeUI {
 	}
 
 	public void paintIcon(Component c, Graphics g, int x, int y) {
+	    XPStyle.Skin skin = getSkin(c);
 	    if (skin != null) {
 		skin.paintSkin(g, x, y, 0);
 	    } else {

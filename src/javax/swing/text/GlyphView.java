@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphView.java	1.39 05/08/26
+ * @(#)GlyphView.java	1.40 06/04/10
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,6 +9,7 @@ package javax.swing.text;
 import java.awt.*;
 import java.text.BreakIterator;
 import javax.swing.event.*;
+import java.util.BitSet;
 
 import com.sun.java.swing.SwingUtilities2;
 
@@ -39,7 +40,7 @@ import com.sun.java.swing.SwingUtilities2;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.39 08/26/05
+ * @version 1.40 04/10/06
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -948,24 +949,26 @@ public class GlyphView extends View implements TabableView, Cloneable {
         final int contentSpaces;
         final int trailingSpaces;
         final boolean hasTab;
-        
+        final BitSet spaceMap;
         JustificationInfo(int start, int end,
                           int leadingSpaces, 
                           int contentSpaces,
                           int trailingSpaces,
-                          boolean hasTab) {
+                          boolean hasTab,
+                          BitSet spaceMap) {
             this.start = start;
             this.end = end;
             this.leadingSpaces = leadingSpaces;
             this.contentSpaces = contentSpaces;
             this.trailingSpaces = trailingSpaces;
             this.hasTab = hasTab;
+            this.spaceMap = spaceMap;
         }
     }
 
 
 
-    JustificationInfo getJustificationInfo() {
+    JustificationInfo getJustificationInfo(int rowStartOffset) {
         if (justificationInfo != null) {
             return justificationInfo;
         }
@@ -973,7 +976,9 @@ public class GlyphView extends View implements TabableView, Cloneable {
         final int TRAILING = 0;
         final int CONTENT  = 1;
         final int SPACES   = 2;
-        Segment segment = getText(getStartOffset(), getEndOffset());
+        int startOffset = getStartOffset();
+        int endOffset = getEndOffset();
+        Segment segment = getText(startOffset, endOffset);
         int txtOffset = segment.offset;
         int txtEnd = segment.offset + segment.count - 1;
         int startContentPosition = txtEnd + 1;
@@ -983,6 +988,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
         int contentSpaces = 0;
         int leadingSpaces = 0;
         boolean hasTab = false;
+        BitSet spaceMap = new BitSet(endOffset - startOffset + 1);
 
         //we parse conent to the right of the rightmost TAB only.
         //we are looking for the trailing and leading spaces.
@@ -990,6 +996,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
         //position before the trailing spaces (endContentPosition)
         for (int i = txtEnd, state = TRAILING; i >= txtOffset; i--) {
             if (' ' == segment.array[i]) {
+                spaceMap.set(i - txtOffset);
                 if (state == TRAILING) {
                     trailingSpaces++;
                 } else if (state == CONTENT) {
@@ -1023,12 +1030,12 @@ public class GlyphView extends View implements TabableView, Cloneable {
         int startJustifiableContent = -1;
         if (startContentPosition < txtEnd) {
             startJustifiableContent = 
-                startContentPosition - txtOffset + getStartOffset();
+                startContentPosition - txtOffset;
         }
         int endJustifiableContent = -1;
         if (endContentPosition > txtOffset) {
             endJustifiableContent = 
-                endContentPosition - txtOffset + getStartOffset();
+                endContentPosition - txtOffset;
         }
         justificationInfo = 
             new JustificationInfo(startJustifiableContent,
@@ -1036,7 +1043,8 @@ public class GlyphView extends View implements TabableView, Cloneable {
                                   leadingSpaces,
                                   contentSpaces,
                                   trailingSpaces,
-                                  hasTab);
+                                  hasTab,
+                                  spaceMap);
         return justificationInfo;
     }
 

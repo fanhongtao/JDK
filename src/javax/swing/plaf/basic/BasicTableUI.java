@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.146 05/08/23
+ * @(#)BasicTableUI.java	1.148 06/04/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.146 08/23/05
+ * @version 1.148 04/18/06
  * @author Philip Milne
  * @author Shannon Hickey (improved drag recognition)
  */
@@ -887,6 +887,8 @@ public class BasicTableUI extends TableUI
             dispatchComponent =
                     SwingUtilities.getDeepestComponentAt(editorComponent,
                             p2.x, p2.y);
+            SwingUtilities2.setSkipClickCount(dispatchComponent,
+                                              e.getClickCount() - 1);
         }
 
         protected boolean repostEvent(MouseEvent e) {
@@ -1046,7 +1048,7 @@ public class BasicTableUI extends TableUI
             // Check isFileList:
             // Until we support drag-selection, dragging should not change
             // the selection (act like single-select).
-            if (isFileList || table.getCellEditor() != null) {
+            if (isFileList || table.isEditing()) {
                 return;
             }
 

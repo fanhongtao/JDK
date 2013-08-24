@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsScrollBarUI.java	1.19 03/12/19
+ * @(#)WindowsScrollBarUI.java	1.20 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -96,7 +96,7 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 		index = 3;
 	    }
 	    String category = v ? "scrollbar.lowertrackvert" : "scrollbar.lowertrackhorz";
-	    xp.getSkin(category).paintSkin(g, trackBounds, index);
+	    xp.getSkin(sb, category).paintSkin(g, trackBounds, index);
 	} else if (thumbGrid == null) {
             super.paintTrack(g, c, trackBounds);
         }
@@ -127,15 +127,23 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 		index = 1;
 	    }
 	    // Paint thumb
-	    XPStyle.Skin skin = xp.getSkin(v ? "scrollbar.thumbbtnvert" : "scrollbar.thumbbtnhorz");
+	    XPStyle.Skin skin = xp.getSkin(sb, v ? "scrollbar.thumbbtnvert" : "scrollbar.thumbbtnhorz");
 	    skin.paintSkin(g, thumbBounds, index);
 	    // Paint gripper
-	    skin = xp.getSkin(v ? "scrollbar.grippervert" : "scrollbar.gripperhorz");
-	    skin.paintSkin(g,
-			   thumbBounds.x + (thumbBounds.width  - skin.getWidth()) / 2,
-			   thumbBounds.y + (thumbBounds.height - skin.getHeight()) / 2,
-			   skin.getWidth(), skin.getHeight(), index);
-
+	    skin = xp.getSkin(sb, v ? "scrollbar.grippervert" : "scrollbar.gripperhorz");
+            Insets gripperInsets = xp.getMargin(c, v ? "scrollbar.thumbbtnvert"
+                                                     : "scrollbar.thumbbtnhorz",
+                                                null, "contentmargins");
+            if (gripperInsets == null ||
+                    (v && (thumbBounds.height - gripperInsets.top -
+                           gripperInsets.bottom >= skin.getHeight())) ||
+                    (!v && (thumbBounds.width - gripperInsets.left -
+                            gripperInsets.right >= skin.getWidth()))) {
+                skin.paintSkin(g,
+                               thumbBounds.x + (thumbBounds.width  - skin.getWidth()) / 2,
+                               thumbBounds.y + (thumbBounds.height - skin.getHeight()) / 2,
+                               skin.getWidth(), skin.getHeight(), index);
+            }
 	} else {
 	    super.paintThumb(g, c, thumbBounds);
 	}
@@ -214,7 +222,7 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
 		ButtonModel model = getModel();
-		XPStyle.Skin skin = xp.getSkin("scrollbar.arrowbtn");
+		XPStyle.Skin skin = xp.getSkin(scrollbar, "scrollbar.arrowbtn");
 		int index = 0;
 		switch (direction) {
 		    case NORTH: index =  0; break;
@@ -232,7 +240,7 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 		    index += 1;
 		}
 
-		skin.paintSkin(g, 0, 0, getSize().width, getSize().height, index);
+		skin.paintSkin(g, 0, 0, getWidth(), getHeight(), index);
 	    } else {
 		super.paint(g);
 	    }

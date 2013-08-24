@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsIconFactory.java	1.21 03/12/19
+ * @(#)WindowsIconFactory.java	1.22 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 12/19/03
+ * @version 1.22 03/22/06
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -140,7 +140,7 @@ public class WindowsIconFactory implements Serializable
 
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		XPStyle.Skin skin = xp.getSkin(category);
+		XPStyle.Skin skin = xp.getSkin(c, category);
 		JButton b = (JButton)c;
 		ButtonModel model = b.getModel();
 		int index = 0;
@@ -283,7 +283,7 @@ public class WindowsIconFactory implements Serializable
 		if (model.isSelected()) {
 		    index += 4;
 		}
-		xp.getSkin("button.checkbox").paintSkin(g, x, y, index);
+		xp.getSkin(c, "button.checkbox").paintSkin(g, x, y, index);
 	    } else {
 		// outer bevel
 		if(!cb.isBorderPaintedFlat()) {
@@ -350,7 +350,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconWidth() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin("button.checkbox").getWidth();
+		return xp.getSkin(null, "button.checkbox").getWidth();
 	    } else {
 		return csize;
 	    }
@@ -359,7 +359,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconHeight() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin("button.checkbox").getHeight();
+		return xp.getSkin(null, "button.checkbox").getHeight();
 	    } else {
 		return csize;
 	    }
@@ -374,7 +374,7 @@ public class WindowsIconFactory implements Serializable
 	    XPStyle xp = XPStyle.getXP();
 
 	    if (xp != null) {
-		XPStyle.Skin skin = xp.getSkin("button.radiobutton");
+		XPStyle.Skin skin = xp.getSkin(b, "button.radiobutton");
 		int index = 0;
 		if (!model.isEnabled()) {
 		    index = 3;	// disabled
@@ -448,7 +448,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconWidth() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin("button.radiobutton").getWidth();
+		return xp.getSkin(null, "button.radiobutton").getWidth();
 	    } else {
 		return 13;
 	    }
@@ -457,7 +457,7 @@ public class WindowsIconFactory implements Serializable
 	public int getIconHeight() {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		return xp.getSkin("button.radiobutton").getHeight();
+		return xp.getSkin(null, "button.radiobutton").getHeight();
 	    } else {
 		return 13;
 	    }

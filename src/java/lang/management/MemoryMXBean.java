@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryMXBean.java	1.14 04/04/20
+ * @(#)MemoryMXBean.java	1.16 06/03/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -116,8 +116,8 @@ import javax.management.openmbean.CompositeData;
  * {@link javax.management.NotificationEmitter NotificationEmitter}
  * that emits two types of memory {@link javax.management.Notification 
  * notifications} if any one of the memory pools
- * supports a <a href="MemoryPoolMXBean#UsageThreshold">usage threshold</a>
- * or a <a href="MemoryPoolMXBean#CollectionThreshold">collection usage
+ * supports a <a href="MemoryPoolMXBean.html#UsageThreshold">usage threshold</a>
+ * or a <a href="MemoryPoolMXBean.html#CollectionThreshold">collection usage
  * threshold</a> which can be determined by calling the
  * {@link MemoryPoolMXBean#isUsageThresholdSupported} and
  * {@link MemoryPoolMXBean#isCollectionUsageThresholdSupported} methods. 
@@ -126,12 +126,12 @@ import javax.management.openmbean.CompositeData;
  *       usage threshold exceeded notification} - for notifying that
  *       the memory usage of a memory pool is increased and has reached
  *       or exceeded its
- *       <a href="MemoryPoolMXBean#UsageThreshold"> usage threshold</a> value.
+ *       <a href="MemoryPoolMXBean.html#UsageThreshold"> usage threshold</a> value.
  *       </li>
  *   <li>{@link MemoryNotificationInfo#MEMORY_COLLECTION_THRESHOLD_EXCEEDED
  *       collection usage threshold exceeded notification} - for notifying that
  *       the memory usage of a memory pool is greater than or equal to its
- *       <a href="MemoryPoolMXBean#CollectionThreshold">
+ *       <a href="MemoryPoolMXBean.html#CollectionThreshold">
  *       collection usage threshold</a> after the Java virtual machine
  *       has expended effort in recycling unused objects in that
  *       memory pool.</li>
@@ -178,7 +178,7 @@ import javax.management.openmbean.CompositeData;
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.14, 04/20/04 
+ * @version 1.16, 03/08/06 
  * @since   1.5
  */
 public interface MemoryMXBean {

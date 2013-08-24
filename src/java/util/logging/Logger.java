@@ -1,5 +1,5 @@
 /*
- * @(#)Logger.java	1.45 04/02/24
+ * @(#)Logger.java	1.46 06/04/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -138,7 +138,7 @@ import java.lang.ref.WeakReference;
  * All the other logging methods are implemented as calls on this
  * log(LogRecord) method.
  *
- * @version 1.45, 02/24/04
+ * @version 1.46, 04/12/06
  * @since 1.4
  */
 
@@ -146,7 +146,7 @@ import java.lang.ref.WeakReference;
 public class Logger {
     private static final Handler emptyHandlers[] = new Handler[0];
     private static final int offValue = Level.OFF.intValue();
-    private LogManager manager = LogManager.getLogManager();
+    private LogManager manager;
     private String name;
     private ArrayList handlers;
     private String resourceBundleName;
@@ -178,7 +178,7 @@ public class Logger {
      * <p>
      * The global logger is initialized by calling Logger.getLogger("global").
      */
-    public static final Logger global = getLogger("global");
+    public  static final Logger global = new Logger("global");
 
     /**
      * Protected method to construct a logger for a named subsystem.
@@ -198,12 +198,38 @@ public class Logger {
      *		   no corresponding resource can be found.
      */
     protected Logger(String name, String resourceBundleName) {
+        this.manager = LogManager.getLogManager();
 	if (resourceBundleName != null) {
 	    // Note: we may get a MissingResourceException here.
 	    setupResourceInfo(resourceBundleName);
 	}
 	this.name = name;
 	levelValue = Level.INFO.intValue();
+    }
+
+    // This constructor is used only to create the global Logger.
+    // It is needed to break a cyclic dependence between the LogManager
+    // and Logger static initializers causing deadlocks.
+    private Logger(String name) {
+        // The manager field is not initialized here.
+	this.name = name;
+	levelValue = Level.INFO.intValue();
+    }
+
+    // It is called from the LogManager.<clinit> to complete
+    // initialization of the global Logger.
+    void setLogManager(LogManager manager) {
+	this.manager = manager;
+    }
+
+    private void checkAccess() throws SecurityException {
+	if (!anonymous) {
+	    if (manager == null) {
+                // Complete initialization of the global Logger.
+	        manager = LogManager.getLogManager();
+            }
+	    manager.checkAccess();
+	}
     }
 
     /**
@@ -382,9 +408,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public void setFilter(Filter newFilter) throws SecurityException {
-	if (!anonymous) {
-	    manager.checkAccess();
-	}
+	checkAccess();
 	filter = newFilter;
     }
 
@@ -1075,9 +1099,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public void setLevel(Level newLevel) throws SecurityException {
-	if (!anonymous) {
-	    manager.checkAccess();
-	}
+	checkAccess();
 	synchronized (treeLock) {
 	    levelObject = newLevel;
 	    updateEffectiveLevel();
@@ -1132,9 +1154,7 @@ public class Logger {
     public synchronized void addHandler(Handler handler) throws SecurityException {
 	// Check for null handler
 	handler.getClass();
-	if (!anonymous) {
-	    manager.checkAccess();
-	}
+	checkAccess();
 	if (handlers == null) {
 	    handlers = new ArrayList();
 	}
@@ -1151,9 +1171,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public synchronized void removeHandler(Handler handler) throws SecurityException {
-	if (!anonymous) {
-	    manager.checkAccess();
-	}
+	checkAccess();
 	if (handler == null) {
 	    return;
 	}
@@ -1189,9 +1207,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public synchronized void setUseParentHandlers(boolean useParentHandlers) {
-	if (!anonymous) {
-	    manager.checkAccess();
-	}
+	checkAccess();
 	this.useParentHandlers = useParentHandlers;
     }
 

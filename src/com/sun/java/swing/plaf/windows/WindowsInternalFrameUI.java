@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsInternalFrameUI.java	1.23 03/12/19
+ * @(#)WindowsInternalFrameUI.java	1.24 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,9 +68,9 @@ public class WindowsInternalFrameUI extends BasicInternalFrameUI
     }
 
     private class XPBorder extends AbstractBorder {
-	private XPStyle.Skin leftSkin   = xp.getSkin("window.frameleft");
-	private XPStyle.Skin rightSkin  = xp.getSkin("window.frameright");
-	private XPStyle.Skin bottomSkin = xp.getSkin("window.framebottom");
+	private XPStyle.Skin leftSkin   = xp.getSkin(frame, "window.frameleft");
+	private XPStyle.Skin rightSkin  = xp.getSkin(frame, "window.frameright");
+	private XPStyle.Skin bottomSkin = xp.getSkin(frame, "window.framebottom");
 
 	/**
 	 * @param x the x position of the painted border

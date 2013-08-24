@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsToolBarSeparatorUI.java	1.16 03/12/19
+ * @(#)WindowsToolBarSeparatorUI.java	1.17 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import javax.swing.*;
  * Draws Windows toolbar separators.
  * <p>
  *
- * @version 1.16 12/19/03
+ * @version 1.17 03/22/06
  * @author Mark Davidson
  */
 public class WindowsToolBarSeparatorUI extends BasicToolBarSeparatorUI {
@@ -38,7 +38,7 @@ public class WindowsToolBarSeparatorUI extends BasicToolBarSeparatorUI {
 	    if (xp != null) {
 		boolean vertical = ((JSeparator)c).getOrientation() == SwingConstants.VERTICAL;
 		String category = vertical ? "toolbar.separator" : "toolbar.separatorvert";
-		XPStyle.Skin skin = xp.getSkin(category);
+		XPStyle.Skin skin = xp.getSkin(c, category);
 		size.width = skin.getWidth();
 		size.height = skin.getHeight();
 	    }
@@ -68,7 +68,7 @@ public class WindowsToolBarSeparatorUI extends BasicToolBarSeparatorUI {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    String category = vertical ? "toolbar.separator" : "toolbar.separatorvert";
-	    XPStyle.Skin skin = xp.getSkin(category);
+	    XPStyle.Skin skin = xp.getSkin(c, category);
 
 	    int dx = vertical ? (size.width - skin.getWidth()) / 2 : 0;
 	    int dy = vertical ? 0 : (size.height - skin.getHeight()) / 2;

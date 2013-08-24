@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsButtonListener.java	1.14 03/12/19
+ * @(#)WindowsButtonListener.java	1.15 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,11 +8,10 @@
 
 package com.sun.java.swing.plaf.windows;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+
 import javax.swing.*;
 import javax.swing.plaf.basic.*;
-import javax.swing.event.*;
 
 /**
  * Button Listener
@@ -24,29 +23,25 @@ import javax.swing.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.2 11/03/97
+ * @version @(#)WindowsButtonListener.java	1.15 06/03/22
  * @author Rich Schiavi
  */
-public class WindowsButtonListener extends BasicButtonListener
-{
-    public WindowsButtonListener(AbstractButton b ) {
+public class WindowsButtonListener extends BasicButtonListener {
+    public WindowsButtonListener(AbstractButton b) {
 	super(b);
     }
     
-/*
-    // Here for rollover purposes
-    public void mouseEntered(MouseEvent e) {
-	AbstractButton button = (AbstractButton)e.getSource();
-	button.getModel().setRollover(true);
+    public void propertyChange(PropertyChangeEvent e) {
+	String prop = e.getPropertyName();
+	if (prop == "ancestor") {
+	    XPStyle xp = XPStyle.getXP();
+	    if (xp != null) {
+		AbstractButton b = (AbstractButton)e.getSource();
+		b.setBorder(xp.getBorder(b, WindowsButtonUI.getXPButtonType(b)));
+	    }
+	}
+	super.propertyChange(e);
     }
-    
-    // Here for rollover purposes
-    public void mouseExited(MouseEvent e) {
-	AbstractButton button = (AbstractButton)e.getSource();
-	button.getModel().setRollover(false);
-    }
-*/
-
 }
 
 

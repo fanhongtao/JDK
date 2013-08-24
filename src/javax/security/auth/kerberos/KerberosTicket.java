@@ -1,5 +1,5 @@
 /*
- * @(#)KerberosTicket.java	1.16 04/06/02
+ * @(#)KerberosTicket.java	1.17 06/06/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -56,7 +56,7 @@ import sun.security.util.*;
  * @see org.ietf.jgss.GSSManager
  * 
  * @author Mayank Upadhyay
- * @version 1.16, 06/02/04
+ * @version 1.17, 06/01/06
  * @since 1.4
  */
 public class KerberosTicket implements Destroyable, Refreshable,
@@ -277,9 +277,6 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	   this.renewTill = renewTill;
 	}
 
-	if (authTime == null)
-	   throw new IllegalArgumentException("Authentication time of ticket"
-					      + " cannot be null");
 	this.authTime = authTime;
 
 	this.startTime = (startTime != null? startTime: authTime);
@@ -422,7 +419,8 @@ public class KerberosTicket implements Destroyable, Refreshable,
     /**
      * Returns the time that the client was authenticated.
      *
-     * @return the time that the client was authenticated.
+     * @return the time that the client was authenticated
+     *         or null if not set.
      */
     public final java.util.Date getAuthTime() {
 	return (authTime == null) ? null : new Date(authTime.getTime());
@@ -431,7 +429,8 @@ public class KerberosTicket implements Destroyable, Refreshable,
     /**
      * Returns the start time for this ticket's validity period.
      *
-     * @return the start time for this ticket's validity period.
+     * @return the start time for this ticket's validity period
+     *         or null if not set.
      */
     public final java.util.Date getStartTime() {
 	return (startTime == null) ? null : new Date(startTime.getTime());
@@ -443,7 +442,7 @@ public class KerberosTicket implements Destroyable, Refreshable,
      * @return the expiration time for this ticket's validity period.
      */
     public final java.util.Date getEndTime() {
-	return (endTime == null) ? null : new Date(endTime.getTime());
+	return endTime;
     }
 
     /**
@@ -619,11 +618,10 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	        "Postdated Ticket " + flags[POSTDATED_TICKET_FLAG] + "\n" +
 	        "Renewable Ticket " + flags[RENEWABLE_TICKET_FLAG] + "\n" +
 	        "Initial Ticket " + flags[RENEWABLE_TICKET_FLAG] + "\n" +
-		"Auth Time = " + authTime.toString() + "\n" +
-		"Start Time = " + startTime.toString() + "\n" +
+		"Auth Time = " + String.valueOf(authTime) + "\n" +
+		"Start Time = " + String.valueOf(startTime) + "\n" +
 		"End Time = " + endTime.toString() + "\n" +
-		"Renew Till = " +
-		  (renewTill == null ? "Null " : renewTill.toString()) + "\n" +
+		"Renew Till = " + String.valueOf(renewTill) + "\n" +
 		"Client Addresses " +
 		(clientAddresses == null ? " Null " : caddrBuf.toString() +
 		"\n"));

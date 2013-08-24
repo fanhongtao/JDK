@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.177 05/05/06
+ * @(#)BasicTreeUI.java	1.178 06/04/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.177 05/06/05
+ * @version 1.178 04/18/06
  * @author Scott Violet
  * @author Shannon Hickey (improved drag recognition)
  */
@@ -3008,6 +3008,10 @@ public class BasicTreeUI extends TreeUI
 	    this.destination = destination;
 	    this.source.addMouseListener(this);
 	    this.source.addMouseMotionListener(this);
+
+            SwingUtilities2.setSkipClickCount(destination,
+                                              event.getClickCount() - 1);
+
 	    /* Dispatch the editing event! */
 	    destination.dispatchEvent(SwingUtilities.convertMouseEvent
 					  (source, event, destination));

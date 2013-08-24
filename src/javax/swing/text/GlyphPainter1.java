@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphPainter1.java	1.19 05/08/19
+ * @(#)GlyphPainter1.java	1.20 06/04/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.awt.*;
  * is recommended for the DK.
  *
  * @author  Timothy Prinzing
- * @version 1.19 08/19/05
+ * @version 1.20 04/10/06
  * @see GlyphView
  */
 class GlyphPainter1 extends GlyphView.GlyphPainter {
@@ -42,7 +42,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	sync(v);
 	Segment text = v.getText(p0, p1);
         int[] justificationData = getJustificationData(v);
-        int width = Utilities.getTabbedTextWidth(text, metrics, (int) x, e, p0, 
+        int width = Utilities.getTabbedTextWidth(v, text, metrics, (int) x, e, p0, 
                                                  justificationData);
         SegmentCache.releaseSharedSegment(text);
 	return width;
@@ -86,7 +86,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
         int[] justificationData = getJustificationData(v);
 	if (p != p0) {
 	    text = v.getText(p, p0);
-            int width = Utilities.getTabbedTextWidth(text, metrics, x, expander, p, 
+            int width = Utilities.getTabbedTextWidth(v, text, metrics, x, expander, p, 
                                                      justificationData);
 	    x += width;
             SegmentCache.releaseSharedSegment(text);
@@ -124,7 +124,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	    // determine range to the left of the position
 	    text = v.getText(p0, pos);
             int[] justificationData = getJustificationData(v);
-            int width = Utilities.getTabbedTextWidth(text, metrics, alloc.x, expander, p0, 
+            int width = Utilities.getTabbedTextWidth(v, text, metrics, alloc.x, expander, p0, 
                                                      justificationData);
             SegmentCache.releaseSharedSegment(text);
 	    return new Rectangle(alloc.x + width, alloc.y, 0, metrics.getHeight());
@@ -156,7 +156,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	TabExpander expander = v.getTabExpander();
 	Segment text = v.getText(p0, p1);
         int[] justificationData = getJustificationData(v);
-	int offs = Utilities.getTabbedTextOffset(text, metrics, 
+        int offs = Utilities.getTabbedTextOffset(v, text, metrics, 
                                                  alloc.x, (int) x, expander, p0, 
                                                  justificationData);
         SegmentCache.releaseSharedSegment(text);
@@ -193,7 +193,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	TabExpander expander = v.getTabExpander();
 	Segment s = v.getText(p0, v.getEndOffset());
         int[] justificationData = getJustificationData(v);
-	int index = Utilities.getTabbedTextOffset(s, metrics, (int)x, (int)(x+len),
+        int index = Utilities.getTabbedTextOffset(v, s, metrics, (int)x, (int)(x+len),
                                                   expander, p0, false, 
                                                   justificationData);
         SegmentCache.releaseSharedSegment(s);
@@ -216,19 +216,13 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
     /**
      * @return justificationData from the ParagraphRow this GlyphView
      * is in or {@code null} if no justification is needed
-     * justificationData[0] by what amount we need to extend
-     * extendable spaces
-     * justificationData[1] from what position do we extend spaces
-     * justificationData[2] to what position do we extend spaces
      */
     private int[] getJustificationData(GlyphView v) {
         View parent = v.getParent();
         int [] ret = null;
         if (parent instanceof ParagraphView.Row) {
             ParagraphView.Row row = ((ParagraphView.Row) parent);
-            if (row.justificationData != null && row.isJustifyEnabled()) {
-                ret = row.justificationData;
-            }
+            ret = row.justificationData;
         } 
         return ret;
     }

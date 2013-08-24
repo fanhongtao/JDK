@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.210 05/03/03
+ * @(#)Window.java	1.211 06/04/11
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -104,7 +104,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.210, 03/03/05
+ * @version 	1.211, 04/11/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -1664,6 +1664,10 @@ public class Window extends Container implements Accessible {
 	    oldFocusableWindowState = this.focusableWindowState;
 	    this.focusableWindowState = focusableWindowState;
 	}
+        WindowPeer peer = (WindowPeer)this.peer;       
+        if (peer != null) {
+            peer.updateFocusableWindowState();
+        }
 	firePropertyChange("focusableWindowState", oldFocusableWindowState,
 			   focusableWindowState);
 	if (oldFocusableWindowState && !focusableWindowState && isFocused()) {

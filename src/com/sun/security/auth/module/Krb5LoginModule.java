@@ -1,5 +1,5 @@
 /*
- * @(#)Krb5LoginModule.java	1.28 04/05/05
+ * @(#)Krb5LoginModule.java	1.29 06/03/21
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -625,6 +625,14 @@ public class Krb5LoginModule implements LoginModule {
 
 		    encKeys = EncryptionKey.acquireSecretKeys(
 			password, principal.getSalt());
+
+                    cred = Credentials.acquireTGT(principal, encKeys, password);
+		
+		    // update keys after pre-auth
+		    encKeys = EncryptionKey.acquireSecretKeys(
+			password, principal.getSalt());
+		} else {
+		    cred = Credentials.acquireTGT(principal, encKeys, password);
 		}
 
 		// Get the TGT using AS Exchange
@@ -639,7 +647,6 @@ public class Krb5LoginModule implements LoginModule {
                             hd.encode(encKeys[i].getBytes()));
 		    }
 		}
-		cred = Credentials.acquireTGT(principal, encKeys);
 
 		// we should hava a  non-null cred 
 		if (cred == null) {

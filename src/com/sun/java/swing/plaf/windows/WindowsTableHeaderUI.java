@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTableHeaderUI.java	1.13 03/12/19
+ * @(#)WindowsTableHeaderUI.java	1.14 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -99,7 +99,7 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
     }
 
     private class XPDefaultRenderer extends DefaultTableCellRenderer implements UIResource  {
-	XPStyle.Skin skin = XPStyle.getXP().getSkin("header.headeritem");
+	XPStyle.Skin skin;
 	boolean isSelected, hasFocus, hasRollover;
 	int column;
 
@@ -116,6 +116,9 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
 	    this.hasFocus = hasFocus;
 	    this.column = column;
 	    this.hasRollover = (column == rolloverColumn);
+            if (skin == null || skin.getContentMargin() == null) {
+                skin = XPStyle.getXP().getSkin(header, "header.headeritem");
+            }
 	    setText((value == null) ? "" : value.toString());
 	    setBorder(new EmptyBorder(skin.getContentMargin()));
 

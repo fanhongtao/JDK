@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsProgressBarUI.java	1.24 04/04/16
+ * @(#)WindowsProgressBarUI.java	1.26 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,7 +12,6 @@ import javax.swing.plaf.*;
 import javax.swing.*;
 import java.awt.*;
 
-
 /**
  * Windows rendition of the component.
  * <p>
@@ -23,7 +22,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 04/16/04
+ * @version 1.26 03/22/06
  * @author Michael C. Albers
  */
 public class WindowsProgressBarUI extends BasicProgressBarUI
@@ -48,16 +47,34 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
     protected Dimension getPreferredInnerHorizontal() {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    return xp.getDimension("progress.bar.normalsize");
+            Dimension dim = xp.getDimension(progressBar, "progress.bar", null, "normalsize");
+            if (dim == null) {
+                // if dim null, it's likely that the NORMALSIZE property is missing
+                // from the current XP theme. This will synthesize a replacement
+                // dimension that's close to the real thing.
+                XPStyle.Skin skin = xp.getSkin(progressBar, "progress.bar");
+                dim = new Dimension(super.getPreferredInnerHorizontal().width,
+                                    skin.getHeight());
+            }
+            return dim;
 	} else {
 	    return super.getPreferredInnerHorizontal();
 	}
     }
     
     protected Dimension getPreferredInnerVertical() {
-	if (XPStyle.getXP() != null) {
-	    Dimension d = getPreferredInnerHorizontal();
-	    return new Dimension(d.height, d.width); // Reverse values
+        XPStyle xp = XPStyle.getXP();
+        if (xp != null) {
+            Dimension dim = xp.getDimension(progressBar, "progress.barvert", null, "normalsize");
+            if (dim == null) {
+                // if dim null, it's likely that the NORMALSIZE property is missing
+                // from the current XP theme. This will synthesize a replacement
+                // dimension that's close to the real thing.
+                XPStyle.Skin skin = xp.getSkin(progressBar, "progress.barvert");
+                dim = new Dimension(skin.getWidth(),
+                                    super.getPreferredInnerVertical().height);
+            }
+            return dim;
 	} else {
 	    return super.getPreferredInnerVertical();
 	}
@@ -103,7 +120,7 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 
 	    } else {
 		XPStyle.Skin skin =
-		    xp.getSkin(vertical ? "progress.chunkvert" : "progress.chunk");
+		    xp.getSkin(progressBar, vertical ? "progress.chunkvert" : "progress.chunk");
 		int thickness;
 		if (vertical) {
 		    thickness = barRectWidth - 5;
@@ -111,8 +128,8 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 		    thickness = barRectHeight - 5;
 		}
 
-		int chunkSize = xp.getInt("progress.progresschunksize", 2);
-		int spaceSize = xp.getInt("progress.progressspacesize", 0);
+		int chunkSize = xp.getInt(progressBar, "progress", null, "progresschunksize", 2);
+		int spaceSize = xp.getInt(progressBar, "progress", null, "progressspacesize", 0);
 		int nChunks = (amountFull-4) / (chunkSize + spaceSize);
 
 		// See if we can squeeze in an extra chunk without spacing after
@@ -178,14 +195,9 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 				   int barRectWidth, int barRectHeight) {
 	XPStyle xp = XPStyle.getXP();
 	String category = vertical ? "progress.barvert" : "progress.bar";
-	XPStyle.Skin skin = xp.getSkin(category);
+	XPStyle.Skin skin = xp.getSkin(progressBar, category);
 
 	// Paint background
-	Color fillColor = xp.getColor(category + ".fillcolorhint", null);
-	if (fillColor != null) {
-	    g.setColor(fillColor);
-	    g.fillRect(2, 2, barRectWidth-4, barRectHeight-4);
-	}
 	skin.paintSkin(g, 0, 0, barRectWidth, barRectHeight, 0);
     }
 }

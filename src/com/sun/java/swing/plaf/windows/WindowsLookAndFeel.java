@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.184 05/01/04
+ * @(#)WindowsLookAndFeel.java	1.185 06/03/22
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -64,7 +64,7 @@ import com.sun.java.swing.SwingUtilities2;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.184 01/04/05
+ * @version 1.185 03/22/06
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -75,9 +75,9 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
     private boolean useSystemFontSettings = true;
     private boolean useSystemFontSizeSettings;
 
-    // This property is not used directly, but is kept as
-    // a private member to avoid it being GC'd.
-    private DesktopProperty xpStyleColorName;
+    // These properties are not used directly, but are kept as
+    // private members to avoid being GC'd.
+    private DesktopProperty themeActive, dllName, colorName, sizeName;
 
     public String getName() {
         return "Windows";
@@ -573,27 +573,16 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 
 
 	if (!(this instanceof WindowsClassicLookAndFeel) &&
-	    System.getProperty("os.name").startsWith("Windows XP") &&
+	    (System.getProperty("os.name").startsWith("Windows ") &&
+	     System.getProperty("os.version").compareTo("5.1") >= 0) &&
 	    AccessController.doPrivileged(new GetPropertyAction("swing.noxp")) == null) {
 
-	    // This desktop property is not used directly, but is needed to
+	    // These desktop properties are not used directly, but are needed to
 	    // trigger realoading of UI's.
-	    this.xpStyleColorName =
-		new DesktopProperty("win.xpstyle.colorName", null, toolkit) {
-		    /*initializer*/ {
-			// This call adds a property change listener for the property,
-			// which triggers a call to updateUI(). The value returned
-			// is not interesting here.
-			getValueFromDesktop();
-		    }
-
-		    protected void updateUI() {
-			super.updateUI();
-
-			// Make sure property change listener is readded each time
-			getValueFromDesktop();
-		    }
-		};
+	    this.themeActive = new TriggerDesktopProperty("win.xpstyle.themeActive");
+	    this.dllName     = new TriggerDesktopProperty("win.xpstyle.dllName");
+	    this.colorName   = new TriggerDesktopProperty("win.xpstyle.colorName");
+	    this.sizeName    = new TriggerDesktopProperty("win.xpstyle.sizeName");
 	}
 
 
@@ -2013,7 +2002,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	}
 
 	public Object getXPValue(UIDefaults table) {
-	    return XPStyle.getXP().getBorder((String)xpValue);
+	    return XPStyle.getXP().getBorder(null, (String)xpValue);
 	}
     }
 
@@ -2023,7 +2012,24 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	}
 
 	public Object getXPValue(UIDefaults table) {
-	    return XPStyle.getXP().getColor((String)xpValue, null);
+	    return XPStyle.getXP().getColor(null, (String)xpValue, null, null, null);
+	}
+    }
+
+    private class TriggerDesktopProperty extends DesktopProperty {
+	TriggerDesktopProperty(String key) {
+	    super(key, null, toolkit);
+	    // This call adds a property change listener for the property,
+	    // which triggers a call to updateUI(). The value returned
+	    // is not interesting here.
+	    getValueFromDesktop();
+	}
+
+	protected void updateUI() {
+	    super.updateUI();
+
+	    // Make sure property change listener is readded each time
+	    getValueFromDesktop();
 	}
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryNotificationInfo.java	1.6 04/04/18
+ * @(#)MemoryNotificationInfo.java	1.8 06/03/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -67,7 +67,7 @@ import sun.management.MemoryNotifInfoCompositeData;
  *       <br>This notification will be emitted when
  *       the memory usage of a memory pool is increased and has reached 
  *       or exceeded its 
- *       <a href="MemoryPoolMXBean#UsageThreshold"> usage threshold</a> value.
+ *       <a href="MemoryPoolMXBean.html#UsageThreshold"> usage threshold</a> value.
  *       Subsequent crossing of the usage threshold value does not cause
  *       further notification until the memory usage has returned
  *       to become less than the usage threshold value.
@@ -76,14 +76,14 @@ import sun.management.MemoryNotifInfoCompositeData;
  *       collection usage threshold exceeded notification}.
  *       <br>This notification will be emitted when
  *       the memory usage of a memory pool is greater than or equal to its
- *       <a href="MemoryPoolMXBean#CollectionThreshold">
+ *       <a href="MemoryPoolMXBean.html#CollectionThreshold">
  *       collection usage threshold</a> after the Java virtual machine
  *       has expended effort in recycling unused objects in that
  *       memory pool.</li> 
  * </ul>
  *
  * @author  Mandy Chung
- * @version 1.6, 04/18/04
+ * @version 1.8, 03/08/06
  * @since   1.5
  *
  */
@@ -96,7 +96,7 @@ public class MemoryNotificationInfo {
      * Notification type denoting that 
      * the memory usage of a memory pool has
      * reached or exceeded its
-     * <a href="MemoryPoolMXBean#UsageThreshold"> usage threshold</a> value.
+     * <a href="MemoryPoolMXBean.html#UsageThreshold"> usage threshold</a> value.
      * This notification is emitted by {@link MemoryMXBean}.
      * Subsequent crossing of the usage threshold value does not cause
      * further notification until the memory usage has returned
@@ -110,7 +110,7 @@ public class MemoryNotificationInfo {
     /**
      * Notification type denoting that 
      * the memory usage of a memory pool is greater than or equal to its
-     * <a href="MemoryPoolMXBean#CollectionThreshold">
+     * <a href="MemoryPoolMXBean.html#CollectionThreshold">
      * collection usage threshold</a> after the Java virtual machine
      * has expended effort in recycling unused objects in that
      * memory pool. 

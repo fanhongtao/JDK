@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsInternalFrameTitlePane.java	1.17 04/04/15
+ * @(#)WindowsInternalFrameTitlePane.java	1.18 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -116,11 +116,11 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
 	    if (xp != null) {
 		String shadowType = null;
 		if (isSelected) {
-		    shadowType = xp.getString("window.caption", "active", "textshadowtype");
+		    shadowType = xp.getString(this, "window.caption", "active", "textshadowtype");
 		}
 		if ("single".equalsIgnoreCase(shadowType)) {
-		    Point shadowOffset = xp.getPoint("window.textshadowoffset");
-		    Color shadowColor  = xp.getColor("window.textshadowcolor", null);
+		    Point shadowOffset = xp.getPoint(this, "window", "active", "textshadowoffset");
+		    Color shadowColor  = xp.getColor(this, "window", "active", "textshadowcolor", null);
 		    if (shadowOffset != null && shadowColor != null) {
 			g.setColor(shadowColor);
 			SwingUtilities2.drawString(frame, g, title,
@@ -159,11 +159,11 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
     protected void paintTitleBackground(Graphics g) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    XPStyle.Skin skin = xp.getSkin(frame.isIcon() ? "window.mincaption"
+	    XPStyle.Skin skin = xp.getSkin(this, frame.isIcon() ? "window.mincaption"
 				      : (frame.isMaximum() ? "window.maxcaption"
 							   : "window.caption"));
 
-	    skin.paintSkin(g, 0,  0, getSize().width, getSize().height, frame.isSelected() ? 0 : 1);
+	    skin.paintSkin(g, 0,  0, getWidth(), getHeight(), frame.isSelected() ? 0 : 1);
 	} else {
 	    Boolean gradientsOn = (Boolean)LookAndFeel.getDesktopPropertyValue(
 		"win.frame.captionGradientsOn", Boolean.valueOf(false));
@@ -298,8 +298,9 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
 
 	WindowsTitlePaneLayout() {
 	    if (xp != null) {
-		captionMargin = xp.getMargin("window.caption.captionmargins");
-		contentMargin = xp.getMargin("window.caption.contentmargins");
+		Component c = WindowsInternalFrameTitlePane.this;
+		captionMargin = xp.getMargin(c, "window.caption", null, "captionmargins");
+		contentMargin = xp.getMargin(c, "window.caption", null, "contentmargins");
 	    }
 	    if (captionMargin == null) {
 		captionMargin = new Insets(0, 2, 0, 2);

@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.239 05/08/23
+ * @(#)JTable.java	1.240 06/03/28
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -127,7 +127,7 @@ import javax.print.attribute.*;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.239 08/23/05
+ * @version 1.240 03/28/06
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  */
@@ -258,8 +258,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     transient protected Component       editorComp;
 
     /**
-     * The object that overwrites the screen real estate occupied by the
-     * current cell and allows the user to change its contents.
+     * The active cell editor object, that overwrites the screen real estate
+     * occupied by the current cell and allows the user to change its contents.
+     * {@code null} if the table isn't currently editing.
      */
     transient protected TableCellEditor cellEditor;
 
@@ -3810,23 +3811,26 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Returns the cell editor.
+     * Returns the active cell editor, which is {@code null} if the table
+     * is not currently editing.
      *
-     * @return the <code>TableCellEditor</code> that does the editing
+     * @return the {@code TableCellEditor} that does the editing,
+     *         or {@code null} if the table is not currently editing.
      * @see #cellEditor
+     * @see #getCellEditor(int, int)
      */
     public TableCellEditor getCellEditor() {
         return cellEditor;
     }
 
     /**
-     * Sets the <code>cellEditor</code> variable.
+     * Sets the active cell editor.
      *
-     * @param anEditor  the TableCellEditor that does the editing
+     * @param anEditor the active cell editor
      * @see #cellEditor
      * @beaninfo
      *  bound: true
-     *  description: The table's active cell editor, if one exists.
+     *  description: The table's active cell editor.
      */
     public void setCellEditor(TableCellEditor anEditor) {
 	TableCellEditor oldEditor = cellEditor;

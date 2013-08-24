@@ -1,5 +1,5 @@
 /*
- * @(#)JTextComponent.java	1.212 04/04/15
+ * @(#)JTextComponent.java	1.213 06/04/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -249,7 +249,7 @@ import sun.awt.AppContext;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.212 04/15/04
+ * @version 1.213 04/10/06
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -3419,8 +3419,20 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    if (doc != null) {
 		length = doc.getLength();
 		if (composedTextContent != null) {
-		    length -= composedTextEnd.getOffset() - 
-                        composedTextStart.getOffset();
+                    if (composedTextEnd == null
+                          || composedTextStart == null) {
+                        /* 
+                         * fix for : 6355666
+                         * this is the case when this method is invoked
+                         * from DocumentListener. At this point 
+                         * composedTextEnd and composedTextStart are
+                         * not defined yet.
+                         */ 
+                        length -= composedTextContent.length();
+                    } else {
+                        length -= composedTextEnd.getOffset() - 
+                            composedTextStart.getOffset();
+                    }
 		}
             }
 	    return length;

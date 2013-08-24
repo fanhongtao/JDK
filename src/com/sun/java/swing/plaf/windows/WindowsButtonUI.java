@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsButtonUI.java	1.35 03/12/19
+ * @(#)WindowsButtonUI.java	1.36 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.35 12/19/03
+ * @version 1.36 03/22/06
  * @author Jeff Dinkins
  *
  */
@@ -53,7 +53,7 @@ public class WindowsButtonUI extends BasicButtonUI
     //         Create Listeners
     // ********************************
     protected BasicButtonListener createButtonListener(AbstractButton b) {
-	return super.createButtonListener(b);
+        return new WindowsButtonListener(b);
     }
 
     // ********************************
@@ -73,7 +73,7 @@ public class WindowsButtonUI extends BasicButtonUI
 
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    b.setBorder(xp.getBorder("button.pushbutton"));
+            b.setBorder(xp.getBorder(b, getXPButtonType(b)));
             LookAndFeel.installProperty(b, "rolloverEnabled", Boolean.TRUE);
 	}
     }
@@ -152,17 +152,23 @@ public class WindowsButtonUI extends BasicButtonUI
 	super.paint(g, c);
     }
 
+    static String getXPButtonType(AbstractButton b) {
+        boolean toolbar = (b.getParent() instanceof JToolBar);
+        return toolbar ? "toolbar.button" : "button.pushbutton";
+    }
+
     static void paintXPButtonBackground(Graphics g, JComponent c) {
 	AbstractButton b = (AbstractButton)c;
 
 	XPStyle xp = XPStyle.getXP();
 
-	if (b.isContentAreaFilled() && xp != null &&
-	    "imagefile".equalsIgnoreCase(xp.getString("button.pushbutton", null, "bgtype"))) {
+	boolean toolbar = (b.getParent() instanceof JToolBar);
+        String category = getXPButtonType(b);
+
+	if (b.isContentAreaFilled() && xp != null) {
 
 	    ButtonModel model = b.getModel();
-	    boolean toolbar = (c.getParent() instanceof JToolBar);
-	    XPStyle.Skin skin = xp.getSkin(toolbar ? "toolbar.button" : "button.pushbutton");
+	    XPStyle.Skin skin = xp.getSkin(b, category);
 
 	    // normal, rollover/activated/focus, pressed, disabled, default
 	    int index = 0;

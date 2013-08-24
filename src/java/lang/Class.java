@@ -1,5 +1,5 @@
 /*
- * @(#)Class.java	1.187 04/07/12
+ * @(#)Class.java	1.188 06/05/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -2175,6 +2175,32 @@ public final
     // Intermediate results for getFields and getMethods
     private volatile transient SoftReference declaredPublicFields;
     private volatile transient SoftReference declaredPublicMethods;
+  
+    // Incremented by the VM on each call to JVM TI RedefineClasses()
+    // that redefines this class or a superclass.
+    private volatile transient int classRedefinedCount = 0;
+
+    // Value of classRedefinedCount when we last cleared the cached values
+    // that are sensitive to class redefinition.
+    private volatile transient int lastRedefinedCount = 0;
+
+    // Clears cached values that might possibly have been obsoleted by
+    // a class redefinition.
+    private void clearCachesOnClassRedefinition() {
+	if (lastRedefinedCount != classRedefinedCount) {
+	    declaredFields = publicFields = declaredPublicFields = null;
+	    declaredMethods = publicMethods = declaredPublicMethods = null;
+	    declaredConstructors = publicConstructors = null;
+	    annotations = declaredAnnotations = null;
+
+	    // Use of "volatile" (and synchronization by caller in the case
+	    // of annotations) ensures that no thread sees the update to
+	    // lastRedefinedCount before seeing the caches cleared.
+	    // We do not guard against brief windows during which multiple
+	    // threads might redundantly work to fill an empty cache.
+	    lastRedefinedCount = classRedefinedCount;
+	}
+    }
 
     // Generic signature handling
     private native String getGenericSignature();
@@ -2217,6 +2243,7 @@ public final
         checkInitted();
         Field[] res = null;
         if (useCaches) {
+            clearCachesOnClassRedefinition();
             if (publicOnly) {
                 if (declaredPublicFields != null) {
                     res = (Field[]) declaredPublicFields.get();
@@ -2247,6 +2274,7 @@ public final
         checkInitted();
         Field[] res = null;
         if (useCaches) {
+            clearCachesOnClassRedefinition();
             if (publicFields != null) {
                 res = (Field[]) publicFields.get();
             }
@@ -2310,6 +2338,7 @@ public final
         checkInitted();
         Constructor[] res = null;
         if (useCaches) {
+            clearCachesOnClassRedefinition();
             if (publicOnly) {
                 if (publicConstructors != null) {
                     res = (Constructor[]) publicConstructors.get();
@@ -2350,6 +2379,7 @@ public final
         checkInitted();
         Method[] res = null;
         if (useCaches) {
+            clearCachesOnClassRedefinition();
             if (publicOnly) {
                 if (declaredPublicMethods != null) {
                     res = (Method[]) declaredPublicMethods.get();
@@ -2475,6 +2505,7 @@ public final
         checkInitted();
         Method[] res = null;
         if (useCaches) {
+            clearCachesOnClassRedefinition();
             if (publicMethods != null) {
                 res = (Method[]) publicMethods.get();
             }
@@ -2989,10 +3020,12 @@ public final
         return declaredAnnotations.values().toArray(EMPTY_ANNOTATIONS_ARRAY);
     }
 
+    // Annotations cache
     private transient Map<Class, Annotation> annotations;
     private transient Map<Class, Annotation> declaredAnnotations;
 
     private synchronized void initAnnotationsIfNecessary() {
+	clearCachesOnClassRedefinition();
         if (annotations != null)
             return;
         declaredAnnotations = AnnotationParser.parseAnnotations(

@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectInputStream.java	1.156 05/12/01
+ * @(#)ObjectInputStream.java	1.157 06/04/05
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import static java.io.ObjectStreamClass.processQueue;
 
 /**
@@ -174,7 +175,7 @@ import static java.io.ObjectStreamClass.processQueue;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.156, 05/12/01
+ * @version 1.157, 06/04/05
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -238,14 +239,12 @@ public class ObjectInputStream
     /** if true, invoke resolveObject() */
     private boolean enableResolve;
     
-    // values below valid only during upcalls to readObject()/readExternal()
-    /** object currently being deserialized */
-    private Object curObj;
-    /** descriptor for current class (null if in readExternal()) */
-    private ObjectStreamClass curDesc;
-    /** current GetField object */
-    private GetFieldImpl curGet;
-
+    /**
+     * Context during upcalls to class-defined readObject methods; holds 
+     * object currently being deserialized and descriptor for current class.
+     * Null when not during readObject upcall.
+     */
+    private CallbackContext curContext;
 
     /**
      * Creates an ObjectInputStream that reads from the specified InputStream.
@@ -471,9 +470,11 @@ public class ObjectInputStream
     public void defaultReadObject()
 	throws IOException, ClassNotFoundException
     {
-	if (curObj == null || curDesc == null) {
+	if (curContext == null) {
 	    throw new NotActiveException("not in call to readObject");
 	}
+	Object curObj = curContext.getObj();
+	ObjectStreamClass curDesc = curContext.getDesc();
 	bin.setBlockDataMode(false);
 	defaultReadFields(curObj, curDesc);
 	bin.setBlockDataMode(true);
@@ -507,14 +508,14 @@ public class ObjectInputStream
     public ObjectInputStream.GetField readFields()
     	throws IOException, ClassNotFoundException
     {
-	if (curGet == null) {
-	    if (curObj == null || curDesc == null) {
-		throw new NotActiveException("not in call to readObject");
-	    }
-	    curGet = new GetFieldImpl(curDesc);
+	if (curContext == null) {
+	    throw new NotActiveException("not in call to readObject");
 	}
+	Object curObj = curContext.getObj();
+	ObjectStreamClass curDesc = curContext.getDesc();
 	bin.setBlockDataMode(false);
-	curGet.readFields();
+	GetFieldImpl getField = new GetFieldImpl(curDesc);
+	getField.readFields();
 	bin.setBlockDataMode(true);
 	if (!curDesc.hasWriteObjectData()) {
 	    /*
@@ -525,7 +526,7 @@ public class ObjectInputStream
 	    defaultDataEnd = true;
 	}
 
-	return curGet;
+	return getField;
     }
 
     /**
@@ -1742,12 +1743,8 @@ public class ObjectInputStream
     private void readExternalData(Externalizable obj, ObjectStreamClass desc) 
 	throws IOException 
     {
-	Object oldObj = curObj;
-	ObjectStreamClass oldDesc = curDesc;
-	GetFieldImpl oldGet = curGet;
-	curObj = obj;
-	curDesc = null;
-	curGet = null;
+	CallbackContext oldContext = curContext;
+	curContext = null;
 
 	boolean blocked = desc.hasBlockExternalData();
 	if (blocked) {
@@ -1782,10 +1779,8 @@ public class ObjectInputStream
 	 * externalizable data remains in the stream, a subsequent read will
 	 * most likely throw a StreamCorruptedException.
 	 */
-	
-	curObj = oldObj;
-	curDesc = oldDesc;
-	curGet = oldGet;
+
+	curContext = oldContext;
     }
     
     /**
@@ -1806,12 +1801,8 @@ public class ObjectInputStream
 		    slotDesc.hasReadObjectMethod() &&
 		    handles.lookupException(passHandle) == null) 
 		{
-		    Object oldObj = curObj;
-		    ObjectStreamClass oldDesc = curDesc;
-		    GetFieldImpl oldGet = curGet;
-		    curObj = obj;
-		    curDesc = slotDesc;
-		    curGet = null;
+		    CallbackContext oldContext = curContext;
+		    curContext = new CallbackContext(obj, slotDesc);
 
 		    bin.setBlockDataMode(true);
 		    try {
@@ -1825,11 +1816,11 @@ public class ObjectInputStream
 			 * thrown a new CNFException of its own.
 			 */
 			handles.markException(passHandle, ex);
+		    } finally {
+			curContext.setUsed();
 		    }
 
-		    curObj = oldObj;
-		    curDesc = oldDesc;
-		    curGet = oldGet;
+		    curContext = oldContext;
 		    
 		    /*
 		     * defaultDataEnd may have been set indirectly by custom
@@ -3411,6 +3402,45 @@ public class ObjectInputStream
 	    public int size() {
 		return size;
 	    }
+	}
+    }
+
+    /**
+     * Context during upcalls to class-defined readObject methods; holds 
+     * object currently being deserialized and descriptor for current class. 
+     * This context keeps a boolean state to indicate that defaultReadObject 
+     * or readFields has already been invoked with this context or the class's
+     * readObject method has returned; if true, the getObj method throws 
+     * NotActiveException.
+     */
+    private static class CallbackContext {
+	private final Object obj;
+	private final ObjectStreamClass desc;
+	private final AtomicBoolean used = new AtomicBoolean();
+
+	public CallbackContext(Object obj, ObjectStreamClass desc) {
+	    this.obj = obj;
+	    this.desc = desc;
+	}
+
+	public Object getObj() throws NotActiveException {
+	    checkAndSetUsed();
+	    return obj;
+	}
+
+	public ObjectStreamClass getDesc() {
+	    return desc;
+	}
+
+	private void checkAndSetUsed() throws NotActiveException {
+	    if (!used.compareAndSet(false, true)) {
+	         throw new NotActiveException(
+		      "not in readObject invocation or fields already read");
+	    }
+	}
+
+	public void setUsed() {
+	    used.set(true);
 	}
     }
 }

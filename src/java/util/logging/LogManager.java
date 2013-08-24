@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.46 04/06/07
+ * @(#)LogManager.java	1.47 06/04/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.46, 06/07/04
+ * @version 1.47, 04/12/06
  * @since 1.4
 */
 
@@ -178,6 +178,11 @@ public class LogManager {
                     // Create and retain Logger for the root of the namespace.
                     manager.rootLogger = manager.new RootLogger();
                     manager.addLogger(manager.rootLogger);
+
+                    // Adding the global Logger. Doing so in the Logger.<clinit>
+                    // would deadlock with the LogManager.<clinit>.
+                    Logger.global.setLogManager(manager);
+                    manager.addLogger(Logger.global);
 
                     // We don't call readConfiguration() here, as we may be running
                     // very early in the JVM startup sequence.  Instead readConfiguration

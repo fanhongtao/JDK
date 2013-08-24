@@ -1,5 +1,5 @@
 /*
- * @(#)Thread.java	1.155 04/06/26
+ * @(#)Thread.java	1.156 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -104,7 +104,7 @@ import sun.security.util.SecurityConstants;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.155, 06/26/04
+ * @version 1.156, 03/22/06
  * @see     java.lang.Runnable
  * @see     java.lang.Runtime#exit(int)
  * @see     java.lang.Thread#run()
@@ -194,9 +194,9 @@ class Thread implements Runnable {
     private volatile Interruptible blocker;
     private Object blockerLock = new Object();
 
-    /* Set the blocker field; invoked via reflection magic from java.nio code
+    /* Set the blocker field; invoked via sun.misc.SharedSecrets from java.nio code
      */
-    private void blockedOn(Interruptible b) {
+    void blockedOn(Interruptible b) {
 	synchronized (blockerLock) {
 	    blocker = b;
 	}

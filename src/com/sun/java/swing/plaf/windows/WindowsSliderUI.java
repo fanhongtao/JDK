@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsSliderUI.java	1.16 03/12/19
+ * @(#)WindowsSliderUI.java	1.17 06/03/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ public class WindowsSliderUI extends BasicSliderUI
 	if (xp != null) {
 	    boolean vertical = (slider.getOrientation() == JSlider.VERTICAL);
 	    String category = vertical ? "trackbar.trackvert" : "trackbar.track";
-	    XPStyle.Skin skin = xp.getSkin(category);
+	    XPStyle.Skin skin = xp.getSkin(slider, category);
 
 	    if (vertical) {
 		int x = (trackRect.width - skin.getWidth()) / 2;
@@ -59,7 +59,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMinorTickForHorizSlider( Graphics g, Rectangle tickBounds, int x ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor("trackbar.tics.color", Color.black));
+	    g.setColor(xp.getColor(slider, "trackbar.tics", null, "color", Color.black));
 	}
 	super.paintMinorTickForHorizSlider(g, tickBounds, x);
     }
@@ -67,7 +67,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMajorTickForHorizSlider( Graphics g, Rectangle tickBounds, int x ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor("trackbar.tics.color", Color.black));
+	    g.setColor(xp.getColor(slider, "trackbar.tics", null, "color", Color.black));
 	}
 	super.paintMajorTickForHorizSlider(g, tickBounds, x);
     }
@@ -75,7 +75,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMinorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor("trackbar.ticsvert.color", Color.black));
+	    g.setColor(xp.getColor(slider, "trackbar.ticsvert", null, "color", Color.black));
 	}
 	super.paintMinorTickForVertSlider(g, tickBounds, y);
     }
@@ -83,7 +83,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMajorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor("trackbar.ticsvert.color", Color.black));
+	    g.setColor(xp.getColor(slider, "trackbar.ticsvert", null, "color", Color.black));
 	}
 	super.paintMajorTickForVertSlider(g, tickBounds, y);
     }
@@ -131,7 +131,7 @@ public class WindowsSliderUI extends BasicSliderUI
 		category = vertical ? (leftToRight ? "trackbar.thumbright" : "trackbar.thumbleft")
 				    : "trackbar.thumbbottom";
 	}
-	return xp.getSkin(category);
+	return xp.getSkin(slider, category);
     }
 }
 

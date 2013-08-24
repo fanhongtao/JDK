@@ -4,7 +4,7 @@
  */
 
 /*
- * @(#)AbstractInterruptibleChannel.java	1.15 03/12/19
+ * @(#)AbstractInterruptibleChannel.java	1.16 06/03/22
  */
 
 package java.nio.channels.spi;
@@ -62,7 +62,7 @@ import sun.nio.ch.Interruptible;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.15, 03/12/19
+ * @version 1.16, 06/03/22
  * @since 1.4
  */
 
@@ -186,60 +186,9 @@ public abstract class AbstractInterruptibleChannel
     }
 
 
-    // -- Reflection hackery --
-
-    private static Method blockedOnMethod = null;
-
+    // -- sun.misc.SharedSecrets --
     static void blockedOn(Interruptible intr) { 	// package-private
-	if (blockedOnMethod == null)
-	    initBlockedOn();
-	try {
-	    blockedOnMethod.invoke(Thread.currentThread(),
-				   new Object[] { intr });
-        } catch (IllegalAccessException x) {
-            throw new Error(x);
-        } catch (IllegalArgumentException x) {
-            throw new Error(x);
-        } catch (InvocationTargetException x) {
-            throw new Error(x);
-        }
+        sun.misc.SharedSecrets.getJavaLangAccess().blockedOn(Thread.currentThread(),
+							     intr);
     }
-
-    private static void initBlockedOn() {
-	AccessController.doPrivileged(new PrivilegedAction() {
-		public Object run() {
-		    try {
-			Class th = Class.forName("java.lang.Thread");
-			blockedOnMethod
-			    = th.getDeclaredMethod("blockedOn",
-					new Class[] { Interruptible.class });
-			blockedOnMethod.setAccessible(true);
-		    } catch (ClassNotFoundException x) {
-			throw new Error(x);
-		    } catch (NoSuchMethodException x) {
-			throw new Error(x);
-		    } catch (IllegalArgumentException x) {
-			throw new Error(x);
-		    } catch (ClassCastException x) {
-			throw new Error(x);
-		    }
-		    return null;
-		}});
-    }
-
-    // Workaround for apparent VM bug: Sometimes an interrupted thread
-    // cannot load a class
-
-    private static class FooChannel extends AbstractInterruptibleChannel {
-        protected void implCloseChannel() { }
-    }
-
-    static {
-        FooChannel fc = new FooChannel();
-        fc.begin();
-        try {
-            fc.end(true);
-        } catch (IOException e) { }
-    }
-
 }

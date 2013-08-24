@@ -1,7 +1,7 @@
 /*
- * @(#)BigDecimal.java	1.55 05/08/09
+ * @(#)BigDecimal.java	1.56 06/02/08
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1083,31 +1083,82 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
 	    }
 	}
 
-        int padding = checkScale((long)lhs.scale - augend.scale);
+        long padding = (long)lhs.scale - augend.scale;
         if (padding != 0) {        // scales differ; alignment needed
-            // if one operand is < 0.01 ulp of the other at full
-            // precision, replace it by a 'sticky bit' of +0.001/-0.001 ulp.
-            // [In a sense this is an 'optimization', but it also makes
-            // a much wider range of additions practical.]
-            if (padding < 0) {     // lhs will be padded
-                int ulpscale = lhs.scale - lhs.precision + mc.precision;
-                if (augend.scale - augend.precision() > ulpscale + 1) {
-                    augend = BigDecimal.valueOf(augend.signum(), ulpscale + 3);
-                }
-            } else {               // rhs (augend) will be padded
-                int ulpscale = augend.scale - augend.precision + mc.precision;
-                if (lhs.scale - lhs.precision() > ulpscale + 1)
-                    lhs = BigDecimal.valueOf(lhs.signum(), ulpscale + 3);
-            }
-            BigDecimal arg[] = new BigDecimal[2];
-            arg[0] = lhs;  arg[1] = augend;
+            BigDecimal arg[] = preAlign(lhs, augend, padding, mc);
             matchScale(arg);
-            lhs = arg[0];
+            lhs    = arg[0];
             augend = arg[1];
         }
 	
 	return new BigDecimal(lhs.inflate().intVal.add(augend.inflate().intVal),
 			      lhs.scale).doRound(mc);
+    }
+
+    /**
+     * Returns an array of length two, the sum of whose entries is
+     * equal to the rounded sum of the {@code BigDecimal} arguments.
+     *
+     * <p>If the digit positions of the arguments have a sufficient
+     * gap between them, the value smaller in magnitude can be
+     * condensed into a &quot;sticky bit&quot; and the end result will
+     * round the same way <em>if</em> the precision of the final
+     * result does not include the high order digit of the small
+     * magnitude operand.
+     *
+     * <p>Note that while strictly speaking this is an optimization,
+     * it makes a much wider range of additions practical.
+     * 
+     * <p>This corresponds to a pre-shift operation in a fixed
+     * precision floating-point adder; this method is complicated by
+     * variable precision of the result as determined by the
+     * MathContext.  A more nuanced operation could implement a
+     * &quot;right shift&quot; on the smaller magnitude operand so
+     * that the number of digits of the smaller operand could be
+     * reduced even though the significands partially overlapped.
+     */
+    private BigDecimal[] preAlign(BigDecimal lhs, BigDecimal augend,
+				  long padding, MathContext mc) {
+	assert padding != 0;
+	BigDecimal big;
+	BigDecimal small;
+	
+	if (padding < 0) {     // lhs is big;   augend is small
+	    big   = lhs;
+	    small = augend;
+	} else {               // lhs is small; augend is big
+	    big   = augend;
+	    small = lhs;
+	}
+
+	/*
+	 * This is the estimated scale of an ulp of the result; it
+	 * assumes that the result doesn't have a carry-out on a true
+	 * add (e.g. 999 + 1 => 1000) or any subtractive cancellation
+	 * on borrowing (e.g. 100 - 1.2 => 98.8)
+	 */
+	long estResultUlpScale = (long)big.scale - big.precision() + mc.precision;
+
+	/*
+	 * The low-order digit position of big is big.scale().  This
+	 * is true regardless of whether big has a positive or
+	 * negative scale.  The high-order digit position of small is
+	 * small.scale - (small.precision() - 1).  To do the full
+	 * condensation, the digit positions of big and small must be
+	 * disjoint *and* the digit positions of small should not be
+	 * directly visible in the result.
+	 */
+	long smallHighDigitPos = (long)small.scale - small.precision() + 1;
+	if (smallHighDigitPos > big.scale + 2 && 	 // big and small disjoint
+	    smallHighDigitPos > estResultUlpScale + 2) { // small digits not visible
+	    small = BigDecimal.valueOf(small.signum(),
+				       this.checkScale(Math.max(big.scale, estResultUlpScale) + 3));
+	}
+	
+	// Since addition is symmetric, preserving input order in
+	// returned operands doesn't matter
+	BigDecimal[] result = {big, small};
+	return result;
     }
 
     /**
@@ -1656,7 +1707,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
 	     * the computed remainder will be less than the divisor.
 	     */
 	    BigDecimal product = result.multiply(divisor);
-	    if (this.subtract(product).abs().compareTo(divisor.abs()) > 0) {
+	    // If the quotient is the full integer value,
+	    // |dividend-product| < |divisor|.
+	    if (this.subtract(product).abs().compareTo(divisor.abs()) >= 0) {
 		throw new ArithmeticException("Division impossible");
 	    }
 	} else if (result.scale() > 0) { 
@@ -1965,7 +2018,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public BigDecimal negate(MathContext mc) {
-        return plus(mc).negate();
+        return negate().plus(mc);
     }
 
     /**
@@ -3290,11 +3343,11 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     }
 
     /**
-     * Check a scale for Underflow or Overflow.  If this
-     * BigDecimal. is uninitialized or initialized and nonzero, throw
-     * an exception if the scale is out of range.  If this is zero,
-     * saturate the scale to the extreme value of the right sign if
-     * the scale is out of range.
+     * Check a scale for Underflow or Overflow.  If this BigDecimal is
+     * uninitialized or initialized and nonzero, throw an exception if
+     * the scale is out of range.  If this is zero, saturate the scale
+     * to the extreme value of the right sign if the scale is out of
+     * range.
      *
      * @param val The new scale.
      * @throws ArithmeticException (overflow or underflow) if the new
@@ -3409,7 +3462,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         // divide to same scale to force round to length
         BigDecimal rounded = this.divide(divisor, scale,
 					 mc.roundingMode.oldMode);
-        rounded.scale -= drop;               // adjust the scale
+        rounded.scale = checkScale((long)rounded.scale - drop ); // adjust the scale
         return rounded;
     }
 

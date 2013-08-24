@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultCaret.java	1.140 05/08/09
+ * @(#)DefaultCaret.java	1.141 06/04/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -85,7 +85,7 @@ import com.sun.java.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.140 08/09/05
+ * @version 1.141 04/18/06
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -386,8 +386,9 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * @see MouseListener#mouseClicked
      */
     public void mouseClicked(MouseEvent e) {
+        int nclicks = SwingUtilities2.getAdjustedClickCount(getComponent(), e);
+
 	if (! e.isConsumed()) {
-	    int nclicks = e.getClickCount();
 	    if (SwingUtilities.isLeftMouseButton(e)) {
 		// mouse 1 behavior
                 if(nclicks == 1) {
@@ -464,13 +465,15 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * @see MouseListener#mousePressed
      */
     public void mousePressed(MouseEvent e) {
+        int nclicks = SwingUtilities2.getAdjustedClickCount(getComponent(), e);
+
         if (SwingUtilities.isLeftMouseButton(e)) {
             if (e.isConsumed()) {
                 shouldHandleRelease = true;
             } else {
                 shouldHandleRelease = false;
                 adjustCaretAndFocus(e);
-                if (e.getClickCount() == 2
+                if (nclicks == 2
                     && SwingUtilities2.canEventAccessSystemClipboard(e)) {
                     selectWord(e);
                 }

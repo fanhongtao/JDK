@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.89 05/12/09
+ * @(#)WindowsFileChooserUI.java	1.90 06/03/27
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import com.sun.java.swing.SwingUtilities2;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.89 12/09/05
+ * @version 1.90 03/27/06
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -36,21 +36,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     // The following are private because the implementation of the
     // Windows FileChooser L&F is not complete yet.
 
-    private static final String[] OS_NAMES =
-		new String[] { "Windows 3.1", "Windows 95", "Windows NT",
-			       "Windows 98", "Windows 2000", "Windows Me", "Windows XP" };
-    private static int WIN_31 = 0;
-    private static int WIN_95 = 1;
-    private static int WIN_NT = 2;
-    private static int WIN_98 = 3;
-    private static int WIN_2k = 4;
-    private static int WIN_Me = 5;
-    private static int WIN_XP = 6;
-    private static String osName = System.getProperty("os.name");
-    private static String osVersion = System.getProperty("os.version");
-    private static final String OS_NAME = ((osName.equals(OS_NAMES[WIN_98]) && osVersion.startsWith("4.9"))
-					   ? "Windows Me" : osName);
-    private static final int OS_LEVEL = Arrays.asList(OS_NAMES).indexOf(OS_NAME);
+    private static final String OS_VERSION = System.getProperty("os.version");
 
     private JPanel centerPanel;
 
@@ -209,7 +195,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	// Directory manipulation buttons
 	JToolBar topPanel = new JToolBar();
 	topPanel.setFloatable(false);
-	if (OS_LEVEL >= WIN_2k) {
+	if (OS_VERSION.compareTo("4.9") >= 0) {	// Windows Me/2000 and later (4.90/5.0)
 	    topPanel.putClientProperty("JToolBar.isRollover", Boolean.TRUE);
 	}
 
@@ -275,13 +261,13 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	upFolderButton.setMargin(shrinkwrap);
 	upFolderButton.setFocusPainted(false);
 	topPanel.add(upFolderButton);
-	if (OS_LEVEL < WIN_2k) {
+	if (OS_VERSION.compareTo("4.9") < 0) {	// Before Windows Me/2000 (4.90/5.0)
 	    topPanel.add(Box.createRigidArea(hstrut10));
 	}
 
 	JButton b;
 
-	if (OS_LEVEL == WIN_98) {
+	if (OS_VERSION.startsWith("4.1")) {		// Windows 98 (4.10)
 	    // Desktop Button
 	    File homeDir = fsv.getHomeDirectory();
 	    String toolTipText = homeFolderToolTipText;
@@ -313,7 +299,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    b.setFocusPainted(false);
 	    topPanel.add(b);
 	}
-	if (OS_LEVEL < WIN_2k) {
+	if (OS_VERSION.compareTo("4.9") < 0) {	// Before Windows Me/2000 (4.90/5.0)
 	    topPanel.add(Box.createRigidArea(hstrut10));
 	}
 
@@ -502,7 +488,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		}
 	    }
 	}
-	if (OS_LEVEL >= WIN_2k) {
+	if (OS_VERSION.compareTo("4.9") >= 0) {	// Windows Me/2000 and later (4.90/5.0)
 	    if (useShellFolder) {
 		if (placesBar == null) {
 		    placesBar = new WindowsPlacesBar(fc, XPStyle.getXP() != null);

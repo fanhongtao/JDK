@@ -55,6 +55,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
     private Rectangle parentBounds;
 
     private boolean dragging = false;
+    private boolean resizing = false;
 
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -194,6 +195,18 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	  frame.getParent().addComponentListener(componentListener);
 	  componentListenerAdded = true;
 	}
+    }
+
+    private WindowFocusListener getWindowFocusListener(){
+        return getHandler();
+    }
+
+    private void cancelResize() {
+        if (resizing) {
+            if (borderListener instanceof BorderListener) {
+                ((BorderListener)borderListener).finishMouseReleased();
+            }
+        }
     }
 
     private Handler getHandler() {
@@ -599,7 +612,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
             }
 	}
 
-        public void mouseReleased(MouseEvent e) {
+        void finishMouseReleased() {
            if (discardRelease) {
 	     discardRelease = false;
 	     return;
@@ -608,6 +621,12 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	        getDesktopManager().endDraggingFrame(frame);	
 		dragging = false;
 	    } else {
+              Window windowAncestor = 
+                  SwingUtilities.getWindowAncestor(frame);
+              if (windowAncestor != null) {
+                  windowAncestor.removeWindowFocusListener(
+                      getWindowFocusListener());
+              }
 	      Container c = frame.getTopLevelAncestor();
 	      if (c instanceof JFrame) {
 		((JFrame)frame.getTopLevelAncestor()).getGlassPane().setCursor(
@@ -629,6 +648,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		((JDialog)c).getGlassPane().setVisible(false);
 	      }
 	      getDesktopManager().endResizingFrame(frame);
+              resizing = false;
 	    }
             _x = 0;
             _y = 0;
@@ -636,8 +656,13 @@ public class BasicInternalFrameUI extends InternalFrameUI
             __y = 0;
             startingBounds = null;
             resizeDir = RESIZE_NONE;
+            discardRelease = true;
         }
                 
+        public void mouseReleased(MouseEvent e) {
+            finishMouseReleased();
+        }
+
         public void mousePressed(MouseEvent e) {
             Point p = SwingUtilities.convertPoint((Component)e.getSource(), 
                         e.getX(), e.getY(), null);
@@ -647,6 +672,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
             _y = p.y;
             startingBounds = frame.getBounds();
 	    resizeDir = RESIZE_NONE;
+            discardRelease = false;
 
             if(!frame.isSelected()) {
                 try { frame.setSelected(true); }
@@ -758,6 +784,12 @@ public class BasicInternalFrameUI extends InternalFrameUI
 		  ((JDialog)c).getGlassPane().setCursor(s);
 		}
 		getDesktopManager().beginResizingFrame(frame, resizeDir);
+                resizing = true;
+                Window windowAncestor = SwingUtilities.getWindowAncestor(frame);
+                if (windowAncestor != null) {
+                    windowAncestor.addWindowFocusListener(
+                        getWindowFocusListener());
+                }
 		return;
             }
         }
@@ -1132,7 +1164,14 @@ public class BasicInternalFrameUI extends InternalFrameUI
     private static boolean isDragging = false;
     private class Handler implements ComponentListener, InternalFrameListener,
             LayoutManager, MouseInputListener, PropertyChangeListener,
-            SwingConstants {
+            WindowFocusListener, SwingConstants {
+
+        public void windowGainedFocus(WindowEvent e) {
+        }
+
+        public void windowLostFocus(WindowEvent e) {
+            cancelResize();
+        }
 
         // ComponentHandler methods
         /** Invoked when a JInternalFrame's parent's size changes. */
@@ -1518,6 +1557,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
             if (JInternalFrame.IS_CLOSED_PROPERTY == prop) {
                 if (newValue == Boolean.TRUE) {
+                    cancelResize();
                     if ((frame.getParent() != null) && componentListenerAdded) {
                         frame.getParent().removeComponentListener(
                                 componentListener);
@@ -1547,6 +1587,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
                     glassPane.setVisible(true);
                 }
             } else if (prop == "ancestor") {
+                if (newValue == null) {
+                    cancelResize();
+                }
                 if (frame.getParent() != null) {
                     parentBounds = f.getParent().getBounds();
                 } else {

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.171 04/09/10
+ * @(#)BasicComboBoxUI.java	1.172 06/04/20
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.171 09/10/04
+ * @version 1.172 04/20/06
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -1587,22 +1587,10 @@ public class BasicComboBoxUI extends ComboBoxUI {
                         (new ActionEvent(editor, 0, "",
                                       EventQueue.getMostRecentEventTime(), 0));
                 }
-                return;
             }
 
             hasFocus = false;
-            // GES, 980818:
-            // Note that the second check here is a workaround to bug
-            // 4168483.  There is a bogus focusLost sent to the
-            // ComboBox with isTemporary false when a mediumweight menu 
-            // is popped up.  Until this is fixed in AWT, we make the
-            // tradeoff of not popping down mediumweight popups when
-            // the combobox loses focus.  Although this means that the
-            // combobox does not remove such menus when you tab out,
-            // it is seen as more desirable than the alternative which 
-            // is that mediumweight combobox menus dissappear immediately
-            // on popup, rendering them completely unusable.
-            if ( !e.isTemporary() && comboBox.isLightWeightPopupEnabled()) {
+            if (!e.isTemporary()) {
                 setPopupVisible(comboBox, false);
             }
             comboBox.repaint();
