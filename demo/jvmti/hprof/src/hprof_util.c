@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_util.c	1.50 05/03/03
+ * @(#)hprof_util.c	1.51 05/09/30
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -781,7 +781,7 @@ isArrayClass(jclass klass)
     return answer;
 }
 
-static jint
+jint
 getClassStatus(jclass klass)
 {
     jvmtiError error;
@@ -1057,6 +1057,14 @@ add_class_fields(JNIEnv *env, ClassIndex cnum, jclass klass,
 	}
     }
     
+    /* Class or Interface, do implemented interfaces recursively */
+    getImplementedInterfaces(klass, &n_interfaces, &interfaces);
+    for ( i = 0 ; i < n_interfaces ; i++ ) {
+	add_class_fields(env, get_cnum(env, interfaces[i]), interfaces[i], 
+				field_list, class_list);
+    }
+    jvmtiDeallocate(interfaces);
+
     /* Begin graph traversal, go up super chain recursively */
     if ( !isInterface(klass) ) {
 	jclass super_klass;
@@ -1068,14 +1076,6 @@ add_class_fields(JNIEnv *env, ClassIndex cnum, jclass klass,
 	}
     }
     
-    /* Class or Interface, do implemented interfaces recursively */
-    getImplementedInterfaces(klass, &n_interfaces, &interfaces);
-    for ( i = 0 ; i < n_interfaces ; i++ ) {
-	add_class_fields(env, get_cnum(env, interfaces[i]), interfaces[i], 
-				field_list, class_list);
-    }
-    jvmtiDeallocate(interfaces);
-
     /* Only now we add klass to list so we don't repeat it later */
     stack_push(class_list, &klass);
 

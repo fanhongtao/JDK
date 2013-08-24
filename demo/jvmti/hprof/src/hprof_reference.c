@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_reference.c	1.32 04/07/27
+ * @(#)hprof_reference.c	1.33 05/09/30
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -116,6 +116,7 @@ dump_class_and_supers(JNIEnv *env, ObjectIndex object_index, RefIndex list)
     Stack       *cpool_values;
     ConstantPoolValue *cpool;
     jint         cpool_count;
+    jboolean     skip_fields;
 
     HPROF_ASSERT(object_index!=0);
     kind        = object_get_kind(object_index);
@@ -149,10 +150,13 @@ dump_class_and_supers(JNIEnv *env, ObjectIndex object_index, RefIndex list)
     n_fields     = 0;
     fields       = NULL;
     fvalues      = NULL;
-    class_get_all_fields(env, cnum, &n_fields, &fields);
-    if ( n_fields > 0 ) {
-	fvalues      = (jvalue*)HPROF_MALLOC(n_fields*(int)sizeof(jvalue));
-        (void)memset(fvalues, 0, n_fields*(int)sizeof(jvalue));
+    skip_fields  = JNI_TRUE;
+    if ( class_get_all_fields(env, cnum, &n_fields, &fields) == 0 ) {
+        if ( n_fields > 0 ) {
+            skip_fields  = JNI_FALSE;
+	    fvalues      = (jvalue*)HPROF_MALLOC(n_fields*(int)sizeof(jvalue));
+            (void)memset(fvalues, 0, n_fields*(int)sizeof(jvalue));
+        }
     }
     
     /* We use a Stack just because it will automatically expand as needed */
@@ -179,7 +183,7 @@ dump_class_and_supers(JNIEnv *env, ObjectIndex object_index, RefIndex list)
 		 *    for now. We probably have a java.lang.Object class
 		 *    with n_fields==0, which is probably the wrong class.
 		 */
-		if (info->class_tag == (jlong)0) {
+		if (info->class_tag == (jlong)0 || skip_fields == JNI_TRUE ) {
 		    break;
 		}
 		HPROF_ASSERT(info->element_index < n_fields);
@@ -250,6 +254,7 @@ dump_instance(JNIEnv *env, ObjectIndex object_index, RefIndex list)
     jint         n_fields;
     ObjectKind   kind;
     TraceIndex   trace_index;
+    jboolean     skip_fields;
 
     HPROF_ASSERT(object_index!=0);
     kind        = object_get_kind(object_index);
@@ -276,12 +281,15 @@ dump_instance(JNIEnv *env, ObjectIndex object_index, RefIndex list)
     
     index = list;
     
+    skip_fields  = JNI_TRUE;
     if ( sig[0] != JVM_SIGNATURE_ARRAY ) {
-	class_get_all_fields(env, cnum, &n_fields, &fields);
-	if ( n_fields > 0 ) {
-            fvalues = (jvalue*)HPROF_MALLOC(n_fields*(int)sizeof(jvalue));
-            (void)memset(fvalues, 0, n_fields*(int)sizeof(jvalue));
-        }
+	if ( class_get_all_fields(env, cnum, &n_fields, &fields) == 0 ) {
+	    if ( n_fields > 0 ) {
+                skip_fields  = JNI_FALSE;
+		fvalues = (jvalue*)HPROF_MALLOC(n_fields*(int)sizeof(jvalue));
+		(void)memset(fvalues, 0, n_fields*(int)sizeof(jvalue));
+	    }
+	}
     }
 
     while ( index != 0 ) {
@@ -299,7 +307,7 @@ dump_instance(JNIEnv *env, ObjectIndex object_index, RefIndex list)
 		 *    for now. We probably have a java.lang.Object class
 		 *    with n_fields==0, which is probably the wrong class.
 		 */
-		if (info->class_tag == (jlong)0) {
+		if (info->class_tag == (jlong)0 || skip_fields == JNI_TRUE ) {
 		    break;
 		}
 		HPROF_ASSERT(info->element_index < n_fields);

@@ -1,5 +1,5 @@
 /*
- * @(#)GregorianCalendar.java	1.87 05/09/12
+ * @(#)GregorianCalendar.java	1.89 05/12/14
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -275,7 +275,7 @@ import sun.util.calendar.ZoneInfo;
  * </blockquote>
  *
  * @see          TimeZone
- * @version      1.87
+ * @version      1.89
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -650,6 +650,22 @@ public class GregorianCalendar extends Calendar {
         this.set(YEAR, year);
         this.set(MONTH, month);
         this.set(DAY_OF_MONTH, dayOfMonth);
+
+	// Set AM_PM and HOUR here to set their stamp values before
+	// setting HOUR_OF_DAY (6178071). The stamp values of AM_PM
+	// and HOUR must be lower than the HOUR_OF_DAY value.
+	if (hourOfDay >= 12 && hourOfDay <= 23) {
+	    // If hourOfDay is a valid PM hour, set the correct PM values
+	    // so that it won't throw an exception in case it's set to
+	    // non-lenient later.
+	    this.set(AM_PM, PM);
+	    this.set(HOUR, hourOfDay - 12);
+	} else {
+	    this.set(AM_PM, AM);
+	    // We don't care any out of range value here for leniency.
+	    this.set(HOUR, hourOfDay);
+	}
+
         this.set(HOUR_OF_DAY, hourOfDay);
         this.set(MINUTE, minute);
         this.set(SECOND, second);
@@ -1116,7 +1132,14 @@ public class GregorianCalendar extends Calendar {
 		    }
 		    time = calsys.getTime(d);
 		}
-		internalSet(field, d.getHours() % unit);
+		int hourOfDay = d.getHours(); 
+		internalSet(field, hourOfDay % unit); 
+		if (field == HOUR) { 
+		    internalSet(HOUR_OF_DAY, hourOfDay); 
+		} else { 
+		    internalSet(AM_PM, hourOfDay / 12); 
+		    internalSet(HOUR, hourOfDay % 12); 
+		} 
 
 		// Time zone offset and/or daylight saving might have changed.
 		int zoneOffset = d.getZoneOffset();
@@ -1960,7 +1983,9 @@ public class GregorianCalendar extends Calendar {
 	    // Determine which calendar fields need to be computed.
 	    mask = getSetStateFields();
 	    int fieldMask = ~mask & ALL_FIELDS;
-	    if (fieldMask != 0) {
+	    // We have to call computeFields(int, int) in case calsys == null
+	    // in order to set calsys and cdate. (6263644)
+	    if (fieldMask != 0 || calsys == null) {
 		mask |= computeFields(fieldMask,
 				      mask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK));
 		assert mask == ALL_FIELDS;

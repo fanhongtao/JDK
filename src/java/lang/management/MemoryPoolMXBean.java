@@ -1,5 +1,5 @@
 /*
- * @(#)MemoryPoolMXBean.java	1.18 04/04/20
+ * @(#)MemoryPoolMXBean.java	1.19 05/01/05
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,10 +43,10 @@ package java.lang.management;
  *
  * A memory pool has the following attributes:
  * <ul>
- *   <li><a href="Usage">Memory usage</a></li>
- *   <li><a href="PeakUsage">Peak memory usage</a></li>
- *   <li><a href="UsageThreshold">Usage Threshold</a></li>
- *   <li><a href="CollectionThreshold">Collection Usage Threshold</a>
+ *   <li><a href="#Usage">Memory usage</a></li>
+ *   <li><a href="#PeakUsage">Peak memory usage</a></li>
+ *   <li><a href="#UsageThreshold">Usage Threshold</a></li>
+ *   <li><a href="#CollectionThreshold">Collection Usage Threshold</a>
  *       (only supported by some <em>garbage-collected</em> memory pools)</li>
  * </ul>
  *
@@ -337,7 +337,7 @@ package java.lang.management;
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.18, 04/20/04 
+ * @version 1.19, 01/05/05 
  * @since   1.5
  */
 public interface MemoryPoolMXBean {

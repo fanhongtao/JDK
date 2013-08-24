@@ -1,5 +1,5 @@
 /*
- * @(#)Inflater.java	1.43 05/08/09
+ * @(#)Inflater.java	1.44 05/11/11
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,7 +43,7 @@ package java.util.zip;
  * </pre></blockquote>
  *
  * @see		Deflater
- * @version 	1.43, 08/09/05
+ * @version 	1.44, 11/11/05
  * @author 	David Connelly
  *
  */
@@ -309,6 +309,7 @@ class Inflater {
 	if (strm != 0) {
 	    end(strm);
 	    strm = 0;
+	    buf = null;
 	}
     }
 

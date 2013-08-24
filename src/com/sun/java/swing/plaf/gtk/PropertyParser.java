@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyParser.java	1.11 04/08/10
+ * @(#)PropertyParser.java	1.12 05/12/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,7 +14,7 @@ import java.io.*;
 
 /**
  * @author  Shannon Hickey
- * @version 1.11 08/10/04
+ * @version 1.12 12/22/05
  */
 abstract class PropertyParser {
 
@@ -134,6 +134,16 @@ abstract class PropertyParser {
                 retVal[i] = (int)source.charAt(i);
             }
 
+            if (retVal.length == 0 ||
+                retVal.length == 1 && retVal[0] == 0) {
+                // solid line
+                retVal = new int[] { Integer.MAX_VALUE };
+
+            } else if (retVal.length == 1) {
+                // "\x" actually means "\x\x"
+                int value = retVal[0];
+                retVal = new int[] { value, value };
+            }
             return retVal;
         }
     };

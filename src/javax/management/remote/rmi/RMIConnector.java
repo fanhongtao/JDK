@@ -1,5 +1,5 @@
 /*
- * @(#)RMIConnector.java	1.115 04/06/28
+ * @(#)RMIConnector.java	1.117 05/12/01
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -397,14 +397,19 @@ public class RMIConnector implements JMXConnector, Serializable {
     }
 
     public synchronized void close() throws IOException {
+	close(false);
+    }
 
-	// Return if already cleanly closed.
-	//
+    // allows to do close after setting the flag "terminated" to true. 
+    // It is necessary to avoid a deadlock, see 6296324 
+    private synchronized void close(boolean intern) throws IOException {
 	final boolean tracing = logger.traceOn();
 	final boolean debug   = logger.debugOn();
 	final String  idstr   = (tracing?"["+this.toString()+"]":null);
 
-	synchronized(terminationLock) {
+	if (!intern) { 
+	    // Return if already cleanly closed. 
+	    // 	    
 	    if (terminated) {
 		if (closeException == null) {
 		    if (tracing) logger.trace("close",idstr + " already closed.");
@@ -509,8 +514,6 @@ public class RMIConnector implements JMXConnector, Serializable {
 	if (debug)
 	    logger.debug("addListenerWithSubject",
 			 "(ObjectName,MarshalledObject,Subject)");	
-
-	final ClassLoader old = pushDefaultClassLoader();
 	    
 	final ObjectName[] names = new ObjectName[] {name};
 	final MarshalledObject[] filters = new MarshalledObject[] {filter};
@@ -1416,12 +1419,21 @@ public class RMIConnector implements JMXConnector, Serializable {
             try {
 		connection.getDefaultDomain(null);
 	    } catch (IOException ioexc) {
-		synchronized(terminationLock) {
+		boolean toClose = false;
+
+		synchronized(this) {
 		    if (!terminated) {
-			// we should close the connection,
-			// but send a failed notif at first
-			Notification failedNotif =
-			  new JMXConnectionNotification(
+			terminated = true;
+			
+			toClose = true;
+		    }
+		}
+
+		if (toClose) {
+		    // we should close the connection,
+		    // but send a failed notif at first
+		    final Notification failedNotif =
+			new JMXConnectionNotification(
 			    JMXConnectionNotification.FAILED,
 			    this,
 			    connectionId,
@@ -1429,14 +1441,13 @@ public class RMIConnector implements JMXConnector, Serializable {
 			    "Failed to communicate with the server: "+ioe.toString(),
 			    ioe);
 		    
-			sendNotification(failedNotif);
+		    sendNotification(failedNotif);
 
-			try {
-			    close();
-			} catch (Exception e) {
-			    // OK.
-			    // We are closing
-			}
+		    try {
+			close(true);
+		    } catch (Exception e) {
+			// OK.
+			// We are closing
 		    }
 		}
 	    }
@@ -1754,7 +1765,6 @@ public class RMIConnector implements JMXConnector, Serializable {
 	rmbscMap = new WeakHashMap();
         connected = false;
         terminated = false;
-	terminationLock = new int[0];
 
 	connectionBroadcaster = new NotificationBroadcasterSupport();
     }
@@ -2406,7 +2416,6 @@ public class RMIConnector implements JMXConnector, Serializable {
     // = false;
     private transient boolean terminated;
     // = false;
-    private transient int[] terminationLock;
 
     private transient Exception closeException;
 

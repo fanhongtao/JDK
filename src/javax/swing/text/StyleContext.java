@@ -1,5 +1,5 @@
 /*
- * @(#)StyleContext.java	1.78 04/05/05
+ * @(#)StyleContext.java	1.79 05/11/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,7 +43,7 @@ import sun.font.FontManager;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.78 05/05/04
+ * @version 1.79 11/10/05
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -232,7 +232,20 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
         Font f = (Font) fontTable.get(fontSearch);
         if (f == null) {
             // haven't seen this one yet.
-            f = new Font(family, style, size);
+            Style defaultStyle = 
+                getStyle(StyleContext.DEFAULT_STYLE);
+            if (defaultStyle != null) {
+                final String FONT_ATTRIBUTE_KEY = "FONT_ATTRIBUTE_KEY";
+                Font defaultFont = 
+                    (Font) defaultStyle.getAttribute(FONT_ATTRIBUTE_KEY);
+                if (defaultFont != null
+                      && defaultFont.getFamily().equalsIgnoreCase(family)) {
+                    f = defaultFont.deriveFont(style, size);
+                }
+            }
+            if (f == null) {
+                f = new Font(family, style, size);
+            }
             if (! FontManager.fontSupportsDefaultEncoding(f)) {
                 f = FontManager.getCompositeFontUIResource(f);
             }

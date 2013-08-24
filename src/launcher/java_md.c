@@ -1,7 +1,7 @@
 /*
- * @(#)java_md.c	1.56 05/01/04
+ * @(#)java_md.c	1.57 05/12/12
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -566,6 +566,8 @@ CreateExecutionEnvironment(int *_argcp,
 	} 
 #endif
 
+	(void)fflush(stdout);
+	(void)fflush(stderr);
 	execve(newexec, argv, newenvp);
 	perror("execve()");
 
@@ -1641,12 +1643,16 @@ ExecJRE(char *jre, char **argv)
     argv[0] = progname;
     if (_launcher_debug) {
 	int i;
-	printf("execv(\"%s\"", wanted);
-	for (i = 0; argv[i] != NULL; i++)
-	    printf(", \"%s\"", argv[i]);
-	printf(")\n");
+	printf("ReExec Command: %s (%s)\n", wanted, argv[0]); 
+	printf("ReExec Args:"); 
+	for (i = 1; argv[i] != NULL; i++) 
+	    printf(" %s", argv[i]); 
+	printf("\n");
     }
+    (void)fflush(stdout);
+    (void)fflush(stderr);
     execv(wanted, argv);
+    perror("execv()");
     fprintf(stderr, "Exec of %s failed\n", wanted);
     exit(1);
 }

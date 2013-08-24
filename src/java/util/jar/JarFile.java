@@ -1,5 +1,5 @@
 /*
- * @(#)JarFile.java	1.62 05/06/30
+ * @(#)JarFile.java	1.63 05/12/09
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import sun.misc.SharedSecrets;
  * thrown.
  *
  * @author  David Connelly
- * @version 1.62, 06/30/05
+ * @version 1.63, 12/09/05
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -142,6 +142,10 @@ class JarFile extends ZipFile {
      *         may be thrown if the jar file has been closed
      */
     public Manifest getManifest() throws IOException {
+	return getManifestFromReference();
+    }
+
+    private Manifest getManifestFromReference() throws IOException {
 	Manifest man = manRef != null ? manRef.get() : null;
 	  
 	if (man == null) {
@@ -311,7 +315,8 @@ class JarFile extends ZipFile {
 		    JarEntry e = getJarEntry(names[i]);
 		    if (!e.isDirectory()) {
 			if (mev == null) {
-			    mev = new ManifestEntryVerifier(getManifest());
+			    mev = new ManifestEntryVerifier
+				(getManifestFromReference());
 			}
 			byte[] b = getBytes(e);
 			if (b != null && b.length > 0) {
@@ -393,7 +398,7 @@ class JarFile extends ZipFile {
 
 	// wrap a verifier stream around the real stream
 	return new JarVerifier.VerifierStream(
-	    getManifest(),
+	    getManifestFromReference(),
 	    ze instanceof JarFileEntry ?
 	    (JarEntry) ze : getJarEntry(ze.getName()),
 	    super.getInputStream(ze),

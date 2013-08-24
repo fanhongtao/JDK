@@ -1,5 +1,5 @@
 /*
- * @(#)BasicLabelUI.java	1.84 03/12/19
+ * @(#)BasicLabelUI.java	1.85 06/02/16
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,12 +33,13 @@ import java.beans.PropertyChangeListener;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.84 12/19/03
+ * @version 1.85 02/16/06
  * @author Hans Muller
  */
 public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 {
     protected static BasicLabelUI labelUI = new BasicLabelUI();
+    private final static BasicLabelUI SAFE_BASIC_LABEL_UI = new BasicLabelUI();
 
     static void loadActionMap(LazyActionMap map) {
         map.put(new Actions(Actions.PRESS));
@@ -332,7 +333,11 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     }
 
     public static ComponentUI createUI(JComponent c) {
-        return labelUI;
+        if (System.getSecurityManager() != null) {
+            return SAFE_BASIC_LABEL_UI;
+        } else {
+            return labelUI;
+        }
     }
 
     public void propertyChange(PropertyChangeEvent e) {

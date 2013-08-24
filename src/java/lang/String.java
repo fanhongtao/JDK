@@ -1,5 +1,5 @@
 /*
- * @(#)String.java	1.188 04/09/14
+ * @(#)String.java	1.189 05/10/21
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,7 +79,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.188, 09/14/04
+ * @version 1.189, 10/21/05
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuilder
@@ -2201,68 +2201,87 @@ public final class String
 	if (locale == null) {
 	    throw new NullPointerException();
         }
-	
+
         int     firstUpper;
 
 	/* Now check if there are any characters that need to be changed. */
 	scan: {
-            int c;
-	    for (firstUpper = 0 ;
-                    firstUpper < count ; 
-                    firstUpper += Character.charCount(c)) {
-		c = codePointAt(firstUpper);
-		if (c != Character.toLowerCase(c)) {
-                    break scan;
-                }
+	    for (firstUpper = 0 ; firstUpper < count; ) {
+		char c = value[offset+firstUpper];
+		if ((c >= Character.MIN_HIGH_SURROGATE) &&
+		    (c <= Character.MAX_HIGH_SURROGATE)) {
+		    int supplChar = codePointAt(firstUpper);
+		    if (supplChar != Character.toLowerCase(supplChar)) {
+		        break scan;
+		    }
+		    firstUpper += Character.charCount(supplChar);
+		} else {
+		    if (c != Character.toLowerCase(c)) {
+		        break scan;
+		    }
+		    firstUpper++;
+		}
 	    }
 	    return this;
 	}
 
         char[]  result = new char[count];
-	int     resultOffset = 0;  /* result grows or shrinks, so i+resultOffset
+	int     resultOffset = 0;  /* result may grow, so i+resultOffset
 				    * is the write location in result */
 
         /* Just copy the first few lowerCase characters. */
         System.arraycopy(value, offset, result, 0, firstUpper);
 
-	String lang = locale.getLanguage().intern();
-	boolean localeDependent = 
+	String lang = locale.getLanguage();
+	boolean localeDependent =
             (lang == "tr" || lang == "az" || lang == "lt");
         char[] lowerCharArray;
         int lowerChar;
         int srcChar;
         int srcCount;
         for (int i = firstUpper; i < count; i += srcCount) {
-	    srcChar = codePointAt(i);
-            srcCount = Character.charCount(srcChar);
+	    srcChar = (int)value[offset+i];
+	    if ((char)srcChar >= Character.MIN_HIGH_SURROGATE &&
+	        (char)srcChar <= Character.MAX_HIGH_SURROGATE) {
+		srcChar = codePointAt(i);
+		srcCount = Character.charCount(srcChar);
+	    } else {
+	        srcCount = 1;
+	    }
             if (localeDependent || srcChar == '\u03A3') { // GREEK CAPITAL LETTER SIGMA
                 lowerChar = ConditionalSpecialCasing.toLowerCaseEx(this, i, locale);
             } else {
                 lowerChar = Character.toLowerCase(srcChar);
             }
             if ((lowerChar == Character.ERROR) ||
-                    Character.isSupplementaryCodePoint(lowerChar)) {
+                (lowerChar >= Character.MIN_SUPPLEMENTARY_CODE_POINT)) {
                 if (lowerChar == Character.ERROR) {
                     lowerCharArray =
                         ConditionalSpecialCasing.toLowerCaseCharArray(this, i, locale);
+                } else if (srcCount == 2) {
+		    resultOffset += Character.toChars(lowerChar, result, i + resultOffset) - srcCount;
+		    continue;
                 } else {
-                    lowerCharArray = Character.toChars(lowerChar);
-                }
-                /* Grow/Shrink result. */
+		    lowerCharArray = Character.toChars(lowerChar);
+		}
+
+                /* Grow result if needed */
                 int mapLen = lowerCharArray.length;
-                char[] result2 = new char[result.length + mapLen - srcCount];
-                System.arraycopy(result, 0, result2, 0,
-                    i + resultOffset);
+		if (mapLen > srcCount) {
+                    char[] result2 = new char[result.length + mapLen - srcCount];
+                    System.arraycopy(result, 0, result2, 0,
+                        i + resultOffset);
+                    result = result2;
+		}
                 for (int x=0; x<mapLen; ++x) {
-                    result2[i+resultOffset+x] = lowerCharArray[x];
+                    result[i+resultOffset+x] = lowerCharArray[x];
                 }
                 resultOffset += (mapLen - srcCount);
-                result = result2;
             } else {
                 result[i+resultOffset] = (char)lowerChar;
             }
         }
-        return new String(0, result.length, result);
+        return new String(0, count+resultOffset, result);
     }
 
     /**
@@ -2329,48 +2348,61 @@ public final class String
 	if (locale == null) {
 	    throw new NullPointerException();
         }
-        
+
         int     firstLower;
 
-        /* Now check if there are any characters that need changing. */
-        scan: {
-            int c;
-            for (firstLower = 0 ; 
-                    firstLower < count; 
-                    firstLower += Character.charCount(c)) {
-		c = codePointAt(firstLower);
-                int upperCaseChar = Character.toUpperCaseEx(c);
-                if (upperCaseChar == Character.ERROR || c != upperCaseChar) {
-                    break scan;
-                }
-            }
-            return this;
-        }
+	/* Now check if there are any characters that need to be changed. */
+	scan: {
+	    for (firstLower = 0 ; firstLower < count; ) {
+		int c = (int)value[offset+firstLower];
+		int srcCount;
+		if ((c >= Character.MIN_HIGH_SURROGATE) &&
+		    (c <= Character.MAX_HIGH_SURROGATE)) {
+		    c = codePointAt(firstLower);
+		    srcCount = Character.charCount(c);
+		} else {
+		    srcCount = 1;
+		}
+		int upperCaseChar = Character.toUpperCaseEx(c);
+		if ((upperCaseChar == Character.ERROR) ||
+		    (c != upperCaseChar)) {
+		    break scan;
+		}
+		firstLower += srcCount;
+	    }
+	    return this;
+	}
 
-        char[]  result       = new char[count]; /* might grow or shrink! */
-	int     resultOffset = 0;  /* result grows or shrinks, so i+resultOffset
+        char[]  result       = new char[count]; /* may grow */
+	int     resultOffset = 0;  /* result may grow, so i+resultOffset
 				    * is the write location in result */
 
 	/* Just copy the first few upperCase characters. */
 	System.arraycopy(value, offset, result, 0, firstLower);
 
-	String lang = locale.getLanguage().intern();
-	boolean localeDependent = 
+	String lang = locale.getLanguage();
+	boolean localeDependent =
             (lang == "tr" || lang == "az" || lang == "lt");
         char[] upperCharArray;
         int upperChar;
         int srcChar;
         int srcCount;
         for (int i = firstLower; i < count; i += srcCount) {
-	    srcChar = codePointAt(i);
-            srcCount = Character.charCount(srcChar);
+	    srcChar = (int)value[offset+i];
+	    if ((char)srcChar >= Character.MIN_HIGH_SURROGATE &&
+	        (char)srcChar <= Character.MAX_HIGH_SURROGATE) {
+		srcChar = codePointAt(i);
+		srcCount = Character.charCount(srcChar);
+	    } else {
+	        srcCount = 1;
+	    }
             if (localeDependent) {
                 upperChar = ConditionalSpecialCasing.toUpperCaseEx(this, i, locale);
             } else {
                 upperChar = Character.toUpperCaseEx(srcChar);
             }
             if ((upperChar == Character.ERROR) ||
-                    Character.isSupplementaryCodePoint(upperChar)) {
+                (upperChar >= Character.MIN_SUPPLEMENTARY_CODE_POINT)) {
                 if (upperChar == Character.ERROR) {
                     if (localeDependent) {
                         upperCharArray =
@@ -2378,24 +2410,30 @@ public final class String
                     } else {
                         upperCharArray = Character.toUpperCaseCharArray(srcChar);
                     }
+                } else if (srcCount == 2) {
+		    resultOffset += Character.toChars(upperChar, result, i + resultOffset) - srcCount;
+		    continue;
                 } else {
                     upperCharArray = Character.toChars(upperChar);
-                }
-                /* Grow/Shrink result. */
+		}
+
+                /* Grow result if needed */
                 int mapLen = upperCharArray.length;
-                char[] result2 = new char[result.length + mapLen - srcCount];
-                System.arraycopy(result, 0, result2, 0,
-                    i + resultOffset);
+		if (mapLen > srcCount) {
+                    char[] result2 = new char[result.length + mapLen - srcCount];
+                    System.arraycopy(result, 0, result2, 0,
+                        i + resultOffset);
+                    result = result2;
+		}
                 for (int x=0; x<mapLen; ++x) {
-                    result2[i+resultOffset+x] = upperCharArray[x];
+                    result[i+resultOffset+x] = upperCharArray[x];
                 }
                 resultOffset += (mapLen - srcCount);
-                result = result2;
             } else {
                 result[i+resultOffset] = (char)upperChar;
             }
         }
-        return new String(0, result.length, result);
+        return new String(0, count+resultOffset, result);
     }
 
     /**

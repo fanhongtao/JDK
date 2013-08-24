@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_util.h	1.24 05/03/03
+ * @(#)hprof_util.h	1.25 05/09/30
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -107,6 +107,7 @@ void       registerNatives(JNIEnv *env, jclass clazz,
 char *    getErrorName(jvmtiError error_number);
 void      disposeEnvironment(void);
 jlong     getObjectSize(jobject object);
+jint      getClassStatus(jclass klass);
 jobject   getClassLoader(jclass klass);
 jlong     getTag(jobject object);
 void      setTag(jobject object, jlong tag);

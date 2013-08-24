@@ -107,6 +107,15 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
 	case EncryptedData.ETYPE_DES3_CBC_HMAC_SHA1_KD:
 	    return "DESede";
 
+        case EncryptedData.ETYPE_ARCFOUR_HMAC:
+            return "ArcFourHmac";
+
+	case EncryptedData.ETYPE_AES128_CTS_HMAC_SHA1_96:
+            return "AES128";
+ 
+        case EncryptedData.ETYPE_AES256_CTS_HMAC_SHA1_96:
+            return "AES256";	    
+	    
 	case EncryptedData.ETYPE_NULL:
 	    return "NULL";
 

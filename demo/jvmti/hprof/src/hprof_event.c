@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_event.c	1.28 05/03/18
+ * @(#)hprof_event.c	1.30 05/10/14
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -75,7 +75,9 @@ find_cnum(JNIEnv *env, jclass klass, jobject loader)
     /* Free the signature space */
     jvmtiDeallocate(signature);
 
+    /* Make sure we save a global reference to this class in the table */
     HPROF_ASSERT(cnum!=0);
+    (void)class_new_classref(env, cnum, klass);
     return cnum;
 }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_trace.c	1.35 05/05/27
+ * @(#)hprof_trace.c	1.36 05/09/30
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -225,6 +225,7 @@ get_frame_details(JNIEnv *env, FrameIndex frame_index, char **pcsig,
 	    loader = getClassLoader(klass);
 	    loader_index = loader_find_or_create(env, loader);
             *pcnum = class_find_or_create(*pcsig, loader_index);
+	    (void)class_new_classref(env, *pcnum, klass);
 	}
 	if ( psname != NULL ) {
             getSourceFileName(klass, psname);

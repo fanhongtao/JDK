@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_tag.c	1.11 04/07/27
+ * @(#)hprof_tag.c	1.12 05/09/30
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -125,9 +125,6 @@ tag_class(JNIEnv *env, jclass klass, ClassIndex cnum,
         
 	/* Record this object index in the Class table */
 	class_set_object_index(cnum, object_index);
-   
-	/* Make sure we stash the jclass reference */
-	(void)class_new_classref(env, cnum, klass);
     }
 }
 

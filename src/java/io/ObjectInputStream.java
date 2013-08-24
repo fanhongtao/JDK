@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectInputStream.java	1.155 04/05/28
+ * @(#)ObjectInputStream.java	1.156 05/12/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,6 +7,8 @@
 
 package java.io;
 
+import java.io.ObjectStreamClass.WeakClassKey;
+import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -14,8 +16,9 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
-import sun.misc.SoftCache;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import static java.io.ObjectStreamClass.processQueue;
 
 /**
  * An ObjectInputStream deserializes primitive data and objects previously
@@ -171,7 +174,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.155, 04/05/28
+ * @version 1.156, 05/12/01
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -201,8 +204,15 @@ public class ObjectInputStream
 	primClasses.put("void", void.class);
     }
 
-    /** cache of subclass security audit results */
-    private static final SoftCache subclassAudits = new SoftCache(5);
+    private static class Caches {
+	/** cache of subclass security audit results */
+	static final ConcurrentMap<WeakClassKey,Boolean> subclassAudits = 
+	    new ConcurrentHashMap<WeakClassKey,Boolean>();
+
+	/** queue for WeakReferences to audited subclasses */
+	static final ReferenceQueue<Class<?>> subclassAuditsQueue = 
+	    new ReferenceQueue<Class<?>>();
+    }
 
     /** filter stream for handling block data conversion */
     private final BlockDataInputStream bin;
@@ -1182,20 +1192,15 @@ public class ObjectInputStream
      */
     private void verifySubclass() {
 	Class cl = getClass();
-	synchronized (subclassAudits) {
-	    Boolean result = (Boolean) subclassAudits.get(cl);
-	    if (result == null) {
-		/*
-		 * Note: only new Boolean instances (i.e., not Boolean.TRUE or
-		 * Boolean.FALSE) must be used as cache values, otherwise cache
-		 * entry will pin associated class.
-		 */
-		result = new Boolean(auditSubclass(cl));
-		subclassAudits.put(cl, result);
-	    }
-	    if (result.booleanValue()) {
-		return;
-	    }
+	processQueue(Caches.subclassAuditsQueue, Caches.subclassAudits);
+	WeakClassKey key = new WeakClassKey(cl, Caches.subclassAuditsQueue);
+	Boolean result = Caches.subclassAudits.get(key);
+	if (result == null) {
+	    result = Boolean.valueOf(auditSubclass(cl));
+	    Caches.subclassAudits.putIfAbsent(key, result);
+	}
+	if (result.booleanValue()) {
+	    return;
 	}
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {

@@ -1,14 +1,15 @@
 // $Id: QName.java,v 1.10 2004/02/09 23:41:21 jsuttor Exp $
 
 /*
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.namespace;
 
 import java.io.Serializable;
-
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import javax.xml.XMLConstants;
 
 /** 
@@ -53,9 +54,58 @@ public class QName implements Serializable {
 
     /**
      * <p>Stream Unique Identifier.</p>
+     *
+     * <p>Due to a historical defect, QName was released with multiple
+     * serialVersionUID values even though its serialization was the
+     * same.</p>
+     *
+     * <p>To workaround this issue, serialVersionUID is set with either
+     * a default value or a compatibility value.  To use the
+     * compatiblity value, set the system property:</p>
+     *
+     * <code>com.sun.xml.namespace.QName.useCompatibleSerialVersionUID=1.0</code>
+     *
+     * <p>This workaround was inspired by classes in the javax.management
+     * package, e.g. ObjectName, etc.
+     * See CR6267224 for original defect report.</p>
      */
-    private static final long serialVersionUID = 4418622981026545151L;
-
+    private static final long serialVersionUID; 
+    /** 
+     * <p>Default <code>serialVersionUID</code> value.</p> 
+     */ 
+    private static final long defaultSerialVersionUID = -9120448754896609940L; 
+    /** 
+     * <p>Compatibility <code>serialVersionUID</code> value.</p> 
+     */ 
+    private static final long compatibleSerialVersionUID = 4418622981026545151L; 
+    /** 
+     * <p>Flag to use default or campatible serialVersionUID.</p> 
+     */ 
+    private static boolean useDefaultSerialVersionUID = true; 
+    static { 
+        try { 
+            // use a privileged block as reading a system property 
+            String valueUseCompatibleSerialVersionUID = (String) AccessController.doPrivileged( 
+                    new PrivilegedAction() { 
+                        public Object run() { 
+                            return System.getProperty("com.sun.xml.namespace.QName.useCompatibleSerialVersionUID"); 
+                        } 
+                    } 
+            ); 
+            useDefaultSerialVersionUID = 
+                       (valueUseCompatibleSerialVersionUID != null && valueUseCompatibleSerialVersionUID.equals("1.0")) ? false : true; 
+        } catch (Exception exception) { 
+            // use default if any Exceptions 
+            useDefaultSerialVersionUID = true; 
+        } 
+        // set serialVersionUID to desired value
+        if (useDefaultSerialVersionUID) 
+        {
+            serialVersionUID = defaultSerialVersionUID;
+        } else {
+            serialVersionUID = compatibleSerialVersionUID;
+        }
+    }
     /**
      * <p>Namespace URI of this <code>QName</code>.</p>
      */

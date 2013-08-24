@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamClass.java	1.137 04/05/05
+ * @(#)ObjectStreamClass.java	1.138 05/12/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,6 +7,10 @@
 
 package java.io;
 
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -24,7 +28,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-import sun.misc.SoftCache;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import sun.misc.Unsafe;
 import sun.reflect.ReflectionFactory;
 
@@ -59,10 +64,22 @@ public class ObjectStreamClass implements Serializable {
 	AccessController.doPrivileged(
 	    new ReflectionFactory.GetReflectionFactoryAction());
 
-    /** cache mapping local classes -> descriptors */
-    private static final SoftCache localDescs = new SoftCache(10);
-    /** cache mapping field group/local desc pairs -> field reflectors */
-    private static final SoftCache reflectors = new SoftCache(10);
+    private static class Caches {
+	/** cache mapping local classes -> descriptors */
+	static final ConcurrentMap<WeakClassKey,Reference<?>> localDescs =
+	    new ConcurrentHashMap<WeakClassKey,Reference<?>>();
+
+	/** cache mapping field group/local desc pairs -> field reflectors */
+	static final ConcurrentMap<FieldReflectorKey,Reference<?>> reflectors =
+	    new ConcurrentHashMap<FieldReflectorKey,Reference<?>>();
+
+	/** queue for WeakReferences to local classes */
+	private static final ReferenceQueue<Class<?>> localDescsQueue = 
+	    new ReferenceQueue<Class<?>>();
+	/** queue for WeakReferences to field reflectors keys */
+	private static final ReferenceQueue<Class<?>> reflectorsQueue = 
+	    new ReferenceQueue<Class<?>>();
+    }	
 
     /** class associated with this descriptor (if any) */
     private Class cl;
@@ -233,16 +250,28 @@ public class ObjectStreamClass implements Serializable {
 	if (!(all || Serializable.class.isAssignableFrom(cl))) {
 	    return null;
 	}
-	/*
-	 * Note: using the class directly as the key for storing entries does
-	 * not pin the class indefinitely, since SoftCache removes strong refs
-	 * to keys when the corresponding values are gc'ed.
-	 */
-	Object entry;
+	processQueue(Caches.localDescsQueue, Caches.localDescs);
+	WeakClassKey key = new WeakClassKey(cl, Caches.localDescsQueue);
+	Reference<?> ref = Caches.localDescs.get(key);
+	Object entry = null;
+	if (ref != null) {
+	    entry = ref.get();
+	}
 	EntryFuture future = null;
-	synchronized (localDescs) {
-	    if ((entry = localDescs.get(cl)) == null) {
-		localDescs.put(cl, future = new EntryFuture());
+	if (entry == null) {
+	    EntryFuture newEntry = new EntryFuture();
+	    Reference<?> newRef = new SoftReference<EntryFuture>(newEntry);
+	    do {
+		if (ref != null) {
+		    Caches.localDescs.remove(key, ref);
+		}
+		ref = Caches.localDescs.putIfAbsent(key, newRef);
+		if (ref != null) {
+		    entry = ref.get();
+		}
+	    } while (ref != null && entry == null);
+	    if (entry == null) {
+		future = newEntry;
 	    }
 	}
 	
@@ -270,9 +299,7 @@ public class ObjectStreamClass implements Serializable {
 		entry = th;
 	    }
 	    if (future.set(entry)) {
-		synchronized (localDescs) {
-		    localDescs.put(cl, entry);
-		}
+		Caches.localDescs.put(key, new SoftReference<Object>(entry));
 	    } else {
 		// nested lookup call already set future
 		entry = future.get();
@@ -2008,13 +2035,29 @@ public class ObjectStreamClass implements Serializable {
 	// class irrelevant if no fields
 	Class cl = (localDesc != null && fields.length > 0) ? 
 	    localDesc.cl : null;
-	Object key = new FieldReflectorKey(cl, fields);
-	Object entry;
+	processQueue(Caches.reflectorsQueue, Caches.reflectors);
+	FieldReflectorKey key = new FieldReflectorKey(cl, fields, 
+						      Caches.reflectorsQueue);
+	Reference<?> ref = Caches.reflectors.get(key);
+	Object entry = null;
+	if (ref != null) {
+	    entry = ref.get();
+	}
 	EntryFuture future = null;
-	
-	synchronized (reflectors) {
-	    if ((entry = reflectors.get(key)) == null) {
-		reflectors.put(key, future = new EntryFuture());
+	if (entry == null) {
+	    EntryFuture newEntry = new EntryFuture();
+	    Reference<?> newRef = new SoftReference<EntryFuture>(newEntry);
+	    do {
+		if (ref != null) {
+		    Caches.reflectors.remove(key, ref);
+		}
+		ref = Caches.reflectors.putIfAbsent(key, newRef);
+		if (ref != null) {
+		    entry = ref.get();
+		}
+	    } while (ref != null && entry == null);
+	    if (entry == null) {
+		future = newEntry;
 	    }
 	}
 	
@@ -2029,9 +2072,7 @@ public class ObjectStreamClass implements Serializable {
 		entry = th;
 	    }
 	    future.set(entry);
-	    synchronized (reflectors) {
-		reflectors.put(key, entry);
-	    }
+	    Caches.reflectors.put(key, new SoftReference<Object>(entry));
 	}
 	
 	if (entry instanceof FieldReflector) {
@@ -2051,21 +2092,18 @@ public class ObjectStreamClass implements Serializable {
      * FieldReflector cache lookup key.  Keys are considered equal if they
      * refer to the same class and equivalent field formats.
      */
-    private static class FieldReflectorKey {
+    private static class FieldReflectorKey extends WeakReference<Class<?>> {
 	
-	private final Class cl;
 	private final String sigs;
 	private final int hash;
+	private final boolean nullClass;
 	
-	FieldReflectorKey(Class cl, ObjectStreamField[] fields) {
-	    /*
-	     * Note: maintaining a direct reference to the class does not pin
-	     * it indefinitely, since SoftCache removes strong refs to keys
-	     * when the corresponding values are gc'ed.
-	     */
-	    this.cl = cl;
-
-	    StringBuffer sbuf = new StringBuffer();
+	FieldReflectorKey(Class<?> cl, ObjectStreamField[] fields,
+			  ReferenceQueue<Class<?>> queue) 
+	{
+	    super(cl, queue);
+	    nullClass = (cl == null);
+	    StringBuilder sbuf = new StringBuilder();
 	    for (int i = 0; i < fields.length; i++) {
 		ObjectStreamField f = fields[i];
 		sbuf.append(f.getName()).append(f.getSignature());
@@ -2079,11 +2117,20 @@ public class ObjectStreamClass implements Serializable {
 	}
 	
 	public boolean equals(Object obj) {
-	    if (!(obj instanceof FieldReflectorKey)) {
+	    if (obj == this) {
+		return true;
+	    }
+
+	    if (obj instanceof FieldReflectorKey) {
+		FieldReflectorKey other = (FieldReflectorKey) obj;
+ 		Class<?> referent;
+		return (nullClass ? other.nullClass
+			          : ((referent = get()) != null) &&
+			            (referent == other.get())) &&
+		    sigs.equals(other.sigs);
+	    } else {
 		return false;
 	    }
-	    FieldReflectorKey key = (FieldReflectorKey) obj;
-	    return (cl == key.cl && sigs.equals(key.sigs));
 	}
     }
     
@@ -2145,5 +2192,67 @@ public class ObjectStreamClass implements Serializable {
 	    matches[i] = m;
 	}
 	return matches;
+    }
+
+    /**
+     * Removes from the specified map any keys that have been enqueued
+     * on the specified reference queue.
+     */
+    static void processQueue(ReferenceQueue<Class<?>> queue, 
+	   		     ConcurrentMap<? extends 
+			     WeakReference<Class<?>>, ?> map) 
+    {
+	Reference<? extends Class<?>> ref;
+	while((ref = queue.poll()) != null) {
+	    map.remove(ref);
+	}    
+    }
+
+    /**
+     *  Weak key for Class objects.
+     *
+     **/
+    static class WeakClassKey extends WeakReference<Class<?>> {
+	/**
+	 * saved value of the referent's identity hash code, to maintain
+	 * a consistent hash code after the referent has been cleared
+	 */
+	private final int hash;
+
+	/**
+	 * Create a new WeakClassKey to the given object, registered 
+	 * with a queue.
+	 */
+	WeakClassKey(Class<?> cl, ReferenceQueue<Class<?>> refQueue) {
+	    super(cl, refQueue);
+	    hash = System.identityHashCode(cl);
+	}
+
+	/**
+	 * Returns the identity hash code of the original referent.
+	 */
+	public int hashCode() {
+	    return hash;
+	}
+
+	/**
+	 * Returns true if the given object is this identical 
+	 * WeakClassKey instance, or, if this object's referent has not 
+	 * been cleared, if the given object is another WeakClassKey 
+	 * instance with the identical non-null referent as this one.
+	 */
+	public boolean equals(Object obj) {
+	    if (obj == this) {
+		return true;
+	    }
+
+	    if (obj instanceof WeakClassKey) {
+		Object referent = get();
+		return (referent != null) && 
+		       (referent == ((WeakClassKey) obj).get());
+	    } else {
+		return false;
+	    }
+	}
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_class.h	1.14 04/07/27
+ * @(#)hprof_class.h	1.15 05/09/30
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -67,7 +67,7 @@ void            class_set_super(ClassIndex index, ClassIndex super);
 void            class_set_loader(ClassIndex index, LoaderIndex loader);
 LoaderIndex     class_get_loader(ClassIndex index);
 void            class_prime_system_classes(void);
-void            class_get_all_fields(JNIEnv *env, ClassIndex cnum,
+jint            class_get_all_fields(JNIEnv *env, ClassIndex cnum,
 				     jint *pfield_count, FieldInfo **pfield);
 
 #endif

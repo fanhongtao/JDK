@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_tls.c	1.49 05/03/18
+ * @(#)hprof_tls.c	1.50 05/09/30
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -39,12 +39,15 @@
 /* Thread Local Storage Table and method entry/exit handling. */
 
 /*
- * The tls table items have no key, and are searched via a walk of
- *   the table looking for a jthread match. This isn't a performance
+ * The tls table items have a key of it's serial number, but may be
+ *   searched via a walk of the table looking for a jthread match. 
+ *   This isn't a performance
  *   issue because the table index should normally be stored in the
  *   Thread Local Storage for the thread. The table is only searched
  *   when the jthread is seen before the Thread Local Storage is set
  *   (e.g. before VM_INIT or the ThreadStart).
+ *   The key is only used when we need to lookup a tls table entry by
+ *   way of it's serial number, which should be unique per thread.
  *
  * Each active thread that we have seen should have a unique TlsIndex
  *   which is an index into this table.
@@ -82,7 +85,6 @@ typedef struct StackElement {
 typedef struct TlsInfo {
     jint            sample_status;      /* Thread status for cpu sampling */
     jboolean        agent_thread;       /* Is thread our own agent thread? */
-    SerialNumber    thread_serial_num;  /* unique thread serial number */
     jthread         globalref;          /* Global reference for thread */
     Stack          *stack;              /* Stack of StackElements entry/exit */
     MonitorIndex    monitor_index;      /* last contended mon */
@@ -93,6 +95,7 @@ typedef struct TlsInfo {
     TraceIndex      last_trace;         /* Last trace for this thread */
     ObjectIndex     thread_object_index;/* If heap=dump */
     jlong           monitor_start_time; /* Start time for monitor */
+    jint            in_heap_dump;       /* If we are an object in the dump */
 } TlsInfo;
 
 typedef struct SearchData {
@@ -121,6 +124,23 @@ typedef struct SampleData {
 } SampleData;
 
 /* Private internal functions. */
+
+static SerialNumber
+get_key(TlsIndex index)
+{
+    SerialNumber *pkey;
+    int           key_len;
+
+    if ( index == 0 ) {
+	return 0;
+    }
+    pkey    = NULL;
+    key_len = 0;
+    table_get_key(gdata->tls_table, index, (void**)&pkey, &key_len);
+    HPROF_ASSERT(pkey!=NULL);
+    HPROF_ASSERT(key_len==(int)sizeof(SerialNumber));
+    return *pkey;
+}
 
 static TlsInfo *
 get_info(TlsIndex index)
@@ -190,7 +210,7 @@ list_item(TableIndex index, void *key_ptr, int key_len,
 			  "thread=%p, monitor=0x%08x, "
 			  "tracker_status=%d\n",
                 index,
-                info->thread_serial_num,
+                *(SerialNumber*)key_ptr,
                 info->sample_status,
                 info->agent_thread,
                 (void*)info->globalref,
@@ -340,21 +360,24 @@ sample_setter(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void
 static void
 get_thread_list(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void *arg)
 {
-    TlsInfo    *info;
-    ThreadList *list;
-    jthread     thread;
+    SerialNumber thread_serial_num;
+    TlsInfo     *info;
+    ThreadList  *list;
+    jthread      thread;
     
+    HPROF_ASSERT(key_ptr!=NULL);
     HPROF_ASSERT(info_ptr!=NULL);
     
-    info  = (TlsInfo*)info_ptr;
-    list  = (ThreadList*)arg;
-    thread = newLocalReference(list->env, info->globalref);
+    thread_serial_num = *(SerialNumber*)key_ptr;
+    info              = (TlsInfo*)info_ptr;
+    list              = (ThreadList*)arg;
+    thread            = newLocalReference(list->env, info->globalref);
     if ( thread != NULL && info->sample_status != 0 && !info->agent_thread ) {
 	if ( list->infos != NULL ) {
 	    list->infos[list->count] = info;
 	}
 	if ( list->serial_nums != NULL ) {
-	    list->serial_nums[list->count] = info->thread_serial_num;
+	    list->serial_nums[list->count] = thread_serial_num;
 	}
 	list->threads[list->count] = thread;
 	list->count++;
@@ -457,6 +480,7 @@ insure_method_on_stack(jthread thread, TlsInfo *info, jlong current_time,
 static void
 pop_method(TlsIndex index, jlong current_time, jmethodID method, FrameIndex frame_index)
 {
+    SerialNumber  thread_serial_num;
     TlsInfo  *    info;
     StackElement  element;
     void         *p;
@@ -470,7 +494,8 @@ pop_method(TlsIndex index, jlong current_time, jmethodID method, FrameIndex fram
     HPROF_ASSERT(method!=NULL);
     HPROF_ASSERT(frame_index!=0);
     
-    info = get_info(index);
+    thread_serial_num  = get_key(index);
+    info               = get_info(index);
     HPROF_ASSERT(info!=NULL);
     HPROF_ASSERT(info->stack!=NULL);
     depth   = stack_depth(info->stack);
@@ -501,7 +526,7 @@ pop_method(TlsIndex index, jlong current_time, jmethodID method, FrameIndex fram
 	info->frames_buffer[i] = e.frame_index;
 	HPROF_ASSERT(e.frame_index!=0);
     }
-    trace_index = trace_find_or_create(info->thread_serial_num,
+    trace_index = trace_find_or_create(thread_serial_num,
 		    trace_depth, info->frames_buffer, info->jframes_buffer);
    
     /* Calculate time spent */
@@ -525,14 +550,17 @@ pop_method(TlsIndex index, jlong current_time, jmethodID method, FrameIndex fram
 static void
 dump_thread_state(TlsIndex index, void *key_ptr, int key_len, void *info_ptr, void *arg)
 {
-    TlsInfo *info;
-    jthread  thread;
-    JNIEnv  *env;
+    SerialNumber thread_serial_num;
+    TlsInfo     *info;
+    jthread      thread;
+    JNIEnv      *env;
     
+    HPROF_ASSERT(key_ptr!=NULL);
     HPROF_ASSERT(info_ptr!=NULL);
-    env    = (JNIEnv*)arg;
-    info   = (TlsInfo*)info_ptr;
-    thread = newLocalReference(env, info->globalref);
+    env                  = (JNIEnv*)arg;
+    thread_serial_num    = *(SerialNumber*)key_ptr;
+    info                 = (TlsInfo*)info_ptr;
+    thread               = newLocalReference(env, info->globalref);
     if ( thread != NULL ) {
 	jint         threadState;
 	SerialNumber trace_serial_num;
@@ -547,7 +575,7 @@ dump_thread_state(TlsIndex index, void *key_ptr, int key_len, void *info_ptr, vo
 	} else {
 	    trace_serial_num = trace_get_serial_number(info->last_trace);
 	}
-	io_write_monitor_dump_thread_state(info->thread_serial_num,
+	io_write_monitor_dump_thread_state(thread_serial_num,
 		       trace_serial_num, threadState);
 	deleteLocalReference(env, thread);
     }
@@ -556,15 +584,14 @@ dump_thread_state(TlsIndex index, void *key_ptr, int key_len, void *info_ptr, vo
 static SerialNumber
 get_serial_number(JNIEnv *env, jthread thread)
 {
-    TlsIndex index;
-    TlsInfo *info;
+    TlsIndex     index;
     
+    if ( thread == NULL ) {
+	return gdata->unknown_thread_serial_num;
+    }
     HPROF_ASSERT(env!=NULL);
-    
     index = tls_find_or_create(env, thread);
-
-    info = get_info(index);
-    return info->thread_serial_num;
+    return get_key(index);
 }
 
 static void
@@ -652,26 +679,27 @@ method_time(void)
 TlsIndex
 tls_find_or_create(JNIEnv *env, jthread thread)
 {
+    SerialNumber    thread_serial_num;
     static TlsInfo  empty_info;
-    TlsInfo  info;
-    TlsIndex index;
+    TlsInfo         info;
+    TlsIndex        index;
 
     HPROF_ASSERT(env!=NULL);
     HPROF_ASSERT(thread!=NULL);
     
     /*LINTED*/
-    index = (TlsIndex)(long)getThreadLocalStorage(thread);
+    index = (TlsIndex)(ptrdiff_t)getThreadLocalStorage(thread);
     if ( index != 0 ) {
 	HPROF_ASSERT(isSameObject(env, thread, get_info(index)->globalref));
 	return index;
     }
     index = search(env, thread);
     if ( index != 0 ) {
-	setThreadLocalStorage(thread, (void*)(long)index);
+	setThreadLocalStorage(thread, (void*)(ptrdiff_t)index);
 	return index;
     }
+    thread_serial_num      = gdata->thread_serial_number_counter++;
     info                   = empty_info;
-    info.thread_serial_num = gdata->thread_serial_number_counter++;
     info.monitor_index     = 0;
     info.sample_status     = 1;
     info.agent_thread      = JNI_FALSE;
@@ -680,8 +708,8 @@ tls_find_or_create(JNIEnv *env, jthread thread)
 				(int)sizeof(StackElement));
     setup_trace_buffers(&info, gdata->max_trace_depth);
     info.globalref = newWeakGlobalReference(env, thread);
-    index = table_create_entry(gdata->tls_table, NULL, 0, (void*)&info);
-    setThreadLocalStorage(thread, (void*)(long)index);
+    index = table_create_entry(gdata->tls_table, &thread_serial_num, (int)sizeof(SerialNumber), (void*)&info);
+    setThreadLocalStorage(thread, (void*)(ptrdiff_t)index);
     HPROF_ASSERT(search(env,thread)==index);
     return index;
 }
@@ -702,7 +730,7 @@ void
 tls_init(void)
 {
     gdata->tls_table = table_initialize("TLS",
-                            16, 16, 0, (int)sizeof(TlsInfo));
+                            16, 16, 16, (int)sizeof(TlsInfo));
 }
 
 void
@@ -749,7 +777,7 @@ tls_get_tracker_status(JNIEnv *env, jthread thread, jboolean skip_init,
     info              = get_info(index);
     *ppstatus         = &(info->tracker_status);
     status            = **ppstatus;
-    thread_serial_num = info->thread_serial_num;
+    thread_serial_num = get_key(index);
     
     if ( pindex != NULL ) {
 	*pindex = index;
@@ -790,13 +818,7 @@ tls_set_thread_object_index(TlsIndex index, ObjectIndex thread_object_index)
 SerialNumber
 tls_get_thread_serial_number(TlsIndex index)
 {
-    TlsInfo *info;
-
-    if ( index == 0 ) {
-	return 0;
-    }
-    info = get_info(index);
-    return info->thread_serial_num;
+    return get_key(index);
 }
 
 void
@@ -828,14 +850,16 @@ tls_thread_ended(JNIEnv *env, TlsIndex index)
    
     /* Sample thread stack for last time, do NOT free the entry yet. */
     table_lock_enter(gdata->tls_table); {
+	SerialNumber thread_serial_num;
         TlsInfo     *info;
 	jthread      thread;
 	
-	info = get_info(index);
-	thread = newLocalReference(env, info->globalref);
+	thread_serial_num = get_key(index);
+	info              = get_info(index);
+	thread            = newLocalReference(env, info->globalref);
 	if (gdata->heap_dump && thread!=NULL) {
 	    setup_trace_buffers(info, gdata->max_trace_depth);
-	    info->last_trace = get_trace(thread, info->thread_serial_num,
+	    info->last_trace = get_trace(thread, thread_serial_num,
 				    gdata->max_trace_depth, JNI_FALSE,
 				    info->frames_buffer, info->jframes_buffer);
 	}
@@ -990,7 +1014,11 @@ update_all_last_traces(JNIEnv *env)
     TlsInfo       **infos;
     SerialNumber   *serial_nums;
     TraceIndex     *traces;
-    
+   
+    if ( gdata->max_trace_depth == 0 ) {
+	return;
+    }
+
     table_lock_enter(gdata->tls_table); {
         
 	ThreadList      list;
@@ -1090,17 +1118,18 @@ tls_monitor_stop_timer(TlsIndex index)
 TraceIndex   
 tls_get_trace(TlsIndex index, JNIEnv *env, int depth, jboolean skip_init)
 {
-    TraceIndex trace_index;
-    TlsInfo   *info;
-    jthread    thread;
+    SerialNumber thread_serial_num;
+    TraceIndex   trace_index;
+    TlsInfo     *info;
+    jthread      thread;
 
-    info = get_info(index);
+    thread_serial_num = get_key(index);
+    info              = get_info(index);
     HPROF_ASSERT(info!=NULL);
     setup_trace_buffers(info, depth);
     thread = newLocalReference(env, info->globalref);
     if ( thread != NULL ) {
-        trace_index = get_trace(thread, info->thread_serial_num, 
-			depth, skip_init,
+        trace_index = get_trace(thread, thread_serial_num, depth, skip_init,
 			info->frames_buffer, info->jframes_buffer);
 	deleteLocalReference(env, thread);
     } else {
@@ -1109,3 +1138,49 @@ tls_get_trace(TlsIndex index, JNIEnv *env, int depth, jboolean skip_init)
     return trace_index;
 }
 
+void
+tls_set_in_heap_dump(TlsIndex index, jint in_heap_dump)
+{
+    TlsInfo  *info;
+    
+    info = get_info(index);
+    info->in_heap_dump = in_heap_dump;
+}
+
+jint
+tls_get_in_heap_dump(TlsIndex index)
+{
+    TlsInfo  *info;
+    
+    info = get_info(index);
+    return info->in_heap_dump;
+}
+
+static void
+clean_in_heap_dump(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void *arg)
+{
+    TlsInfo *info;
+    
+    HPROF_ASSERT(info_ptr!=NULL);
+    info  = (TlsInfo*)info_ptr;
+    info->in_heap_dump = 0;
+}
+
+void
+tls_clear_in_heap_dump(void)
+{
+    table_walk_items(gdata->tls_table, &clean_in_heap_dump, NULL);
+}
+
+TlsIndex
+tls_find(SerialNumber thread_serial_num)
+{
+    TlsIndex index;
+   
+    if ( thread_serial_num == 0 ) {
+	return 0;
+    }
+    index = table_find_entry(gdata->tls_table, 
+	  (void*)&thread_serial_num, (int)sizeof(SerialNumber));
+    return index;
+}

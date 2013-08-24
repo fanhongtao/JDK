@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_site.c	1.34 05/03/18
+ * @(#)hprof_site.c	1.35 05/09/30
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -342,6 +342,7 @@ root_object(jvmtiHeapRootKind root_kind, jlong class_tag, jlong size,
 		SerialNumber thread_serial_num;
 		SerialNumber trace_serial_num;
 		TraceIndex   trace_index;
+		TlsIndex     tls_index;
 		
 		if ( (*tag_ptr) != (jlong)0 ) {
 		    setup_tag_on_root(tag_ptr, class_tag, size, 0,
@@ -364,6 +365,11 @@ root_object(jvmtiHeapRootKind root_kind, jlong class_tag, jlong size,
 				      &object_index, &object_site_index);
 		    trace_index = gdata->system_trace_index;
 		}
+                /* Get tls_index and set in_heap_dump, if we find it. */
+                tls_index = tls_find(thread_serial_num);
+                if ( tls_index != 0 ) {
+                    tls_set_in_heap_dump(tls_index, 1);
+                }
 		trace_serial_num = trace_get_serial_number(trace_index);
 		/* Issue thread object (must be before thread root) */
 		io_heap_root_thread_object(object_index,
@@ -389,6 +395,21 @@ root_object(jvmtiHeapRootKind root_kind, jlong class_tag, jlong size,
     return JVMTI_ITERATION_CONTINUE;
 }
 
+static SerialNumber
+checkThreadSerialNumber(SerialNumber thread_serial_num)
+{
+    TlsIndex tls_index;
+
+    if ( thread_serial_num == gdata->unknown_thread_serial_num ) {
+        return thread_serial_num;
+    }
+    tls_index = tls_find(thread_serial_num);
+    if ( tls_index != 0 && tls_get_in_heap_dump(tls_index) != 0 ) {
+        return thread_serial_num;
+    }
+    return gdata->unknown_thread_serial_num;
+}
+
 /* JVMTI callback function. */
 static jvmtiIterationControl JNICALL
 stack_object(jvmtiHeapRootKind root_kind, 
@@ -408,6 +429,7 @@ stack_object(jvmtiHeapRootKind root_kind,
     if ( (*tag_ptr) != (jlong)0 ) {
 	object_index = tag_extract(*tag_ptr);
 	thread_serial_num = object_get_thread_serial_number(object_index);
+        thread_serial_num = checkThreadSerialNumber(thread_serial_num);
     } else {
 	SiteIndex site_index;
 	
@@ -419,6 +441,7 @@ stack_object(jvmtiHeapRootKind root_kind,
 	    thread_object_index = tag_extract(thread_tag);
 	    thread_serial_num = 
 	           object_get_thread_serial_number(thread_object_index);
+            thread_serial_num = checkThreadSerialNumber(thread_serial_num);
 	} else {
 	    thread_serial_num = gdata->unknown_thread_serial_num;
 	}
@@ -693,9 +716,12 @@ site_heapdump(JNIEnv *env)
 	struct { int i; } user_data; /* FIXUP */
 
 	user_data.i = 0;
-   
+
 	/* Remove class dumped status, all classes must be dumped */
 	class_all_status_remove(CLASS_DUMPED);
+
+	/* Clear in_heap_dump flag */
+	tls_clear_in_heap_dump();
 
 	/* Dump the last thread traces and get the lists back we need */
 	tls_dump_traces(env);

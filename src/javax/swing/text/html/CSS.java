@@ -1,5 +1,5 @@
 /*
- * @(#)CSS.java	1.57 04/09/15
+ * @(#)CSS.java	1.59 06/02/24
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Locale;
 import javax.swing.ImageIcon;
 import javax.swing.SizeRequirements;
 import javax.swing.text.*;
@@ -91,7 +92,7 @@ import javax.swing.text.*;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.57 09/15/04
+ * @version 1.59 02/24/06
  * @see StyleSheet
  */
 public class CSS implements Serializable {
@@ -629,7 +630,16 @@ public class CSS implements Serializable {
 	if ((fs != null) && (fs.toString().indexOf("italic") >= 0)) {
 	    style |= Font.ITALIC;
 	}
+        if (family.equalsIgnoreCase("monospace")) {
+            family = "Monospaced";
+        }
 	Font f = sc.getFont(family, style, size);
+        if (f == null 
+            || (f.getFamily().equals("Dialog")
+                && ! family.equalsIgnoreCase("Dialog"))) {
+            family = "SansSerif";
+            f = sc.getFont(family, style, size);
+        }
 	return f;
     }
 
@@ -774,9 +784,6 @@ public class CSS implements Serializable {
     private static final Hashtable htmlValueToCssValueMap = new Hashtable(8);
     /** Maps from CSS value (string) to internal value. */
     private static final Hashtable cssValueToInternalValueMap = new Hashtable(13);
-
-    /** Used to indicate if a font family name is valid. */
-    private static Hashtable fontMapping = new Hashtable();
 
     static {
 	// load the attribute map
@@ -1851,8 +1858,7 @@ public class CSS implements Serializable {
     static class FontFamily extends CssValue {
 
 	/**
-	 * Returns the font family to use.  This is expected
-	 * to be a legal font for this platform.
+         * Returns the font family to use.
 	 */
 	String getValue() {
 	    return family;
@@ -1907,25 +1913,8 @@ public class CSS implements Serializable {
 	}
 
 	private void setFontName(FontFamily ff, String fontName) {
-	    ff.family = (String)fontMapping.get(fontName);
-	    if (ff.family != null) {
-		return;
-	    }
-	    String lcFontName = mapFontName(fontName.toLowerCase());
-	    Font f = new Font(lcFontName, Font.PLAIN, 12);
-	    ff.family = f.getFamily();
-	    if (ff.family.equals("Dialog") && !lcFontName.equals("dialog")) {
-		ff.family = "SansSerif";
-	    }
-	    fontMapping.put(fontName, ff.family);
-	}
-
-	private String mapFontName(String name) {
-	    if (name.equals("monospace")) {
-		return "monospaced";
-	    }
-	    return name;
-	}
+            ff.family = fontName;
+        }
 
 	Object parseHtmlValue(String value) {
 	    // TBD

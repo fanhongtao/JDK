@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.88 04/03/30
+ * @(#)WindowsFileChooserUI.java	1.89 05/12/09
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import com.sun.java.swing.SwingUtilities2;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.88 03/30/04
+ * @version 1.89 12/09/05
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -473,7 +473,6 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    }
 	}; 
 	cancelButton.setMargin(buttonMargin);
-	cancelButton.setMnemonic(cancelButtonMnemonic);
 	cancelButton.setToolTipText(cancelButtonToolTipText);
 	cancelButton.addActionListener(getCancelSelectionAction());
 	getButtonPanel().add(cancelButton);

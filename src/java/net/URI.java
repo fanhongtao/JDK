@@ -1,5 +1,5 @@
 /*
- * @(#)URI.java	1.39 04/05/05
+ * @(#)URI.java	1.40 05/11/28
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -436,7 +436,7 @@ import java.lang.NullPointerException;	// for javadoc
  * opening a connection to the specified resource.
  *
  *
- * @version 1.39, 04/05/05
+ * @version 1.40, 05/11/28
  * @author Mark Reinhold
  * @since 1.4
  *
@@ -1885,6 +1885,13 @@ public final class URI
 	}
     }
 
+    
+    //
+    // Note for maintainer: sun.net.www.ParseUtil.createURI(...) clones
+    // this method and all necessary auxiliary code to fix 6274990-2127017.
+    // Any change made here should be propagated to sun.net.www.ParseUtil.
+    // The requirement only applies to 5.0 update release.
+    //
     private String toString(String scheme,
 			    String opaquePart,
 			    String authority,

@@ -1,4 +1,4 @@
-/* @(#)ORBImpl.java	1.67 04/06/21
+/* @(#)ORBImpl.java	1.68 06/01/03
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1629,6 +1629,7 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 	{
 	    // This is a new call - not a retry.
 	    clientInvocationInfo = new CorbaInvocationInfo(this);
+	    startingDispatch();
 	    invocationInfoStack.push(clientInvocationInfo);
 	}
 	// Reset retry so recursive calls will get a new info object.
@@ -1651,6 +1652,7 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 	clientInvocationInfo.decrementEntryCount();
 	if (clientInvocationInfo.getEntryCount() == 0) {
 	    invocationInfoStack.pop();
+	    finishedDispatch();
 	}
     }
     

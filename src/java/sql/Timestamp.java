@@ -449,33 +449,36 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Compares this <code>Timestamp</code> object to the given 
+     * Compares this <code>Timestamp</code> object to the given
      * <code>Date</code>, which must be a <code>Timestamp</code>
      * object. If the argument is not a <code>Timestamp</code> object,
      * this method throws a <code>ClassCastException</code> object.
-     * (<code>Timestamp</code> objects are 
+     * (<code>Timestamp</code> objects are
      * comparable only to other <code>Timestamp</code> objects.)
      *
      * @param o the <code>Date</code> to be compared, which must be a
      *        <code>Timestamp</code> object
      * @return  the value <code>0</code> if this <code>Timestamp</code> object
-     *          and the given object are equal; a value less than <code>0</code> 
+     *          and the given object are equal; a value less than <code>0</code>
      *          if this  <code>Timestamp</code> object is before the given argument;
-     *          and a value greater than <code>0</code> if this 
+     *          and a value greater than <code>0</code> if this
      *          <code>Timestamp</code> object is after the given argument.
      *
-     * @exception ClassCastException if the argument is not a
-     *        <code>Timestamp</code> object
-     * @since	1.5
+     * @since   1.5
      */
-    // This forwarding method ensures that the compareTo(Date) method defined
-    // in java.util.Date is not invoked on a Timestamp
     public int compareTo(java.util.Date o) {
-        return compareTo((Timestamp)o);
+       if(o instanceof Timestamp) {
+            // When Timestamp instance compare it with a Timestamp
+            // Hence it is basically calling this.compareTo((Timestamp))o);
+            // Note typecasting is safe because o is instance of Timestamp
+           return compareTo((Timestamp)o);
+      } else {
+            // When Date doing a o.compareTo(this)
+            // will give wrong results.
+          Timestamp ts = new Timestamp(o.getTime());
+          return this.compareTo(ts);
+      }
     }
-            
-            
-    
 
     static final long serialVersionUID = 2745179027874758501L;
 

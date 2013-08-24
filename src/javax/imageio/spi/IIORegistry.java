@@ -7,6 +7,8 @@
 
 package javax.imageio.spi;
 
+import java.security.PrivilegedAction; 
+import java.security.AccessController;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -30,6 +32,7 @@ import com.sun.imageio.plugins.wbmp.WBMPImageReaderSpi;
 import com.sun.imageio.plugins.wbmp.WBMPImageWriterSpi;
 import sun.awt.AppContext;
 import sun.misc.Service;
+import sun.misc.ServiceConfigurationError;
 
 /**
  * A registry for service provider instances.  Service provider
@@ -158,6 +161,8 @@ public final class IIORegistry extends ServiceRegistry {
         registerServiceProvider(new OutputStreamImageOutputStreamSpi());
         registerServiceProvider(new RAFImageInputStreamSpi());
         registerServiceProvider(new RAFImageOutputStreamSpi());
+
+        registerInstalledProviders();
     }
 
     /**
@@ -177,11 +182,51 @@ public final class IIORegistry extends ServiceRegistry {
         Iterator categories = getCategories();
         while (categories.hasNext()) {
             Class c = (Class)categories.next();
-            Iterator riter = Service.providers(c, loader);
+            Iterator<IIOServiceProvider> riter = Service.providers(c, loader);
             while (riter.hasNext()) {
-                IIOServiceProvider r = (IIOServiceProvider)riter.next();
-                registerServiceProvider(r);
+                try {
+                    IIOServiceProvider r = riter.next();
+                    registerServiceProvider(r);
+                } catch (ServiceConfigurationError err) {
+                    if (System.getSecurityManager() != null) {
+                        // In the applet case, we will catch the  error so
+                        // registration of other plugins can  proceed 
+                        err.printStackTrace();
+                    } else {
+                        // In the application case, we will  throw the
+                        // error to indicate app/system  misconfiguration
+                        throw err;
+                    }
+                }
             }
         }
+    }
+
+    private void registerInstalledProviders() {
+        /*
+          We need load installed providers from lib/ext
+          directory in the privileged mode in order to 
+          be able read corresponding jar files even if
+          file read capability is restricted (like the 
+          applet context case).
+         */
+        PrivilegedAction doRegistration =
+            new PrivilegedAction() {
+                public Object run() {
+                    Iterator categories = getCategories();
+                    while (categories.hasNext()) {
+                        Class c = (Class)categories.next();
+                        Iterator<IIOServiceProvider> providers =
+                            Service.installedProviders(c);
+                        while (providers.hasNext()) {
+                            IIOServiceProvider p = providers.next();
+                            registerServiceProvider(p);
+                        }
+                    }
+                    return this;
+                }
+            };
+        
+        AccessController.doPrivileged(doRegistration);
     }
 }

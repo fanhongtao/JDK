@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_class.c	1.29 04/07/27
+ * @(#)hprof_class.c	1.30 05/09/30
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -191,21 +191,25 @@ find_or_create_entry(ClassKey *pkey)
 }
 
 static void
-delete_classref(JNIEnv *env, ClassInfo *info)
+delete_classref(JNIEnv *env, ClassInfo *info, jclass klass)
 {
     jclass ref;
+    int    i;
     
     HPROF_ASSERT(env!=NULL);
     HPROF_ASSERT(info!=NULL);
+    
+    for ( i = 0 ; i < info->method_count ; i++ ) {
+	info->method[i].method_id  = NULL;
+    }
     ref = info->classref;
-    info->classref = NULL;
+    if ( klass != NULL ) {
+        info->classref = newGlobalReference(env, klass);
+    } else {
+        info->classref = NULL;
+    }
     if ( ref != NULL ) {
-	int i;
-        
         deleteGlobalReference(env, ref);
-        for ( i = 0 ; i < info->method_count ; i++ ) {
-            info->method[i].method_id  = NULL;
-        }
     }
 }
 
@@ -236,7 +240,7 @@ static void
 delete_ref_item(TableIndex index, void *key_ptr, int key_len, 
 				void *info_ptr, void *arg)
 {
-    delete_classref((JNIEnv*)arg, (ClassInfo*)info_ptr);
+    delete_classref((JNIEnv*)arg, (ClassInfo*)info_ptr, NULL);
 }
 
 static void
@@ -284,7 +288,7 @@ all_status_remove(TableIndex index, void *key_ptr, int key_len,
 
     HPROF_ASSERT(info_ptr!=NULL);
     /*LINTED*/
-    status = (ClassStatus)(long)arg;
+    status = (ClassStatus)(long)(ptrdiff_t)arg;
     info = (ClassInfo *)info_ptr;
     info->status &= (~status);
 }
@@ -301,7 +305,7 @@ unload_walker(TableIndex index, void *key_ptr, int key_len,
 	if ( ! (info->status & (CLASS_SPECIAL|CLASS_SYSTEM|CLASS_UNLOADED)) ) {
             io_write_class_unload(info->serial_num);
             info->status |= CLASS_UNLOADED;
-            delete_classref((JNIEnv*)arg, info);
+            delete_classref((JNIEnv*)arg, info, NULL);
 	}
     }
 }
@@ -337,8 +341,10 @@ class_create(const char *sig, LoaderIndex loader_index)
 void
 class_prime_system_classes(void)
 {
-    /* FIXUP: System classes? Anything before VM_INIT is System class now? */
-    /*        Or classes loaded before env arg is non-NULL? */
+    /* Prime System classes? Anything before VM_START is System class.
+     *   Or classes loaded before env arg is non-NULL.
+     *   Or any of the classes listed below.
+     */
     static const char * signatures[] =      
         {
             "Ljava/lang/Object;",
@@ -411,7 +417,7 @@ void
 class_all_status_remove(ClassStatus status)
 {
     table_walk_items(gdata->class_table, &all_status_remove, 
-		(void*)(long)status);
+		(void*)(ptrdiff_t)(long)status);
 }
 
 void
@@ -474,8 +480,9 @@ class_new_classref(JNIEnv *env, ClassIndex index, jclass classref)
     
     HPROF_ASSERT(classref!=NULL);
     info = get_info(index);
-    delete_classref(env, info);
-    info->classref = newGlobalReference(env, classref);
+    if ( ! isSameObject(env, classref, info->classref) ) {
+        delete_classref(env, info, classref);
+    }
     return info->classref;
 }
 
@@ -493,7 +500,14 @@ class_get_class(JNIEnv *env, ClassIndex index)
 	    char    *class_name;
 	    
 	    class_name = string_get(info->name);
+	    /* This really only makes sense for the bootclass classes, 
+	     *   since FindClass doesn't provide a way to load a class in
+	     *   a specific class loader.
+	     */
 	    new_clazz = findClass(env, class_name);
+	    if ( new_clazz == NULL ) {
+		HPROF_ERROR(JNI_TRUE, "Cannot load class with findClass");
+	    }
 	    HPROF_ASSERT(new_clazz!=NULL);
 	    clazz = class_new_classref(env, index, new_clazz);
 	} END_WITH_LOCAL_REFS;
@@ -595,27 +609,65 @@ class_get_loader(ClassIndex index)
     return pkey->loader_index;
 }
 
-void
+/* Get ALL class fields (supers too), return 1 on error, 0 if ok */
+jint
 class_get_all_fields(JNIEnv *env, ClassIndex index,
                 jint *pfield_count, FieldInfo **pfield)
 {
     ClassInfo  *info;
     FieldInfo  *finfo;
     jint        count;
+    jint        ret;
+    
+    count = 0;
+    finfo = NULL;
+    ret   = 1;       /* Default is to return an error condition */
     
     info = get_info(index);
-    if ( info->field_count >= 0 ) {
-	count = info->field_count;
-	finfo = info->field;
-    } else {
-	jclass     klass;
-	
-	klass = class_get_class(env, index);
-	getAllClassFieldInfo(env, klass, &count, &finfo);
-	info->field_count = count;
-	info->field       = finfo;
+    if ( info != NULL ) {
+        if ( info->field_count >= 0 ) {
+	    /* Get cache */
+	    count = info->field_count;
+	    finfo = info->field;
+	    ret   = 0;                 /* Return of cache data, no error */
+        } else {
+	    jclass     klass;
+    	
+	    klass = info->classref;
+	    if ( klass == NULL || isSameObject(env, klass, NULL) ) {
+	        /* This is probably an error because this will cause the field
+	         *    index values to be off, but I'm hesitant to generate a
+	         *    fatal error here, so I will issue something and continue.
+	         *    I should have been holding a global reference to all the
+	         *    jclass, so I'm not sure how this could happen.
+		 *    Issuing a FindClass() here is just asking for trouble
+		 *    because if the class went away, we aren't even sure
+		 *    what ClassLoader to use.
+	         */
+	        HPROF_ERROR(JNI_FALSE, "Missing jclass when fields needed");
+	    } else {
+		jint status;
+
+		status = getClassStatus(klass);
+		if ( status & 
+		    (JVMTI_CLASS_STATUS_PRIMITIVE|JVMTI_CLASS_STATUS_ARRAY) ) {
+		    /* Set cache */
+		    info->field_count = count;
+		    info->field       = finfo;
+		    ret               = 0;      /* Primitive or array ok */
+		} else if ( status & JVMTI_CLASS_STATUS_PREPARED ) {
+		    /* Call JVMTI to get them */
+		    getAllClassFieldInfo(env, klass, &count, &finfo);
+		    /* Set cache */
+		    info->field_count = count;
+		    info->field       = finfo;
+		    ret               = 0;
+		}
+	    }
+        }
     }
     *pfield_count = count;
     *pfield       = finfo;
+    return ret;
 }
 

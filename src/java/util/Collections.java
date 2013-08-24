@@ -1,5 +1,5 @@
 /*
- * @(#)Collections.java	1.89 04/07/28
+ * @(#)Collections.java	1.90 05/12/17
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,7 +43,7 @@ import java.lang.reflect.Array;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.89, 07/28/04
+ * @version 1.90, 12/17/05
  * @see	    Collection
  * @see	    Set
  * @see	    List
@@ -2221,7 +2221,6 @@ public class Collections {
         public Object[] toArray()           { return c.toArray(); }
         public <T> T[] toArray(T[] a)       { return c.toArray(a); }
         public String toString()            { return c.toString(); }
-        public Iterator<E> iterator()       { return c.iterator(); }
         public boolean remove(Object o)     { return c.remove(o); }
         public boolean containsAll(Collection<?> coll) {
             return c.containsAll(coll);
@@ -2235,6 +2234,14 @@ public class Collections {
         public void clear() {
             c.clear();
         }
+
+        public Iterator<E> iterator() {
+	    return new Iterator<E>() {
+		private final Iterator<E> it = c.iterator();
+		public boolean hasNext() { return it.hasNext(); }
+		public E next()          { return it.next(); }
+		public void remove()     {        it.remove(); }};
+	}
 
         public boolean add(E o){
             typeCheck(o);

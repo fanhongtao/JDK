@@ -1,5 +1,5 @@
 /*
- * @(#)ResourceBundle.java	1.72 05/09/01
+ * @(#)ResourceBundle.java	1.73 05/11/04
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -849,6 +849,9 @@ abstract public class ResourceBundle {
             final Thread thisThread = Thread.currentThread();
             while (entries.remove(thisThread)) {
             }
+	    // Wake up threads that have been waiting for construction
+	    // completion. (6329105)
+	    cacheList.notifyAll();
         }
     }
 

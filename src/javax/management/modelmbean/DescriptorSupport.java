@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorSupport.java
  * @(#)author    IBM Corp.
- * @(#)version   1.52
- * @(#)lastedit      05/07/26
+ * @(#)version   1.53
+ * @(#)lastedit      05/11/23
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -45,6 +45,7 @@ import javax.management.MBeanException;
 import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 import com.sun.jmx.trace.Trace;
+import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -1335,16 +1336,29 @@ public class DescriptorSupport
 	boolean compat = "1.0".equals(serialForm);
 	if (compat)
 	    fields.put("currClass", currClass);
+        
+        /* Purge the field "targetObject" from the DescriptorSupport before
+         * serializing since the referenced object is typically not
+         * serializable.  We do this here rather than purging the "descriptor"
+         * variable below because that HashMap doesn't do case-insensitivity.
+         * See CR 6332962.
+         */
+        SortedMap<String, Object> startMap = descriptorMap;
+        if (startMap.containsKey("targetObject")) {
+            startMap = new TreeMap<String, Object>(descriptorMap);
+            startMap.remove("targetObject");
+        }
+
 	final HashMap<String, Object> descriptor;
 	if (compat || "1.2.0".equals(serialForm) ||
                 "1.2.1".equals(serialForm)) {
             descriptor = new HashMap<String, Object>();
-            for (Map.Entry<String, Object> entry : descriptorMap.entrySet())
+            for (Map.Entry<String, Object> entry : startMap.entrySet())
                 descriptor.put(entry.getKey().toLowerCase(), entry.getValue());
         } else
-            descriptor = new HashMap<String, Object>(descriptorMap);
+            descriptor = new HashMap<String, Object>(startMap);
+
 	fields.put("descriptor", descriptor);
 	out.writeFields();
     }
-
 }

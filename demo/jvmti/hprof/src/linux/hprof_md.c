@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_md.c	1.22 04/09/24
+ * @(#)hprof_md.c	1.24 05/09/30
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -243,7 +243,12 @@ md_get_milliticks(void)
 jlong 
 md_get_timemillis(void)
 {
-    return md_millisecs();
+    struct timeval tv;
+ 
+    (void)gettimeofday(&tv, (void *)0);
+    /*LINTED*/
+    return (jlong)(((jlong)tv.tv_sec * (jlong)1000) + 
+		   ((jlong)tv.tv_usec / (jlong)1000));
 }
 
 jlong

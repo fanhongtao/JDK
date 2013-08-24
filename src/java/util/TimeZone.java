@@ -1,7 +1,7 @@
 /*
- * @(#)TimeZone.java	1.68 04/01/12
+ * @(#)TimeZone.java	1.70 06/01/24
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,11 +19,13 @@
  */
 
 package java.util;
+
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.DateFormatSymbols;
+import java.util.concurrent.ConcurrentHashMap;
 import sun.security.action.GetPropertyAction;
 import sun.util.calendar.ZoneInfo;
 import sun.util.calendar.ZoneInfoFile;
@@ -108,7 +110,7 @@ import sun.util.calendar.ZoneInfoFile;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.68 01/12/04
+ * @version      1.70 01/24/06
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since        JDK1.1
  */
@@ -369,44 +371,41 @@ abstract public class TimeZone implements Serializable, Cloneable {
 	return names[index];
     }
 
-    // Cache for managing display names per timezone per locale
-    // The structure is:
-    //   Map(key=id, value=SoftReference(Map(key=locale, value=displaynames)))
-    private static Map<String, SoftReference> displayNames;
+    private static class DisplayNames {
+	// Cache for managing display names per timezone per locale
+	// The structure is:
+	//   Map(key=id, value=SoftReference(Map(key=locale, value=displaynames)))
+	private static final Map<String, SoftReference<Map<Locale, String[]>>> CACHE =
+	    new ConcurrentHashMap<String, SoftReference<Map<Locale, String[]>>>();
+    }
 
     private static final String[] getDisplayNames(String id, Locale locale) {
-	synchronized (TimeZone.class) {
-	    if (displayNames == null) {
-		displayNames = new HashMap<String, SoftReference>();
-	    }
-	}
-	synchronized (displayNames) {
-	    String[] names;
-	    SoftReference ref = displayNames.get(id);
-	    Map<Locale, String[]> perLocale;
-	    if (ref != null) {
-		perLocale = (Map<Locale, String[]>) ref.get();
-		if (perLocale != null) {
-		    names = perLocale.get(locale);
-		    if (names != null) {
-			return names;
-		    }
-		    names = retrieveDisplayNames(id, locale);
-		    if (names != null) {
-			perLocale.put(locale, names);
-		    }
+	Map<String, SoftReference<Map<Locale, String[]>>> displayNames = DisplayNames.CACHE;
+
+	SoftReference<Map<Locale, String[]>> ref = displayNames.get(id);
+	if (ref != null) {
+	    Map<Locale, String[]> perLocale = ref.get();
+	    if (perLocale != null) {
+		String[] names = perLocale.get(locale);
+		if (names != null) {
 		    return names;
 		}
+		names = retrieveDisplayNames(id, locale);
+		if (names != null) {
+		    perLocale.put(locale, names);
+		}
+		return names;
 	    }
-	    names = retrieveDisplayNames(id, locale);
-	    if (names != null) {
-		perLocale = new HashMap<Locale, String[]>();
-		perLocale.put(locale, names);
-		ref = new SoftReference(perLocale);
-		displayNames.put(id, ref);
-	    }
-	    return names;
 	}
+
+	String[] names = retrieveDisplayNames(id, locale);
+	if (names != null) {
+	    Map<Locale, String[]> perLocale = new ConcurrentHashMap<Locale, String[]>();
+	    perLocale.put(locale, names);
+	    ref = new SoftReference<Map<Locale, String[]>>(perLocale);
+	    displayNames.put(id, ref);
+	}
+	return names;
     }
 
     private static final String[] retrieveDisplayNames(String id, Locale locale) {
@@ -528,29 +527,29 @@ abstract public class TimeZone implements Serializable, Cloneable {
      * @return a default <code>TimeZone</code>.
      * @see #setDefault
      */
-    public static synchronized TimeZone getDefault() {
-	TimeZone defaultZone = (TimeZone) defaultZoneTL.get();
-        if (defaultZone == null) {
-	    setDefaultZone();
-	    defaultZone = (TimeZone) defaultZoneTL.get();
-	}
-        return (TimeZone) defaultZone.clone();
+    public static TimeZone getDefault() {
+        return (TimeZone) getDefaultRef().clone();
     }
 
     /**
      * Returns the reference to the default TimeZone object. This
      * method doesn't create a clone.
      */
-    static synchronized TimeZone getDefaultRef() {
-	TimeZone defaultZone = (TimeZone) defaultZoneTL.get();
-         if (defaultZone == null) {
- 	    setDefaultZone();
-	    defaultZone = (TimeZone) defaultZoneTL.get();
-	 }
+    static TimeZone getDefaultRef() {
+	TimeZone defaultZone = defaultZoneTL.get();
+	if (defaultZone == null) {
+	    defaultZone = defaultTimeZone;
+	    if (defaultZone == null) {
+		// Need to initialize the default time zone.
+		defaultZone = setDefaultZone();
+		assert defaultZone != null;
+	    }
+	}
+	// Don't clone here.
 	return defaultZone;
     }
 
-    private static void setDefaultZone() {
+    private static synchronized TimeZone setDefaultZone() {
 	TimeZone tz = null;
 	// get the time zone ID from the system properties
 	String zoneID = (String) AccessController.doPrivileged(
@@ -590,14 +589,33 @@ abstract public class TimeZone implements Serializable, Cloneable {
 	assert tz != null;
 
 	final String id = zoneID;
-	AccessController.doPrivileged(new PrivilegedAction() {
+	AccessController.doPrivileged(new PrivilegedAction<Object>() {
 		public Object run() {
 		    System.setProperty("user.timezone", id);
 		    return null;
 		}
 	    });
 
-	defaultZoneTL.set(tz);
+	if (hasPermission()) {
+	    defaultTimeZone = tz;
+	} else {
+	    defaultZoneTL.set(tz);
+	}
+	return tz;
+    }
+
+    private static boolean hasPermission() {
+	boolean hasPermission = true;
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    try {
+		sm.checkPermission(new PropertyPermission
+				   ("user.timezone", "write"));
+	    } catch (SecurityException e) {
+		hasPermission = false;
+	    }
+	}
+	return hasPermission;
     }
 
     /**
@@ -608,9 +626,14 @@ abstract public class TimeZone implements Serializable, Cloneable {
      * @param zone the new default time zone
      * @see #getDefault
      */
-    public static synchronized void setDefault(TimeZone zone)
-    {
-        defaultZoneTL.set(zone);
+    public static void setDefault(TimeZone zone) {
+	if (hasPermission()) {
+	    synchronized (TimeZone.class) {
+		defaultTimeZone = zone;
+	    }
+	} else {
+	    defaultZoneTL.set(zone);
+	}
     }
 
     /**
@@ -659,8 +682,9 @@ abstract public class TimeZone implements Serializable, Cloneable {
      * @serial
      */
     private String           ID;
-    private static final InheritableThreadLocal defaultZoneTL
-					= new InheritableThreadLocal();
+    private static volatile TimeZone defaultTimeZone;
+    private static final InheritableThreadLocal<TimeZone> defaultZoneTL
+					= new InheritableThreadLocal<TimeZone>();
 
     static final String         GMT_ID        = "GMT";
     private static final int    GMT_ID_LENGTH = 3;

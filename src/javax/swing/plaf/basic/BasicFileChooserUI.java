@@ -424,6 +424,10 @@ public class BasicFileChooserUI extends FileChooserUI {
 		    if(getFileChooser().isTraversable(f)) {
 			list.clearSelection();
 			changeDirectory(f);
+                        if (getFileChooser().getFileSelectionMode() == JFileChooser.FILES_AND_DIRECTORIES && 
+                            getFileChooser().getFileSystemView().isFileSystem(f)) {
+                            setFileName(f.toString());
+                        }
 		    } else {
 			getFileChooser().approveSelection();
 		    }

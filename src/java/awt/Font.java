@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.200 04/07/20
+ * @(#)Font.java	1.201 05/11/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -131,7 +131,7 @@ import sun.font.CoreMetrics;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.200, 07/20/04
+ * @version 	1.201, 11/02/05
  */
 public class Font implements java.io.Serializable
 {
@@ -364,6 +364,22 @@ public class Font implements java.io.Serializable
 	 * original one is marked invalid
 	 */
 	return font2DHandle.font2D;
+    }
+
+    /*
+     * If this font was created by "createFont" return its handle,
+     * else return null. created fonts always have a non-null handle.
+     * The test for CompositeFont is because the boolean "createdFont"
+     * is overloaded to indicate any font that needs to copy its handle
+     * and that doesn't apply to true created fonts.
+     */
+    private Font2DHandle getFont2DHandleForCreatedFont() {
+        if (font2DHandle != null && createdFont &&
+            !(font2DHandle.font2D instanceof sun.font.CompositeFont)) {
+            return font2DHandle;
+        } else {
+            return null;
+        }
     }
 
     /**

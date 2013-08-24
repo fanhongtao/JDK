@@ -1,5 +1,5 @@
 /*
- * @(#)BasicEditorPaneUI.java	1.32 04/07/23
+ * @(#)BasicEditorPaneUI.java	1.33 05/11/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.32 07/23/04
+ * @version 1.33 11/10/05
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 
@@ -244,6 +244,13 @@ public class BasicEditorPaneUI extends BasicTextUI {
 
         }
     }
+    
+    /**
+     * Attribute key to reference the default font.
+     * used in javax.swing.text.StyleContext.getFont
+     * to resolve the default font.
+     */
+    private static final String FONT_ATTRIBUTE_KEY = "FONT_ATTRIBUTE_KEY";
 
     void cleanDisplayProperties() {
         Document document = getComponent().getDocument();
@@ -260,6 +267,8 @@ public class BasicEditorPaneUI extends BasicTextUI {
                     }
                 }
             }
+            Style style = ((StyledDocument) document).getStyle(StyleContext.DEFAULT_STYLE);
+            style.removeAttribute(FONT_ATTRIBUTE_KEY);
         }
     }
     
@@ -288,6 +297,8 @@ public class BasicEditorPaneUI extends BasicTextUI {
             documentStyleSheet.addStyleSheet(styleSheet);
             documentStyleSheet.addRule("BASE_SIZE " + 
                                        component.getFont().getSize());
+            Style style = ((StyledDocument) document).getStyle(StyleContext.DEFAULT_STYLE);
+            style.addAttribute(FONT_ATTRIBUTE_KEY, font);
         }
     }
 
@@ -336,11 +347,13 @@ public class BasicEditorPaneUI extends BasicTextUI {
             style.removeAttribute(StyleConstants.FontSize);
             style.removeAttribute(StyleConstants.Bold);
             style.removeAttribute(StyleConstants.Italic);
+            style.removeAttribute(FONT_ATTRIBUTE_KEY);
         } else {
             StyleConstants.setFontFamily(style, font.getName());
             StyleConstants.setFontSize(style, font.getSize());
             StyleConstants.setBold(style, font.isBold());
             StyleConstants.setItalic(style, font.isItalic());
+            style.addAttribute(FONT_ATTRIBUTE_KEY, font);
         }
     }
 }

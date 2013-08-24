@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_tls.h	1.18 05/03/18
+ * @(#)hprof_tls.h	1.19 05/09/30
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -74,6 +74,12 @@ void         tls_pop_method(TlsIndex index, jthread thread, jmethodID method);
 void         tls_pop_exception_catch(TlsIndex index, jthread thread, jmethodID method);
 
 TraceIndex   tls_get_trace(TlsIndex index, JNIEnv *env,
-			   int depth, jboolean skip_init);
+                           int depth, jboolean skip_init);
+
+void         tls_set_in_heap_dump(TlsIndex index, jint in_heap_dump);
+jint         tls_get_in_heap_dump(TlsIndex index);
+void         tls_clear_in_heap_dump(void);
+
+TlsIndex     tls_find(SerialNumber thread_serial_num);
 
 #endif
