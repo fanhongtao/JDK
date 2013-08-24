@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.110 06/08/14
+ * @(#)Socket.java	1.112 07/09/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.110, 08/14/06
+ * @version 1.112, 09/11/07
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -102,11 +102,12 @@ class Socket {
 	    InetSocketAddress epoint = (InetSocketAddress) proxy.address();
 	    if (security != null) {
 		if (epoint.isUnresolved())
-		    security.checkConnect(epoint.getHostName(),
-					  epoint.getPort());
-		else
+		    epoint = new InetSocketAddress(epoint.getHostName(), epoint.getPort());
+                if (epoint.isUnresolved())
+                    security.checkConnect(epoint.getHostName(), epoint.getPort());
+                else
 		    security.checkConnect(epoint.getAddress().getHostAddress(),
-					  epoint.getPort());
+				          epoint.getPort());
 	    }
 	    impl = new SocksSocketImpl(proxy);
 	    impl.setSocket(this);
