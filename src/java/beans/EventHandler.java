@@ -1,7 +1,7 @@
 /*
- * @(#)EventHandler.java	1.15 05/05/29
+ * @(#)EventHandler.java	1.16 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans; 

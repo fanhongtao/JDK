@@ -1,5 +1,5 @@
 /*
- * @(#)BasicDesktopPaneUI.java	1.55 04/05/18
+ * @(#)BasicDesktopPaneUI.java	1.57 05/10/31
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,16 +21,19 @@ import java.awt.*;
 import java.util.Vector;
 import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
+import sun.awt.AppContext;
 
 /**
  * Basic L&F for a desktop.
  *
- * @version 1.55 05/18/04
+ * @version 1.57 10/31/05
  * @author Steve Wilson
  */
 public class BasicDesktopPaneUI extends DesktopPaneUI {
     // Old actions forward to an instance of this.
     private static final Actions SHARED_ACTION = new Actions();
+    private static final Object FRAMES_CACHE_KEY = 
+                new StringBuilder("BASIC_DESKTOP_PANE_UI.FRAMES_CACHE");
 
     private static Dimension minSize = new Dimension(0,0);
     private static Dimension maxSize = new Dimension(Integer.MAX_VALUE,
@@ -97,6 +100,18 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
     }
 
     public BasicDesktopPaneUI() {
+    }
+
+    private static Vector getCurrentFramesCache() {
+        synchronized (BasicDesktopPaneUI.class) {
+            AppContext appContext = AppContext.getAppContext();
+            Vector framesCache = (Vector) appContext.get(FRAMES_CACHE_KEY);
+            if(framesCache == null) {
+                framesCache = new Vector();
+                appContext.put(FRAMES_CACHE_KEY,framesCache);
+            }
+            return framesCache;
+        }
     }
 
     public void installUI(JComponent c)   {
@@ -488,6 +503,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
         }
 
         private void selectFrame(JDesktopPane dp, boolean forward) {
+            Vector framesCache = getCurrentFramesCache();
             if (forward) {
                 // navigate to the next frame
                 int i = 0;
@@ -654,8 +670,6 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
     }
 
 
-    private static Vector framesCache;
-
     /*
      * Handles restoring a minimized or maximized internal frame.
      */
@@ -739,10 +753,7 @@ public class BasicDesktopPaneUI extends DesktopPaneUI {
     }
 
     private static void verifyFramesCache(JDesktopPane dp) {
-	if (framesCache == null) {
-	    framesCache = new Vector();
-	}
-
+        Vector framesCache = getCurrentFramesCache();
 	// Check whether any internal frames have closed in
 	// which case we have to refresh the frames cache.
        	boolean framesHaveClosed = false;

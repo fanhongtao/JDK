@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.27 05/05/27
+ * @(#)DefaultListCellRenderer.java	1.29 05/10/31
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -48,7 +48,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.27 05/27/05
+ * @version 1.29 10/31/05
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -56,21 +56,27 @@ public class DefaultListCellRenderer extends JLabel
     implements ListCellRenderer, Serializable
 {
 
-    protected static Border noFocusBorder;
-
+    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+    private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
+    
     /**
      * Constructs a default renderer object for an item
      * in a list.
      */
     public DefaultListCellRenderer() {
 	super();
-        if (noFocusBorder == null) {
-            noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-        }
 	setOpaque(true);
-	setBorder(noFocusBorder);
+        setBorder(getNoFocusBorder());
     }
 
+
+    private static Border getNoFocusBorder() {
+        if (System.getSecurityManager() != null) {
+            return SAFE_NO_FOCUS_BORDER;
+        } else {
+            return noFocusBorder;
+        }
+    }
 
     public Component getListCellRendererComponent(
         JList list,
@@ -110,7 +116,7 @@ public class DefaultListCellRenderer extends JLabel
                 border = UIManager.getBorder("List.focusCellHighlightBorder");
             }
         } else {
-            border = noFocusBorder;
+            border = getNoFocusBorder();
         }
 	setBorder(border);
 

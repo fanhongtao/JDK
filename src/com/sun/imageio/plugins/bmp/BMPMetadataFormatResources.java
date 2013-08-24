@@ -1,5 +1,5 @@
 /*
- * @(#)BMPMetadataFormatResources.java	1.2 03/12/19 16:53:58
+ * @(#)BMPMetadataFormatResources.java	1.3 05/08/23 13:57:55
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,11 @@ import javax.imageio.metadata.IIOMetadataFormatImpl;
 
 public class BMPMetadataFormatResources extends ListResourceBundle {
 
-    static final Object[][] contents = {
+    public BMPMetadataFormatResources() {}
+
+    protected Object[][] getContents() {
+        return new Object[][] {
+
         // Node name, followed by description
         { "BMPVersion", "BMP version string" },
         { "Width", "The width of the image" },
@@ -42,12 +46,6 @@ public class BMPMetadataFormatResources extends ListResourceBundle {
 	{ "X", "The X coordinate of a point in XYZ color space" },
 	{ "Y", "The Y coordinate of a point in XYZ color space" },
 	{ "Z", "The Z coordinate of a point in XYZ color space" },
-
-    };
-
-    public BMPMetadataFormatResources() {}
-
-    public Object[][] getContents() {
-        return contents;
+        };
     }
 }

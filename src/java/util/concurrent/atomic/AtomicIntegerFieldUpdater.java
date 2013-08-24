@@ -1,7 +1,7 @@
 /*
- * @(#)AtomicIntegerFieldUpdater.java	1.6 05/05/29
+ * @(#)AtomicIntegerFieldUpdater.java	1.7 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

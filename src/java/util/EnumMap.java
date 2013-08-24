@@ -1,5 +1,5 @@
 /*
- * @(#)EnumMap.java	1.10 04/07/15
+ * @(#)EnumMap.java	1.11 05/09/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -52,7 +52,7 @@ import java.util.Map.Entry;
  * Java Collections Framework</a>.
  *
  * @author Josh Bloch
- * @version 1.10, 07/15/04
+ * @version 1.11, 09/02/05
  * @see EnumSet
  * @since 1.5
  */
@@ -459,9 +459,13 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
             return fillEntryArray(new Object[size]);
         }
         public <T> T[] toArray(T[] a) {
-            Object[] result = (Object[]) java.lang.reflect.Array.newInstance(
-                a.getClass().getComponentType(), size);
-            return (T[]) fillEntryArray(result);
+	    int size = size();
+	    if (a.length < size)
+		a = (T[])java.lang.reflect.Array
+		    .newInstance(a.getClass().getComponentType(), size);
+	    if (a.length > size)
+		a[size] = null;
+            return (T[]) fillEntryArray(a);
         }
         private Object[] fillEntryArray(Object[] a) {
             int j = 0;

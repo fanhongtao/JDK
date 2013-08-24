@@ -1,5 +1,5 @@
 /*
- * @(#)MetalLabelUI.java	1.12 03/12/19
+ * @(#)MetalLabelUI.java	1.14 05/10/31
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,17 +21,22 @@ import java.awt.*;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.12 12/19/03
+ * @version 1.14 10/31/05
  * @author Hans Muller
  */
 
 public class MetalLabelUI extends BasicLabelUI
 {
     protected static MetalLabelUI metalLabelUI = new MetalLabelUI();
+    private final static MetalLabelUI SAFE_METAL_LABEL_UI = new MetalLabelUI();
 
 
     public static ComponentUI createUI(JComponent c) {
-	return metalLabelUI;
+        if (System.getSecurityManager() != null) {
+            return SAFE_METAL_LABEL_UI;
+        } else {
+            return metalLabelUI;
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphView.java	1.38 05/08/09
+ * @(#)GlyphView.java	1.39 05/08/26
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import com.sun.java.swing.SwingUtilities2;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.38 08/09/05
+ * @version 1.39 08/26/05
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -847,6 +847,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	v.offset = p0 - elem.getStartOffset();
 	v.length = p1 - p0;
 	v.painter = painter.getPainter(v, p0, p1);
+        v.justificationInfo = null;
 	return v;
     }
 
@@ -888,6 +889,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @see View#insertUpdate
      */
     public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+        justificationInfo = null;
 	syncCR();
 	preferenceChanged(null, true, false);
     }
@@ -904,6 +906,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @see View#removeUpdate
      */
     public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+        justificationInfo = null;
 	syncCR();
 	preferenceChanged(null, true, false);
     }
@@ -932,6 +935,111 @@ public class GlyphView extends View implements TabableView, Cloneable {
             impliedCR = (parent != null && parent.getElementCount() > 1);
         }
     }
+
+    /**
+     * Class to hold data needed to justify this GlyphView in a PargraphView.Row
+     */
+    static class JustificationInfo {
+        //justifiable content start
+        final int start;
+        //justifiable content end
+        final int end;
+        final int leadingSpaces;
+        final int contentSpaces;
+        final int trailingSpaces;
+        final boolean hasTab;
+        
+        JustificationInfo(int start, int end,
+                          int leadingSpaces, 
+                          int contentSpaces,
+                          int trailingSpaces,
+                          boolean hasTab) {
+            this.start = start;
+            this.end = end;
+            this.leadingSpaces = leadingSpaces;
+            this.contentSpaces = contentSpaces;
+            this.trailingSpaces = trailingSpaces;
+            this.hasTab = hasTab;
+        }
+    }
+
+
+
+    JustificationInfo getJustificationInfo() {
+        if (justificationInfo != null) {
+            return justificationInfo;
+        }
+        //states for the parsing
+        final int TRAILING = 0;
+        final int CONTENT  = 1;
+        final int SPACES   = 2;
+        Segment segment = getText(getStartOffset(), getEndOffset());
+        int txtOffset = segment.offset;
+        int txtEnd = segment.offset + segment.count - 1;
+        int startContentPosition = txtEnd + 1;
+        int endContentPosition = txtOffset - 1;
+        int lastTabPosition = txtOffset - 1;
+        int trailingSpaces = 0;
+        int contentSpaces = 0;
+        int leadingSpaces = 0;
+        boolean hasTab = false;
+
+        //we parse conent to the right of the rightmost TAB only.
+        //we are looking for the trailing and leading spaces.
+        //position after the leading spaces (startContentPosition)
+        //position before the trailing spaces (endContentPosition)
+        for (int i = txtEnd, state = TRAILING; i >= txtOffset; i--) {
+            if (' ' == segment.array[i]) {
+                if (state == TRAILING) {
+                    trailingSpaces++;
+                } else if (state == CONTENT) {
+                    state = SPACES;
+                    leadingSpaces = 1;
+                } else if (state == SPACES) {
+                    leadingSpaces++;
+                }
+            } else if ('\t' == segment.array[i]) {
+                hasTab = true;
+                break;
+            } else {
+                if (state == TRAILING) {
+                    if ('\n' != segment.array[i]
+                          && '\r' != segment.array[i]) {
+                        state = CONTENT;
+                        endContentPosition = i;
+                    }
+                } else if (state == CONTENT) {
+                    //do nothing
+                } else if (state == SPACES) {
+                    contentSpaces += leadingSpaces;
+                    leadingSpaces = 0;
+                }
+                startContentPosition = i;
+            }
+        }
+
+        SegmentCache.releaseSharedSegment(segment);
+
+        int startJustifiableContent = -1;
+        if (startContentPosition < txtEnd) {
+            startJustifiableContent = 
+                startContentPosition - txtOffset + getStartOffset();
+        }
+        int endJustifiableContent = -1;
+        if (endContentPosition > txtOffset) {
+            endJustifiableContent = 
+                endContentPosition - txtOffset + getStartOffset();
+        }
+        justificationInfo = 
+            new JustificationInfo(startJustifiableContent,
+                                  endJustifiableContent,
+                                  leadingSpaces,
+                                  contentSpaces,
+                                  trailingSpaces,
+                                  hasTab);
+        return justificationInfo;
+    }
+
     // --- variables ------------------------------------------------
 
     /**
@@ -965,6 +1073,8 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * The prototype painter used by default.
      */
     static GlyphPainter defaultPainter;
+
+    private JustificationInfo justificationInfo = null;
 
     /**
      * A class to perform rendering of the glyphs.

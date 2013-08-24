@@ -1,5 +1,5 @@
 /*
- * @(#)ArrayQueue.java	1.5 03/12/19
+ * @(#)ArrayQueue.java	1.6 05/08/31
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,10 +10,10 @@ package com.sun.jmx.remote.internal;
 import java.util.AbstractList;
 import java.util.Iterator;
 
-public class ArrayQueue extends AbstractList {
+public class ArrayQueue<T> extends AbstractList<T> {
     public ArrayQueue(int capacity) {
 	this.capacity = capacity + 1;
-	this.queue = new Object[capacity + 1];
+	this.queue = (T[]) new Object[capacity + 1];
 	this.head = 0;
 	this.tail = 0;
     }
@@ -25,7 +25,7 @@ public class ArrayQueue extends AbstractList {
 	newcapacity++;
 	if (newcapacity == this.capacity)
 	    return;
-	Object[] newqueue = new Object[newcapacity];
+	T[] newqueue = (T[]) new Object[newcapacity];
 	for (int i = 0; i < size; i++)
 	    newqueue[i] = get(i);
 	this.capacity = newcapacity;
@@ -34,7 +34,7 @@ public class ArrayQueue extends AbstractList {
 	this.tail = size;
     }
 
-    public boolean add(Object o) {
+    public boolean add(T o) {
 	queue[tail] = o;
 	int newtail = (tail + 1) % capacity;
 	if (newtail == head)
@@ -43,18 +43,18 @@ public class ArrayQueue extends AbstractList {
 	return true; // we did add something
     }
 
-    public Object remove(int i) {
+    public T remove(int i) {
 	if (i != 0)
 	    throw new IllegalArgumentException("Can only remove head of queue");
 	if (head == tail)
 	    throw new IndexOutOfBoundsException("Queue empty");
-	Object removed = queue[head];
+	T removed = queue[head];
 	queue[head] = null;
 	head = (head + 1) % capacity;
 	return removed;
     }
 
-    public Object get(int i) {
+    public T get(int i) {
 	int size = size();
 	if (i < 0 || i >= size) {
 	    final String msg = "Index " + i + ", queue size " + size;
@@ -73,7 +73,7 @@ public class ArrayQueue extends AbstractList {
     }
 
     private int capacity;
-    private Object[] queue;
+    private T[] queue;
     private int head;
     private int tail;
 }

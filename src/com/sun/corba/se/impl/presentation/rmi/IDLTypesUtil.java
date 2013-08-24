@@ -1,7 +1,7 @@
 /*
- * @(#)IDLTypesUtil.java	1.5 04/06/21
+ * @(#)IDLTypesUtil.java	1.6 05/10/31
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.util.Iterator;
  * these are static checks only.  Runtime checks, such as those
  * described in Section 1.2.3, #3, are not covered.
  */
-public class IDLTypesUtil {
+public final class IDLTypesUtil {
 
     private static final String GET_PROPERTY_PREFIX = "get";
     private static final String SET_PROPERTY_PREFIX = "set";

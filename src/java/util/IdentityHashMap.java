@@ -1,5 +1,5 @@
 /*
- * @(#)IdentityHashMap.java	1.22 04/02/19
+ * @(#)IdentityHashMap.java	1.23 05/09/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1115,7 +1115,16 @@ public class IdentityHashMap<K,V>
             return c.toArray();
         }
         public <T> T[] toArray(T[] a) {
-	    return (T[])toArray(); // !!!!
+	    int size = size();
+	    if (a.length < size)
+		a = (T[])java.lang.reflect.Array
+		    .newInstance(a.getClass().getComponentType(), size);
+	    Iterator<Map.Entry<K,V>> it = iterator();
+	    for (int i = 0; i < size; i++)
+		a[i] = (T) new AbstractMap.SimpleEntry<K,V>(it.next());
+	    if (a.length > size)
+		a[size] = null;
+	    return a;
         }
     }
 

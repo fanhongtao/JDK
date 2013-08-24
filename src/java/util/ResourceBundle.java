@@ -1,5 +1,5 @@
 /*
- * @(#)ResourceBundle.java	1.71 04/05/05
+ * @(#)ResourceBundle.java	1.72 05/09/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -93,15 +93,14 @@ import sun.misc.SoftCache;
  * <blockquote>
  * <pre>
  * public class MyResources extends ListResourceBundle {
- *      public Object[][] getContents() {
- *              return contents;
- *      }
- *      static final Object[][] contents = {
- *      // LOCALIZE THIS
- *              {"OkKey", "OK"},
- *              {"CancelKey", "Cancel"},
- *      // END OF MATERIAL TO LOCALIZE
- *      };
+ *     protected Object[][] getContents() {
+ *         return new Object[][] = {
+ *         // LOCALIZE THIS
+ *             {"OkKey", "OK"},
+ *             {"CancelKey", "Cancel"},
+ *         // END OF MATERIAL TO LOCALIZE
+ *         };
+ *     }
  * }
  * </pre>
  * </blockquote>

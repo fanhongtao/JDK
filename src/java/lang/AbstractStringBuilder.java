@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractStringBuilder.java	1.12 04/07/16
+ * @(#)AbstractStringBuilder.java	1.14 05/09/26
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import sun.misc.FloatingDecimal;
  * sequence can be changed through certain method calls.
  *
  * @author	Michael McCloskey
- * @version 	1.12, 07/16/04
+ * @version 	1.14, 09/26/05
  * @since	1.5
  */
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
@@ -798,11 +798,15 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     public AbstractStringBuilder replace(int start, int end, String str) {
         if (start < 0)
 	    throw new StringIndexOutOfBoundsException(start);
-	if (end > count)
-	    end = count;
+        if (start > count)
+            throw new StringIndexOutOfBoundsException("start > length()");
 	if (start > end)
 	    throw new StringIndexOutOfBoundsException("start > end");
+        if (end > count)
+            end = count;
 
+        if (end > count)
+            end = count;
 	int len = str.length();
 	int newCount = count + len - (end - start);
 	if (newCount > value.length)

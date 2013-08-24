@@ -1,5 +1,5 @@
 /*
- * @(#)InetSocketAddress.java	1.20 04/02/03
+ * @(#)InetSocketAddress.java	1.21 05/08/04
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -208,6 +208,25 @@ public class InetSocketAddress extends SocketAddress {
 	    return hostname;
 	if (addr != null)
 	    return addr.getHostName();
+	return null;
+    }
+
+    /**
+     * Returns the hostname, or the String form of the address if it
+     * doesn't have a hostname (it was created using a litteral).
+     * This has the benefit of <b>not</b> attemptimg a reverse lookup.
+     *
+     * @return the hostname, or String representation of the address.
+     */
+    final String getHostString() {
+	if (hostname != null)
+	    return hostname;
+	if (addr != null) {
+	    if (addr.hostName != null)
+		return addr.hostName;
+	    else
+		return addr.getHostAddress();
+	}
 	return null;
     }
 

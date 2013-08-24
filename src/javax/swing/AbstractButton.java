@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractButton.java	1.174 04/05/18
+ * @(#)AbstractButton.java	1.175 05/08/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,7 +42,7 @@ import java.util.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.174 05/18/04 
+ * @version 1.175 08/23/05 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -1597,7 +1597,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             newModel.addActionListener(actionListener);
             newModel.addItemListener(itemListener);
 
-            mnemonic = newModel.getMnemonic();
+            updateMnemonicProperties();
         } else {
             mnemonic = '\0';
         }

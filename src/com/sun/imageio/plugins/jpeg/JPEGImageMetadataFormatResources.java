@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageMetadataFormatResources.java	1.8 03/12/19
+ * @(#)JPEGImageMetadataFormatResources.java	1.9 05/08/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -102,24 +102,24 @@ public class JPEGImageMetadataFormatResources
           "The huffman table to use for encoding AC coefficients" }
     };
 
-    static Object[][] combinedContents = null;
-
-    static {
-        // combine the commonContents and the imageContents
-        combinedContents = new Object[commonContents.length 
-                                      + imageContents.length][2];
-        int combined = 0;
-        for (int i = 0; i < commonContents.length; i++) {
-            combinedContents[combined++] = commonContents[i];
-        }
-        for (int i = 0; i < imageContents.length; i++) {
-            combinedContents[combined++] = imageContents[i];
-        }
-    }
-
     public JPEGImageMetadataFormatResources() {}
 
-    public Object[][] getContents() {
+    protected Object[][] getContents() {
+        // return a copy of the combined commonContents and imageContents;
+        // in theory we want a deep clone of the combined arrays,
+        // but since it only contains (immutable) Strings, this shallow
+        // copy is sufficient
+        Object[][] combinedContents =
+            new Object[commonContents.length + imageContents.length][2];
+        int combined = 0;
+        for (int i = 0; i < commonContents.length; i++, combined++) {
+            combinedContents[combined][0] = commonContents[i][0];
+            combinedContents[combined][1] = commonContents[i][1];
+        }
+        for (int i = 0; i < imageContents.length; i++, combined++) {
+            combinedContents[combined][0] = imageContents[i][0];
+            combinedContents[combined][1] = imageContents[i][1];
+        }
         return combinedContents;
     }
 }

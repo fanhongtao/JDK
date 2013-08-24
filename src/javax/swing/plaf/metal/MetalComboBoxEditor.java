@@ -1,5 +1,5 @@
 /*
- * @(#)MetalComboBoxEditor.java	1.23 03/12/19
+ * @(#)MetalComboBoxEditor.java	1.25 05/10/31
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.23 12/19/03
+ * @version 1.25 10/31/05
  * @author Steve Wilson
  */
 public class MetalComboBoxEditor extends BasicComboBoxEditor {
@@ -63,6 +63,7 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
     }
 
     protected static Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
+    private static final Insets SAFE_EDITOR_BORDER_INSETS = new Insets( 2, 2, 2, 0 );
 
     class EditorBorder extends AbstractBorder {
         public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
@@ -91,7 +92,11 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
         }
 
         public Insets getBorderInsets( Component c ) {
-            return editorBorderInsets;
+            if (System.getSecurityManager() != null) {
+                return SAFE_EDITOR_BORDER_INSETS;
+            } else {
+                return editorBorderInsets;
+            }
         }
     }
 

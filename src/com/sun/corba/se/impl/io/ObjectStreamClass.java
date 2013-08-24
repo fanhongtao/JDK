@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamClass.java	1.55 05/01/04
+ * @(#)ObjectStreamClass.java	1.56 05/09/13
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,6 +43,8 @@ import java.util.Comparator;
 import java.util.Hashtable;
 
 import com.sun.corba.se.impl.util.RepositoryId;
+
+import sun.misc.SoftCache;
 
 import org.omg.CORBA.ValueMember;
 
@@ -103,7 +105,7 @@ public class ObjectStreamClass implements java.io.Serializable {
 	ObjectStreamClass desc = null;
 	synchronized (descriptorFor) {
 	    /* Find the matching descriptor if it already known */
-	    desc = findDescriptorFor(cl);
+            desc = (ObjectStreamClass)descriptorFor.get(cl);
 	    if (desc == null) {
                 /* Check if it's serializable */
                 boolean serializable = classSerializable.isAssignableFrom(cl);
@@ -358,7 +360,7 @@ public class ObjectStreamClass implements java.io.Serializable {
 	 * Otherwise, when the fields are read it may recurse
 	 * trying to find the descriptor for itself.
 	 */
-	insertDescriptorFor(this);
+        descriptorFor.put(cl, this);
 
         /*
          * The remainder of initialization occurs in init(), which is called
@@ -1398,64 +1400,7 @@ public class ObjectStreamClass implements java.io.Serializable {
 	return sb.toString();
     }
 
-    /*
-     * Cache of Class -> ClassDescriptor Mappings.
-     */
-    static private ObjectStreamClassEntry[] descriptorFor = new ObjectStreamClassEntry[61];
-
-    /*
-     * findDescriptorFor a Class.  This looks in the cache for a
-     * mapping from Class -> ObjectStreamClass mappings.  The hashCode
-     * of the Class is used for the lookup since the Class is the key.
-     * The entries are extended from java.lang.ref.SoftReference so the
-     * gc will be able to free them if needed.
-     */
-    private static ObjectStreamClass findDescriptorFor(Class cl) {
-
-	int hash = cl.hashCode();
-	int index = (hash & 0x7FFFFFFF) % descriptorFor.length;
-	ObjectStreamClassEntry e;
-	ObjectStreamClassEntry prev;
-
-	/* Free any initial entries whose refs have been cleared */
-	while ((e = descriptorFor[index]) != null && e.get() == null) {
-	    descriptorFor[index] = e.next;
-	}
-
-	/* Traverse the chain looking for a descriptor with ofClass == cl.
-	 * unlink entries that are unresolved.
-	 */
-	prev = e;
-	while (e != null ) {
-	    ObjectStreamClass desc = (ObjectStreamClass)(e.get());
-	    if (desc == null) {
-		// This entry has been cleared,  unlink it
-		prev.next = e.next;
-	    } else {
-		if (desc.ofClass == cl)
-		    return desc;
-		prev = e;
-	    }
-	    e = e.next;
-	}
-	return null;
-    }
-
-    /*
-     * insertDescriptorFor a Class -> ObjectStreamClass mapping.
-     */
-    private static void insertDescriptorFor(ObjectStreamClass desc) {
-	// Make sure not already present
-	if (findDescriptorFor(desc.ofClass) != null) {
-	    return;
-	}
-
-	int hash = desc.ofClass.hashCode();
-	int index = (hash & 0x7FFFFFFF) % descriptorFor.length;
-	ObjectStreamClassEntry e = new ObjectStreamClassEntry(desc);
-	e.next = descriptorFor[index];
-       	descriptorFor[index] = e;
-    }
+    static private SoftCache descriptorFor = new SoftCache() ;
 
     private static Field[] getDeclaredFields(final Class clz) {
         return (Field[]) AccessController.doPrivileged(new PrivilegedAction() {

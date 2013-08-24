@@ -1242,9 +1242,16 @@ public static final int MAX_CODE = 108;  // this is needed to keep track of the 
    *
    * @return The association list.
    */
-  public Object[][] getContents()
-  {
-    return contents;
+  protected Object[][] getContents() {
+      // return a copy of contents; in theory we want a deep clone
+      // of contents, but since it only contains (immutable) Strings,
+      // this shallow copy is sufficient
+      Object[][] msgCopy = new Object[contents.length][2];
+      for (int i = 0; i < contents.length; i++) {
+          msgCopy[i][0] = contents[i][0];
+          msgCopy[i][1] = contents[i][1];
+      }
+      return msgCopy;
   }
 }
 

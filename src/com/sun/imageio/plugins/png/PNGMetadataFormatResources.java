@@ -1,5 +1,5 @@
 /*
- * @(#)PNGMetadataFormatResources.java	1.7 03/12/19
+ * @(#)PNGMetadataFormatResources.java	1.8 05/08/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,12 +8,12 @@
 package com.sun.imageio.plugins.png;
 
 import java.util.ListResourceBundle;
-import javax.imageio.metadata.IIOMetadataFormat;
-import javax.imageio.metadata.IIOMetadataFormatImpl;
 
 public class PNGMetadataFormatResources extends ListResourceBundle {
 
-    static final Object[][] contents = {
+    protected Object[][] getContents() {
+        return new Object[][] {
+
         // Node name, followed by description
         { "IHDR", "The IHDR chunk, containing the header" },
         { "PLTE", "The PLTE chunk, containing the palette" },
@@ -193,11 +193,7 @@ public class PNGMetadataFormatResources extends ListResourceBundle {
         { "zTXtEntry/text", "The compressed text" },
 
         { "UnknownChunk/type", "The 4-character type of the unknown chunk" }
-    };
 
-    public PNGMetadataFormatResources() {}
-
-    public Object[][] getContents() {
-        return contents;
+        };
     }
 }

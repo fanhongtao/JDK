@@ -1,5 +1,5 @@
 /*
- * @(#)SocksSocketImpl.java	1.17 04/04/29
+ * @(#)SocksSocketImpl.java	1.18 05/08/04
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,7 +43,8 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	SocketAddress a = proxy.address();
 	if (a instanceof InetSocketAddress) {
 	    InetSocketAddress ad = (InetSocketAddress) a;
-	    server = ad.getHostName();
+	    // Use getHostString() to avoid reverse lookups
+	    server = ad.getHostString();
 	    port = ad.getPort();
 	}
     }
@@ -338,7 +339,8 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 		return;
 	    }
 	    URI uri = null;
-	    String host = epoint.getHostName();
+	    // Use getHostString() to avoid reverse lookups
+	    String host = epoint.getHostString();
 	    // IPv6 litteral?
 	    if (epoint.getAddress() instanceof Inet6Address &&
 		(!host.startsWith("[")) && (host.indexOf(":") >= 0)) {
@@ -368,7 +370,8 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 		    throw new SocketException("Unknown proxy type : " + p.type());
 		if (!(p.address() instanceof InetSocketAddress))
 		    throw new SocketException("Unknow address type for proxy: " + p);
-		server = ((InetSocketAddress) p.address()).getHostName();
+		// Use getHostString() to avoid reverse lookups
+		server = ((InetSocketAddress) p.address()).getHostString();
 		port = ((InetSocketAddress) p.address()).getPort();
 		
 		// Connects to the SOCKS server
@@ -648,7 +651,8 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 		return;
 	    }
 	    URI uri = null;
-	    String host = saddr.getHostName();
+	    // Use getHostString() to avoid reverse lookups
+	    String host = saddr.getHostString();
 	    // IPv6 litteral?
 	    if (saddr.getAddress() instanceof Inet6Address &&
 		(!host.startsWith("[")) && (host.indexOf(":") >= 0)) {
@@ -676,7 +680,8 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 		    throw new SocketException("Unknown proxy type : " + p.type());
 		if (!(p.address() instanceof InetSocketAddress))
 		    throw new SocketException("Unknow address type for proxy: " + p);
-		server = ((InetSocketAddress) p.address()).getHostName();
+		// Use getHostString() to avoid reverse lookups
+		server = ((InetSocketAddress) p.address()).getHostString();
 		port = ((InetSocketAddress) p.address()).getPort();
 		
 		// Connects to the SOCKS server

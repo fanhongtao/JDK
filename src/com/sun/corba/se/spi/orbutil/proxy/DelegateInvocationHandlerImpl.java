@@ -1,7 +1,7 @@
 /*
- * @(#)DelegateInvocationHandlerImpl.java	1.8 04/07/27
+ * @(#)DelegateInvocationHandlerImpl.java	1.9 05/10/31
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import java.lang.reflect.Proxy ;
 import java.lang.reflect.Method ;
 import java.lang.reflect.InvocationHandler ;
 import java.lang.reflect.InvocationTargetException ;
+import com.sun.corba.se.impl.presentation.rmi.DynamicAccessPermission ;
 
 public abstract class DelegateInvocationHandlerImpl 
 {
@@ -23,6 +24,11 @@ public abstract class DelegateInvocationHandlerImpl
 
     public static InvocationHandler create( final Object delegate )
     {
+        SecurityManager s = System.getSecurityManager();
+        if (s != null) {
+            s.checkPermission(new DynamicAccessPermission("access"));
+        }
+
 	return new InvocationHandler() {
 	    public Object invoke( Object proxy, Method method, Object[] args )
 		throws Throwable

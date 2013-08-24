@@ -1,5 +1,5 @@
 /*
- * @(#)ParagraphView.java	1.92 03/12/19
+ * @(#)ParagraphView.java	1.93 05/08/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -876,6 +876,117 @@ public class ParagraphView extends FlowView implements TabExpander {
 	    return baselineRequirements(axis, r);
 	}
 
+        /**
+         * Whether we need to justify this {@code Row}.
+         * At this time (jdk1.6) we support justification on for non
+         * 18n text.
+         *
+         * @return {@code true} if this {@code Row} should be justified.
+         */
+        boolean isJustifyEnabled() {
+            boolean ret = (justification == StyleConstants.ALIGN_JUSTIFIED);
+            ret = ret 
+                && (! Boolean.TRUE.equals(getDocument().getProperty(
+                          AbstractDocument.I18NProperty)));
+            return ret;
+        }
+
+
+        //Calls super method after setting spaceAddon to 0.
+        //Justification should not affect MajorAxisRequirements
+        @Override        
+        protected SizeRequirements calculateMajorAxisRequirements(int axis, 
+                SizeRequirements r) {
+            int oldJustficationData[] = justificationData;
+            justificationData = null;
+            SizeRequirements ret = super.calculateMajorAxisRequirements(axis, r);
+            if (isJustifyEnabled()) {
+                justificationData = oldJustficationData;
+            }
+            return ret;
+        }
+
+        @Override
+        protected void layoutMajorAxis(int targetSpan, int axis, 
+                                       int[] offsets, int[] spans) {
+            int oldJustficationData[] = justificationData;
+            justificationData = null;
+            super.layoutMajorAxis(targetSpan, axis, offsets, spans);
+            if (! isJustifyEnabled()) {
+                return;
+            }
+
+            int currentSpan = 0;
+            for (int span : spans) {
+                currentSpan += span;
+            }
+            if (currentSpan == targetSpan) {
+                //no need to justify
+                return;
+            }
+            
+            // we justify text by enlarging spaces by the {@code spaceAddon}.
+            // justification is started to the right of the rightmost TAB.
+            // leading and trailing spaces are not extendable.
+            //
+            // GlyphPainter1 uses 
+            // justificationData[spaceAddon,startJustifiableContent,
+            //     endJustifiableContent]
+            // for all painting and measurement.
+
+            int extendableSpaces = 0;
+            int startJustifiableContent = -1;
+            int endJustifiableContent = -1;
+            int lastLeadingSpaces = 0;
+            for (int i = getViewCount() - 1; i >= 0 ; i--) {
+                View view = getView(i);
+                if (view instanceof GlyphView) {
+                    GlyphView.JustificationInfo justificationInfo = 
+                        ((GlyphView) view).getJustificationInfo();
+                    if (justificationInfo.start >= 0) {
+                        startJustifiableContent = justificationInfo.start;
+                        extendableSpaces += lastLeadingSpaces;
+                    }
+                    if (justificationInfo.end >= 0) {
+                        endJustifiableContent = justificationInfo.end; 
+                    } else {
+                        extendableSpaces += justificationInfo.trailingSpaces;
+                    }
+                    extendableSpaces += justificationInfo.contentSpaces;
+                    lastLeadingSpaces = justificationInfo.leadingSpaces;
+                    if (justificationInfo.hasTab) {
+                        break;
+                    }
+                }
+            }
+            int spaceAddon = (extendableSpaces > 0)
+                ? (targetSpan - currentSpan) / extendableSpaces
+                : 0;
+            if (spaceAddon > 0) {
+                justificationData = (oldJustficationData != null) 
+                    ? oldJustficationData
+                    : new int[3];
+                justificationData[SPACE_ADDON] = spaceAddon;
+                justificationData[START_JUSTIFIABLE] = startJustifiableContent;
+                justificationData[END_JUSTIFIABLE] = endJustifiableContent;
+                super.layoutMajorAxis(targetSpan, axis, offsets, spans);
+            }
+        }
+
+        //for justified row we assume the maximum horizontal span 
+        //is MAX_VALUE.
+        @Override
+        public float getMaximumSpan(int axis) {
+            float ret;
+            if (View.X_AXIS == axis
+                  && isJustifyEnabled()) {
+                ret = Float.MAX_VALUE;
+            } else {
+              ret = super.getMaximumSpan(axis);
+            }
+            return ret;
+        }
+
 	/**
 	 * Fetches the child view index representing the given position in
 	 * the model.
@@ -920,6 +1031,15 @@ public class ParagraphView extends FlowView implements TabExpander {
 			   ((minorRequest != null) ? minorRequest.preferred : 0) * 
 			   lineSpacing);
 	}
+
+        // justificationData[0] by what amount we need to extend
+        // extendable spaces
+        // justificationData[1] from what position do we extend spaces
+        // justificationData[2] to what position do we extend spaces
+        final static int SPACE_ADDON = 0;
+        final static int START_JUSTIFIABLE = 1;
+        final static int END_JUSTIFIABLE = 2;            
+        int justificationData[] = null;
     }
 
 }

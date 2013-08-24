@@ -1,5 +1,5 @@
 /*
- * @(#)NotificationBuffer.java	1.4 03/12/19
+ * @(#)NotificationBuffer.java	1.5 05/08/31
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ public interface NotificationBuffer {
      * different notifications.
      */
     public NotificationResult
-        fetchNotifications(Set/*<ListenerInfo>*/ listeners,
+        fetchNotifications(Set<ListenerInfo> listeners,
                            long startSequenceNumber,
                            long timeout,
                            int maxNotifications)

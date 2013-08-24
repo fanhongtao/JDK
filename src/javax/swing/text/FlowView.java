@@ -1,5 +1,5 @@
 /*
- * @(#)FlowView.java	1.45 05/01/04
+ * @(#)FlowView.java	1.46 05/08/12
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.swing.SizeRequirements;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.45 01/04/05
+ * @version 1.46 08/12/05
  * @see     View
  */
 public abstract class FlowView extends BoxView {
@@ -42,7 +42,7 @@ public abstract class FlowView extends BoxView {
      */
     public FlowView(Element elem, int axis) {
 	super(elem, axis);
-	layoutSpan = Short.MAX_VALUE;
+	layoutSpan = Integer.MAX_VALUE;
 	strategy = STRATEGY;
     }
 

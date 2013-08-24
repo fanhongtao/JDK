@@ -1,5 +1,5 @@
 /*
- * @(#)StandardMetadataFormatResources.java	1.9 03/12/19
+ * @(#)StandardMetadataFormatResources.java	1.10 05/08/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,7 +11,11 @@ import java.util.ListResourceBundle;
 
 public class StandardMetadataFormatResources extends ListResourceBundle {
 
-    static final Object[][] contents = {
+    public StandardMetadataFormatResources() {}
+
+    protected Object[][] getContents() {
+        return new Object[][] {
+
         // Node name, followed by description, or
         // Node name + "/" + AttributeName, followed by description
 
@@ -182,11 +186,7 @@ public class StandardMetadataFormatResources extends ListResourceBundle {
         { "OpaqueTile", "The index of a completely opaque tile" },
         { "OpaqueTile/x", "The tile's X index" },
         { "OpaqueTile/y", "The tile's Y index" },
-    };
 
-    public StandardMetadataFormatResources() {}
-
-    public Object[][] getContents() {
-        return contents;
+        };
     }
 }

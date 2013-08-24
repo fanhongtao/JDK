@@ -1,5 +1,5 @@
 /*
- * @(#)ArrayList.java	1.49 05/03/03
+ * @(#)ArrayList.java	1.50 05/09/02
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -71,7 +71,7 @@ package java.util;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.49, 03/03/05
+ * @version 1.50, 09/02/05
  * @see	    Collection
  * @see	    List
  * @see	    LinkedList
@@ -132,9 +132,8 @@ public class ArrayList<E> extends AbstractList<E>
     public ArrayList(Collection<? extends E> c) {
         size = c.size();
         // Allow 10% room for growth
-        elementData = (E[])new Object[
-                      (int)Math.min((size*110L)/100,Integer.MAX_VALUE)]; 
-        c.toArray(elementData);
+        int capacity = (int) Math.min((size*110L)/100, Integer.MAX_VALUE);
+        elementData = (E[]) c.toArray(new Object[capacity]);
     }
 
     /**

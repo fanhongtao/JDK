@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractQueuedSynchronizer.java	1.2 04/02/27
+ * @(#)AbstractQueuedSynchronizer.java	1.3 05/06/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1237,11 +1237,6 @@ public abstract class AbstractQueuedSynchronizer implements java.io.Serializable
      * Version of getFirstQueuedThread called when fastpath fails
      */
     private Thread fullGetFirstQueuedThread() {
-        /*
-         * This loops only if the queue changes while we read sets of
-         * fields.
-         */
-        for (;;) {
             Node h = head;
             if (h == null)                    // No queue
                 return null;
@@ -1251,7 +1246,7 @@ public abstract class AbstractQueuedSynchronizer implements java.io.Serializable
              * thread field, ensuring consistent reads: If thread
              * field is nulled out or s.prev is no longer head, then
              * some other thread(s) concurrently performed setHead in
-             * between some of our reads, so we must reread.
+         * between some of our reads.
              */
             Node s = h.next;
             if (s != null) {
@@ -1262,22 +1257,22 @@ public abstract class AbstractQueuedSynchronizer implements java.io.Serializable
             }
 
             /*
-             * Head's next field might not have been set yet, or may
-             * have been unset after setHead. So we must check to see
-             * if tail is actually first node, in almost the same way
-             * as above.
+         * Head's next field might not have been set yet, or may have
+         * been unset after setHead. So we must check to see if tail
+         * is actually first node. If not, we continue on, safely
+         * traversing from tail back to head to find first,
+         * guaranteeing termination.
              */
-            Node t = tail; 
-            if (t == h)                       // Empty queue
-                return null;
 
-            if (t != null) {
+        Node t = tail;
+        Thread firstThread = null;
+        while (t != null && t != head) {
                 Thread tt = t.thread;
-                Node tp = t.prev;
-                if (tt != null && tp == head)
-                    return tt;
-            }
+            if (tt != null)
+                firstThread = tt;
+            t = t.prev;
         }
+        return firstThread;
     }
 
     /**

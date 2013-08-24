@@ -214,10 +214,9 @@ public class BasicTextAreaUI extends BasicTextUI {
 		} else {
                     req.minimum = 0;
                     req.preferred = getWidth();
-                    if (req.preferred == Short.MAX_VALUE) {
+                    if (req.preferred == Integer.MAX_VALUE) {
                         // We have been initially set to MAX_VALUE, but we
-                        // don't want this as our preferred. Short is used
-                        // here as FlowView returns it as the max size.
+                        // don't want this as our preferred. 
                         req.preferred = 100;
                     }
                 }

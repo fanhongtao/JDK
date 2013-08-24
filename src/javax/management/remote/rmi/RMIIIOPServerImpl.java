@@ -1,5 +1,5 @@
 /*
- * @(#)RMIIIOPServerImpl.java	1.24 04/05/05
+ * @(#)RMIIIOPServerImpl.java	1.25 05/08/31
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,9 +9,12 @@ package javax.management.remote.rmi;
 
 import java.io.IOException;
 import java.rmi.Remote;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Collections;
-import java.util.Properties;
 import javax.rmi.PortableRemoteObject;
 import javax.security.auth.Subject;
 
@@ -40,6 +43,8 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
 	super(env);
 
 	this.env = (env == null) ? Collections.EMPTY_MAP : env;
+
+        callerACC = AccessController.getContext();
     }
 
     protected void export() throws IOException {
@@ -115,5 +120,24 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
 	PortableRemoteObject.unexportObject(this);
     }
 
+    @Override
+    RMIConnection doNewClient(final Object credentials) throws IOException {
+        try {
+            return AccessController.doPrivileged(
+                new PrivilegedExceptionAction<RMIConnection>() {
+                    public RMIConnection run() throws IOException {
+                        return superDoNewClient(credentials);
+                    }
+            }, callerACC);
+        } catch (PrivilegedActionException pae) {
+            throw (IOException) pae.getCause();
+        }
+    }
+
+    RMIConnection superDoNewClient(Object credentials) throws IOException {
+        return super.doNewClient(credentials);
+    }
+
     private final Map env;
+    private final AccessControlContext callerACC;
 }

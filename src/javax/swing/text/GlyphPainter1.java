@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphPainter1.java	1.18 04/06/28
+ * @(#)GlyphPainter1.java	1.19 05/08/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.awt.*;
  * is recommended for the DK.
  *
  * @author  Timothy Prinzing
- * @version 1.18 06/28/04
+ * @version 1.19 08/19/05
  * @see GlyphView
  */
 class GlyphPainter1 extends GlyphView.GlyphPainter {
@@ -41,7 +41,9 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 			 TabExpander e, float x) {
 	sync(v);
 	Segment text = v.getText(p0, p1);
-	int width = Utilities.getTabbedTextWidth(text, metrics, (int) x, e, p0);
+        int[] justificationData = getJustificationData(v);
+        int width = Utilities.getTabbedTextWidth(text, metrics, (int) x, e, p0, 
+                                                 justificationData);
         SegmentCache.releaseSharedSegment(text);
 	return width;
     }
@@ -81,9 +83,11 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	// determine the x coordinate to render the glyphs
 	int x = alloc.x;
 	int p = v.getStartOffset();
+        int[] justificationData = getJustificationData(v);
 	if (p != p0) {
 	    text = v.getText(p, p0);
-	    int width = Utilities.getTabbedTextWidth(text, metrics, x, expander, p);
+            int width = Utilities.getTabbedTextWidth(text, metrics, x, expander, p, 
+                                                     justificationData);
 	    x += width;
             SegmentCache.releaseSharedSegment(text);
 	}
@@ -94,7 +98,9 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	// render the glyphs
 	text = v.getText(p0, p1);
 	g.setFont(metrics.getFont());
-	Utilities.drawTabbedText(v, text, x, y, g, expander,p0);
+
+        Utilities.drawTabbedText(v, text, x, y, g, expander,p0, 
+                                 justificationData);
         SegmentCache.releaseSharedSegment(text);
     }
 
@@ -117,7 +123,9 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	if ((pos >= p0) && (pos <= p1)) {
 	    // determine range to the left of the position
 	    text = v.getText(p0, pos);
-	    int width = Utilities.getTabbedTextWidth(text, metrics, alloc.x, expander, p0);
+            int[] justificationData = getJustificationData(v);
+            int width = Utilities.getTabbedTextWidth(text, metrics, alloc.x, expander, p0, 
+                                                     justificationData);
             SegmentCache.releaseSharedSegment(text);
 	    return new Rectangle(alloc.x + width, alloc.y, 0, metrics.getHeight());
 	}
@@ -147,9 +155,10 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	int p1 = v.getEndOffset();
 	TabExpander expander = v.getTabExpander();
 	Segment text = v.getText(p0, p1);
-
+        int[] justificationData = getJustificationData(v);
 	int offs = Utilities.getTabbedTextOffset(text, metrics, 
-						 alloc.x, (int) x, expander, p0);
+                                                 alloc.x, (int) x, expander, p0, 
+                                                 justificationData);
         SegmentCache.releaseSharedSegment(text);
 	int retValue = p0 + offs;
 	if(retValue == p1) {
@@ -183,8 +192,10 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	sync(v);
 	TabExpander expander = v.getTabExpander();
 	Segment s = v.getText(p0, v.getEndOffset());
+        int[] justificationData = getJustificationData(v);
 	int index = Utilities.getTabbedTextOffset(s, metrics, (int)x, (int)(x+len),
-						  expander, p0, false);
+                                                  expander, p0, false, 
+                                                  justificationData);
         SegmentCache.releaseSharedSegment(s);
 	int p1 = p0 + index;
 	return p1;
@@ -200,6 +211,28 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	}
     }
 
+
+
+    /**
+     * @return justificationData from the ParagraphRow this GlyphView
+     * is in or {@code null} if no justification is needed
+     * justificationData[0] by what amount we need to extend
+     * extendable spaces
+     * justificationData[1] from what position do we extend spaces
+     * justificationData[2] to what position do we extend spaces
+     */
+    private int[] getJustificationData(GlyphView v) {
+        View parent = v.getParent();
+        int [] ret = null;
+        if (parent instanceof ParagraphView.Row) {
+            ParagraphView.Row row = ((ParagraphView.Row) parent);
+            if (row.justificationData != null && row.isJustifyEnabled()) {
+                ret = row.justificationData;
+            }
+        } 
+        return ret;
+    }
+    
     // --- variables ---------------------------------------------
 
     FontMetrics metrics;

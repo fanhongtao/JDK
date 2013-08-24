@@ -1,5 +1,5 @@
 /*
- * @(#)EnvHelp.java	1.33 04/02/13
+ * @(#)EnvHelp.java	1.36 05/08/31
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,11 +21,17 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+
 import javax.management.ObjectName;
 import javax.management.MBeanServer;
 import javax.management.InstanceNotFoundException;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXConnectorServerFactory;
+import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 public class EnvHelp {
 
@@ -192,32 +198,16 @@ public class EnvHelp {
     }
 
     /**
-     * Init the cause field of a Throwable object.  
-     * The cause field is set only if <var>t</var> has an 
-     * {@link Throwable#initCause(Throwable)} method (JDK Version >= 1.4) 
-     * @param t Throwable on which the cause must be set.
-     * @param cause The cause to set on <var>t</var>.
-     * @return <var>t</var> with or without the cause field set.
+     * Initialise the cause field of a {@code Throwable} object.
+     *
+     * @param throwable The {@code Throwable} on which the cause is set.
+     * @param cause The cause to set on the supplied {@code Throwable}.
+     * @return the {@code Throwable} with the cause field initialised.
      */
-    public static Throwable initCause(Throwable t, Throwable cause) {
-
-        /* Make a best effort to set the cause, but if we don't
-           succeed, too bad, you don't get that useful debugging
-           information.  We jump through hoops here so that we can
-           work on platforms prior to J2SE 1.4 where the
-           Throwable.initCause method was introduced.  If we change
-           the public interface of JMRuntimeException in a future
-           version we can add getCause() so we don't need to do this.  */
-        try {
-            java.lang.reflect.Method initCause =
-                t.getClass().getMethod("initCause",
-                                       new Class[] {Throwable.class});
-            initCause.invoke(t, new Object[] {cause});
-        } catch (Exception e) {
-	    // OK.
-            // too bad, no debugging info
-        }
-        return t;
+    public static <T extends Throwable> T initCause(T throwable,
+						    Throwable cause) {
+	throwable.initCause(cause);
+	return throwable;
     }
 
     /**
@@ -241,6 +231,69 @@ public class EnvHelp {
             // it must be older than 1.4.
         }
         return (ret != null) ? ret: t;
+    }
+
+
+    /**
+     * <p>Name of the attribute that specifies the size of a notification
+     * buffer for a connector server. The default value is 1000.
+     */
+    public static final String BUFFER_SIZE_PROPERTY =
+	"jmx.remote.x.notification.buffer.size";
+
+
+    /** 
+     * Returns the size of a notification buffer for a connector server.
+     * The default value is 1000.
+     */
+    public static int getNotifBufferSize(Map env) {
+	int defaultQueueSize = 1000; // default value
+
+	// keep it for the compability for the fix:
+	// 6174229: Environment parameter should be notification.buffer.size
+	// instead of buffer.size
+	final String oldP = "jmx.remote.x.buffer.size";
+
+	// the default value re-specified in the system
+	try {
+	    GetPropertyAction act = new GetPropertyAction(BUFFER_SIZE_PROPERTY);
+	    String s = (String)AccessController.doPrivileged(act);
+	    if (s != null) {
+		defaultQueueSize = Integer.parseInt(s);
+	    } else { // try the old one
+		act = new GetPropertyAction(oldP);
+		s = (String)AccessController.doPrivileged(act);
+		if (s != null) {
+		    defaultQueueSize = Integer.parseInt(s);
+		}
+	    }
+	} catch (RuntimeException e) { 
+	    logger.warning("getNotifBufferSize",  
+			   "Can't use System property "+ 
+			   BUFFER_SIZE_PROPERTY+ ": " + e); 
+              logger.debug("getNotifBufferSize", e); 
+	}       
+
+	int queueSize = defaultQueueSize;
+
+	try {
+	    if (env.containsKey(BUFFER_SIZE_PROPERTY)) {
+		queueSize = (int)EnvHelp.getIntegerAttribute(env,BUFFER_SIZE_PROPERTY,
+					    defaultQueueSize,0,
+					    Integer.MAX_VALUE);
+	    } else { // try the old one
+		queueSize = (int)EnvHelp.getIntegerAttribute(env,oldP,
+					    defaultQueueSize,0,
+					    Integer.MAX_VALUE);
+	    }
+	} catch (RuntimeException e) { 
+	    logger.warning("getNotifBufferSize",  
+			   "Can't determine queuesize (using default): "+
+			   e); 
+	    logger.debug("getNotifBufferSize", e);
+	}
+
+	return queueSize;
     }
 
     /**

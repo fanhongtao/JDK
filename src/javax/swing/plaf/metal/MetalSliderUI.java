@@ -1,5 +1,5 @@
 /*
- * @(#)MetalSliderUI.java	1.34 03/12/19
+ * @(#)MetalSliderUI.java	1.36 05/10/31
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,20 +40,26 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.34 12/19/03
+ * @version 1.36 10/31/05
  * @author Tom Santos
  */
 public class MetalSliderUI extends BasicSliderUI {
 
     protected final int TICK_BUFFER = 4;
     protected boolean filledSlider = false;
+    // NOTE: these next three variables are currently unused.
     protected static Color thumbColor;
     protected static Color highlightColor;
     protected static Color darkShadowColor;
     protected static int trackWidth;
     protected static int tickLength;
+    
     protected static Icon horizThumbIcon;
+    
     protected static Icon vertThumbIcon;
+
+    private static Icon SAFE_HORIZ_THUMB_ICON;
+    private static Icon SAFE_VERT_THUMB_ICON;
 
 
     protected final String SLIDER_FILL = "JSlider.isFilled";
@@ -66,11 +72,29 @@ public class MetalSliderUI extends BasicSliderUI {
         super( null );
     }
 
+    private static Icon getHorizThumbIcon() {
+        if (System.getSecurityManager() != null) {
+            return SAFE_HORIZ_THUMB_ICON;
+        } else {
+            return horizThumbIcon;
+        }
+    }
+
+    private static Icon getVertThumbIcon() {
+        if (System.getSecurityManager() != null) {
+            return SAFE_VERT_THUMB_ICON;
+        } else {
+            return vertThumbIcon;
+        }
+    }
+
     public void installUI( JComponent c ) {
         trackWidth = ((Integer)UIManager.get( "Slider.trackWidth" )).intValue();
         tickLength = ((Integer)UIManager.get( "Slider.majorTickLength" )).intValue();
-        horizThumbIcon = UIManager.getIcon( "Slider.horizontalThumbIcon" );
-        vertThumbIcon = UIManager.getIcon( "Slider.verticalThumbIcon" );
+        horizThumbIcon = SAFE_HORIZ_THUMB_ICON =
+                UIManager.getIcon( "Slider.horizontalThumbIcon" );
+        vertThumbIcon = SAFE_VERT_THUMB_ICON =
+                UIManager.getIcon( "Slider.verticalThumbIcon" );
 
 	super.installUI( c );
 
@@ -112,10 +136,10 @@ public class MetalSliderUI extends BasicSliderUI {
         g.translate( knobBounds.x, knobBounds.y );
 
         if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
-            horizThumbIcon.paintIcon( slider, g, 0, 0 );
+            getHorizThumbIcon().paintIcon( slider, g, 0, 0 );
         }
         else {
-            vertThumbIcon.paintIcon( slider, g, 0, 0 );
+            getVertThumbIcon().paintIcon( slider, g, 0, 0 );
         }
 
         g.translate( -knobBounds.x, -knobBounds.y );
@@ -397,12 +421,12 @@ public class MetalSliderUI extends BasicSliderUI {
         Dimension size = new Dimension();
 
         if ( slider.getOrientation() == JSlider.VERTICAL ) {
-	    size.width = vertThumbIcon.getIconWidth();
-	    size.height = vertThumbIcon.getIconHeight();
+            size.width = getVertThumbIcon().getIconWidth();
+            size.height = getVertThumbIcon().getIconHeight();
 	}
 	else {
-	    size.width = horizThumbIcon.getIconWidth();
-	    size.height = horizThumbIcon.getIconHeight();
+            size.width = getHorizThumbIcon().getIconWidth();
+            size.height = getHorizThumbIcon().getIconHeight();
 	}
 
 	return size;

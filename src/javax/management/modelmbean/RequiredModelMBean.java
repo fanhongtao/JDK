@@ -1,8 +1,8 @@
 /*
  * @(#)file      RequiredModelMBean.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.53
- * @(#)lastedit      05/05/27
+ * @(#)version   1.54
+ * @(#)lastedit      05/09/08
  *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
  *
@@ -1423,55 +1423,52 @@ public class RequiredModelMBean
 		String respType = attrInfo.getType();
 		if (response != null) {
 		    String responseClass = response.getClass().getName();
-
-		    if (! respType.equals(responseClass)) {
-                        // Revisit !! : this should be stacically initialized !
-                        final String[] primitiveTypes = new String[] {
-                            Boolean.TYPE.getName(),
-                            Byte.TYPE.getName(),
-                            Character.TYPE.getName(),
-                            Short.TYPE.getName(),
-                            Integer.TYPE.getName(),
-                            Long.TYPE.getName(),
-                            Float.TYPE.getName(),
-                            Double.TYPE.getName(),
-                            Void.TYPE.getName()};
-                        final String[] primitiveWrappers = new String[] {
-                            Boolean.class.getName(),
-                            Byte.class.getName(),
-                            Character.class.getName(),
-                            Short.class.getName(),
-                            Integer.class.getName(),
-                            Long.class.getName(),
-                            Float.class.getName(),
-                            Double.class.getName(),
-                            Void.class.getName()};
-
-                        // unequality may come from primitive/wrapper class specs
+		    if (!respType.equals(responseClass)) {
+			boolean wrongType = false;
+                        boolean primitiveType = false;
                         boolean correspondingTypes = false;
-                        for (int i = 0; i <= 8; i++) {
-                            if ((respType.equals(primitiveTypes[i]))&&
-                                (responseClass.equals(primitiveWrappers[i]))) {
-                                correspondingTypes = true;
+                        for (int i = 0; i < primitiveTypes.length; i++) {
+                            if (respType.equals(primitiveTypes[i])) {
+                                primitiveType = true;
+                                if (responseClass.equals(primitiveWrappers[i]))
+                                    correspondingTypes = true;
                                 break;
                             }
                         }
-
-                        // did we really get the expected response type ?
-                        if (! correspondingTypes) {
-                            if (tracing())
-			        trace("getAttribute(String)",
-                                      "wrong response type '" + respType + "'" );
-
-                            // throw exception, didn't get back right attribute type
-                            throw new MBeanException(new
-                                InvalidAttributeValueException("Wrong value type received for get attribute"),
-                                    "An exception occured while trying to get an "+
-                                    "attribute value through a RequiredModelMBean");
-                        }
+			if (primitiveType) {
+			    // inequality may come from primitive/wrapper class
+			    if (!correspondingTypes)
+				wrongType = true;
+			} else {
+			    // inequality may come from type subclassing
+			    boolean subtype;
+			    try {
+				ClassLoader cl =
+				    response.getClass().getClassLoader();
+				Class c = Class.forName(respType, true, cl);
+				subtype = c.isInstance(response);
+			    } catch (Exception e) {
+				subtype = false;
+				if (tracing())
+				    traceX("getAttribute(String)", e);
+			    }
+			    if (!subtype)
+				wrongType = true;
+			}
+			if (wrongType) {
+			    if (tracing())
+				trace("getAttribute(String)",
+				      "Wrong response type '" + respType + "'");
+			    // throw exception, didn't get
+			    // back right attribute type
+			    throw new MBeanException(
+			      new InvalidAttributeValueException(
+			        "Wrong value type received for get attribute"),
+			      "An exception occurred while trying to get an " +
+			      "attribute value through a RequiredModelMBean");
+			}
                     }
 		}
-
 	    } else {
 		if (tracing())
 		    trace("getAttribute(String)","getMethod failed " +
@@ -2597,5 +2594,32 @@ public class RequiredModelMBean
     private static void debug(String inMethod, Throwable x) {
 	Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MODELMBEAN, currClass,
 		   inMethod, x);
+    }
+
+    private static final String[] primitiveTypes;
+    private static final String[] primitiveWrappers;
+    static {
+        primitiveTypes = new String[] {
+            Boolean.TYPE.getName(),
+            Byte.TYPE.getName(),
+            Character.TYPE.getName(),
+            Short.TYPE.getName(),
+            Integer.TYPE.getName(),
+            Long.TYPE.getName(),
+            Float.TYPE.getName(),
+            Double.TYPE.getName(),
+            Void.TYPE.getName()
+        };
+        primitiveWrappers = new String[] {
+            Boolean.class.getName(),
+            Byte.class.getName(),
+            Character.class.getName(),
+            Short.class.getName(),
+            Integer.class.getName(),
+            Long.class.getName(),
+            Float.class.getName(),
+            Double.class.getName(),
+            Void.class.getName()
+        };
     }
 }

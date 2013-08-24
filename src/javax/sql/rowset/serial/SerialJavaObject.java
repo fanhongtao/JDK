@@ -1,7 +1,7 @@
 /*
- * @(#)SerialJavaObject.java	1.6 04/05/29
+ * @(#)SerialJavaObject.java	1.7 05/10/31
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -123,7 +123,7 @@ public class SerialJavaObject implements Serializable, Cloneable {
     public Field[] getFields() throws SerialException {
 	if (fields != null) {	
             Class c = this.obj.getClass();
-	    return c.getFields();
+	    return sun.reflect.misc.FieldUtil.getFields(c);
 	} else {
 	    throw new SerialException("SerialJavaObject does not contain" +
 		" a serialized object instance");

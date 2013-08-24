@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTableColumnModel.java	1.48 04/05/05
+ * @(#)DefaultTableColumnModel.java	1.49 05/08/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.48 05/05/04
+ * @version 1.49 08/23/05
  * @author Alan Chung
  * @author Philip Milne
  * @see JTable
@@ -103,8 +103,6 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	aColumn.addPropertyChangeListener(this);
 	invalidateWidthCache();
 
-        checkLeadAnchor();
-
 	// Post columnAdded event notification
 	fireColumnAdded(new TableColumnModelEvent(this, 0,
 						  getColumnCount() - 1));
@@ -130,8 +128,6 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	    if (selectionModel != null) {
 		selectionModel.removeIndexInterval(columnIndex,columnIndex);
 	    }
-
-            checkLeadAnchor();
 
 	    column.removePropertyChangeListener(this);
 	    tableColumns.removeElementAt(columnIndex);
@@ -368,8 +364,6 @@ public class DefaultTableColumnModel implements TableColumnModel,
 
 	    selectionModel= newModel;
             newModel.addListSelectionListener(this);
-
-            checkLeadAnchor();
 	}
     }
 

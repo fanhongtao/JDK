@@ -1,5 +1,5 @@
 /*
- * @(#)LinkedBlockingQueue.java	1.9 05/01/04
+ * @(#)LinkedBlockingQueue.java	1.11 05/09/02
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -469,6 +469,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             if (removed) {
                 p.item = null;
                 trail.next = p.next;
+                if (last == p)
+                    last = trail;
                 if (count.getAndDecrement() == capacity)
                     notFull.signalAll();
             }
@@ -503,6 +505,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             int k = 0;
             for (Node p = head.next; p != null; p = p.next)
                 a[k++] = (T)p.item;
+            if (a.length > k)
+                a[k] = null;
             return a;
         } finally {
             fullyUnlock();
@@ -673,6 +677,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
                 if (p == node) {
                     p.item = null;
                     trail.next = p.next;
+                    if (last == p)
+                        last = trail;
                     int c = count.getAndDecrement();
                     if (c == capacity)
                         notFull.signalAll();

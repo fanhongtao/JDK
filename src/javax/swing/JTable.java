@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.238 04/06/28
+ * @(#)JTable.java	1.239 05/08/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -127,7 +127,7 @@ import javax.print.attribute.*;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.238 06/28/04
+ * @version 1.239 08/23/05
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  */
@@ -1316,20 +1316,44 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
             selModel = selectionModel;
             selModel.setValueIsAdjusting(true);
-            oldLead = selModel.getLeadSelectionIndex();
-            oldAnchor = selModel.getAnchorSelectionIndex();
+            oldLead = getAdjustedIndex(selModel.getLeadSelectionIndex(), true);
+            oldAnchor = getAdjustedIndex(selModel.getAnchorSelectionIndex(), true);
+
             setRowSelectionInterval(0, getRowCount()-1);
-            // this is done only to restore the anchor and lead
-            selModel.addSelectionInterval(oldAnchor, oldLead);
+
+            if (oldAnchor == -1) {
+                oldAnchor = oldLead;
+            }
+
+            // this is done to restore the anchor and lead
+            if (oldLead == -1) {
+                selModel.setAnchorSelectionIndex(-1);
+                selModel.setLeadSelectionIndex(-1);
+            } else {
+                selModel.addSelectionInterval(oldAnchor, oldLead);
+            }
+
             selModel.setValueIsAdjusting(false);
 
             selModel = columnModel.getSelectionModel();
             selModel.setValueIsAdjusting(true);
-            oldLead = selModel.getLeadSelectionIndex();
-            oldAnchor = selModel.getAnchorSelectionIndex();
+            oldLead = getAdjustedIndex(selModel.getLeadSelectionIndex(), false);
+            oldAnchor = getAdjustedIndex(selModel.getAnchorSelectionIndex(), false);
+
             setColumnSelectionInterval(0, getColumnCount()-1);
-            // this is done only to restore the anchor and lead
-            selModel.addSelectionInterval(oldAnchor, oldLead);
+
+            if (oldAnchor == -1) {
+                oldAnchor = oldLead;
+            }
+
+            // this is done to restore the anchor and lead
+            if (oldLead == -1) {
+                selModel.setAnchorSelectionIndex(-1);
+                selModel.setLeadSelectionIndex(-1);
+            } else {
+                selModel.addSelectionInterval(oldAnchor, oldLead);
+            }
+
             selModel.setValueIsAdjusting(false);        
 	}
     }
@@ -1340,6 +1364,26 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     public void clearSelection() {
         selectionModel.clearSelection();
         columnModel.getSelectionModel().clearSelection();
+    }
+
+    private void clearSelectionAndLeadAnchor() {
+        selectionModel.setValueIsAdjusting(true);
+        columnModel.getSelectionModel().setValueIsAdjusting(true);
+        
+        clearSelection();
+
+        selectionModel.setAnchorSelectionIndex(-1);
+        selectionModel.setLeadSelectionIndex(-1);
+        columnModel.getSelectionModel().setAnchorSelectionIndex(-1);
+        columnModel.getSelectionModel().setLeadSelectionIndex(-1);
+
+        selectionModel.setValueIsAdjusting(false);
+        columnModel.getSelectionModel().setValueIsAdjusting(false);
+    }
+
+    private int getAdjustedIndex(int index, boolean row) {
+        int compare = row ? getRowCount() : getColumnCount();
+        return index < compare ? index : -1;
     }
 
     private int boundRow(int row) throws IllegalArgumentException {
@@ -1561,13 +1605,19 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     private void changeSelectionModel(ListSelectionModel sm, int index,
-				      boolean toggle, boolean extend, boolean selected) {
+				      boolean toggle, boolean extend, boolean selected,
+                                      boolean row) {
         if (extend) {
             if (toggle) {
 		sm.setAnchorSelectionIndex(index);
 	    }
 	    else {
-		sm.setSelectionInterval(sm.getAnchorSelectionIndex(), index);
+                int anchorIndex = getAdjustedIndex(sm.getAnchorSelectionIndex(), row);
+                if (anchorIndex == -1) {
+                    anchorIndex = 0;
+                }
+
+                sm.setSelectionInterval(anchorIndex, index);
 	    }
         }
 	else {
@@ -1625,8 +1675,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	// selected but the column was not - as it would toggle them both.
 	boolean selected = isCellSelected(rowIndex, columnIndex);
 
-        changeSelectionModel(csm, columnIndex, toggle, extend, selected);
-        changeSelectionModel(rsm, rowIndex, toggle, extend, selected);
+        changeSelectionModel(csm, columnIndex, toggle, extend, selected, false);
+        changeSelectionModel(rsm, rowIndex, toggle, extend, selected, true);
 
         // Scroll after changing the selection as blit scrolling is immediate,
         // so that if we cause the repaint after the scroll we end up painting
@@ -2914,8 +2964,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
 	    firePropertyChange("selectionModel", oldModel, newModel);
             repaint();
-
-            checkLeadAnchor();
         }
     }
 
@@ -2929,43 +2977,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     public ListSelectionModel getSelectionModel() {
         return selectionModel;
-    }
-
-    /**
-     * Initialize the lead and anchor of the selection model
-     * based on what the table model contains.
-     */
-    private void checkLeadAnchor() {
-        TableModel model = getModel();
-
-        // Setting the selection model in the constructor will cause
-        // this to be invoked before the data model has been set.
-        // Bail in this case.
-        if (model == null) {
-            return;
-        }
-
-        int lead = selectionModel.getLeadSelectionIndex();
-        int count = model.getRowCount();
-        if (count == 0) {
-            if (lead != -1) {
-                // no rows left, set the lead and anchor to -1
-                selectionModel.setValueIsAdjusting(true);
-                selectionModel.setAnchorSelectionIndex(-1);
-                selectionModel.setLeadSelectionIndex(-1);
-                selectionModel.setValueIsAdjusting(false);
-            }
-        } else {
-            if (lead == -1) {
-                // set the lead and anchor to the first row
-                // (without changing the selection)
-                if (selectionModel.isSelectedIndex(0)) {
-                    selectionModel.addSelectionInterval(0, 0);
-                } else {
-                    selectionModel.removeSelectionInterval(0, 0);
-                }
-            }
-        }
     }
 
 //
@@ -2988,9 +2999,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     public void tableChanged(TableModelEvent e) {
         if (e == null || e.getFirstRow() == TableModelEvent.HEADER_ROW) {
             // The whole thing changed
-            clearSelection();
-
-            checkLeadAnchor();
+            clearSelectionAndLeadAnchor();
 
             rowModel = null;
 
@@ -3050,7 +3059,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         // In fact, if the end is Integer.MAX_VALUE we need to revalidate anyway
         // because the scrollbar may need repainting.
         else {
-	    clearSelection();
+            clearSelectionAndLeadAnchor();
             resizeAndRepaint();
             rowModel = null;
         }
@@ -3077,8 +3086,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         // Adjust the selection to account for the new rows.
 	int length = end - start + 1;
 	selectionModel.insertIndexInterval(start, length, true);
-
-        checkLeadAnchor();
 
 	// If we have variable height rows, adjust the row model.
 	if (rowModel != null) {
@@ -3117,8 +3124,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         int previousRowCount = getRowCount() + deletedCount;
         // Adjust the selection to account for the new rows
 	selectionModel.removeIndexInterval(start, end);
-
-        checkLeadAnchor();
 
 	// If we have variable height rows, adjust the row model.
 	if (rowModel != null) {
@@ -3249,7 +3254,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         if (getRowSelectionAllowed()) {
             minRow = selectionModel.getMinSelectionIndex();
             maxRow = selectionModel.getMaxSelectionIndex();
-            int leadRow = selectionModel.getLeadSelectionIndex();
+            int leadRow = getAdjustedIndex(selectionModel.getLeadSelectionIndex(), true);
 
             if (minRow == -1 || maxRow == -1) {
                 if (leadRow == -1) {

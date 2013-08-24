@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.144 05/05/03
+ * @(#)BasicTableUI.java	1.146 05/08/23
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.144 05/03/05
+ * @version 1.146 08/23/05
  * @author Philip Milne
  * @author Shannon Hickey (improved drag recognition)
  */
@@ -286,6 +286,22 @@ public class BasicTableUI extends TableUI
                 stayInSelection = true;
             }
 
+            // the algorithm below isn't prepared to deal with -1 lead/anchor
+            // so massage appropriately here first
+            if (dy == 1 && leadColumn == -1) {
+                leadColumn = minX;
+                leadRow = -1;
+            } else if (dx == 1 && leadRow == -1) {
+                leadRow = minY;
+                leadColumn = -1;
+            } else if (dy == -1 && leadColumn == -1) {
+                leadColumn = maxX;
+                leadRow = maxY + 1;
+            } else if (dx == -1 && leadRow == -1) {
+                leadRow = maxY;
+                leadColumn = maxX + 1;
+            }
+
             // In cases where the lead is not within the search range,
             // we need to bring it within one cell for the the search
             // to work properly. Check these here.
@@ -345,10 +361,10 @@ public class BasicTableUI extends TableUI
             JTable table = (JTable)e.getSource();
 
             ListSelectionModel rsm = table.getSelectionModel();
-            leadRow = rsm.getLeadSelectionIndex();
+            leadRow = getAdjustedLead(table, true, rsm);
 
             ListSelectionModel csm = table.getColumnModel().getSelectionModel();
-            leadColumn =   csm.getLeadSelectionIndex();
+            leadColumn = getAdjustedLead(table, false, csm);
 
             if (!table.getComponentOrientation().isLeftToRight()) {
                 if (key == SCROLL_LEFT_CHANGE_SELECTION ||
@@ -396,27 +412,24 @@ public class BasicTableUI extends TableUI
     
                     Dimension delta = table.getParent().getSize();
 
-                    int start = (vertically) ? rsm.getLeadSelectionIndex() :
-                                               csm.getLeadSelectionIndex();
-
                     if (vertically) {
-                        Rectangle r = table.getCellRect(start, 0, true);
+                        Rectangle r = table.getCellRect(leadRow, 0, true);
                         r.y += forwards ? delta.height : -delta.height;
                         this.dx = 0;
                         int newRow = table.rowAtPoint(r.getLocation());
                         if (newRow == -1 && forwards) {
                             newRow = table.getRowCount();
                         }
-                        this.dy = newRow - start;
+                        this.dy = newRow - leadRow;
                     }
                     else {
-                        Rectangle r = table.getCellRect(0, start, true);
+                        Rectangle r = table.getCellRect(0, leadColumn, true);
                         r.x += forwards ? delta.width : -delta.width;
                         int newColumn = table.columnAtPoint(r.getLocation());
                         if (newColumn == -1 && forwards) {
                             newColumn = table.getColumnCount();
                         }
-                        this.dx = newColumn - start;
+                        this.dx = newColumn - leadColumn;
                         this.dy = 0;
                     }
                 }
@@ -490,10 +503,20 @@ public class BasicTableUI extends TableUI
                         // casting should be safe since the action is only enabled
                         // for DefaultListSelectionModel
                         ((DefaultListSelectionModel)rsm).moveLeadSelectionIndex(leadRow);
+                        if (getAdjustedLead(table, false, csm) == -1
+                                && table.getColumnCount() > 0) {
+
+                            ((DefaultListSelectionModel)csm).moveLeadSelectionIndex(0);
+                        }
                     } else {
                         // casting should be safe since the action is only enabled
                         // for DefaultListSelectionModel
                         ((DefaultListSelectionModel)csm).moveLeadSelectionIndex(leadColumn);
+                        if (getAdjustedLead(table, true, rsm) == -1
+                                && table.getRowCount() > 0) {
+
+                            ((DefaultListSelectionModel)rsm).moveLeadSelectionIndex(0);
+                        }
                     }
 
                     Rectangle cellRect = table.getCellRect(leadRow, leadColumn, false);
@@ -505,6 +528,11 @@ public class BasicTableUI extends TableUI
                     table.changeSelection(leadRow, leadColumn, false, extend);
                 }
                 else {
+                    if (table.getRowCount() <= 0 || table.getColumnCount() <= 0) {
+                        // bail - don't try to move selection on an empty table
+                        return;
+                    }
+
                     if (moveWithinSelectedRange(table, dx, dy, rsm, csm)) {
                         // this is the only way we have to set both the lead
                         // and the anchor without changing the selection
@@ -638,10 +666,8 @@ public class BasicTableUI extends TableUI
                 // into the cell and begin editing. In both of these cases
                 // this action will be disabled.
                 JTable table = (JTable)sender;
-                int leadRow = table.getSelectionModel().
-                                  getLeadSelectionIndex();
-                int leadCol = table.getColumnModel().getSelectionModel().
-                                  getLeadSelectionIndex();
+                int leadRow = getAdjustedLead(table, true);
+                int leadCol = getAdjustedLead(table, false);
                 return !(table.isEditing() || table.isCellSelected(leadRow, leadCol));
             }
 
@@ -752,14 +778,12 @@ public class BasicTableUI extends TableUI
 
         // FocusListener
         private void repaintLeadCell( ) {
-	    int rc = table.getRowCount();
-	    int cc = table.getColumnCount();
-            int lr = table.getSelectionModel().getLeadSelectionIndex();
-            int lc = table.getColumnModel().getSelectionModel().
-                    getLeadSelectionIndex();
-	    if (lr < 0 || lr >= rc || lc < 0 || lc >= cc) {
-		return;
-	    }
+            int lr = getAdjustedLead(table, true);
+            int lc = getAdjustedLead(table, false);
+
+            if (lr < 0 || lc < 0) {
+                return;
+            }
 
             Rectangle dirtyRect = table.getCellRect(lr, lc, false);
             table.repaint(dirtyRect);
@@ -806,9 +830,8 @@ public class BasicTableUI extends TableUI
                 return;
             }
 
-            int leadRow = table.getSelectionModel().getLeadSelectionIndex();
-            int leadColumn = table.getColumnModel().getSelectionModel().
-                    getLeadSelectionIndex();
+            int leadRow = getAdjustedLead(table, true);
+            int leadColumn = getAdjustedLead(table, false);
             if (leadRow != -1 && leadColumn != -1 && !table.isEditing()) {
                 if (!table.editCellAt(leadRow, leadColumn)) {
                     return;
@@ -957,16 +980,31 @@ public class BasicTableUI extends TableUI
                 int anchorRow = rm.getAnchorSelectionIndex();
                 int anchorCol = cm.getAnchorSelectionIndex();
 
-                if (table.isCellSelected(anchorRow, anchorCol)) {
+                boolean anchorSelected = true;
+                if (anchorRow == -1 || anchorRow >= table.getRowCount()) {
+                    anchorRow = 0;
+                    anchorSelected = false;
+                }
+
+                if (anchorCol == -1 || anchorCol >= table.getColumnCount()) {
+                    anchorCol = 0;
+                    anchorSelected = false;
+                }
+
+                if (anchorSelected && table.isCellSelected(anchorRow, anchorCol)) {
                     rm.addSelectionInterval(anchorRow, row);
                     cm.addSelectionInterval(anchorCol, column);
                 } else {
                     rm.removeSelectionInterval(anchorRow, row);
-                    rm.addSelectionInterval(row, row);
-                    rm.setAnchorSelectionIndex(anchorRow);
                     cm.removeSelectionInterval(anchorCol, column);
-                    cm.addSelectionInterval(column, column);
-                    cm.setAnchorSelectionIndex(anchorCol);
+
+                    // This is only to match the windows explorer behavior in JFileChooser
+                    if (isFileList) {
+                        rm.addSelectionInterval(row, row);
+                        rm.setAnchorSelectionIndex(anchorRow);
+                        cm.addSelectionInterval(column, column);
+                        cm.setAnchorSelectionIndex(anchorCol);
+                    }
                 }
             } else {
                 table.changeSelection(row, column, ctrl, !ctrl && e.isShiftDown());
@@ -1021,7 +1059,54 @@ public class BasicTableUI extends TableUI
                 return;
             }
 
-	    table.changeSelection(row, column, false, true);
+            if (e.isControlDown()) {
+                ListSelectionModel cm = table.getColumnModel().getSelectionModel();
+                ListSelectionModel rm = table.getSelectionModel();
+                int colAnchor = cm.getAnchorSelectionIndex();
+                int rowAnchor = rm.getAnchorSelectionIndex();
+
+                boolean selected = true;
+
+                if (rowAnchor == -1 || rowAnchor >= table.getRowCount()) {
+                    rowAnchor = 0;
+                    selected = false;
+                }
+
+                if (colAnchor == -1 || colAnchor >= table.getColumnCount()) {
+                    colAnchor = 0;
+                    selected = false;
+                }
+
+                selected = selected && table.isCellSelected(rowAnchor, colAnchor);
+
+                changeSelectionModel(cm, colAnchor, selected, column);
+                changeSelectionModel(rm, rowAnchor, selected, row);
+
+                // From JTable.changeSelection():
+                // Scroll after changing the selection as blit scrolling is immediate,
+                // so that if we cause the repaint after the scroll we end up painting
+                // everything!
+                if (table.getAutoscrolls()) {
+                    Rectangle cellRect = table.getCellRect(row, column, false);
+                    if (cellRect != null) {
+                        table.scrollRectToVisible(cellRect);
+                    }
+                }
+            } else {
+                table.changeSelection(row, column, false, true);
+            }
+        }
+
+        private void changeSelectionModel(ListSelectionModel sm,
+                                          int anchorIndex,
+                                          boolean anchorSelected,
+                                          int index) {
+
+            if (anchorSelected) {
+                sm.addSelectionInterval(anchorIndex, index);
+            } else {
+                sm.removeSelectionInterval(anchorIndex, index);
+            }
         }
 
 
@@ -1986,6 +2071,20 @@ public class BasicTableUI extends TableUI
             rendererPane.paintComponent(g, component, table, cellRect.x, cellRect.y,
                                         cellRect.width, cellRect.height, true);
         }
+    }
+
+    private static int getAdjustedLead(JTable table,
+                                       boolean row,
+                                       ListSelectionModel model) {
+
+        int index = model.getLeadSelectionIndex();
+        int compare = row ? table.getRowCount() : table.getColumnCount();
+        return index < compare ? index : -1;
+    }
+
+    private static int getAdjustedLead(JTable table, boolean row) {
+        return row ? getAdjustedLead(table, row, table.getSelectionModel())
+                   : getAdjustedLead(table, row, table.getColumnModel().getSelectionModel());
     }
 
 

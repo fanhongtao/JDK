@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities2.java	1.27 05/05/03
+ * @(#)SwingUtilities2.java	1.28 05/08/08
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import java.io.*;
  * releases and even patch releases. You should not rely on this class even
  * existing.
  *
- * @version 1.27 05/03/05
+ * @version 1.28 08/08/05
  */
 public class SwingUtilities2 {
     // Maintain a cache of CACHE_SIZE fonts and the left side bearing
@@ -1086,8 +1086,6 @@ public class SwingUtilities2 {
                 });
 
                 if (buffer == null) {
-                    System.err.println(baseClass.getName() + "/" + 
-                                       imageFile + " not found.");
                     return null;
                 }
                 if (buffer.length == 0) {

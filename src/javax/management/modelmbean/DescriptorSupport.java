@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorSupport.java
  * @(#)author    IBM Corp.
- * @(#)version   1.50
- * @(#)lastedit      05/05/27
+ * @(#)version   1.52
+ * @(#)lastedit      05/07/26
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -33,9 +33,6 @@ import java.io.ObjectStreamField;
 import java.lang.reflect.Constructor;
 
 import java.security.AccessController;
-import java.security.PrivilegedAction;
-
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,11 +41,12 @@ import java.util.StringTokenizer;
 
 import javax.management.RuntimeOperationsException;
 import javax.management.MBeanException;
-import javax.management.Descriptor;
 
 import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 import com.sun.jmx.trace.Trace;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 
 /**
@@ -111,7 +109,7 @@ public class DescriptorSupport
 	String form = null;
 	boolean compat = false;
 	try {
-	    PrivilegedAction act = new GetPropertyAction("jmx.serial.form");
+	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
 	    form = (String) AccessController.doPrivileged(act);
 	    compat = "1.0".equals(form);  // form may be null
 	} catch (Exception e) {
@@ -132,8 +130,8 @@ public class DescriptorSupport
     /* Spec says that field names are case-insensitive, but that case
        is preserved.  This means that we need to be able to map from a
        name that may differ in case to the actual name that is used in
-       the HashMap.  Thus, descriptorMap is indexed by CaseIgnoreString
-       rather than plain String.
+       the HashMap.  Thus, descriptorMap is a TreeMap with a Comparator
+       that ignores case.
 
        Previous versions of this class had a field called "descriptor"
        of type HashMap where the keys were directly Strings.  This is
@@ -141,7 +139,7 @@ public class DescriptorSupport
        that field virtually during serialization and deserialization
        but keep the real information in descriptorMap.
     */
-    private transient Map/*<CaseIgnoreString,Object>*/ descriptorMap;
+    private transient SortedMap<String, Object> descriptorMap;
 
     private static final int DEFAULT_SIZE = 20;
     private static final String currClass = "DescriptorSupport";
@@ -153,13 +151,10 @@ public class DescriptorSupport
      * Note that the created empty descriptor is not a valid descriptor
      * (the method {@link #isValid isValid} returns <CODE>false</CODE>)
      */
-    public DescriptorSupport()
-    {
-	if (tracing())
-	    {
-		trace("Descriptor()","Constructor");
-	    }
-	descriptorMap = new HashMap(DEFAULT_SIZE);
+    public DescriptorSupport() {
+        if (tracing())
+            trace("DescriptorSupport()", "Constructor");
+        init(null);
     }
 
     /**
@@ -178,10 +173,10 @@ public class DescriptorSupport
      */
     public DescriptorSupport(int initNumFields)
 	    throws MBeanException, RuntimeOperationsException {
-	if (tracing()) {
-	    trace("Descriptor(maxNumFields = " + initNumFields + ")",
-		  "Constructor");
-	}
+        if (tracing()) {
+            trace("Descriptor(initNumFields=" + initNumFields + ")",
+                  "Constructor");
+        }
 	if (initNumFields <= 0) {
 	    if (tracing()) {
 		trace("Descriptor(maxNumFields)",
@@ -192,7 +187,7 @@ public class DescriptorSupport
 	    final RuntimeException iae = new IllegalArgumentException(msg);
 	    throw new RuntimeOperationsException(iae, msg);
 	}
-	descriptorMap = new HashMap(initNumFields);
+        init(null);
     }
 
     /**
@@ -208,11 +203,10 @@ public class DescriptorSupport
 	if (tracing()) {
 	    trace("Descriptor(Descriptor)","Constructor");
 	}
-	if (inDescr == null) {
-	    descriptorMap = new HashMap(DEFAULT_SIZE);
-	} else {
-	    descriptorMap = new HashMap(inDescr.descriptorMap);
-	}
+	if (inDescr == null)
+            init(null);
+        else
+            init(inDescr.descriptorMap);
     }
 
 
@@ -272,7 +266,7 @@ public class DescriptorSupport
 	}
 
 	// parse xmlstring into structures
-	descriptorMap = new HashMap(DEFAULT_SIZE);
+        init(null);
 	// create dummy descriptor: should have same size
 	// as number of fields in xmlstring
 	// loop through structures and put them in descriptor
@@ -377,9 +371,7 @@ public class DescriptorSupport
 	}
 
 	/* populate internal structure with fields */
-	descriptorMap = new HashMap(fieldNames.length);
-	// a field value can be "null"
-
+        init(null);
 	for (int i=0; i < fieldNames.length; i++) {
 	    // setField will throw an exception if a fieldName is be null.
 	    // the fieldName and fieldValue will be validated in setField.
@@ -419,12 +411,11 @@ public class DescriptorSupport
 	if (tracing()) {
 	    trace("Descriptor(fields)","Constructor");
 	}
-	if (( fields == null ) || ( fields.length == 0)) {
-	    descriptorMap = new HashMap(DEFAULT_SIZE);
-	    return;
-	}
+        init(null);
+	if (( fields == null ) || ( fields.length == 0))
+            return;
 
-	descriptorMap = new HashMap(fields.length);
+        init(null);
 
 	for (int i=0; i < fields.length; i++) {
 	    if ((fields[i] == null) || (fields[i].equals(""))) {
@@ -467,6 +458,13 @@ public class DescriptorSupport
 	    trace("Descriptor(fields)","Exit");
 	}
     }
+    
+    private void init(Map<String, ?> initMap) {
+        descriptorMap =
+                new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
+        if (initMap != null)
+            descriptorMap.putAll(initMap);
+    }
 
     // Implementation of the Descriptor interface
 
@@ -493,7 +491,7 @@ public class DescriptorSupport
 	    final RuntimeException iae = new IllegalArgumentException(msg);
 	    throw new RuntimeOperationsException(iae, msg);
 	}
-	Object retValue = descriptorMap.get(new CaseIgnoreString(inFieldName));
+	Object retValue = descriptorMap.get(inFieldName);
 	if (tracing()) {
 	    trace("getField(" + inFieldName + ")",
 		  "Returns '" + retValue + "'");
@@ -505,7 +503,7 @@ public class DescriptorSupport
      * Sets the string value for a specific fieldname. The value
      * must be valid for the field (as defined in method {@link
      * #isValid isValid}).  If the field does not exist, it is
-     * added at the end of the Descriptor.  If it does exist, the
+     * added to the Descriptor.  If it does exist, the
      * value is replaced.
      *
      * @param inFieldName The field name to be set. Must
@@ -551,7 +549,10 @@ public class DescriptorSupport
 	    }
 	}
 
-	descriptorMap.put(new CaseIgnoreString(inFieldName), fieldValue);
+        // Since we do not remove any existing entry with this name,
+	// the field will preserve whatever case it had, ignoring
+	// any difference there might be in inFieldName.
+	descriptorMap.put(inFieldName, fieldValue);
     }
 
     /**
@@ -810,7 +811,7 @@ public class DescriptorSupport
 	    return;
 	}
 
-	descriptorMap.remove(new CaseIgnoreString(fieldName));
+	descriptorMap.remove(fieldName);
     }
 
 
@@ -1065,7 +1066,8 @@ public class DescriptorSupport
 	"\n&#10;",
 	"\f&#12;",
     };
-    private static final Map entityToCharMap = new HashMap();
+    private static final Map<String,Character> entityToCharMap =
+	new HashMap<String,Character>();
     private static final String[] charToEntityMap;
 
     static {
@@ -1284,53 +1286,6 @@ public class DescriptorSupport
 	return result;
     }
 
-    /*  Wrapper for String that can be used as a case-insensitive key
-	in a Map.  Currently, we make a new instance of this class
-	every time we need a key.  Since both this class and String
-	are immutable, we could reasonably have a WeakHashMap to
-	generate canonical instances of this class.  Thus, every time
-	you put a "displayName" field in your descriptor, we'd use
-	the same CaseIgnoreString instance to represent it.  The
-	semantics would be that an entry would remain in the
-	WeakHashMap so long as there is at least one extant
-	DescriptorSupport using it; this could be achieved by wrapping
-	the CaseIgnoreString value in the WeakHashMap inside a
-	WeakReference.  Thus, if there is a DescriptorSupport then it
-	strongly-references the CaseIgnoreString via descriptorMap,
-	and the CaseIgnoreString strong-references the String
-	instance, preventing the WeakHashMap entry from disappearing.
-
-	It's not clear that this would really be worth the effort,
-	though.
-    */
-    private static class CaseIgnoreString {
-	private String string;
-
-	CaseIgnoreString(String string) {
-	    this.string = string;
-	}
-
-	public String toString() {
-	    return string;
-	}
-
-	public boolean equals(Object o) {
-	    return (o instanceof CaseIgnoreString &&
-		    ((CaseIgnoreString) o).string.equalsIgnoreCase(string));
-	}
-
-	/* We don't bother caching hashCode() values even though they are
-	   a bit expensive to compute, because they will typically only be
-	   computed once for any given instance, when that instance is
-	   used as a key in a method of descriptorMap.  If at some later
-	   stage we keep e.g. a WeakHashMap of canonical CaseIgnoreString
-	   instances for each String, then it would be worth caching the
-	   hashCode().  */
-	public int hashCode() {
-	    return string.toLowerCase().hashCode();
-	}
-    }
-
 
     // Trace and debug functions
 
@@ -1356,11 +1311,8 @@ public class DescriptorSupport
 	    throws IOException, ClassNotFoundException {
 	ObjectInputStream.GetField fields = in.readFields();
 	Map descriptor = (Map) fields.get("descriptor", null);
-	descriptorMap = new HashMap();
-	for (Iterator it = descriptor.entrySet().iterator(); it.hasNext(); ) {
-	    Map.Entry entry = (Map.Entry) it.next();
-	    setField((String) entry.getKey(), entry.getValue());
-	}
+	init(null);
+        descriptorMap.putAll(descriptor);
     }
 
 
@@ -1383,17 +1335,14 @@ public class DescriptorSupport
 	boolean compat = "1.0".equals(serialForm);
 	if (compat)
 	    fields.put("currClass", currClass);
-	boolean forceLowerCase = (compat || "1.2.0".equals(serialForm) ||
-				  "1.2.1".equals(serialForm));
-	Map descriptor = new HashMap();
-	for (Iterator it = descriptorMap.entrySet().iterator();
-	     it.hasNext(); ) {
-	    Map.Entry entry = (Map.Entry) it.next();
-	    String fieldName = entry.getKey().toString();
-	    if (forceLowerCase)
-		fieldName = fieldName.toLowerCase();
-	    descriptor.put(fieldName, entry.getValue());
-	}
+	final HashMap<String, Object> descriptor;
+	if (compat || "1.2.0".equals(serialForm) ||
+                "1.2.1".equals(serialForm)) {
+            descriptor = new HashMap<String, Object>();
+            for (Map.Entry<String, Object> entry : descriptorMap.entrySet())
+                descriptor.put(entry.getKey().toLowerCase(), entry.getValue());
+        } else
+            descriptor = new HashMap<String, Object>(descriptorMap);
 	fields.put("descriptor", descriptor);
 	out.writeFields();
     }

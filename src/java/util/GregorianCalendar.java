@@ -1,5 +1,5 @@
 /*
- * @(#)GregorianCalendar.java	1.86 05/01/04
+ * @(#)GregorianCalendar.java	1.87 05/09/12
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -275,7 +275,7 @@ import sun.util.calendar.ZoneInfo;
  * </blockquote>
  *
  * @see          TimeZone
- * @version      1.86
+ * @version      1.87
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1960,15 +1960,14 @@ public class GregorianCalendar extends Calendar {
 	    // Determine which calendar fields need to be computed.
 	    mask = getSetStateFields();
 	    int fieldMask = ~mask & ALL_FIELDS;
-	    mask |= computeFields(fieldMask,
-				  (mask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK))
-				  == (ZONE_OFFSET_MASK|DST_OFFSET_MASK) ? fields : null,
-				  ZONE_OFFSET);
-	    assert mask == ALL_FIELDS;
+	    if (fieldMask != 0) {
+		mask |= computeFields(fieldMask,
+				      mask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK));
+		assert mask == ALL_FIELDS;
+	    }
 	} else {
-	    // Specify all fields
 	    mask = ALL_FIELDS;
-	    computeFields(mask, null, 0);
+	    computeFields(mask, 0);
 	}
 	// After computing all the fields, set the field state to `COMPUTED'.
 	setFieldsComputed(mask);
@@ -1983,25 +1982,18 @@ public class GregorianCalendar extends Calendar {
      *
      * @param fieldMask a bit mask to specify which fields to change
      * the setting state.
-     * @param offsets an <code>int</code> array having time zone
-     * offset values at 'time', or <code>null</code> if time zone
-     * offsets are not known. The <code>int</code> array must be
-     * either <code>zoneOffsets[]</code> or <code>fields[]</code>.
-     * @param index an index to <code>offsets[]</code>. Must be 0 for
-     * <code>zoneOffsets[]</code> or <code>ZONE_OFFSET</code> for
-     * <code>fields[]</code>.
+     * @param tzMask a bit mask to specify which time zone offset
+     * fields to be used for time calculations
      * @return a new field mask that indicates what field values have
      * actually been set.
      */
-    private int computeFields(int fieldMask, int[] offsets, int index) {
-	int zoneOffset;
-	if (offsets != null) {
-	    zoneOffset = offsets[index] + offsets[index + 1];
-	} else {
-	    TimeZone tz = getZone();
-	    if (zoneOffsets == null) {
-		zoneOffsets = new int[2];
-	    }
+    private int computeFields(int fieldMask, int tzMask) {
+	int zoneOffset = 0;
+	TimeZone tz = getZone();
+	if (zoneOffsets == null) {
+	    zoneOffsets = new int[2];
+	}
+	if (tzMask != (ZONE_OFFSET_MASK|DST_OFFSET_MASK)) {
 	    if (tz instanceof ZoneInfo) {
 		zoneOffset = ((ZoneInfo)tz).getOffsets(time, zoneOffsets);
 	    } else {
@@ -2009,6 +2001,15 @@ public class GregorianCalendar extends Calendar {
 		zoneOffsets[0] = tz.getRawOffset();
 		zoneOffsets[1] = zoneOffset - zoneOffsets[0];
 	    }
+	}
+	if (tzMask != 0) {
+	    if (isFieldSet(tzMask, ZONE_OFFSET)) {
+		zoneOffsets[0] = internalGet(ZONE_OFFSET);
+	    }
+	    if (isFieldSet(tzMask, DST_OFFSET)) {
+		zoneOffsets[1] = internalGet(DST_OFFSET);
+	    }
+	    zoneOffset = zoneOffsets[0] + zoneOffsets[1];
 	}
 
 	// By computing time and zoneOffset separately, we can take
@@ -2117,11 +2118,8 @@ public class GregorianCalendar extends Calendar {
 	}
 
 	if ((fieldMask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK)) != 0) {
-	    // Avoid setting fields[] to fields[]
-	    if (offsets != fields) {
-		internalSet(ZONE_OFFSET, zoneOffsets[0]);
-		internalSet(DST_OFFSET, zoneOffsets[1]);
-	    }
+	    internalSet(ZONE_OFFSET, zoneOffsets[0]);
+	    internalSet(DST_OFFSET, zoneOffsets[1]);
 	    mask |= (ZONE_OFFSET_MASK|DST_OFFSET_MASK);
 	}
 
@@ -2420,25 +2418,22 @@ public class GregorianCalendar extends Calendar {
 	if (zoneOffsets == null) {
 	    zoneOffsets = new int[2];
 	}
-	if (zone instanceof ZoneInfo) {
-	    if ((fieldMask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK))
-		!= (ZONE_OFFSET_MASK|DST_OFFSET_MASK)) {
+	int tzMask = fieldMask & (ZONE_OFFSET_MASK|DST_OFFSET_MASK);
+	if (tzMask != (ZONE_OFFSET_MASK|DST_OFFSET_MASK)) {
+	    if (zone instanceof ZoneInfo) {
 		((ZoneInfo)zone).getOffsetsByWall(millis, zoneOffsets);
+	    } else {
+		int gmtOffset = isFieldSet(fieldMask, ZONE_OFFSET) ?
+				    internalGet(ZONE_OFFSET) : zone.getRawOffset();
+		zone.getOffsets(millis - gmtOffset, zoneOffsets);
 	    }
-	    if (isFieldSet(fieldMask, ZONE_OFFSET)) {
+	}
+	if (tzMask != 0) {
+	    if (isFieldSet(tzMask, ZONE_OFFSET)) {
 		zoneOffsets[0] = internalGet(ZONE_OFFSET);
 	    }
-	    if (isFieldSet(fieldMask, DST_OFFSET)) {
+	    if (isFieldSet(tzMask, DST_OFFSET)) {
 		zoneOffsets[1] = internalGet(DST_OFFSET);
-	    }
-	} else {
-	    zoneOffsets[0] = isFieldSet(fieldMask, ZONE_OFFSET) ?
-				internalGet(ZONE_OFFSET) : zone.getRawOffset();
-	    if (isFieldSet(fieldMask, DST_OFFSET)) {
-		zoneOffsets[1] = internalGet(DST_OFFSET);
-	    } else {
-		zoneOffsets[1] = zone.getOffsets(millis - (long)zoneOffsets[0], null)
-		    - zoneOffsets[0];
 	    }
 	}
 
@@ -2448,7 +2443,7 @@ public class GregorianCalendar extends Calendar {
 	// Set this calendar's time in milliseconds
 	time = millis;
 
-	int mask = computeFields(fieldMask | getSetStateFields(), null, 0);
+	int mask = computeFields(fieldMask | getSetStateFields(), tzMask);
 
 	if (!isLenient()) {
 	    for (int field = 0; field < FIELD_COUNT; field++) {
@@ -2835,8 +2830,6 @@ public class GregorianCalendar extends Calendar {
      * calendar fields must be in synch.
      */
     private final long getCurrentFixedDate() {
-	assert isTimeSet && areFieldsSet
-	    && ((calsys == gcal) ? cachedFixedDate != Long.MIN_VALUE : true);
 	return (calsys == gcal) ? cachedFixedDate : calsys.getFixedDate(cdate);
     }
 
