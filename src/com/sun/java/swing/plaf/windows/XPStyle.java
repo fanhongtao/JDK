@@ -1,5 +1,5 @@
 /*
- * @(#)XPStyle.java	1.23 06/03/22
+ * @(#)XPStyle.java	1.25 06/09/02
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import sun.swing.CachedPainter;
 /**
  * Implements Windows XP Styles for the Windows Look and Feel.
  *
- * @version 1.23 03/22/06
+ * @version 1.25 09/02/06
  * @author Leif Samuelsson
  */
 class XPStyle {
@@ -308,7 +308,11 @@ class XPStyle {
                     if (getBoolean(c, category, null, "borderonly")) {
                         border = new XPImageBorder(c, category);
                     } else {
-                        border = new XPEmptyBorder(m);
+                        if(category == "toolbar.button") {
+                            border = new XPEmptyBorder(new Insets(3,3,3,3));
+                        } else {
+                            border = new XPEmptyBorder(m);
+                        }
                     }
                 }
             }
@@ -403,7 +407,18 @@ class XPStyle {
         public Insets getBorderInsets(Component c, Insets insets)       {
             Insets margin = null;
             if (c instanceof AbstractButton) {
-                margin = ((AbstractButton)c).getMargin();
+                Insets m = ((AbstractButton)c).getMargin();
+                // if this is a toolbar button then ignore getMargin()
+                // and subtract the padding added by the constructor
+                if(c.getParent() instanceof JToolBar &&
+                        m instanceof InsetsUIResource) {
+                    insets.top -= 2;
+                    insets.left -= 2;
+                    insets.bottom -= 2;
+                    insets.right -= 2;
+                } else {
+                    margin = m;
+                }
             } else if (c instanceof JToolBar) {
                 margin = ((JToolBar)c).getMargin();
             } else if (c instanceof JTextComponent) {
@@ -513,6 +528,15 @@ class XPStyle {
          * @param index which subimage to paint (usually depends on component state)
          */
         void paintSkin(Graphics g, int dx, int dy, int dw, int dh, int index) {
+            skinPainter.paint(null, g, dx, dy, dw, dh, category, index);
+        }
+
+        void paintSkin(Graphics g, int dx, int dy, int dw, int dh, int index, 
+                boolean borderFill) {
+            String bgType = getEnumName(null, category, null, "bgtype");
+            if (borderFill && "borderfill".equalsIgnoreCase(bgType)) {
+                return;
+            }
             skinPainter.paint(null, g, dx, dy, dw, dh, category, index);
         }
     }

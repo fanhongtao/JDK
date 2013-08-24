@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsToolBarUI.java	1.15 06/03/22
+ * @(#)WindowsToolBarUI.java	1.17 06/09/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,6 +9,7 @@ package com.sun.java.swing.plaf.windows;
 
 import java.awt.*;
 
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JToggleButton;
 import javax.swing.UIDefaults;
@@ -56,11 +57,19 @@ public class WindowsToolBarUI extends BasicToolBarUI {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    String category = "toolbar";
-	    xp.getSkin(c, category).paintSkin(g, 0, 0, c.getWidth(), c.getHeight(), 0);
+	    xp.getSkin(c, category).paintSkin(g, 0, 0,
+                       c.getWidth(), c.getHeight(), 0, true);
 	} else {
 	    super.paint(g, c);
 	}
     }
 
+    static Border getRolloverBorder(AbstractButton b) {
+        XPStyle xp = XPStyle.getXP();
+        if (xp != null) {
+            return xp.getBorder(b, WindowsButtonUI.getXPButtonType(b));
+        }
+        return null;
+    }
 }
 

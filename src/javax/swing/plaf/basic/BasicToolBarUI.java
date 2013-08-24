@@ -1,5 +1,5 @@
 /*
- * @(#)BasicToolBarUI.java	1.96 04/05/18
+ * @(#)BasicToolBarUI.java	1.97 06/08/25
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,6 +21,7 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
+import sun.swing.BorderProvider;
 
 
 /**
@@ -28,7 +29,7 @@ import sun.swing.UIAction;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.96 05/18/04
+ * @version 1.97 08/25/06
  * @author Georges Saab
  * @author Jeff Shapiro
  */
@@ -670,7 +671,7 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 
 	    // Only set the border if its the default border
 	    if (b.getBorder() instanceof UIResource) {
-		b.setBorder(rolloverBorder);
+		b.setBorder(getRolloverBorder(b));
 	    }
 
 	    rolloverTable.put(b, b.isRolloverEnabled()?
@@ -679,6 +680,15 @@ public class BasicToolBarUI extends ToolBarUI implements SwingConstants
 	}
     }
 
+    private Border getRolloverBorder(AbstractButton b) {
+        Object borderProvider = UIManager.get("ToolBar.rolloverBorderProvider");
+        if(borderProvider == null) {
+            return rolloverBorder;
+        }
+        
+        return ((BorderProvider) borderProvider).getRolloverBorder(b);
+    }
+    
     /**
      * Sets the border of the component to have a non-rollover border which
      * was created by <code>createNonRolloverBorder</code>. 

@@ -5,36 +5,41 @@ Use of any of this software is governed by the terms of the license below:
 
 Copyright 1999 by CoolServlets.com.
 
-Any errors or suggested improvements to this class can be reported as instructed 
-on CoolServlets.com. We hope you enjoy this program... your comments will encourage 
-further development!
+Any errors or suggested improvements to this class can be reported as 
+instructed on CoolServlets.com. We hope you enjoy this program... 
+your comments will encourage further development!
+
 This software is distributed under the terms of the BSD License.
-Redistribution and use in source and binary forms, with or without modification, are 
-permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice, this list 
-   of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this 
-   list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the distribution.
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
 
-Neither name of CoolServlets.com nor the names of its contributors may be used to 
-endorse or promote products derived from this software without specific prior written 
-permission.
+1. Redistributions of source code must retain the above copyright notice, 
+   this list of conditions and the following disclaimer.
 
-THIS SOFTWARE IS PROVIDED BY COOLSERVLETS.COM AND CONTRIBUTORS ``AS IS'' AND ANY 
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
-SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR 
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+2. Redistributions in binary form must reproduce the above copyright notice, 
+   this list of conditions and the following disclaimer in the documentation 
+   and/or other materials provided with the distribution.
+
+Neither name of CoolServlets.com nor the names of its contributors may be 
+used to endorse or promote products derived from this software without 
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY COOLSERVLETS.COM AND CONTRIBUTORS ``AS IS'' 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR 
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
 SUCH DAMAGE."
 
-%% The following software may be included in this product: Crimson v1.1.1 ; Use of 
-any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: 
+Crimson v1.1.1 ; Use of any of this software is governed by the terms 
+of the license below: 
 
 /*
 * The Apache Software License, Version 1.1
@@ -303,19 +308,20 @@ Use of any of this software is governed by the terms of the license below:
 
 
 
-%% The following software may be included in this product: NSIS 1.0j; Use of 
-any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: NSIS 1.0j; 
+Use of any of this software is governed by the terms of the license below: 
 
 Copyright (C) 1999-2000 Nullsoft, Inc.
 This software is provided 'as-is', without any express or implied warranty. 
 In no event will the authors be held liable for any damages arising from the 
 use of this software. Permission is granted to anyone to use this software for 
-any purpose, including commercial applications, and to alter it and redistribute 
-it freely, subject to the following restrictions:
-1. The origin of this software must not be misrepresented; you must not claim that 
-   you wrote the original software. If you use this software in a product, an 
-   acknowledgment in the product documentation would be appreciated but is not 
-   required.
+any purpose, including commercial applications, and to alter it and 
+redistribute it freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not 
+   claim that you wrote the original software. If you use this software 
+   in a product, an acknowledgment in the product documentation would be 
+   appreciated but is not required.
 2. Altered source versions must be plainly marked as such, and must not 
    be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
@@ -326,13 +332,13 @@ http://oss.software.ibm.com/icu4j/
 
 %% Portions Copyright Eastman Kodak Company 1992
 
-%% Lucida is a registered trademark or trademark  of Bigelow & Holmes in the U.S. 
-and other countries.
+%% Lucida is a registered trademark or trademark  of Bigelow & Holmes in 
+   the U.S. and other countries.
 
 %% Portions licensed from Taligent, Inc.
 
-%% The following software may be included in this product:IAIK PKCS Wrapper; Use of 
-any of this software is governed by the terms of the license below:
+%% The following software may be included in this product:IAIK PKCS Wrapper; 
+   Use of any of this software is governed by the terms of the license below:
 
 Copyright (c) 2002 Graz University of Technology. All rights reserved.
 
@@ -376,73 +382,67 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
-%% The following software may be included in this product: Document Object Model (DOM) v. Level 3; Use of 
-any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: 
+   Document Object Model (DOM) v. Level 3; 
+   Use of any of this software is governed by the terms of the license below: 
 
 W3Cýý SOFTWARE NOTICE AND LICENSE
 
 http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
 
 This work (and included software, documentation such as READMEs, or other 
-related items) is being
-provided by the copyright holders under the following license. By obtaining, 
-using and/or copying this work, you
-(the licensee) agree that you have read, understood, and will comply with the 
-following terms and conditions.
+related items) is being provided by the copyright holders under the following 
+license. By obtaining, using and/or copying this work, you (the licensee) 
+agree that you have read, understood, and will comply with the following 
+terms and conditions.
 
-Permission to copy, modify, and distribute this software and its documentation, 
-with or without modification, for
-any purpose and without fee or royalty is hereby granted, provided that you 
-include the following on ALL copies
-of the software and documentation or portions thereof, including modifications:
+Permission to copy, modify, and distribute this software and its documentation,
+ with or without modification, for any purpose and without fee or royalty is 
+hereby granted, provided that you include the following on ALL copies of the 
+software and documentation or portions thereof, including modifications:
 
-   1.The full text of this NOTICE in a location viewable to users of the 
-redistributed or derivative work. 
-   2.Any pre-existing intellectual property disclaimers, notices, or terms and 
-conditions. If none exist, the
-     W3C Software Short Notice should be included (hypertext is preferred, text 
-is permitted) within the body
+   1.The full text of this NOTICE in a location viewable to users of the
+     redistributed or derivative work. 
+   2.Any pre-existing intellectual property disclaimers, notices, or terms 
+     and conditions. If none exist, the W3C Software Short Notice should be 
+     included (hypertext is preferred, text is permitted) within the body 
      of any redistributed or derivative code. 
-   3.Notice of any changes or modifications to the files, including the date 
-changes were made. (We
-     recommend you provide URIs to the location from which the code is derived.) 
+   3.Notice of any changes or modifications to the files, including the date
+     changes were made. (We recommend you provide URIs to the location from 
+     which the code is derived.) 
 
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
-NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
-TO,
-WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE
-USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS,
-COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS 
+MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT 
+NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR 
+PURPOSE OR THAT THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE 
+ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 
 COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
 CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
 
-The name and trademarks of copyright holders may NOT be used in advertising or 
-publicity pertaining to the
-software without specific, written prior permission. Title to copyright in this 
-software and any associated
+The name and trademarks of copyright holders may NOT be used in advertising 
+or publicity pertaining to the software without specific, written prior 
+permission. Title to copyright in this software and any associated 
 documentation will at all times remain with copyright holders.
 
 ____________________________________
 
-This formulation of W3C's notice and license became active on December 31 2002. 
-This version removes the
-copyright ownership notice such that this license can be used with materials 
-other than those owned by the
-W3C, reflects that ERCIM is now a host of the W3C, includes references to this 
-specific dated version of the
-license, and removes the ambiguous grant of "use". Otherwise, this version is 
-the same as the previous
-version and is written so as to preserve the Free Software Foundation's 
-assessment of GPL compatibility and
-OSI's certification under the Open Source Definition. Please see our Copyright 
-FAQ for common questions
-about using materials from our site, including specific terms and conditions for 
-packages like libwww, Amaya,
+This formulation of W3C's notice and license became active on December 31 2002.
+
+This version removes the copyright ownership notice such that this license 
+can be used with materials other than those owned by the W3C, reflects that 
+ERCIM is now a host of the W3C, includes references to this specific dated 
+version of the license, and removes the ambiguous grant of "use". Otherwise, 
+this version is the same as the previous version and is written so as to 
+preserve the Free Software Foundation's assessment of GPL compatibility and 
+OSI's certification under the Open Source Definition. Please see our 
+Copyright FAQ for common questions about using materials from our site, 
+including specific terms and conditions for packages like libwww, Amaya, 
 and Jigsaw. Other questions about this notice can be directed to 
 site-policy@w3.org.
 
-%% The following software may be included in this product: Xalan, Xerces; Use of any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: Xalan, Xerces; 
+Use of any of this software is governed by the terms of the license below: 
 /*
  * The Apache Software License, Version 1.1
  *
@@ -499,12 +499,15 @@ site-policy@w3.org.
  * information on the Apache Software Foundation, please see
  * 
 
-%%  The following software may be included in this product: W3C XML Conformance Test Suites v. 20020606; Use of any of this software is governed by the terms of the license below: 
+%%  The following software may be included in this product: 
+W3C XML Conformance Test Suites v. 20020606; 
+Use of any of this software is governed by the terms of the license below: 
 
 W3Cýý SOFTWARE NOTICE AND LICENSE
-Copyright ýý 1994-2002 World Wide Web Consortium, (Massachusetts Institute of
-Technology, Institut National de Recherche en Informatique et en Automatique,
-Keio University). All Rights Reserved. http://www.w3.org/Consortium/Legal/
+Copyright ýý 1994-2002 World Wide Web Consortium, 
+(Massachusetts Institute of Technology, Institut National de Recherche 
+en Informatique et en Automatique, Keio University). 
+All Rights Reserved. http://www.w3.org/Consortium/Legal/
 
 This W3C work (including software, documents, or other related items) is being
 provided by the copyright holders under the following license. By obtaining,
@@ -518,25 +521,26 @@ of the software and documentation or portions thereof, including modifications,
 that you make:
 
    1. The full text of this NOTICE in a location viewable to users of the
-redistributed or derivative work.
-   2. Any pre-existing intellectual property disclaimers, notices, or terms and
-conditions. If none exist, a short notice of the following form (hypertext is
-preferred, text is permitted) should be used within the body of any
-redistributed or derivative code: "Copyright ýý [$date-of-software] World Wide
-Web Consortium, (Massachusetts Institute of Technology, Institut National de
-Recherche en Informatique et en Automatique, Keio University). All Rights
-Reserved. http://www.w3.org/Consortium/Legal/"
-   3. Notice of any changes or modifications to the W3C files, including the
-date changes were made. (We recommend you provide URIs to the location from
-which the code is derived.)
+      redistributed or derivative work.
+   2. Any pre-existing intellectual property disclaimers, notices, or terms 
+      and conditions. If none exist, a short notice of the following form 
+      (hypertext is preferred, text is permitted) should be used within the 
+      body of any redistributed or derivative code: "Copyright ýý 
+      [$date-of-software] World Wide Web Consortium, (Massachusetts 
+      Institute of Technology, Institut National de Recherche en 
+      Informatique et en Automatique, Keio University). 
+      All Rights Reserved. http://www.w3.org/Consortium/Legal/"
+   3. Notice of any changes or modifications to the W3C files, including 
+      the date changes were made. (We recommend you provide URIs to the 
+      location from which the code is derived.)
 
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
-NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT
-THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY
-PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS 
+MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT 
+NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR 
+PURPOSE OR THAT THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE 
+ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
+COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR 
 CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
 
 The name and trademarks of copyright holders may NOT be used in advertising or
@@ -555,12 +559,14 @@ using materials from our site, including specific terms and conditions for
 packages like libwww, Amaya, and Jigsaw. Other questions about this notice can
 be directed to site-policy@w3.org.
  
-%% The following software may be included in this product: W3C XML Schema Test Collection v. 1.16.2; Use of any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: 
+W3C XML Schema Test Collection v. 1.16.2; 
+Use of any of this software is governed by the terms of the license below: 
 W3Cýýýý DOCUMENT NOTICE AND LICENSE
-Copyright ýýýý 1994-2002 World Wide Web Consortium, (Massachusetts Institute of
-Technology, Institut National de Recherche en Informatique et en Automatique,
-Keio University). All Rights Reserved.
-http://www.w3.org/Consortium/Legal/
+Copyright ýýýý 1994-2002 World Wide Web Consortium, 
+(Massachusetts Institute of Technology, Institut National de Recherche 
+en Informatique et en Automatique, Keio University). 
+All Rights Reserved.  http://www.w3.org/Consortium/Legal/
 
 Public documents on the W3C site are provided by the copyright holders under the
 following license. The software or Document Type Definitions (DTDs) associated
@@ -575,12 +581,13 @@ and without fee or royalty is hereby granted, provided that you include the
 following on ALL copies of the document, or portions thereof, that you use:
 
    1. A link or URL to the original W3C document.
-   2. The pre-existing copyright notice of the original author, or if it doesn't
-exist, a notice of the form: "Copyright ýýýý [$date-of-document] World Wide Web
-Consortium, (Massachusetts Institute of Technology, Institut National de
-Recherche en Informatique et en Automatique, Keio University). All Rights
-Reserved. http://www.w3.org/Consortium/Legal/" (Hypertext is preferred, but a
-textual representation is permitted.)
+   2. The pre-existing copyright notice of the original author, or if it 
+      doesn't exist, a notice of the form: "Copyright ýýýý 
+      [$date-of-document] World Wide Web Consortium, (Massachusetts 
+      Institute of Technology, Institut National de Recherche en 
+      Informatique et en Automatique, Keio University). All Rights
+      Reserved. http://www.w3.org/Consortium/Legal/" 
+      (Hypertext is preferred, but a textual representation is permitted.)
    3. If it exists, the STATUS of the W3C document.
 
 When space permits, inclusion of the full text of this NOTICE should be
@@ -620,7 +627,269 @@ about this notice can be directed to site-policy@w3.org.
 webmaster
 (last updated by reagle on 1999/04/99.) 
 
-%% The following software may be included in this product: Common Unix Printing System API Libraries (CUPS API library); Use of any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: Byte Code 
+Engineering Library (BCEL) v. 5; 
+Use of any of this software is governed by the terms of the license below: 
+
+Apache Software License 
+/*
+====================================================================
+* The Apache Software License, Version 1.1
+*
+* Copyright (c) 2001 The Apache Software Foundation.  All rights
+* reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions
+* are met:
+*
+* 1. Redistributions of source code must retain the above
+copyright
+*    notice, this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in
+*    the documentation and/or other materials provided with the
+*    distribution.
+*
+* 3. The end-user documentation included with the redistribution,
+*    if any, must include the following acknowledgment:
+*       "This product includes software developed by the
+*        Apache Software Foundation (http://www.apache.org/)."
+*    Alternately, this acknowledgment may appear in the software itself,
+*    if and wherever such third-party acknowledgments normally appear.
+*
+* 4. The names "Apache" and "Apache Software Foundation" and 
+*    "Apache BCEL" must not be used to endorse or promote products 
+*    derived from this software without prior written permission. For 
+*    written permission, please contact apache@apache.org.
+*
+* 5. Products derived from this software may not be called "Apache",
+*    "Apache BCEL", nor may "Apache" appear in their name, without 
+*    prior written permission of the Apache Software Foundation.
+*
+* THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
+* ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+* USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+* OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+* SUCH DAMAGE.
+*
+====================================================================
+*
+* This software consists of voluntary contributions made by many
+* individuals on behalf of the Apache Software Foundation.  For more
+* information on the Apache Software Foundation, please see
+* .
+*/
+
+
+
+%% The following software may be included in this product: Regexp, Regular 
+Expression Package v. 1.2; Use of any of this software is governed by the 
+terms of the license below: 
+
+The Apache Software License, Version 1.1
+
+Copyright (c) 2001 The Apache Software Foundation.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in
+the documentation and/or other materials provided with the
+distribution.
+
+3. The end-user documentation included with the redistribution,
+if any, must include the following acknowledgment:
+"This product includes software developed by the
+Apache Software Foundation (http://www.apache.org/)."
+Alternately, this acknowledgment may appear in the software itself,
+if and wherever such third-party acknowledgments normally appear.
+
+4. The names "Apache" and "Apache Software Foundation" and 
+"Apache Turbine" must not be used to endorse or promote products 
+derived from this software without prior written permission. For 
+written permission, please contact apache@apache.org.
+
+5. Products derived from this software may not be called "Apache",
+"Apache Turbine", nor may "Apache" appear in their name, without 
+prior written permission of the Apache Software Foundation.
+
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
+ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+                                                             
+====================================================================
+
+This software consists of voluntary contributions made by many
+individuals on behalf of the Apache Software Foundation.  For more
+information on the Apache Software Foundation, please see
+                                                             
+http://www.apache.org.
+
+%% The following software may be included in this product: CUP Parser 
+Generator for Java v. 0.10k; 
+Use of any of this software is governed by the terms of the license below: 
+
+CUP Parser Generator Copyright Notice, License, and Disclaimer
+
+Copyright 1996-1999 by Scott Hudson, Frank Flannery, C. Scott Ananian 
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted, provided that
+the above copyright notice appear in all copies and that both the copyright
+notice and this permission notice and warranty disclaimer appear in
+supporting documentation, and that the names of the authors or their employers
+not be used in advertising or publicity pertaining to distribution of
+the software without specific, written prior permission. 
+
+The authors and their employers disclaim all warranties with regard to this
+software, including all implied warranties of merchantability and
+fitness. In no event shall the authors or their employers be liable for any
+special, indirect or consequential damages or any damages whatsoever
+resulting from loss of use, data or profits, whether in an action of contract,
+negligence or other tortious action, arising out of or in connection with
+the use or performance of this software. 
+
+%% The following software may be included in this product: JLex: 
+A Lexical Analyzer Generator for Java v. 1.2.5; Use of any of this software 
+is governed by the terms of the license below: 
+JLEX COPYRIGHT NOTICE, LICENSE AND DISCLAIMER.
+
+Copyright 1996-2003 by Elliot Joel Berk and C. Scott Ananian 
+
+Permission to use, copy, modify, and distribute this software and its 
+documentation for any purpose and without fee is hereby granted, provided 
+that the above copyright notice appear in all copies and that both the 
+copyright notice and this permission notice and warranty disclaimer appear 
+in supporting documentation, and that the name of the authors or their 
+employers not be used in advertising or publicity pertaining to distribution 
+of the software without specific, written prior permission. 
+
+The authors and their employers disclaim all warranties with regard to this 
+software, including all implied warranties of merchantability and fitness. 
+In no event shall the authors or their employers be liable for any special, 
+indirect or consequential damages or any damages whatsoever resulting from 
+loss of use, data or profits, whether in an action of contract, negligence 
+or other tortious action, arising out of or in connection with the use or 
+performance of this software. 
+
+Java is a trademark of Sun Microsystems, Inc. 
+References to the Java programming language in relation to JLex are not 
+meant to imply that Sun endorses this product.                      
+
+%% The following software may be included in this product: SAX v. 2.0.1; 
+Use of any of this software is governed by the terms of the license below: 
+Copyright Status
+
+SAX is free!
+
+In fact, it's not possible to own a license to SAX, since it's been placed 
+in the public domain. 
+
+No Warranty
+
+Because SAX is released to the public domain, there is no warranty for 
+the design or for the software implementation, to the extent permitted by 
+applicable law. Except when otherwise stated in writing the copyright 
+holders and/or other parties provide SAX "as is" without warranty of any 
+kind, either expressed or implied, including, but not limited to, the 
+implied warranties of merchantability and fitness for a particular purpose. 
+The entire risk as to the quality and performance of SAX is with you. 
+Should SAX prove defective, you assume the cost of all necessary servicing, 
+repair or correction.  In no event unless required by applicable law or 
+agreed to in writing will any copyright holder, or any other party who 
+may modify and/or redistribute SAX, be liable to you for damages, 
+including any general, special, incidental or consequential damages 
+arising out of the use or inability to use SAX (including but not limited 
+to loss of data or data being rendered inaccurate or losses sustained by 
+you or third parties or a failure of the SAX to operate with any other 
+programs), even if such holder or other party has been advised of the 
+possibility of such damages.
+
+Copyright Disclaimers 
+
+This page includes statements to that effect by David Megginson, who would 
+have been able to claim copyright for the original work. 
+
+SAX 1.0 
+
+Version 1.0 of the Simple API for XML (SAX), created collectively by 
+the membership of the XML-DEV mailing list, is hereby released into the 
+public domain.
+
+No one owns SAX: you may use it freely in both commercial and non-commercial 
+applications, bundle it with your software distribution, include it on a 
+CD-ROM, list the source code in a book, mirror the documentation at your 
+own web site, or use it in any other way you see fit.
+
+David Megginson, sax@megginson.com
+1998-05-11
+
+SAX 2.0 
+
+I hereby abandon any property rights to SAX 2.0 (the Simple API for XML), 
+and release all of the SAX 2.0 source code, compiled code, and documentation 
+contained in this distribution into the Public Domain. SAX comes with 
+NO WARRANTY or guarantee of fitness for any purpose.
+
+David Megginson, david@megginson.com
+2000-05-05
+
+%% The following software may be included in this product: Cryptix; 
+Use of any of this software is governed by the terms of the license below:
+
+Cryptix General License
+
+Copyright © 1995-2003 The Cryptix Foundation Limited. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+
+   1.Redistributions of source code must retain the copyright notice, this 
+     list of conditions and the following disclaimer. 
+   2.Redistributions in binary form must reproduce the above copyright 
+     notice, this list of conditions and the following disclaimer in the 
+     documentation and/or other materials provided with the distribution. 
+
+THIS SOFTWARE IS PROVIDED BY THE CRYPTIX FOUNDATION LIMITED AND CONTRIBUTORS 
+``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CRYPTIX FOUNDATION LIMITED OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+%% The licenses which follow do not apply to binary distributions of
+   the software. They are applicable only to source distributions.
+
+%% The following software may be included in this product: 
+Common Unix Printing System API Libraries (CUPS API library); 
+Use of any of this software is governed by the terms of the license below: 
              
  GNU LIBRARY GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
@@ -959,7 +1228,10 @@ DAMAGES.
 
                      END OF TERMS AND CONDITIONS   
 
-%% The following software may be included in this product: Mesa 3-D graphics library v. 5; Use of any of this software is governed by the terms of the license below: 
+%% The following software may be included in this product: 
+Mesa 3-D graphics library v. 5; 
+Use of any of this software is governed by the terms of the license below: 
+
 core Mesa code  include/GL/gl.h       Brian Paul          Mesa
                 
 GLX driver      include/GL/glx.h      Brian Paul          Mesa
@@ -1016,306 +1288,3 @@ intellectual property claims, for the duration of intellectual property
 protections inherent in the Original Code, SGI hereby grants Recipient a
 worldwide, royalty-free, non-exclusive license, to do the following: (i) under
 copyrights Licensable by SGI, to reproduce, distribute, create derivative 
-
-
-%% The following software may be included in this product: Byte Code Engineering Library (BCEL) v. 5; Use of any of this software is governed by the terms of the license below: 
-
-                     Apache Software License 
-
-                     /*
-====================================================================
-                      * The Apache Software License, Version 1.1
-                      *
-                      * Copyright (c) 2001 The Apache Software Foundation.  All
-rights
-                      * reserved.
-                      *
-                      * Redistribution and use in source and binary forms, with
-or without
-                      * modification, are permitted provided that the following
-conditions
-                      * are met:
-                      *
-                      * 1. Redistributions of source code must retain the above
-copyright
-                      *    notice, this list of conditions and the following
-disclaimer.
-                      *
-                      * 2. Redistributions in binary form must reproduce the
-above copyright
-                      *    notice, this list of conditions and the following
-disclaimer in
-                      *    the documentation and/or other materials provided
-with the
-                      *    distribution.
-                      *
-                      * 3. The end-user documentation included with the
-redistribution,
-                      *    if any, must include the following acknowledgment:
-                      *       "This product includes software developed by the
-                      *        Apache Software Foundation
-(http://www.apache.org/)."
-                      *    Alternately, this acknowledgment may appear in the
-software itself,
-                      *    if and wherever such third-party acknowledgments
-normally appear.
-                      *
-                      * 4. The names "Apache" and "Apache Software Foundation"
-and 
-                      *    "Apache BCEL" must not be used to endorse or promote
-products 
-                      *    derived from this software without prior written
-permission. For 
-                      *    written permission, please contact apache@apache.org.
-                      *
-                      * 5. Products derived from this software may not be called
-"Apache",
-                      *    "Apache BCEL", nor may "Apache" appear in their name,
-without 
-                      *    prior written permission of the Apache Software
-Foundation.
-                      *
-                      * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR
-IMPLIED
-                      * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES
-                      * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE
-                      * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE
-FOUNDATION OR
-                      * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL,
-                      * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT
-                      * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF
-                      * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND
-                      * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY,
-                      * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT
-                      * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF
-                      * SUCH DAMAGE.
-                      *
-====================================================================
-                      *
-                      * This software consists of voluntary contributions made
-by many
-                      * individuals on behalf of the Apache Software
-Foundation.  For more
-                      * information on the Apache Software Foundation, please
-see
-                      * .
-                      */
-
-
-
-%% The following software may be included in this product: Regexp, Regular Expression Package v. 1.2; Use of any of this software is governed by the terms of the license below: 
-The Apache Software License, Version 1.1
-Copyright (c) 2001 The Apache Software Foundation.  All rights
-reserved.
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in
-the documentation and/or other materials provided with the
-distribution.
-
-3. The end-user documentation included with the redistribution,
-if any, must include the following acknowledgment:
-"This product includes software developed by the
-Apache Software Foundation (http://www.apache.org/)."
-Alternately, this acknowledgment may appear in the software itself,
-if and wherever such third-party acknowledgments normally appear.
-
-4. The names "Apache" and "Apache Software Foundation" and 
-"Apache Turbine" must not be used to endorse or promote products 
-derived from this software without prior written permission. For 
-written permission, please contact apache@apache.org.
-
-5. Products derived from this software may not be called "Apache",
-"Apache Turbine", nor may "Apache" appear in their name, without 
-prior written permission of the Apache Software Foundation.
-
-THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
-WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
-ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGE.
-                                                             
-====================================================================
-
-This software consists of voluntary contributions made by many
-individuals on behalf of the Apache Software Foundation.  For more
-information on the Apache Software Foundation, please see
-                                                             
-http://www.apache.org.
-
-%% The following software may be included in this product: CUP Parser Generator for Java v. 0.10k; Use of any of this software is governed by the terms of the license below: 
-CUP Parser Generator Copyright Notice, License, and Disclaimer
-
-Copyright 1996-1999 by Scott Hudson, Frank Flannery, C. Scott Ananian 
-
-Permission to use, copy, modify, and distribute this software and its
-documentation for any purpose and without fee is hereby granted, provided that
-the above copyright notice appear in all copies and that both the copyright
-notice and this permission notice and warranty disclaimer appear in
-supporting documentation, and that the names of the authors or their employers
-not be used in advertising or publicity pertaining to distribution of
-the software without specific, written prior permission. 
-
-The authors and their employers disclaim all warranties with regard to this
-software, including all implied warranties of merchantability and
-fitness. In no event shall the authors or their employers be liable for any
-special, indirect or consequential damages or any damages whatsoever
-resulting from loss of use, data or profits, whether in an action of contract,
-negligence or other tortious action, arising out of or in connection with
-the use or performance of this software. 
-
-%% The following software may be included in this product: JLex: A Lexical Analyzer Generator for Java v. 1.2.5; Use of any of this software is governed by the terms of the license below: 
-JLEX COPYRIGHT NOTICE, LICENSE AND DISCLAIMER.
-
-Copyright 1996-2003 by Elliot Joel Berk and C. Scott Ananian 
-
-Permission to use, copy, modify, and distribute this software and its
-documentation for any purpose
-and without fee is hereby granted, provided that the above copyright notice
-appear in all copies
-and that both the copyright notice and this permission notice and warranty
-disclaimer appear in
-supporting documentation, and that the name of the authors or their employers
-not be used in
-advertising or publicity pertaining to distribution of the software without
-specific, written prior
-permission. 
-
-The authors and their employers disclaim all warranties with regard to this
-software, including all
-implied warranties of merchantability and fitness. In no event shall the authors
-or their employers
-be liable for any special, indirect or consequential damages or any damages
-whatsoever resulting
-from loss of use, data or profits, whether in an action of contract, negligence
-or other tortious
-action, arising out of or in connection with the use or performance of this
-software. 
-
-Java is a trademark of Sun Microsystems, Inc. References to the Java programming
-language in
-relation to JLex are not meant to imply that Sun endorses this
-product.                      
-
-%% The following software may be included in this product: SAX v. 2.0.1; Use of any of this software is governed by the terms of the license below: 
-Copyright Status
-
-                         SAX is free!
-
-                         In fact, it's not possible to own a license to SAX, 
-since it's been placed in the public
-                         domain. 
-
-                         No Warranty
-
-                         Because SAX is released to the public domain, there is 
-no warranty for the design or for
-                         the software implementation, to the extent permitted by 
-applicable law. Except when
-                         otherwise stated in writing the copyright holders 
-and/or other parties provide SAX "as is"
-                         without warranty of any kind, either expressed or 
-implied, including, but not limited to, the
-                         implied warranties of merchantability and fitness for a 
-particular purpose. The entire risk as
-                         to the quality and performance of SAX is with you. 
-Should SAX prove defective, you
-                         assume the cost of all necessary servicing, repair or 
-correction.
-
-                         In no event unless required by applicable law or agreed 
-to in writing will any copyright
-                         holder, or any other party who may modify and/or 
-redistribute SAX, be liable to you for
-                         damages, including any general, special, incidental or 
-consequential damages arising out of
-                         the use or inability to use SAX (including but not 
-limited to loss of data or data being
-                         rendered inaccurate or losses sustained by you or third 
-parties or a failure of the SAX to
-                         operate with any other programs), even if such holder 
-or other party has been advised of
-                         the possibility of such damages.
-
-                         Copyright Disclaimers 
-
-                         This page includes statements to that effect by David 
-Megginson, who would have been
-                         able to claim copyright for the original work. 
-
-                         SAX 1.0 
-
-                         Version 1.0 of the Simple API for XML (SAX), created 
-collectively by the membership of
-                         the XML-DEV mailing list, is hereby released into the 
-public domain.
-
-                         No one owns SAX: you may use it freely in both 
-commercial and non-commercial
-                         applications, bundle it with your software 
-distribution, include it on a CD-ROM, list the
-                         source code in a book, mirror the documentation at your 
-own web site, or use it in any
-                         other way you see fit.
-
-                         David Megginson, sax@megginson.com
-                         1998-05-11
-
-                         SAX 2.0 
-
-                         I hereby abandon any property rights to SAX 2.0 (the 
-Simple API for XML), and release
-                         all of the SAX 2.0 source code, compiled code, and 
-documentation contained in this
-                         distribution into the Public Domain. SAX comes with NO 
-WARRANTY or guarantee of
-                         fitness for any purpose.
-
-                         David Megginson, david@megginson.com
-                         2000-05-05
-
-%% The following software may be included in this product: Cryptix; 
-Use of any of this software is governed by the terms of the license below:
-
-Cryptix General License
-
-Copyright © 1995-2003 The Cryptix Foundation Limited. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are
-met:
-
-   1.Redistributions of source code must retain the copyright notice, this list of conditions and the following disclaimer. 
-   2.Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the
-     documentation and/or other materials provided with the distribution. 
-
-THIS SOFTWARE IS PROVIDED BY THE CRYPTIX FOUNDATION LIMITED AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE CRYPTIX FOUNDATION LIMITED OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
-
-

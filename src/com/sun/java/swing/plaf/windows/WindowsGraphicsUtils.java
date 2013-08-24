@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsGraphicsUtils.java	1.14 06/03/22
+ * @(#)WindowsGraphicsUtils.java	1.15 06/09/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import javax.swing.*;
  * A collection of static utility methods used for rendering the Windows look 
  * and feel.
  * 
- * @version 1.14 03/22/06
+ * @version 1.15 09/01/06
  * @author Mark Davidson
  * @since 1.4
  */
@@ -69,6 +69,17 @@ public class WindowsGraphicsUtils {
 	    if (xp != null) {
 		String part = WindowsButtonUI.getXPButtonType(b);
 		color = xp.getColor(b, part, "disabled", "textcolor", color);
+                // to work around an apparent bug in Windows, use the pushbutton
+                // color for disabled toolbar buttons if the disabled color is the
+                // same as the enabled color
+                if ("toolbar.button".equals(part)) {
+                    Color enabledColor = xp.getColor(b, part, "normal",
+                        "textcolor", color);
+                    if (color != null && color.equals(enabledColor)) {
+                        color = xp.getColor(b, "button.pushbutton", "disabled",
+                            "textcolor", color);
+                    }
+                }
 	    } else {
 		// Paint shadow only if not XP
 		if (shadow == null) {

@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsToggleButtonUI.java	1.30 06/03/22
+ * @(#)WindowsToggleButtonUI.java	1.31 06/08/25
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.30 03/22/06
+ * @version 1.31 08/25/06
  * @author Jeff Dinkins
  */
 public class WindowsToggleButtonUI extends BasicToggleButtonUI
@@ -47,12 +47,6 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
 	return windowsToggleButtonUI;
     }
 
-    // ********************************
-    //         Create Listeners
-    // ********************************
-    protected BasicButtonListener createButtonListener(AbstractButton b) {
-        return new WindowsButtonListener(b);
-    }
 
     // ********************************
     //            Defaults

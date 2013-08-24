@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.185 06/03/22
+ * @(#)WindowsLookAndFeel.java	1.186 06/08/25
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -50,6 +50,7 @@ import sun.font.FontManager;
 import sun.security.action.GetPropertyAction;
 
 import sun.swing.SwingLazyValue;
+import sun.swing.BorderProvider;
 import com.sun.java.swing.SwingUtilities2;
 
 /**
@@ -64,7 +65,7 @@ import com.sun.java.swing.SwingUtilities2;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.185 03/22/06
+ * @version 1.186 08/25/06
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -1416,6 +1417,13 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
             "ToolTip.foreground", new DesktopProperty(
                                            "win.tooltip.textColor",
 					    table.get("infoText"), toolkit),
+            // this is a workaround because we cannot directly override
+            // BasicToolBarUI.getRolloverBorder() in an update release 
+            "ToolBar.rolloverBorderProvider", new BorderProvider() {
+                    public Border getRolloverBorder(AbstractButton b) {
+                        return WindowsToolBarUI.getRolloverBorder(b);
+                    }
+                },
 
 	    // *** Tree
 	    "Tree.selectionBorderColor", black,

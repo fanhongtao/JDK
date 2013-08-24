@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsButtonListener.java	1.15 06/03/22
+ * @(#)WindowsButtonListener.java	1.16 06/08/25
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,25 +23,17 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version @(#)WindowsButtonListener.java	1.15 06/03/22
+ * @version @(#)WindowsButtonListener.java	1.16 06/08/25
  * @author Rich Schiavi
  */
 public class WindowsButtonListener extends BasicButtonListener {
     public WindowsButtonListener(AbstractButton b) {
 	super(b);
     }
-    
-    public void propertyChange(PropertyChangeEvent e) {
-	String prop = e.getPropertyName();
-	if (prop == "ancestor") {
-	    XPStyle xp = XPStyle.getXP();
-	    if (xp != null) {
-		AbstractButton b = (AbstractButton)e.getSource();
-		b.setBorder(xp.getBorder(b, WindowsButtonUI.getXPButtonType(b)));
-	    }
-	}
-	super.propertyChange(e);
-    }
+    /*
+      This class is currently not used, but exists in case customers 
+      were subclassing it.
+    */
 }
 
 

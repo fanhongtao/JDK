@@ -49,12 +49,6 @@ public class WindowsButtonUI extends BasicButtonUI
 	return windowsButtonUI;
     }
     
-    // ********************************
-    //         Create Listeners
-    // ********************************
-    protected BasicButtonListener createButtonListener(AbstractButton b) {
-        return new WindowsButtonListener(b);
-    }
 
     // ********************************
     //            Defaults
@@ -175,6 +169,8 @@ public class WindowsButtonUI extends BasicButtonUI
 	    if (toolbar) {
 		if (model.isArmed() && model.isPressed()) {
 		    index = 2;
+                } else if (!model.isEnabled()) {
+                    index = 3;
 		} else if (model.isSelected() && model.isRollover()) {
 		    index = 5;
 		} else if (model.isSelected()) {
