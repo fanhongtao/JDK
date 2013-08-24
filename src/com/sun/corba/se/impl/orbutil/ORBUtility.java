@@ -1,5 +1,5 @@
 /*
- * @(#)ORBUtility.java	1.51 04/06/21
+ * @(#)ORBUtility.java	1.52 07/05/24
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -786,25 +786,6 @@ public final class ORBUtility {
 	}
     
 	return result ;
-    }
-
-    public static void setDaemon(Thread thread)
-    {
-	// Catch exceptions since setDaemon can cause a
-        // security exception to be thrown under netscape
-        // in the Applet mode
-	final Thread finalThread = thread;
-        try {
-            AccessController.doPrivileged(new PrivilegedAction() {
-		    public java.lang.Object run() {
-			finalThread.setDaemon(true);
-			return null;
-		    }
-		});
-        } catch (Exception e) {
-	    // REVISIT: Object to get static method. Ignore it.
-	    dprint(new Object(), "setDaemon: Exception: " + e);
-	}
     }
 
     public static String operationNameAndRequestId(CorbaMessageMediator m)

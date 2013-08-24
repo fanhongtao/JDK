@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageWriter.java	1.34 03/12/19
+ * @(#)PNGImageWriter.java	1.35 07/09/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@ package com.sun.imageio.plugins.png;
 
 import java.awt.Rectangle;
 import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.awt.image.RenderedImage;
@@ -761,6 +762,18 @@ public class PNGImageWriter extends ImageWriter {
         } else if (metadata.IHDR_bitDepth == 16) {
             bytesPerRow *= 2;
         }
+
+        IndexColorModel icm_gray_alpha = null;
+        if (metadata.IHDR_colorType == PNGImageReader.PNG_COLOR_GRAY_ALPHA &&
+            image.getColorModel() instanceof IndexColorModel)
+        {
+            // reserve space for alpha samples
+            bytesPerRow *= 2;
+            
+            // will be used to calculate alpha value for the pixel
+            icm_gray_alpha = (IndexColorModel)image.getColorModel();
+        }
+
         currRow = new byte[bytesPerRow + bpp];
         prevRow = new byte[bytesPerRow + bpp];
         filteredRows = new byte[5][bytesPerRow + bpp];
@@ -827,6 +840,10 @@ public class PNGImageWriter extends ImageWriter {
 		if (numBands == 1) {
 		    for (int s = xOffset; s < numSamples; s += xSkip) {
 			currRow[count++] = scale0[samples[s]];
+			if (icm_gray_alpha != null) { 
+                            currRow[count++] = 
+                                scale0[icm_gray_alpha.getAlpha(0xff & samples[s])];
+                        }
 		    }
 		} else {
 		    for (int s = xOffset; s < numSamples; s += xSkip) {

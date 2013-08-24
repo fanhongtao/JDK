@@ -83,7 +83,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
  * @author Rajiv Mordani
  * @author Edwin Goei
  * 
- * @version $Id: SAXParserImpl.java,v 1.23 2004/02/24 23:15:58 mrglavas Exp $
+ * @version $Id: SAXParserImpl.java,v 1.1.2.2 2007/03/09 16:11:55 spericas Exp $
  */
 public class SAXParserImpl extends javax.xml.parsers.SAXParser
     implements JAXPConstants {
@@ -390,9 +390,15 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
             //assume feature
             xmlReader.setFeature(name,((Boolean)value).booleanValue());
             parserFeatures.put(name, value);
-        }else{
+        } 
+        else{
             xmlReader.setProperty(name, value);
-            parserFeatures.put(name, value);
+            // If value is null, remove property from Hashtable
+            if (value == null) {
+                parserFeatures.remove(name);
+            } else {
+                parserFeatures.put(name, value);
+            }
         }
     }
 

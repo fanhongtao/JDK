@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorSupport.java
  * @(#)author    IBM Corp.
- * @(#)version   1.53
- * @(#)lastedit      05/11/23
+ * @(#)version   1.54
+ * @(#)lastedit      07/07/24
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * This class represents the metadata set for a ModelMBean element.  A
@@ -1200,12 +1201,8 @@ public class DescriptorSupport
 	try {
 	    final ClassLoader contextClassLoader =
 		Thread.currentThread().getContextClassLoader();
-            if (contextClassLoader == null) {
-                SecurityManager sm = System.getSecurityManager();
-                if (sm != null) {
-                    sm.checkPackageAccess(className);
-                }
-            }
+            if (contextClassLoader == null)
+                ReflectUtil.checkPackageAccess(className);
 	    final Class c =
 		Class.forName(className, false, contextClassLoader);
 	    constr = c.getConstructor(new Class[] {String.class});

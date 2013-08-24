@@ -1,7 +1,7 @@
 /*
- * \x20@(#)Pattern.java	1.112 06/07/26
+ * @(#)Pattern.java	1.113 07/05/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -587,7 +587,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.112, 06/07/26
+ * @version 	1.113, 07/05/07
  * @since       1.4
  * @spec	JSR-51
  */
@@ -3766,8 +3766,11 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             this.atom = atom;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            return !atom.match(matcher, i, seq)
-		&& next.match(matcher, i+countChars(seq, i, 1), seq);
+            if (i < matcher.to)
+                return !atom.match(matcher, i, seq)
+		    && next.match(matcher, i+countChars(seq, i, 1), seq);
+	    matcher.hitEnd = true;
+	    return false;
         }
         boolean study(TreeInfo info) {
             info.minLength++;

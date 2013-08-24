@@ -1,8 +1,8 @@
 /*
  * @(#)file      RequiredModelMBean.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.54
- * @(#)lastedit      05/09/08
+ * @(#)version   1.55
+ * @(#)lastedit      07/07/24
  *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
  *
@@ -74,10 +74,11 @@ import javax.management.RuntimeOperationsException;
 import javax.management.ServiceNotFoundException;
 import javax.management.NotificationEmitter;
 import javax.management.loading.ClassLoaderRepository;
+
 import sun.reflect.misc.MethodUtil;
+import sun.reflect.misc.ReflectUtil;
 
 import com.sun.jmx.trace.Trace;
-
 
 /**
  * This class is the implementation of a ModelMBean. An appropriate
@@ -1068,6 +1069,7 @@ public class RequiredModelMBean
 				Object targetObject, Object[] opArgs)
 	    throws MBeanException, ReflectionException {
 	try {
+            ReflectUtil.checkPackageAccess(method.getDeclaringClass());
 	    return MethodUtil.invoke(method, targetObject, opArgs);
 	} catch (RuntimeErrorException ree) {
 	    throw new RuntimeOperationsException(ree,

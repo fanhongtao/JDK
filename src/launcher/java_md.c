@@ -1,7 +1,7 @@
 /*
- * @(#)java_md.c	1.57 05/12/12
+ * @(#)java_md.c	1.58 07/09/10
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1544,7 +1544,8 @@ LocateJRE(manifest_info* info)
 	path = strdup(path);
     else
 	if ((home = getenv("HOME")) != NULL) {
-	    path = (char *)MemAlloc(strlen(home) + 13);
+	    path = (char *)MemAlloc(strlen(home) + strlen(system_dir) +
+	                   strlen(user_dir) + 2);
 	    path = strcat(strcat(strcat(strcpy(path, home),
 	        user_dir), ":"), system_dir);
 	} else

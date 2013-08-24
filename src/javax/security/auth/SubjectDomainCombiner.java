@@ -1,5 +1,5 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.48 05/08/25
+ * @(#)SubjectDomainCombiner.java	1.50 07/09/11
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -374,7 +374,8 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 			    }
 			}
 		    }
-		    subjectPd = new ProtectionDomain(finalCs, perms);
+                    subjectPd = new ProtectionDomain  
+                        (finalCs, perms, pd.getClassLoader(), principals);
 
 		    if (allowCaching)
 			cachedPDs.putValue(pd, subjectPd);

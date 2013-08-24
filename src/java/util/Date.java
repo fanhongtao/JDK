@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.80 04/05/18
+ * @(#)Date.java	1.81 07/03/20
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -103,7 +103,7 @@ import sun.util.calendar.ZoneInfo;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.80, 05/18/04
+ * @version 1.81, 03/20/07
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -120,9 +120,9 @@ public class Date
 
     /*
      * If cdate is null, then fastTime indicates the time in millis.
-     * Otherwise, fastTime is ignored, and cdate indicates the time.
-     * The cdate object is only created if a setXxx call is made to
-     * set a field.
+     * If cdate.isNormalized() is true, then fastTime and cdate are in
+     * synch. Otherwise, fastTime is ignored, and cdate indicates the
+     * time.
      */
     private transient BaseCalendar.Date cdate;
 
@@ -310,9 +310,12 @@ public class Date
 	BaseCalendar cal = getCalendarSystem(y);
         BaseCalendar.Date udate = (BaseCalendar.Date) cal.newCalendarDate(null);
 	udate.setNormalizedDate(y, m, date).setTimeOfDay(hrs, min, sec, 0);
-	udate = normalize(udate);
-	cal = getCalendarSystem(udate);
-	return cal.getTime(udate);
+
+        // Use a Date instance to perform normalization. Its fastTime
+        // is the UTC value after the normalization.
+        Date d = new Date(0);
+        d.normalize(udate);
+        return d.fastTime;
     }
 
     /**
@@ -864,10 +867,8 @@ public class Date
     }
 
     private final long getTimeImpl() {
-	if (cdate != null) {
+	if (cdate != null && !cdate.isNormalized()) {
 	    normalize();
-	    BaseCalendar cal = getCalendarSystem(cdate);
-	    fastTime = cal.getTime(cdate);
 	}
 	return fastTime;
     }
@@ -1170,32 +1171,40 @@ public class Date
     }
 
     private final BaseCalendar.Date normalize() {
-	if (cdate == null) {
-	    BaseCalendar cal = getCalendarSystem(fastTime);
-	    cdate = (BaseCalendar.Date) cal.getCalendarDate(fastTime,
-							    TimeZone.getDefaultRef());
-	} else {
-	    TimeZone tz = TimeZone.getDefaultRef();
-	    if (tz != cdate.getZone()) {
-		BaseCalendar cal = getCalendarSystem(cdate);
-		long t = cal.getTime(cdate);
-		cdate.setZone(tz);
-		cal.getCalendarDate(t, cdate);
-	    }
-	    cdate = normalize(cdate);
-	}
-	return cdate;
-    }
+        if (cdate == null) {
+            BaseCalendar cal = getCalendarSystem(fastTime);
+            cdate = (BaseCalendar.Date) cal.getCalendarDate(fastTime,
+                                                            TimeZone.getDefaultRef());
+            return cdate;
+        }
+  
+        // Normalize cdate with the TimeZone in cdate first. This is
+        // required for the compatible behavior.
+        if (!cdate.isNormalized()) {
+            cdate = normalize(cdate);
+        }
+  
+        // If the default TimeZone has changed, then recalculate the
+        // fields with the new TimeZone.
+        TimeZone tz = TimeZone.getDefaultRef();
+        if (tz != cdate.getZone()) {
+            cdate.setZone(tz);
+            CalendarSystem cal = getCalendarSystem(cdate);
+            cal.getCalendarDate(fastTime, cdate);
+        }
+        return cdate;
+      }
 
-    private static final BaseCalendar.Date normalize(BaseCalendar.Date cdate) {
-	int y = cdate.getNormalizedYear();
-	int m = cdate.getMonth();
-	int d = cdate.getDayOfMonth();
-	int hh = cdate.getHours();
-	int mm = cdate.getMinutes();
-	int ss = cdate.getSeconds();
-	int ms = cdate.getMillis();
-	TimeZone tz = cdate.getZone();
+      // fastTime and the returned data are in sync upon return.
+      private final BaseCalendar.Date normalize(BaseCalendar.Date date) {
+        int y = date.getNormalizedYear();
+        int m = date.getMonth();
+        int d = date.getDayOfMonth();
+        int hh = date.getHours();
+        int mm = date.getMinutes();
+        int ss = date.getSeconds();
+        int ms = date.getMillis();
+        TimeZone tz = date.getZone();
 
 	// If the specified year can't be handled using a long value
 	// in milliseconds, GregorianCalendar is used for full
@@ -1213,30 +1222,30 @@ public class Date
 	    gc.clear();
 	    gc.set(gc.MILLISECOND, ms);
 	    gc.set(y, m-1, d, hh, mm, ss);
-	    long t = gc.getTimeInMillis();
-	    BaseCalendar cal = getCalendarSystem(t);
-	    cdate = (BaseCalendar.Date) cal.getCalendarDate(t, tz);
-	    return cdate;
-	}
-
-	BaseCalendar cal = getCalendarSystem(y);
-	if (cal != getCalendarSystem(cdate)) {
-	    cdate = (BaseCalendar.Date) cal.newCalendarDate(tz);
-	    cdate.setNormalizedDate(y, m, d).setTimeOfDay(hh, mm, ss, ms);
-	}
-	// Perform the GregorianCalendar-style normalization.
-	long t = cal.getTime(cdate);
-
-	// In case the normalized date requires the other calendar
-	// system, we need to recalculate it using the other one.
-	BaseCalendar ncal = getCalendarSystem(t);
-	if (ncal != cal) {
-	    cdate = (BaseCalendar.Date) ncal.newCalendarDate(cdate.getZone());
-	    cdate.setNormalizedDate(y, m, d).setTimeOfDay(hh, mm, ss, ms);
-	    ncal.getTime(cdate);
-	}
-	return cdate;
-    }
+            fastTime = gc.getTimeInMillis();
+            BaseCalendar cal = getCalendarSystem(fastTime);
+            date = (BaseCalendar.Date) cal.getCalendarDate(fastTime, tz);
+            return date;
+        }
+  
+        BaseCalendar cal = getCalendarSystem(y);
+        if (cal != getCalendarSystem(date)) {
+            date = (BaseCalendar.Date) cal.newCalendarDate(tz);
+            date.setNormalizedDate(y, m, d).setTimeOfDay(hh, mm, ss, ms);
+        }
+        // Perform the GregorianCalendar-style normalization.
+        fastTime = cal.getTime(date);
+  
+        // In case the normalized date requires the other calendar
+        // system, we need to recalculate it using the other one.
+        BaseCalendar ncal = getCalendarSystem(fastTime);
+        if (ncal != cal) {
+            date = (BaseCalendar.Date) ncal.newCalendarDate(tz);
+            date.setNormalizedDate(y, m, d).setTimeOfDay(hh, mm, ss, ms);
+            fastTime = ncal.getTime(date);
+        }
+        return date;
+      }
 
     /**
      * Returns the Gregorian or Julian calendar system to use with the

@@ -436,12 +436,6 @@ abstract public class SerializerBase
             if (null == uri)
                 uri = "";
             
-            // Ignore ns decls as attributes in the "" namespace (see javadoc)
-            String qname = atts.getQName(i);
-            if (qname.startsWith("xmlns:") && uri.equals(EMPTYSTRING)) {
-                continue;
-            }
-
             addAttributeAlways(
                 uri,
                 atts.getLocalName(i),

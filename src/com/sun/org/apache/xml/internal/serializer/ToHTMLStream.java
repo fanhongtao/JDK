@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToHTMLStream.java,v 1.28 2004/02/18 22:57:44 minchau Exp $
+ * $Id: ToHTMLStream.java,v 1.1.2.2 2007/03/19 16:26:09 spericas Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -604,7 +604,7 @@ public class ToHTMLStream extends ToStream
                     if (null == doctypePublic)
                         writer.write(" SYSTEM \"");
                     else
-                        writer.write('"');
+                        writer.write(" \"");
 
                     writer.write(doctypeSystem);
                     writer.write('"');

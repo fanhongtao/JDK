@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Util.java,v 1.1.2.1 2006/09/19 01:07:41 jeffsuttor Exp $
+ * $Id: Util.java,v 1.1.2.2 2007/03/12 18:46:04 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -111,7 +111,7 @@ public final class Util {
                                   }
                                   catch (org.xml.sax.SAXException se) {}
                                }
-
+                               
                                reader = parserFactory.newSAXParser()
                                      .getXMLReader();
 
@@ -158,6 +158,7 @@ public final class Util {
 		final StreamSource stream = (StreamSource)source;
 		final InputStream istream = stream.getInputStream();
 		final Reader reader = stream.getReader();
+                xsltc.setXMLReader(null);     // Clear old XML reader
 
 		// Create InputSource from Reader or InputStream in Source
 		if (istream != null) {

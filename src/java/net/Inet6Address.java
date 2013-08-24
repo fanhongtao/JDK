@@ -1,7 +1,7 @@
 /*
- * @(#)Inet6Address.java	1.35 04/02/12
+ * @(#)Inet6Address.java	1.36 07/06/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -153,7 +153,8 @@ class Inet6Address extends InetAddress {
     /* 
      * cached scope_id - for link-local address use only.
      */
-    private transient int cached_scope_id = 0;
+    private transient int local_cached_scope_id = 0;
+    private transient int remote_cached_scope_id = 0;
 
     /**
      * Holds a 128-bit (16 bytes) IPv6 address.

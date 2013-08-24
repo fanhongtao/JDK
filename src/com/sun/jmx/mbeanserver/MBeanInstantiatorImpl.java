@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanInstantiatorImpl.java	1.31 05/05/27
+ * @(#)MBeanInstantiatorImpl.java	1.32 07/07/24
  * 
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,11 +11,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.io.*;
 
-import javax.management.*; 
-import javax.management.loading.ClassLoaderRepository;
-
+import javax.management.*;
 
 import com.sun.jmx.trace.Trace;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * Implements the MBeanInstantiator interface. Provides methods for
@@ -159,10 +158,7 @@ class MBeanInstantiatorImpl implements MBeanInstantiator {
         }
         // Instantiate the new object
         try {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                sm.checkPackageAccess(theClass.getName());
-            }
+            ReflectUtil.checkPackageAccess(theClass);
             moi= cons.newInstance((Object[]) null);
         } catch (InvocationTargetException e) {
             // Wrap the exception.
@@ -231,12 +227,9 @@ class MBeanInstantiatorImpl implements MBeanInstantiator {
 		NoSuchMethodException("No such constructor"));
         }
         try {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                sm.checkPackageAccess(theClass.getName());
-            }
-            moi = cons.newInstance(params);     
-        } 
+            ReflectUtil.checkPackageAccess(theClass);
+            moi = cons.newInstance(params);
+        }
         catch (NoSuchMethodError error) {
             throw new ReflectionException(new 
 		NoSuchMethodException("No such constructor found"), 

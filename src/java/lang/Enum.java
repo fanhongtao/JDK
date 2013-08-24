@@ -1,5 +1,5 @@
 /*
- * @(#)Enum.java	1.12 04/06/08
+ * @(#)Enum.java	1.13 07/10/04
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,13 +8,17 @@
 package java.lang;
 
 import java.io.Serializable;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
 
 /**
  * This is the common base class of all Java language enumeration types.
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.12, 06/08/04
+ * @version 1.13, 10/04/07
  * @since   1.5
  */
 public abstract class Enum<E extends Enum<E>>
@@ -191,5 +195,17 @@ public abstract class Enum<E extends Enum<E>>
             throw new NullPointerException("Name is null");
         throw new IllegalArgumentException(
             "No enum const " + enumType +"." + name);
+    }
+
+    /**
+      * prevent default deserialization
+      */
+    private void readObject(ObjectInputStream in) throws IOException,
+        ClassNotFoundException {
+            throw new InvalidObjectException("can't deserialize enum");
+    }
+
+    private void readObjectNoData() throws ObjectStreamException {
+        throw new InvalidObjectException("can't deserialize enum");
     }
 }

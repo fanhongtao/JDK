@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.102 07/01/23
+ * @(#)Dialog.java	1.103 07/03/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.102, 01/23/07
+ * @version 	1.103, 03/23/07
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -540,6 +540,8 @@ public class Dialog extends Window {
                             }
                         };
 
+                    modalityPushed();
+                    try {
                     if (EventQueue.isDispatchThread()) {
                         /*
                          * dispose SequencedEvent we are dispatching on current
@@ -580,6 +582,9 @@ public class Dialog extends Window {
                             }
                         }
                     }
+                    } finally {
+                        modalityPopped();
+                    }
                     if (windowClosingException != null) {
                         windowClosingException.fillInStackTrace();
                         throw windowClosingException;
@@ -590,6 +595,22 @@ public class Dialog extends Window {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
                     dequeueKeyEvents(time.get(), predictedFocusOwner);
             }
+        }
+    }
+
+    final void modalityPushed() {
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        if (tk instanceof SunToolkit) {
+            SunToolkit stk = (SunToolkit)tk;
+            stk.notifyModalityPushed(this);
+        }
+    }
+
+    final void modalityPopped() {
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        if (tk instanceof SunToolkit) {
+            SunToolkit stk = (SunToolkit)tk;
+            stk.notifyModalityPopped(this);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)RMIServerImpl.java	1.57 06/09/29
+ * @(#)RMIServerImpl.java	1.58 07/08/14
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -56,8 +56,6 @@ public abstract class RMIServerImpl implements RMIServer {
      */
     public RMIServerImpl(Map<String,?> env) {
         this.env = (env == null) ? Collections.EMPTY_MAP : env;
-	if (logger.debugOn()) 
-	    logger.trace("RMIServerImpl","class="+this.getClass().getName());
     }
 
     void setRMIConnectorServer(RMIConnectorServer connServer)
