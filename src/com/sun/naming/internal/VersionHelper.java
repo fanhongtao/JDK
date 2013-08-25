@@ -1,7 +1,7 @@
 /*
- * @(#)VersionHelper.java	1.11 06/07/19
+ * @(#)VersionHelper.java	1.13 09/01/16
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

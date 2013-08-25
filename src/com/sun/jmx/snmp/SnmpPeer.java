@@ -1,8 +1,8 @@
 /*
  * @(#)file      SnmpPeer.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   3.43
- * @(#)date      06/11/29
+ * @(#)version   3.44
+ * @(#)date      09/03/09
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,18 +18,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.Serializable;
 
-// JMX imports
-//
-import com.sun.jmx.snmp.SnmpPduFactory ;
-
-// SNMP Runtime imports
-//
-import com.sun.jmx.snmp.SnmpPduFactoryBER ;
-
 /**
- * Holds information about an SNMP agent. This information is used to communicate with the agent.  
- * These are the IP address, port number, SNMP parameters, and peer channel parameters 
- * (such as the maximum request packet size, maximum number of variable bindings in a packet, retries, and timeouts). 
+ * Holds information about an SNMP agent. This information is used to communicate with the agent.
+ * These are the IP address, port number, SNMP parameters, and peer channel parameters
+ * (such as the maximum request packet size, maximum number of variable bindings in a packet, retries, and timeouts).
  * Changing these would affect all active requests.
  * <P>
  * The class contains the following properties:
@@ -37,15 +29,15 @@ import com.sun.jmx.snmp.SnmpPduFactoryBER ;
  * <LI><B>destPort</B>: port number of the destination host.
  * <BR>The default port is <B>161</B>.
  *
- * <LI><B>maxVarBindLimit</B>: maximum number of OIDs which can be encoded in a single request packet. 
- * This is set by the user.  
- * <BR>A request which contains more than this limit will be automatically split into multiple requests. 
+ * <LI><B>maxVarBindLimit</B>: maximum number of OIDs which can be encoded in a single request packet.
+ * This is set by the user.
+ * <BR>A request which contains more than this limit will be automatically split into multiple requests.
  * Typically used when multiplexing requests.
  * <BR>The default value is 25.
  *
- * <LI><B>maxSnmpPacketSize</B>: maximum packet size of the request PDU. 
+ * <LI><B>maxSnmpPacketSize</B>: maximum packet size of the request PDU.
  * This can be set by the user.
- * <BR> If the request crosses this limit while encoding, the request is automatically split into 
+ * <BR> If the request crosses this limit while encoding, the request is automatically split into
  * multiple small requests. Each of these requests will again be within this limit.
  * <BR>The default value is (2 * 1024).
  *
@@ -64,32 +56,32 @@ import com.sun.jmx.snmp.SnmpPduFactoryBER ;
  *</UL>
  * JavaBean compliant getters and setters allow the properties listed above to be modified.
  *
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  * @see com.sun.jmx.snmp.SnmpParameters
  */
 
-public class SnmpPeer implements Serializable {  
+public class SnmpPeer implements Serializable {
     // PUBLIC VARIABLES
     //-----------------
-    
+
     /**
      * The default SNMP packet size of an SNMP request (2 * 1024).
-     * <BR>The maximum size is initially set to Ethernet maximum transfer unit (MTU).   
+     * <BR>The maximum size is initially set to Ethernet maximum transfer unit (MTU).
      */
-     
-    public static int defaultSnmpRequestPktSize = 2 * 1024 ;
+
+    public static final int defaultSnmpRequestPktSize = 2 * 1024 ;
 
     /**
      * The default SNMP packet size of an SNMP response (8 * 1024).
      * <BR>This will be the default size that the session socket uses when receiving a packet.
      */
-    public static int defaultSnmpResponsePktSize = 8 * 1024 ;
-    
-    
+    public static final int defaultSnmpResponsePktSize = 8 * 1024 ;
+
+
     // PRIVATE VARIABLES
     //------------------
-    
+
     /**
      * The maximum number of variable bindings that can be packed into a request.
      * The default value is 25.
@@ -145,28 +137,28 @@ public class SnmpPeer implements Serializable {
 
     /**
      * Maximum packet size of the request PDU.  This can be set by the user.
-     * If the request crosses this limit while encoding, the request is automatically split 
+     * If the request crosses this limit while encoding, the request is automatically split
      * into multiple small request. Each of these requests will again be within this limit.
      * The default value is (2 * 1024).
      */
     private int maxSnmpPacketSize = defaultSnmpRequestPktSize ;
-    
+
     /**
      * List of alternate addresses.
      */
     InetAddress _devAddrList[] = null ;
-    
+
     /**
      * The index of address currently being used.
      */
     int _addrIndex = 0 ;
-    
-    
+
+
     private boolean customPduFactory = false;
-    
+
     // CONSTRUCTORS
     //-------------
-    
+
     /**
      * Creates an SNMP peer object for a device. The default port is 161.
      * @param host The peer name.
@@ -204,15 +196,15 @@ public class SnmpPeer implements Serializable {
         useIPAddress(host) ;
         portNum = port;
     }
-    
-    
+
+
     // PUBLIC METHODS
     //---------------
 
     /**
      * Sets a specific IP address to which the peer will communicate.
      * Typically used to set an alternate IP address or a specific address which is known to respond to requests.
-     * The IP address <CODE>String</CODE> can either be a machine name, such as <CODE>ibiza</CODE>, 
+     * The IP address <CODE>String</CODE> can either be a machine name, such as <CODE>ibiza</CODE>,
      * or a <CODE>String</CODE> representing its IP address, such as "206.26.48.100".
      * @param ipaddr Dot formatted IP address or logical host name.
      * @exception UnknownHostException If the host name cannot be resolved.
@@ -220,7 +212,7 @@ public class SnmpPeer implements Serializable {
     final public synchronized void useIPAddress(String ipaddr) throws UnknownHostException {
         _devAddr = InetAddress.getByName(ipaddr) ;
     }
- 
+
     /**
      * Returns the dot-formatted IP address string (for example 171.69.220.224).
      * Useful when you want to know which IP address is used
@@ -230,7 +222,7 @@ public class SnmpPeer implements Serializable {
     final public synchronized String ipAddressInUse() {
         byte [] adr = _devAddr.getAddress() ;
         return
-	    (adr[0]&0xFF) + "." + (adr[1]&0xFF) + "." + 
+	    (adr[0]&0xFF) + "." + (adr[1]&0xFF) + "." +
 	    (adr[2]&0xFF) + "." + (adr[3]&0xFF);
     }
 
@@ -272,27 +264,6 @@ public class SnmpPeer implements Serializable {
     }
 
     /**
-     * Compares the two peer objects to determine whether they are the same. This is used
-     * to determine whether requests can be multiplexed.
-     * @param obj The object to compare <CODE>this</CODE> with.
-     * @return <CODE>true</CODE> if they are referring to same peer and using same address;
-     * <CODE>false</CODE> otherwise.
-     */
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true ;
-        /*
-          if (obj instanceof SnmpPeer) {
-          SnmpPeer peer = (SnmpPeer) obj ;
-          if (_devAddr.equals(peer.getDestAddr()) && 
-          portNum == peer.getDestPort())
-          return true ;
-          }
-        */
-        return false ;
-    }
-
-    /**
      * Gets the list of alternate <CODE>InetAddress</CODE> configured for this peer.
      * @return The <CODE>InetAddress</CODE> of the peer.
      */
@@ -315,7 +286,7 @@ public class SnmpPeer implements Serializable {
     final public int getDestPort() {
         return portNum ;
     }
-   
+
     /**
      * Changes the port address of the destination for the request.
      * @param newPort The destination port.
@@ -331,7 +302,7 @@ public class SnmpPeer implements Serializable {
     final public int getTimeout() {
         return timeout;
     }
-  
+
     /**
      * Changes the timeout to wait for a response from the peer.
      * @param newTimeout The timeout (in milliseconds).
@@ -341,7 +312,7 @@ public class SnmpPeer implements Serializable {
             throw new IllegalArgumentException();
         timeout= newTimeout;
     }
-  
+
     /**
      * Gets the number of times to try before giving up.
      * @return The maximun number of tries.
@@ -349,7 +320,7 @@ public class SnmpPeer implements Serializable {
     final public int getMaxTries() {
         return maxTries;
     }
-  
+
     /**
      * Changes the maximun number of times to try before giving up.
      * @param newMaxTries The maximun number of tries.
@@ -359,7 +330,7 @@ public class SnmpPeer implements Serializable {
             throw new IllegalArgumentException();
         maxTries= newMaxTries;
     }
-  
+
     /**
      * Gets the name specified in the constructor while creating this object.
      * @return The name of the host as specified while creating this object.
@@ -372,6 +343,7 @@ public class SnmpPeer implements Serializable {
      * Returns the <CODE>String</CODE> representation for this <CODE>SnmpPeer</CODE>.
      * @return The <CODE>String</CODE> representation.
      */
+    @Override
     public String toString() {
         return "Peer/Port : " + getDevName() + "/" + getDestPort() ;
     }
@@ -414,7 +386,7 @@ public class SnmpPeer implements Serializable {
     final public int getMaxSnmpPktSize() {
         return maxSnmpPacketSize ;
     }
-    
+
     /**
      * Configures the maximum packet size that can be used when generating an SNMP request.
      * @param newsize The desired packet size.
@@ -422,17 +394,18 @@ public class SnmpPeer implements Serializable {
     final public synchronized void setMaxSnmpPktSize(int newsize) {
         maxSnmpPacketSize = newsize ;
     }
-  
+
     boolean isCustomPduFactory() {
 	return customPduFactory;
     }
 
     /**
      * Finalizer of the <CODE>SnmpPeer</CODE> objects.
-     * This method is called by the garbage collector on an object 
+     * This method is called by the garbage collector on an object
      * when garbage collection determines that there are no more references to the object.
      * <P>Sets all the references to this SNMP peer object to <CODE>null</CODE>.
      */
+    @Override
     public void finalize() {
         _devAddr = null ;
         _devAddrList = null ;
@@ -462,11 +435,11 @@ public class SnmpPeer implements Serializable {
     public long getAvgRtt() {
         return _avgrtt ;
     }
-    
-    
+
+
     // PRIVATE METHODS
     //----------------
-    
+
     private void updateRttStats(long tm) {
         if (_minrtt > tm)
             _minrtt = tm ;

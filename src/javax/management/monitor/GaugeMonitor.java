@@ -1,5 +1,5 @@
 /*
- * @(#)GaugeMonitor.java	1.79 08/11/18
+ * @(#)GaugeMonitor.java	1.80 08/12/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,7 +61,7 @@ import static javax.management.monitor.MonitorNotification.*;
  * (<CODE>Byte</CODE>, <CODE>Integer</CODE>, <CODE>Short</CODE>,
  * <CODE>Long</CODE>, <CODE>Float</CODE>, <CODE>Double</CODE>).
  *
- * @version     1.79     11/18/08
+ * @version     1.80     12/16/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -474,7 +474,7 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      */
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return notifsInfo;
+        return notifsInfo.clone();
     }
 
     /*
@@ -836,7 +836,7 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
             (GaugeMonitorObservedObject) getObservedObject(object);
         if (o == null)
             return null;
-        
+
         // Notify the listeners if the updated derived
         // gauge value is valid.
         //

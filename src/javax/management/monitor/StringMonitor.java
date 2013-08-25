@@ -1,5 +1,5 @@
 /*
- * @(#)StringMonitor.java	4.45 05/11/17
+ * @(#)StringMonitor.java	4.46 08/12/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import static javax.management.monitor.MonitorNotification.*;
  *      the attribute value matches the string to compare value.
  * </UL>
  *
- * @version     4.45     11/17/05
+ * @version     4.46     12/16/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -176,6 +176,7 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      *
      * @since.unbundled JMX 1.2
      */
+    @Override
     public synchronized String getDerivedGauge(ObjectName object) {
         return (String) super.getDerivedGauge(object);
     }
@@ -192,6 +193,7 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      *
      * @since.unbundled JMX 1.2
      */
+    @Override
     public synchronized long getDerivedGaugeTimeStamp(ObjectName object) {
         return super.getDerivedGaugeTimeStamp(object);
     }
@@ -334,8 +336,9 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      * the Java class of the notification and the notification types sent by
      * the string monitor.
      */
+    @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return notifsInfo;
+        return notifsInfo.clone();
     }
 
     /*

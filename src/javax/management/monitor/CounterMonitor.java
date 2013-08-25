@@ -1,5 +1,5 @@
 /*
- * @(#)CounterMonitor.java	1.80 08/11/18
+ * @(#)CounterMonitor.java	1.81 08/12/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,7 +53,7 @@ import static javax.management.monitor.MonitorNotification.*;
  * attribute to be of the type integer (<CODE>Byte</CODE>,
  * <CODE>Integer</CODE>, <CODE>Short</CODE>, <CODE>Long</CODE>).
  *
- * @version     1.80     11/18/08
+ * @version     1.81     12/16/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -595,7 +595,7 @@ public class CounterMonitor extends Monitor implements CounterMonitorMBean {
      */
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return notifsInfo;
+        return notifsInfo.clone();
     }
 
     /*

@@ -1,8 +1,8 @@
 /*
  * @(#)file      SnmpVarBind.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.14
- * @(#)date      06/11/29
+ * @(#)version   4.15
+ * @(#)date      09/03/09
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,17 +18,17 @@ import java.io.Serializable;
 
 
 /**
- * This class holds information for a MIB variable contained in an {@link com.sun.jmx.snmp.SnmpVarBindList}. 
+ * This class holds information for a MIB variable contained in an {@link com.sun.jmx.snmp.SnmpVarBindList}.
  * An <CODE>SnmpVarBind</CODE> consists of three parts:<P>
  * <DL>
  * <DD>- The corresponding OID object for the MIB variable.
  * <DD>- The value part associated with that OID instance.
  * If present, it determines the MIB syntax for the object.
- * <DD>- The status of the <CODE>SnmpVarBind</CODE> which specifies whether the agent responded with an 
- * exception condition for this variable such as <CODE>noSuchInstance</CODE>, <CODE>endOfMibView</CODE>, 
+ * <DD>- The status of the <CODE>SnmpVarBind</CODE> which specifies whether the agent responded with an
+ * exception condition for this variable such as <CODE>noSuchInstance</CODE>, <CODE>endOfMibView</CODE>,
  * or <CODE>noSuchObject</CODE>.
  * </DL>
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  */
 
@@ -36,11 +36,11 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
 
     // PUBLIC VARIABLES
     //-----------------
-    
+
     /**
      * Keeps the legend for the value part of the <CODE>SnmpVarBind</CODE>.
      */
-    static final public String statusLegend[] = { "Status Mapper", "Value not initialized", 
+    static final private String statusLegend[] = { "Status Mapper", "Value not initialized",
                                                   "Valid Value", "No such object",
                                                   "No such Instance", "End of Mib View" } ;
 
@@ -56,15 +56,15 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
 
     /**
      * Useful constant indicating that the status of the <CODE>SnmpVarBind</CODE> object is <CODE>noSuchObject</CODE>.
-     * Status of <CODE>SnmpVarBind</CODE> as returned by the SNMPv2 agent. 
+     * Status of <CODE>SnmpVarBind</CODE> as returned by the SNMPv2 agent.
      */
     static final public int stValueNoSuchObject = 3 ;
 
     /**
-     * Useful constant indicating that the status of the <CODE>SnmpVarBind</CODE> object is 
+     * Useful constant indicating that the status of the <CODE>SnmpVarBind</CODE> object is
      * <CODE>noSuchInstance</CODE>.
      * Status of <CODE>SnmpVarBind</CODE> as returned by the SNMPv2 agent.
-     * In the SNMPv1 context, this is appropriate when <CODE>noSuchName</CODE> is returned in response to the 
+     * In the SNMPv1 context, this is appropriate when <CODE>noSuchName</CODE> is returned in response to the
      * <CODE>SnmpGet</CODE> request.
      */
     static final public int stValueNoSuchInstance = 4 ;
@@ -72,12 +72,12 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Useful constant indicating that the status of the <CODE>SnmpVarBind</CODE> object is <CODE>endOfMibView</CODE>.
      * Status of <CODE>SnmpVarBind</CODE> as returned by the SNMPv2 agent.
-     * In the SNMPv1 context, this is appropriate when <CODE>noSuchName</CODE> is returned in response to the 
+     * In the SNMPv1 context, this is appropriate when <CODE>noSuchName</CODE> is returned in response to the
      * <CODE>SnmpGetNext</CODE> request.
      */
     static final public int stValueEndOfMibView = 5 ;
 
-    
+
     //
     // These are predefined values for SNMP V2 variables
     //
@@ -95,7 +95,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * Error code value as defined in RFC 1448 for: <CODE>endOfMibView</CODE>.
      */
     public final static SnmpNull endOfMibView   = new SnmpNull(errEndOfMibViewTag) ;
-    
+
     /**
      * The OID of the <CODE>SnmpVarBind</CODE>.
      * The default value is null.
@@ -111,24 +111,24 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * As of Java Dynamic Management Kit 5.0, use instead <CODE>getSnmpValue</CODE> and <CODE>setSnmpValue</CODE></p>
      */
     public SnmpValue value = null ;
-    
+
     /**
      * Indicates the status of the value in this <CODE>SnmpVarBind</CODE>.
      * The default value is <CODE>stValueUnspecified</CODE>.
      * This attribute is updated internally and should not be changed otherwise.
      */
     public int status = stValueUnspecified ;
-    
-    
+
+
     // CONSTRUCTORS
     //-------------
-    
+
     /**
      * Default constructor.
      */
     public SnmpVarBind() {
     }
-    
+
     /**
      * Constructs a new <CODE>SnmpVarBind</CODE> object from the specified <CODE>SnmpOid</CODE> value.
      * @param oid The OID part of the <CODE>SnmpVarBind</CODE>.
@@ -138,7 +138,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     }
 
     /**
-     * Constructs a new <CODE>SnmpVarBind</CODE> object from the specified <CODE>SnmpOid</CODE> and 
+     * Constructs a new <CODE>SnmpVarBind</CODE> object from the specified <CODE>SnmpOid</CODE> and
      * <CODE>SnmpValue</CODE>.
      * @param oid The OID part of the <CODE>SnmpVarBind</CODE>.
      * @param val The value part of the <CODE>SnmpVarBind</CODE>.
@@ -149,7 +149,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     }
 
     /**
-     * Constructs a new <CODE>SnmpVarBind</CODE> object from the specified <CODE>String</CODE> value. 
+     * Constructs a new <CODE>SnmpVarBind</CODE> object from the specified <CODE>String</CODE> value.
      * If the name is a MIB variable, it resolves the name with the MIB database.
      * @param name The MIB variable name or a dot-formatted OID <CODE>String</CODE>.
      * @exception SnmpStatusException An error occurred while resolving the MIB variable name.
@@ -164,24 +164,24 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
                 int index = name.indexOf('.') ;
                 handleLong(name, index);
                 this.oid = new SnmpOid(name);
-            } 
+            }
             catch(NumberFormatException e) {
                 int index = name.indexOf('.') ;
                 if (index <= 0) {
                     record = resolveVarName(name) ;
                     this.oid = new SnmpOid(record.getName()) ;
                 } else {
-                    record = resolveVarName(name.substring(0, index)) ;				       
+                    record = resolveVarName(name.substring(0, index)) ;
                     this.oid = new SnmpOid(record.getName() + name.substring(index)) ;
                 }
             }
         }
     }
-    
-    
+
+
     // GETTER/SETTER
     //--------------
-    
+
     /**
      * Returns the complete OID part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpOid</CODE> for this variable.
@@ -207,7 +207,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     final synchronized public SnmpValue getSnmpValue() {
         return this.value ;
     }
-  
+
     /**
      * Sets the <CODE>SnmpValue</CODE> part associated with this <CODE>SnmpVarBind</CODE> with the specified value.
      * The status is updated to indicate that the value is valid.
@@ -221,20 +221,20 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpCounter64</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpCounter64 getSnmpCounter64Value() throws ClassCastException {
         return (SnmpCounter64)this.value ;
-    }  
+    }
 
     /**
-     * Sets the <CODE>SnmpCounter64</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpCounter64</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified counter 64 value.
      * The status is updated to indicate that the value is valid.
      * @param val The new counter 64 value.
      * @exception IllegalArgumentException The specified value is negative or larger than <CODE>Long.MAX_VALUE</CODE>.
-     * @see SnmpCounter64  
+     * @see SnmpCounter64
      */
     final public void setSnmpCounter64Value(long val) throws IllegalArgumentException {
         clearValue() ;
@@ -245,21 +245,21 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpInt</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
-     * it is not an instance.   
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
+     * it is not an instance.
      */
     final public SnmpInt getSnmpIntValue() throws ClassCastException {
         return (SnmpInt)this.value ;
     }
 
     /**
-     * Sets the <CODE>SnmpInt</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpInt</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified integer value.
      * The status is updated to indicate that the value is valid.
      * @param val The new integer value.
      * @exception IllegalArgumentException The specified value is smaller than <CODE>Integer.MIN_VALUE</CODE>
-     * or larger than <CODE>Integer.MAX_VALUE</CODE>. 
-     * @see SnmpInt 
+     * or larger than <CODE>Integer.MAX_VALUE</CODE>.
+     * @see SnmpInt
      */
     final public void setSnmpIntValue(long val) throws IllegalArgumentException {
         clearValue() ;
@@ -270,20 +270,20 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpCounter</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpCounter getSnmpCounterValue() throws ClassCastException {
         return (SnmpCounter)this.value ;
-    }  
+    }
 
     /**
-     * Sets the <CODE>SnmpCounter</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpCounter</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified counter value.
      * The status is updated to indicate that the value is valid.
      * @param val The new counter value.
-     * @exception IllegalArgumentException The specified value is negative or larger than 
-     * <CODE>SnmpUnsignedInt.MAX_VALUE</CODE>. 
+     * @exception IllegalArgumentException The specified value is negative or larger than
+     * <CODE>SnmpUnsignedInt.MAX_VALUE</CODE>.
      * @see SnmpCounter
      */
     final public void setSnmpCounterValue(long val) throws IllegalArgumentException {
@@ -295,8 +295,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpGauge</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
-     * it is not an instance. 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
+     * it is not an instance.
      */
     final public SnmpGauge getSnmpGaugeValue() throws ClassCastException {
         return (SnmpGauge)this.value ;
@@ -307,9 +307,9 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * with the specified gauge value.
      * The status is updated to indicate that the value is valid.
      * @param val The new gauge value.
-     * @exception IllegalArgumentException The specified value is negative or larger than 
-     * <CODE>SnmpUnsignedInt.MAX_VALUE</CODE>. 
-     * @see SnmpGauge 
+     * @exception IllegalArgumentException The specified value is negative or larger than
+     * <CODE>SnmpUnsignedInt.MAX_VALUE</CODE>.
+     * @see SnmpGauge
      */
     final public void setSnmpGaugeValue(long val) throws IllegalArgumentException {
         clearValue() ;
@@ -320,7 +320,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpTimeticks</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpTimeticks getSnmpTimeticksValue() throws ClassCastException {
@@ -328,12 +328,12 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     }
 
     /**
-     * Sets the <CODE>SnmpTimeticks</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpTimeticks</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified timeticks value.
      * The status is updated to indicate that the value is valid.
      * @param val The new timeticks value.
-     * @exception IllegalArgumentException The specified value is negative or larger than 
-     * <CODE>SnmpUnsignedInt.MAX_VALUE</CODE>. 
+     * @exception IllegalArgumentException The specified value is negative or larger than
+     * <CODE>SnmpUnsignedInt.MAX_VALUE</CODE>.
      * @see SnmpTimeticks
      */
     final public void setSnmpTimeticksValue(long val) throws IllegalArgumentException {
@@ -345,7 +345,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpOid</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpOid getSnmpOidValue() throws ClassCastException {
@@ -353,7 +353,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     }
 
     /**
-     * Sets the <CODE>SnmpOid</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpOid</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified OID value.
      * The status is updated to indicate that the value is valid.
      * @param val The new OID value.
@@ -370,7 +370,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpIpAddress</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpIpAddress getSnmpIpAddressValue() throws ClassCastException {
@@ -378,7 +378,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     }
 
     /**
-     * Sets the <CODE>SnmpIpAddress</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpIpAddress</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified ipAddress value.
      * The status is updated to indicate that the value is valid.
      * @param val The new IP address value.
@@ -394,19 +394,19 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpString</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpString getSnmpStringValue() throws ClassCastException {
         return (SnmpString)this.value ;
-    }  
+    }
 
     /**
-     * Sets the <CODE>SnmpString</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpString</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified string value.
      * The status is updated to indicate that the value is valid.
      * @param val The new string value.
-     * @see SnmpString   
+     * @see SnmpString
      */
     final public void setSnmpStringValue(String val) {
         clearValue() ;
@@ -417,15 +417,15 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpOpaque</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
-     * it is not an instance.     
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
+     * it is not an instance.
      */
     final public SnmpOpaque getSnmpOpaqueValue() throws ClassCastException {
         return (SnmpOpaque)this.value ;
-    }  
+    }
 
     /**
-     * Sets the <CODE>SnmpOpaque</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpOpaque</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified bytes array values.
      * The status is updated to indicate that the value is valid.
      * @param val The new bytes array value.
@@ -440,15 +440,15 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     /**
      * Returns the value part associated with this <CODE>SnmpVarBind</CODE>.
      * @return The <CODE>SnmpStringFixed</CODE> value for this variable.
-     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which 
+     * @exception ClassCastException An attempt has been made to cast an object to a subclass of which
      * it is not an instance.
      */
     final public SnmpStringFixed getSnmpStringFixedValue() throws ClassCastException {
         return (SnmpStringFixed)this.value ;
-    }  
+    }
 
     /**
-     * Sets the <CODE>SnmpStringFixed</CODE> value part associated with this <CODE>SnmpVarBind</CODE> 
+     * Sets the <CODE>SnmpStringFixed</CODE> value part associated with this <CODE>SnmpVarBind</CODE>
      * with the specified string value.
      * The status is updated to indicate that the value is valid.
      * @param val The new string value.
@@ -459,8 +459,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
         this.value = new SnmpStringFixed(val) ;
         setValueValid() ;
     }
-    
-    
+
+
     // PUBLIC METHODS
     //---------------
 
@@ -471,8 +471,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * @exception SnmpStatusException An error occurred while resolving the MIB variable name.
      */
     public SnmpOidRecord resolveVarName(String name) throws SnmpStatusException {
-        
-        SnmpOidTable mibTable = oid.getSnmpOidTable();
+
+        SnmpOidTable mibTable = SnmpOid.getSnmpOidTable();
         if (mibTable == null)
             throw new SnmpStatusException(SnmpStatusException.noSuchName);
         int index = name.indexOf('.');
@@ -482,7 +482,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
             return mibTable.resolveVarOid(name);
         }
     }
-    
+
     /**
      * Returns the status of the value associated with this <CODE>SnmpVarBind</CODE> as an integer.
      * This value is one of {@link #stValueUnspecified}, {@link #stValueOk}, {@link #stValueNoSuchObject},
@@ -503,7 +503,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     final public String getValueStatusLegend() {
         return statusLegend[status] ;
     }
-    
+
     /**
      * Checks whether the object contains a valid accessible value.
      * @return <CODE>true</CODE> if the associated value is valid, <CODE>false</CODE> otherwise.
@@ -521,16 +521,16 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     }
 
     /**
-     * Clears the value associated with this <CODE>SnmpVarBind</CODE> and sets the status to 
+     * Clears the value associated with this <CODE>SnmpVarBind</CODE> and sets the status to
      * <CODE>stValueUnspecified</CODE>.
      */
     final public void clearValue() {
         this.value = null ;
         status = stValueUnspecified ;
     }
-    
+
     /**
-     * Checks whether the OID for this variable completely matches the OID part of the specified 
+     * Checks whether the OID for this variable completely matches the OID part of the specified
      * <CODE>SnmpVarBind</CODE> object.
      * @param var The object whose OID part is to be matched.
      * @return <CODE>true</CODE> if the OID part matches exactly, <CODE>false</CODE> otherwise.
@@ -541,7 +541,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
 
     /**
      * Adds an instance part to the OID in the <CODE>SnmpOid</CODE> object.
-     * Note that there is no <CODE>getInstance</CODE> method. 
+     * Note that there is no <CODE>getInstance</CODE> method.
      * This method will directly add the instance to the <CODE>SnmpOid</CODE> object.
      * @param inst The sub-identifier to be appended to the OID.
      */
@@ -552,7 +552,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
 
     /**
      * Adds an instance part to the OID in the <CODE>SnmpOid</CODE> object.
-     * Note that there is no <CODE>getInstance</CODE> method. 
+     * Note that there is no <CODE>getInstance</CODE> method.
      * This method will directly add the instance to the <CODE>SnmpOid</CODE> object.
      * @param inst The sub-identifier array to be appended to the OID.
      * @exception SnmpStatusException An error occurred while accessing a MIB node.
@@ -564,7 +564,7 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
 
     /**
      * Adds an instance part to the OID in the <CODE>SnmpOid</CODE> object.
-     * Note that there is no <CODE>getInstance</CODE> method. 
+     * Note that there is no <CODE>getInstance</CODE> method.
      * This method will directly add the instance to the <CODE>SnmpOid</CODE> object.
      * @param inst Dot-formatted sub-identifier <CODE>String</CODE> to be appended to the OID.
      * @exception SnmpStatusException An error occurred while accessing a MIB node.
@@ -591,11 +591,11 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
     public void appendInOid(SnmpOid oid) {
         this.oid.append(oid) ;
     }
-    
+
     /**
-     * Determines whether the <CODE>SnmpVarBind</CODE> has an SNMP exception 
+     * Determines whether the <CODE>SnmpVarBind</CODE> has an SNMP exception
      * (generated by agent in response to a request).
-     * @return <CODE>true</CODE> if the <CODE>SnmpVarBind</CODE> has an SNMP response exception, 
+     * @return <CODE>true</CODE> if the <CODE>SnmpVarBind</CODE> has an SNMP response exception,
      * <CODE>false</CODE> otherwise.
      */
     final public synchronized boolean hasVarBindException() {
@@ -647,7 +647,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * Clones the SNMP variable (including value).
      * @return The SNMP variable clone.
      */
-    public Object clone() { 
+    @Override
+    public Object clone() {
 //         SnmpVarBind v = null ;
 //         try {
 //             v = (SnmpVarBind) super.clone() ;
@@ -700,9 +701,10 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * Returns the printable ASCII representation of this <CODE>SnmpVarBind</CODE>.
      * @return The printable ASCII representation.
      */
+    @Override
     final public String toString() {
         StringBuffer s = new StringBuffer(400) ;
-        s.append("Object ID : " + this.oid.toString()) ; 
+        s.append("Object ID : " + this.oid.toString()) ;
 
         if (isValidValue()) {
             s.append("  (Syntax : " + this.value.getTypeName() + ")\n") ;
@@ -713,10 +715,10 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
         return s.toString() ;
     }
 
-    
+
     // PRIVATE METHODS
     //----------------
-    
+
     /**
      * Sets the status to indicate that the value for this <CODE>SnmpVarBind</CODE> is valid.
      */
@@ -739,5 +741,5 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
         // just parse the element.
         //
         Long.parseLong(str);
-    }   
+    }
 }

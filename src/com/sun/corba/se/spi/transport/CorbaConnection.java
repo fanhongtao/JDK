@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaConnection.java	1.29 05/11/17
+ * @(#)CorbaConnection.java	1.31 09/01/15
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
