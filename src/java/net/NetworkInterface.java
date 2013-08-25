@@ -1,5 +1,5 @@
 /*
- * @(#)NetworkInterface.java	1.21 06/04/10
+ * @(#)NetworkInterface.java	1.22 08/11/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -202,7 +202,8 @@ public final class NetworkInterface {
      *         or null if no display name is available.
      */
     public String getDisplayName() {
-	return displayName;
+	/* strict TCK conformance */
+	return "".equals(displayName)?null:displayName;
     }
  
     /**

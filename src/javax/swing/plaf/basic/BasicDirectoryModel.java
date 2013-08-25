@@ -1,5 +1,5 @@
 /*
- * @(#)BasicDirectoryModel.java	1.37 07/08/29
+ * @(#)BasicDirectoryModel.java	1.38 08/08/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -207,19 +207,14 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
             this.fid = fid;
         }
 
-        private void invokeLater(Runnable runnable) {
-            runnables.addElement(runnable);
-            SwingUtilities.invokeLater(runnable);
-        }
-
         public void run() {
             run0();
             setBusy(false, fid);
         }
 
         public void run0() {
-            ShellFolder.getInvoker().invoke(new Callable<Void>() {
-                public Void call() throws Exception {
+            DoChangeContents doChangeContents = ShellFolder.getInvoker().invoke(new Callable<DoChangeContents>() {
+                public DoChangeContents call() throws Exception {
                     FileSystemView fileSystem = filechooser.getFileSystemView();
                     
                     File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());
@@ -287,8 +282,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
                             if(isInterrupted()) {
                                 return null;
                             }
-                            invokeLater(new DoChangeContents(newFileCache.subList(start, end), start, null, 0, fid));
-                            newFileCache = null;
+                            return new DoChangeContents(newFileCache.subList(start, end), start, null, 0, fid);
                         }
                     } else if (newSize < oldSize) {
                         //see if interval is removed
@@ -306,20 +300,24 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
                             if(isInterrupted()) {
                                 return null;
                             }
-                            invokeLater(new DoChangeContents(null, 0, new Vector(fileCache.subList(start, end)),
-                                                             start, fid));
-                            newFileCache = null;
+                            return new DoChangeContents(null, 0, new Vector(fileCache.subList(start, end)), start, fid);
                         }
                     }
-                    if (newFileCache != null && !fileCache.equals(newFileCache)) {
+                    if (!fileCache.equals(newFileCache)) {
                         if (isInterrupted()) {
                             cancelRunnables(runnables);
                         }
-                        invokeLater(new DoChangeContents(newFileCache, 0, fileCache, 0, fid));
+                        return new DoChangeContents(newFileCache, 0, fileCache, 0, fid);
                     }
+
                     return null;
                 }
             });
+
+            if (doChangeContents != null) {
+                runnables.addElement(doChangeContents);
+                SwingUtilities.invokeLater(doChangeContents);
+            }
         }
 
 

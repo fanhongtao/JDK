@@ -1,5 +1,5 @@
 /*
- * @(#)Logger.java	1.49 06/05/08
+ * @(#)Logger.java	1.50 08/07/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -138,10 +138,9 @@ import java.lang.ref.WeakReference;
  * All the other logging methods are implemented as calls on this
  * log(LogRecord) method.
  *
- * @version 1.49, 05/08/06
+ * @version 1.50, 07/11/08
  * @since 1.4
  */
-
 
 public class Logger {
     private static final Handler emptyHandlers[] = new Handler[0];
@@ -272,13 +271,7 @@ public class Logger {
      */
     public static synchronized Logger getLogger(String name) {
 	LogManager manager = LogManager.getLogManager();
-	Logger result = manager.getLogger(name);
-	if (result == null) {
-	    result = new Logger(name, null);
-	    manager.addLogger(result);
-	    result = manager.getLogger(name);
-	}
-	return result;
+        return manager.demandLogger(name);
     }
 
     /**
@@ -313,14 +306,7 @@ public class Logger {
      */
     public static synchronized Logger getLogger(String name, String resourceBundleName) {
 	LogManager manager = LogManager.getLogManager();
-	Logger result = manager.getLogger(name);
-	if (result == null) {
-	    // Create a new logger.
-	    // Note: we may get a MissingResourceException here.
-	    result = new Logger(name, resourceBundleName);
-	    manager.addLogger(result);
-	    result = manager.getLogger(name);
-	}
+        Logger result = manager.demandLogger(name);
 	if (result.resourceBundleName == null) {
 	    // Note: we may get a MissingResourceException here.
 	    result.setupResourceInfo(resourceBundleName);
@@ -1463,3 +1449,4 @@ public class Logger {
 
 
 }
+ 

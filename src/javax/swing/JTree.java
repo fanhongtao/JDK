@@ -1,5 +1,5 @@
 /*
- * @(#)JTree.java	1.196 07/01/17
+ * @(#)JTree.java	1.197 08/07/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -120,7 +120,7 @@ import static sun.swing.SwingUtilities2.Section.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.196, 01/17/07
+ * @version 1.197, 07/23/08
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -1948,20 +1948,17 @@ public class JTree extends JComponent implements Scrollable, Accessible
      *               true if all nodes in the path are expanded
      */
     public boolean isExpanded(TreePath path) {
-	if(path == null)
-	    return false;
 
-	// Is this node expanded?
-	Object          value = expandedState.get(path);
+        if(path == null)
+            return false;
+        Object  value;
 
-	if(value == null || !((Boolean)value).booleanValue())
-	    return false;
-
-	// It is, make sure its parent is also expanded.
-	TreePath        parentPath = path.getParentPath();
-
-	if(parentPath != null)
-	    return isExpanded(parentPath);
+        do{
+            value = expandedState.get(path);
+            if(value == null || !((Boolean)value).booleanValue())
+                return false;
+        } while( (path=path.getParentPath())!=null );
+        
         return true;
     }
 

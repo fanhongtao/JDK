@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.102 07/06/04
+ * @(#)WindowsFileChooserUI.java	1.103 08/10/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import sun.awt.shell.ShellFolder;
 import sun.swing.*;
@@ -29,7 +31,7 @@ import javax.accessibility.*;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.102 06/04/07
+ * @version 1.103 10/02/08
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -495,16 +497,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	if (prop != null) {
 	    useShellFolder = prop.booleanValue();
 	} else {
-	    // See if FileSystemView.getRoots() returns the desktop folder,
-	    // i.e. the normal Windows hierarchy.
-	    useShellFolder = false;
-	    File[] roots = fc.getFileSystemView().getRoots();
-	    if (roots != null && roots.length == 1) {
-		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
-		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
-		    useShellFolder = true;
-		}
-	    }
+            useShellFolder = fc.getFileSystemView().equals(FileSystemView.getFileSystemView());
 	}
 	if (OS_VERSION.compareTo("4.9") >= 0) {	// Windows Me/2000 and later (4.90/5.0)
 	    if (useShellFolder) {
@@ -1019,7 +1012,11 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	    File[] baseFolders;
 	    if (useShellFolder) {
-		baseFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+                baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
+                    public File[] run() {
+                        return (File[])ShellFolder.get("fileChooserComboBoxFolders");
+                    }
+                });
 	    } else {
 		baseFolders = fsv.getRoots();
 	    }
