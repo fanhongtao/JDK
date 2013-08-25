@@ -1,5 +1,5 @@
 /*
- * @(#)Socket.java	1.114 07/01/19
+ * @(#)Socket.java	1.115 07/09/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.114, 01/19/07
+ * @version 1.115, 09/05/07
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -102,8 +102,9 @@ class Socket {
 	    InetSocketAddress epoint = (InetSocketAddress) proxy.address();
 	    if (security != null) {
 		if (epoint.isUnresolved())
-		    security.checkConnect(epoint.getHostName(),
-					  epoint.getPort());
+		    epoint = new InetSocketAddress(epoint.getHostName(), epoint.getPort());
+		if (epoint.isUnresolved())
+		    security.checkConnect(epoint.getHostName(), epoint.getPort());
 		else
 		    security.checkConnect(epoint.getAddress().getHostAddress(),
 					  epoint.getPort());
