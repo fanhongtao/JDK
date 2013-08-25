@@ -1,5 +1,5 @@
 /*
- * @(#)LayoutFocusTraversalPolicy.java	1.12 06/08/04
+ * @(#)LayoutFocusTraversalPolicy.java	1.13 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,7 +11,7 @@ import java.awt.Container;
 import java.awt.ComponentOrientation;
 import java.util.Comparator;
 import java.io.*;
-
+import sun.awt.SunToolkit;
 
 /**
  * A SortingFocusTraversalPolicy which sorts Components based on their size,
@@ -23,7 +23,7 @@ import java.io.*;
  * <code>ComponentOrientation</code> for more information. All columns in a
  * row are fully traversed before proceeding to the next row.
  *
- * @version 1.12, 08/04/06
+ * @version 1.13, 04/13/09
  * @author David Mendenhall
  *
  * @see java.awt.ComponentOrientation
@@ -209,11 +209,11 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
      protected boolean accept(Component aComponent) {
 	if (!super.accept(aComponent)) {
 	    return false;
-	} else if (aComponent instanceof JTable) {
+	} else if (SunToolkit.isInstanceOf(aComponent, "javax.swing.JTable")) {
             // JTable only has ancestor focus bindings, we thus force it
             // to be focusable by returning true here.
 	    return true;
-	} else if (aComponent instanceof JComboBox) {
+	} else if (SunToolkit.isInstanceOf(aComponent, "javax.swing.JComboBox")) {
 	    JComboBox box = (JComboBox)aComponent;
 	    return box.getUI().isFocusTraversable(box);
 	} else if (aComponent instanceof JComponent) {

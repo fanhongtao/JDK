@@ -1,5 +1,5 @@
 /*
- * @(#)Constructor.java	1.56 06/07/11
+ * @(#)Constructor.java	1.57 09/04/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -600,13 +600,11 @@ public final
         return (T) declaredAnnotations().get(annotationClass);
     }
 
-    private static final Annotation[] EMPTY_ANNOTATION_ARRAY=new Annotation[0];
-
     /**
      * @since 1.5
      */
     public Annotation[] getDeclaredAnnotations()  {
-        return declaredAnnotations().values().toArray(EMPTY_ANNOTATION_ARRAY);
+        return AnnotationParser.toArray(declaredAnnotations());
     }
 
     private transient Map<Class, Annotation> declaredAnnotations;

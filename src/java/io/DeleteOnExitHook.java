@@ -1,5 +1,5 @@
 /*
- * @(#)DeleteOnExitHook.java	1.4 06/06/20
+ * @(#)DeleteOnExitHook.java	1.5 09/04/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,16 +16,17 @@ import java.io.File;
  */
 
 class DeleteOnExitHook {
-    private static DeleteOnExitHook instance = null;
+    static {
+         sun.misc.SharedSecrets.getJavaLangAccess()
+             .registerShutdownHook(2 /* Shutdown hook invocation order */,
+                 new Runnable() {
+                     public void run() {
+                        runHooks();
+                     }
+                 });
+    }
 
     private static LinkedHashSet<String> files = new LinkedHashSet<String>();
-
-    static DeleteOnExitHook hook() {
-	if (instance == null)
-	    instance = new DeleteOnExitHook();
-
-	return instance;
-    }
 
     private DeleteOnExitHook() {}
 
@@ -38,7 +39,7 @@ class DeleteOnExitHook {
 	}
     }
 
-    void run() {
+    static void runHooks() {
 	LinkedHashSet<String> theFiles;
 
 	synchronized (files) {

@@ -20,7 +20,7 @@
 
 /*
  * $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
- * @(#)XMLScanner.java	1.18 06/08/10
+ * @(#)XMLScanner.java	1.19 09/04/17
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -1439,7 +1439,8 @@ public abstract class XMLScanner
             return (XMLStringBuffer)stringBufferCache.get(fStringBufferIndex++);
         }else{
             XMLStringBuffer tmpObj = new XMLStringBuffer();
-            stringBufferCache.add(fStringBufferIndex, tmpObj);
+            fStringBufferIndex++;
+            stringBufferCache.add(tmpObj);
             return tmpObj;
         }
     }

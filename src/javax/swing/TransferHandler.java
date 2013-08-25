@@ -1,5 +1,5 @@
 /*
- * @(#)TransferHandler.java	1.47 06/06/06
+ * @(#)TransferHandler.java	1.49 09/04/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,7 +53,7 @@ import sun.swing.*;
  *
  * @author Timothy Prinzing
  * @author Shannon Hickey
- * @version 1.47 06/06/06
+ * @version 1.49 04/28/09
  * @since 1.4
  */
 @SuppressWarnings("serial")
@@ -1368,10 +1368,10 @@ public class TransferHandler implements Serializable {
                     state =
                         method.invokeNoChecked(component, dropLocation,
                                                state, forDrop);
-                } catch (NoSuchMethodException e) {
-                    throw new AssertionError(
-                        "Couldn't locate method JTextComponet.setDropLocation");
-                }
+               } catch (NoSuchMethodException e) {
+                   throw new AssertionError(
+                       "Couldn't locate method JTextComponet.setDropLocation");
+               }
             } else if (component instanceof JComponent) {
                 state = ((JComponent)component).setDropLocation(dropLocation, state, forDrop);
             }

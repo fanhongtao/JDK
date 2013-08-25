@@ -1,5 +1,5 @@
 /*
- * @(#)JPEG.java	1.17 07/11/26
+ * @(#)JPEG.java	1.18 09/02/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -199,17 +199,20 @@ public class JPEG {
         public static final ColorSpace sRGB = 
             ColorSpace.getInstance(ColorSpace.CS_sRGB);
 
-        public static final ColorSpace YCC;
+        private static ColorSpace YCC = null;
+        private static boolean yccInited = false;
 
-        static {
-            ColorSpace cs = null;
-            try {
-                cs= ColorSpace.getInstance(ColorSpace.CS_PYCC);
-            } catch (IllegalArgumentException e) {
-                // PYCC.pf may not always be installed
-            } finally {
-                YCC = cs;
+        public static ColorSpace getYCC() {
+            if (!yccInited) {
+                try {
+                    YCC = ColorSpace.getInstance(ColorSpace.CS_PYCC);
+                } catch (IllegalArgumentException e) {
+                    // PYCC.pf may not always be installed
+                } finally {
+                    yccInited = true;
+                }
             }
+            return YCC;
         }
     }
      

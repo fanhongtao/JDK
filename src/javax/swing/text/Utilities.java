@@ -1,5 +1,5 @@
 /*
- * @(#)Utilities.java	1.52 06/03/01
+ * @(#)Utilities.java	1.54 09/03/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.swing.SwingUtilities2;
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.52 03/01/06
+ * @version 1.54 03/25/09
  */
 public class Utilities {
     /**
@@ -373,11 +373,15 @@ public class Utilities {
 	    }
 	    if ((x >= currX) && (x < nextX)) {
 		// found the hit position... return the appropriate side
-		if ((round == false) || ((x - currX) < (nextX - x))) {
-		    return i - txtOffset;
-		} else {
-		    return i + 1 - txtOffset;
-		}
+  		int offset = ((round == false) || ((x - currX) < (nextX - x))) ?
+                        (i - txtOffset) : (i + 1 - txtOffset);
+                // the length of the string measured as a whole may differ from
+                // the sum of individual character lengths, for example if
+                // fractional metrics are enabled; and we must guard from this.
+                while (metrics.charsWidth(txt, txtOffset, offset + 1) > (nextX - x0)) {
+                    offset--;
+                }
+                return (offset < 0 ? 0 : offset);
 	    }
 	    currX = nextX;
 	}

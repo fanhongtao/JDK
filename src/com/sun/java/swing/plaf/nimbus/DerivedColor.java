@@ -1,5 +1,5 @@
 /*
- * @(#)DerivedColor.java	1.4 08/02/04
+ * @(#)DerivedColor.java	1.5 09/02/26
  *
  * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,8 +21,6 @@ import java.beans.PropertyChangeListener;
  * @author Jasper Potts
  */
 class DerivedColor extends Color {
-    private final PropertyChangeSupport changeSupport =
-            new PropertyChangeSupport(this);
     private final String uiDefaultParentName;
     private final float hOffset, sOffset, bOffset;
     private final int aOffset;
@@ -61,7 +59,6 @@ class DerivedColor extends Color {
      * Recalculate the derived color from the UIManager parent color and offsets
      */
     public void rederiveColor() {
-        int old = argbValue;
         Color src = UIManager.getColor(uiDefaultParentName);
         if (src != null) {
             float[] tmp = Color.RGBtoHSB(src.getRed(), src.getGreen(), src.getBlue(), null);
@@ -79,7 +76,6 @@ class DerivedColor extends Color {
             int alpha = clamp(aOffset);
             argbValue = (Color.HSBtoRGB(tmp[0], tmp[1], tmp[2]) & 0xFFFFFF) | (alpha << 24);
         }
-        changeSupport.firePropertyChange("rgb", old, argbValue);
     }
 
     /**
@@ -121,35 +117,6 @@ class DerivedColor extends Color {
                 Float.floatToIntBits(bOffset) : 0;
         result = 31 * result + aOffset;
         return result;
-    }
-
-     /**
-     * Add a PropertyChangeListener to the listener list.
-     * The listener is registered for all properties.
-     * The same listener object may be added more than once, and will be called
-     * as many times as it is added.
-     * If <code>listener</code> is null, no exception is thrown and no action
-     * is taken.
-     *
-     * @param listener  The PropertyChangeListener to be added
-     */
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-	changeSupport.addPropertyChangeListener(listener);
-    }
-
-    /**
-     * Remove a PropertyChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
-     * for all properties.
-     * If <code>listener</code> was added more than once to the same event
-     * source, it will be notified one less time after being removed.
-     * If <code>listener</code> is null, or was never added, no exception is
-     * thrown and no action is taken.
-     *
-     * @param listener  The PropertyChangeListener to be removed
-     */
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        changeSupport.removePropertyChangeListener(listener);
     }
 
     private float clamp(float value) {

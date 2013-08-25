@@ -1,5 +1,5 @@
 /*
- * @(#)NimbusStyle.java	1.9 08/05/29
+ * @(#)NimbusStyle.java	1.10 09/02/26
  *
  * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -375,9 +375,9 @@ public final class NimbusStyle extends SynthStyle {
     private void compileDefaults(
             Map<String, TreeMap<String,Object>> compiledDefaults,
             UIDefaults d) {
-        for (Object obj : new HashSet(d.keySet())) {
-            if (obj instanceof String) {
-                String key = (String)obj;
+        for (Map.Entry<Object, Object> entry : d.entrySet()) {
+            if (entry.getKey() instanceof String) {
+                String key = (String) entry.getKey();
                 String kp = parsePrefix(key);
                 if (kp == null) continue;
                 TreeMap<String,Object> map = compiledDefaults.get(kp);
@@ -385,7 +385,7 @@ public final class NimbusStyle extends SynthStyle {
                     map = new TreeMap<String,Object>();
                     compiledDefaults.put(kp, map);
                 }
-                map.put(key, d.get(key));
+                map.put(key, entry.getValue());
             }
         }
     }
@@ -564,11 +564,11 @@ public final class NimbusStyle extends SynthStyle {
                 //so put it in the UIDefaults associated with that runtime
                 //state
                 if ("backgroundPainter".equals(property)) {
-                    rs.backgroundPainter = (Painter)myDefaults.get(key);
+                    rs.backgroundPainter = getPainter(myDefaults, key);
                 } else if ("foregroundPainter".equals(property)) {
-                    rs.foregroundPainter = (Painter) myDefaults.get(key);
+                    rs.foregroundPainter = getPainter(myDefaults, key);
                 } else if ("borderPainter".equals(property)) {
-                    rs.borderPainter = (Painter) myDefaults.get(key);
+                    rs.borderPainter = getPainter(myDefaults, key);
                 } else {
                     rs.defaults.put(property, myDefaults.get(key));
                 }
@@ -582,7 +582,15 @@ public final class NimbusStyle extends SynthStyle {
         //finally, set the array of runtime states on the values object
         v.states = runtimeStates.toArray(new RuntimeState[runtimeStates.size()]);
     }
-    
+
+    private Painter getPainter(TreeMap<String, Object> defaults, String key) {
+        Object p = defaults.get(key);
+        if (p instanceof UIDefaults.LazyValue) {
+            p = ((UIDefaults.LazyValue)p).createValue(UIManager.getDefaults());
+        }
+        return (p instanceof Painter ? (Painter)p : null);
+    }
+
     /**
      * @InheritDoc
      *

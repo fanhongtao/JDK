@@ -1,5 +1,5 @@
 /*
- * @(#)Container.java	1.300 09/01/16
+ * @(#)Container.java	1.302 09/02/11
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -63,7 +63,7 @@ import sun.java2d.pipe.Region;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version 	1.300, 01/16/09
+ * @version 	1.302, 02/11/09
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -3918,10 +3918,10 @@ public class Container extends Component {
     @Override
     final Region getOpaqueShape() {
         checkTreeLock();
-        if (isLightweight() && !isOpaqueForMixing()
+        if (isLightweight() && isNonOpaqueForMixing()
                 && hasLightweightDescendants())
         {
-            Region s = Region.getInstanceXYWH(0, 0, 0, 0);
+            Region s = Region.EMPTY_REGION;
             for (int index = 0; index < getComponentCount(); index++) {
                 Component c = getComponent(index);
                 if (c.isLightweight() && c.isShowing()) {
@@ -4007,6 +4007,7 @@ public class Container extends Component {
         }
     }
 
+    @Override
     void mixOnShowing() {
         synchronized (getTreeLock()) {
             if (mixingLog.isLoggable(Level.FINE)) {
@@ -4027,6 +4028,26 @@ public class Container extends Component {
         }
     }
 
+    @Override
+    void mixOnReshaping() {
+        synchronized (getTreeLock()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this);
+            }
+
+            if (!isMixingNeeded()) {
+                return;
+            }
+
+            if (isLightweight() && hasHeavyweightDescendants()) {
+                recursiveApplyCurrentShape();
+            }
+            
+            super.mixOnReshaping();
+        }
+    }
+
+    @Override
     void mixOnZOrderChanging(int oldZorder, int newZorder) {
         synchronized (getTreeLock()) {
             if (mixingLog.isLoggable(Level.FINE)) {
@@ -4062,11 +4083,8 @@ public class Container extends Component {
                 recursiveApplyCurrentShape();
             }
 
-            if (isLightweight() && !isOpaqueForMixing()) {
-                Container parent = getContainer();
-                if (parent != null && isShowing()) {
-                    parent.recursiveSubtractAndApplyShape(getOpaqueShape(), getSiblingIndexBelow());
-                }
+            if (isLightweight() && isNonOpaqueForMixing()) {
+                subtractAndApplyShapeBelowMe();
             }
 
             super.mixOnValidating();

@@ -46,7 +46,7 @@ import java.lang.annotation.Target;
  *
  * @author Kohsuke Kawaguchi
  * @since JAXB2.1
- * @version $Revision: $
+ * @version $Revision: 1.1 $
  */
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)

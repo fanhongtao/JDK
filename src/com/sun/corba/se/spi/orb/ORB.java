@@ -1,5 +1,5 @@
 /*
- * @(#)ORB.java	1.55 05/11/17
+ * @(#)ORB.java	1.59 09/02/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -153,7 +153,7 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 
     private static Map staticWrapperMap = new ConcurrentHashMap();
 
-    private MonitoringManager monitoringManager;
+    protected MonitoringManager monitoringManager;
 
     // There is only one instance of the PresentationManager
     // that is shared between all ORBs.  This is necessary
@@ -206,6 +206,14 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 	globalPM.setStubFactoryFactory( false, 
 	    PresentationDefaults.getStaticStubFactoryFactory() ) ;
 	globalPM.setStubFactoryFactory( true, dynamicStubFactoryFactory ) ; 
+    }
+
+    public void destroy() {
+        wrapper = null ;
+        omgWrapper = null ;
+        typeCodeMap = null ;
+        primitiveTypeCodeConstants = null ;
+        byteBufferPool = null ;
     }
 
     /** Get the single instance of the PresentationManager
@@ -284,6 +292,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     // Typecode support: needed in both ORBImpl and ORBSingleton
     public TypeCodeImpl get_primitive_tc(int kind) 
     {
+	synchronized (this) {
+	    checkShutdownState();
+	}
 	try {
 	    return primitiveTypeCodeConstants[kind] ;
 	} catch (Throwable t) {
@@ -293,15 +304,20 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 
     public synchronized void setTypeCode(String id, TypeCodeImpl code) 
     {
+	checkShutdownState();
         typeCodeMap.put(id, code);
     }
 
     public synchronized TypeCodeImpl getTypeCode(String id) 
     {
+	checkShutdownState();
         return (TypeCodeImpl)typeCodeMap.get(id);
     }
 
     public MonitoringManager getMonitoringManager( ) {
+	synchronized (this) {
+	    checkShutdownState();
+	}
         return monitoringManager;
     }
     
@@ -416,6 +432,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
      */
     public Logger getLogger( String domain )  
     {
+	synchronized (this) {
+	    checkShutdownState();
+	}
 	ORBData odata = getORBData() ;
 
 	// Determine the correct ORBId.  There are 3 cases:
@@ -492,6 +511,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     //       This method must also be inherited by both ORB and ORBSingleton.
     public ByteBufferPool getByteBufferPool()
     {
+	synchronized (this) {
+	    checkShutdownState();
+	}
         if (byteBufferPool == null)
             byteBufferPool = new ByteBufferPoolImpl(this);
 

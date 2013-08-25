@@ -1,5 +1,5 @@
 /*
- * @(#)MonitoringManagerImpl.java	1.4 05/11/17
+ * @(#)MonitoringManagerImpl.java	1.7 09/02/23
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,7 @@
 package com.sun.corba.se.impl.monitoring;
 
 import com.sun.corba.se.spi.monitoring.MonitoringManager;
+import com.sun.corba.se.spi.monitoring.MonitoringManagerFactory;
 import com.sun.corba.se.spi.monitoring.MonitoredObject;
 import com.sun.corba.se.spi.monitoring.MonitoredObjectFactory;
 import com.sun.corba.se.spi.monitoring.MonitoringFactories;
@@ -28,6 +29,12 @@ public class MonitoringManagerImpl implements MonitoringManager {
 
     public MonitoredObject getRootMonitoredObject( ) {
         return rootMonitoredObject;
+    }
+
+    public void close() {
+        MonitoringManagerFactory f = 
+            MonitoringFactories.getMonitoringManagerFactory();
+        f.remove( rootMonitoredObject.getName() ) ;
     }
 }
         

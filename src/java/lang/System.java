@@ -1,5 +1,5 @@
 /*
- * @(#)System.java	1.159 07/11/27
+ * @(#)System.java	1.163 09/04/22
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,6 @@ import java.security.AllPermission;
 import java.nio.channels.Channel;
 import java.nio.channels.spi.SelectorProvider;
 import sun.nio.ch.Interruptible;
-import sun.net.InetAddressCachePolicy;
 import sun.reflect.Reflection;
 import sun.security.util.SecurityConstants;
 import sun.reflect.annotation.AnnotationType;
@@ -32,7 +31,7 @@ import sun.reflect.annotation.AnnotationType;
  * method for quickly copying a portion of an array.
  *
  * @author  unascribed
- * @version 1.159, 11/27/07
+ * @version 1.162, 04/01/09
  * @since   JDK1.0
  */
 public final class System {
@@ -293,7 +292,6 @@ public final class System {
 	}
 
 	security = s;
-	InetAddressCachePolicy.setIfNotSet(InetAddressCachePolicy.FOREVER);
     }
 
     /**
@@ -1072,6 +1070,17 @@ public final class System {
 	initProperties(props);
 	sun.misc.Version.init();
 
+        // Workaround until DownloadManager initialization is revisited.
+        // Make JavaLangAccess available early enough for internal
+        // Shutdown hooks to be registered
+        setJavaLangAccess();
+
+        // Gets and removes system properties that configure the Integer
+        // cache used to support the object identity semantics of autoboxing.
+        // At this time, the size of the cache may be controlled by the
+        // vm option -XX:AutoBoxCacheMax=<size>.
+        Integer.getAndRemoveCacheProperties();
+
 	// Load the zip library now in order to keep java.util.zip.ZipFile
 	// from trying to use itself to load this library later.
 	loadLibrary("zip");
@@ -1085,14 +1094,6 @@ public final class System {
 
 	// Setup Java signal handlers for HUP, TERM, and INT (where available).
         Terminator.setup();
-
-	// The order in with the hooks are added here is important as it
-	// determines the order in which they are run. 
-        // (1)Console restore hook needs to be called first.
-        // (2)Application hooks must be run before calling deleteOnExitHook.
-	Shutdown.add(sun.misc.SharedSecrets.getJavaIOAccess().consoleRestoreHook());
-	Shutdown.add(ApplicationShutdownHooks.hook());
-	Shutdown.add(sun.misc.SharedSecrets.getJavaIODeleteOnExitAccess());
 
         // Initialize any miscellenous operating system settings that need to be
         // set for the class libraries. Currently this is no-op everywhere except
@@ -1120,7 +1121,9 @@ public final class System {
         // way as other threads; we must do it ourselves here.
         Thread current = Thread.currentThread();
         current.getThreadGroup().add(current);
+    }
 
+    private static void setJavaLangAccess() {
         // Allow privileged classes outside of java.lang
         sun.misc.SharedSecrets.setJavaLangAccess(new sun.misc.JavaLangAccess(){
             public sun.reflect.ConstantPool getConstantPool(Class klass) {
@@ -1138,6 +1141,9 @@ public final class System {
             }
             public void blockedOn(Thread t, Interruptible b) {
                 t.blockedOn(b);
+            }
+            public void registerShutdownHook(int slot, Runnable r) {
+                Shutdown.add(slot, r);
             }
         });
     }

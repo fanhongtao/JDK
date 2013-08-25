@@ -1,5 +1,5 @@
 /*
- * @(#)MappedByteBuffer.java	1.24 05/11/17
+ * @(#)MappedByteBuffer.java	1.25 09/02/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.24, 05/11/17
+ * @version 1.25, 09/02/26
  * @since 1.4
  */
 
@@ -76,6 +76,13 @@ public abstract class MappedByteBuffer
 	    throw new UnsupportedOperationException();
     }
 
+    private int pagePosition() {
+        assert isAMappedBuffer;
+        int ps = Bits.pageSize();
+        int offset = (int)(address % ps);
+        return (offset >= 0) ? offset : (ps + offset);
+    }
+
     /**
      * Tells whether or not this buffer's content is resident in physical
      * memory.
@@ -98,7 +105,8 @@ public abstract class MappedByteBuffer
 	checkMapped();
         if ((address == 0) || (capacity() == 0))
             return true;
-	return isLoaded0(((DirectByteBuffer)this).address(), capacity());
+        int offset = pagePosition();
+        return isLoaded0(address - offset, (long)capacity() + (long)offset, Bits.pageSize());
     }
 
     /**
@@ -115,7 +123,8 @@ public abstract class MappedByteBuffer
 	checkMapped();
         if ((address == 0) || (capacity() == 0))
             return this;
-	load0(((DirectByteBuffer)this).address(), capacity(), Bits.pageSize());
+        int offset = pagePosition();
+        load0(address - offset, (long)capacity() + (long)offset, Bits.pageSize());
 	return this;
     }
 
@@ -141,11 +150,12 @@ public abstract class MappedByteBuffer
 	checkMapped();
         if ((address == 0) || (capacity() == 0))
             return this;
-	force0(((DirectByteBuffer)this).address(), capacity());
+        int offset = pagePosition();
+        force0(address - offset, (long)capacity() + (long)offset);
 	return this;
     }
 
-    private native boolean isLoaded0(long address, long length);
+    private native boolean isLoaded0(long address, long length, int pageSize);
     private native int load0(long address, long length, int pageSize);
     private native void force0(long address, long length);
 

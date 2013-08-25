@@ -33,7 +33,7 @@ import static javax.xml.bind.JAXBContext.JAXB_CONTEXT_FACTORY;
  * This code is designed to implement the JAXB 1.0 spec pluggability feature
  *
  * @author <ul><li>Ryan Shoemaker, Sun Microsystems, Inc.</li></ul>
- * @version $Revision$
+ * @version $Revision: 1.27.2.1 $
  * @see JAXBContext
  */
 class ContextFinder {
@@ -464,26 +464,29 @@ class ContextFinder {
      * Loads the class, provided that the calling thread has an access to the class being loaded.
      */
     private static Class safeLoadClass(String className, ClassLoader classLoader) throws ClassNotFoundException {
-        logger.fine("Trying to load "+className);
-        try {
-            // make sure that the current thread has an access to the package of the given name.
-            SecurityManager s = System.getSecurityManager();
-            if (s != null) {
-                int i = className.lastIndexOf('.');
-                if (i != -1) {
-                    s.checkPackageAccess(className.substring(0,i));
-                }
-            }
-
-            if (classLoader == null)
-                return Class.forName(className);
-            else
-                return classLoader.loadClass(className);
-        } catch (SecurityException se) {
-            // anyone can access the platform default factory class without permission
-            if (PLATFORM_DEFAULT_FACTORY_CLASS.equals(className))
-                return Class.forName(className);
-            throw se;
-        }
+       logger.fine("Trying to load "+className);
+       try {
+          // make sure that the current thread has an access to the package of the given name.
+          SecurityManager s = System.getSecurityManager();
+          if (s != null) {
+              int i = className.lastIndexOf('.');
+              if (i != -1) {
+                  s.checkPackageAccess(className.substring(0,i));
+              }
+          }
+ 
+          if (classLoader == null) {
+              return Class.forName(className);
+          } else {
+              return classLoader.loadClass(className);
+          }
+       } catch (SecurityException se) {
+           // anyone can access the platform default factory class without permission
+           if (PLATFORM_DEFAULT_FACTORY_CLASS.equals(className)) {
+              return Class.forName(className);
+           }
+           throw se;
+       }
     }
+
 }

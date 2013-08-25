@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.268 08/11/19
+ * @(#)Window.java	1.269 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -3227,39 +3227,13 @@ public class Window extends Container implements Accessible {
 
     // ****************** END OF MIXING CODE ********************************
 
-
-    private static boolean doesClassImplement(Class cls, String interfaceName) {
-        if (cls == null) return false;
-
-        for (Class c : cls.getInterfaces()) {
-            if (c.getName().equals(interfaceName)) {
-                return true;
-            }
-        }
-        return doesClassImplement(cls.getSuperclass(), interfaceName);
-    }
-    
-    /**
-     * Checks that the given object implements the given interface.
-     * @param obj Object to be checked
-     * @param interfaceName The name of the interface. Must be fully-qualified interface name.
-     * @return true, if this object implements the given interface,
-     *         false, otherwise, or if obj or interfaceName is null
-     */
-    static boolean doesImplement(Object obj, String interfaceName) {
-        if (obj == null) return false;
-        if (interfaceName == null) return false;
-
-        return doesClassImplement(obj.getClass(), interfaceName);
-    }
-
     private static final Color TRANSPARENT_BACKGROUND_COLOR = 
         new Color(0, 0, 0, 0);
 
     private static void setLayersOpaque(Component component, boolean isOpaque) {
         // Shouldn't use instanceof to avoid loading Swing classes
         //    if it's a pure AWT application.
-        if (doesImplement(component, "javax.swing.RootPaneContainer")) {
+        if (SunToolkit.isInstanceOf(component, "javax.swing.RootPaneContainer")) {
             javax.swing.RootPaneContainer rpc = (javax.swing.RootPaneContainer)component;
             javax.swing.JRootPane root = rpc.getRootPane();
             javax.swing.JLayeredPane lp = root.getLayeredPane();
@@ -3458,6 +3432,10 @@ public class Window extends Container implements Accessible {
                     double x, double y, double w, double h)
             {
                 return window.calculateSecurityWarningPosition(x, y, w, h);
+            }
+
+            public void setLWRequestStatus(Window changed, boolean status) {
+                changed.syncLWRequests = status;
             }
         });        
     }

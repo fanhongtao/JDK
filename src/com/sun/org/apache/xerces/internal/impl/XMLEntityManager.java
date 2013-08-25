@@ -20,7 +20,7 @@
 
 /*
  * $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
- * @(#)XMLEntityManager.java	1.22 07/06/17
+ * @(#)XMLEntityManager.java	1.24 09/04/17
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -1403,7 +1403,7 @@ protected static final String PARSER_SETTINGS =
         if(fCurrentEntity != null){
             //close the reader
             try{
-                fCurrentEntity.reader.close();
+                fCurrentEntity.close();
             }catch(IOException ex){
                 throw new XNIException(ex);
             }
@@ -2619,6 +2619,29 @@ protected static final String PARSER_SETTINGS =
             }
         }
 
+        // SAPJVM 2008-07-22 Replace spaces in file names with %20.
+        // This was done in JDK5 and wrongly removed in JDK6.
+        // Original comment from JDK5: the following algorithm might not be
+        // very performant, but people who want to use invalid URI's have to
+        // pay the price.
+        int pos = str.indexOf(' ');
+        if (pos >= 0) {
+            StringBuilder sb = new StringBuilder(str.length());
+            // put characters before ' ' into the string builder
+            for (int i = 0; i < pos; i++)
+                sb.append(str.charAt(i));
+            // and %20 for the space
+            sb.append("%20");
+            // for the remamining part, also convert ' ' to "%20".
+            for (int i = pos+1; i < str.length(); i++) {
+                if (str.charAt(i) == ' ')
+                    sb.append("%20");
+                else
+                    sb.append(str.charAt(i));
+            }
+            str = sb.toString();
+        }
+        
         // done
         return str;
 

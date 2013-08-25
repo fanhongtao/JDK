@@ -22,8 +22,8 @@ header files, and data files), any updates or error
 corrections provided by Sun, and any user manuals,
 programming guides and other documentation provided to you
 by Sun under this Agreement.  "General Purpose Desktop
-Computers and Servers" means computers, including desktop,
-laptop and tablet computers, or servers, used for general
+Computers and Servers" means computers, including desktop
+and laptop computers, or servers, used for general
 computing functions under end user control (such as but not
 specifically limited to email, general purpose Internet
 browsing, and office suite productivity tools).
@@ -33,10 +33,10 @@ designed for use in embedded or function-specific software
 applications, for example but not limited to: Software
 embedded in or bundled with industrial control systems,
 wireless mobile telephones, wireless handheld devices,
-kiosks, TV/STB, Blu-ray Disc devices, telematics and
-network control switching equipment, printers and storage
-management systems, and other related systems are excluded
-from this definition and not licensed under this
+netbooks, kiosks, TV/STB, Blu-ray Disc devices, telematics 
+and network control switching equipment, printers and 
+storage management systems, and other related systems are 
+excluded from this definition and not licensed under this
 Agreement.  "Programs" means Java technology applets and
 applications intended to run on the Java Platform Standard
 Edition (Java SE) platform on Java-enabled General Purpose
@@ -340,3 +340,4 @@ about the data Sun collects at http://java.com/data/.
 
 For inquiries please contact: Sun Microsystems, Inc., 4150
 Network Circle, Santa  Clara, California 95054, U.S.A.
+

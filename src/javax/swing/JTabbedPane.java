@@ -1,5 +1,5 @@
 /*
- * @(#)JTabbedPane.java	1.154 06/08/08
+ * @(#)JTabbedPane.java	1.155 09/02/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ import java.io.IOException;
  *    description: A component which provides a tab folder metaphor for 
  *                 displaying one component from a set of components.
  *
- * @version 1.154 08/08/06
+ * @version 1.155 02/27/09
  * @author Dave Moore
  * @author Philip Milne
  * @author Amy Fowler
@@ -702,6 +702,8 @@ public class JTabbedPane extends JComponent
         if (component != null) {
             addImpl(component, null, -1);
             component.setVisible(false);
+        } else {
+            firePropertyChange("indexForNullComponent", -1, index);
         }
 
         if (pages.size() == 1) {

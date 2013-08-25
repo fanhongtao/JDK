@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableHeaderUI.java	1.78 07/07/16
+ * @(#)BasicTableHeaderUI.java	1.80 09/03/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import sun.swing.*;
 /**
  * BasicTableHeaderUI implementation
  *
- * @version 1.78 07/16/07
+ * @version 1.80 03/20/09
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -84,8 +84,8 @@ public class BasicTableHeaderUI extends TableHeaderUI {
             if (e.getClickCount() % 2 == 1 &&
                     SwingUtilities.isLeftMouseButton(e)){
                 JTable table = header.getTable();
-                RowSorter sorter = table.getRowSorter();
-                if (sorter != null) {
+                RowSorter sorter;
+                if (table != null && (sorter = table.getRowSorter()) != null) { 
                     int columnIndex = header.columnAtPoint(e.getPoint());
                     if (columnIndex != -1) {
                         columnIndex = table.convertColumnIndexToModel(
@@ -199,8 +199,8 @@ public class BasicTableHeaderUI extends TableHeaderUI {
 		int newColumnIndex = columnIndex + (headerLeftToRight ? direction : -direction); 
 		if (0 <= newColumnIndex && newColumnIndex < cm.getColumnCount()) {
 		    int width = cm.getColumn(newColumnIndex).getWidth();
-		    if (Math.abs(draggedDistance) > (width / 2)) {
-                        JTable table = header.getTable();
+                    JTable table = header.getTable();
+                    if (table != null && Math.abs(draggedDistance) > (width / 2)) {
 
 			mouseXOffset = mouseXOffset + direction * width; 
 			header.setDraggedDistance(draggedDistance - direction * width);	
@@ -837,7 +837,7 @@ public class BasicTableHeaderUI extends TableHeaderUI {
             String name = getName();            
             if (TOGGLE_SORT_ORDER == name) {
                 JTable table = th.getTable();
-                RowSorter sorter = table.getRowSorter();
+                RowSorter sorter = table == null ? null : table.getRowSorter();
                 if (sorter != null) {
                     int columnIndex = ui.getSelectedColumnIndex();
                     columnIndex = table.convertColumnIndexToModel(

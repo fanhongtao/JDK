@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.75 08/08/14
+ * @(#)RepaintManager.java	1.76 09/02/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import com.sun.java.swing.SwingUtilities3;
  * Any calls to <code>repaint</code> on one of these will call into the
  * appropriate <code>addDirtyRegion</code> method.
  *
- * @version 1.75 08/14/08
+ * @version 1.76 02/06/09
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -836,6 +836,9 @@ public class RepaintManager
         tmpDirtyComponents.clear();
     }
 
+    boolean isPainting() {
+        return painting;
+    }
 
     /**
      * Removes any components from roots that are children of

@@ -1,7 +1,7 @@
 /*
- * @(#)CertPathHelperImpl.java	1.5 05/11/17
+ * @(#)CertPathHelperImpl.java	1.6 09/02/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import sun.security.x509.GeneralNameInterface;
  * implementation dependent APIs in CertPath framework.
  *
  * @author Andreas Sterbenz
- * @version 1.5, 11/17/05
+ * @version 1.6, 02/17/09
  */
 class CertPathHelperImpl extends CertPathHelper {
     
@@ -72,6 +72,9 @@ class CertPathHelperImpl extends CertPathHelper {
     protected Collection<X500Principal> implGetIssuers(X509CRLSelector sel) {
 	return sel.getIssuers();
     }
-    
+
+    protected void implSetDateAndTime(X509CRLSelector sel, Date date, long skew) {
+        sel.setDateAndTime(date, skew);
+    }
 }
 

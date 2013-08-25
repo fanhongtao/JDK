@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaTransportManagerImpl.java	1.14 05/11/17
+ * @(#)CorbaTransportManagerImpl.java	1.17 09/04/01
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,6 +20,7 @@ import org.omg.CORBA.INTERNAL;
 import org.omg.CORBA.CompletionStatus;
 
 import com.sun.corba.se.pept.transport.Acceptor;
+import com.sun.corba.se.pept.transport.ConnectionCache;
 import com.sun.corba.se.pept.transport.ByteBufferPool;
 import com.sun.corba.se.pept.transport.ContactInfo;
 import com.sun.corba.se.pept.transport.InboundConnectionCache;
@@ -164,6 +165,12 @@ public class CorbaTransportManagerImpl
 	    if (orb.transportDebugFlag) {
 		dprint(".close->");
 	    }
+            for (Object cc : outboundConnectionCaches.values()) {
+              ((ConnectionCache)cc).close() ;
+            }
+            for (Object cc : inboundConnectionCaches.values()) {
+              ((ConnectionCache)cc).close() ;
+            }
 	    getSelector(0).close();
 	} finally {
 	    if (orb.transportDebugFlag) {

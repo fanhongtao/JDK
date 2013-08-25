@@ -1,5 +1,5 @@
 /*
- * @(#)SynthToolBarUI.java	1.15 08/02/19
+ * @(#)SynthToolBarUI.java	1.16 09/03/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import sun.swing.plaf.synth.SynthUI;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.15, 02/19/08
+ * @version 1.16, 03/20/09
  */
 class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
            SynthUI {
@@ -264,18 +264,24 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                     SynthIcon.getIconWidth(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
-                    compDim = tb.getComponent(i).getMinimumSize();
-                    dim.width += compDim.width;
-                    dim.height = Math.max(dim.height, compDim.height);
+                    Component component = tb.getComponent(i);
+                    if (component.isVisible()) {
+                        compDim = component.getMinimumSize();
+                        dim.width += compDim.width;
+                        dim.height = Math.max(dim.height, compDim.height);
+                    }
                 }
             } else {
                 dim.height = tb.isFloatable() ?
                     SynthIcon.getIconHeight(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
-                    compDim = tb.getComponent(i).getMinimumSize();
-                    dim.width = Math.max(dim.width, compDim.width);
-                    dim.height += compDim.height;
+                    Component component = tb.getComponent(i);
+                    if (component.isVisible()) {
+                        compDim = component.getMinimumSize();
+                        dim.width = Math.max(dim.width, compDim.width);
+                        dim.height += compDim.height;
+                    }
                 }
             }
             dim.width += insets.left + insets.right;
@@ -296,18 +302,24 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                     SynthIcon.getIconWidth(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
-                    compDim = tb.getComponent(i).getPreferredSize();
-                    dim.width += compDim.width;
-                    dim.height = Math.max(dim.height, compDim.height);
+                    Component component = tb.getComponent(i);
+                    if (component.isVisible()) {
+                        compDim = component.getPreferredSize();
+                        dim.width += compDim.width;
+                        dim.height = Math.max(dim.height, compDim.height);
+                    }
                 }
             } else {
                 dim.height = tb.isFloatable() ?
                     SynthIcon.getIconHeight(handleIcon, context) : 0;
                 Dimension compDim;
                 for (int i = 0; i < tb.getComponentCount(); i++) {
-                    compDim = tb.getComponent(i).getPreferredSize();
-                    dim.width = Math.max(dim.width, compDim.width);
-                    dim.height += compDim.height;
+                    Component component = tb.getComponent(i);
+                    if (component.isVisible()) {
+                        compDim = component.getPreferredSize();
+                        dim.width = Math.max(dim.width, compDim.width);
+                        dim.height += compDim.height;
+                    }
                 }
             }
             dim.width += insets.left + insets.right;
@@ -370,22 +382,24 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                 
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     c = tb.getComponent(i);
-                    d = c.getPreferredSize();
-                    int y, h;
-                    if (d.height >= baseH || c instanceof JSeparator) {
-                        // Fill available height
-                        y = baseY;
-                        h = baseH;
-                    } else {
-                        // Center component vertically in the available space
-                        y = baseY + (baseH / 2) - (d.height / 2);
-                        h = d.height;
+                    if (c.isVisible()) {
+                        d = c.getPreferredSize();
+                        int y, h;
+                        if (d.height >= baseH || c instanceof JSeparator) {
+                            // Fill available height
+                            y = baseY;
+                            h = baseH;
+                        } else {
+                            // Center component vertically in the available space
+                            y = baseY + (baseH / 2) - (d.height / 2);
+                            h = d.height;
+                        }
+                        //if the component is a "glue" component then add to its
+                        //width the extraSpacePerGlue it is due
+                        if (isGlue(c)) d.width += extraSpacePerGlue;
+                        c.setBounds(ltr ? x : x - d.width, y, d.width, h);
+                        x = ltr ? x + d.width : x - d.width;
                     }
-                    //if the component is a "glue" component then add to its
-                    //width the extraSpacePerGlue it is due
-                    if (isGlue(c)) d.width += extraSpacePerGlue;
-                    c.setBounds(ltr ? x : x - d.width, y, d.width, h);
-                    x = ltr ? x + d.width : x - d.width;
                 }
             } else {
                 int handleHeight = tb.isFloatable() ?
@@ -413,29 +427,31 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                 
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     c = tb.getComponent(i);
-                    d = c.getPreferredSize();
-                    int x, w;
-                    if (d.width >= baseW || c instanceof JSeparator) {
-                        // Fill available width
-                        x = baseX;
-                        w = baseW;
-                    } else {
-                        // Center component horizontally in the available space
-                        x = baseX + (baseW / 2) - (d.width / 2);
-                        w = d.width;
+                    if (c.isVisible()) {
+                        d = c.getPreferredSize();
+                        int x, w;
+                        if (d.width >= baseW || c instanceof JSeparator) {
+                            // Fill available width
+                            x = baseX;
+                            w = baseW;
+                        } else {
+                            // Center component horizontally in the available space
+                            x = baseX + (baseW / 2) - (d.width / 2);
+                            w = d.width;
+                        }
+                        //if the component is a "glue" component then add to its
+                        //height the extraSpacePerGlue it is due
+                        if (isGlue(c)) d.height += extraSpacePerGlue;
+                        c.setBounds(x, y, w, d.height);
+                        y += d.height;
                     }
-                    //if the component is a "glue" component then add to its
-                    //height the extraSpacePerGlue it is due
-                    if (isGlue(c)) d.height += extraSpacePerGlue;
-                    c.setBounds(x, y, w, d.height);
-                    y += d.height;
                 }
             }
             context.dispose();
         }
         
         private boolean isGlue(Component c) {
-            if (c instanceof Box.Filler) {
+            if (c.isVisible() && c instanceof Box.Filler) {
                 Box.Filler f = (Box.Filler)c;
                 Dimension min = f.getMinimumSize();
                 Dimension pref = f.getPreferredSize();

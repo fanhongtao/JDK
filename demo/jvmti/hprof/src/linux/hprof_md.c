@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_md.c	1.28 05/12/07
+ * @(#)hprof_md.c	1.29 09/04/03
  * 
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -60,7 +60,10 @@
 #include "jni.h"
 #include "hprof.h"
 
-int 
+#define PATH_SEPARATOR          ":"
+#define PATH_SEPARATOR_CHAR     ':'
+
+int
 md_getpid(void)
 {
     static int pid = -1;
@@ -367,14 +370,69 @@ md_ntohl(unsigned l)
     return ntohl(l);
 }
 
+/*
+ * splits a path, based on its separator, the number of
+ * elements is returned back in n. 
+ * It is the callers responsibility to:
+ *   a> check the value of n, and n may be 0
+ *   b> ignore any empty path elements
+ *   c> free up the data.
+ */
+static char** split_path(const char* path, int* n) {
+    char* inpath;
+    char** opath;
+    char* p;
+    int count = 1;
+    int i;
+    
+    *n = 0;
+    if (path == NULL || strlen(path) == 0) {
+        return NULL;
+    }
+    inpath = strdup(path);
+    if (inpath == NULL) {
+        return NULL;
+    }
+    p = strchr(inpath, PATH_SEPARATOR_CHAR);
+    // get a count of elements to allocate memory
+    while (p != NULL) {
+        count++;
+        p++;
+        p = strchr(p, PATH_SEPARATOR_CHAR);
+    }
+    opath = (char**) calloc(count, sizeof(char*));
+    if (opath == NULL) {
+        return NULL;
+    }
+
+    // do the actual splitting
+    p = inpath;
+    for (i = 0 ; i < count ; i++) {
+        size_t len = strcspn(p, PATH_SEPARATOR);
+	// allocate the string and add terminator storage
+        char* s  = (char*)malloc((len + 1)*sizeof(char));
+        if (s == NULL) {
+            return NULL;
+	}
+        strncpy(s, p, len);
+	s[len] = '\0';
+        opath[i] = s;
+        p += len + 1;
+    }
+    free(inpath);
+    *n = count;
+    return opath;
+}
+
 /* Create the actual fill filename for a dynamic library.  */
 void
 md_build_library_name(char *holder, int holderlen, char *pname, char *fname)
 {
-    int   pnamelen;
-
-    /* Length of options directory location. */
-    pnamelen = pname ? strlen(pname) : 0;
+    int n;
+    int i;
+    char** pelements;
+    struct stat statbuf;
+    const int pnamelen = pname ? strlen(pname) : 0;
 
     /* Quietly truncate on buffer overflow.  Should be an error. */
     if (pnamelen + (int)strlen(fname) + 10 > holderlen) {
@@ -385,6 +443,27 @@ md_build_library_name(char *holder, int holderlen, char *pname, char *fname)
     /* Construct path to library */
     if (pnamelen == 0) {
         (void)snprintf(holder, holderlen, "lib%s.so", fname);
+    } else if (strchr(pname, PATH_SEPARATOR_CHAR) != NULL) {
+        pelements = split_path(pname, &n);
+        for (i = 0 ; i < n ; i++) {
+            // really shouldn't be NULL but what the heck, check can't hurt
+	    if (pelements[i] == NULL || strlen(pelements[i]) == 0) {
+	       continue; // skip the empty path values
+	    }
+	    snprintf(holder, holderlen, "%s/lib%s.so", pelements[i], fname);
+	    if (stat(holder, &statbuf) == 0) {
+	       break;
+	    }
+        }
+        // release the storage
+        for (i = 0 ; i < n ; i++) {
+            if (pelements[i] != NULL) {
+               free(pelements[i]);
+            }
+        }
+        if (pelements != NULL) {
+            free(pelements);
+        }
     } else {
         (void)snprintf(holder, holderlen, "%s/lib%s.so", pname, fname);
     }

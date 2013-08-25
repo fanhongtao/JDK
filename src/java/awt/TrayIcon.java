@@ -18,6 +18,7 @@ import java.util.EventListener;
 import java.awt.peer.TrayIconPeer;
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
+import sun.awt.AWTAccessor;
 import java.util.EventObject;
 
 /**
@@ -88,6 +89,12 @@ public class TrayIcon {
     transient private Object privateKey = new Object();
 
     static {
+        AWTAccessor.setTrayIconAccessor(new AWTAccessor.TrayIconAccessor() {
+                public Object getPrivateKey(TrayIcon trayIcon) {
+                    return trayIcon.privateKey;
+                }
+            });
+
         Toolkit.loadLibraries();
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();

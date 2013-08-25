@@ -1,5 +1,5 @@
 /*
- * @(#)TitledBorder.java	1.46 08/05/29
+ * @(#)TitledBorder.java	1.47 09/02/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,7 +47,7 @@ import javax.swing.UIManager;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.46 05/29/08 
+ * @version 1.47 02/03/09 
  * @author David Kloba
  * @author Amy Fowler
  */
@@ -656,6 +656,9 @@ public class TitledBorder extends AbstractBorder
     public int getBaseline(Component c, int width, int height) {
         if (c == null) {
             throw new NullPointerException("Must supply non-null component");
+        }
+        if (width < 0) {
+            throw new IllegalArgumentException("Width must be >= 0");
         }
         if (height < 0) {
             throw new IllegalArgumentException("Height must be >= 0");

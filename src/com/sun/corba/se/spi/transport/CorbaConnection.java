@@ -1,5 +1,5 @@
 /*
- * @(#)CorbaConnection.java	1.31 09/01/15
+ * @(#)CorbaConnection.java	1.32 09/04/01
  * 
  * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -145,6 +145,10 @@ public interface CorbaConnection
     // REVISIT - MessageMediator parameter?
     public void serverRequestProcessingBegins();
     public void serverRequestProcessingEnds();
+
+    /** Clean up all connection resources.  Used when shutting down an ORB.
+     */
+    public void closeConnectionResources();
 }
 
 // End of file.

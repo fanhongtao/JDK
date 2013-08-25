@@ -1,5 +1,5 @@
 /*
- * @(#)SocketPermission.java	1.66 08/03/24
+ * @(#)SocketPermission.java	1.67 09/02/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,7 +112,7 @@ import sun.security.util.Debug;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.66 08/03/24
+ * @version 1.67 09/02/24
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -201,6 +201,7 @@ implements java.io.Serializable
     // true if this SocketPermission represents a hostname
     // that failed our reverse mapping heuristic test
     private transient boolean untrusted;
+    private transient boolean trusted;
 
     // true if the trustProxy system property is set
     private static boolean trustProxy;
@@ -573,6 +574,38 @@ implements java.io.Serializable
 	return mask;
     }
 
+    private boolean isUntrusted()
+	throws UnknownHostException
+    {
+	if (trusted) return false;
+	if (invalid || untrusted) return true;
+	try {
+	    if (!trustNameService && (defaultDeny ||
+		sun.net.www.URLConnection.isProxiedHost(hostname))) {
+	        if (this.cname == null) {
+		    this.getCanonName();
+	        }
+		if (!match(cname, hostname) && 
+		    (defaultDeny || !cname.equals(addresses[0].getHostAddress()))) {
+		    // Last chance
+		    if (!authorized(hostname, addresses[0].getAddress())) {
+			untrusted = true;
+			Debug debug = getDebug();
+			if (debug != null && Debug.isOn("failure")) {
+			    debug.println("socket access restriction: proxied host " + "(" + addresses[0] + ")" + " does not match " + cname + " from reverse lookup");
+			}
+			return true;
+		    }
+		}
+		trusted = true;
+	    }
+	} catch (UnknownHostException uhe) {
+	    invalid = true;
+	    throw uhe;
+	}
+	return false;
+    }
+
     /**
      * attempt to get the fully qualified domain name
      *
@@ -599,20 +632,6 @@ implements java.io.Serializable
 	    } else {
 	        cname = InetAddress.getByName(addresses[0].getHostAddress()).
                                               getHostName(false).toLowerCase();
-	        if (!trustNameService && (defaultDeny ||
-			sun.net.www.URLConnection.isProxiedHost(hostname))) {
-		    if (!match(cname, hostname) && 
-			(defaultDeny || !cname.equals(addresses[0].getHostAddress()))) {
-			// Last chance
-			if (!authorized(hostname, addresses[0].getAddress())) {
-			    untrusted = true;
-			    Debug debug = getDebug();
-			    if (debug != null && Debug.isOn("failure")) {
-				debug.println("socket access restriction: proxied host " + "(" + addresses[0] + ")" + " does not match " + cname + " from reverse lookup");
-			    }
-			}
-		    }
-		}
 	    }
 	} catch (UnknownHostException uhe) {
 	    invalid = true;
@@ -910,10 +929,6 @@ implements java.io.Serializable
 		return (that.cname.endsWith(this.cname));
 	    }
 
-	    if (this.cname == null) {
-		this.getCanonName();
-	    }
-
 	    // comapare IP addresses
 	    if (this.addresses == null) {
 		this.getIP();
@@ -923,7 +938,7 @@ implements java.io.Serializable
 		that.getIP();
 	    }
 
-	    if (!(that.init_with_ip && this.untrusted)) {
+	    if (!(that.init_with_ip && this.isUntrusted())) {
 	        for (j = 0; j < this.addresses.length; j++) {
 		    for (i=0; i < that.addresses.length; i++) {
 		        if (this.addresses[j].equals(that.addresses[i]))
@@ -933,6 +948,10 @@ implements java.io.Serializable
 
 	        // XXX: if all else fails, compare hostnames?
 	        // Do we really want this?
+	        if (this.cname == null) {
+		    this.getCanonName();
+	        }
+
 	        if (that.cname == null) {
 		    that.getCanonName();
 	        }
@@ -1217,7 +1236,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.66 03/24/08
+ * @version 1.67 02/24/09
  *
  * @author Roland Schemers
  *

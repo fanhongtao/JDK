@@ -364,8 +364,6 @@ final class CharInfo
         defineChar2StringMapping(entityString, value);
     }
 
-    private CharKey m_charKey = new CharKey();
-
     /**
      * Map a character to a String. For example given
      * the character '>' this method would return the fully decorated
@@ -388,11 +386,11 @@ final class CharInfo
      * @return The String that the character is mapped to, or null if not found.
      * @xsl.usage internal
      */
-    synchronized String getOutputStringForChar(char value)
+    String getOutputStringForChar(char value)
     {
-        // CharKey m_charKey = new CharKey(); //Alternative to synchronized
-        m_charKey.setChar(value);
-        return (String) m_charToString.get(m_charKey);
+        CharKey charKey = new CharKey();
+        charKey.setChar(value);
+        return (String) m_charToString.get(charKey);
     }
     
     /**

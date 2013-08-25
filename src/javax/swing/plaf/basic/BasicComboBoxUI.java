@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.192 08/05/29
+ * @(#)BasicComboBoxUI.java	1.193 09/03/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.192 05/29/08
+ * @version 1.193 03/20/09
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -1540,13 +1540,15 @@ public class BasicComboBoxUI extends ComboBoxUI {
              }
 
             else if (key == ENTER) {
+                boolean isTableCellEditor = ui != null && ui.isTableCellEditor;
                 if (comboBox.isPopupVisible()) {
                     // Forces the selection of the list item
                     boolean isEnterSelectablePopup = 
                             UIManager.getBoolean("ComboBox.isEnterSelectablePopup");  
                     if (!comboBox.isEditable() || isEnterSelectablePopup
-                            || ui.isTableCellEditor) {
-                        Object listItem = ui.popup.getList().getSelectedValue();
+                            || isTableCellEditor) {
+                        Object listItem = ui == null? null:
+                                ui.popup.getList().getSelectedValue();
                         if (listItem != null) {
                             comboBox.getModel().setSelectedItem(listItem);
                             // Ensure that JComboBox.actionPerformed()
@@ -1555,8 +1557,11 @@ public class BasicComboBoxUI extends ComboBoxUI {
                         }
                     }
                     comboBox.setPopupVisible(false);
-                } 
-                else {
+                } else if (isTableCellEditor && !comboBox.isEditable()) {
+                    // Forces the selection of the list item if the 
+                    // combo box is in a JTable. 
+                    comboBox.setSelectedIndex(ui.popup.getList().getSelectedIndex());
+                } else {
                     // Call the default button binding.
                     // This is a pretty messy way of passing an event through
                     // to the root pane.

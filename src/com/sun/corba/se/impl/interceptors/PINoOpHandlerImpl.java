@@ -1,5 +1,5 @@
 /*
- * @(#)PINoOpHandlerImpl.java	1.7 05/11/17
+ * @(#)PINoOpHandlerImpl.java	1.10 09/02/23
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -49,6 +49,9 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.ReplyMessage;
 public class PINoOpHandlerImpl implements PIHandler 
 {
     public PINoOpHandlerImpl( ) {
+    }
+
+    public void close() {
     }
 
     public void initialize() {

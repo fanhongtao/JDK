@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.172 08/06/06
+ * @(#)BasicTabbedPaneUI.java	1.173 09/02/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -3508,22 +3508,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                 pane.repaint();
             }
             else if (name =="indexForTitle") {
-                int index = ((Integer)e.getNewValue()).intValue();
-                String title = tabPane.getTitleAt(index);
-                if (BasicHTML.isHTMLString(title)) {
-                    if (htmlViews==null) {    // Initialize vector
-                        htmlViews = createHTMLVector();
-                    } else {                  // Vector already exists
-                        View v = BasicHTML.createHTMLView(tabPane, title);
-                        htmlViews.setElementAt(v, index);
-                    }
-                } else {
-                    if (htmlViews != null && htmlViews.elementAt(index) != null) {
-                        htmlViews.setElementAt(null, index); 
-                    }
-                }    
                 calculatedBaseline = false;
-                updateMnemonics();
+                updateHtmlViews((Integer)e.getNewValue());
             } else if (name == "tabLayoutPolicy") {
                 BasicTabbedPaneUI.this.uninstallUI(pane);
                 BasicTabbedPaneUI.this.installUI(pane);
@@ -3560,10 +3546,32 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                 tabPane.revalidate();
                 tabPane.repaint();
                 calculatedBaseline = false;
+            } else if (name == "indexForNullComponent") {
+                isRunsDirty = true;
+                updateHtmlViews((Integer)e.getNewValue());
             } else if (name == "font") {
                 calculatedBaseline = false;
             }
         }
+        
+        private void updateHtmlViews(int index) {
+            String title = tabPane.getTitleAt(index);
+            boolean isHTML = BasicHTML.isHTMLString(title);
+            if (isHTML) {
+                if (htmlViews==null) {    // Initialize vector
+                    htmlViews = createHTMLVector();
+                } else {                  // Vector already exists
+                    View v = BasicHTML.createHTMLView(tabPane, title);
+                    htmlViews.insertElementAt(v, index);
+                }
+            } else {                             // Not HTML
+                if (htmlViews!=null) {           // Add placeholder
+                    htmlViews.insertElementAt(null, index);
+                }                                // else nada!
+            }
+            updateMnemonics();
+        }
+        
         //
         // ChangeListener
         // 
@@ -3681,23 +3689,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             if (child instanceof UIResource) {
                 return;
             }
-            int index = tp.indexOfComponent(child);
-            String title = tp.getTitleAt(index);
-            boolean isHTML = BasicHTML.isHTMLString(title);
-            if (isHTML) {
-                if (htmlViews==null) {    // Initialize vector
-                    htmlViews = createHTMLVector();
-                } else {                  // Vector already exists
-                    View v = BasicHTML.createHTMLView(tp, title);
-                    htmlViews.insertElementAt(v, index);
-                }
-            } else {                             // Not HTML
-                if (htmlViews!=null) {           // Add placeholder
-                    htmlViews.insertElementAt(null, index);
-                }                                // else nada!
-            }
             isRunsDirty = true;
-            updateMnemonics();
+            updateHtmlViews(tp.indexOfComponent(child));
         }
         public void componentRemoved(ContainerEvent e) {
             JTabbedPane tp = (JTabbedPane)e.getContainer();

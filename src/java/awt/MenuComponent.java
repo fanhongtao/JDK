@@ -1,5 +1,5 @@
 /*
- * @(#)MenuComponent.java	1.81 06/06/01
+ * @(#)MenuComponent.java	1.82 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
+import sun.awt.AWTAccessor; 
 import javax.accessibility.*;
 
 /**
@@ -23,7 +24,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.81, 06/01/06
+ * @version 	1.82, 04/13/09
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -96,6 +97,22 @@ public abstract class MenuComponent implements java.io.Serializable {
      * This object is used as a key for internal hashtables.
      */
     transient private Object privateKey = new Object();
+
+    static {
+        AWTAccessor.setMenuComponentAccessor(
+            new AWTAccessor.MenuComponentAccessor() {
+                public Object getPrivateKey(MenuComponent menuComp) {
+                    return menuComp.privateKey;
+                }
+                public AppContext getAppContext(MenuComponent menuComp) {
+                    return menuComp.appContext;
+                }
+                public void setAppContext(MenuComponent menuComp,
+                                          AppContext appContext) {
+                    menuComp.appContext = appContext;
+                }
+            });
+    }
 
     /**
      * Creates a <code>MenuComponent</code>.

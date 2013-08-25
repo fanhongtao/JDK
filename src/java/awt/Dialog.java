@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.130 08/10/31
+ * @(#)Dialog.java	1.131 09/04/13
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -75,7 +75,7 @@ import sun.awt.util.IdentityArrayList;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.130, 10/31/08
+ * @version	1.131, 04/13/09
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -248,12 +248,6 @@ public class Dialog extends Window {
          */
         TOOLKIT_EXCLUDE
     };
-
-    /**
-     * @since 1.6
-     */
-    private final static ModalExclusionType DEFAULT_MODAL_EXCLUSION_TYPE =
-        ModalExclusionType.APPLICATION_EXCLUDE;
 
     /* operations with this list should be synchronized on tree lock*/
     transient static IdentityArrayList<Dialog> modalDialogs = new IdentityArrayList<Dialog>();

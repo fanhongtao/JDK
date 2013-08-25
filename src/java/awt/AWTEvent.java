@@ -1,5 +1,5 @@
 /*
- * @(#)AWTEvent.java	1.61 08/05/23
+ * @(#)AWTEvent.java	1.62 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,7 +53,7 @@ import sun.awt.AWTAccessor;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.61 05/23/08
+ * @version 1.62 04/13/09
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {
@@ -224,6 +224,10 @@ public abstract class AWTEvent extends EventObject {
 
                 public boolean isSystemGenerated(AWTEvent ev) {
                     return ev.isSystemGenerated;
+                }
+
+                public void setPosted(AWTEvent ev) {
+                    ev.isPosted = true;
                 }
             });
     }

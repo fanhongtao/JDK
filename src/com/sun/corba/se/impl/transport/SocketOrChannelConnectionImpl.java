@@ -1,7 +1,7 @@
 /*
- * @(#)SocketOrChannelConnectionImpl.java	1.93 07/09/24
+ * @(#)SocketOrChannelConnectionImpl.java	1.96 09/04/01
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -793,12 +793,36 @@ public class SocketOrChannelConnectionImpl
 		    dprint(".close: " + this, e);
 		}
 	    }
+              closeConnectionResources();
 	} finally {
 	    if (orb.transportDebugFlag) {
 		dprint(".close<-: " + this);
 	    }
 	}
     }
+
+
+     public void closeConnectionResources() {
+           if (orb.transportDebugFlag) {
+               dprint(".closeConnectionResources->: " + this);
+           }
+           Selector selector = orb.getTransportManager().getSelector(0);
+           selector.unregisterForEvent(this);
+           try {
+             if (socketChannel != null)
+              socketChannel.close() ;
+                if (socket != null && !socket.isClosed())
+                socket.close() ;
+           } catch (IOException e) {
+             if (orb.transportDebugFlag) {
+                 dprint( ".closeConnectionResources: " + this, e ) ;
+             }
+           }
+           if (orb.transportDebugFlag) {
+               dprint(".closeConnectionResources<-: " + this);
+           }
+      }
+
 
     public Acceptor getAcceptor()
     {

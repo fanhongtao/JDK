@@ -83,14 +83,7 @@ final class NimbusDefaults {
      */
     private FontUIResource defaultFont;
 
-    /**
-     * Map of lists of derived colors keyed by the DerivedColorKeys
-     */
-    private Map<DerivedColorKey, DerivedColor> derivedColorsMap =
-            new HashMap<DerivedColorKey, DerivedColor>();
-
-    /** Tempory key used for fetching from the derivedColorsMap */
-    private final DerivedColorKey tmpDCKey = new DerivedColorKey();
+    private ColorTree colorTree = new ColorTree();
 
     /** Listener for changes to user defaults table */
     private DefaultsListener defaultsListener = new DefaultsListener();
@@ -99,14 +92,14 @@ final class NimbusDefaults {
     void initialize() {
         // add listener for derived colors
         UIManager.addPropertyChangeListener(defaultsListener);
-        UIManager.getDefaults().addPropertyChangeListener(defaultsListener);
+        UIManager.getDefaults().addPropertyChangeListener(colorTree);
     }
 
     /** Called by UIManager when this look and feel is uninstalled. */
     void uninitialize() {
         // remove listener for derived colors
-        UIManager.getDefaults().removePropertyChangeListener(defaultsListener);
         UIManager.removePropertyChangeListener(defaultsListener);
+        UIManager.getDefaults().removePropertyChangeListener(colorTree);
     }
 
     /**
@@ -228,38 +221,38 @@ final class NimbusDefaults {
      */
     void initializeDefaults(UIDefaults d) {
         //Color palette
-        d.put("text",new ColorUIResource(new Color(0, 0, 0, 255)));
-        d.put("control",new ColorUIResource(new Color(214, 217, 223, 255)));
-        d.put("nimbusBase",new ColorUIResource(new Color(51, 98, 140, 255)));
-        d.put("nimbusBlueGrey",getDerivedColor("nimbusBase",0.032459438f,-0.52518797f,0.19607842f,0));
-        d.put("nimbusOrange",new ColorUIResource(new Color(191, 98, 4, 255)));
-        d.put("nimbusGreen",new ColorUIResource(new Color(176, 179, 50, 255)));
-        d.put("nimbusRed",new ColorUIResource(new Color(169, 46, 34, 255)));
-        d.put("nimbusBorder",getDerivedColor("nimbusBlueGrey",0.0f,-0.017358616f,-0.11372548f,0));
-        d.put("nimbusSelection",getDerivedColor("nimbusBase",-0.010750473f,-0.04875779f,-0.007843137f,0));
-        d.put("nimbusInfoBlue",new ColorUIResource(new Color(47, 92, 180, 255)));
-        d.put("nimbusAlertYellow",new ColorUIResource(new Color(255, 220, 35, 255)));
-        d.put("nimbusFocus",new ColorUIResource(new Color(115, 164, 209, 255)));
-        d.put("nimbusSelectedText",new ColorUIResource(new Color(255, 255, 255, 255)));
-        d.put("nimbusSelectionBackground",new ColorUIResource(new Color(57, 105, 138, 255)));
-        d.put("nimbusDisabledText",new ColorUIResource(new Color(142, 143, 145, 255)));
-        d.put("nimbusLightBackground",new ColorUIResource(new Color(255, 255, 255, 255)));
-        d.put("infoText",getDerivedColor("text",0.0f,0.0f,0.0f,0));
-        d.put("info",new ColorUIResource(new Color(242, 242, 189, 255)));
-        d.put("menuText",getDerivedColor("text",0.0f,0.0f,0.0f,0));
-        d.put("menu",getDerivedColor("nimbusBase",0.021348298f,-0.6150531f,0.39999998f,0));
-        d.put("scrollbar",getDerivedColor("nimbusBlueGrey",-0.006944418f,-0.07296763f,0.09019607f,0));
-        d.put("controlText",getDerivedColor("text",0.0f,0.0f,0.0f,0));
-        d.put("controlHighlight",getDerivedColor("nimbusBlueGrey",0.0f,-0.07333623f,0.20392156f,0));
-        d.put("controlLHighlight",getDerivedColor("nimbusBlueGrey",0.0f,-0.098526314f,0.2352941f,0));
-        d.put("controlShadow",getDerivedColor("nimbusBlueGrey",-0.0027777553f,-0.0212406f,0.13333333f,0));
-        d.put("controlDkShadow",getDerivedColor("nimbusBlueGrey",-0.0027777553f,-0.0018306673f,-0.02352941f,0));
-        d.put("textHighlight",getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0));
-        d.put("textHighlightText",getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
-        d.put("textInactiveText",getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("desktop",getDerivedColor("nimbusBase",-0.009207249f,-0.13984653f,-0.07450983f,0));
-        d.put("activeCaption",getDerivedColor("nimbusBlueGrey",0.0f,-0.049920253f,0.031372547f,0));
-        d.put("inactiveCaption",getDerivedColor("nimbusBlueGrey",-0.00505054f,-0.055526316f,0.039215684f,0));
+        addColor(d, "text", 0, 0, 0, 255);
+        addColor(d, "control", 214, 217, 223, 255);
+        addColor(d, "nimbusBase", 51, 98, 140, 255);
+        addColor(d, "nimbusBlueGrey", "nimbusBase", 0.032459438f, -0.52518797f, 0.19607842f, 0);
+        addColor(d, "nimbusOrange", 191, 98, 4, 255);
+        addColor(d, "nimbusGreen", 176, 179, 50, 255);
+        addColor(d, "nimbusRed", 169, 46, 34, 255);
+        addColor(d, "nimbusBorder", "nimbusBlueGrey", 0.0f, -0.017358616f, -0.11372548f, 0);
+        addColor(d, "nimbusSelection", "nimbusBase", -0.010750473f, -0.04875779f, -0.007843137f, 0);
+        addColor(d, "nimbusInfoBlue", 47, 92, 180, 255);
+        addColor(d, "nimbusAlertYellow", 255, 220, 35, 255);
+        addColor(d, "nimbusFocus", 115, 164, 209, 255);
+        addColor(d, "nimbusSelectedText", 255, 255, 255, 255);
+        addColor(d, "nimbusSelectionBackground", 57, 105, 138, 255);
+        addColor(d, "nimbusDisabledText", 142, 143, 145, 255);
+        addColor(d, "nimbusLightBackground", 255, 255, 255, 255);
+        addColor(d, "infoText", "text", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "info", 242, 242, 189, 255);
+        addColor(d, "menuText", "text", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "menu", "nimbusBase", 0.021348298f, -0.6150531f, 0.39999998f, 0);
+        addColor(d, "scrollbar", "nimbusBlueGrey", -0.006944418f, -0.07296763f, 0.09019607f, 0);
+        addColor(d, "controlText", "text", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "controlHighlight", "nimbusBlueGrey", 0.0f, -0.07333623f, 0.20392156f, 0);
+        addColor(d, "controlLHighlight", "nimbusBlueGrey", 0.0f, -0.098526314f, 0.2352941f, 0);
+        addColor(d, "controlShadow", "nimbusBlueGrey", -0.0027777553f, -0.0212406f, 0.13333333f, 0);
+        addColor(d, "controlDkShadow", "nimbusBlueGrey", -0.0027777553f, -0.0018306673f, -0.02352941f, 0);
+        addColor(d, "textHighlight", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "textHighlightText", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "textInactiveText", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "desktop", "nimbusBase", -0.009207249f, -0.13984653f, -0.07450983f, 0);
+        addColor(d, "activeCaption", "nimbusBlueGrey", 0.0f, -0.049920253f, 0.031372547f, 0);
+        addColor(d, "inactiveCaption", "nimbusBlueGrey", -0.00505054f, -0.055526316f, 0.039215684f, 0);
 
         //Font palette
         d.put("defaultFont", new FontUIResource(defaultFont));
@@ -268,9 +261,9 @@ final class NimbusDefaults {
         //Border palette
 
         //The global style definition
-        d.put("textForeground", getDerivedColor("text",0.0f,0.0f,0.0f,0));
-        d.put("textBackground", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0));
-        d.put("background", getDerivedColor("control",0.0f,0.0f,0.0f,0));
+        addColor(d, "textForeground", "text", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "textBackground", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "background", "control", 0.0f, 0.0f, 0.0f, 0);
         d.put("TitledBorder.position", "ABOVE_TOP");
         d.put("FileView.fullRowSelection", Boolean.TRUE);
 
@@ -287,10 +280,10 @@ final class NimbusDefaults {
         d.put("Button[Default+Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_DEFAULT_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("Button[Default+MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_MOUSEOVER_DEFAULT, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("Button[Default+Focused+MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_MOUSEOVER_DEFAULT_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
-        d.put("Button[Default+Pressed].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Button[Default+Pressed].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("Button[Default+Pressed].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_PRESSED_DEFAULT, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("Button[Default+Focused+Pressed].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_PRESSED_DEFAULT_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
-        d.put("Button[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Button[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("Button[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_DISABLED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("Button[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_ENABLED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("Button[Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ButtonPainter", ButtonPainter.BACKGROUND_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
@@ -301,7 +294,7 @@ final class NimbusDefaults {
 
         //Initialize ToggleButton
         d.put("ToggleButton.contentMargins", new InsetsUIResource(6, 14, 6, 14));
-        d.put("ToggleButton[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "ToggleButton[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("ToggleButton[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_DISABLED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ToggleButton[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_ENABLED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ToggleButton[Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(104, 33), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
@@ -315,12 +308,12 @@ final class NimbusDefaults {
         d.put("ToggleButton[Focused+Pressed+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_PRESSED_SELECTED_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(72, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ToggleButton[MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_MOUSEOVER_SELECTED, new Insets(7, 7, 7, 7), new Dimension(72, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ToggleButton[Focused+MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_MOUSEOVER_SELECTED_FOCUSED, new Insets(7, 7, 7, 7), new Dimension(72, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
-        d.put("ToggleButton[Disabled+Selected].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "ToggleButton[Disabled+Selected].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("ToggleButton[Disabled+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToggleButtonPainter", ToggleButtonPainter.BACKGROUND_DISABLED_SELECTED, new Insets(7, 7, 7, 7), new Dimension(72, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
 
         //Initialize RadioButton
         d.put("RadioButton.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("RadioButton[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "RadioButton[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("RadioButton[Disabled].iconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonPainter", RadioButtonPainter.ICON_DISABLED, new Insets(5, 5, 5, 5), new Dimension(18, 18), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("RadioButton[Enabled].iconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonPainter", RadioButtonPainter.ICON_ENABLED, new Insets(5, 5, 5, 5), new Dimension(18, 18), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("RadioButton[Focused].iconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonPainter", RadioButtonPainter.ICON_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(18, 18), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
@@ -339,7 +332,7 @@ final class NimbusDefaults {
 
         //Initialize CheckBox
         d.put("CheckBox.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("CheckBox[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "CheckBox[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("CheckBox[Disabled].iconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxPainter", CheckBoxPainter.ICON_DISABLED, new Insets(5, 5, 5, 5), new Dimension(18, 18), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("CheckBox[Enabled].iconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxPainter", CheckBoxPainter.ICON_ENABLED, new Insets(5, 5, 5, 5), new Dimension(18, 18), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("CheckBox[Focused].iconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxPainter", CheckBoxPainter.ICON_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(18, 18), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
@@ -358,7 +351,7 @@ final class NimbusDefaults {
 
         //Initialize ColorChooser
         d.put("ColorChooser.contentMargins", new InsetsUIResource(5, 0, 0, 0));
-        d.put("ColorChooser.swatchesDefaultRecentColor", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "ColorChooser.swatchesDefaultRecentColor", 255, 255, 255, 255);
         d.put("ColorChooser:\"ColorChooser.previewPanelHolder\".contentMargins", new InsetsUIResource(0, 5, 10, 5));
         d.put("ColorChooser:\"ColorChooser.previewPanelHolder\":\"OptionPane.label\".contentMargins", new InsetsUIResource(0, 10, 10, 10));
 
@@ -388,10 +381,10 @@ final class NimbusDefaults {
         d.put("ComboBox[Editable+MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ComboBoxPainter", ComboBoxPainter.BACKGROUND_MOUSEOVER_EDITABLE, new Insets(4, 5, 5, 17), new Dimension(79, 21), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ComboBox[Editable+Pressed].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ComboBoxPainter", ComboBoxPainter.BACKGROUND_PRESSED_EDITABLE, new Insets(4, 5, 5, 17), new Dimension(79, 21), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ComboBox:\"ComboBox.textField\".contentMargins", new InsetsUIResource(0, 6, 0, 3));
-        d.put("ComboBox:\"ComboBox.textField\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "ComboBox:\"ComboBox.textField\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("ComboBox:\"ComboBox.textField\"[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ComboBoxComboBoxTextFieldPainter", ComboBoxComboBoxTextFieldPainter.BACKGROUND_DISABLED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ComboBox:\"ComboBox.textField\"[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ComboBoxComboBoxTextFieldPainter", ComboBoxComboBoxTextFieldPainter.BACKGROUND_ENABLED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
-        d.put("ComboBox:\"ComboBox.textField\"[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "ComboBox:\"ComboBox.textField\"[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("ComboBox:\"ComboBox.textField\"[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ComboBoxComboBoxTextFieldPainter", ComboBoxComboBoxTextFieldPainter.BACKGROUND_SELECTED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ComboBox:\"ComboBox.arrowButton\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("ComboBox:\"ComboBox.arrowButton\".States", "Enabled,MouseOver,Pressed,Disabled,Editable");
@@ -409,14 +402,14 @@ final class NimbusDefaults {
         d.put("ComboBox:\"ComboBox.arrowButton\"[Selected].foregroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ComboBoxComboBoxArrowButtonPainter", ComboBoxComboBoxArrowButtonPainter.FOREGROUND_SELECTED, new Insets(6, 9, 6, 10), new Dimension(24, 19), true, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ComboBox:\"ComboBox.listRenderer\".contentMargins", new InsetsUIResource(2, 4, 2, 4));
         d.put("ComboBox:\"ComboBox.listRenderer\".opaque", Boolean.TRUE);
-        d.put("ComboBox:\"ComboBox.listRenderer\".background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
-        d.put("ComboBox:\"ComboBox.listRenderer\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("ComboBox:\"ComboBox.listRenderer\"[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
-        d.put("ComboBox:\"ComboBox.listRenderer\"[Selected].background", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "ComboBox:\"ComboBox.listRenderer\".background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "ComboBox:\"ComboBox.listRenderer\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "ComboBox:\"ComboBox.listRenderer\"[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "ComboBox:\"ComboBox.listRenderer\"[Selected].background", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0);
         d.put("ComboBox:\"ComboBox.renderer\".contentMargins", new InsetsUIResource(2, 4, 2, 4));
-        d.put("ComboBox:\"ComboBox.renderer\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("ComboBox:\"ComboBox.renderer\"[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
-        d.put("ComboBox:\"ComboBox.renderer\"[Selected].background", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "ComboBox:\"ComboBox.renderer\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "ComboBox:\"ComboBox.renderer\"[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "ComboBox:\"ComboBox.renderer\"[Selected].background", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0);
 
         //Initialize \"ComboBox.scrollPane\"
         d.put("\"ComboBox.scrollPane\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
@@ -459,7 +452,7 @@ final class NimbusDefaults {
         d.put("InternalFrame:InternalFrameTitlePane.States", "Enabled,WindowFocused");
         d.put("InternalFrame:InternalFrameTitlePane.WindowFocused", new InternalFrameInternalFrameTitlePaneWindowFocusedState());
         d.put("InternalFrame:InternalFrameTitlePane.titleAlignment", "CENTER");
-        d.put("InternalFrame:InternalFrameTitlePane[Enabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "InternalFrame:InternalFrameTitlePane[Enabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("InternalFrame:InternalFrameTitlePane:\"InternalFrameTitlePane.menuButton\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("InternalFrame:InternalFrameTitlePane:\"InternalFrameTitlePane.menuButton\".States", "Enabled,MouseOver,Pressed,Disabled,Focused,Selected,WindowNotFocused");
         d.put("InternalFrame:InternalFrameTitlePane:\"InternalFrameTitlePane.menuButton\".WindowNotFocused", new InternalFrameInternalFrameTitlePaneInternalFrameTitlePaneMenuButtonWindowNotFocusedState());
@@ -522,92 +515,92 @@ final class NimbusDefaults {
 
         //Initialize Label
         d.put("Label.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("Label[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Label[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
 
         //Initialize List
         d.put("List.contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("List.opaque", Boolean.TRUE);
-        d.put("List.background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "List.background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
         d.put("List.rendererUseListColors", Boolean.TRUE);
         d.put("List.rendererUseUIBorder", Boolean.TRUE);
         d.put("List.cellNoFocusBorder", new BorderUIResource(BorderFactory.createEmptyBorder(2, 5, 2, 5)));
         d.put("List.focusCellHighlightBorder", new BorderUIResource(new PainterBorder("Tree:TreeCell[Enabled+Focused].backgroundPainter", new Insets(2, 5, 2, 5))));
-        d.put("List.dropLineColor", getDerivedColor("nimbusFocus",0.0f,0.0f,0.0f,0));
-        d.put("List[Selected].textForeground", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("List[Selected].textBackground", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("List[Disabled+Selected].textBackground", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("List[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0,false));
+        addColor(d, "List.dropLineColor", "nimbusFocus", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "List[Selected].textForeground", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "List[Selected].textBackground", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "List[Disabled+Selected].textBackground", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "List[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0, false);
         d.put("List:\"List.cellRenderer\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("List:\"List.cellRenderer\".opaque", Boolean.TRUE);
-        d.put("List:\"List.cellRenderer\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("List:\"List.cellRenderer\"[Disabled].background", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0,false));
+        addColor(d, "List:\"List.cellRenderer\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "List:\"List.cellRenderer\"[Disabled].background", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0, false);
 
         //Initialize MenuBar
         d.put("MenuBar.contentMargins", new InsetsUIResource(2, 6, 2, 6));
         d.put("MenuBar[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuBarPainter", MenuBarPainter.BACKGROUND_ENABLED, new Insets(1, 0, 0, 0), new Dimension(18, 22), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("MenuBar[Enabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuBarPainter", MenuBarPainter.BORDER_ENABLED, new Insets(0, 0, 1, 0), new Dimension(30, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("MenuBar:Menu.contentMargins", new InsetsUIResource(1, 4, 2, 4));
-        d.put("MenuBar:Menu[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("MenuBar:Menu[Enabled].textForeground", new ColorUIResource(new Color(35, 35, 36, 255)));
-        d.put("MenuBar:Menu[Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "MenuBar:Menu[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "MenuBar:Menu[Enabled].textForeground", 35, 35, 36, 255);
+        addColor(d, "MenuBar:Menu[Selected].textForeground", 255, 255, 255, 255);
         d.put("MenuBar:Menu[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuBarMenuPainter", MenuBarMenuPainter.BACKGROUND_SELECTED, new Insets(0, 0, 0, 0), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("MenuBar:Menu:MenuItemAccelerator.contentMargins", new InsetsUIResource(0, 0, 0, 0));
 
         //Initialize MenuItem
         d.put("MenuItem.contentMargins", new InsetsUIResource(1, 12, 2, 13));
         d.put("MenuItem.textIconGap", new Integer(5));
-        d.put("MenuItem[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("MenuItem[Enabled].textForeground", new ColorUIResource(new Color(35, 35, 36, 255)));
-        d.put("MenuItem[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "MenuItem[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "MenuItem[Enabled].textForeground", 35, 35, 36, 255);
+        addColor(d, "MenuItem[MouseOver].textForeground", 255, 255, 255, 255);
         d.put("MenuItem[MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuItemPainter", MenuItemPainter.BACKGROUND_MOUSEOVER, new Insets(0, 0, 0, 0), new Dimension(100, 3), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("MenuItem:MenuItemAccelerator.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("MenuItem:MenuItemAccelerator[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("MenuItem:MenuItemAccelerator[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "MenuItem:MenuItemAccelerator[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "MenuItem:MenuItemAccelerator[MouseOver].textForeground", 255, 255, 255, 255);
 
         //Initialize RadioButtonMenuItem
         d.put("RadioButtonMenuItem.contentMargins", new InsetsUIResource(1, 12, 2, 13));
         d.put("RadioButtonMenuItem.textIconGap", new Integer(5));
-        d.put("RadioButtonMenuItem[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("RadioButtonMenuItem[Enabled].textForeground", new ColorUIResource(new Color(35, 35, 36, 255)));
-        d.put("RadioButtonMenuItem[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "RadioButtonMenuItem[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "RadioButtonMenuItem[Enabled].textForeground", 35, 35, 36, 255);
+        addColor(d, "RadioButtonMenuItem[MouseOver].textForeground", 255, 255, 255, 255);
         d.put("RadioButtonMenuItem[MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonMenuItemPainter", RadioButtonMenuItemPainter.BACKGROUND_MOUSEOVER, new Insets(0, 0, 0, 0), new Dimension(100, 3), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("RadioButtonMenuItem[MouseOver+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "RadioButtonMenuItem[MouseOver+Selected].textForeground", 255, 255, 255, 255);
         d.put("RadioButtonMenuItem[MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonMenuItemPainter", RadioButtonMenuItemPainter.BACKGROUND_SELECTED_MOUSEOVER, new Insets(0, 0, 0, 0), new Dimension(100, 3), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("RadioButtonMenuItem[Disabled+Selected].checkIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonMenuItemPainter", RadioButtonMenuItemPainter.CHECKICON_DISABLED_SELECTED, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("RadioButtonMenuItem[Enabled+Selected].checkIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonMenuItemPainter", RadioButtonMenuItemPainter.CHECKICON_ENABLED_SELECTED, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("RadioButtonMenuItem[MouseOver+Selected].checkIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.RadioButtonMenuItemPainter", RadioButtonMenuItemPainter.CHECKICON_SELECTED_MOUSEOVER, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("RadioButtonMenuItem.checkIcon", new NimbusIcon("RadioButtonMenuItem", "checkIconPainter", 9, 10));
         d.put("RadioButtonMenuItem:MenuItemAccelerator.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("RadioButtonMenuItem:MenuItemAccelerator[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "RadioButtonMenuItem:MenuItemAccelerator[MouseOver].textForeground", 255, 255, 255, 255);
 
         //Initialize CheckBoxMenuItem
         d.put("CheckBoxMenuItem.contentMargins", new InsetsUIResource(1, 12, 2, 13));
         d.put("CheckBoxMenuItem.textIconGap", new Integer(5));
-        d.put("CheckBoxMenuItem[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("CheckBoxMenuItem[Enabled].textForeground", new ColorUIResource(new Color(35, 35, 36, 255)));
-        d.put("CheckBoxMenuItem[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "CheckBoxMenuItem[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "CheckBoxMenuItem[Enabled].textForeground", 35, 35, 36, 255);
+        addColor(d, "CheckBoxMenuItem[MouseOver].textForeground", 255, 255, 255, 255);
         d.put("CheckBoxMenuItem[MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxMenuItemPainter", CheckBoxMenuItemPainter.BACKGROUND_MOUSEOVER, new Insets(0, 0, 0, 0), new Dimension(100, 3), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("CheckBoxMenuItem[MouseOver+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "CheckBoxMenuItem[MouseOver+Selected].textForeground", 255, 255, 255, 255);
         d.put("CheckBoxMenuItem[MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxMenuItemPainter", CheckBoxMenuItemPainter.BACKGROUND_SELECTED_MOUSEOVER, new Insets(0, 0, 0, 0), new Dimension(100, 3), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("CheckBoxMenuItem[Disabled+Selected].checkIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxMenuItemPainter", CheckBoxMenuItemPainter.CHECKICON_DISABLED_SELECTED, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("CheckBoxMenuItem[Enabled+Selected].checkIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxMenuItemPainter", CheckBoxMenuItemPainter.CHECKICON_ENABLED_SELECTED, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("CheckBoxMenuItem[MouseOver+Selected].checkIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.CheckBoxMenuItemPainter", CheckBoxMenuItemPainter.CHECKICON_SELECTED_MOUSEOVER, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("CheckBoxMenuItem.checkIcon", new NimbusIcon("CheckBoxMenuItem", "checkIconPainter", 9, 10));
         d.put("CheckBoxMenuItem:MenuItemAccelerator.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("CheckBoxMenuItem:MenuItemAccelerator[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "CheckBoxMenuItem:MenuItemAccelerator[MouseOver].textForeground", 255, 255, 255, 255);
 
         //Initialize Menu
         d.put("Menu.contentMargins", new InsetsUIResource(1, 12, 2, 5));
-        d.put("Menu[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("Menu[Enabled].textForeground", new ColorUIResource(new Color(35, 35, 36, 255)));
-        d.put("Menu[Enabled+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "Menu[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "Menu[Enabled].textForeground", 35, 35, 36, 255);
+        addColor(d, "Menu[Enabled+Selected].textForeground", 255, 255, 255, 255);
         d.put("Menu[Enabled+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuPainter", MenuPainter.BACKGROUND_ENABLED_SELECTED, new Insets(0, 0, 0, 0), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("Menu[Disabled].arrowIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuPainter", MenuPainter.ARROWICON_DISABLED, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("Menu[Enabled].arrowIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuPainter", MenuPainter.ARROWICON_ENABLED, new Insets(5, 5, 5, 5), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("Menu[Enabled+Selected].arrowIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.MenuPainter", MenuPainter.ARROWICON_ENABLED_SELECTED, new Insets(1, 1, 1, 1), new Dimension(9, 10), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("Menu.arrowIcon", new NimbusIcon("Menu", "arrowIconPainter", 9, 10));
         d.put("Menu:MenuItemAccelerator.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("Menu:MenuItemAccelerator[MouseOver].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "Menu:MenuItemAccelerator[MouseOver].textForeground", 255, 255, 255, 255);
 
         //Initialize PopupMenu
         d.put("PopupMenu.contentMargins", new InsetsUIResource(6, 1, 6, 1));
@@ -657,7 +650,7 @@ final class NimbusDefaults {
         d.put("ProgressBar.horizontalSize", new DimensionUIResource(150, 19));
         d.put("ProgressBar.cycleTime", new Integer(250));
         d.put("ProgressBar[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ProgressBarPainter", ProgressBarPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(29, 19), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
-        d.put("ProgressBar[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "ProgressBar[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("ProgressBar[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ProgressBarPainter", ProgressBarPainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(29, 19), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("ProgressBar[Enabled].foregroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ProgressBarPainter", ProgressBarPainter.FOREGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(27, 19), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
         d.put("ProgressBar[Enabled+Finished].foregroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ProgressBarPainter", ProgressBarPainter.FOREGROUND_ENABLED_FINISHED, new Insets(5, 5, 5, 5), new Dimension(27, 19), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, 2.0));
@@ -712,7 +705,7 @@ final class NimbusDefaults {
         d.put("Slider.thumbHeight", new Integer(17));
         d.put("Slider.trackBorder", new Integer(0));
         d.put("Slider.paintValue", Boolean.FALSE);
-        d.put("Slider.tickColor", new ColorUIResource(new Color(35, 40, 48, 255)));
+        addColor(d, "Slider.tickColor", 35, 40, 48, 255);
         d.put("Slider:SliderThumb.contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Slider:SliderThumb.States", "Enabled,MouseOver,Pressed,Disabled,Focused,Selected,ArrowShape");
         d.put("Slider:SliderThumb.ArrowShape", new SliderSliderThumbArrowShapeState());
@@ -740,13 +733,13 @@ final class NimbusDefaults {
         d.put("Spinner.contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Spinner:\"Spinner.editor\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Spinner:Panel:\"Spinner.formattedTextField\".contentMargins", new InsetsUIResource(6, 6, 5, 6));
-        d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Spinner:Panel:\"Spinner.formattedTextField\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.SpinnerPanelSpinnerFormattedTextFieldPainter", SpinnerPanelSpinnerFormattedTextFieldPainter.BACKGROUND_DISABLED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.SpinnerPanelSpinnerFormattedTextFieldPainter", SpinnerPanelSpinnerFormattedTextFieldPainter.BACKGROUND_ENABLED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.SpinnerPanelSpinnerFormattedTextFieldPainter", SpinnerPanelSpinnerFormattedTextFieldPainter.BACKGROUND_FOCUSED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Spinner:Panel:\"Spinner.formattedTextField\"[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.SpinnerPanelSpinnerFormattedTextFieldPainter", SpinnerPanelSpinnerFormattedTextFieldPainter.BACKGROUND_SELECTED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Focused+Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Spinner:Panel:\"Spinner.formattedTextField\"[Focused+Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("Spinner:Panel:\"Spinner.formattedTextField\"[Focused+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.SpinnerPanelSpinnerFormattedTextFieldPainter", SpinnerPanelSpinnerFormattedTextFieldPainter.BACKGROUND_SELECTED_FOCUSED, new Insets(5, 3, 3, 1), new Dimension(64, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("Spinner:\"Spinner.previousButton\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Spinner:\"Spinner.previousButton\".size", new Integer(20));
@@ -807,23 +800,23 @@ final class NimbusDefaults {
         d.put("TabbedPane.tabOverlap", new Integer(-1));
         d.put("TabbedPane.extendTabsToBase", Boolean.TRUE);
         d.put("TabbedPane.useBasicArrows", Boolean.TRUE);
-        d.put("TabbedPane.shadow", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
-        d.put("TabbedPane.darkShadow", getDerivedColor("text",0.0f,0.0f,0.0f,0));
-        d.put("TabbedPane.highlight", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "TabbedPane.shadow", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "TabbedPane.darkShadow", "text", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "TabbedPane.highlight", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
         d.put("TabbedPane:TabbedPaneTab.contentMargins", new InsetsUIResource(2, 8, 3, 8));
         d.put("TabbedPane:TabbedPaneTab[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_ENABLED, new Insets(7, 7, 1, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[Enabled+MouseOver].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_ENABLED_MOUSEOVER, new Insets(7, 7, 1, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[Enabled+Pressed].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_ENABLED_PRESSED, new Insets(7, 6, 1, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("TabbedPane:TabbedPaneTab[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TabbedPane:TabbedPaneTab[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TabbedPane:TabbedPaneTab[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_DISABLED, new Insets(6, 7, 1, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[Disabled+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED_DISABLED, new Insets(7, 7, 0, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED, new Insets(7, 7, 0, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED_MOUSEOVER, new Insets(7, 9, 0, 9), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("TabbedPane:TabbedPaneTab[Pressed+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "TabbedPane:TabbedPaneTab[Pressed+Selected].textForeground", 255, 255, 255, 255);
         d.put("TabbedPane:TabbedPaneTab[Pressed+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED_PRESSED, new Insets(7, 9, 0, 9), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[Focused+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED_FOCUSED, new Insets(7, 7, 3, 7), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTab[Focused+MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED_MOUSEOVER_FOCUSED, new Insets(7, 9, 3, 9), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("TabbedPane:TabbedPaneTab[Focused+Pressed+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "TabbedPane:TabbedPaneTab[Focused+Pressed+Selected].textForeground", 255, 255, 255, 255);
         d.put("TabbedPane:TabbedPaneTab[Focused+Pressed+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabPainter", TabbedPaneTabbedPaneTabPainter.BACKGROUND_SELECTED_PRESSED_FOCUSED, new Insets(7, 9, 3, 9), new Dimension(44, 20), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TabbedPane:TabbedPaneTabArea.contentMargins", new InsetsUIResource(3, 10, 4, 10));
         d.put("TabbedPane:TabbedPaneTabArea[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TabbedPaneTabbedPaneTabAreaPainter", TabbedPaneTabbedPaneTabAreaPainter.BACKGROUND_ENABLED, new Insets(0, 5, 6, 5), new Dimension(5, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
@@ -835,23 +828,23 @@ final class NimbusDefaults {
         //Initialize Table
         d.put("Table.contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Table.opaque", Boolean.TRUE);
-        d.put("Table.textForeground", new ColorUIResource(new Color(35, 35, 36, 255)));
-        d.put("Table.background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "Table.textForeground", 35, 35, 36, 255);
+        addColor(d, "Table.background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
         d.put("Table.showGrid", Boolean.FALSE);
         d.put("Table.intercellSpacing", new DimensionUIResource(0, 0));
-        d.put("Table.alternateRowColor", getDerivedColor("nimbusLightBackground",0.0f,0.0f,-0.05098039f,0,false));
+        addColor(d, "Table.alternateRowColor", "nimbusLightBackground", 0.0f, 0.0f, -0.05098039f, 0, false);
         d.put("Table.rendererUseTableColors", Boolean.TRUE);
         d.put("Table.rendererUseUIBorder", Boolean.TRUE);
         d.put("Table.cellNoFocusBorder", new BorderUIResource(BorderFactory.createEmptyBorder(2, 5, 2, 5)));
         d.put("Table.focusCellHighlightBorder", new BorderUIResource(new PainterBorder("Tree:TreeCell[Enabled+Focused].backgroundPainter", new Insets(2, 5, 2, 5))));
-        d.put("Table.dropLineColor", getDerivedColor("nimbusFocus",0.0f,0.0f,0.0f,0));
-        d.put("Table.dropLineShortColor", getDerivedColor("nimbusOrange",0.0f,0.0f,0.0f,0));
-        d.put("Table[Enabled+Selected].textForeground", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("Table[Enabled+Selected].textBackground", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("Table[Disabled+Selected].textBackground", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0,false));
+        addColor(d, "Table.dropLineColor", "nimbusFocus", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "Table.dropLineShortColor", "nimbusOrange", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "Table[Enabled+Selected].textForeground", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "Table[Enabled+Selected].textBackground", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "Table[Disabled+Selected].textBackground", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0, false);
         d.put("Table:\"Table.cellRenderer\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Table:\"Table.cellRenderer\".opaque", Boolean.TRUE);
-        d.put("Table:\"Table.cellRenderer\".background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0,false));
+        addColor(d, "Table:\"Table.cellRenderer\".background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0, false);
 
         //Initialize TableHeader
         d.put("TableHeader.contentMargins", new InsetsUIResource(0, 0, 0, 0));
@@ -877,54 +870,54 @@ final class NimbusDefaults {
         //Initialize \"Table.editor\"
         d.put("\"Table.editor\".contentMargins", new InsetsUIResource(3, 5, 3, 5));
         d.put("\"Table.editor\".opaque", Boolean.TRUE);
-        d.put("\"Table.editor\".background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
-        d.put("\"Table.editor\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "\"Table.editor\".background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "\"Table.editor\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("\"Table.editor\"[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TableEditorPainter", TableEditorPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("\"Table.editor\"[Enabled+Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TableEditorPainter", TableEditorPainter.BACKGROUND_ENABLED_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("\"Table.editor\"[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "\"Table.editor\"[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
 
         //Initialize \"Tree.cellEditor\"
         d.put("\"Tree.cellEditor\".contentMargins", new InsetsUIResource(2, 5, 2, 5));
         d.put("\"Tree.cellEditor\".opaque", Boolean.TRUE);
-        d.put("\"Tree.cellEditor\".background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
-        d.put("\"Tree.cellEditor\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "\"Tree.cellEditor\".background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "\"Tree.cellEditor\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("\"Tree.cellEditor\"[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreeCellEditorPainter", TreeCellEditorPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("\"Tree.cellEditor\"[Enabled+Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreeCellEditorPainter", TreeCellEditorPainter.BACKGROUND_ENABLED_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("\"Tree.cellEditor\"[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "\"Tree.cellEditor\"[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
 
         //Initialize TextField
         d.put("TextField.contentMargins", new InsetsUIResource(6, 6, 6, 6));
-        d.put("TextField.background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
-        d.put("TextField[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextField.background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "TextField[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextField[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextFieldPainter", TextFieldPainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TextField[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextFieldPainter", TextFieldPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("TextField[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextField[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextField[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextFieldPainter", TextFieldPainter.BACKGROUND_SELECTED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("TextField[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextField[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextField[Disabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextFieldPainter", TextFieldPainter.BORDER_DISABLED, new Insets(5, 3, 3, 3), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TextField[Focused].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextFieldPainter", TextFieldPainter.BORDER_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TextField[Enabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextFieldPainter", TextFieldPainter.BORDER_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
 
         //Initialize FormattedTextField
         d.put("FormattedTextField.contentMargins", new InsetsUIResource(6, 6, 6, 6));
-        d.put("FormattedTextField[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "FormattedTextField[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("FormattedTextField[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.FormattedTextFieldPainter", FormattedTextFieldPainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("FormattedTextField[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.FormattedTextFieldPainter", FormattedTextFieldPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("FormattedTextField[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "FormattedTextField[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("FormattedTextField[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.FormattedTextFieldPainter", FormattedTextFieldPainter.BACKGROUND_SELECTED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("FormattedTextField[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "FormattedTextField[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("FormattedTextField[Disabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.FormattedTextFieldPainter", FormattedTextFieldPainter.BORDER_DISABLED, new Insets(5, 3, 3, 3), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("FormattedTextField[Focused].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.FormattedTextFieldPainter", FormattedTextFieldPainter.BORDER_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("FormattedTextField[Enabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.FormattedTextFieldPainter", FormattedTextFieldPainter.BORDER_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
 
         //Initialize PasswordField
         d.put("PasswordField.contentMargins", new InsetsUIResource(6, 6, 6, 6));
-        d.put("PasswordField[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "PasswordField[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("PasswordField[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.PasswordFieldPainter", PasswordFieldPainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("PasswordField[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.PasswordFieldPainter", PasswordFieldPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("PasswordField[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "PasswordField[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("PasswordField[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.PasswordFieldPainter", PasswordFieldPainter.BACKGROUND_SELECTED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
-        d.put("PasswordField[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "PasswordField[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("PasswordField[Disabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.PasswordFieldPainter", PasswordFieldPainter.BORDER_DISABLED, new Insets(5, 3, 3, 3), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("PasswordField[Focused].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.PasswordFieldPainter", PasswordFieldPainter.BORDER_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("PasswordField[Enabled].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.PasswordFieldPainter", PasswordFieldPainter.BORDER_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
@@ -933,15 +926,15 @@ final class NimbusDefaults {
         d.put("TextArea.contentMargins", new InsetsUIResource(6, 6, 6, 6));
         d.put("TextArea.States", "Enabled,MouseOver,Pressed,Selected,Disabled,Focused,NotInScrollPane");
         d.put("TextArea.NotInScrollPane", new TextAreaNotInScrollPaneState());
-        d.put("TextArea[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextArea[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextArea[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("TextArea[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("TextArea[Disabled+NotInScrollPane].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextArea[Disabled+NotInScrollPane].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextArea[Disabled+NotInScrollPane].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BACKGROUND_DISABLED_NOTINSCROLLPANE, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("TextArea[Enabled+NotInScrollPane].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BACKGROUND_ENABLED_NOTINSCROLLPANE, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("TextArea[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextArea[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextArea[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BACKGROUND_SELECTED, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("TextArea[Disabled+NotInScrollPane].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextArea[Disabled+NotInScrollPane].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextArea[Disabled+NotInScrollPane].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BORDER_DISABLED_NOTINSCROLLPANE, new Insets(5, 3, 3, 3), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TextArea[Focused+NotInScrollPane].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BORDER_FOCUSED_NOTINSCROLLPANE, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         d.put("TextArea[Enabled+NotInScrollPane].borderPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextAreaPainter", TextAreaPainter.BORDER_ENABLED_NOTINSCROLLPANE, new Insets(5, 5, 5, 5), new Dimension(122, 24), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
@@ -949,19 +942,19 @@ final class NimbusDefaults {
         //Initialize TextPane
         d.put("TextPane.contentMargins", new InsetsUIResource(4, 6, 4, 6));
         d.put("TextPane.opaque", Boolean.TRUE);
-        d.put("TextPane[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextPane[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextPane[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextPanePainter", TextPanePainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("TextPane[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextPanePainter", TextPanePainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("TextPane[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "TextPane[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("TextPane[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TextPanePainter", TextPanePainter.BACKGROUND_SELECTED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
 
         //Initialize EditorPane
         d.put("EditorPane.contentMargins", new InsetsUIResource(4, 6, 4, 6));
         d.put("EditorPane.opaque", Boolean.TRUE);
-        d.put("EditorPane[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "EditorPane[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("EditorPane[Disabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.EditorPanePainter", EditorPanePainter.BACKGROUND_DISABLED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("EditorPane[Enabled].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.EditorPanePainter", EditorPanePainter.BACKGROUND_ENABLED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("EditorPane[Selected].textForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0));
+        addColor(d, "EditorPane[Selected].textForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0);
         d.put("EditorPane[Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.EditorPanePainter", EditorPanePainter.BACKGROUND_SELECTED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
 
         //Initialize ToolBar
@@ -996,12 +989,12 @@ final class NimbusDefaults {
         d.put("ToolBar:ToggleButton[Focused+Pressed+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToolBarToggleButtonPainter", ToolBarToggleButtonPainter.BACKGROUND_PRESSED_SELECTED_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(72, 25), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, 2.0, Double.POSITIVE_INFINITY));
         d.put("ToolBar:ToggleButton[MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToolBarToggleButtonPainter", ToolBarToggleButtonPainter.BACKGROUND_MOUSEOVER_SELECTED, new Insets(5, 5, 5, 5), new Dimension(72, 25), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, 2.0, Double.POSITIVE_INFINITY));
         d.put("ToolBar:ToggleButton[Focused+MouseOver+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToolBarToggleButtonPainter", ToolBarToggleButtonPainter.BACKGROUND_MOUSEOVER_SELECTED_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(72, 25), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, 2.0, Double.POSITIVE_INFINITY));
-        d.put("ToolBar:ToggleButton[Disabled+Selected].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "ToolBar:ToggleButton[Disabled+Selected].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("ToolBar:ToggleButton[Disabled+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.ToolBarToggleButtonPainter", ToolBarToggleButtonPainter.BACKGROUND_DISABLED_SELECTED, new Insets(5, 5, 5, 5), new Dimension(72, 25), false, AbstractRegionPainter.PaintContext.CacheMode.NINE_SQUARE_SCALE, 2.0, Double.POSITIVE_INFINITY));
 
         //Initialize ToolBarSeparator
         d.put("ToolBarSeparator.contentMargins", new InsetsUIResource(2, 0, 3, 0));
-        d.put("ToolBarSeparator.textForeground", getDerivedColor("nimbusBorder",0.0f,0.0f,0.0f,0));
+        addColor(d, "ToolBarSeparator.textForeground", "nimbusBorder", 0.0f, 0.0f, 0.0f, 0);
 
         //Initialize ToolTip
         d.put("ToolTip.contentMargins", new InsetsUIResource(4, 4, 4, 4));
@@ -1010,9 +1003,9 @@ final class NimbusDefaults {
         //Initialize Tree
         d.put("Tree.contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("Tree.opaque", Boolean.TRUE);
-        d.put("Tree.textForeground", getDerivedColor("text",0.0f,0.0f,0.0f,0,false));
-        d.put("Tree.textBackground", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("Tree.background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "Tree.textForeground", "text", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "Tree.textBackground", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "Tree.background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
         d.put("Tree.rendererFillBackground", Boolean.FALSE);
         d.put("Tree.leftChildIndent", new Integer(12));
         d.put("Tree.rightChildIndent", new Integer(4));
@@ -1023,19 +1016,19 @@ final class NimbusDefaults {
         d.put("Tree.repaintWholeRow", Boolean.TRUE);
         d.put("Tree.rowHeight", new Integer(0));
         d.put("Tree.rendererMargins", new InsetsUIResource(2, 0, 1, 5));
-        d.put("Tree.selectionForeground", getDerivedColor("nimbusSelectedText",0.0f,0.0f,0.0f,0,false));
-        d.put("Tree.selectionBackground", getDerivedColor("nimbusSelectionBackground",0.0f,0.0f,0.0f,0,false));
-        d.put("Tree.dropLineColor", getDerivedColor("nimbusFocus",0.0f,0.0f,0.0f,0));
+        addColor(d, "Tree.selectionForeground", "nimbusSelectedText", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "Tree.selectionBackground", "nimbusSelectionBackground", 0.0f, 0.0f, 0.0f, 0, false);
+        addColor(d, "Tree.dropLineColor", "nimbusFocus", 0.0f, 0.0f, 0.0f, 0);
         d.put("Tree:TreeCell.contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("Tree:TreeCell[Enabled].background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
-        d.put("Tree:TreeCell[Enabled+Focused].background", getDerivedColor("nimbusLightBackground",0.0f,0.0f,0.0f,0));
+        addColor(d, "Tree:TreeCell[Enabled].background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
+        addColor(d, "Tree:TreeCell[Enabled+Focused].background", "nimbusLightBackground", 0.0f, 0.0f, 0.0f, 0);
         d.put("Tree:TreeCell[Enabled+Focused].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreeTreeCellPainter", TreeTreeCellPainter.BACKGROUND_ENABLED_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("Tree:TreeCell[Enabled+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "Tree:TreeCell[Enabled+Selected].textForeground", 255, 255, 255, 255);
         d.put("Tree:TreeCell[Enabled+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreeTreeCellPainter", TreeTreeCellPainter.BACKGROUND_ENABLED_SELECTED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
-        d.put("Tree:TreeCell[Focused+Selected].textForeground", new ColorUIResource(new Color(255, 255, 255, 255)));
+        addColor(d, "Tree:TreeCell[Focused+Selected].textForeground", 255, 255, 255, 255);
         d.put("Tree:TreeCell[Focused+Selected].backgroundPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreeTreeCellPainter", TreeTreeCellPainter.BACKGROUND_SELECTED_FOCUSED, new Insets(5, 5, 5, 5), new Dimension(100, 30), false, AbstractRegionPainter.PaintContext.CacheMode.NO_CACHING, 1.0, 1.0));
         d.put("Tree:\"Tree.cellRenderer\".contentMargins", new InsetsUIResource(0, 0, 0, 0));
-        d.put("Tree:\"Tree.cellRenderer\"[Disabled].textForeground", getDerivedColor("nimbusDisabledText",0.0f,0.0f,0.0f,0));
+        addColor(d, "Tree:\"Tree.cellRenderer\"[Disabled].textForeground", "nimbusDisabledText", 0.0f, 0.0f, 0.0f, 0);
         d.put("Tree[Enabled].leafIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreePainter", TreePainter.LEAFICON_ENABLED, new Insets(5, 5, 5, 5), new Dimension(16, 16), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
         d.put("Tree.leafIcon", new NimbusIcon("Tree", "leafIconPainter", 16, 16));
         d.put("Tree[Enabled].closedIconPainter", new LazyPainter("com.sun.java.swing.plaf.nimbus.TreePainter", TreePainter.CLOSEDICON_ENABLED, new Insets(5, 5, 5, 5), new Dimension(16, 16), false, AbstractRegionPainter.PaintContext.CacheMode.FIXED_SIZES, 1.0, 1.0));
@@ -1052,7 +1045,7 @@ final class NimbusDefaults {
         //Initialize RootPane
         d.put("RootPane.contentMargins", new InsetsUIResource(0, 0, 0, 0));
         d.put("RootPane.opaque", Boolean.TRUE);
-        d.put("RootPane.background", getDerivedColor("control",0.0f,0.0f,0.0f,0));
+        addColor(d, "RootPane.background", "control", 0.0f, 0.0f, 0.0f, 0);
 
 
     }
@@ -1560,22 +1553,23 @@ final class NimbusDefaults {
         }
     }
 
-    /**
-     * Get a derived color, derived colors are shared instances and will be
-     * updated when its parent UIDefault color changes.
-     *
-     * @param uiDefaultParentName The parent UIDefault key
-     * @param hOffset The hue offset
-     * @param sOffset The saturation offset
-     * @param bOffset The brightness offset
-     * @param aOffset The alpha offset
-     * @return The stored derived color
-     */
-    public DerivedColor getDerivedColor(String uiDefaultParentName,
-                                        float hOffset, float sOffset,
-                                        float bOffset, int aOffset){
-        return getDerivedColor(uiDefaultParentName, hOffset, sOffset,
-                               bOffset, aOffset, true);
+    private void addColor(UIDefaults d, String uin, int r, int g, int b, int a) {
+        Color color = new ColorUIResource(new Color(r, g, b, a));
+        colorTree.addColor(uin, color);
+        d.put(uin, color);
+    }
+
+    private void addColor(UIDefaults d, String uin, String parentUin,
+            float hOffset, float sOffset, float bOffset, int aOffset) {
+        addColor(d, uin, parentUin, hOffset, sOffset, bOffset, aOffset, true);
+    }
+
+    private void addColor(UIDefaults d, String uin, String parentUin,
+            float hOffset, float sOffset, float bOffset,
+            int aOffset, boolean uiResource) {
+        Color color = getDerivedColor(uin, parentUin,
+                hOffset, sOffset, bOffset, aOffset, uiResource);
+        d.put(uin, color);
     }
 
     /**
@@ -1591,89 +1585,101 @@ final class NimbusDefaults {
      *        false if it should not be a UIResource
      * @return The stored derived color
      */
-    public DerivedColor getDerivedColor(String uiDefaultParentName,
+    public DerivedColor getDerivedColor(String parentUin,
                                         float hOffset, float sOffset,
                                         float bOffset, int aOffset,
                                         boolean uiResource){
-        tmpDCKey.set(uiDefaultParentName, hOffset, sOffset, bOffset, aOffset,
-            uiResource);
-        DerivedColor color = derivedColorsMap.get(tmpDCKey);
-        if (color == null){
-            if (uiResource) {
-                color = new DerivedColor.UIResource(uiDefaultParentName,
-                        hOffset, sOffset, bOffset, aOffset);
-            } else {
-                color = new DerivedColor(uiDefaultParentName, hOffset, sOffset,
-                    bOffset, aOffset);
-            }
-            // calculate the initial value
-            color.rederiveColor();
-            // add the listener so that if the color changes we'll propogate it
-            color.addPropertyChangeListener(defaultsListener);
-            // add to the derived colors table
-            derivedColorsMap.put(new DerivedColorKey(uiDefaultParentName,
-                    hOffset, sOffset, bOffset, aOffset, uiResource),color);
+        return getDerivedColor(null, parentUin,
+                hOffset, sOffset, bOffset, aOffset, uiResource);
+    }
+
+    private DerivedColor getDerivedColor(String uin, String parentUin,
+                                        float hOffset, float sOffset,
+                                        float bOffset, int aOffset,
+                                        boolean uiResource) {
+        DerivedColor color;
+        if (uiResource) {
+            color = new DerivedColor.UIResource(parentUin,
+                    hOffset, sOffset, bOffset, aOffset);
+        } else {
+            color = new DerivedColor(parentUin, hOffset, sOffset,
+                bOffset, aOffset);
         }
+        color.rederiveColor(); /// move to ARP.decodeColor() ?
+        colorTree.addColor(uin, color);
         return color;
     }
 
-    /**
-     * Key class for derived colors
-     */
-    private class DerivedColorKey {
-        private String uiDefaultParentName;
-        private float hOffset, sOffset, bOffset;
-        private int aOffset;
-        private boolean uiResource;
+    private class ColorTree implements PropertyChangeListener {
+        private Node root = new Node(null, null);
+        private Map<String, Node> nodes = new HashMap<String, Node>();
 
-        DerivedColorKey(){}
-
-        DerivedColorKey(String uiDefaultParentName, float hOffset,
-                        float sOffset, float bOffset, int aOffset,
-                        boolean uiResource) {
-            set(uiDefaultParentName, hOffset, sOffset, bOffset, aOffset, uiResource);
+        public Color getColor(String uin) {
+            return nodes.get(uin).color;
         }
 
-        void set (String uiDefaultParentName, float hOffset,
-                        float sOffset, float bOffset, int aOffset,
-                        boolean uiResource) {
-            this.uiDefaultParentName = uiDefaultParentName;
-            this.hOffset = hOffset;
-            this.sOffset = sOffset;
-            this.bOffset = bOffset;
-            this.aOffset = aOffset;
-            this.uiResource = uiResource;
+        public void addColor(String uin, Color color) {
+            Node parent = getParentNode(color);
+            Node node = new Node(color, parent);
+            parent.children.add(node);
+            if (uin != null) {
+                nodes.put(uin, node);
+            }
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof DerivedColorKey)) return false;
-            DerivedColorKey that = (DerivedColorKey) o;
-            if (aOffset != that.aOffset) return false;
-            if (Float.compare(that.bOffset, bOffset) != 0) return false;
-            if (Float.compare(that.hOffset, hOffset) != 0) return false;
-            if (Float.compare(that.sOffset, sOffset) != 0) return false;
-            if (uiDefaultParentName != null ?
-                !uiDefaultParentName.equals(that.uiDefaultParentName) :
-                that.uiDefaultParentName != null) return false;
-            if (this.uiResource != that.uiResource) return false;
-            return true;
+        private Node getParentNode(Color color) {
+            Node parent = root;
+            if (color instanceof DerivedColor) {
+                String parentUin = ((DerivedColor)color).getUiDefaultParentName();
+                Node p = nodes.get(parentUin);
+                if (p != null) {
+                    parent = p;
+                }
+            }
+            return parent;
+        }
+
+        public void update() {
+            root.update();
         }
 
         @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + uiDefaultParentName.hashCode();
-            result = 31 * result + hOffset != +0.0f ?
-                    Float.floatToIntBits(hOffset) : 0;
-            result = 31 * result + sOffset != +0.0f ?
-                    Float.floatToIntBits(sOffset) : 0;
-            result = 31 * result + bOffset != +0.0f ?
-                    Float.floatToIntBits(bOffset) : 0;
-            result = 31 * result + aOffset;
-            result = 31 * result + (uiResource ? 1 : 0);
-            return result;
+        public void propertyChange(PropertyChangeEvent ev) {
+            String name = ev.getPropertyName();
+            Node node = nodes.get(name);
+            if (node != null) {
+                // this is a registered color
+                node.parent.children.remove(node);
+                Color color = (Color) ev.getNewValue();
+                Node parent = getParentNode(color);
+                node.set(color, parent);
+                parent.children.add(node);
+                node.update();
+            }
+        }
+
+        class Node {
+            Color color;
+            Node parent;
+            List<Node> children = new LinkedList<Node>();
+
+            Node(Color color, Node parent) {
+                set(color, parent);
+            }
+
+            public void set(Color color, Node parent) {
+                this.color = color;
+                this.parent = parent;
+            }
+
+            public void update() {
+                if (color instanceof DerivedColor) {
+                    ((DerivedColor)color).rederiveColor();
+                }
+                for (Node child: children) {
+                    child.update();
+                }
+            }
         }
     }
 
@@ -1683,49 +1689,12 @@ final class NimbusDefaults {
     private class DefaultsListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-            Object src = evt.getSource();
-            String key = evt.getPropertyName();
-            if (key.equals("lookAndFeel")){
+            if ("lookAndFeel".equals(evt.getPropertyName())) {
                 // LAF has been installed, this is the first point at which we
                 // can access our defaults table via UIManager so before now
                 // all derived colors will be incorrect.
                 // First we need to update
-                for (DerivedColor color : derivedColorsMap.values()) {
-                    color.rederiveColor();
-                }
-            } else if (src instanceof DerivedColor && key.equals("rgb")) {
-                // derived color that is in UIManager defaults has changed
-                // update all its dependent colors. Don't worry about doing
-                // this recursively since calling rederiveColor will cause
-                // another PCE to be fired, ending up here and essentially
-                // recursing
-                DerivedColor parentColor = (DerivedColor)src;
-                String parentKey = null;
-                Set<Map.Entry<Object,Object>> entries =
-                        UIManager.getDefaults().entrySet();
-                
-                for (Map.Entry entry : entries) {
-                    Object value = entry.getValue();
-                    if (value == parentColor) {
-                        parentKey = entry.getKey().toString();
-                    }
-                }
-                
-                if (parentKey == null) {
-                    //couldn't find the DerivedColor in the UIDefaults map,
-                    //so we just bail.
-                    return;
-                }
-                
-                for (Map.Entry entry : entries) {
-                    Object value = entry.getValue();
-                    if (value instanceof DerivedColor) {
-                        DerivedColor color = (DerivedColor)entry.getValue();
-                        if (parentKey.equals(color.getUiDefaultParentName())) {
-                            color.rederiveColor();
-                        }
-                    }
-                }
+                colorTree.update();
             }
         }
     }

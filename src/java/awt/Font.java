@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.238 08/12/24
+ * @(#)Font.java	1.239 09/03/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -2284,13 +2284,7 @@ public class Font implements java.io.Serializable
             (values.getKerning() == 0 && values.getLigatures() == 0 &&
               values.getBaselineTransform() == null);
         if (simple) {
-            for (int i = beginIndex; i < limit; ++i) {
-                char c = chars[i];
-                if (c >= '\u0590' && c <= '\u206f') {
-                    simple = false;
-                    break;
-                }
-            }
+           simple = !FontManager.isComplexText(chars, beginIndex, limit);
         }
 
         if (simple) {

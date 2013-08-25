@@ -1,5 +1,5 @@
 /*
- * @(#)Long.java	1.81 05/11/17
+ * @(#)Long.java	1.82 09/02/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.81, 11/17/05
+ * @version 1.82, 02/26/09
  * @since   JDK1.0
  */
 public final class Long extends Number implements Comparable<Long> {
@@ -50,7 +50,7 @@ public final class Long extends Number implements Comparable<Long> {
      *
      * @since   JDK1.1
      */
-    public static final Class<Long>	TYPE = (Class<Long>) Class.getPrimitiveClass("long");
+    public static final Class<Long> TYPE = (Class<Long>) Class.getPrimitiveClass("long");
 
     /**
      * Returns a string representation of the first argument in the
@@ -312,6 +312,9 @@ public final class Long extends Number implements Comparable<Long> {
         return 19;
     }
 
+    private static final long   MULTMIN_RADIX_TEN =  Long.MIN_VALUE / 10;
+    private static final long N_MULTMAX_RADIX_TEN = -Long.MAX_VALUE / 10;
+
     /**
      * Parses the string argument as a signed <code>long</code> in the
      * radix specified by the second argument. The characters in the
@@ -396,7 +399,11 @@ public final class Long extends Number implements Comparable<Long> {
 	    } else {
 		limit = -Long.MAX_VALUE;
 	    }
-	    multmin = limit / radix;
+            if (radix == 10) {
+                multmin = negative ? MULTMIN_RADIX_TEN : N_MULTMAX_RADIX_TEN;
+            } else {
+                multmin = limit / radix;
+            }
             if (i < max) {
                 digit = Character.digit(s.charAt(i++),radix);
 		if (digit < 0) {
@@ -488,7 +495,7 @@ public final class Long extends Number implements Comparable<Long> {
      *             contain a parsable <code>long</code>.
      */
     public static Long valueOf(String s, int radix) throws NumberFormatException {
-	return new Long(parseLong(s, radix));
+	return Long.valueOf(parseLong(s, radix));
     }
 
     /**
@@ -515,7 +522,7 @@ public final class Long extends Number implements Comparable<Long> {
      */
     public static Long valueOf(String s) throws NumberFormatException
     {
-	return new Long(parseLong(s, 10));
+	return Long.valueOf(parseLong(s, 10));
     }
 
     private static class LongCache {
@@ -624,12 +631,12 @@ public final class Long extends Number implements Comparable<Long> {
 
         try {
             result = Long.valueOf(nm.substring(index), radix);
-            result = negative ? new Long((long)-result.longValue()) : result;
+            result = negative ? Long.valueOf(-result.longValue()) : result;
         } catch (NumberFormatException e) {
             // If number is Long.MIN_VALUE, we'll end up here. The next line
             // handles this case, and causes any genuine format error to be
             // rethrown.
-            String constant = negative ? new String("-" + nm.substring(index))
+            String constant = negative ? "-" + nm.substring(index)
                                        : nm.substring(index);
             result = Long.valueOf(constant, radix);
         }
@@ -837,7 +844,7 @@ public final class Long extends Number implements Comparable<Long> {
      */
     public static Long getLong(String nm, long val) {
         Long result = Long.getLong(nm, null);
-        return (result == null) ? new Long(val) : result;
+        return (result == null) ? Long.valueOf(val) : result;
     }
 
     /**

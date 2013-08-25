@@ -1,7 +1,7 @@
 /*
- * @(#)ConnectionCache.java	1.13 05/11/17
+ * @(#)ConnectionCache.java	1.16 09/04/01
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,6 +23,13 @@ public interface ConnectionCache
     public long numberOfBusyConnections();
 
     public boolean reclaim();
+
+    /** Close all connections in the connection cache.
+     * This is used as a final cleanup, and will result
+     * in abrupt termination of any pending communications.
+     */
+    public void close(); 
+
 }
 
 // End of file.

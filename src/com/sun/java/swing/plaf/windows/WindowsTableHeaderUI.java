@@ -146,8 +146,9 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
 	}
 
 	private int viewIndexForColumn(TableColumn aColumn) {
-            if (aColumn != null) {
-                return header.getTable().convertColumnIndexToView(
+            JTable table = header.getTable();
+            if (table != null && aColumn != null) {
+                return table.convertColumnIndexToView(
                         aColumn.getModelIndex());
             }
 	    return -1;

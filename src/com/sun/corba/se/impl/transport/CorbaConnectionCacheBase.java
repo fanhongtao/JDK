@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaConnectionCacheBase.java	1.26 05/11/17
+ * @(#)CorbaConnectionCacheBase.java	1.29 09/04/01
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import com.sun.corba.se.pept.transport.ConnectionCache;
 
 import com.sun.corba.se.spi.logging.CORBALogDomains;
 import com.sun.corba.se.spi.orb.ORB;
+import com.sun.corba.se.spi.transport.CorbaConnection;
 import com.sun.corba.se.spi.transport.CorbaConnectionCache;
 
 import com.sun.corba.se.impl.logging.ORBUtilSystemException;
@@ -67,6 +68,14 @@ public abstract class CorbaConnectionCacheBase
 	synchronized (backingStore()) {
 	    return values().size();
 	}
+    }
+
+    public void close() {
+         synchronized (backingStore()) {
+             for (Object obj : values()) {
+                 ((CorbaConnection)obj).closeConnectionResources() ;
+             }
+       }
     }
 
     public long numberOfIdleConnections()

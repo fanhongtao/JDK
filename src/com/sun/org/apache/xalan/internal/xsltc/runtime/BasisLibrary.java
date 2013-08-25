@@ -306,6 +306,26 @@ public final class BasisLibrary {
     }
 
     /**
+     * ThreadLocal for StringBuilder used
+     */
+    private static final ThreadLocal<StringBuilder> threadLocalStringBuilder =
+        new ThreadLocal<StringBuilder> () {
+            @Override protected StringBuilder initialValue() {
+                return new StringBuilder();
+            }
+    };
+
+    /**
+     * ThreadLocal for StringBuffer used
+     */
+    private static final ThreadLocal<StringBuffer> threadLocalStringBuffer =
+        new ThreadLocal<StringBuffer> () {
+            @Override protected StringBuffer initialValue() {
+                return new StringBuffer();
+            }
+    };
+
+    /**
      * XSLT Standard function translate(). 
      */
     public static String translateF(String value, String from, String to) {
@@ -313,7 +333,8 @@ public final class BasisLibrary {
 	final int froml = from.length();
 	final int valuel = value.length();
 
-	final StringBuffer result = new StringBuffer();
+	StringBuilder result  = threadLocalStringBuilder.get();
+	result.setLength(0);
 	for (int j, i = 0; i < valuel; i++) {
 	    final char ch = value.charAt(i);
 	    for (j = 0; j < froml; j++) {
@@ -341,7 +362,8 @@ public final class BasisLibrary {
      */
     public static String normalize_spaceF(String value) {
 	int i = 0, n = value.length();
-	StringBuffer result = new StringBuffer();
+	StringBuilder result = threadLocalStringBuilder.get();
+	result.setLength(0);
 
 	while (i < n && isWhiteSpace(value.charAt(i)))
 	    i++;
@@ -917,9 +939,9 @@ public final class BasisLibrary {
 		return(Double.toString(d));
             
             // Use the XPath formatter to ignore locales
-            StringBuffer result = new StringBuffer();
-            xpathFormatter.format(d, result, _fieldPosition);
-	    return result.toString();
+            StringBuffer result = threadLocalStringBuffer.get();
+            result.setLength(0);
+	    return xpathFormatter.format(d, result, _fieldPosition).toString();
 	}
     }
 
@@ -944,12 +966,12 @@ public final class BasisLibrary {
 	    formatter = defaultFormatter;
 	}
 	try {
-	    StringBuffer result = new StringBuffer();
+	    StringBuffer result = threadLocalStringBuffer.get();
+	    result.setLength(0);
 	    if (pattern != defaultPattern) {
 		formatter.applyLocalizedPattern(pattern);
 	    }
-            formatter.format(number, result, _fieldPosition);
-	    return result.toString();
+            return formatter.format(number, result, _fieldPosition).toString();
 	}
 	catch (IllegalArgumentException e) {
 	    runTimeError(FORMAT_NUMBER_ERR, Double.toString(number), pattern);
@@ -1518,7 +1540,8 @@ public final class BasisLibrary {
 
     public static String replace(String base, String delim, String[] str) {
 	final int len = base.length();
-	final StringBuffer result = new StringBuffer();
+	StringBuilder result  = threadLocalStringBuilder.get();
+	result.setLength(0);
 
 	for (int i = 0; i < len; i++) {
 	    final char ch = base.charAt(i);

@@ -1,7 +1,7 @@
 /*
- * @(#)Attributes.java	1.54 06/04/21
+ * @(#)Attributes.java	1.56 09/02/12
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import sun.misc.ASCIICaseInsensitiveComparator;
  * for more information about valid attribute names and values.
  *
  * @author  David Connelly
- * @version 1.54, 04/21/06
+ * @version 1.56, 02/12/09
  * @see	    Manifest
  * @since   1.2
  */

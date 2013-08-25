@@ -27,7 +27,7 @@ class FactoryFinder {
                                       ClassLoader classLoader)
     {
         try {
-            Class spiClass = safeLoadClass(className, classLoader);
+            Class spiClass = safeLoadClass(className, classLoader);            
             return spiClass.newInstance();
         } catch (ClassNotFoundException x) {
             throw new WebServiceException(
@@ -140,7 +140,7 @@ class FactoryFinder {
             if (s != null) {
                 int i = className.lastIndexOf('.');
                 if (i != -1) {
-                    s.checkPackageAccess(className.substring(0,i));
+                    s.checkPackageAccess(className.substring(0, i));
                 }
             }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)CachedCodeBase.java	1.7 05/11/17
+ * @(#)CachedCodeBase.java	1.10 09/02/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,7 +14,8 @@ import com.sun.org.omg.SendingContext.CodeBaseHelper;
 import com.sun.org.omg.SendingContext._CodeBaseImplBase;
 import com.sun.org.omg.SendingContext._CodeBaseStub;
 import com.sun.corba.se.spi.transport.CorbaConnection;
-
+import com.sun.corba.se.spi.ior.IOR;
+import com.sun.corba.se.spi.orb.ORB;
 /**
  * Provides the reading side with a per connection cache of
  * info obtained via calls to the remote CodeBase.
@@ -33,14 +34,25 @@ import com.sun.corba.se.spi.transport.CorbaConnection;
  *
  * Needs cache management.
  */
-// REVISIT: revert to package protected after framework merge.
 public class CachedCodeBase extends _CodeBaseImplBase
 {
     private Hashtable implementations, fvds, bases;
-    private CodeBase delegate;
+    private volatile CodeBase delegate;
     private CorbaConnection conn;
 
-    private static Hashtable iorToCodeBaseObjMap = new Hashtable();
+    private static Object iorMapLock = new Object();
+    private static Hashtable<IOR,CodeBase> iorMap = 
+        new Hashtable<IOR,CodeBase>();
+
+    public static synchronized void cleanCache( ORB orb ) {
+        synchronized (iorMapLock) {
+            for (IOR ior : iorMap.keySet()) {
+                if (ior.getORB() == orb) {
+                    iorMap.remove( ior ) ;
+                }
+            }
+        }
+    }
 
     public CachedCodeBase(CorbaConnection connection) {
         conn = connection;
@@ -50,7 +62,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
         return null;
     }
         
-    public String implementation (String repId) {
+    public synchronized String implementation (String repId) {
         String urlResult = null;
 
         if (implementations == null)
@@ -68,7 +80,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
         return urlResult;
     }
 
-    public String[] implementations (String[] repIds) {
+    public synchronized String[] implementations (String[] repIds) {
         String[] urlResults = new String[repIds.length];
 
         for (int i = 0; i < urlResults.length; i++)
@@ -77,7 +89,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
         return urlResults;
     }
 
-    public FullValueDescription meta (String repId) {
+    public synchronized FullValueDescription meta (String repId) {
         FullValueDescription result = null;
 
         if (fvds == null)
@@ -95,7 +107,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
         return result;
     }
 
-    public FullValueDescription[] metas (String[] repIds) {
+    public synchronized FullValueDescription[] metas (String[] repIds) {
         FullValueDescription[] results 
             = new FullValueDescription[repIds.length];
 
@@ -105,7 +117,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
         return results;
     }
 
-    public String[] bases (String repId) {
+    public synchronized String[] bases (String repId) {
 
         String[] results = null;
 
@@ -127,7 +139,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
     // Ensures that we've used the connection's IOR to create
     // a valid CodeBase delegate.  If this returns false, then
     // it is not valid to access the delegate.
-    private boolean connectedCodeBase() {
+    private synchronized boolean connectedCodeBase() {
         if (delegate != null)
             return true;
 
@@ -147,7 +159,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
             return false;
         }
 
-        synchronized(this) {
+        synchronized(iorMapLock) {
 
             // Recheck the condition to make sure another
             // thread didn't already do this while we waited
@@ -155,7 +167,8 @@ public class CachedCodeBase extends _CodeBaseImplBase
                 return true;
 
             // Do we have a reference initialized by another connection?
-            delegate = (CodeBase)CachedCodeBase.iorToCodeBaseObjMap.get(conn.getCodeBaseIOR());
+            delegate = CachedCodeBase.iorMap.get( conn.getCodeBaseIOR());
+
             if (delegate != null)
                 return true;
             
@@ -163,8 +176,7 @@ public class CachedCodeBase extends _CodeBaseImplBase
             delegate = CodeBaseHelper.narrow(getObjectFromIOR());
             
             // Save it for the benefit of other connections
-            CachedCodeBase.iorToCodeBaseObjMap.put(conn.getCodeBaseIOR(), 
-                                                   delegate);
+	    CachedCodeBase.iorMap.put(conn.getCodeBaseIOR(), delegate);
         }
 
         // It's now safe to use the delegate

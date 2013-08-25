@@ -1,5 +1,5 @@
 /*
- * @(#)BasicFileChooserUI.java	1.74 07/08/22
+ * @(#)BasicFileChooserUI.java	1.75 09/02/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1093,7 +1093,7 @@ public class BasicFileChooserUI extends FileChooserUI {
     private void changeDirectory(File dir) {
 	JFileChooser fc = getFileChooser();
 	// Traverse shortcuts on Windows
-	if (dir != null) {
+        if (dir != null && FilePane.usesShellFolder(fc)) {
 	    try {
                 ShellFolder shellFolder = ShellFolder.getShellFolder(dir);
                 if (shellFolder.isLink()) {

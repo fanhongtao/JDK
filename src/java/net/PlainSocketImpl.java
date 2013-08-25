@@ -1,7 +1,7 @@
 /*
- * @(#)PlainSocketImpl.java	1.67 07/03/08
+ * @(#)PlainSocketImpl.java	1.68 09/03/18
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.67, 03/08/07
+ * @version 1.68, 03/18/09
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -331,6 +331,12 @@ class PlainSocketImpl extends SocketImpl
 	    FileDescriptor fd = acquireFD();
 	    try {
 	        socketConnect(address, port, timeout);
+	        /* socket may have been closed during poll/select */
+	        synchronized (fdLock) {
+	            if (closePending) {
+	                throw new SocketException ("Socket closed");
+	            }
+	        }
 		// If we have a ref. to the Socket, then sets the flags
 		// created, bound & connected to true.
 		// This is normally done in Socket.connect() but some

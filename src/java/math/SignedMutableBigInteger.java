@@ -4,7 +4,7 @@
  */
 
 /*
- * @(#)SignedMutableBigInteger.java	1.10 05/11/17
+ * @(#)SignedMutableBigInteger.java	1.11 09/01/20
  */
 
 package java.math;
@@ -24,7 +24,7 @@ package java.math;
  * subtraction. All other operations occur as with MutableBigIntegers.
  * 
  * @see     BigInteger
- * @version 1.10, 11/17/05
+ * @version 1.11, 11/07/08
  * @author  Michael McCloskey
  * @since   1.3
  */
@@ -114,9 +114,7 @@ class SignedMutableBigInteger extends MutableBigInteger {
      * array starting at offset.
      */
     public String toString() {
-        BigInteger b = new BigInteger(this, sign);
-        return
-            b.toString();
+        return this.toBigInteger(sign).toString();
     }
 
 }

@@ -4,7 +4,7 @@
  */
 
 /*
- * @(#)BitSieve.java	1.12 06/03/10
+ * @(#)BitSieve.java	1.13 09/01/20
  */
 
 package java.math;
@@ -25,7 +25,7 @@ package java.math;
  * index of a bit in the sieve array.
  *
  * @see     BigInteger
- * @version 1.12, 03/10/06
+ * @version 1.13, 11/07/08
  * @author  Michael McCloskey
  * @since   1.3
  */
@@ -95,13 +95,11 @@ class BitSieve {
         int convertedStep = (step *2) + 1;
 
         // Construct the large sieve at an even offset specified by base
-        MutableBigInteger r = new MutableBigInteger();
+        MutableBigInteger b = new MutableBigInteger(base);
         MutableBigInteger q = new MutableBigInteger();
         do {
             // Calculate base mod convertedStep
-            r.copyValue(base.mag);
-            r.divideOneWord(convertedStep, q);
-            start = r.value[r.offset];
+            start = b.divideOneWord(convertedStep, q);
 
             // Take each multiple of step out of sieve
             start = convertedStep - start;

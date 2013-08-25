@@ -20,7 +20,7 @@
 
 /*
  * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)StAXValidatorHelper.java	1.3 05/11/17
+ * @(#)StAXValidatorHelper.java	1.4 09/02/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -79,8 +79,8 @@ public final class StAXValidatorHelper implements ValidatorHelper {
                 }
             }
 
-            if( result!=null ) {
-                handler = new ValidatorHandlerImpl(fComponentManager);
+            handler = new ValidatorHandlerImpl(fComponentManager);
+            if( result != null ) {
                 handler.setContentHandler(identityTransformer2);
                 identityTransformer2.setResult(result);
             }

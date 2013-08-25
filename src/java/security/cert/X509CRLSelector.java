@@ -1,7 +1,7 @@
 /*
- * @(#)X509CRLSelector.java	1.17 05/11/17
+ * @(#)X509CRLSelector.java	1.18 09/02/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import sun.security.x509.X500Name;
  * @see CRLSelector
  * @see X509CRL
  *
- * @version 	1.17 11/17/05
+ * @version 	1.18 02/17/09
  * @since	1.4
  * @author	Steve Hanna
  */
@@ -65,6 +65,7 @@ public class X509CRLSelector implements CRLSelector {
     private BigInteger maxCRL;
     private Date dateAndTime;
     private X509Certificate certChecking;
+    private long skew = 0;
 
     /**
      * Creates an <code>X509CRLSelector</code>. Initially, no criteria are set
@@ -402,7 +403,18 @@ public class X509CRLSelector implements CRLSelector {
         if (dateAndTime == null)
             this.dateAndTime = null;
         else
-            this.dateAndTime = (Date) dateAndTime.clone();
+            this.dateAndTime = new Date(dateAndTime.getTime());
+        this.skew = 0;
+    }
+
+    /**
+     * Sets the dateAndTime criterion and allows for the specified clock skew 
+     * (in milliseconds) when checking against the validity period of the CRL.
+     */
+    void setDateAndTime(Date dateAndTime, long skew) {
+        this.dateAndTime = 
+            (dateAndTime == null ? null : new Date(dateAndTime.getTime()));
+        this.skew = skew;
     }
 
     /**
@@ -642,8 +654,14 @@ public class X509CRLSelector implements CRLSelector {
 		}
 	        return false;
             }
-            if (crlThisUpdate.after(dateAndTime) 
-	          || nextUpdate.before(dateAndTime)) {
+            Date nowPlusSkew = dateAndTime;
+            Date nowMinusSkew = dateAndTime;
+            if (skew > 0) {
+                nowPlusSkew = new Date(dateAndTime.getTime() + skew);
+                nowMinusSkew = new Date(dateAndTime.getTime() - skew);
+            }
+            if (nowMinusSkew.after(nextUpdate) 
+	          || nowPlusSkew.before(crlThisUpdate)) {
 	        if (debug != null) {
 		    debug.println("X509CRLSelector.match: update out of range");
 		}

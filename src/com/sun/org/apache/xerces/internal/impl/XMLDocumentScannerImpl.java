@@ -20,7 +20,7 @@
 
 /*
  * $Id: XMLDocumentScannerImpl.java,v 1.9 2007/05/09 15:23:31 ndw Exp $
- * @(#)XMLDocumentScannerImpl.java	1.18 08/03/28
+ * @(#)XMLDocumentScannerImpl.java	1.19 09/02/24
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -738,6 +738,7 @@ public class XMLDocumentScannerImpl
         setScannerState(SCANNER_STATE_PROLOG);
         setDriver(fPrologDriver);
         fEntityManager.setEntityHandler(XMLDocumentScannerImpl.this);
+        fReadingDTD=false;
     }
     
     /** Returns the scanner state name. */

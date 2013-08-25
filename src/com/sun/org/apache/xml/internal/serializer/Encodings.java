@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.io.BufferedWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Enumeration;
@@ -82,9 +83,9 @@ public final class Encodings extends Object
             {
                 try
                 {
-                    return new OutputStreamWriter(
+                    return new BufferedWriter(new OutputStreamWriter(
                         output,
-                        _encodings[i].javaName);
+                        _encodings[i].javaName));
                 }
                 catch (java.lang.IllegalArgumentException iae) // java 1.1.8
                 {
@@ -100,7 +101,7 @@ public final class Encodings extends Object
 
         try
         {
-            return new OutputStreamWriter(output, encoding);
+            return new BufferedWriter(new OutputStreamWriter(output, encoding));
         }
         catch (java.lang.IllegalArgumentException iae) // java 1.1.8
         {

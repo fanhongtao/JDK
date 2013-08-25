@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.284 07/02/01
+ * @(#)JComponent.java	2.287 09/04/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -155,7 +155,7 @@ import sun.swing.UIClientPropertyKey;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.284, 02/01/07
+ * @version 2.287, 04/28/09
  * @author Hans Muller
  * @author Arnaud Weber
  */
@@ -1006,8 +1006,10 @@ public abstract class JComponent extends Container implements Serializable,
 
 	    int bw,bh;
 	    boolean printing = getFlag(IS_PRINTING);
+            boolean repainting = getFlag(IS_REPAINTING);
             if(!printing && repaintManager.isDoubleBufferingEnabled() &&
-               !getFlag(ANCESTOR_USING_BUFFER) && isDoubleBuffered()) {
+               !getFlag(ANCESTOR_USING_BUFFER) && isDoubleBuffered() &&
+                    (repaintManager.isPainting() || repainting)) {
                 repaintManager.beginPaint();
                 try {
                     repaintManager.paint(this, this, co, clipX, clipY, clipW,

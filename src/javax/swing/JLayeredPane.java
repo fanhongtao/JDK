@@ -1,5 +1,5 @@
 /*
- * @(#)JLayeredPane.java	1.56 06/08/08
+ * @(#)JLayeredPane.java	1.57 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import sun.awt.SunToolkit;
 
 import javax.accessibility.*;
 
@@ -178,9 +179,11 @@ public class JLayeredPane extends JComponent implements Accessible {
 
             for (Component c : getComponents()) {
                 layer = null;
-                if(c instanceof JInternalFrame || (c instanceof JComponent &&
-                         (layer = (Integer)((JComponent)c).getClientProperty(
-                          LAYER_PROPERTY)) != null)) {
+                if(SunToolkit.isInstanceOf(c, "javax.swing.JInternalFrame") ||
+                       (c instanceof JComponent &&
+                        (layer = (Integer)((JComponent)c).
+                                     getClientProperty(LAYER_PROPERTY)) != null))
+                {
                     if(layer != null && layer.equals(FRAME_CONTENT_LAYER))
                         continue;
                     layeredComponentFound = true;

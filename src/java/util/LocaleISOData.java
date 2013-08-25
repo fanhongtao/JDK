@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleISOData.java	1.3 07/02/01
+ * @(#)LocaleISOData.java	1.4 09/01/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -232,6 +232,7 @@ class LocaleISOData {
 	+ "BH" + "BHR"	// Bahrain, Kingdom of
 	+ "BI" + "BDI"	// Burundi, Republic of
 	+ "BJ" + "BEN"	// Benin, People's Republic of
+	+ "BL" + "BLM"	// Saint Barth\u00e9lemy
 	+ "BM" + "BMU"	// Bermuda
 	+ "BN" + "BRN"	// Brunei Darussalam
 	+ "BO" + "BOL"	// Bolivia, Republic of
@@ -285,6 +286,7 @@ class LocaleISOData {
 	+ "GD" + "GRD"	// Grenada
 	+ "GE" + "GEO"	// Georgia
 	+ "GF" + "GUF"	// French Guiana
+        + "GG" + "GGY"  // Guernsey
 	+ "GH" + "GHA"	// Ghana, Republic of
 	+ "GI" + "GIB"	// Gibraltar
 	+ "GL" + "GRL"	// Greenland
@@ -307,12 +309,14 @@ class LocaleISOData {
 	+ "ID" + "IDN"	// Indonesia, Republic of
 	+ "IE" + "IRL"	// Ireland
 	+ "IL" + "ISR"	// Israel, State of
+        + "IM" + "IMN"  // Isle of Man
 	+ "IN" + "IND"	// India, Republic of
 	+ "IO" + "IOT"	// British Indian Ocean Territory (Chagos Archipelago)
 	+ "IQ" + "IRQ"	// Iraq, Republic of
 	+ "IR" + "IRN"	// Iran, Islamic Republic of
 	+ "IS" + "ISL"	// Iceland, Republic of
 	+ "IT" + "ITA"	// Italy, Italian Republic
+        + "JE" + "JEY"  // Jersey
 	+ "JM" + "JAM"	// Jamaica
 	+ "JO" + "JOR"	// Jordan, Hashemite Kingdom of
 	+ "JP" + "JPN"	// Japan
@@ -342,6 +346,7 @@ class LocaleISOData {
 	+ "MC" + "MCO"	// Monaco, Principality of
 	+ "MD" + "MDA"	// Moldova, Republic of
 	+ "ME" + "MNE"	// Montenegro, Republic of
+        + "MF" + "MAF"  // Saint Martin
 	+ "MG" + "MDG"	// Madagascar, Republic of
 	+ "MH" + "MHL"	// Marshall Islands
 	+ "MK" + "MKD"	// Macedonia, the former Yugoslav Republic of

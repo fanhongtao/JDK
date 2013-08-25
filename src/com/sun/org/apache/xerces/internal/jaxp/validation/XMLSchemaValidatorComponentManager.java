@@ -58,6 +58,10 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
     /** Feature identifier: validation. */
     private static final String VALIDATION =
         Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
+
+    /** Feature identifier: send element default value via characters() */
+    private static final String SCHEMA_ELEMENT_DEFAULT =
+        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_ELEMENT_DEFAULT;
     
     /** Feature identifier: use grammar pool only. */
     private static final String USE_GRAMMAR_POOL_ONLY =
@@ -215,6 +219,9 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
         }
         else if (XMLConstants.FEATURE_SECURE_PROCESSING.equals(featureId)) {
             return getProperty(SECURITY_MANAGER) != null;
+        }
+	else if (SCHEMA_ELEMENT_DEFAULT.equals(featureId)) {
+            return true; //pre-condition: VALIDATION and SCHEMA_VALIDATION are always true
         }
         return super.getFeature(featureId);
     }

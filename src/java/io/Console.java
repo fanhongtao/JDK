@@ -1,5 +1,5 @@
 /*
- * @(#)Console.java	1.11 06/06/12
+ * @(#)Console.java	1.12 09/04/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ import sun.nio.cs.StreamEncoder;
  * </pre></blockquote>
  *
  * @author  Xueming Shen
- * @version 1.11, 06/12/06
+ * @version 1.12, 04/01/09
  * @since   1.6
  */
 
@@ -484,8 +484,23 @@ public final class Console implements Flushable
 	}
     }
 
+
     // Set up JavaIOAccess in SharedSecrets
     static {
+        // Add a shutdown hook to restore console's echo state should
+        // it be necessary.
+        sun.misc.SharedSecrets.getJavaLangAccess()
+            .registerShutdownHook(0 /* shutdown hook invocation order */,
+                new Runnable() {
+                    public void run() {
+                        try {
+                            if (echoOff) {
+                                echo(true);
+                            }
+                        } catch (IOException x) { }
+                    }
+                });
+
         sun.misc.SharedSecrets.setJavaIOAccess(new sun.misc.JavaIOAccess() {
             public Console console() {
                 if (istty()) {
@@ -496,20 +511,6 @@ public final class Console implements Flushable
 		return null;
             }
 
-            // Add a shutdown hook to restore console's echo state should
-            // it be necessary.
-            public Runnable consoleRestoreHook() {
-                return new Runnable() {
-	            public void run() {
-	                try {
-		            if (echoOff) {
-                                echo(true);
-			    }
-			} catch (IOException x) {}
-		    }
-                };
-	    }
-            
             public Charset charset() {
                 // This method is called in sun.security.util.Password,
                 // cons already exists when this method is called

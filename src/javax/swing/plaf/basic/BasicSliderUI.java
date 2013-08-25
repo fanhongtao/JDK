@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSliderUI.java	1.108 08/05/29
+ * @(#)BasicSliderUI.java	1.109 09/02/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import sun.swing.UIAction;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.108 05/29/08
+ * @version 1.109 02/05/09
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
@@ -820,18 +820,24 @@ public class BasicSliderUI extends SliderUI{
      */
     protected Integer getHighestValue() {
         Dictionary dictionary = slider.getLabelTable();
-        if (dictionary != null) {
-            Enumeration keys = dictionary.keys();
-            int max = slider.getMinimum() - 1;
-            while (keys.hasMoreElements()) {
-                max = Math.max(max, ((Integer)keys.nextElement()).intValue());
-            }
-            if (max == slider.getMinimum() - 1) {
-                return null;
-            }
-            return max;
+
+        if (dictionary == null) {
+            return null;
         }
-        return null;
+
+        Enumeration keys = dictionary.keys();
+
+        Integer max = null;
+
+        while (keys.hasMoreElements()) {
+            Integer i = (Integer) keys.nextElement();
+
+            if (max == null || i > max) {
+                max = i;
+            } 
+        }
+
+        return max;
     }
 
     /**
@@ -843,18 +849,24 @@ public class BasicSliderUI extends SliderUI{
      */
     protected Integer getLowestValue() {
         Dictionary dictionary = slider.getLabelTable();
-        if (dictionary != null) {
-            Enumeration keys = dictionary.keys();
-            int min = slider.getMaximum() + 1;
-            while (keys.hasMoreElements()) {
-                min = Math.min(min, ((Integer)keys.nextElement()).intValue());
-            }
-            if (min == slider.getMaximum() + 1) {
-                return null;
-            }
-            return min;
+
+        if (dictionary == null) {
+            return null;
         }
-        return null;
+
+        Enumeration keys = dictionary.keys();
+
+        Integer min = null;
+
+        while (keys.hasMoreElements()) {
+            Integer i = (Integer) keys.nextElement();
+
+            if (min == null || i < min) {
+                min = i;
+            }
+        }
+
+        return min;
     }
 
 

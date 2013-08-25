@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultDesktopManager.java	1.62 08/12/19
+ * @(#)DefaultDesktopManager.java	1.63 09/02/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import java.awt.event.ComponentEvent;
   * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.62 12/19/08
+  * @version 1.63 02/23/09
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -345,8 +345,22 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
                         f.getWidth()-1, f.getHeight()-1);
 	      }
 	      g.drawRect( newX, newY, f.getWidth()-1, f.getHeight()-1);
-	      currentLoc = new Point (newX, newY);
-	      g.dispose();
+              /* Work around for 6635462: XOR mode may cause a SurfaceLost on first use.
+               * Swing doesn't expect that its XOR drawRect did
+               * not complete, so believes that on re-entering at
+               * the next update location, that there is an XOR rect
+               * to draw out at "currentLoc". But in fact
+               * it's now got a new clean surface without that rect,
+               * so drawing it "out" in fact draws it on, leaving garbage.
+               * So only update/set currentLoc if the draw completed.
+               */
+               sun.java2d.SurfaceData sData =
+                   ((sun.java2d.SunGraphics2D)g).getSurfaceData();
+
+               if (!sData.isSurfaceLost()) {
+                   currentLoc = new Point (newX, newY);
+               }
+               g.dispose();
 	    }
 	} else if (dragMode == FASTER_DRAG_MODE) {
 	  dragFrameFaster(f, newX, newY);
@@ -398,7 +412,14 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 	        g.drawRect( currentBounds.x, currentBounds.y, currentBounds.width-1, currentBounds.height-1);
 	      }
 	      g.drawRect( newX, newY, newWidth-1, newHeight-1);
-	      currentBounds = new Rectangle (newX, newY, newWidth, newHeight);
+
+              // Work around for 6635462, see comment in dragFrame()
+              sun.java2d.SurfaceData sData =
+                  ((sun.java2d.SunGraphics2D)g).getSurfaceData();
+              if (!sData.isSurfaceLost()) {
+                  currentBounds = new Rectangle (newX, newY, newWidth, newHeight);
+              }
+
 	      g.setPaintMode();
 	      g.dispose();
 	    }

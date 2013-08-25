@@ -1,5 +1,5 @@
 /*
- * @(#)String.java	1.204 06/06/09
+ * @(#)String.java	1.205 09/02/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -81,7 +81,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.204, 06/09/06
+ * @version 1.205, 02/26/09
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuilder
@@ -173,10 +173,9 @@ public final class String
      *         The initial value of the string
      */
     public String(char value[]) {
-	int size = value.length;
 	this.offset = 0;
-	this.count = size;
-	this.value = Arrays.copyOf(value, size);
+	this.count = value.length;
+	this.value = StringValue.from(value);
     }
 
     /**

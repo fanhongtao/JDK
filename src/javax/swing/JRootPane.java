@@ -1,5 +1,5 @@
 /*
- * @(#)JRootPane.java	1.98 06/08/08
+ * @(#)JRootPane.java	1.100 09/02/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,6 +16,7 @@ import javax.swing.plaf.RootPaneUI;
 import java.util.Vector;
 import java.io.Serializable;
 import javax.swing.border.*;
+import sun.awt.AWTAccessor;
 import sun.security.action.GetBooleanAction;
 
 
@@ -177,7 +178,7 @@ import sun.security.action.GetBooleanAction;
  * @see <a href="http://java.sun.com/products/jfc/tsc/articles/mixing/">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.98 08/08/06
+ * @version 1.100 02/04/09
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -670,6 +671,9 @@ public class JRootPane extends JComponent implements Accessible {
         if (glass == null) {
             throw new NullPointerException("glassPane cannot be set to null.");
         }
+
+        AWTAccessor.getComponentAccessor().setMixingCutoutShape(glass,
+                new Rectangle());
 
         boolean visible = false;
         if (glassPane != null && glassPane.getParent() == this) {

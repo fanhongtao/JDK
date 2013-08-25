@@ -1,5 +1,5 @@
 /*
- * @(#)StreamCloser.java	1.3 05/12/01
+ * @(#)StreamCloser.java	1.4 09/01/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -76,6 +76,10 @@ public class StreamCloser {
                                  tgn != null;
                                  tg = tgn, tgn = tg.getParent());
                             streamCloser = new Thread(tg, streamCloserRunnable);
+                            /* Set context class loader to null in order to avoid
+                             * keeping a strong reference to an application classloader.
+                             */
+                            streamCloser.setContextClassLoader(null);
                             Runtime.getRuntime().addShutdownHook(streamCloser);
                             return null;
                         }

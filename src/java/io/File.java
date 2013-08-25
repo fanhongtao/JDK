@@ -1,5 +1,5 @@
 /*
- * @(#)File.java	1.141 08/09/04
+ * @(#)File.java	1.142 09/04/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,7 +112,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.141, 09/04/08
+ * @version 1.142, 04/01/09
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -1934,18 +1934,4 @@ public class File
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 301077366599181567L;
-
-    // Set up JavaIODeleteOnExitAccess in SharedSecrets
-    // Added here as DeleteOnExitHook is package-private and SharedSecrets cannot easily access it.
-    static {
-	sun.misc.SharedSecrets.setJavaIODeleteOnExitAccess(
-            new sun.misc.JavaIODeleteOnExitAccess() {
-                public void run() {
-                    DeleteOnExitHook.hook().run();
-		}
-            }
-	);
-    }
-
-
 }

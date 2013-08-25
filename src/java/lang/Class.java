@@ -1,5 +1,5 @@
 /*
- * @(#)Class.java	1.201 06/08/07
+ * @(#)Class.java	1.202 09/04/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -91,7 +91,7 @@ import sun.reflect.annotation.*;
  * unknown.
  *
  * @author  unascribed
- * @version 1.201, 08/07/06
+ * @version 1.202, 04/01/09
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */
@@ -3043,14 +3043,12 @@ public final
     }
 
 
-    private static Annotation[] EMPTY_ANNOTATIONS_ARRAY = new Annotation[0];
-
     /**
      * @since 1.5
      */
     public Annotation[] getAnnotations() { 
         initAnnotationsIfNecessary();
-        return annotations.values().toArray(EMPTY_ANNOTATIONS_ARRAY);
+        return AnnotationParser.toArray(annotations);
     }
 
     /**
@@ -3058,7 +3056,7 @@ public final
      */
     public Annotation[] getDeclaredAnnotations()  {
         initAnnotationsIfNecessary();
-        return declaredAnnotations.values().toArray(EMPTY_ANNOTATIONS_ARRAY);
+        return AnnotationParser.toArray(declaredAnnotations);
     }
 
     // Annotations cache

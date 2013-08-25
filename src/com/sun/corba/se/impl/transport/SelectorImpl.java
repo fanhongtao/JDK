@@ -1,5 +1,5 @@
 /*
- * @(#)SelectorImpl.java	1.18 05/11/17
+ * @(#)SelectorImpl.java	1.22 09/04/01
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,6 +42,7 @@ public class SelectorImpl
     implements
 	com.sun.corba.se.pept.transport.Selector
 {
+
     private ORB orb;
     private Selector selector;
     private long timeout;
@@ -50,7 +51,7 @@ public class SelectorImpl
     private HashMap listenerThreads;
     private HashMap readerThreads;
     private boolean selectorStarted;
-    private boolean closed;
+    private volatile boolean closed;
     private ORBUtilSystemException wrapper ;
 
 
@@ -160,8 +161,13 @@ public class SelectorImpl
 	}
 
 	if (eventHandler.shouldUseSelectThreadToWait()) {
-	    SelectionKey selectionKey = eventHandler.getSelectionKey();
-	    selectionKey.cancel();
+	    SelectionKey selectionKey; 
+            synchronized(deferredRegistrations) {   
+                 selectionKey = eventHandler.getSelectionKey();
+            }
+            if (selectionKey != null) {
+              selectionKey.cancel();
+            }
 	    selector.wakeup();
 	    return;
 	}

@@ -1,5 +1,5 @@
 /*
- * @(#)MetalScrollPaneUI.java	1.21 05/11/17
+ * @(#)MetalScrollPaneUI.java	1.22 09/02/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,10 +30,10 @@ import java.awt.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.21 11/17/05
+ * @version 1.22 02/06/09
  * @author Steve Wilson
  */
-public class MetalScrollPaneUI extends BasicScrollPaneUI
+    public class MetalScrollPaneUI extends BasicScrollPaneUI
 {
 
     private PropertyChangeListener scrollBarSwapListener;
@@ -62,6 +62,7 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
         if (vsb != null) {
             vsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, null);	
         }
+        c.removePropertyChangeListener(scrollBarSwapListener);
     }
 
 
@@ -71,11 +72,11 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
 	scrollPane.addPropertyChangeListener(scrollBarSwapListener);
     }
 
-
+    // This method doesn't override 
+    // BasicScrollPane.uninstallListeners(JComponent c)
+    // that's why it never gets called. 
+    // We should consider changing its signature in JDK 7
     public void uninstallListeners(JScrollPane scrollPane) {
-        super.uninstallListeners(scrollPane);
-
-	scrollPane.removePropertyChangeListener(scrollBarSwapListener);
     }
 
     /**

@@ -18,6 +18,7 @@ package com.sun.org.apache.xml.internal.serialize;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.BufferedWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import com.sun.org.apache.xerces.internal.util.EncodingMap;
@@ -80,12 +81,12 @@ public class EncodingInfo {
         throws UnsupportedEncodingException {
         // this should always be true!
         if (javaName != null) 
-            return new OutputStreamWriter(output, javaName);
+            return new BufferedWriter(new OutputStreamWriter(output, javaName));
         javaName = EncodingMap.getIANA2JavaMapping(ianaName);
         if(javaName == null) 
             // use UTF-8 as preferred encoding
-            return new OutputStreamWriter(output, "UTF8");
-        return new OutputStreamWriter(output, javaName);
+            return new BufferedWriter(new OutputStreamWriter(output, "UTF8"));
+        return new BufferedWriter(new OutputStreamWriter(output, javaName));
     }
     
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)IIOPInputStream.java	1.76 08/11/14
+ * @(#)IIOPInputStream.java	1.78 09/02/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -998,7 +998,11 @@ public class IIOPInputStream
              * else,
              *  Handle it as a serializable class.
              */
-            if (currentClassDesc.isExternalizable()) {
+            if (Enum.class.isAssignableFrom( clz )) {
+                int ordinal = orbStream.read_long() ;
+                String value = (String)orbStream.read_value( String.class ) ;
+                return Enum.valueOf( clz, value ) ;
+            } else if (currentClassDesc.isExternalizable()) {
                 try {
                     currentObject = (currentClass == null) ?
                         null : currentClassDesc.newInstance();

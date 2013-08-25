@@ -1,5 +1,5 @@
 /*
- * @(#)LookAndFeel.java	1.44 06/07/12
+ * @(#)LookAndFeel.java	1.45 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
+import sun.awt.SunToolkit;
 
 import javax.swing.text.*;
 import javax.swing.border.*;
@@ -126,7 +127,7 @@ import java.util.StringTokenizer;
  * all of the {@code install} methods throw a {@code NullPointerException} if
  * a {@code null} component is passed in.
  * 
- * @version 1.44 07/12/06
+ * @version 1.45 04/13/09
  * @author Tom Ball
  * @author Hans Muller
  */
@@ -254,7 +255,7 @@ public abstract class LookAndFeel
         // this is a special case because the JPasswordField's ancestor heirarchy
         // includes a class outside of javax.swing, thus we cannot call setUIProperty
         // directly.
-        if (c instanceof JPasswordField) {
+        if (SunToolkit.isInstanceOf(c, "javax.swing.JPasswordField")) {
             if (!((JPasswordField)c).customSetUIProperty(propertyName, propertyValue)) {
                 c.setUIProperty(propertyName, propertyValue);
             }

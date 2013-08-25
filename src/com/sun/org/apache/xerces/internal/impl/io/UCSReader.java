@@ -19,6 +19,8 @@ package com.sun.org.apache.xerces.internal.impl.io;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.Reader;
+import com.sun.xml.internal.stream.util.BufferAllocator;
+import com.sun.xml.internal.stream.util.ThreadLocalBufferAllocator;
 
 /** 
  * Reader for UCS-2 and UCS-4 encodings.
@@ -87,7 +89,11 @@ public class UCSReader extends Reader {
      */
     public UCSReader(InputStream inputStream, int size, short encoding) {
         fInputStream = inputStream;
-        fBuffer = new byte[size];
+        BufferAllocator ba = ThreadLocalBufferAllocator.getBufferAllocator();
+        fBuffer = ba.getByteBuffer(size);
+        if (fBuffer == null) {
+            fBuffer = new byte[size];
+        }
         fEncoding = encoding;
     } // <init>(InputStream,int,short)
 
@@ -292,6 +298,9 @@ public class UCSReader extends Reader {
      * @exception  IOException  If an I/O error occurs
      */
      public void close() throws IOException {
+         BufferAllocator ba = ThreadLocalBufferAllocator.getBufferAllocator();
+         ba.returnByteBuffer(fBuffer);
+         fBuffer = null;
          fInputStream.close();
      } // close()
 

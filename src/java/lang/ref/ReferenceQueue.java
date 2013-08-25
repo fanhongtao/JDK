@@ -1,5 +1,5 @@
 /*
- * @(#)ReferenceQueue.java	1.25 05/11/17
+ * @(#)ReferenceQueue.java	1.26 09/02/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,7 +11,7 @@ package java.lang.ref;
  * Reference queues, to which registered reference objects are appended by the
  * garbage collector after the appropriate reachability changes are detected.
  *
- * @version  1.25, 11/17/05
+ * @version  1.26, 02/26/09
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -34,7 +34,7 @@ public class ReferenceQueue<T> {
 
     static private class Lock { };
     private Lock lock = new Lock();
-    private Reference<? extends T> head = null;
+    private volatile Reference<? extends T> head = null;
     private long queueLength = 0;
 
     boolean enqueue(Reference<? extends T> r) {	/* Called only by Reference class */
@@ -78,6 +78,8 @@ public class ReferenceQueue<T> {
      *          otherwise <code>null</code>
      */
     public Reference<? extends T> poll() {
+        if (head == null)
+            return null;
 	synchronized (lock) {
 	    return reallyPoll();
 	}

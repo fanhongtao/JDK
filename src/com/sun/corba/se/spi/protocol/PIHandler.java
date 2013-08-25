@@ -1,11 +1,13 @@
 /*
- * @(#)PIHandler.java	1.26 05/11/17
+ * @(#)PIHandler.java	1.29 09/02/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.spi.protocol;
+
+import java.io.Closeable ;
 
 import org.omg.PortableInterceptor.ObjectReferenceTemplate ;
 import org.omg.PortableInterceptor.Interceptor ;
@@ -33,7 +35,7 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.ReplyMessage ;
 /** This interface defines the PI interface that is used to interface the rest of the
  * ORB to the PI implementation.
  */
-public interface PIHandler {
+public interface PIHandler extends Closeable {
     /** Complete the initialization of the PIHandler.  This will execute the methods
     * on the ORBInitializers, if any are defined.  This must be done here so that
     * the ORB can obtain the PIHandler BEFORE the ORBInitializers run, since they

@@ -1,5 +1,5 @@
 /*
- * @(#)MonitoringManagerFactoryImpl.java	1.4 05/11/17
+ * @(#)MonitoringManagerFactoryImpl.java	1.7 09/02/23
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,6 +25,10 @@ public class MonitoringManagerFactoryImpl implements MonitoringManagerFactory {
 	    monitoringManagerTable.put(nameOfTheRoot, m);
 	}
         return m;
+    }
+
+    public synchronized void remove( String nameOfTheRoot ) {
+        monitoringManagerTable.remove( nameOfTheRoot ) ;
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)MathContext.java	1.5 06/04/07
+ * @(#)MathContext.java	1.6 09/01/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -114,19 +114,6 @@ public final class MathContext implements Serializable {
      */
     final RoundingMode roundingMode;
 
-    /**
-     *  Lookaside for the rounding points (the numbers which determine
-     *  whether the coefficient of a number will require rounding).
-     *  These will be present if {@code precision > 0} and
-     *  {@code precision <= MAX_LOOKASIDE}.  In this case they will share the
-     *  {@code BigInteger int[]} array.  Note that the transients
-     *  cannot be {@code final} because they are reconstructed on
-     *  deserialization.
-     */
-    transient BigInteger roundingMax = null;
-    transient BigInteger roundingMin = null;
-    private static final int MAX_LOOKASIDE = 1000;
-
     /* ----- Constructors ----- */
 
     /**
@@ -161,11 +148,6 @@ public final class MathContext implements Serializable {
             throw new NullPointerException("null RoundingMode");
 
         precision = setPrecision;
-        if (precision > 0 && precision <= MAX_LOOKASIDE) {
-            roundingMax = BigInteger.TEN.pow(precision);
-            roundingMin = roundingMax.negate();
-        }
-
         roundingMode = setRoundingMode;
         return;
     }
@@ -209,10 +191,6 @@ public final class MathContext implements Serializable {
             throw new IllegalArgumentException("Digits < 0");
         // the other parameters cannot be invalid if we got here
         precision = setPrecision;
-        if (precision > 0 && precision <= MAX_LOOKASIDE) {
-            roundingMax = BigInteger.TEN.pow(precision);
-            roundingMin = roundingMax.negate();
-        }
     }
 
     /**
@@ -330,11 +308,6 @@ public final class MathContext implements Serializable {
         if (roundingMode == null) {
             String message = "MathContext: null roundingMode in stream";
             throw new java.io.StreamCorruptedException(message);
-        }
-        // Set the lookaside, if applicable
-        if (precision <= MAX_LOOKASIDE) {
-            roundingMax = BigInteger.TEN.pow(precision);
-            roundingMin = roundingMax.negate();
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.53 08/07/11
+ * @(#)LogManager.java	1.54 09/02/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.53, 07/11/08
+ * @version 1.54, 02/04/09
  * @since 1.4
 */
 
@@ -196,6 +196,14 @@ public class LogManager {
     // This private class is used as a shutdown hook.
     // It does a "reset" to close all open handlers.
     private class Cleaner extends Thread {
+
+        private Cleaner() {
+            /* Set context class loader to null in order to avoid
+	     * keeping a strong reference to an application classloader.
+	     */
+            this.setContextClassLoader(null);
+        }
+
 	public void run() {
 	    // This is to ensure the LogManager.<clinit> is completed
 	    // before synchronized block. Otherwise deadlocks are possible.

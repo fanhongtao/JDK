@@ -1,10 +1,9 @@
 /*
- * @(#)PIHandlerImpl.java	1.38 08/12/19
+ * @(#)PIHandlerImpl.java	1.39 09/02/23
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
 package com.sun.corba.se.impl.interceptors;
 
 import java.util.*;
@@ -159,6 +158,22 @@ public class PIHandlerImpl implements PIHandler
 		return new RequestInfoStack();
 	    }
 	};
+
+    public void close() {
+        orb = null ;
+        wrapper = null ;
+        orbutilWrapper = null ;
+        omgWrapper = null ;
+        codecFactory = null ;
+        arguments = null ;
+        interceptorList = null ;
+        interceptorInvoker = null ;
+        current = null ;
+        policyFactoryTable = null ;
+        threadLocalClientRequestInfoStack = null ;
+        threadLocalServerRequestInfoStack = null ;
+    }
+
      
     // Class to contain all ThreadLocal data for ClientRequestInfo
     // maintenance.

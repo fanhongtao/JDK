@@ -1,5 +1,5 @@
 /*
- * @(#)UIManager.java	1.129 08/02/17
+ * @(#)UIManager.java	1.130 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -50,6 +50,7 @@ import sun.swing.SwingUtilities2;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import sun.awt.AppContext;
+import sun.awt.AWTAccessor;
 
 
 /**
@@ -159,7 +160,7 @@ import sun.awt.AppContext;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.129 02/17/08
+ * @version 1.130 04/13/09
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -1471,22 +1472,9 @@ public class UIManager implements Serializable
                         return false;
                     }
                 });
-        try {
-            Method setRequestFocusControllerM = java.security.AccessController.doPrivileged(
-                    new java.security.PrivilegedExceptionAction<Method>() {
-                        public Method run() throws Exception {
-                            Method method =
-                            Component.class.getDeclaredMethod("setRequestFocusController",
-                                                              sun.awt.RequestFocusController.class);
-                            method.setAccessible(true);
-                            return method;
-                        }
-                    });
-            setRequestFocusControllerM.invoke(null, JComponent.focusController);
-        } catch (Exception e) {
-            // perhaps we should log this
-            assert false;
-        }
+
+        AWTAccessor.getComponentAccessor().
+            setRequestFocusController(JComponent.focusController);
     }
 }
 

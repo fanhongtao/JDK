@@ -1,5 +1,5 @@
 /*
- * @(#)BufferStrategyPaintManager.java	1.14 08/04/16
+ * @(#)BufferStrategyPaintManager.java	1.15 09/04/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,12 +22,13 @@ import sun.awt.SubRegionShowable;
 import sun.java2d.SunGraphics2D;
 import sun.security.action.GetPropertyAction;
 import sun.java2d.pipe.hw.ExtendedBufferCapabilities;
+import sun.awt.SunToolkit;
 
 /**
  * A PaintManager implementation that uses a BufferStrategy for
  * rendering.
  *
- * @version 1.14, 04/16/08
+ * @version 1.15, 04/13/09
  * @author Scott Violet
  */
 class BufferStrategyPaintManager extends RepaintManager.PaintManager {
@@ -553,9 +554,10 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
         boolean encounteredHW = false;
         rootJ = c;
         root = c;
-        xOffset = yOffset = 0;
-        while (root != null && (!(root instanceof Window) &&
-                                !(root instanceof Applet))) {
+        xOffset = yOffset = 0;        
+        while (root != null &&
+                   (!(root instanceof Window) &&
+                    !SunToolkit.isInstanceOf(root, "java.applet.Applet"))) {
             xOffset += root.getX();
             yOffset += root.getY();
             root = root.getParent();
@@ -822,7 +824,7 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
                     null);
             }
             BufferStrategy bs = null;
-            if (root instanceof Applet) {
+            if (SunToolkit.isInstanceOf(root, "java.applet.Applet")) {
                 try {
                     getCreateBufferStrategyMethod().invoke(root, 2, caps);
                     bs = (BufferStrategy)getGetBufferStrategyMethod().
