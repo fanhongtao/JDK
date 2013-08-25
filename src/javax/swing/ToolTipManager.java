@@ -1,5 +1,5 @@
 /*
- * @(#)ToolTipManager.java	1.74 06/05/12
+ * @(#)ToolTipManager.java	1.75 07/06/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import sun.swing.UIAction;
  * tooltip will be shown again after <code>initialDelay</code> milliseconds.
  *
  * @see JComponent#createToolTip
- * @version 1.74 05/12/06
+ * @version 1.75 06/25/07
  * @author Dave Moore
  * @author Rich Schiavi
  */
@@ -498,19 +498,22 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	  // if we get an exit and have a heavy window
 	  // we need to check if it if overlapping the inside component
             Container insideComponentWindow = insideComponent.getTopLevelAncestor();
-            Point location = event.getPoint();
-            SwingUtilities.convertPointToScreen(location, window);
+            // insideComponent may be removed after tooltip is made visible 
+            if (insideComponentWindow != null) {
+                Point location = event.getPoint();
+                SwingUtilities.convertPointToScreen(location, window);
 
-            location.x -= insideComponentWindow.getX();
-            location.y -= insideComponentWindow.getY();
-            
-            location = SwingUtilities.convertPoint(null,location,insideComponent);
-            if (location.x >= 0 && location.x < insideComponent.getWidth() &&
-               location.y >= 0 && location.y < insideComponent.getHeight()) {
-                shouldHide = false;
-            } else {
-	        shouldHide = true;
-	    }
+                location.x -= insideComponentWindow.getX();
+                location.y -= insideComponentWindow.getY();
+
+                location = SwingUtilities.convertPoint(null, location, insideComponent);
+                if (location.x >= 0 && location.x < insideComponent.getWidth() &&
+                        location.y >= 0 && location.y < insideComponent.getHeight()) {
+                    shouldHide = false;
+                } else {
+                    shouldHide = true;
+                }
+            }
         } else if(event.getSource() == insideComponent && tipWindow != null) {
 	    Window win = SwingUtilities.getWindowAncestor(insideComponent);
 	    if (win != null) {	// insideComponent may have been hidden (e.g. in a menu)

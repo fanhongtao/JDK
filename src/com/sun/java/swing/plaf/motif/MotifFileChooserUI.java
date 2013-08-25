@@ -1,5 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.50 06/05/24
+ * @(#)MotifFileChooserUI.java	1.52 07/06/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,11 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import sun.awt.shell.ShellFolder;
+import sun.swing.SwingUtilities2;
 
 /**
  * Motif FileChooserUI.
  *
- * @version 1.50 05/24/06
+ * @version 1.52 06/20/07
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -148,13 +149,15 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 		    if(f != null) {
 			setFileName(getFileChooser().getName(f));
 		    }
-        } 
-        else if (prop.equals(JFileChooser.SELECTED_FILES_CHANGED_PROPERTY)) {
-            File[] files = (File[]) e.getNewValue();
-            JFileChooser fc = getFileChooser();
-            if (files != null && files.length > 0 && (files.length > 1 || fc.isDirectorySelectionEnabled() || !files[0].isDirectory())) {
-               setFileName(fileNameString(files)); 
-            }
+                } else if (prop.equals(JFileChooser.SELECTED_FILES_CHANGED_PROPERTY)) {
+                    File[] files = (File[]) e.getNewValue();
+                    JFileChooser fc = getFileChooser();
+                    if (files != null && files.length > 0 && (files.length > 1 || fc.isDirectorySelectionEnabled() 
+                            || !files[0].isDirectory())) {
+                        setFileName(fileNameString(files));
+                    }
+                } else if (prop.equals(JFileChooser.FILE_FILTER_CHANGED_PROPERTY)) {
+                    fileList.clearSelection();
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    directoryList.clearSelection();
 		    ListSelectionModel sm = directoryList.getSelectionModel();
@@ -234,7 +237,9 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
     }
 
     public void uninstallUI(JComponent c) {
-	getFileChooser().removeAll();
+	c.removePropertyChangeListener(filterComboBoxModel);
+	approveButton.removeActionListener(getApproveSelectionAction());
+	filenameTextField.removeActionListener(getApproveSelectionAction());
 	super.uninstallUI(c);
     }
 
@@ -478,6 +483,8 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
     public void uninstallComponents(JFileChooser fc) {
 	fc.removeAll();
+	bottomPanel = null;
+	directoryPanel = null;
     }
 
     protected void installStrings(JFileChooser fc) {
@@ -525,6 +532,18 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	fileList.setCellRenderer(new FileCellRenderer());
 	fileList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 	fileList.addMouseListener(createDoubleClickListener(getFileChooser(), fileList));
+        fileList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                JFileChooser chooser = getFileChooser();
+                if (SwingUtilities.isLeftMouseButton(e) && !chooser.isMultiSelectionEnabled()) {
+                    int index = SwingUtilities2.loc2IndexFileList(fileList, e.getPoint());
+                    if (index >= 0) {
+                        File file = (File) fileList.getModel().getElementAt(index);
+                        setFileName(chooser.getName(file));
+                    }
+                }
+            }
+        });
 	align(fileList);
 	JScrollPane scrollpane = new JScrollPane(fileList);
 	scrollpane.setPreferredSize(prefListSize);

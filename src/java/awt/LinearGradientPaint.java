@@ -1,7 +1,7 @@
 /*
- * @(#)LinearGradientPaint.java	1.2 06/04/24
+ * @(#)LinearGradientPaint.java	1.3 07/05/30
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -292,6 +292,7 @@ public final class LinearGradientPaint extends MultipleGradientPaint {
         transform.concatenate(gradientTransform); 
 
         if ((fractions.length == 2) &&
+            (cycleMethod != CycleMethod.REPEAT) &&
             (colorSpace == ColorSpaceType.SRGB))
         {
             // faster to use the basic GradientPaintContext for this

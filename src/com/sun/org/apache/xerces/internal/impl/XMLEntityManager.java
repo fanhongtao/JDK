@@ -19,8 +19,8 @@
  */
 
 /*
- * $Id: XMLEntityManager.java,v 1.11 2006/07/21 17:57:04 ndw Exp $
- * @(#)XMLEntityManager.java	1.21 06/08/10
+ * $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
+ * @(#)XMLEntityManager.java	1.22 07/06/17
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -117,7 +117,7 @@ import com.sun.org.apache.xerces.internal.util.URI;
  * @author K.Venugopal SUN Microsystems
  * @author Neeraj Bajaj SUN Microsystems
  * @author Sunitha Reddy SUN Microsystems
- * @version $Id: XMLEntityManager.java,v 1.11 2006/07/21 17:57:04 ndw Exp $
+ * @version $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
  */
 public class XMLEntityManager implements XMLComponent, XMLEntityResolver {
     
@@ -1156,7 +1156,6 @@ protected static final String PARSER_SETTINGS =
             boolean unparsed = entity.isUnparsed();
             boolean parameter = entityName.startsWith("%");
             boolean general = !parameter;
-            fExternalGeneralEntities = external;//ToDo :Venu
             if (unparsed || (general && !fExternalGeneralEntities) ||
                     (parameter && !fExternalParameterEntities)) {
                 
@@ -1454,8 +1453,8 @@ protected static final String PARSER_SETTINGS =
         fEntityStack.removeAllElements();
         fCurrentEntity = null;
         fValidation = false;
-        fExternalGeneralEntities = false;
-        fExternalParameterEntities = false;
+        fExternalGeneralEntities = true;
+        fExternalParameterEntities = true;
         fAllowJavaEncodings = true ;
         
         //test();

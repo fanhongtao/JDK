@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ public @interface WebServiceRef {
       * the default is the field name.  For method annotations,
       * the default is the JavaBeans property name corresponding
       * to the method.  For class annotations, there is no default
-      * and this must be specified.
+      * and this MUST be specified.
       */
      String name() default "";
 
@@ -41,7 +41,7 @@ public @interface WebServiceRef {
       * The Java type of the resource.  For field annotations,
       * the default is the type of the field.  For method annotations,
       * the default is the type of the JavaBeans property.
-      * For class annotations, there is no default and this must be
+      * For class annotations, there is no default and this MUST be
       * specified.
       */
      Class type() default Object.class ;
@@ -65,7 +65,7 @@ public @interface WebServiceRef {
 
      /**
       * The service class, always a type extending
-      * <code>javax.xml.ws.Service</code>. This element must be specified
+      * <code>javax.xml.ws.Service</code>. This element MUST be specified
       * whenever the type of the reference is a service endpoint interface.
       */
      Class value() default Object.class ;

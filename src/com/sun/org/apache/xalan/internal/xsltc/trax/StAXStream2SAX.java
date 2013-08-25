@@ -19,8 +19,8 @@
  */
 
 /*
- * $Id: StAXStream2SAX.java,v 1.3 2005/11/03 17:53:11 jeffsuttor Exp $
- * @(#)StAXStream2SAX.java	1.6 06/01/27
+ * $Id: StAXStream2SAX.java,v 1.7 2007/05/16 15:03:52 spericas Exp $
+ * @(#)StAXStream2SAX.java	1.7 07/05/29
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -136,17 +136,22 @@ public class StAXStream2SAX implements XMLReader, Locator {
             // remembers the nest level of elements to know when we are done.
             int depth=0;
 
-            // if the parser is at the start tag, proceed to the first element
+            // skip over START_DOCUMENT
             int event = staxStreamReader.getEventType();
-            if(event == XMLStreamConstants.START_DOCUMENT) {
-                 event =  staxStreamReader.nextTag();
-
+            if (event == XMLStreamConstants.START_DOCUMENT) {
+                event = staxStreamReader.next();
             }
-            
+
+            // If not a START_ELEMENT (e.g., a DTD), skip to next tag
+            if (event != XMLStreamConstants.START_ELEMENT) {
+                event = staxStreamReader.nextTag();
+                // An error if a START_ELEMENT isn't found now
+                if (event != XMLStreamConstants.START_ELEMENT) {
+                    throw new IllegalStateException("The current event is " +
+                            "not START_ELEMENT\n but" + event);
+                }            
+            }
                   
-            if( event!=XMLStreamConstants.START_ELEMENT)
-                throw new IllegalStateException("The current event is not START_ELEMENT\n but" + event);
-            
             handleStartDocument();
 
             do {

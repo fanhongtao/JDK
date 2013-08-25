@@ -1,7 +1,7 @@
 /*
- * @(#)PNGMetadata.java	1.42 05/11/17
+ * @(#)PNGMetadata.java	1.43 07/09/12
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -314,9 +314,18 @@ public class PNGMetadata extends IIOMetadata implements Cloneable {
                 icm.getAlphas(alpha);
             }
 
-            if (isGray && hasAlpha) {
+            /*
+             * NB: PNG_COLOR_GRAY_ALPHA color type may be not optimal for images
+             * containing more than 1024 pixels (or even more than 768 pixels in
+             * case of single transparent pixel in palette).
+             * For such images alpha samples in raster will occupy more space than
+             * it is required to store palette so it could be reasonable to
+             * use PNG_COLOR_PALETTE color type for large images.
+             */ 
+
+            if (isGray && hasAlpha && (bitDepth == 8 || bitDepth == 16)) {
                 IHDR_colorType = PNGImageReader.PNG_COLOR_GRAY_ALPHA;
-            } else if (isGray) {
+            } else if (isGray && !hasAlpha) {
                 IHDR_colorType = PNGImageReader.PNG_COLOR_GRAY;
             } else {
                 IHDR_colorType = PNGImageReader.PNG_COLOR_PALETTE;

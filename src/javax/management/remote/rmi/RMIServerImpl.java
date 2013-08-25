@@ -1,6 +1,6 @@
 /*
- * @(#)RMIServerImpl.java	1.59 06/09/29
- * 
+ * @(#)RMIServerImpl.java	1.60 07/06/01
+ *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -57,8 +57,6 @@ public abstract class RMIServerImpl implements Closeable, RMIServer {
      */
     public RMIServerImpl(Map<String,?> env) {
         this.env = (env == null) ? Collections.EMPTY_MAP : env;
-	if (logger.debugOn()) 
-	    logger.trace("RMIServerImpl","class="+this.getClass().getName());
     }
 
     void setRMIConnectorServer(RMIConnectorServer connServer)

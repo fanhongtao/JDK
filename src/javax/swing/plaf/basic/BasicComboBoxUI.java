@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.186 06/08/03
+ * @(#)BasicComboBoxUI.java	1.187 07/06/22
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.186 08/03/06
+ * @version 1.187 06/22/07
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -1493,7 +1493,8 @@ public class BasicComboBoxUI extends ComboBoxUI {
                     // Forces the selection of the list item
                     boolean isEnterSelectablePopup = 
                             UIManager.getBoolean("ComboBox.isEnterSelectablePopup");  
-                    if (!comboBox.isEditable() || isEnterSelectablePopup) {
+                    if (!comboBox.isEditable() || isEnterSelectablePopup
+                            || ui.isTableCellEditor) {
                         Object listItem = ui.popup.getList().getSelectedValue();
                         if (listItem != null) {
                             comboBox.getModel().setSelectedItem(listItem);

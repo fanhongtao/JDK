@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,8 @@ public interface SOAPBinding extends Binding {
    * with MTOM enabled by default.
    */
   public static final String SOAP12HTTP_MTOM_BINDING = "http://www.w3.org/2003/05/soap/bindings/HTTP/?mtom=true";
-
+    
+  
   /** Gets the roles played by the SOAP binding instance.
    *
    *  @return Set<String> The set of roles played by the binding instance.
@@ -67,9 +68,10 @@ public interface SOAPBinding extends Binding {
    *
    * @param flag   A <code>boolean</code> specifying whether the use of MTOM should
    *               be enabled or disabled.
-   *  @throws WebServiceException If the specified setting is not supported
+   * @throws WebServiceException If the specified setting is not supported
    *                  by this binding instance.
-  **/
+   * 
+   **/
   public void setMTOMEnabled(boolean flag);
   
   /**

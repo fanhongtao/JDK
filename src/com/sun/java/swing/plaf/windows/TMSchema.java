@@ -1,5 +1,5 @@
 /*
- * @(#)TMSchema.java	1.12 06/12/15
+ * @(#)TMSchema.java	1.13 07/06/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,8 +33,9 @@ import sun.awt.windows.ThemeReader;
  * Implements Windows Parts and their States and Properties for the Windows Look and Feel.
  *
  * See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/commctls/userex/topics/partsandstates.asp
+ * See tmschema.h (or vssym32.h & vsstyle.h for MS Vista)
  *
- * @version 1.12 12/15/06
+ * @version 1.13 06/25/07
  * @author Leif Samuelsson
  */
 class TMSchema {
@@ -228,6 +229,12 @@ class TMSchema {
         FOCUSED,
         HOT,
         HOTCHECKED,
+        ICONHOT,
+        ICONNORMAL,
+        ICONPRESSED,
+        ICONSORTEDHOT,
+        ICONSORTEDNORMAL,
+        ICONSORTEDPRESSED,
         INACTIVE,
 	INACTIVENORMAL,		// See note 1
 	INACTIVEHOT,		// See note 1
@@ -263,7 +270,12 @@ class TMSchema {
         UPHOVER, 
         DOWNHOVER, 
         LEFTHOVER, 
-        RIGHTHOVER;
+        RIGHTHOVER,
+        SORTEDDOWN,
+        SORTEDHOT,
+        SORTEDNORMAL,
+        SORTEDPRESSED,
+        SORTEDUP;
 
 
 	/**
@@ -306,7 +318,13 @@ class TMSchema {
             stateMap.put(Part.CP_DROPDOWNBUTTONLEFT, comboBoxStates);
             stateMap.put(Part.CP_CUEBANNER, comboBoxStates);
 
-	    stateMap.put(Part.HP_HEADERITEM, new State[] { NORMAL, HOT, PRESSED });
+            stateMap.put(Part.HP_HEADERITEM, new State[] { NORMAL, HOT, PRESSED,
+                          SORTEDNORMAL, SORTEDHOT, SORTEDPRESSED,
+                          ICONNORMAL, ICONHOT, ICONPRESSED,
+                          ICONSORTEDNORMAL, ICONSORTEDHOT, ICONSORTEDPRESSED });
+
+            stateMap.put(Part.HP_HEADERSORTARROW,
+                         new State[] {SORTEDDOWN, SORTEDUP});
 
             State[] scrollBarStates = new State[] { NORMAL, HOT, PRESSED, DISABLED, HOVER };
 	    stateMap.put(Part.SBP_SCROLLBAR,    scrollBarStates);

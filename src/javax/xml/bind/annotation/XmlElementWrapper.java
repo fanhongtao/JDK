@@ -99,4 +99,22 @@ public @interface XmlElementWrapper {
      * the absence of the element.
      */
     boolean nillable() default false;
+
+    /**
+     * Customize the wrapper element declaration to be required.
+     *
+     * <p>
+     * If required() is true, then the corresponding generated
+     * XML schema element declaration will have <tt>minOccurs="1"</tt>,
+     * to indicate that the wrapper element is always expected.
+     *
+     * <p>
+     * Note that this only affects the schema generation, and
+     * not the unmarshalling or marshalling capability. This is
+     * simply a mechanism to let users express their application constraints
+     * better.
+     *
+     * @since JAXB 2.1
+     */
+    boolean required() default false;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Inherited;
 
 /** 
- * Used to indicate whether a Provider implementation wishes to work
+ * Used to indicate whether a {@link Provider} implementation wishes to work
  * with entire protocol messages or just with protocol message payloads.
  *
  *  @since JAX-WS 2.0
@@ -24,9 +24,9 @@ import java.lang.annotation.Inherited;
 @Documented
 public @interface ServiceMode {
   /**
-   * Service mode. PAYLOAD indicates that the Provider implementation
-   * wishes to work with protocol message payloads only. MESSAGE indicates
-   * that the Provider implementation wishes to work with entire protocol
+   * Service mode. <code>PAYLOAD</code> indicates that the <code>Provider</code> implementation
+   * wishes to work with protocol message payloads only. <code>MESSAGE</code> indicates
+   * that the <code>Provider</code> implementation wishes to work with entire protocol
    * messages.
   **/
   public Service.Mode value() default Service.Mode.PAYLOAD;

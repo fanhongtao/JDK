@@ -1,5 +1,5 @@
 /*
- * @(#)BasicLookAndFeel.java	1.276 07/03/29
+ * @(#)BasicLookAndFeel.java	1.277 07/06/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -81,7 +81,7 @@ import java.beans.PropertyChangeEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.276 03/29/07
+ * @version 1.277 06/01/07
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -2264,7 +2264,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
                             // Activate the frame.
                             try { ((JInternalFrame)parent).setSelected(true); }
                             catch (PropertyVetoException e1) { }
-                            break;
                         }
                         parent = parent.getParent();
                     }

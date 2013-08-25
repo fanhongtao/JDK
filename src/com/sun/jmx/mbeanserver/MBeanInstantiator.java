@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanInstantiator.java	1.39 07/03/30
+ * @(#)MBeanInstantiator.java	1.40 07/07/23
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -223,10 +223,10 @@ public class MBeanInstantiator {
      * signature of its constructor The call returns a reference to
      * the newly created object.
      */
-    public Object instantiate(Class theClass, Object params[], 
+    public Object instantiate(Class theClass, Object params[],
 			      String signature[], ClassLoader loader)
         throws ReflectionException, MBeanException {
-        // Instantiate the new object    
+        // Instantiate the new object
 
 	// ------------------------------
 	// ------------------------------
@@ -238,58 +238,55 @@ public class MBeanInstantiator {
 	    ClassLoader aLoader= (ClassLoader) theClass.getClassLoader();
 	    // Build the signature of the method
 	    //
-	    tab = 
+	    tab =
 		((signature == null)?null:
 		 findSignatureClasses(signature,aLoader));
 	}
         // Exception IllegalArgumentException raised in Jdk1.1.8
         catch (IllegalArgumentException e) {
-            throw new ReflectionException(e, 
+            throw new ReflectionException(e,
 		    "The constructor parameter classes could not be loaded");
         }
-    
-        // Query the metadata service to get the right constructor          
+
+        // Query the metadata service to get the right constructor
         Constructor cons = null;
         cons = findConstructor(theClass, tab);
-        
+
         if (cons == null) {
-            throw new ReflectionException(new 
+            throw new ReflectionException(new
 		NoSuchMethodException("No such constructor"));
         }
         try {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                sm.checkPackageAccess(theClass.getName());
-            }
-            moi = cons.newInstance(params);     
-        } 
+            ReflectUtil.checkPackageAccess(theClass);
+            moi = cons.newInstance(params);
+        }
         catch (NoSuchMethodError error) {
-            throw new ReflectionException(new 
-		NoSuchMethodException("No such constructor found"), 
+            throw new ReflectionException(new
+		NoSuchMethodException("No such constructor found"),
 					  "No such constructor" );
         }
         catch (InstantiationException e) {
-            throw new ReflectionException(e, 
+            throw new ReflectionException(e,
                 "Exception thrown trying to invoke the MBean's constructor");
         }
         catch (IllegalAccessException e) {
-            throw new ReflectionException(e, 
+            throw new ReflectionException(e,
                 "Exception thrown trying to invoke the MBean's constructor");
         }
         catch (InvocationTargetException e) {
-            // Wrap the exception.         
+            // Wrap the exception.
             Throwable th = e.getTargetException();
             if (th instanceof RuntimeException) {
-                throw new RuntimeMBeanException((RuntimeException)th, 
+                throw new RuntimeMBeanException((RuntimeException)th,
 		      "RuntimeException thrown in the MBean's constructor");
             } else if (th instanceof Error) {
-                throw new RuntimeErrorException((Error) th, 
-                      "Error thrown in the MBean's constructor");   
+                throw new RuntimeErrorException((Error) th,
+                      "Error thrown in the MBean's constructor");
             } else {
-                throw new MBeanException((Exception) th, 
+                throw new MBeanException((Exception) th,
                       "Exception thrown in the MBean's constructor");
             }
-        }       
+        }
         return moi;
     }
 

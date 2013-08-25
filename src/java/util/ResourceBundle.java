@@ -1,5 +1,5 @@
 /*
- * @(#)ResourceBundle.java	1.86 06/03/30
+ * @(#)ResourceBundle.java	1.88 07/06/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,10 +22,8 @@
 
 package java.util;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
@@ -1336,47 +1334,55 @@ public abstract class ResourceBundle {
 	if (bundle != NONEXISTENT_BUNDLE) {
 	    CacheKey constKey = (CacheKey) cacheKey.clone();
 
-	    // Try declaring loading. If beginLoading() returns true,
-	    // then we can proceed. Otherwise, we need to take a look
-	    // at the cache again to see if someone else has loaded
-	    // the bundle and put it in the cache while we've been
-	    // waiting for other loading work to complete.
-	    while (!beginLoading(constKey)) {
-		bundle = findBundleInCache(cacheKey, control);
-		if (bundle == null) {
-		    continue;
+	    try {
+		// Try declaring loading. If beginLoading() returns true,
+		// then we can proceed. Otherwise, we need to take a look
+		// at the cache again to see if someone else has loaded
+		// the bundle and put it in the cache while we've been
+		// waiting for other loading work to complete.
+		while (!beginLoading(constKey)) {
+		    bundle = findBundleInCache(cacheKey, control);
+		    if (bundle == null) {
+			continue;
+		    }
+		    if (bundle == NONEXISTENT_BUNDLE) {
+			// If the bundle is NONEXISTENT_BUNDLE, the bundle doesn't exist.
+			return parent;
+		    }
+		    expiredBundle = bundle.expired;
+		    if (!expiredBundle) {
+			if (bundle.parent == parent) {
+			    return bundle;
+			}
+			BundleReference bundleRef = cacheList.get(cacheKey);
+			if (bundleRef != null && bundleRef.get() == bundle) {
+			    cacheList.remove(cacheKey, bundleRef);
+			}
+		    }
 		}
-		if (bundle == NONEXISTENT_BUNDLE) {
-		    // If the bundle is NONEXISTENT_BUNDLE, the bundle doesn't exist.
-		    return parent;
-		}
-		expiredBundle = bundle.expired;
-		if (!expiredBundle) {
-		    if (bundle.parent == parent) {
+
+		try {
+		    bundle = loadBundle(cacheKey, formats, control, expiredBundle);
+		    if (bundle != null) {
+			if (bundle.parent == null) {
+			    bundle.setParent(parent);
+			}
+			bundle.locale = targetLocale;
+			bundle = putBundleInCache(cacheKey, bundle, control);
 			return bundle;
 		    }
-		    BundleReference bundleRef = cacheList.get(cacheKey);
-		    if (bundleRef != null && bundleRef.get() == bundle) {
-			cacheList.remove(cacheKey, bundleRef);
-		    }
-		}
-	    }
-		    
-	    bundle = loadBundle(cacheKey, formats, control, expiredBundle);
-	    if (bundle != null) {
-		if (bundle.parent == null) {
-		    bundle.setParent(parent);
-		}
-		bundle.locale = targetLocale;	
-		bundle = putBundleInCache(cacheKey, bundle, control);
-		endLoading(constKey);
-		return bundle;
-	    }
 
-	    // Put NONEXISTENT_BUNDLE in the cache as a mark that there's no bundle
-	    // instance for the locale.
-	    putBundleInCache(cacheKey, NONEXISTENT_BUNDLE, control);
-	    endLoading(constKey);
+		    // Put NONEXISTENT_BUNDLE in the cache as a mark that there's no bundle
+		    // instance for the locale.
+		    putBundleInCache(cacheKey, NONEXISTENT_BUNDLE, control);
+		} finally {
+		    endLoading(constKey);
+		}
+	    } finally {
+		if (constKey.getCause() instanceof InterruptedException) {
+		    Thread.currentThread().interrupt();
+		}
+	    }
 	}
 	assert underConstruction.get(cacheKey) != Thread.currentThread();
 	return parent;
@@ -1399,7 +1405,12 @@ public abstract class ResourceBundle {
 	    try {
 		bundle = control.newBundle(cacheKey.getName(), targetLocale, format,
 					   cacheKey.getLoader(), reload);
-	    } catch (Throwable cause) {
+	    } catch (LinkageError error) {
+		// We need to handle the LinkageError case due to
+		// inconsistent case-sensitivity in ClassLoader.
+		// See 6572242 for details.
+		cacheKey.setCause(error);
+	    } catch (Exception cause) {
 		cacheKey.setCause(cause);
 	    }
 	    if (bundle != null) {
@@ -1472,6 +1483,8 @@ public abstract class ResourceBundle {
 		try {
 		    worker.wait();
 		} catch (InterruptedException e) {
+		    // record the interruption
+		    constKey.setCause(e);
 		}
 	    }
 	}

@@ -1,5 +1,5 @@
 /*
- * @(#)SocketOrChannelConnectionImpl.java	1.92 05/11/17
+ * @(#)SocketOrChannelConnectionImpl.java	1.93 07/09/24
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1039,7 +1039,9 @@ public class SocketOrChannelConnectionImpl
             
             // IIOPOutputStream will cleanup the connection info when it
             // sees this exception.
-	    throw wrapper.writeErrorSend(e1) ;
+            SystemException exc = wrapper.writeErrorSend(e1); 
+            purgeCalls(exc, false, true); 
+            throw exc; 
         }
     }
 

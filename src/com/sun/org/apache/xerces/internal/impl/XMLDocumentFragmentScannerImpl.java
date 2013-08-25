@@ -19,8 +19,8 @@
  */
 
 /*
- * $Id: XMLDocumentFragmentScannerImpl.java,v 1.11 2006/08/01 21:27:27 spericas Exp $
- * @(#)XMLDocumentFragmentScannerImpl.java	1.22 06/08/10
+ * $Id: XMLDocumentFragmentScannerImpl.java,v 1.13 2007/05/09 15:23:31 ndw Exp $
+ * @(#)XMLDocumentFragmentScannerImpl.java	1.23 07/05/29
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -95,7 +95,7 @@ import javax.xml.stream.events.XMLEvent;
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  * @author Sunitha Reddy, SUN Microsystems
- * @version $Id: XMLDocumentFragmentScannerImpl.java,v 1.11 2006/08/01 21:27:27 spericas Exp $
+ * @version $Id: XMLDocumentFragmentScannerImpl.java,v 1.13 2007/05/09 15:23:31 ndw Exp $
  *
  */
 public class XMLDocumentFragmentScannerImpl
@@ -3030,6 +3030,10 @@ public class XMLDocumentFragmentScannerImpl
                             
                             if(fScannerState == SCANNER_STATE_REFERENCE){
                                 setScannerState(SCANNER_STATE_CONTENT);
+                                if (fReplaceEntityReferences && fEntityStore.isDeclaredEntity(fCurrentEntityName)) {
+                                    // Skip the entity reference, we don't care
+                                    return fDriver.next();
+                                }
                                 return XMLEvent.ENTITY_REFERENCE;
                             }
                         }

@@ -18,6 +18,7 @@ package com.sun.org.apache.xerces.internal.dom;
 
 import org.w3c.dom.Entity;
 import org.w3c.dom.Node;
+import org.w3c.dom.DOMException;
 
 /**
  * Entity nodes hold the reference data for an XML Entity -- either
@@ -52,7 +53,7 @@ import org.w3c.dom.Node;
  * @xerces.internal
  * 
  * @author Elena Litani, IBM
- * @version $Id: EntityImpl.java,v 1.2.6.1 2005/08/31 12:20:27 sunithareddy Exp $
+ * @version $Id: EntityImpl.java,v 1.5 2007/05/16 22:45:49 joehw Exp $
  * @since PR-DOM-Level-1-19980818.
  */
 public class EntityImpl 
@@ -128,7 +129,32 @@ public class EntityImpl
         }
         return name;
     }
-
+    /**
+     * Sets the node value.
+     * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR)
+     */
+    public void setNodeValue(String x) 
+        throws DOMException {
+        if (ownerDocument.errorChecking && isReadOnly()) {
+            String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
+            throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
+        }
+    }
+    /**
+     * The namespace prefix of this node
+     * @exception DOMException
+     *   <br>NO_MODIFICATION_ALLOWED_ERR: Raised if this node is readonly.
+     */
+    
+    public void setPrefix(String prefix)
+        throws DOMException
+    {
+        if (ownerDocument.errorChecking && isReadOnly()) {
+            throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, 
+                  DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, 
+                    "NO_MODIFICATION_ALLOWED_ERR", null));
+        }
+    }    
     /** Clone node. */
     public Node cloneNode(boolean deep) {
         EntityImpl newentity = (EntityImpl)super.cloneNode(deep);

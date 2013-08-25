@@ -1,5 +1,5 @@
 /*
- * @(#)MetalFileChooserUI.java	1.93 06/05/24
+ * @(#)MetalFileChooserUI.java	1.94 07/06/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.swing.SwingUtilities2;
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.93 05/24/06
+ * @version 1.94 06/04/07
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -175,6 +175,10 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	public ListSelectionListener createListSelectionListener() {
 	    return MetalFileChooserUI.this.createListSelectionListener(getFileChooser());
 	}
+        
+        public boolean usesShellFolder() {
+            return useShellFolder;
+        }
     }
 
     public void installComponents(JFileChooser fc) {

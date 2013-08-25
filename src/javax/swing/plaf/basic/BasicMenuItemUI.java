@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.142 06/12/15
+ * @(#)BasicMenuItemUI.java	1.143 07/06/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.142 12/15/06
+ * @version 1.143 06/21/07
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -417,11 +417,13 @@ public class BasicMenuItemUI extends MenuItemUI
         /* 
          * in case .checkIconFactory is defined for this UI and the icon is 
          * compatible with it then the icon is handled by the checkIcon.
+         * That is if useCheckAndArrow() is true.
          */
         MenuItemCheckIconFactory iconFactory = 
             (MenuItemCheckIconFactory) UIManager.get(getPropertyPrefix() 
                 + ".checkIconFactory");
-        if (iconFactory == null
+        if (! useCheckAndArrow() 
+                || iconFactory == null
                 || ! iconFactory.isCompatible(checkIcon, getPropertyPrefix())) {
            icon = b.getIcon();  
         }
@@ -641,11 +643,13 @@ public class BasicMenuItemUI extends MenuItemUI
         /* 
          * in case .checkIconFactory is defined for this UI and the icon is 
          * compatible with it then the icon is handled by the checkIcon.
+         * That is if useCheckAndArrow() is true.
          */
         MenuItemCheckIconFactory iconFactory = 
             (MenuItemCheckIconFactory) UIManager.get(getPropertyPrefix() 
                 + ".checkIconFactory");
-        if (iconFactory == null
+        if (! useCheckAndArrow() 
+                || iconFactory == null
                 || ! iconFactory.isCompatible(checkIcon, getPropertyPrefix())) {
            icon = b.getIcon();  
         }

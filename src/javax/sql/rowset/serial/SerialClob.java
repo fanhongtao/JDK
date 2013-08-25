@@ -1,5 +1,5 @@
 /*
- * @(#)SerialClob.java	1.16 06/08/06
+ * @(#)SerialClob.java	1.17 07/06/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -311,15 +311,7 @@ public class SerialClob implements Clob, Serializable, Cloneable {
     public long position(Clob searchStr, long start) 
         throws SerialException, SQLException {
             
-        char cPattern[] = null;
-        try {
-            java.io.Reader r = searchStr.getCharacterStream();         
-            cPattern = new char[(int)searchStr.length()];
-            r.read(cPattern);
-        } catch (IOException e) {
-            throw new SerialException("Error streaming Clob search data");
-        }
-        return position(new String(cPattern), start);   
+        return position(searchStr.getSubString(1,(int)searchStr.length()), start);   
     }
     
     /**

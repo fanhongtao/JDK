@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleTimeZone.java	1.51 05/11/17
+ * @(#)SimpleTimeZone.java	1.52 07/05/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -126,7 +126,7 @@ import sun.util.calendar.Gregorian;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.51 11/17/05
+ * @version  1.52 05/25/07
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 
@@ -715,10 +715,10 @@ public class SimpleTimeZone extends TimeZone {
 
     private long getEnd(BaseCalendar cal, BaseCalendar.Date cdate, int year) {
 	int time = endTime;
-	if (startTimeMode != UTC_TIME) {
+	if (endTimeMode != UTC_TIME) {
 	    time -= rawOffset;
 	}
-	if (startTimeMode == WALL_TIME) {
+	if (endTimeMode == WALL_TIME) {
 	    time -= dstSavings;
 	}
 	return getTransition(cal, cdate, endMode, year, endMonth, endDay,

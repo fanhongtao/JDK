@@ -1,7 +1,7 @@
 /*
- * @(#)RMIConnector.java	1.129 06/01/26
+ * @(#)RMIConnector.java	1.130 07/11/02
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -2212,8 +2212,10 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
 
 
      */
-    private static final String iiopConnectionStubClassName =
+    private static final String iiopConnectionStubClassName1 =
 	"org.omg.stub.javax.management.remote.rmi._RMIConnection_Stub";
+    private static final String iiopConnectionStubClassName2 =
+	"javax.management.remote.rmi._RMIConnection_Stub";
     private static final String proxyStubClassName =
 	"com.sun.jmx.remote.internal.ProxyStub";
     private static final String pInputStreamClassName =
@@ -2265,7 +2267,8 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
 	final String[] classNames={proxyStubClassName, pInputStreamClassName};
 	final byte[][] byteCodes = {proxyStubByteCode, pInputStreamByteCode};
 	final String[] otherClassNames = {
-	    iiopConnectionStubClassName,
+	    iiopConnectionStubClassName1,
+            iiopConnectionStubClassName2, 
 	    ProxyInputStream.class.getName(),
 	};
 	PrivilegedExceptionAction action = new PrivilegedExceptionAction() {
@@ -2311,7 +2314,9 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
 	try {
 	    if (c.getClass() == rmiConnectionImplStubClass)
 		return shadowJrmpStub((RemoteObject) c);
-	    if (c.getClass().getName().equals(iiopConnectionStubClassName))
+            String name = c.getClass().getName();
+	    if (name.equals(iiopConnectionStubClassName1) ||
+                    name.equals(iiopConnectionStubClassName2)) 
 		return shadowIiopStub((Stub) c);
 	    logger.trace("getConnection",
 			 "Did not wrap " + c.getClass() + " to foil " +

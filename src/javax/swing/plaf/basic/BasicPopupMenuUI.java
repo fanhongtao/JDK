@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.138 07/04/03
+ * @(#)BasicPopupMenuUI.java	1.139 07/06/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import sun.awt.AppContext;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.138 04/03/07
+ * @version 1.139 06/25/07
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -1078,6 +1078,8 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                     Component c = popup.getInvoker();
                     if(c instanceof JFrame) {
                         invoker = ((JFrame)c).getRootPane();
+                    } else if(c instanceof JDialog) {
+                        invoker = ((JDialog)c).getRootPane();
                     } else if(c instanceof JApplet) {
                         invoker = ((JApplet)c).getRootPane();
                     } else {

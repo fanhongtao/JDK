@@ -70,15 +70,79 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
 	    this.hasFocus = hasFocus;
 	    this.column = column;
             this.hasRollover = (column == getRolloverColumn());
-            if(skin == null || skin.getContentMargin() == null) {
-                skin = XPStyle.getXP().getSkin(header, Part.HP_HEADERITEM);
+            if (skin == null) {
+                skin = XPStyle.getXP().getSkin(header, Part.HP_HEADERITEM); 
             }
             Insets margins = skin.getContentMargin();
-            if(margins == null) {
-                margins = new Insets(0, 0, 0, 0);
+            Border border = null;
+            int contentTop = 0;
+            int contentLeft = 0;
+            int contentBottom = 0;
+            int contentRight = 0;
+            if (margins != null) {
+                contentTop = margins.top;
+                contentLeft = margins.left;
+                contentBottom = margins.bottom;
+                contentRight = margins.right;
             }
-            setBorder(new EmptyBorder(margins));
-	    return this;
+            /* idk:
+             * Both on Vista and XP there is some offset to the
+             * HP_HEADERITEM content. It does not seem to come from 
+             * Prop.CONTENTMARGINS. Do not know where it is defined.
+             * using some hardcoded values.
+             */
+            contentLeft += 5;
+            contentBottom += 4;
+            contentRight += 5;
+
+            /* On Vista sortIcon is painted above the header's text.
+             * We use border to paint it.
+             */
+            Icon sortIcon;
+            if (WindowsLookAndFeel.isOnVista() 
+                && ((sortIcon = getIcon()) instanceof javax.swing.plaf.UIResource
+                    || sortIcon == null)) {
+                contentTop += 1;
+                setIcon(null);
+                sortIcon = null;
+                SortOrder sortOrder = 
+                    getColumnSortOrder(header.getTable(), column);
+                if (sortOrder != null) {
+                    switch (sortOrder) {
+                    case ASCENDING: 
+                        sortIcon =
+                            UIManager.getIcon("Table.ascendingSortIcon");
+                        break;
+                    case DESCENDING:
+                        sortIcon =
+                            UIManager.getIcon("Table.descendingSortIcon");
+                        break;
+                    }
+                }
+                if (sortIcon != null) {
+                    contentBottom = sortIcon.getIconHeight();
+                    border = new IconBorder(sortIcon, contentTop, contentLeft, 
+                                            contentBottom, contentRight);
+                } else {
+                    sortIcon = 
+                        UIManager.getIcon("Table.ascendingSortIcon");
+                    int sortIconHeight = 
+                        (sortIcon != null) ? sortIcon.getIconHeight() : 0;
+                    if (sortIconHeight != 0) {
+                        contentBottom = sortIconHeight;
+                    }
+                    border = 
+                        new EmptyBorder(
+                            sortIconHeight + contentTop, contentLeft, 
+                            contentBottom, contentRight);
+                }
+            } else {
+                contentTop += 3;
+                border = new EmptyBorder(contentTop, contentLeft, 
+                                         contentBottom, contentRight);
+            }
+            setBorder(border);
+            return this;
 	}
 
 	private int viewIndexForColumn(TableColumn aColumn) {
@@ -96,10 +160,73 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
 		state = State.PRESSED;
 	    } else if (isSelected || hasFocus || hasRollover) {
 		state = State.HOT;
-	    }
+            } 
+            /* on Vista there are more states for sorted columns */
+            if (WindowsLookAndFeel.isOnVista()) {
+                SortOrder sortOrder = getColumnSortOrder(header.getTable(), column);
+                if (sortOrder != null) {
+                     switch(sortOrder) {
+                     case ASCENDING:
+                         /* falls through */
+                     case DESCENDING:
+                         switch (state) {
+                         case NORMAL:
+                             state = State.SORTEDNORMAL;
+                             break;
+                         case PRESSED:
+                             state = State.SORTEDPRESSED;
+                             break;
+                         case HOT:
+                             state = State.SORTEDHOT;
+                             break;
+                         default:
+                             /* do nothing */
+                         }
+                     default : 
+                         /* do nothing */
+                     }
+                }
+            }
 	    skin.paintSkin(g, 0, 0, size.width-1, size.height-1, state);
 	    super.paint(g);
 	}
+    }
+
+    /**
+     * A border with an Icon at the middle of the top side.
+     * Outer insets can be provided for this border.
+     */
+    private static class IconBorder implements Border, UIResource{
+        private final Icon icon;
+        private final int top;
+        private final int left;
+        private final int bottom;
+        private final int right;
+        /**
+         * Creates this border;
+         * @param icon - icon to paint for this border
+         * @param top, left, bottom, right - outer insets for this border
+         */
+        public IconBorder(Icon icon, int top, int left, 
+                          int bottom, int right) {
+            this.icon = icon;
+            this.top = top;
+            this.left = left;
+            this.bottom = bottom;
+            this.right = right;
+        }
+        public Insets getBorderInsets(Component c) {
+            return new Insets(icon.getIconHeight() + top, left, bottom, right);
+        }
+        public boolean isBorderOpaque() {
+            return false;
+        }
+        public void paintBorder(Component c, Graphics g, int x, int y, 
+                                int width, int height) {
+            icon.paintIcon(c, g, 
+                x + left + (width - left - right - icon.getIconWidth()) / 2, 
+                y + top);
+        }
     }
 }
 

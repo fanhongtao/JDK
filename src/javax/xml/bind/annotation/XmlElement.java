@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.*;
  *
  * <p> <b>Usage</b> </p>
  * <p>
- * <tt>@XmlElement</tt> annotation can be used with the following program
+ * </tt>@XmlElement</tt> annotation can be used with the following program
  * elements: 
  * <ul> 
  *   <li> a JavaBean property </li>

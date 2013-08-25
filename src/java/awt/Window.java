@@ -21,7 +21,6 @@ import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventListener;
@@ -29,14 +28,16 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.accessibility.*;
-import sun.awt.DebugHelper;
-import sun.security.action.GetPropertyAction;
-import sun.security.util.SecurityConstants;
+import sun.awt.AppContext;
 import sun.awt.CausedFocusEvent;
 import sun.awt.SunToolkit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import sun.awt.AppContext;
+import sun.awt.util.IdentityArrayList;
+import sun.security.action.GetPropertyAction;
+import sun.security.util.SecurityConstants;
 
 /**
  * A <code>Window</code> object is a top-level window with no borders and no
@@ -187,7 +188,7 @@ public class Window extends Container implements Accessible {
      *
      * @since 1.6
      */
-    static Vector<Window> allWindows = new Vector<Window>();
+    private static final IdentityArrayList<Window> allWindows = new IdentityArrayList<Window>();
 
     /**
      * A vector containing all the windows this
@@ -268,7 +269,7 @@ public class Window extends Container implements Accessible {
      */
     private static final long serialVersionUID = 4497834738069338734L;
 
-    private static final DebugHelper dbg = DebugHelper.create(Window.class);
+    private static final Logger log = Logger.getLogger("java.awt.Window");
 
     private static final boolean locationByPlatformProp;
 
@@ -631,7 +632,9 @@ public class Window extends Container implements Accessible {
             if (peer == null) {
                 peer = getToolkit().createWindow(this);
             }
-            allWindows.add(this);
+            synchronized (allWindows) {
+                allWindows.add(this);
+            }
             super.addNotify();
         }
     }
@@ -641,7 +644,9 @@ public class Window extends Container implements Accessible {
      */
     public void removeNotify() {
         synchronized (getTreeLock()) {
-            allWindows.remove(this);
+            synchronized (allWindows) {
+                allWindows.remove(this);
+            }
             super.removeNotify();
         }        
     }
@@ -1222,6 +1227,9 @@ public class Window extends Container implements Accessible {
      * @since 1.2
      */
     public Window getOwner() {
+        return getOwner_NoClientCode();
+    }
+    final Window getOwner_NoClientCode() {
         return (Window)parent;
     }
 
@@ -1231,6 +1239,9 @@ public class Window extends Container implements Accessible {
      * @since 1.2
      */
     public Window[] getOwnedWindows() {
+        return getOwnedWindows_NoClientCode();
+    }
+    final Window[] getOwnedWindows_NoClientCode() {
         Window realCopy[];
 
 	synchronized(ownedWindowList) {
@@ -1284,17 +1295,17 @@ public class Window extends Container implements Accessible {
      * @see #addNotify
      * @see #removeNotify
      */
-    static Vector<Window> getAllWindows() {
+    static IdentityArrayList<Window> getAllWindows() {
         synchronized (allWindows) {
-            Vector<Window> v = new Vector<Window>();
+            IdentityArrayList<Window> v = new IdentityArrayList<Window>();
             v.addAll(allWindows);
             return v;
         }
     }
 
-    static Vector<Window> getAllUnblockedWindows() {
+    static IdentityArrayList<Window> getAllUnblockedWindows() {
         synchronized (allWindows) {
-            Vector<Window> unblocked = new Vector<Window>();
+            IdentityArrayList<Window> unblocked = new IdentityArrayList<Window>();
             for (int i = 0; i < allWindows.size(); i++) {
                 Window w = allWindows.get(i);
                 if (!w.isModalBlocked()) {
@@ -1475,7 +1486,7 @@ public class Window extends Container implements Accessible {
         {
             return true;
         }
-        Window owner = getOwner();
+        Window owner = getOwner_NoClientCode();
         return (owner != null) && owner.isModalExcluded(exclusionType);
     }
 
@@ -2816,8 +2827,8 @@ public class Window extends Container implements Accessible {
                     getDefaultScreenDevice().
                     getDefaultConfiguration();
             }
-            if (dbg.on) {
-                dbg.println("+ Window.resetGC(): new GC is \n+ " + graphicsConfig + "\n+ this is " + this);
+            if (log.isLoggable(Level.FINER)) {
+                log.finer("+ Window.resetGC(): new GC is \n+ " + graphicsConfig + "\n+ this is " + this);
             }
         }
     }

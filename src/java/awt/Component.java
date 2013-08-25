@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.426 06/07/27
+ * @(#)Component.java	1.427 07/06/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -155,7 +155,7 @@ import sun.awt.RequestFocusController;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.426, 07/27/06
+ * @version     1.427, 06/19/07
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -1062,6 +1062,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since JDK1.0
      */
     public boolean isVisible() {
+        return isVisible_NoClientCode();
+    }
+    final boolean isVisible_NoClientCode() {
         return visible;
     }
 

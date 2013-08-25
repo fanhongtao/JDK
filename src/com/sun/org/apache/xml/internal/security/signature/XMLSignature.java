@@ -581,16 +581,7 @@ public final class XMLSignature extends SignatureElementProxy {
          throw new XMLSignatureException("empty", exArgs);
       }
 
-      // all references inside the signedinfo need to be dereferenced and
-      // digested again to see if the outcome matches the stored value in the
-      // SignedInfo.
-      // If _followManifestsDuringValidation is true it will do the same for
-      // References inside a Manifest.
       try {
-         if (!this.getSignedInfo()
-                 .verify(this._followManifestsDuringValidation)) {
-            return false;
-         }
 
          //create a SignatureAlgorithms from the SignatureMethod inside
          //SignedInfo. This is used to validate the signature.
@@ -621,9 +612,17 @@ public final class XMLSignature extends SignatureElementProxy {
 
          //Have SignatureAlgorithm sign the input bytes and compare them to the
          //bytes that were stored in the signature.
-         boolean verify = sa.verify(sigBytes);
+         if (!sa.verify(sigBytes)) {
+	    return false;
+	 }
 
-         return verify;
+         // all references inside the signedinfo need to be dereferenced and
+         // digested again to see if the outcome matches the stored value in the
+         // SignedInfo.
+         // If _followManifestsDuringValidation is true it will do the same for
+         // References inside a Manifest.
+         return this.getSignedInfo().verify
+		(this._followManifestsDuringValidation);
       } catch (XMLSecurityException ex) {
          throw new XMLSignatureException("empty", ex);
       } 

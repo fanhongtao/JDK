@@ -19,8 +19,8 @@
  */
 
 /*
- * $Id: XMLDocumentScannerImpl.java,v 1.5 2006/05/09 10:56:45 sunithareddy Exp $
- * @(#)XMLDocumentScannerImpl.java	1.16 06/06/21
+ * $Id: XMLDocumentScannerImpl.java,v 1.9 2007/05/09 15:23:31 ndw Exp $
+ * @(#)XMLDocumentScannerImpl.java	1.17 07/05/29
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -85,7 +85,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentScanner;
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  * @author Sunitha Reddy, Sun Microsystems
- * @version $Id: XMLDocumentScannerImpl.java,v 1.5 2006/05/09 10:56:45 sunithareddy Exp $
+ * @version $Id: XMLDocumentScannerImpl.java,v 1.9 2007/05/09 15:23:31 ndw Exp $
  */
 public class XMLDocumentScannerImpl
         extends XMLDocumentFragmentScannerImpl{
@@ -572,11 +572,13 @@ public class XMLDocumentScannerImpl
         
         //register current document scanner as a listener for XMLEntityScanner
         fEntityScanner.registerListener(this);
-
         
         // prepare to look for a TextDecl if external general entity
         if (!name.equals("[xml]") && fEntityScanner.isExternal()) {
-            setScannerState(SCANNER_STATE_TEXT_DECL);
+            // Don't do this if we're skipping the entity!
+            if (augs == null || !((Boolean) augs.getItem(Constants.ENTITY_SKIPPED)).booleanValue()) {
+                setScannerState(SCANNER_STATE_TEXT_DECL);
+            }
         }
         
         // call handler
@@ -666,7 +668,7 @@ public class XMLDocumentScannerImpl
     // scanning methods
     
     /** Scans a doctype declaration. */
-    protected boolean scanDoctypeDecl() throws IOException, XNIException {
+    protected boolean scanDoctypeDecl(boolean ignore) throws IOException, XNIException {
         
         // spaces
         if (!fEntityScanner.skipSpaces()) {
@@ -691,7 +693,7 @@ public class XMLDocumentScannerImpl
         fHasExternalDTD = fDoctypeSystemId != null;
         
         // Attempt to locate an external subset with an external subset resolver.
-        if (!fHasExternalDTD && fExternalSubsetResolver != null) {
+        if (!ignore && !fHasExternalDTD && fExternalSubsetResolver != null) {
             fDTDDescription.setValues(null, null, fEntityManager.getCurrentResourceIdentifier().getExpandedSystemId(), null);
             fDTDDescription.setRootName(fDoctypeName);
             fExternalSubsetSource = fExternalSubsetResolver.getExternalSubset(fDTDDescription);
@@ -699,7 +701,7 @@ public class XMLDocumentScannerImpl
         }
         
         // call handler
-        if (fDocumentHandler != null) {
+        if (!ignore && fDocumentHandler != null) {
             // NOTE: I don't like calling the doctypeDecl callback until
             //       end of the *full* doctype line (including internal
             //       subset) is parsed correctly but SAX2 requires that
@@ -948,10 +950,6 @@ public class XMLDocumentScannerImpl
 
                     case SCANNER_STATE_DOCTYPE: {
                         
-                        if (fDisallowDoctype) {
-                            reportFatalError("DoctypeNotAllowed", null);
-                        }
-                        
                         if (fSeenDoctypeDecl) {
                             reportFatalError("AlreadySeenDoctype", null);
                         }
@@ -962,11 +960,13 @@ public class XMLDocumentScannerImpl
                         
                         // scanDoctypeDecl() sends XNI doctypeDecl event that
                         // in SAX is converted to startDTD() event.
-                        if (scanDoctypeDecl()) {
+                        if (scanDoctypeDecl(fDisallowDoctype)) {
                             setScannerState(SCANNER_STATE_DTD_INTERNAL_DECLS);
                             fSeenInternalSubset = true;
                             setDriver(fContentDriver);
-                            return fDTDDriver.next();
+                            int dtdEvent = fDTDDriver.next();
+                            // If no DTD support, ignore and continue parsing
+                            return fDisallowDoctype ? next() : dtdEvent;
                         }
                         
                         /** xxx:check this part again
@@ -978,6 +978,11 @@ public class XMLDocumentScannerImpl
                             fReadingDTD = false;
                         }
                          */
+                        
+                        if (fDisallowDoctype) {
+                            setScannerState(SCANNER_STATE_PROLOG);
+                            return next();
+                        }
                         
                         // handle external subset
                         if (fDoctypeSystemId != null) {
@@ -1008,7 +1013,9 @@ public class XMLDocumentScannerImpl
 
                         // in XNI this results in 3 events:  doctypeDecl, startDTD, endDTD
                         // in SAX this results in 2 events: startDTD, endDTD
-                        fDTDScanner.setInputSource(null);
+                        if (fDTDScanner != null) {
+                            fDTDScanner.setInputSource(null);
+                        }
                         setScannerState(SCANNER_STATE_PROLOG);
                         return XMLEvent.DTD;
                     }
@@ -1135,7 +1142,8 @@ public class XMLDocumentScannerImpl
                                 fMarkupDepth--;
                                 
                                 // scan external subset next
-                                if (fDoctypeSystemId != null && (fValidation || fLoadExternalDTD)) {
+                                if (!XMLDocumentScannerImpl.this.fDisallowDoctype && 
+                                        fDoctypeSystemId != null && (fValidation || fLoadExternalDTD)) {
                                     setScannerState(SCANNER_STATE_DTD_EXTERNAL);
                                 }
                                 

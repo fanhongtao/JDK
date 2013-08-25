@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,12 @@ import java.lang.annotation.RetentionPolicy;
 @Documented
 public @interface WebFault {
   /**
-   *  Elements local name.
+   *  Element's local name.
   **/
   public String name() default "";
 
   /**
-   *  Elements namespace name.
+   *  Element's namespace name.
   **/
   public String targetNamespace() default "";
 

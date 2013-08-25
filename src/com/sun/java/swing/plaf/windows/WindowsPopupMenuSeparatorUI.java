@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsPopupMenuSeparatorUI.java	1.3 06/12/15
+ * @(#)WindowsPopupMenuSeparatorUI.java	1.4 07/07/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import com.sun.java.swing.plaf.windows.XPStyle.Skin;
 /**
  * Windows L&F implementation of PopupMenuSeparatorUI.
  *
- * @version 1.3 12/15/06
+ * @version 1.4 07/16/07
  * @author Leif Samuelsson
  * @author Igor Kushnirskiy
  */
@@ -65,7 +65,11 @@ public class WindowsPopupMenuSeparatorUI extends BasicPopupMenuSeparatorUI {
     }
 
     public Dimension getPreferredSize(JComponent c) {
-	int fontHeight = c.getFontMetrics(c.getFont()).getHeight();
+        int fontHeight = 0;
+        Font font = c.getFont();
+        if (font != null) {
+            fontHeight = c.getFontMetrics(font).getHeight();
+        }
 
 	return new Dimension(0, fontHeight/2 + 2);
     }

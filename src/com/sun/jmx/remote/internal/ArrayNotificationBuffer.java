@@ -1,29 +1,26 @@
 /*
- * @(#)ArrayNotificationBuffer.java	1.28 06/03/01
- * 
+ * @(#)ArrayNotificationBuffer.java	1.31 07/05/29
+ *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.jmx.remote.internal;
 
-import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.management.InstanceNotFoundException;
-import javax.management.ListenerNotFoundException;
-import javax.management.MalformedObjectNameException;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerDelegate;
 import javax.management.MBeanServerNotification;
@@ -43,47 +40,130 @@ import com.sun.jmx.remote.util.EnvHelp;
 import com.sun.jmx.remote.util.ClassLogger;
 
 /** A circular buffer of notifications received from an MBean server. */
+/*
+  There is one instance of ArrayNotificationBuffer for every
+  MBeanServer object that has an attached ConnectorServer.  Then, for
+  every ConnectorServer attached to a given MBeanServer, there is an
+  instance of the inner class ShareBuffer.  So for example with two
+  ConnectorServers it looks like this:
+
+  ConnectorServer1 -> ShareBuffer1 -\
+                                     }-> ArrayNotificationBuffer
+  ConnectorServer2 -> ShareBuffer2 -/              |
+                                                   |
+						   v
+                                              MBeanServer
+
+  The ArrayNotificationBuffer has a circular buffer of
+  NamedNotification objects.  Each ConnectorServer defines a
+  notification buffer size, and this size is recorded by the
+  corresponding ShareBuffer.  The buffer size of the
+  ArrayNotificationBuffer is the maximum of all of its ShareBuffers.
+  When a ShareBuffer is added or removed, the ArrayNotificationBuffer
+  size is adjusted accordingly.
+
+  An ArrayNotificationBuffer also has a BufferListener (which is a
+  NotificationListener) registered on every NotificationBroadcaster
+  MBean in the MBeanServer to which it is attached.  The cost of this
+  potentially large set of listeners is the principal motivation for
+  sharing the ArrayNotificationBuffer between ConnectorServers, and
+  also the reason that we are careful to discard the
+  ArrayNotificationBuffer (and its BufferListeners) when there are no
+  longer any ConnectorServers using it.
+
+  The synchronization of this class is inherently complex.  In an attempt
+  to limit the complexity, we use just two locks:
+
+  - globalLock controls access to the mapping between an MBeanServer
+    and its ArrayNotificationBuffer and to the set of ShareBuffers for
+    each ArrayNotificationBuffer.
+  
+  - the instance lock of each ArrayNotificationBuffer controls access
+    to the array of notifications, including its size, and to the
+    dispose flag of the ArrayNotificationBuffer.  The wait/notify
+    mechanism is used to indicate changes to the array.
+
+  If both locks are held at the same time, the globalLock must be
+  taken first.
+
+  Since adding or removing a BufferListener to an MBean can involve
+  calling user code, we are careful not to hold any locks while it is
+  done.
+ */
 public class ArrayNotificationBuffer implements NotificationBuffer {
-    
     private boolean disposed = false;
-    
+
     // FACTORY STUFF, INCLUDING SHARING
-    
+
+    private static final Object globalLock = new Object();
     private static final
 	HashMap<MBeanServer,ArrayNotificationBuffer> mbsToBuffer =
 	new HashMap<MBeanServer,ArrayNotificationBuffer>(1);
     private final Collection<ShareBuffer> sharers = new HashSet<ShareBuffer>(1);
 
-    public static synchronized NotificationBuffer
-	    getNotificationBuffer(MBeanServer mbs, Map env) {
-	
-	//Find out queue size	
+    public static NotificationBuffer getNotificationBuffer(
+            MBeanServer mbs, Map env) {
+
+        if (env == null)
+            env = Collections.emptyMap();
+
+	//Find out queue size
 	int queueSize = EnvHelp.getNotifBufferSize(env);
-	
-	ArrayNotificationBuffer buf = mbsToBuffer.get(mbs);
-	if (buf == null) {
-	    buf = new ArrayNotificationBuffer(mbs, queueSize);
-	    mbsToBuffer.put(mbs, buf);
-	}
-	return buf.new ShareBuffer(queueSize);
-    }
-    
-    public static synchronized void removeNotificationBuffer(MBeanServer mbs) {
-	mbsToBuffer.remove(mbs);
-    }
-    
-    synchronized void addSharer(ShareBuffer sharer) {
-	if (sharer.getSize() > queueSize)
-	    resize(sharer.getSize());
-	sharers.add(sharer);
+
+        ArrayNotificationBuffer buf;
+        boolean create;
+        NotificationBuffer sharer;
+        synchronized (globalLock) {
+            buf = mbsToBuffer.get(mbs);
+            create = (buf == null);
+            if (create) {
+                buf = new ArrayNotificationBuffer(mbs, queueSize);
+                mbsToBuffer.put(mbs, buf);
+            }
+            sharer = buf.new ShareBuffer(queueSize);
+        }
+        /* We avoid holding any locks while calling createListeners.
+         * This prevents possible deadlocks involving user code, but
+         * does mean that a second ConnectorServer created and started
+         * in this window will return before all the listeners are ready,
+         * which could lead to surprising behaviour.  The alternative
+         * would be to block the second ConnectorServer until the first
+         * one has finished adding all the listeners, but that would then
+         * be subject to deadlock.
+         */
+        if (create)
+            buf.createListeners();
+        return sharer;
     }
 
-    void removeSharer(ShareBuffer sharer) {
+    /* Ensure that this buffer is no longer the one that will be returned by
+     * getNotificationBuffer.  This method is idempotent - calling it more
+     * than once has no effect beyond that of calling it once.
+     */
+    static void removeNotificationBuffer(MBeanServer mbs) {
+        synchronized (globalLock) {
+            mbsToBuffer.remove(mbs);
+        }
+    }
+
+    void addSharer(ShareBuffer sharer) {
+        synchronized (globalLock) {
+            synchronized (this) {
+                if (sharer.getSize() > queueSize)
+                    resize(sharer.getSize());
+            }
+            sharers.add(sharer);
+        }
+    }
+
+    private void removeSharer(ShareBuffer sharer) {
         boolean empty;
-        synchronized (this) {
+        synchronized (globalLock) {
             sharers.remove(sharer);
             empty = sharers.isEmpty();
-            if (!empty) {
+            if (empty)
+                removeNotificationBuffer(mBeanServer);
+            else {
                 int max = 0;
                 for (ShareBuffer buf : sharers) {
                     int bufsize = buf.getSize();
@@ -94,11 +174,17 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
                     resize(max);
             }
         }
-        if (empty)
-            dispose();
+        if (empty) {
+            synchronized (this) {
+                disposed = true;
+                // Notify potential waiting fetchNotification call
+                notifyAll();
+            }
+            destroyListeners();
+        }
     }
 
-    private void resize(int newSize) {
+    private synchronized void resize(int newSize) {
 	if (newSize == queueSize)
 	    return;
 	while (queue.size() > newSize)
@@ -151,8 +237,6 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
         this.earliestSequenceNumber = System.currentTimeMillis();
         this.nextSequenceNumber = this.earliestSequenceNumber;
 
-        createListeners();
-
         logger.trace("Constructor", "ends");
     }
 
@@ -160,19 +244,11 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
 	return disposed;
     }
 
+    // We no longer support calling this method from outside.
+    // The JDK doesn't contain any such calls and users are not
+    // supposed to be accessing this class.
     public void dispose() {
-        logger.trace("dispose", "starts");
-
-	synchronized(this) {
-	    removeNotificationBuffer(mBeanServer);
-	    disposed = true;
-	    //Notify potential waiting fetchNotification call
-	    notifyAll();
-	}
-
-        destroyListeners();
-	
-        logger.trace("dispose", "ends");
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -213,12 +289,12 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
 
 	if (startSequenceNumber < 0 || isDisposed()) {
 	    synchronized(this) {
-		return new NotificationResult(earliestSequenceNumber(), 
-					      nextSequenceNumber(), 
+		return new NotificationResult(earliestSequenceNumber(),
+					      nextSequenceNumber(),
 					      new TargetedNotification[0]);
 	    }
 	}
-	
+
         // Check arg validity
         if (filter == null
             || startSequenceNumber < 0 || timeout < 0
@@ -272,7 +348,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             /* Get the next available notification regardless of filters,
                or wait for one to arrive if there is none.  */
             synchronized (this) {
-		
+
                 /* First time through.  The current earliestSequenceNumber
                    is the first one we could have examined.  */
                 if (earliestSeq < 0) {
@@ -283,7 +359,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
                     }
                     if (nextSeq < earliestSeq) {
                         nextSeq = earliestSeq;
-                        logger.debug("fetchNotifications", 
+                        logger.debug("fetchNotifications",
 				     "nextSeq=earliestSeq");
                     }
                 } else
@@ -304,9 +380,9 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
                 if (nextSeq < nextSequenceNumber()) {
                     candidate = notificationAt(nextSeq);
                     if (logger.debugOn()) {
-                        logger.debug("fetchNotifications", "candidate: " + 
+                        logger.debug("fetchNotifications", "candidate: " +
 				     candidate);
-                        logger.debug("fetchNotifications", "nextSeq now " + 
+                        logger.debug("fetchNotifications", "nextSeq now " +
 				     nextSeq);
                     }
                 } else {
@@ -324,26 +400,26 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
                         logger.debug("fetchNotifications", "timeout");
                         break;
                     }
-		    
+
 		    /* dispose called */
 		    if (isDisposed()) {
 			if (logger.debugOn())
-			    logger.debug("fetchNotifications", 
+			    logger.debug("fetchNotifications",
 					 "dispose callled, no wait");
 			return new NotificationResult(earliestSequenceNumber(),
-						  nextSequenceNumber(), 
+						  nextSequenceNumber(),
 						  new TargetedNotification[0]);
 		    }
-		    
+
 		    if (logger.debugOn())
-			logger.debug("fetchNotifications", 
+			logger.debug("fetchNotifications",
 				     "wait(" + toWait + ")");
 		    wait(toWait);
-		    
+
                     continue;
                 }
             }
-	    
+
             /* We have a candidate notification.  See if it matches
                our filters.  We do this outside the synchronized block
                so we don't hold up everyone accessing the buffer
@@ -353,7 +429,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             Notification notif = candidate.getNotification();
             List<TargetedNotification> matchedNotifs =
                 new ArrayList<TargetedNotification>();
-            logger.debug("fetchNotifications", 
+            logger.debug("fetchNotifications",
 			 "applying filter to candidate");
             filter.apply(matchedNotifs, name, notif);
 
@@ -364,13 +440,13 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
                    interesting notifications when in fact we knew they
                    weren't.  */
                 if (maxNotifications <= 0) {
-                    logger.debug("fetchNotifications", 
+                    logger.debug("fetchNotifications",
 				 "reached maxNotifications");
                     break;
                 }
                 --maxNotifications;
                 if (logger.debugOn())
-                    logger.debug("fetchNotifications", "add: " + 
+                    logger.debug("fetchNotifications", "add: " +
 				 matchedNotifs);
                 notifs.addAll(matchedNotifs);
             }
@@ -491,7 +567,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
      */
     private void createListeners() {
         logger.debug("createListeners", "starts");
-        
+
         synchronized (this) {
             createdDuringQuery = new HashSet<ObjectName>();
         }
@@ -525,6 +601,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
     }
 
     private void addBufferListener(ObjectName name) {
+        checkNoLocks();
         if (logger.debugOn())
             logger.debug("addBufferListener", name.toString());
         try {
@@ -536,8 +613,9 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
                throw unexpected exception.  */
         }
     }
-    
+
     private void removeBufferListener(ObjectName name) {
+        checkNoLocks();
         if (logger.debugOn())
             logger.debug("removeBufferListener", name.toString());
         try {
@@ -546,7 +624,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             logger.trace("removeBufferListener", e);
         }
     }
-    
+
     private void addNotificationListener(final ObjectName name,
                                          final NotificationListener listener,
                                          final NotificationFilter filter,
@@ -566,7 +644,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             throw extractException(e);
         }
     }
-    
+
     private void removeNotificationListener(final ObjectName name,
                                             final NotificationListener listener)
             throws Exception {
@@ -581,7 +659,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             throw extractException(e);
         }
     }
-    
+
     private Set<ObjectName> queryNames(final ObjectName name,
                                        final QueryExp query) {
         PrivilegedAction<Set<ObjectName>> act =
@@ -598,7 +676,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
             throw e;
         }
     }
-    
+
     private static boolean isInstanceOf(final MBeanServer mbs,
                                         final ObjectName name,
                                         final String className) {
@@ -636,7 +714,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
         ObjectName name = n.getMBeanName();
         if (logger.debugOn())
             logger.debug("createdNotification", "for: " + name);
-        
+
         synchronized (this) {
             if (createdDuringQuery != null) {
                 createdDuringQuery.add(name);
@@ -690,6 +768,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
 	};
 
     private void destroyListeners() {
+        checkNoLocks();
         logger.debug("destroyListeners", "starts");
         try {
             removeNotificationListener(MBeanServerDelegate.DELEGATE_NAME,
@@ -700,11 +779,16 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
         Set<ObjectName> names = queryNames(null, broadcasterQuery);
         for (final ObjectName name : names) {
             if (logger.debugOn())
-                logger.debug("destroyListeners", 
+                logger.debug("destroyListeners",
 			     "remove listener from " + name);
             removeBufferListener(name);
         }
         logger.debug("destroyListeners", "ends");
+    }
+    
+    private void checkNoLocks() {
+        if (Thread.holdsLock(this) || Thread.holdsLock(globalLock))
+            logger.warning("checkNoLocks", "lock protocol violation");
     }
 
     /**
@@ -713,7 +797,7 @@ public class ArrayNotificationBuffer implements NotificationBuffer {
      */
     private static Exception extractException(Exception e) {
         while (e instanceof PrivilegedActionException) {
-            e = ((PrivilegedActionException)e).getException(); 
+            e = ((PrivilegedActionException)e).getException();
         }
         return e;
     }

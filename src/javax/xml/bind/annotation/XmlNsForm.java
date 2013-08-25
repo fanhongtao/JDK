@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,8 +20,8 @@ package javax.xml.bind.annotation;
  * <table border="1" cellpadding="4" cellspacing="3">
  *   <tbody>
  *     <tr>
- *       <td><b>Enum Value</b></td>
- *       <td><b>XML Schema Value</b></td>
+ *       <td><b>Enum Value<b></td>
+ *       <td><b>XML Schema Value<b></td>
  *     </tr>
  * 
  *     <tr valign="top">

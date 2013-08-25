@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.232 07/01/31
+ * @(#)WindowsLookAndFeel.java	1.233 07/06/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,7 +79,7 @@ import com.sun.java.swing.plaf.windows.WindowsIconFactory
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.232 01/31/07
+ * @version 1.233 06/25/07
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -1791,6 +1791,19 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
                   BorderFactory.createEmptyBorder(2, 2, 2, 2));
         table.put(POPUP_MENU_BORDER, popupMenuBorder);
         /* END handling menus for Vista */
+
+        /* START table handling for Vista */
+        table.put("Table.ascendingSortIcon", new XPValue(
+            new SkinIcon(Part.HP_HEADERSORTARROW, State.SORTEDDOWN),
+            new SwingLazyValue(
+                "sun.swing.plaf.windows.ClassicSortArrowIcon",
+                null, new Object[] { Boolean.TRUE })));
+        table.put("Table.descendingSortIcon", new XPValue(
+            new SkinIcon(Part.HP_HEADERSORTARROW, State.SORTEDUP),
+            new SwingLazyValue(
+                "sun.swing.plaf.windows.ClassicSortArrowIcon",
+                null, new Object[] { Boolean.FALSE })));
+        /* END table handling for Vista */
     }
     
     /**
@@ -2242,8 +2255,64 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    return icon;
 	}
     }
+    
+    /**
+     * Icon backed-up by XP Skin.
+     */
+    private static class SkinIcon implements Icon, UIResource {
+        private final Part part;
+        private final State state;
+        SkinIcon(Part part, State state) {
+            this.part = part;
+            this.state = state;
+        }
 
-
+        /**
+         * Draw the icon at the specified location.  Icon implementations
+         * may use the Component argument to get properties useful for 
+         * painting, e.g. the foreground or background color.
+         */
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            XPStyle xp = XPStyle.getXP();
+            assert xp != null;
+            if (xp != null) {
+                Skin skin = xp.getSkin(null, part);
+                skin.paintSkin(g, x, y, state);
+            }
+        }
+        
+        /**
+         * Returns the icon's width.
+         *
+         * @return an int specifying the fixed width of the icon.
+         */
+        public int getIconWidth() {
+            int width = 0;
+            XPStyle xp = XPStyle.getXP();
+            assert xp != null;
+            if (xp != null) {
+                Skin skin = xp.getSkin(null, part);
+                width = skin.getWidth();
+            }
+            return width;
+        }
+        
+        /**
+         * Returns the icon's height.
+         *
+         * @return an int specifying the fixed height of the icon.
+         */
+        public int getIconHeight() {
+            int height = 0;
+            XPStyle xp = XPStyle.getXP();
+            if (xp != null) {
+                Skin skin = xp.getSkin(null, part);
+                height = skin.getHeight();
+            }
+            return height;
+        }
+        
+    }
 
     /**
      * DesktopProperty for fonts. If a font with the name 'MS Sans Serif'

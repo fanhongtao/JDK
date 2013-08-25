@@ -57,7 +57,7 @@ import org.xml.sax.SAXParseException;
  * {@link SchemaFactory} for XML Schema.
  *
  * @author Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
- * @version $Id: XMLSchemaFactory.java,v 1.1.4.1 2005/09/05 11:47:33 sunithareddy Exp $
+ * @version $Id: XMLSchemaFactory.java,v 1.2.2.2 2007/10/20 17:56:45 joehw Exp $
  */
 public final class XMLSchemaFactory extends SchemaFactory {
     
@@ -108,6 +108,10 @@ public final class XMLSchemaFactory extends SchemaFactory {
         fXMLSchemaLoader.setProperty(XMLGRAMMAR_POOL, fXMLGrammarPoolWrapper);
         fXMLSchemaLoader.setEntityResolver(fDOMEntityResolverWrapper);
         fXMLSchemaLoader.setErrorHandler(fErrorHandlerWrapper);
+
+        // Enable secure processing feature by default
+        fSecurityManager = new SecurityManager();
+        fXMLSchemaLoader.setProperty(SECURITY_MANAGER, fSecurityManager);
     }
     
     /**

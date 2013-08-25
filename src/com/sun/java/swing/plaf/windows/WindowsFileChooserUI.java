@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.101 06/04/27
+ * @(#)WindowsFileChooserUI.java	1.102 07/06/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import javax.accessibility.*;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.101 04/27/06
+ * @version 1.102 06/04/07
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -176,6 +176,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	public ListSelectionListener createListSelectionListener() {
 	    return WindowsFileChooserUI.this.createListSelectionListener(getFileChooser());
 	}
+
+        public boolean usesShellFolder() {
+            return useShellFolder;
+        }
     }
 
     public void installComponents(JFileChooser fc) {

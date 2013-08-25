@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,11 +11,11 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 /** 
  * Used to annotate methods in the Service Endpoint Interface with the response 
- * wrapper bean to be used at runtime. The default value of the localName is 
- * the operationName as defined in WebMethod annotation appended with
- * Response and the targetNamespace is the target namespace of the SEI.
+ * wrapper bean to be used at runtime. The default value of the <code>localName</code> is 
+ * the <code>operationName</code> as defined in <code>WebMethod</code> annotation appended with
+ * <code>Response</code> and the <code>targetNamespace</code> is the target namespace of the SEI.
  * <p> When starting from Java this annotation is used resolve
- * overloading conflicts in document literal mode. Only the className
+ * overloading conflicts in document literal mode. Only the <code>className</code>
  * is required in this case.
  * 
  *  @since JAX-WS 2.0
@@ -28,7 +28,7 @@ public @interface ResponseWrapper {
 
   /**
 
-   *  Elements local name.
+   *  Element's local name.
 
   **/
 
@@ -38,7 +38,7 @@ public @interface ResponseWrapper {
 
   /**
 
-   *  Elements namespace name.
+   *  Element's namespace name.
 
   **/
 

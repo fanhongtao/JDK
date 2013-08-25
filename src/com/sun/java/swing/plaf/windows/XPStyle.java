@@ -495,9 +495,15 @@ class XPStyle {
 	}
 
         Insets getContentMargin() {
-            // This is only called by WindowsTableHeaderUI so far.
-            return ThemeReader.getThemeMargins(part.getControlName(null), part.getValue(),
-                                               0, Prop.SIZINGMARGINS.getValue());
+            /* idk: it seems margins are the same for all 'big enough' 
+             * bounding rectangles.
+             */
+            int boundingWidth = 100;
+            int boundingHeight = 100;
+
+            return ThemeReader.getThemeBackgroundContentMargins(
+                part.getControlName(null), part.getValue(),
+                0, boundingWidth, boundingHeight);
         }
 
         private int getWidth(State state) {

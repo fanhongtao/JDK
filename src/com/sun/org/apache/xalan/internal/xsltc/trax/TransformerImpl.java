@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TransformerImpl.java,v 1.5 2005/09/28 13:48:46 pvedula Exp $
+ * $Id: TransformerImpl.java,v 1.10 2007/06/13 01:57:09 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -447,7 +447,7 @@ public final class TransformerImpl extends Transformer
                         if (host != null) {
                          systemId += "//" + host + path;   
                         } else {
-                         systemId += path;   
+                         systemId += "//" + path;   
                         }
                     }
                     catch(ClassNotFoundException e){
@@ -459,9 +459,8 @@ public final class TransformerImpl extends Transformer
                     }
                         
                     url = new URL(systemId);
-                    
-		    _tohFactory.setOutputStream(
-		        new FileOutputStream(url.getFile()));
+                    _ostream = new FileOutputStream(url.getFile());
+		    _tohFactory.setOutputStream(_ostream);
 		    return _tohFactory.getSerializationHandler();
                 }
                 else if (systemId.startsWith("http:")) {

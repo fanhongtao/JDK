@@ -1,6 +1,6 @@
 /*
- * @(#)RMIIIOPServerImpl.java	1.26 05/11/17
- * 
+ * @(#)RMIIIOPServerImpl.java	1.27 07/06/01
+ *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -122,6 +122,9 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
 
     @Override
     RMIConnection doNewClient(final Object credentials) throws IOException {
+        if (callerACC == null) {
+            throw new SecurityException("AccessControlContext cannot be null");
+        }
         try {
             return AccessController.doPrivileged(
                 new PrivilegedExceptionAction<RMIConnection>() {

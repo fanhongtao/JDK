@@ -1,5 +1,5 @@
 /*
- * @(#)MetaData.java	1.49 07/02/21
+ * @(#)MetaData.java	1.50 07/08/22
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,6 +7,7 @@
 package java.beans;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -24,6 +25,9 @@ import java.security.PrivilegedAction;
 import java.util.*;
 
 import javax.swing.border.MatteBorder;
+import javax.swing.plaf.ColorUIResource;
+
+import sun.swing.PrintColorUIResource;
 
 /*
  * Like the <code>Intropector</code>, the <code>MetaData</code> class
@@ -33,7 +37,7 @@ import javax.swing.border.MatteBorder;
  *
  * @see java.beans.Intropector
  *
- * @version 1.49 02/21/07
+ * @version 1.50 08/22/07
  * @author Philip Milne
  * @author Steve Langley
  */
@@ -1073,6 +1077,28 @@ class javax_swing_JMenu_PersistenceDelegate extends DefaultPersistenceDelegate {
     }
 }
 */
+
+/**
+ * The persistence delegate for {@link PrintColorUIResource}.
+ * It is impossible to use {@link DefaultPersistenceDelegate}
+ * because this class has special rule for serialization:
+ * it should be converted to {@link ColorUIResource}.
+ *
+ * @see PrintColorUIResource#writeReplace
+ *
+ * @author Sergey A. Malenkov
+ */
+final class sun_swing_PrintColorUIResource_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return oldInstance.equals(newInstance);
+    }
+
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+        Color color = (Color) oldInstance;
+        Object[] args = new Object[] {color.getRGB()};
+        return new Expression(color, ColorUIResource.class, "new", args);
+    }
+}
 
 class MetaData {
     private static Hashtable internalPersistenceDelegates = new Hashtable();

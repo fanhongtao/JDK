@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Include.java,v 1.2.4.1 2005/09/01 15:44:18 pvedula Exp $
+ * $Id: Include.java,v 1.8 2007/04/09 21:30:41 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -73,6 +73,8 @@ final class Include extends TopLevelElement {
                 if (input != null) {
                     docToLoad = input.getSystemId();
                     reader = xsltc.getXMLReader();
+                } else if (parser.errorsFound()) {
+                    return;
                 }
 	    }
 

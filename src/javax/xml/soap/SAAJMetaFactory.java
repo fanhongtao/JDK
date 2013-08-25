@@ -1,12 +1,29 @@
 /*
- * $Id: SAAJMetaFactory.java,v 1.2.2.15 2005/02/11 07:26:15 vj135062 Exp $
- * $Revision: 1.2.2.15 $
- * $Date: 2005/02/11 07:26:15 $
+ * $Id: SAAJMetaFactory.java,v 1.4 2006/03/30 00:59:39 ofung Exp $
+ * $Revision: 1.4 $
+ * $Date: 2006/03/30 00:59:39 $
  */
 
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License).  You may not use this file except in
+ * compliance with the License.
+ * 
+ * You can obtain a copy of the license at
+ * https://glassfish.dev.java.net/public/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at https://glassfish.dev.java.net/public/CDDLv1.0.html.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * you own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ * 
+ * Copyright 2006 Sun Microsystems Inc. All Rights Reserved
  */
 package javax.xml.soap;
 
@@ -32,8 +49,6 @@ public abstract class SAAJMetaFactory {
     static private final String DEFAULT_META_FACTORY_CLASS =
         "com.sun.xml.internal.messaging.saaj.soap.SAAJMetaFactoryImpl";
 
-    static private SAAJMetaFactory instance = null;
-
     /**
      * Creates a new instance of a concrete <code>SAAJMetaFactory</code> object. 
      * The SAAJMetaFactory is an SPI, it pulls the creation of the other factories together into a 
@@ -55,20 +70,17 @@ public abstract class SAAJMetaFactory {
      * @return a concrete <code>SAAJMetaFactory</code> object
      * @exception SOAPException if there is an error in creating the <code>SAAJMetaFactory</code>
      */
-    static synchronized SAAJMetaFactory getInstance() throws SOAPException {
-        if (instance == null) {
+    static SAAJMetaFactory getInstance() throws SOAPException {
             try {
-                instance =
+                SAAJMetaFactory instance =
                     (SAAJMetaFactory) FactoryFinder.find(
                         META_FACTORY_CLASS_PROPERTY,
                         DEFAULT_META_FACTORY_CLASS);
+                return instance;
             } catch (Exception e) {
                 throw new SOAPException(
                     "Unable to create SAAJ meta-factory" + e.getMessage());
             }
-        }
-
-        return instance;
     }
 
     protected SAAJMetaFactory() { }

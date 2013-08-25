@@ -4,9 +4,10 @@
  */
 package javax.xml.bind.util;
 
-import java.util.Vector;
-import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * {@link javax.xml.bind.ValidationEventHandler ValidationEventHandler} 
@@ -19,7 +20,7 @@ import javax.xml.bind.ValidationEvent;
  * the reported errors and warnings.
  *
  * @author <ul><li>Kohsuke Kawaguchi, Sun Microsystems, Inc.</li><li>Ryan Shoemaker, Sun Microsystems, Inc.</li><li>Joe Fialli, Sun Microsystems, Inc.</li></ul> 
- * @version $Revision: 1.1 $
+ * @version $Revision$
  * @see javax.xml.bind.Validator
  * @see javax.xml.bind.ValidationEventHandler
  * @see javax.xml.bind.ValidationEvent
@@ -28,7 +29,7 @@ import javax.xml.bind.ValidationEvent;
  */
 public class ValidationEventCollector implements ValidationEventHandler
 {
-    private final Vector<ValidationEvent> events = new Vector<ValidationEvent>();
+    private final List<ValidationEvent> events = new ArrayList<ValidationEvent>();
      
     /**
      * Return an array of ValidationEvent objects containing a copy of each of 
@@ -46,7 +47,7 @@ public class ValidationEventCollector implements ValidationEventHandler
      * Clear all collected errors and warnings.
      */
     public void reset() {
-        events.removeAllElements();
+        events.clear();
     }
     
     /**

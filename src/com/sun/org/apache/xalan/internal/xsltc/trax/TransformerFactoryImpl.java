@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TransformerFactoryImpl.java,v 1.2.4.1 2005/09/15 06:15:38 pvedula Exp $
+ * $Id: TransformerFactoryImpl.java,v 1.8 2007/04/09 21:30:41 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -59,6 +59,7 @@ import javax.xml.transform.stream.StreamSource;
 import com.sun.org.apache.xml.internal.utils.StylesheetPIHandler;
 import com.sun.org.apache.xml.internal.utils.StopParseException;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.Constants;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.SourceLoader;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.XSLTC;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
@@ -1066,9 +1067,12 @@ public class TransformerFactoryImpl
 		}
 	    }
 	}
-	catch (TransformerException e) {
-	    // Falls through
+	catch (TransformerException e) {            
+	    // should catch it when the resolver explicitly throws the exception 
+            final ErrorMsg msg = new ErrorMsg(ErrorMsg.INVALID_URI_ERR, href + "\n" + e.getMessage(), this);
+            xsltc.getParser().reportError(Constants.FATAL, msg);
 	}
+ 
 	return null;
     }
 

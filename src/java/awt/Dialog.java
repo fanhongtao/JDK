@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.125 06/06/21
+ * @(#)Dialog.java	1.127 07/06/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,6 +22,8 @@ import sun.security.util.SecurityConstants;
 import java.util.concurrent.atomic.AtomicLong;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import sun.awt.util.IdentityArrayList;
 
 /**
  * A Dialog is a top-level window with a title and a border
@@ -72,7 +74,7 @@ import java.security.PrivilegedAction;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.125, 06/21/06
+ * @version	1.127, 06/19/07
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -252,9 +254,10 @@ public class Dialog extends Window {
     private final static ModalExclusionType DEFAULT_MODAL_EXCLUSION_TYPE =
         ModalExclusionType.APPLICATION_EXCLUDE;
 
-    transient static Vector<Dialog> modalDialogs = new Vector<Dialog>();
+    /* operations with this list should be synchronized on tree lock*/
+    transient static IdentityArrayList<Dialog> modalDialogs = new IdentityArrayList<Dialog>();
 
-    transient Vector<Window> blockedWindows = new Vector<Window>();
+    transient IdentityArrayList<Window> blockedWindows = new IdentityArrayList<Window>();
 
     /**
      * Specifies the title of the Dialog.
@@ -761,6 +764,9 @@ public class Dialog extends Window {
      * @see       java.awt.Dialog#setModalityType
      */
     public boolean isModal() {
+        return isModal_NoClientCode();
+    }
+    final boolean isModal_NoClientCode() {
         return modalityType != ModalityType.MODELESS;
     }
 
@@ -1371,12 +1377,12 @@ public class Dialog extends Window {
         modalDialogs.add(this);
 
         // find all the dialogs that block this one
-        Vector<Dialog> blockers = new Vector<Dialog>();
+        IdentityArrayList<Dialog> blockers = new IdentityArrayList<Dialog>();
         for (Dialog d : modalDialogs) {
             if (d.shouldBlock(this)) {
                 Window w = d;
                 while ((w != null) && (w != this)) {
-                    w = w.getOwner();
+                    w = (Window)(w.getOwner_NoClientCode());
                 }
                 if ((w == this) || !shouldBlock(d) || (modalityType.compareTo(d.getModalityType()) < 0)) {
                     blockers.add(d);
@@ -1400,11 +1406,11 @@ public class Dialog extends Window {
         }
 
         // find all windows from blockers' hierarchies
-        Vector<Window> blockersHierarchies = new Vector<Window>(blockers);
+        IdentityArrayList<Window> blockersHierarchies = new IdentityArrayList<Window>(blockers);
         int k = 0;
         while (k < blockersHierarchies.size()) {
             Window w = blockersHierarchies.get(k);
-            Window[] ownedWindows = w.getOwnedWindows();
+            Window[] ownedWindows = w.getOwnedWindows_NoClientCode();
             for (Window win : ownedWindows) {
                 blockersHierarchies.add(win);
             }
@@ -1412,10 +1418,10 @@ public class Dialog extends Window {
         }
 
         // block all windows from scope of blocking except from blockers' hierarchies
-        Vector<Window> unblockedWindows = Window.getAllUnblockedWindows();
+        IdentityArrayList<Window> unblockedWindows = Window.getAllUnblockedWindows();
         for (Window w : unblockedWindows) {
             if (shouldBlock(w) && !blockersHierarchies.contains(w)) {
-                if ((w instanceof Dialog) && ((Dialog)w).isModal()) {
+                if ((w instanceof Dialog) && ((Dialog)w).isModal_NoClientCode()) {
                     Dialog wd = (Dialog)w;
                     if (wd.shouldBlock(this) && (modalDialogs.indexOf(wd) > modalDialogs.indexOf(this))) {
                         continue;
@@ -1440,7 +1446,7 @@ public class Dialog extends Window {
     void modalHide() {
         modalDialogs.remove(this);
         // we should unblock all the windows first...
-        Vector<Window> save = new Vector<Window>();
+        IdentityArrayList<Window> save = new IdentityArrayList<Window>();
         int blockedWindowsCount = blockedWindows.size();
         for (int i = 0; i < blockedWindowsCount; i++) {
             Window w = blockedWindows.get(0);
@@ -1451,7 +1457,7 @@ public class Dialog extends Window {
         // by another dialogs
         for (int i = 0; i < blockedWindowsCount; i++) {
             Window w = save.get(i);
-            if ((w instanceof Dialog) && ((Dialog)w).isModal()) {
+            if ((w instanceof Dialog) && ((Dialog)w).isModal_NoClientCode()) {
                 Dialog d = (Dialog)w;
                 d.modalShow();
             } else {
@@ -1470,11 +1476,11 @@ public class Dialog extends Window {
      * This method should be called on the getTreeLock() lock.
      */
     boolean shouldBlock(Window w) {
-        if (!isVisible() ||
-            (!w.isVisible() && !w.isInShow) ||
+        if (!isVisible_NoClientCode() ||
+            (!w.isVisible_NoClientCode() && !w.isInShow) ||
             isInHide ||
             (w == this) ||
-            !isModal())
+            !isModal_NoClientCode())
         {
             return false;
         }
@@ -1572,7 +1578,7 @@ public class Dialog extends Window {
             setModal(modal);
         }
 
-        blockedWindows = new Vector();
+        blockedWindows = new IdentityArrayList();
     }
 
     /*

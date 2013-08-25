@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.288 06/11/15
+ * @(#)JTable.java	1.289 07/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -186,7 +186,7 @@ import sun.swing.PrintingStatus;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.288 11/15/06
+ * @version 1.289 08/07/07
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  * @see javax.swing.table.DefaultTableModel
@@ -1829,6 +1829,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             sortManager = new SortManager(sorter);
         }
         resizeAndRepaint();
+        firePropertyChange("rowSorter", oldRowSorter, sorter);
         firePropertyChange("sorter", oldRowSorter, sorter);
     }
 

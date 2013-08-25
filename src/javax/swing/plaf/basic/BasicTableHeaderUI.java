@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableHeaderUI.java	1.77 06/07/28
+ * @(#)BasicTableHeaderUI.java	1.78 07/07/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import sun.swing.*;
 /**
  * BasicTableHeaderUI implementation
  *
- * @version 1.77 07/28/06
+ * @version 1.78 07/16/07
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -213,7 +213,9 @@ public class BasicTableHeaderUI extends TableHeaderUI {
                         cm.moveColumn(columnIndex, newColumnIndex);
                         
                         //Update the selected index.
-                        selectColumn(table.convertColumnIndexToView(selectedIndex));
+                        selectColumn(
+                            table.convertColumnIndexToView(selectedIndex), 
+                            false);
 
                         return;
 		    }
@@ -442,16 +444,20 @@ public class BasicTableHeaderUI extends TableHeaderUI {
      * affected header cells and makes sure the newly selected one is visible.
      */
     void selectColumn(int newColIndex) {
+        selectColumn(newColIndex, true);
+    }
+    
+    void selectColumn(int newColIndex, boolean doScroll) {
         Rectangle repaintRect = header.getHeaderRect(selectedColumnIndex);
         header.repaint(repaintRect);
         selectedColumnIndex = newColIndex;
         repaintRect = header.getHeaderRect(newColIndex);
         header.repaint(repaintRect);
-                    
-        scrollToColumn(newColIndex);
+        if (doScroll) {
+            scrollToColumn(newColIndex);
+        }
         return;
     }
-    
     /**
      * Used by selectColumn to scroll horizontally, if necessary,
      * to ensure that the newly selected column is visible.

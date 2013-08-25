@@ -1,5 +1,5 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.129 06/07/24
+ * @(#)BasicInternalFrameUI.java	1.130 07/08/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.swing.UIAction;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.129 07/24/06
+ * @version 1.130 08/20/07
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -668,6 +668,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
                 } 
                 getDesktopManager().endResizingFrame(frame);
                 resizing = false;
+                updateFrameCursor();
 	    }
             _x = 0;
             _y = 0;

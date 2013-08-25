@@ -50,7 +50,7 @@ import com.sun.org.apache.xerces.internal.util.URI;
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: ElementImpl.java,v 1.3 2005/09/02 05:52:22 neerajbj Exp $
+ * @version $Id: ElementImpl.java,v 1.5 2007/02/05 16:15:44 ndw Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class ElementImpl
@@ -650,7 +650,7 @@ public class ElementImpl
 			localName = qualifiedName.substring(index + 1);
 		}
 		Attr newAttr = getAttributeNodeNS(namespaceURI, localName);
-		if (newAttr == null) {
+                if (newAttr == null) {
             // REVISIT: this is not efficient, we are creating twice the same
             //          strings for prefix and localName.
 			newAttr = getOwnerDocument().createAttributeNS(
@@ -664,8 +664,21 @@ public class ElementImpl
 		}
 		else {
             if (newAttr instanceof AttrNSImpl){
-                // change prefix and value
-                ((AttrNSImpl)newAttr).name= (prefix!=null)?(prefix+":"+localName):localName;
+                String origNodeName = ((AttrNSImpl) newAttr).name;
+                String newName = (prefix!=null) ? (prefix+":"+localName) : localName;
+
+                ((AttrNSImpl) newAttr).name = newName;
+
+                if (!newName.equals(origNodeName)) {
+                    // Note: we can't just change the name of the attribute. Names have to be in sorted
+                    // order in the attributes vector because a binary search is used to locate them.
+                    // If the new name has a different prefix, the list may become unsorted.
+                    // Maybe it would be better to resort the list, but the simplest
+                    // fix seems to be to remove the old attribute and re-insert it.
+                    // -- Norman.Walsh@Sun.COM, 2 Feb 2007
+                    newAttr = (Attr) attributes.removeItem(newAttr, false);
+                    attributes.addItem(newAttr);
+                }
             }
             else {
                 // This case may happen if user calls:

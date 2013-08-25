@@ -1,12 +1,9 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind.annotation.adapters;
-
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.Marshaller;
 
 /**
  * Adapts a Java type for custom marshaling.
@@ -51,7 +48,7 @@ import javax.xml.bind.Marshaller;
  *        XmlJavaTypeAdapter} </li>
  * </ul>
  *
- * <p><b>Example:</b> Customized mapping of <tt>HashMap</tt></p>
+ * <p><b>Example:</b> Customized mapping of </tt>HashMap</tt></p>
  * <p> The following example illustrates the use of 
  * <tt>&#64;XmlAdapter</tt> and <tt>&#64;XmlJavaTypeAdapter</tt> to
  * customize the mapping of a <tt>HashMap</tt>.
@@ -110,7 +107,7 @@ import javax.xml.bind.Marshaller;
  *
  * <pre>
  *     public final class MyHashMapAdapter extends
- *                        XmlAdapter&lt;HashMap, MyHashMapType> { ... }
+ *                        XmlAdapter&lt;MyHashMapType,HashMap> { ... }
  *      
  * </pre>
  *
