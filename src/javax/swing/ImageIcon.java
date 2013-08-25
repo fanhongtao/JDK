@@ -1,5 +1,5 @@
 /*
- * @(#)ImageIcon.java	1.56 07/09/11
+ * @(#)ImageIcon.java	1.57 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import java.security.AccessController;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.56 09/11/07
+ * @version 1.57 08/07/09
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -93,7 +93,7 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      */
     private static int mediaTrackerID;
 
-    private final static Object TRACKER_KEY = new StringBuilder("TRACKER_KEY");
+    private static final Object TRACKER_KEY = new Object(); // TRACKER_KEY
 
     int width = -1;
     int height = -1;

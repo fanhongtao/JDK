@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.450 09/04/13
+ * @(#)Component.java	1.451 09/07/29
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -162,7 +162,7 @@ import sun.awt.RequestFocusController;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.450, 04/13/09
+ * @version     1.451, 07/29/09
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -4470,7 +4470,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
 
         if (log.isLoggable(Level.FINEST)) {
-            log.log(Level.FINEST, "{0}", e);
+            log.log(Level.FINEST, "{0}", String.valueOf(e));
         }
 
         /*

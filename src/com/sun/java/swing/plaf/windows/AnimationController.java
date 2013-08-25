@@ -1,5 +1,5 @@
 /*
- * @(#)AnimationController.java	1.1 06/08/17
+ * @(#)AnimationController.java	1.2 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,7 +47,7 @@ import sun.awt.AppContext;
  *        depends on the state of animation
  * </ul>
  * 
- * @version 1.1 08/17/06
+ * @version 1.2 08/07/09
  * @author Igor Kushnirskiy
  */
 class AnimationController implements ActionListener, PropertyChangeListener {
@@ -56,8 +56,7 @@ class AnimationController implements ActionListener, PropertyChangeListener {
         AccessController.doPrivileged(new GetBooleanAction("swing.disablevistaanimation"));
         
 
-    private final static Object ANIMATION_CONTROLLER_KEY = 
-        new StringBuilder("ANIMATION_CONTROLLER_KEY");
+    private static final Object ANIMATION_CONTROLLER_KEY = new Object(); // ANIMATION_CONTROLLER_KEY
     
     private final Map<JComponent, Map<Part, AnimationState>> animationStateMap = 
             new WeakHashMap<JComponent, Map<Part, AnimationState>>();

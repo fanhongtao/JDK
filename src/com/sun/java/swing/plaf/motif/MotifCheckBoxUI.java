@@ -1,11 +1,13 @@
 /*
- * @(#)MotifCheckBoxUI.java	1.24 05/11/17
+ * @(#)MotifCheckBoxUI.java	1.25 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
+
+import sun.awt.AppContext;
 
 import javax.swing.*;
 
@@ -23,12 +25,12 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 11/17/05
+ * @version 1.25 08/10/09
  * @author Rich Schiavi
  */
 public class MotifCheckBoxUI extends MotifRadioButtonUI {
 
-    private static final MotifCheckBoxUI motifCheckBoxUI = new MotifCheckBoxUI();
+    private static final Object MOTIF_CHECK_BOX_UI_KEY = new Object();
 
     private final static String propertyPrefix = "CheckBox" + ".";
 
@@ -39,7 +41,14 @@ public class MotifCheckBoxUI extends MotifRadioButtonUI {
     //         Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent c){
-	return motifCheckBoxUI;
+        AppContext appContext = AppContext.getAppContext();
+        MotifCheckBoxUI motifCheckBoxUI = 
+                (MotifCheckBoxUI) appContext.get(MOTIF_CHECK_BOX_UI_KEY);
+        if (motifCheckBoxUI == null) {
+            motifCheckBoxUI = new MotifCheckBoxUI();
+            appContext.put(MOTIF_CHECK_BOX_UI_KEY, motifCheckBoxUI);
+        }
+        return motifCheckBoxUI;
     }
 
     public String getPropertyPrefix() {

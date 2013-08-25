@@ -1,5 +1,5 @@
 /*
- * @(#)TimerQueue.java	1.39 06/07/11
+ * @(#)TimerQueue.java	1.40 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,7 +11,6 @@ package javax.swing;
 
 
 
-import java.util.*;
 import sun.awt.AppContext;
 
 
@@ -21,15 +20,12 @@ import sun.awt.AppContext;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.39 07/11/06
+ * @version 1.40 08/07/09
  * @author Dave Moore
  */
 class TimerQueue implements Runnable
 {
-    private static final Object sharedInstanceKey =
-        new StringBuffer("TimerQueue.sharedInstanceKey");
-    private static final Object expiredTimersKey =
-        new StringBuffer("TimerQueue.expiredTimersKey");
+    private static final Object sharedInstanceKey = new Object(); // TimerQueue.sharedInstanceKey
 
     Timer   firstTimer;
     boolean running;

@@ -1,11 +1,13 @@
 /*
- * @(#)MotifRadioButtonUI.java	1.23 05/11/17
+ * @(#)MotifRadioButtonUI.java	1.24 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
+
+import sun.awt.AppContext;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -25,12 +27,12 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 11/17/05
+ * @version 1.24 08/10/09
  * @author Rich Schiavi
  */
 public class MotifRadioButtonUI extends BasicRadioButtonUI {
 
-    private static final MotifRadioButtonUI motifRadioButtonUI = new MotifRadioButtonUI();
+    private static final Object MOTIF_RADIO_BUTTON_UI_KEY = new Object();
 
     protected Color focusColor;
 
@@ -40,7 +42,14 @@ public class MotifRadioButtonUI extends BasicRadioButtonUI {
     //         Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent c) {
-	return motifRadioButtonUI;
+        AppContext appContext = AppContext.getAppContext();
+        MotifRadioButtonUI motifRadioButtonUI = 
+                (MotifRadioButtonUI) appContext.get(MOTIF_RADIO_BUTTON_UI_KEY);
+        if (motifRadioButtonUI == null) {
+            motifRadioButtonUI = new MotifRadioButtonUI();
+            appContext.put(MOTIF_RADIO_BUTTON_UI_KEY, motifRadioButtonUI);
+        }
+        return motifRadioButtonUI;
     }
 
     // ********************************

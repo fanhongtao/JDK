@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.161 08/05/29
+ * @(#)BasicTableUI.java	1.162 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,16 +9,11 @@ package javax.swing.plaf.basic;
 
 import java.awt.*;
 import java.awt.datatransfer.*;
-import java.awt.dnd.*;
 import java.awt.event.*;
 import java.util.Enumeration;
-import java.util.EventObject;
-import java.util.Hashtable;
-import java.util.TooManyListenersException;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
-import javax.swing.text.*;
 import javax.swing.table.*;
 import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
 import sun.swing.SwingUtilities2;
@@ -33,14 +28,13 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.161 05/29/08
+ * @version 1.162 08/07/09
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
  */
 public class BasicTableUI extends TableUI
 {
-    private static final StringBuilder BASELINE_COMPONENT_KEY =
-        new StringBuilder("Table.baselineComponent");
+    private static final Object BASELINE_COMPONENT_KEY = new Object(); // Table.baselineComponent
 
 //
 // Instance Variables

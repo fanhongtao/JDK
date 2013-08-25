@@ -56,8 +56,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
     /**
      * AppContext key to get the current SynthStyleFactory.
      */
-    private static final Object STYLE_FACTORY_KEY =
-                  new StringBuffer("com.sun.java.swing.plaf.gtk.StyleCache");
+    private static final Object STYLE_FACTORY_KEY = new Object(); // com.sun.java.swing.plaf.gtk.StyleCache
 
     /**
      * The last SynthStyleFactory that was asked for from AppContext

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.193 09/03/20
+ * @(#)BasicComboBoxUI.java	1.194 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.193 03/20/09
+ * @version 1.194 08/07/09
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -158,11 +158,9 @@ public class BasicComboBoxUI extends ComboBoxUI {
     private Dimension cachedDisplaySize = new Dimension( 0, 0 );
 
     // Key used for lookup of the DefaultListCellRenderer in the AppContext.
-    private static final Object COMBO_UI_LIST_CELL_RENDERER_KEY =
-                        new StringBuffer("DefaultListCellRendererKey");
+    private static final Object COMBO_UI_LIST_CELL_RENDERER_KEY = new Object(); // DefaultListCellRendererKey
 
-    static final StringBuffer HIDE_POPUP_KEY
-                  = new StringBuffer("HidePopupKey");
+    static final Object HIDE_POPUP_KEY = new Object(); // HidePopupKey
 
     /**
      * Whether or not all cells have the same baseline.

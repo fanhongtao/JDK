@@ -1,5 +1,5 @@
 /*
- * @(#)ImagePainter.java	1.12 05/11/17
+ * @(#)ImagePainter.java	1.13 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,12 +20,11 @@ import sun.swing.plaf.synth.Paint9Painter;
  * by way of an insets, and the remaining regions are either tiled or
  * scaled to fit.
  *
- * @version 1.12, 11/17/05
+ * @version 1.13, 08/07/09
  * @author Scott Violet
  */
 class ImagePainter extends SynthPainter {
-    private static final StringBuffer CACHE_KEY =
-                               new StringBuffer("SynthCacheKey");
+    private static final Object CACHE_KEY = new Object(); // SynthCacheKey
 
     private Image image;
     private Insets sInsets;

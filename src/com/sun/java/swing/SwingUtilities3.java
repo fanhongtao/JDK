@@ -50,14 +50,13 @@ import javax.swing.SwingUtilities;
  * This is a second part of sun.swing.SwingUtilities2. It is required
  * to provide services for JavaFX applets.
  *
- * @version 1.4 05/30/08
+ * @version 1.5 08/07/09
  */
 public class SwingUtilities3 {
     /**
      * The {@code clientProperty} key for delegate {@code RepaintManager}
      */
-    private static final Object DELEGATE_REPAINT_MANAGER_KEY = 
-        new StringBuilder("DelegateRepaintManagerKey");
+    private static final Object DELEGATE_REPAINT_MANAGER_KEY = new Object(); // DelegateRepaintManagerKey
 
     /**
       * Registers delegate RepaintManager for {@code JComponent}.

@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLabelUI.java	1.20 05/11/30
+ * @(#)WindowsLabelUI.java	1.21 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,8 @@
 package com.sun.java.swing.plaf.windows;
 
 import sun.swing.SwingUtilities2;
+import sun.awt.AppContext;
+
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -33,13 +35,20 @@ import javax.swing.plaf.basic.BasicLabelUI;
  */
 public class WindowsLabelUI extends BasicLabelUI {
 
-    private final static WindowsLabelUI windowsLabelUI = new WindowsLabelUI();
+    private static final Object WINDOWS_LABEL_UI_KEY = new Object();
 
     // ********************************
     //          Create PLAF
     // ********************************
-    public static ComponentUI createUI(JComponent c){
-	return windowsLabelUI;
+    public static ComponentUI createUI(JComponent c) {
+        AppContext appContext = AppContext.getAppContext();
+        WindowsLabelUI windowsLabelUI = 
+                (WindowsLabelUI) appContext.get(WINDOWS_LABEL_UI_KEY);
+        if (windowsLabelUI == null) {
+            windowsLabelUI = new WindowsLabelUI();
+            appContext.put(WINDOWS_LABEL_UI_KEY, windowsLabelUI);
+        }
+        return windowsLabelUI;
     }
 
     protected void paintEnabledText(JLabel l, Graphics g, String s, 

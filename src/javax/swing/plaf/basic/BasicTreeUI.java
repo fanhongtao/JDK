@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.197 07/11/12
+ * @(#)BasicTreeUI.java	1.198 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,16 +12,12 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
-import java.awt.dnd.*;
 import java.beans.*;
-import java.io.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.TooManyListenersException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import javax.swing.plaf.ActionMapUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.TreeUI;
@@ -37,15 +33,14 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.197 11/12/07
+ * @version 1.198 08/07/09
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */
 
 public class BasicTreeUI extends TreeUI
 {
-    private static final StringBuilder BASELINE_COMPONENT_KEY =
-        new StringBuilder("Tree.baselineComponent");
+    private static final Object BASELINE_COMPONENT_KEY = new Object(); // Tree.baselineComponent
 
     // Old actions forward to an instance of this.
     static private final Actions SHARED_ACTION = new Actions();

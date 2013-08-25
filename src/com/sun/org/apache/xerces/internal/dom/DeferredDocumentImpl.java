@@ -1941,11 +1941,17 @@ public class DeferredDocumentImpl
         if (value == -1) {
             return clearChunkIndex(data, chunk, index);
         }
-        int ovalue = data[chunk][index];
+        int [] dataChunk = data[chunk]; 
+        // Re-create chunk if it was deleted. 
+        if (dataChunk == null) { 
+            createChunk(data, chunk); 
+            dataChunk = data[chunk]; 
+        } 
+        int ovalue = dataChunk[index]; 
         if (ovalue == -1) {
-            data[chunk][CHUNK_SIZE]++;
+            dataChunk[CHUNK_SIZE]++;
         }
-        data[chunk][index] = value;
+        dataChunk[index] = value;
         return ovalue;
     }
     private final String setChunkValue(Object data[][], Object value,
@@ -1953,12 +1959,18 @@ public class DeferredDocumentImpl
         if (value == null) {
             return clearChunkValue(data, chunk, index);
         }
-        String ovalue = (String) data[chunk][index];
+        Object [] dataChunk = data[chunk]; 
+        // Re-create chunk if it was deleted. 
+        if (dataChunk == null) { 
+            createChunk(data, chunk); 
+            dataChunk = data[chunk]; 
+        } 
+        String ovalue = (String) dataChunk[index]; 
         if (ovalue == null) {
-            RefCount c = (RefCount) data[chunk][CHUNK_SIZE];
+            RefCount c = (RefCount) dataChunk[CHUNK_SIZE];
             c.fCount++;
         }
-        data[chunk][index] = value;
+        dataChunk[index] = value;
         return ovalue;
     }
 

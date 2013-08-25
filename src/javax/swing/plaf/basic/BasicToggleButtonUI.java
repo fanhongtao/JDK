@@ -1,11 +1,13 @@
 /*
- * @(#)BasicToggleButtonUI.java	1.59 05/11/17
+ * @(#)BasicToggleButtonUI.java	1.60 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
+
+import sun.awt.AppContext;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -21,12 +23,12 @@ import javax.swing.text.View;
  * BasicToggleButton implementation
  * <p>
  *
- * @version 1.59 11/17/05
+ * @version 1.60 08/10/09
  * @author Jeff Dinkins
  */
 public class BasicToggleButtonUI extends BasicButtonUI {
 
-    private final static BasicToggleButtonUI toggleButtonUI = new BasicToggleButtonUI();
+    private static final Object BASIC_TOGGLE_BUTTON_UI_KEY = new Object();
 
     private final static String propertyPrefix = "ToggleButton" + ".";
 
@@ -34,6 +36,13 @@ public class BasicToggleButtonUI extends BasicButtonUI {
     //          Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent b) {
+        AppContext appContext = AppContext.getAppContext();
+        BasicToggleButtonUI toggleButtonUI = 
+                (BasicToggleButtonUI) appContext.get(BASIC_TOGGLE_BUTTON_UI_KEY);
+        if (toggleButtonUI == null) {
+            toggleButtonUI = new BasicToggleButtonUI();
+            appContext.put(BASIC_TOGGLE_BUTTON_UI_KEY, toggleButtonUI);
+        }
         return toggleButtonUI;
     }
 

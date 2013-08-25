@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.287 09/04/28
+ * @(#)JComponent.java	2.288 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,22 +9,15 @@ package javax.swing;
 
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Vector;
 import java.util.EventListener;
 import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.VolatileImage;
-import java.awt.Graphics2D;
 import java.awt.peer.LightweightPeer;
-import java.awt.dnd.DropTarget;
-import java.awt.font.FontRenderContext;
 import java.beans.*;
 
 import java.applet.Applet;
@@ -155,7 +148,7 @@ import sun.swing.UIClientPropertyKey;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.287, 04/28/09
+ * @version 2.288, 08/07/09
  * @author Hans Muller
  * @author Arnaud Weber
  */
@@ -171,20 +164,17 @@ public abstract class JComponent extends Container implements Serializable,
     /**
      * Key used in client properties for the AncestorNotifier.
      */
-    private static final StringBuffer ANCESTOR_NOTIFIER_KEY = new StringBuffer(
-                                               "AncestorNotifier");
+    private static final Object ANCESTOR_NOTIFIER_KEY = new Object(); // AncestorNotifier
 
     /**
      * Key used in client properties for the TransferHandler.
      */
-    private static final StringBuffer TRANSFER_HANDLER_KEY = new StringBuffer(
-                                               "TransferHandler");
+    private static final Object TRANSFER_HANDLER_KEY = new Object(); // TransferHandler
 
     /**
      * Key used in client properties for the InputVerifier.
      */
-    private static final StringBuffer INPUT_VERIFIER_KEY = new StringBuffer(
-                                               "InputVerifier");
+    private static final Object INPUT_VERIFIER_KEY = new Object(); // InputVerifier
 
     /**
      * @see #readObject
@@ -220,8 +210,7 @@ public abstract class JComponent extends Container implements Serializable,
      * indicates the EDT is calling into the InputVerifier from the
      * returned component.
      */
-    private static final Object INPUT_VERIFIER_SOURCE_KEY = 
-            new StringBuilder("InputVerifierSourceKey");
+    private static final Object INPUT_VERIFIER_SOURCE_KEY = new Object(); // InputVerifierSourceKey
 
     /* The following fields support set methods for the corresponding
      * java.awt.Component properties.
@@ -368,8 +357,7 @@ public abstract class JComponent extends Container implements Serializable,
     private static final String defaultLocale = "JComponent.defaultLocale";
 
     private static Component componentObtainingGraphicsFrom;
-    private static Object componentObtainingGraphicsFromLock = new
-            StringBuilder("componentObtainingGraphicsFrom");
+    private static Object componentObtainingGraphicsFromLock = new Object(); // componentObtainingGraphicsFrom
 
     /**
      * AA text hints.

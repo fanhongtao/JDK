@@ -1,5 +1,5 @@
 /*
- * @(#)JDialog.java	1.93 06/08/08
+ * @(#)JDialog.java	1.94 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,12 +8,7 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeListener;
-import java.util.Locale;
-import java.util.Vector;
-import java.io.Serializable;
 import javax.accessibility.*;
-import java.applet.Applet;
 
 /** 
  * The main class for creating a dialog window. You can use this class
@@ -77,7 +72,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.93 08/08/06
+ * @version 1.94 08/07/09
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
@@ -91,8 +86,7 @@ public class JDialog extends Dialog implements WindowConstants,
      * Key into the AppContext, used to check if should provide decorations
      * by default.
      */
-    private static final Object defaultLookAndFeelDecoratedKey = 
-    	    new StringBuffer("JDialog.defaultLookAndFeelDecorated");
+    private static final Object defaultLookAndFeelDecoratedKey = new Object(); // JDialog.defaultLookAndFeelDecorated
 
     private int defaultCloseOperation = HIDE_ON_CLOSE;
     

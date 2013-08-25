@@ -1,7 +1,7 @@
 /*
- * @(#)MessageDigest.java	1.81 06/04/21
+ * @(#)MessageDigest.java	1.82 09/09/14
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ import java.nio.ByteBuffer;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.81, 04/21/06
+ * @version 1.82, 09/07/09
  *
  * @see DigestInputStream
  * @see DigestOutputStream
@@ -397,16 +397,17 @@ public abstract class MessageDigest extends MessageDigestSpi {
      *
      * @return true if the digests are equal, false otherwise.
      */
-    public static boolean isEqual(byte digesta[], byte digestb[]) {
-	if (digesta.length != digestb.length)
+    public static boolean isEqual(byte[] digesta, byte[] digestb) {
+	if (digesta.length != digestb.length) {
 	    return false;
+        }
 
-	for (int i = 0; i < digesta.length; i++) {
-	    if (digesta[i] != digestb[i]) {
-		return false;
-	    }
+        int result = 0;
+        // time-constant comparison
+        for (int i = 0; i < digesta.length; i++) {
+            result |= digesta[i] ^ digestb[i];
 	}
-	return true;
+        return result == 0;
     }
 
     /**

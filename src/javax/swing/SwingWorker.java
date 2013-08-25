@@ -1,5 +1,5 @@
 /*
- * @(#)SwingWorker.java	1.8 06/11/30
+ * @(#)SwingWorker.java	1.9 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,15 +10,11 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeEvent;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
 
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
 import java.awt.event.*;
-
-import javax.swing.SwingUtilities;
 
 import sun.awt.AppContext;
 import sun.swing.AccumulativeRunnable;
@@ -196,7 +192,7 @@ import sun.swing.AccumulativeRunnable;
  * {@link java.util.concurrent.Executor} for execution.
  *  
  * @author Igor Kushnirskiy
- * @version 1.8 11/30/06
+ * @version 1.9 08/07/09
  * 
  * @param <T> the result type returned by this {@code SwingWorker's}
  *        {@code doInBackground} and {@code get} methods
@@ -843,7 +839,7 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
         return (ExecutorService)obj; 
     }
     
-    private static final Object DO_SUBMIT_KEY = new StringBuilder("doSubmit");
+    private static final Object DO_SUBMIT_KEY = new Object(); // doSubmit
     private static AccumulativeRunnable<Runnable> getDoSubmit() {
         synchronized (DO_SUBMIT_KEY) {
             final AppContext appContext = AppContext.getAppContext();

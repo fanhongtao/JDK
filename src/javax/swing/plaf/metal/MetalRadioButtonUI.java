@@ -1,5 +1,5 @@
 /*
- * @(#)MetalRadioButtonUI.java	1.31 05/11/30
+ * @(#)MetalRadioButtonUI.java	1.32 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,8 @@
 package javax.swing.plaf.metal;
 
 import sun.swing.SwingUtilities2;
+import sun.awt.AppContext;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -30,13 +32,13 @@ import javax.swing.text.View;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.31 11/30/05
+ * @version 1.32 08/10/09
  * @author Michael C. Albers (Metal modifications)
  * @author Jeff Dinkins (original BasicRadioButtonCode)
  */
 public class MetalRadioButtonUI extends BasicRadioButtonUI {
 
-    private static final MetalRadioButtonUI metalRadioButtonUI = new MetalRadioButtonUI();
+    private static final Object METAL_RADIO_BUTTON_UI_KEY = new Object();
 
     protected Color focusColor;
     protected Color selectColor;
@@ -48,6 +50,13 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
     //        Create PlAF
     // ********************************
     public static ComponentUI createUI(JComponent c) {
+        AppContext appContext = AppContext.getAppContext();
+        MetalRadioButtonUI metalRadioButtonUI = 
+                (MetalRadioButtonUI) appContext.get(METAL_RADIO_BUTTON_UI_KEY);
+        if (metalRadioButtonUI == null) {
+            metalRadioButtonUI = new MetalRadioButtonUI();
+            appContext.put(METAL_RADIO_BUTTON_UI_KEY, metalRadioButtonUI);
+        }
         return metalRadioButtonUI;
     }
 

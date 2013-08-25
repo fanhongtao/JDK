@@ -1,5 +1,5 @@
 /*
- * @(#)BasicButtonUI.java	1.118 06/07/20
+ * @(#)BasicButtonUI.java	1.119 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,8 @@
 package javax.swing.plaf.basic;
 
 import sun.swing.SwingUtilities2;
+import sun.awt.AppContext;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Serializable;
@@ -23,13 +25,10 @@ import javax.swing.text.View;
 /**
  * BasicButton implementation
  *
- * @version 1.118 07/20/06
+ * @version 1.119 08/10/09
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
-    // Shared UI object
-    private final static BasicButtonUI buttonUI = new BasicButtonUI();
-
     // Visual constants
     // NOTE: This is not used or set any where. Were we allowed to remove
     // fields, this would be removed.
@@ -43,11 +42,20 @@ public class BasicButtonUI extends ButtonUI{
     protected int defaultTextShiftOffset;
 
     private final static String propertyPrefix = "Button" + ".";
+    
+    private static final Object BASIC_BUTTON_UI_KEY = new Object();
 
     // ********************************
     //          Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent c) {
+        AppContext appContext = AppContext.getAppContext();
+        BasicButtonUI buttonUI = 
+                (BasicButtonUI) appContext.get(BASIC_BUTTON_UI_KEY);
+        if (buttonUI == null) {
+            buttonUI = new BasicButtonUI();
+            appContext.put(BASIC_BUTTON_UI_KEY, buttonUI);
+        }
         return buttonUI;
     }
 

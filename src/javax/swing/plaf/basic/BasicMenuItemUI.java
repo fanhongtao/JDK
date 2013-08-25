@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.144 08/05/29
+ * @(#)BasicMenuItemUI.java	1.145 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,6 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
 
@@ -26,7 +25,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.144 05/29/08
+ * @version 1.145 08/07/09
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -81,8 +80,7 @@ public class BasicMenuItemUI extends MenuItemUI
     static final String MAX_ACC_WIDTH  =  "maxAccWidth";
 
     /* Client Property key for the icon offset */
-    static final StringBuffer MAX_ICON_OFFSET =
-                                  new StringBuffer("maxIconOffset");
+    static final Object MAX_ICON_OFFSET = new Object(); // maxIconOffset
 
     static void loadActionMap(LazyActionMap map) {
         // NOTE: BasicMenuUI also calls into this method.

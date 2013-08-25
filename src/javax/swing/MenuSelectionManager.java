@@ -1,5 +1,5 @@
 /*
- * @(#)MenuSelectionManager.java	1.42 08/05/29
+ * @(#)MenuSelectionManager.java	1.43 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ import sun.awt.AppContext;
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
  *
- * @version 1.42 05/29/08
+ * @version 1.43 08/07/09
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
@@ -27,8 +27,7 @@ public class MenuSelectionManager {
     private static final boolean VERBOSE = false; // show reuse hits/misses
     private static final boolean DEBUG =   false;  // show bad params, misc.
 
-    private static final StringBuilder MENU_SELECTION_MANAGER_KEY =
-                       new StringBuilder("javax.swing.MenuSelectionManager");
+    private static final Object MENU_SELECTION_MANAGER_KEY = new Object(); // javax.swing.MenuSelectionManager
 
     /**
      * Returns the default menu selection manager.

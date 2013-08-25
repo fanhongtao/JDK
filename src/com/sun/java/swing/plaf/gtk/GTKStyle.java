@@ -1,5 +1,5 @@
 /*
- * @(#)GTKStyle.java	1.133 07/04/06
+ * @(#)GTKStyle.java	1.134 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -904,7 +904,7 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
 
     static class GTKStockIconInfo {
         private static Map<String,Integer> ICON_TYPE_MAP;
-        private static final Object ICON_SIZE_KEY = new StringBuffer("IconSize");
+        private static final Object ICON_SIZE_KEY = new Object(); // IconSize
 
         private static Dimension[] getIconSizesMap() {
             AppContext appContext = AppContext.getAppContext(); 

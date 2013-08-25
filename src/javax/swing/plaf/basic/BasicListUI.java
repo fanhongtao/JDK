@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.127 08/12/02
+ * @(#)BasicListUI.java	1.128 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,11 +18,7 @@ import javax.swing.text.Position;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.dnd.*;
 import java.awt.geom.Point2D;
-
-import java.util.ArrayList;
-import java.util.TooManyListenersException;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
@@ -36,15 +32,14 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.127 12/02/08
+ * @version 1.128 08/07/09
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
  */
 public class BasicListUI extends ListUI
 {
-    private static final StringBuilder BASELINE_COMPONENT_KEY =
-        new StringBuilder("List.baselineComponent");
+    private static final Object BASELINE_COMPONENT_KEY = new Object(); // List.baselineComponent
 
     protected JList list = null;
     protected CellRendererPane rendererPane;

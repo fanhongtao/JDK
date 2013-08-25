@@ -1,5 +1,5 @@
 /*
- * @(#)BasicRadioButtonUI.java	1.71 05/11/30
+ * @(#)BasicRadioButtonUI.java	1.72 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,17 +14,18 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
 import sun.swing.SwingUtilities2;
+import sun.awt.AppContext;
 
 
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.71 11/30/05
+ * @version 1.72 08/10/09
  * @author Jeff Dinkins
  */
 public class BasicRadioButtonUI extends BasicToggleButtonUI 
 {
-    private final static BasicRadioButtonUI radioButtonUI = new BasicRadioButtonUI();
+    private static final Object BASIC_RADIO_BUTTON_UI_KEY = new Object();
 
     protected Icon icon;
 
@@ -36,6 +37,13 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
     //        Create PLAF 
     // ********************************
     public static ComponentUI createUI(JComponent b) {
+        AppContext appContext = AppContext.getAppContext();
+        BasicRadioButtonUI radioButtonUI = 
+                (BasicRadioButtonUI) appContext.get(BASIC_RADIO_BUTTON_UI_KEY);
+        if (radioButtonUI == null) {
+            radioButtonUI = new BasicRadioButtonUI();
+            appContext.put(BASIC_RADIO_BUTTON_UI_KEY, radioButtonUI);
+        }
         return radioButtonUI;
     }
 

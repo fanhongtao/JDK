@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.54 09/02/04
+ * @(#)LogManager.java	1.55 09/05/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.54, 02/04/09
+ * @version 1.55, 05/17/09
  * @since 1.4
 */
 
@@ -319,7 +319,7 @@ public class LogManager {
      // already been created with the given name it is returned.
      // Otherwise a new logger instance is created and registered
      // in the LogManager global namespace.
-     synchronized Logger demandLogger(String name) {
+     Logger demandLogger(String name) {
        Logger result = getLogger(name);
        if (result == null) {
            result = new Logger(name, null);

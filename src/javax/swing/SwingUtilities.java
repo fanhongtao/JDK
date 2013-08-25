@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities.java	1.147 06/08/08
+ * @(#)SwingUtilities.java	1.148 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,9 +15,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.DropTarget;
 
-import java.util.Vector;
-import java.util.Hashtable;
-
 import java.lang.reflect.*;
 
 import javax.accessibility.*;
@@ -32,7 +29,7 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.147 08/08/06
+ * @version 1.148 08/07/09
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -1725,8 +1722,7 @@ public class SwingUtilities implements SwingConstants
 
 
     // Don't use String, as it's not guaranteed to be unique in a Hashtable.
-    private static final Object sharedOwnerFrameKey =
-       new StringBuffer("SwingUtilities.sharedOwnerFrame");
+    private static final Object sharedOwnerFrameKey = new Object(); // SwingUtilities.sharedOwnerFrame
 
     static class SharedOwnerFrame extends Frame implements WindowListener {
         public void addNotify() {

@@ -1,5 +1,5 @@
 /*
- * @(#)MetalToggleButtonUI.java	1.30 05/11/30
+ * @(#)MetalToggleButtonUI.java	1.31 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,8 @@
 package javax.swing.plaf.metal;
 
 import sun.swing.SwingUtilities2;
+import sun.awt.AppContext;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.lang.ref.*;
@@ -33,12 +35,12 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.30 11/30/05
+ * @version 1.31 08/10/09
  * @author Tom Santos
  */
 public class MetalToggleButtonUI extends BasicToggleButtonUI {
 
-    private static final MetalToggleButtonUI metalToggleButtonUI = new MetalToggleButtonUI();
+    private static final Object METAL_TOGGLE_BUTTON_UI_KEY = new Object();
 
     protected Color focusColor;
     protected Color selectColor;
@@ -50,6 +52,13 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
     //        Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent b) {
+        AppContext appContext = AppContext.getAppContext();
+        MetalToggleButtonUI metalToggleButtonUI = 
+                (MetalToggleButtonUI) appContext.get(METAL_TOGGLE_BUTTON_UI_KEY);
+        if (metalToggleButtonUI == null) {
+            metalToggleButtonUI = new MetalToggleButtonUI();
+            appContext.put(METAL_TOGGLE_BUTTON_UI_KEY, metalToggleButtonUI);
+        }
         return metalToggleButtonUI;
     }
 

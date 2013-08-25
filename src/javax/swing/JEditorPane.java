@@ -1,5 +1,5 @@
 /*
- * @(#)JEditorPane.java	1.140 08/10/16
+ * @(#)JEditorPane.java	1.141 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,13 +7,11 @@
 package javax.swing;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.lang.reflect.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
 import java.security.*;
-import java.util.*;
 
 import javax.swing.plaf.*;
 import javax.swing.text.*;
@@ -169,7 +167,7 @@ import javax.accessibility.*;
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.140 10/16/08
+ * @version 1.141 08/07/09
  */
 public class JEditorPane extends JTextComponent {
 
@@ -1621,12 +1619,9 @@ public class JEditorPane extends JTextComponent {
     /*
      * Private AppContext keys for this class's static variables.
      */
-    private static final Object kitRegistryKey = 
-        new StringBuffer("JEditorPane.kitRegistry");
-    private static final Object kitTypeRegistryKey = 
-        new StringBuffer("JEditorPane.kitTypeRegistry");
-    private static final Object kitLoaderRegistryKey = 
-        new StringBuffer("JEditorPane.kitLoaderRegistry");
+    private static final Object kitRegistryKey = new Object(); // JEditorPane.kitRegistry
+    private static final Object kitTypeRegistryKey = new Object(); // JEditorPane.kitTypeRegistry
+    private static final Object kitLoaderRegistryKey = new Object(); // JEditorPane.kitLoaderRegistry
 
     /**
      * @see #getUIClassID

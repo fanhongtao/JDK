@@ -1,11 +1,13 @@
 /*
- * @(#)BasicCheckBoxUI.java	1.38 05/11/17
+ * @(#)BasicCheckBoxUI.java	1.39 09/08/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
+
+import sun.awt.AppContext;
 
 import javax.swing.*;
 
@@ -27,12 +29,12 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.38 11/17/05
+ * @version 1.39 08/10/09
  * @author Jeff Dinkins
  */
 public class BasicCheckBoxUI extends BasicRadioButtonUI {
 
-    private final static BasicCheckBoxUI checkboxUI = new BasicCheckBoxUI();
+    private static final Object BASIC_CHECK_BOX_UI_KEY = new Object();
 
     private final static String propertyPrefix = "CheckBox" + "."; 
 
@@ -40,6 +42,13 @@ public class BasicCheckBoxUI extends BasicRadioButtonUI {
     //            Create PLAF 
     // ********************************
     public static ComponentUI createUI(JComponent b) {
+        AppContext appContext = AppContext.getAppContext();
+        BasicCheckBoxUI checkboxUI = 
+                (BasicCheckBoxUI) appContext.get(BASIC_CHECK_BOX_UI_KEY);
+        if (checkboxUI == null) {
+            checkboxUI = new BasicCheckBoxUI();
+            appContext.put(BASIC_CHECK_BOX_UI_KEY, checkboxUI);
+        }
         return checkboxUI;
     }
 

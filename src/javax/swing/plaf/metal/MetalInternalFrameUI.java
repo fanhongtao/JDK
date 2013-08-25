@@ -1,5 +1,5 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.35 06/04/07
+ * @(#)MetalInternalFrameUI.java	1.36 09/08/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,17 +13,15 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
-import java.util.EventListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyVetoException;
 import javax.swing.plaf.*;
 
 /**
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.35 04/07/06
+ * @version 1.36 08/07/09
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
@@ -34,7 +32,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
   private static final Border handyEmptyBorder = new EmptyBorder(0,0,0,0);
   
   protected static String IS_PALETTE   = "JInternalFrame.isPalette";
-
+  private static String IS_PALETTE_KEY = "JInternalFrame.isPalette";
   private static String FRAME_TYPE     = "JInternalFrame.frameType";
   private static String NORMAL_FRAME   = "normal";
   private static String PALETTE_FRAME  = "palette";
@@ -51,7 +49,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
   public void installUI(JComponent c) { 
     super.installUI(c);
 
-    Object paletteProp = c.getClientProperty( IS_PALETTE );
+    Object paletteProp = c.getClientProperty(IS_PALETTE_KEY);
     if ( paletteProp != null ) {
 	setPalette( ((Boolean)paletteProp).booleanValue() );
     }
@@ -170,7 +168,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 		  ui.setFrameType( (String) e.getNewValue() );
 	      }
 	  }
-	  else if ( name.equals( IS_PALETTE ) )
+	  else if ( name.equals(IS_PALETTE_KEY) )
 	  {
 	      if ( e.getNewValue() != null )
 	      {
