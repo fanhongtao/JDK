@@ -21,21 +21,21 @@ binary form, any other machine readable materials
 header files, and data files), any updates or error
 corrections provided by Sun, and any user manuals,
 programming guides and other documentation provided to you
-by Sun under this Agreement. "General Purpose Desktop
+by Sun under this Agreement.  "General Purpose Desktop
 Computers and Servers" means computers, including desktop,
 laptop and tablet computers, or servers, used for general
 computing functions under end user control (such as but not
 specifically limited to email, general purpose Internet
-browsing, and office suite productivity tools).  The use of
-Software in systems and solutions that provide dedicated
-functionality (other than as mentioned above) or designed
-for use in embedded or function-specific software
+browsing, and office suite productivity tools).
+The use of Software in systems and solutions that provide
+dedicated functionality (other than as mentioned above) or
+designed for use in embedded or function-specific software
 applications, for example but not limited to: Software
 embedded in or bundled with industrial control systems,
 wireless mobile telephones, wireless handheld devices,
 kiosks, TV/STB, Blu-ray Disc devices, telematics and
 network control switching equipment, printers and storage
-management systems, and other related systems is excluded
+management systems, and other related systems are excluded
 from this definition and not licensed under this
 Agreement.  "Programs" means Java technology applets and
 applications intended to run on the Java Platform Standard
@@ -208,7 +208,12 @@ contained in the Software, (v) you only distribute the
 Software subject to a license agreement that protects Sun's
 interests consistent with the terms contained in this
 Agreement, and (vi) you agree to defend and indemnify Sun
-and its licensors from and
+and its licensors from and against any damages, costs,
+liabilities, settlement amounts and/or expenses (including
+attorneys' fees) incurred in connection with any claim,
+lawsuit or action by any third party that arises or results
+from the use or distribution of any and all Programs and/or
+Software.
 
 C. License to Distribute Redistributables. Subject to the
 terms and conditions of this Agreement and restrictions and
@@ -227,7 +232,15 @@ any component(s) of the Redistributables (unless otherwise
 specified in the applicable README file), (iv) you do not
 remove or alter any proprietary legends or notices
 contained in or on the Redistributables, (v) you only
-distribute the Redistributables pursuant to a license ag
+distribute the Redistributables pursuant to a license
+agreement that protects Sun's interests consistent with the
+terms contained in the Agreement, (vi) you agree to defend
+and indemnify Sun and its licensors from and against any
+damages, costs, liabilities, settlement amounts and/or
+expenses (including attorneys' fees) incurred in connection
+with any claim, lawsuit or action by any third party that
+arises or results from the use or distribution of any and
+all Programs and/or Software.
 
 D. Java Technology Restrictions.  You may not create,
 modify, or change the behavior of, or authorize your
@@ -253,7 +266,47 @@ with your Publication(s); (ii) You are responsible for
 downloading the Software from the applicable Sun web site;
 (iii) You must refer to the Software as JavaTM SE
 Development Kit 6; (iv) The Software must be reproduced in
-its entirety and without any modification what
+its entirety and without any modification whatsoever
+(including, without limitation, the Binary Code License and
+Supplemental License Terms accompanying the Software and
+proprietary rights notices contained in the Software);
+(v) The Media label shall include the following
+information: Copyright 2006, Sun Microsystems, Inc. All
+rights reserved. Use is subject to license terms. Sun, Sun
+Microsystems, the Sun logo, Solaris, Java, the Java Coffee
+Cup logo, J2SE, and all trademarks and logos based on Java
+are trademarks or registered trademarks of Sun
+Microsystems, Inc. in the U.S. and other countries. This
+information must be placed on the Media label in such a
+manner as to only apply to the Sun Software; (vi) You must
+clearly identify the Software as Sun's product on the Media
+holder or Media label, and you may not state or imply that
+Sun is responsible for any third-party software contained
+on the Media; (vii) You may not include any third party
+software on the Media which is intended to be a replacement
+or substitute for the Software; (viii) You shall indemnify
+Sun for all damages arising from your failure to comply
+with the requirements of this Agreement. In addition, you
+shall defend, at your expense, any and all claims brought
+against Sun by third parties, and shall pay all damages
+awarded by a court of competent jurisdiction, or such
+settlement amount negotiated by you, arising out of or in
+connection with your use, reproduction or distribution of
+the Software and/or the Publication. Your obligation to
+provide indemnification under this section shall arise
+provided that Sun: (a) provides you prompt notice of the
+claim; (b) gives you sole control of the defense and
+settlement of the claim; (c) provides you, at your expense,
+with all available information, assistance and authority to
+defend; and (d) has not compromised or settled such claim
+without your prior written consent; and (ix) You shall
+provide Sun with a written notice for each Publication;
+such notice shall include the following information: (1)
+title of Publication, (2) author(s), (3) date of
+Publication, and (4) ISBN or ISSN numbers. Such notice
+shall be sent to Sun Microsystems, Inc., 4150 Network
+Circle, M/S USCA12-110, Santa Clara, California 95054,
+U.S.A , Attention: Contracts Administration.
 
 F. Source Code. Software may contain source code that,
 unless expressly licensed for other purposes, is provided
