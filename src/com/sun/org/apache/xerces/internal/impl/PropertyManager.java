@@ -20,7 +20,7 @@
 
 /*
  * $Id: PropertyManager.java,v 1.5.2.2 2007/01/23 06:25:58 joehw Exp $
- * @(#)PropertyManager.java	1.9 07/01/24
+ * @(#)PropertyManager.java	1.10 08/03/28
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -47,8 +47,8 @@ import com.sun.xml.internal.stream.StaxEntityResolverWrapper;
 public class PropertyManager {
     
     
-    protected static final String STAX_NOTATIONS = "javax.xml.stream.notations";
-    protected static final String STAX_ENTITIES = "javax.xml.stream.entities";
+    public static final String STAX_NOTATIONS = "javax.xml.stream.notations";
+    public static final String STAX_ENTITIES = "javax.xml.stream.entities";
     
     private static final String STRING_INTERNING = "http://xml.org/sax/features/string-interning";
     
