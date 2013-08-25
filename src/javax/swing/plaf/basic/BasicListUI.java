@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.121 06/07/11
+ * @(#)BasicListUI.java	1.123 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.121 07/11/06
+ * @version 1.123 11/30/06
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
@@ -277,7 +277,7 @@ public class BasicListUI extends ListUI
                                                   paintBounds.y);
 	}
         int maxY = paintBounds.y + paintBounds.height;
-        int leadIndex = list.getLeadSelectionIndex();
+        int leadIndex = adjustIndex(list.getLeadSelectionIndex(), list);
         int rowIncrement = (layoutOrientation == JList.HORIZONTAL_WRAP) ?
                            columnCount : 1;
 
@@ -332,7 +332,7 @@ public class BasicListUI extends ListUI
         if (size == 0) {
             Insets insets = list.getInsets();
             if (layoutOrientation == JList.HORIZONTAL_WRAP) {
-                if (list.getComponentOrientation().isLeftToRight()) {
+                if (isLeftToRight) {
                     return new Rectangle(insets.left, insets.top, DROP_LINE_THICKNESS, 20);
                 } else {
                     return new Rectangle(list.getWidth() - DROP_LINE_THICKNESS - insets.right,
@@ -350,7 +350,6 @@ public class BasicListUI extends ListUI
         boolean decr = false;
 
         if (layoutOrientation == JList.HORIZONTAL_WRAP) {
-            boolean ltr = list.getComponentOrientation().isLeftToRight();
             if (index == size) {
                 decr = true;
             } else if (index != 0 && convertModelToRow(index)
@@ -360,7 +359,7 @@ public class BasicListUI extends ListUI
                 Rectangle me = getCellBounds(list, index);
                 Point p = loc.getDropPoint();
                 
-                if (ltr) {
+                if (isLeftToRight) {
                     decr = Point2D.distance(prev.x + prev.width,
                                             prev.y + (int)(prev.height / 2.0),
                                             p.x, p.y)
@@ -380,14 +379,14 @@ public class BasicListUI extends ListUI
             if (decr) {
                 index--;
                 rect = getCellBounds(list, index);
-                if (ltr) {
+                if (isLeftToRight) {
                     rect.x += rect.width;
                 } else {
                     rect.x -= DROP_LINE_THICKNESS;
                 }
             } else {
                 rect = getCellBounds(list, index);
-                if (!ltr) {
+                if (!isLeftToRight) {
                     rect.x += rect.width - DROP_LINE_THICKNESS;
                 }
             }
@@ -779,7 +778,6 @@ public class BasicListUI extends ListUI
 	timeFactor = (l!=null) ? l.longValue() : 1000L;
 
 	updateIsFileList();
-	isLeftToRight = list.getComponentOrientation().isLeftToRight();
     }
 
     private void updateIsFileList() {
@@ -854,6 +852,7 @@ public class BasicListUI extends ListUI
         columnCount = 1;
 
         updateLayoutStateNeeded = modelChanged;
+        isLeftToRight = list.getComponentOrientation().isLeftToRight();
 
         installDefaults();
         installListeners();
@@ -1916,7 +1915,9 @@ public class BasicListUI extends ListUI
                 clearSelection(list);
             }
             else if (name == ADD_TO_SELECTION) {
-                int index = list.getSelectionModel().getLeadSelectionIndex();
+                int index = adjustIndex(
+                    list.getSelectionModel().getLeadSelectionIndex(), list);
+
                 if (!list.isSelectedIndex(index)) {
                     int oldAnchor = list.getSelectionModel().getAnchorSelectionIndex();
                     list.setValueIsAdjusting(true);
@@ -1926,7 +1927,9 @@ public class BasicListUI extends ListUI
                 }
             }
             else if (name == TOGGLE_AND_ANCHOR) {
-                int index = list.getSelectionModel().getLeadSelectionIndex();
+                int index = adjustIndex(
+                    list.getSelectionModel().getLeadSelectionIndex(), list);
+
                 if (list.isSelectedIndex(index)) {
                     list.removeSelectionInterval(index, index);
                 } else {
@@ -1934,14 +1937,16 @@ public class BasicListUI extends ListUI
                 }
             }
             else if (name == EXTEND_TO) {
-                changeSelection(list, EXTEND_SELECTION,
-                                list.getSelectionModel().getLeadSelectionIndex(),
-                                0);
+                changeSelection(
+                    list, EXTEND_SELECTION,
+                    adjustIndex(list.getSelectionModel().getLeadSelectionIndex(), list),
+                    0);
             }
             else if (name == MOVE_SELECTION_TO) {
-                changeSelection(list, CHANGE_SELECTION,
-                                list.getSelectionModel().getLeadSelectionIndex(),
-                                0);
+                changeSelection(
+                    list, CHANGE_SELECTION,
+                    adjustIndex(list.getSelectionModel().getLeadSelectionIndex(), list),
+                    0);
             }
         }
 
@@ -1973,23 +1978,25 @@ public class BasicListUI extends ListUI
             int size = list.getModel().getSize();
             if (size > 0) {
                 ListSelectionModel lsm = list.getSelectionModel();
+                int lead = adjustIndex(lsm.getLeadSelectionIndex(), list);
+
                 if (lsm.getSelectionMode() == ListSelectionModel.SINGLE_SELECTION) {
-                    int leadIndex = list.getLeadSelectionIndex();
-                    if (leadIndex != -1) {
-                        list.setSelectionInterval(leadIndex, leadIndex);
-                    } else if (list.getMinSelectionIndex() == -1) {
-                        list.setSelectionInterval(0, 0);
-                        list.ensureIndexIsVisible(0);
+                    if (lead == -1) {
+                        int min = adjustIndex(list.getMinSelectionIndex(), list);
+                        lead = (min == -1 ? 0 : min);
                     }
+
+                    list.setSelectionInterval(lead, lead);
+                    list.ensureIndexIsVisible(lead);
                 } else {
                     list.setValueIsAdjusting(true);
 
-                    int anchor = lsm.getAnchorSelectionIndex();
-                    int lead = lsm.getLeadSelectionIndex();
+                    int anchor = adjustIndex(lsm.getAnchorSelectionIndex(), list);
+
                     list.setSelectionInterval(0, size - 1);
 
-                    // this is called simply to restore the anchor and lead
-                    list.addSelectionInterval(anchor, lead);
+                    // this is done to restore the anchor and lead
+                    SwingUtilities2.setLeadAnchorWithoutSelection(lsm, anchor, lead);
 
                     list.setValueIsAdjusting(false);
                 }
@@ -1998,13 +2005,13 @@ public class BasicListUI extends ListUI
 
   	private int getNextPageIndex(JList list, int direction) {
 	    if (list.getModel().getSize() == 0) {
-		return -1;
+                return -1;
 	    }
 
  	    int index = -1;
  	    Rectangle visRect = list.getVisibleRect();
   	    ListSelectionModel lsm = list.getSelectionModel();
-	    int lead = lsm.getLeadSelectionIndex();
+            int lead = adjustIndex(lsm.getLeadSelectionIndex(), list);
 	    Rectangle leadRect =
 		(lead==-1) ? new Rectangle() : list.getCellBounds(lead, lead);
   
@@ -2141,9 +2148,9 @@ public class BasicListUI extends ListUI
                 adjustScrollPositionIfNecessary(list, index, direction);
 
 		if (type == EXTEND_SELECTION) {
-		    int anchor = lsm.getAnchorSelectionIndex();
+                    int anchor = adjustIndex(lsm.getAnchorSelectionIndex(), list);
 		    if (anchor == -1) {
-			anchor = index;
+                        anchor = 0;
 		    }
                     
 		    list.setSelectionInterval(anchor, index);
@@ -2252,7 +2259,7 @@ public class BasicListUI extends ListUI
 	private int getNextColumnIndex(JList list, BasicListUI ui,
                                        int amount) {
 	    if (list.getLayoutOrientation() != JList.VERTICAL) {
-                int index = list.getLeadSelectionIndex();
+                int index = adjustIndex(list.getLeadSelectionIndex(), list);
 		int size = list.getModel().getSize();
 
                 if (index == -1) {
@@ -2283,7 +2290,7 @@ public class BasicListUI extends ListUI
         }
 
 	private int getNextIndex(JList list, BasicListUI ui, int amount) {
-	    int index = list.getLeadSelectionIndex();
+            int index = adjustIndex(list.getLeadSelectionIndex(), list);
 	    int size = list.getModel().getSize();
 
 	    if (index == -1) {
@@ -2347,7 +2354,7 @@ public class BasicListUI extends ListUI
 	    char c = e.getKeyChar();
 
 	    long time = e.getWhen();
-	    int startIndex = src.getLeadSelectionIndex();
+            int startIndex = adjustIndex(src.getLeadSelectionIndex(), list);
 	    if (time - lastTime < timeFactor) {
 		typedString += c;
    		if((prefix.length() == 1) && (c == prefix.charAt(0))) {
@@ -2592,8 +2599,11 @@ public class BasicListUI extends ListUI
         public void valueChanged(ListSelectionEvent e) {
             maybeUpdateLayoutState();
 
-            Rectangle bounds = getCellBounds(list, e.getFirstIndex(),
-                                             e.getLastIndex());
+            int size = list.getModel().getSize();
+            int firstIndex = Math.min(size - 1, Math.max(e.getFirstIndex(), 0));
+            int lastIndex = Math.min(size - 1, Math.max(e.getLastIndex(), 0));
+
+            Rectangle bounds = getCellBounds(list, firstIndex, lastIndex);
 
             if (bounds != null) {
                 list.repaint(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -2675,27 +2685,34 @@ public class BasicListUI extends ListUI
                 }
             }
             else {
-                int anchorIndex = list.getAnchorSelectionIndex();
+                int anchorIndex = adjustIndex(list.getAnchorSelectionIndex(), list);
+                boolean anchorSelected;
+                if (anchorIndex == -1) {
+                    anchorIndex = 0;
+                    anchorSelected = false;
+                } else {
+                    anchorSelected = list.isSelectedIndex(anchorIndex);
+                }
+
                 if (e.isControlDown()) {
-                    if (e.isShiftDown() && anchorIndex != -1) {
-                        if (list.isSelectedIndex(anchorIndex)) {
+                    if (e.isShiftDown()) {
+                        if (anchorSelected) {
                             list.addSelectionInterval(anchorIndex, row);
                         } else {
                             list.removeSelectionInterval(anchorIndex, row);
-                            list.addSelectionInterval(row, row);
-                            list.getSelectionModel().setAnchorSelectionIndex(anchorIndex);
+                            if (isFileList) {
+                                list.addSelectionInterval(row, row);
+                                list.getSelectionModel().setAnchorSelectionIndex(anchorIndex);
+                            }
                         }
                     } else if (list.isSelectedIndex(row)) {
                         list.removeSelectionInterval(row, row);
-                    }
-                    else {
+                    } else {
                         list.addSelectionInterval(row, row);
                     }
-                }
-                else if (e.isShiftDown() && (anchorIndex != -1)) {
+                } else if (e.isShiftDown()) {
                     list.setSelectionInterval(anchorIndex, row);
-                }
-                else {
+                } else {
                     list.setSelectionInterval(row, row);
                 }
             }
@@ -2762,7 +2779,7 @@ public class BasicListUI extends ListUI
         //
         protected void repaintCellFocus()
         {
-            int leadIndex = list.getLeadSelectionIndex();
+            int leadIndex = adjustIndex(list.getLeadSelectionIndex(), list);
             if (leadIndex != -1) {
                 Rectangle r = getCellBounds(list, leadIndex, leadIndex);
                 if (r != null) {
@@ -2782,6 +2799,10 @@ public class BasicListUI extends ListUI
         public void focusLost(FocusEvent e) {
             repaintCellFocus();
         }
+    }
+
+    private static int adjustIndex(int index, JList list) {
+        return index < list.getModel().getSize() ? index : -1;
     }
 
     private static final TransferHandler defaultTransferHandler = new ListTransferHandler();

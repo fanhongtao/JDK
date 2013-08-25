@@ -1,5 +1,5 @@
 /*
- * @(#)GTKStyleFactory.java	1.34 05/11/17
+ * @(#)GTKStyleFactory.java	1.36 06/12/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,14 +33,17 @@ class GTKStyleFactory extends SynthStyleFactory {
     }
 
     /**
-     * Saves all styles that have been accessed.
+     * Saves all styles that have been accessed.  In most common cases,
+     * the hash key is simply the WidgetType, but in more complex cases
+     * it will be a ComplexKey object that contains arguments to help
+     * differentiate similar styles.
      */
-    private Map<WidgetType,GTKStyle> stylesCache;
+    private final Map<Object, GTKStyle> stylesCache;
     
     private Font defaultFont;
     
     GTKStyleFactory() {
-        stylesCache = new HashMap<WidgetType, GTKStyle>();
+        stylesCache = new HashMap<Object, GTKStyle>();
     }
     
     /**
@@ -52,14 +55,37 @@ class GTKStyleFactory extends SynthStyleFactory {
      */
     public synchronized SynthStyle getStyle(JComponent c, Region id) {
         WidgetType wt = GTKNativeEngine.getWidgetType(c, id);
-        
-        GTKStyle result = stylesCache.get(wt);
+
+        Object key = null;
+        if (id == Region.CHECK_BOX || id == Region.RADIO_BUTTON) {
+            // The style/insets of a checkbox or radiobutton can depend
+            // on the component orientation, so use a complex key here.
+            if (c != null) {
+                boolean ltr = c.getComponentOrientation().isLeftToRight();
+                key = new ComplexKey(wt, ltr);
+            }
+        }
+        else if (id == Region.BUTTON) {
+            // The style/insets of a button can depend on whether it is
+            // default capable or in a toolbar, so use a complex key here.
+            if (c != null) {
+                JButton btn = (JButton)c;
+                boolean toolButton = (btn.getParent() instanceof JToolBar);
+                boolean defaultCapable = btn.isDefaultCapable();
+                key = new ComplexKey(wt, toolButton, defaultCapable);
+            }
+        }
+        if (key == null) {
+            // Otherwise, just use the WidgetType as the key.
+            key = wt;
+        }
+
+        GTKStyle result = stylesCache.get(key);
         if (result == null) {
             result = isNativeGtk ? 
                      new GTKNativeStyle(defaultFont, wt) : 
                      new GTKDefaultStyle(defaultFont);
-            
-            stylesCache.put(wt, result);
+            stylesCache.put(key, result);
         }
         
         return result;
@@ -68,5 +94,73 @@ class GTKStyleFactory extends SynthStyleFactory {
     void initStyles(Font defaultFont) {
         this.defaultFont = defaultFont;
         stylesCache.clear();
+    }
+
+    /**
+     * Represents a hash key used for fetching GTKStyle objects from the
+     * cache.  In most cases only the WidgetType is used for lookup, but
+     * in some complex cases, other Object arguments can be specified
+     * via a ComplexKey to differentiate the various styles.
+     */
+    private static class ComplexKey {
+        private final WidgetType wt;
+        private final Object[] args;
+
+        ComplexKey(WidgetType wt, Object... args) {
+            this.wt = wt;
+            this.args = args;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = wt.hashCode();
+            if (args != null) {
+                for (Object arg : args) {
+                    hash = hash*29 + (arg == null ? 0 : arg.hashCode());
+                }
+            }
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof ComplexKey)) {
+                return false;
+            }
+            ComplexKey that = (ComplexKey)o;
+            if (this.wt == that.wt) {
+                if (this.args == null && that.args == null) {
+                    return true;
+                }
+                if (this.args != null && that.args != null &&
+                    this.args.length == that.args.length)
+                {
+                    for (int i = 0; i < this.args.length; i++) {
+                        Object a1 = this.args[i];
+                        Object a2 = that.args[i];
+                        if (!(a1==null ? a2==null : a1.equals(a2))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            String str = "ComplexKey[wt=" + wt;
+            if (args != null) {
+                str += ",args=[";
+                for (int i = 0; i < args.length; i++) {
+                    str += args[i];
+                    if (i < args.length-1) str += ",";
+                }
+                str += "]";
+            }
+            str += "]";
+            return str;
+        }
     }
 }

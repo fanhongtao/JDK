@@ -1,5 +1,5 @@
 /*
- * @(#)SynthBorder.java	1.14 05/11/17
+ * @(#)SynthBorder.java	1.15 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import sun.swing.plaf.synth.SynthUI;
  * SynthBorder is a border that delegates to a Painter. The Insets
  * are determined at construction time.
  *
- * @version 1.14, 11/17/05
+ * @version 1.15, 11/30/06
  * @author Scott Violet
  */
 class SynthBorder extends AbstractBorder implements UIResource {
@@ -72,10 +72,10 @@ class SynthBorder extends AbstractBorder implements UIResource {
                                   this.insets.bottom, this.insets.right);
             }
             else {
-                insets.top = this.insets.top;
+                insets.top    = this.insets.top;
                 insets.bottom = this.insets.bottom;
-                insets.left = this.insets.left;
-                insets.right = this.insets.left;
+                insets.left   = this.insets.left;
+                insets.right  = this.insets.right;
             }
         }
         else if (insets == null) {

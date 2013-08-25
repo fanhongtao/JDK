@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.141 06/08/09
+ * @(#)BasicMenuItemUI.java	1.142 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,7 +7,9 @@
  
 package javax.swing.plaf.basic;
 
+import sun.swing.MenuItemCheckIconFactory;
 import sun.swing.SwingUtilities2;
+import static sun.swing.SwingUtilities2.BASICMENUITEMUI_MAX_TEXT_OFFSET;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -24,7 +26,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.141 08/09/06
+ * @version 1.142 12/15/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -78,11 +80,9 @@ public class BasicMenuItemUI extends MenuItemUI
     static final String MAX_TEXT_WIDTH =  "maxTextWidth";
     static final String MAX_ACC_WIDTH  =  "maxAccWidth";
 
-    /* Client Property keys for the icon and text maximal offsets */
+    /* Client Property key for the icon offset */
     static final StringBuffer MAX_ICON_OFFSET =
                                   new StringBuffer("maxIconOffset");
-    static final StringBuffer MAX_TEXT_OFFSET =
-                                  new StringBuffer("maxTextOffset");
 
     static void loadActionMap(LazyActionMap map) {
         // NOTE: BasicMenuUI also calls into this method.
@@ -171,6 +171,13 @@ public class BasicMenuItemUI extends MenuItemUI
         if (checkIcon == null ||
             checkIcon instanceof UIResource) {
             checkIcon = UIManager.getIcon(prefix + ".checkIcon");
+            MenuItemCheckIconFactory iconFactory = 
+                (MenuItemCheckIconFactory) UIManager.get(prefix 
+                    + ".checkIconFactory");
+            if (iconFactory != null
+                    && iconFactory.isCompatible(checkIcon, prefix)) {
+                checkIcon = iconFactory.getIcon(menuItem);
+            }
         }
     }
 
@@ -228,7 +235,7 @@ public class BasicMenuItemUI extends MenuItemUI
 	    p.putClientProperty(BasicMenuItemUI.MAX_TEXT_WIDTH, null ); 
             p.putClientProperty(BasicMenuItemUI.MAX_ICON_WIDTH, null ); 
             p.putClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET, null );
-            p.putClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET, null );
+            p.putClientProperty(BASICMENUITEMUI_MAX_TEXT_OFFSET, null );
 	}
 
 	menuItem = null;
@@ -405,7 +412,19 @@ public class BasicMenuItemUI extends MenuItemUI
                                                      Icon arrowIcon,
                                                      int defaultTextIconGap) {
         JMenuItem b = (JMenuItem) c;
-        Icon icon = (Icon) b.getIcon(); 
+        
+        Icon icon = null;
+        /* 
+         * in case .checkIconFactory is defined for this UI and the icon is 
+         * compatible with it then the icon is handled by the checkIcon.
+         */
+        MenuItemCheckIconFactory iconFactory = 
+            (MenuItemCheckIconFactory) UIManager.get(getPropertyPrefix() 
+                + ".checkIconFactory");
+        if (iconFactory == null
+                || ! iconFactory.isCompatible(checkIcon, getPropertyPrefix())) {
+           icon = b.getIcon();  
+        }
         String text = b.getText();
         KeyStroke accelerator =  b.getAccelerator();
         String acceleratorText = "";
@@ -489,7 +508,9 @@ public class BasicMenuItemUI extends MenuItemUI
 
         // if the height is even, bump it up one. This is critical
         // for the text to center properly
-        if(r.height%2 == 0) {
+        if(r.height%2 == 0 
+                && Boolean.TRUE != 
+                    UIManager.get(getPropertyPrefix() + ".evenHeight")) {
             r.height++;
         }
 /*
@@ -616,10 +637,21 @@ public class BasicMenuItemUI extends MenuItemUI
                 acceleratorText += accelerator.getKeyChar();
             }
         }
-        
+        Icon icon = null;
+        /* 
+         * in case .checkIconFactory is defined for this UI and the icon is 
+         * compatible with it then the icon is handled by the checkIcon.
+         */
+        MenuItemCheckIconFactory iconFactory = 
+            (MenuItemCheckIconFactory) UIManager.get(getPropertyPrefix() 
+                + ".checkIconFactory");
+        if (iconFactory == null
+                || ! iconFactory.isCompatible(checkIcon, getPropertyPrefix())) {
+           icon = b.getIcon();  
+        }
         // layout the text and icon
         String text = layoutMenuItem(
-            fm, b.getText(), fmAccel, acceleratorText, b.getIcon(),
+            fm, b.getText(), fmAccel, acceleratorText, icon,
             checkIcon, arrowIcon,
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
@@ -627,8 +659,7 @@ public class BasicMenuItemUI extends MenuItemUI
             checkIconRect, arrowIconRect,
             b.getText() == null ? 0 : defaultTextIconGap,
             defaultTextIconGap
-        );
-          
+        ); 
         // Paint background
 	paintBackground(g, b, background);
 
@@ -647,8 +678,7 @@ public class BasicMenuItemUI extends MenuItemUI
         }
 
         // Paint the Icon
-        if(b.getIcon() != null) { 
-            Icon icon;
+        if(icon != null ) { 
             if(!model.isEnabled()) {
                 icon = (Icon) b.getDisabledIcon();
             } else if(model.isPressed() && model.isArmed()) {
@@ -884,8 +914,23 @@ public class BasicMenuItemUI extends MenuItemUI
 
         JComponent p = getMenuItemParent(menuItem);
 
-        Rectangle labelRect = iconRect.union(textRect);
+        Rectangle labelRect = iconRect.union(textRect);        
+        
+        int checkIconOffset = menuItemGap;
+        Object checkIconOffsetObject = 
+            UIManager.get(getPropertyPrefix() + ".checkIconOffset");
+        if (checkIconOffsetObject instanceof Integer) {
+            checkIconOffset = (Integer) checkIconOffsetObject;
+        }
         if( BasicGraphicsUtils.isLeftToRight(menuItem) ) {
+            /* get minimum text offset. It is defined for LTR case only. */
+            int minimumTextOffset = 0;
+            Object minimumTextOffsetObject = 
+                UIManager.get(getPropertyPrefix() 
+                    + ".minimumTextOffset");
+            if (minimumTextOffsetObject instanceof Integer) {
+                minimumTextOffset = (Integer) minimumTextOffsetObject;
+            }
             textRect.x += menuItemGap;
             iconRect.x += menuItemGap;
 
@@ -895,11 +940,12 @@ public class BasicMenuItemUI extends MenuItemUI
             
             // Position the Check and Arrow Icons 
             if (useCheckAndArrow()) {
-                checkIconRect.x = viewRect.x + menuItemGap;
+                checkIconRect.x = viewRect.x + checkIconOffset;
                 if(icon == null || checkIcon != null) {
                     iconRect.x += menuItemGap + checkIconRect.width;
                 }
-                textRect.x += menuItemGap + checkIconRect.width;
+                textRect.x += menuItemGap + checkIconRect.width;                
+                textRect.x = Math.max(textRect.x, minimumTextOffset);
                 arrowIconRect.x = viewRect.x + viewRect.width - menuItemGap
                                   - arrowIconRect.width;
             }
@@ -908,13 +954,13 @@ public class BasicMenuItemUI extends MenuItemUI
                 Integer maxIconOffset = (Integer)
                          p.getClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET);
                 Integer maxTextOffset = (Integer)
-                         p.getClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET);
+                         p.getClientProperty(BASICMENUITEMUI_MAX_TEXT_OFFSET);
                 int maxIconValue = maxIconOffset == null ? 0 : maxIconOffset;
                 int maxTextValue = maxTextOffset == null ? 0 : maxTextOffset;
 
                 int thisTextOffset = textRect.x - viewRect.x;
                 if(thisTextOffset > maxTextValue) {
-                    p.putClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET,
+                    p.putClientProperty(BASICMENUITEMUI_MAX_TEXT_OFFSET,
                                         new Integer(thisTextOffset));
                 } else {
                     textRect.x = maxTextValue + viewRect.x;
@@ -950,7 +996,7 @@ public class BasicMenuItemUI extends MenuItemUI
 
             // Position the Check and Arrow Icons 
             if (useCheckAndArrow()) {
-                checkIconRect.x = viewRect.x + viewRect.width - menuItemGap
+                checkIconRect.x = viewRect.x + viewRect.width - checkIconOffset
                                   - checkIconRect.width;
                 if(icon == null || checkIcon != null) {
                     iconRect.x -= menuItemGap + checkIconRect.width;      
@@ -963,14 +1009,14 @@ public class BasicMenuItemUI extends MenuItemUI
                 Integer maxIconOffset = (Integer)
                          p.getClientProperty(BasicMenuItemUI.MAX_ICON_OFFSET);
                 Integer maxTextOffset = (Integer)
-                         p.getClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET);
+                         p.getClientProperty(BASICMENUITEMUI_MAX_TEXT_OFFSET);
                 int maxIconValue =  maxIconOffset == null ? 0 : maxIconOffset;
                 int maxTextValue =  maxTextOffset == null ? 0 : maxTextOffset;
 
                 int thisTextOffset = viewRect.x + viewRect.width
                                      - textRect.x - textRect.width;
                 if(thisTextOffset > maxTextValue) {
-                    p.putClientProperty(BasicMenuItemUI.MAX_TEXT_OFFSET,
+                    p.putClientProperty(BASICMENUITEMUI_MAX_TEXT_OFFSET,
                                         new Integer(thisTextOffset));
                 } else {
                     textRect.x = viewRect.x + viewRect.width

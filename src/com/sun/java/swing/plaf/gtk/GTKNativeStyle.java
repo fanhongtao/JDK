@@ -1,7 +1,7 @@
 /*
  * GTKNativeStyle.java
  *
- * @(#)GTKNativeStyle.java	1.4 06/01/18
+ * @(#)GTKNativeStyle.java	1.5 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import sun.awt.UNIXToolkit;
 
 /**
  *
- * @version 1.4, 01/18/06
+ * @version 1.5, 11/30/06
  * @author Kirill Kirichenko
  */
 class GTKNativeStyle extends GTKStyle {
@@ -43,7 +43,6 @@ class GTKNativeStyle extends GTKStyle {
      * I.e. it is responsible for the style.
      */
     private final int widgetType;
-    private final int colorWidgetType;
 
     private final int xThickness, yThickness;
     private final Font pangoFont;
@@ -59,15 +58,11 @@ class GTKNativeStyle extends GTKStyle {
     GTKNativeStyle(Font font, WidgetType widgetType) {
         super(font);
         this.widgetType = widgetType.ordinal();
-        this.colorWidgetType = ((widgetType == WidgetType.MENU) ?
-                                WidgetType.MENU_ITEM : widgetType).ordinal();
-        int thicknessWidgetType = ((widgetType == WidgetType.MENU_BAR) ?
-                         WidgetType.MENU_ITEM : widgetType).ordinal();
 
         String pangoFontName = null;
         synchronized(sun.awt.UNIXToolkit.GTK_LOCK) {
-            xThickness = native_get_xthickness(thicknessWidgetType);
-            yThickness = native_get_ythickness(thicknessWidgetType);
+            xThickness = native_get_xthickness(this.widgetType);
+            yThickness = native_get_ythickness(this.widgetType);
             pangoFontName = native_get_pango_font_name(this.widgetType);
         }
         pangoFont = (pangoFontName != null) ?
@@ -77,7 +72,7 @@ class GTKNativeStyle extends GTKStyle {
     Color getStyleSpecificColor(SynthContext context, int state, ColorType type) {
         state = GTKLookAndFeel.synthStateToGTKStateType(state).ordinal();
         synchronized(sun.awt.UNIXToolkit.GTK_LOCK) {
-            int rgb = native_get_color_for_state(colorWidgetType, state, type.getID());
+            int rgb = native_get_color_for_state(widgetType, state, type.getID());
             return new ColorUIResource(rgb);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)ORBSingleton.java	1.43 05/11/17
+ * @(#)ORBSingleton.java	1.44 06/12/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -119,7 +119,7 @@ import com.sun.corba.se.spi.legacy.connection.LegacyServerSocketEndPointInfo;
 public class ORBSingleton extends ORB
 {
     // This is used to support read_Object.
-    private static ORB fullORB;
+    private ORB fullORB;
     private static PresentationManager.StubFactoryFactory staticStubFactoryFactory =
 	PresentationDefaults.getStaticStubFactoryFactory() ;
 

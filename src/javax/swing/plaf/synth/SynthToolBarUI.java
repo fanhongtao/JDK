@@ -1,5 +1,5 @@
 /*
- * @(#)SynthToolBarUI.java	1.13 05/11/17
+ * @(#)SynthToolBarUI.java	1.14 06/12/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.swing.plaf.synth.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.13, 11/17/05
+ * @version 1.14, 12/01/06
  */
 class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
            SynthUI {
@@ -232,6 +232,7 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
 
         public Dimension minimumLayoutSize(Container parent) {
             JToolBar tb = (JToolBar)parent;
+            Insets insets = tb.getInsets();
             Dimension dim = new Dimension();
             SynthContext context = getContext(tb);
 
@@ -254,12 +255,16 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                     dim.height += compDim.height;
                 }
             }
+            dim.width += insets.left + insets.right;
+            dim.height += insets.top + insets.bottom;
+
             context.dispose();
             return dim;
         }
 
         public Dimension preferredLayoutSize(Container parent) {
             JToolBar tb = (JToolBar)parent;
+            Insets insets = tb.getInsets();
             Dimension dim = new Dimension();
             SynthContext context = getContext(tb);
 
@@ -282,12 +287,16 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
                     dim.height += compDim.height;
                 }
             }
+            dim.width += insets.left + insets.right;
+            dim.height += insets.top + insets.bottom;
+
             context.dispose();
             return dim;
         }
 
         public void layoutContainer(Container parent) {
             JToolBar tb = (JToolBar)parent;
+            Insets insets = tb.getInsets();
             boolean ltr = tb.getComponentOrientation().isLeftToRight();
             SynthContext context = getContext(tb);
 
@@ -296,32 +305,67 @@ class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
             if (tb.getOrientation() == JToolBar.HORIZONTAL) {
                 int handleWidth = tb.isFloatable() ?
                     SynthIcon.getIconWidth(handleIcon, context) : 0;
-                int x = ltr ? handleWidth : tb.getWidth() - handleWidth;
+
+                // Note: contentRect does not take insets into account
+                // since it is used for determining the bounds that are
+                // passed to paintToolBarContentBackground().
                 contentRect.x = ltr ? handleWidth : 0;
                 contentRect.y = 0;
                 contentRect.width = tb.getWidth() - handleWidth;
                 contentRect.height = tb.getHeight();
 
+                // However, we do take the insets into account here for
+                // the purposes of laying out the toolbar child components.
+                int x = ltr ?
+                    handleWidth + insets.left :
+                    tb.getWidth() - handleWidth - insets.right;
+                int baseY = insets.top;
+                int baseH = tb.getHeight() - insets.top - insets.bottom;
+
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     c = tb.getComponent(i);
                     d = c.getPreferredSize();
-                    c.setBounds(ltr ? x : x - d.width, 0, d.width,
-                            contentRect.height);
+                    int y, h;
+                    if (d.height >= baseH || c instanceof JSeparator) {
+                        // Fill available height
+                        y = baseY;
+                        h = baseH;
+                    } else {
+                        // Center component vertically in the available space
+                        y = baseY + (baseH / 2) - (d.height / 2);
+                        h = d.height;
+                    }
+                    c.setBounds(ltr ? x : x - d.width, y, d.width, h);
                     x = ltr ? x + d.width : x - d.width;
                 }
             } else {
                 int handleHeight = tb.isFloatable() ?
                     SynthIcon.getIconHeight(handleIcon, context) : 0;
-                int y = handleHeight;
+
+                // See notes above regarding the use of insets
                 contentRect.x = 0;
                 contentRect.y = handleHeight;
                 contentRect.width = tb.getWidth();
                 contentRect.height = tb.getHeight() - handleHeight;
 
+                int baseX = insets.left;
+                int baseW = tb.getWidth() - insets.left - insets.right;
+                int y = handleHeight + insets.top;
+
                 for (int i = 0; i < tb.getComponentCount(); i++) {
                     c = tb.getComponent(i);
                     d = c.getPreferredSize();
-                    c.setBounds(0, y, contentRect.width, d.height);
+                    int x, w;
+                    if (d.width >= baseW || c instanceof JSeparator) {
+                        // Fill available width
+                        x = baseX;
+                        w = baseW;
+                    } else {
+                        // Center component horizontally in the available space
+                        x = baseX + (baseW / 2) - (d.width / 2);
+                        w = d.width;
+                    }                    
+                    c.setBounds(x, y, w, d.height);
                     y += d.height;
                 }
             }

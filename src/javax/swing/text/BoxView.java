@@ -1,5 +1,5 @@
 /*
- * @(#)BoxView.java	1.68 06/07/28
+ * @(#)BoxView.java	1.69 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.68 07/28/06
+ * @version 1.69 11/30/06
  */
 public class BoxView extends CompositeView {
 
@@ -377,8 +377,8 @@ public class BoxView extends CompositeView {
      * @param height the height >= 0
      */
     public void setSize(float width, float height) {
-	layout((int)(width - getLeftInset() - getRightInset()), 
-	       (int)(height - getTopInset() - getBottomInset()));
+        layout(Math.max(0, (int)(width - getLeftInset() - getRightInset())), 
+               Math.max(0, (int)(height - getTopInset() - getBottomInset())));
     }
 
     /**

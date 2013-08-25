@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.193 06/04/18
+ * @(#)BasicTreeUI.java	1.194 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.193 04/18/06
+ * @version 1.194 11/30/06
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */
@@ -49,8 +49,6 @@ public class BasicTreeUI extends TreeUI
 
     // Old actions forward to an instance of this.
     static private final Actions SHARED_ACTION = new Actions();
-
-    static private final Insets EMPTY_INSETS = new Insets(0, 0, 0, 0);
 
     transient protected Icon        collapsedIcon;
     transient protected Icon        expandedIcon;
@@ -108,6 +106,9 @@ public class BasicTreeUI extends TreeUI
     protected boolean           validCachedPreferredSize;
 
     /** Object responsible for handling sizing and expanded issues. */
+    // WARNING: Be careful with the bounds held by treeState. They are
+    // always in terms of left-to-right. They get mapped to right-to-left
+    // by the various methods of this class.
     protected AbstractLayoutCache  treeState;
 
 
@@ -132,11 +133,6 @@ public class BasicTreeUI extends TreeUI
      * x locations. This is based on whether or not the root is visible,
      * and if the root handles are visible. */
     protected int               depthOffset;
-
-    /** Last width the tree was at when painted. This is used when
-     * !leftToRigth to notice the bounds have changed so that we can instruct
-     * the TreeState to relayout. */
-    private int                 lastWidth;
 
     // Following 4 ivars are only valid when editing.
 
@@ -509,16 +505,24 @@ public class BasicTreeUI extends TreeUI
       */
     public Rectangle getPathBounds(JTree tree, TreePath path) {
 	if(tree != null && treeState != null) {
-	    Insets           i = tree.getInsets();
-	    Rectangle        bounds = treeState.getBounds(path, null);
-
-	    if(bounds != null && i != null) {
-		bounds.x += i.left;
-		bounds.y += i.top;
-	    }
-	    return bounds;
+            return getPathBounds(path, tree.getInsets(), new Rectangle());
 	}
 	return null;
+    }
+
+    private Rectangle getPathBounds(TreePath path, Insets insets, 
+                                    Rectangle bounds) {
+        bounds = treeState.getBounds(path, bounds);
+        if (bounds != null) {
+            if (leftToRight) {
+                bounds.x += insets.left;
+            } else {
+                bounds.x = tree.getWidth() - (bounds.x + bounds.width) -
+                        insets.right;
+            }
+            bounds.y += insets.top;
+        }
+        return bounds;
     }
 
     /**
@@ -554,12 +558,10 @@ public class BasicTreeUI extends TreeUI
       */
     public TreePath getClosestPathForLocation(JTree tree, int x, int y) {
 	if(tree != null && treeState != null) {
-	    Insets          i = tree.getInsets();
-
-	    if(i == null)
-		i = EMPTY_INSETS;
-
-	    return treeState.getPathClosestTo(x - i.left, y - i.top);
+            // TreeState doesn't care about the x location, hence it isn't
+            // adjusted 
+            y -= tree.getInsets().top;
+            return treeState.getPathClosestTo(x, y);
 	}
 	return null;
     }
@@ -642,7 +644,6 @@ public class BasicTreeUI extends TreeUI
 
 	// Data member initializations
 	leftToRight = BasicGraphicsUtils.isLeftToRight(tree);
-	lastWidth = tree.getWidth();
 	stopEditingInCompleteEditing = true;
 	lastSelectedRow = -1;
 	leadRow = -1;
@@ -1125,27 +1126,8 @@ public class BasicTreeUI extends TreeUI
 	    return;
 	}
 
-	// Update the lastWidth if necessary.
-	// This should really come from a ComponentListener installed on
-	// the JTree, but for the time being it is here.
-	int              width = tree.getWidth();
-
-	if (width != lastWidth) {
-	    lastWidth = width;
-	    if (!leftToRight) {
-		// For RTL when the size changes, we have to refresh the
-		// cache as the X position is based off the width.
-		redoTheLayout();
-		updateSize();
-	    }
-	}
-
 	Rectangle        paintBounds = g.getClipBounds();
 	Insets           insets = tree.getInsets();
-
-	if(insets == null)
-	    insets = EMPTY_INSETS;
-
 	TreePath         initialPath = getClosestPathForLocation
 	                               (tree, 0, paintBounds.y);
 	Enumeration      paintingEnumerator = treeState.getVisiblePathsFrom
@@ -1188,15 +1170,13 @@ public class BasicTreeUI extends TreeUI
 			isExpanded = treeState.getExpandedState(path);
 			hasBeenExpanded = tree.hasBeenExpanded(path);
 		    }
-		    bounds = treeState.getBounds(path, boundsBuffer);
+                    bounds = getPathBounds(path, insets, boundsBuffer);
 		    if(bounds == null)
 			// This will only happen if the model changes out
 			// from under us (usually in another thread).
 			// Swing isn't multithreaded, but I'll put this
 			// check in anyway.
 			return;
-		    bounds.x += insets.left;
-		    bounds.y += insets.top;
 		    // See if the vertical line to the parent has been drawn.
 		    parentPath = path.getParentPath();
 		    if(parentPath != null) {
@@ -1222,13 +1202,6 @@ public class BasicTreeUI extends TreeUI
 					   path, row, isExpanded,
 					   hasBeenExpanded, isLeaf);
 		    }
-                    //This is the quick fix for bug 4259260.  Somewhere we
-                    //are out by 4 pixels in the RTL layout.  Its probably
-                    //due to built in right-side padding in some icons.  Rather
-                    //than ferret out problem at the source, this compensates. 
-            	    if (!leftToRight) {
-                        bounds.x +=4;
-                    }
 		    paintRow(g, paintBounds, insets, bounds, path,
 				 row, isExpanded, hasBeenExpanded, isLeaf);
 		    if((bounds.y + bounds.height) >= endY)
@@ -1269,7 +1242,7 @@ public class BasicTreeUI extends TreeUI
         Rectangle rect = null;
         TreePath path = loc.getPath();
         int index = loc.getChildIndex();
-        boolean ltr = tree.getComponentOrientation().isLeftToRight();
+        boolean ltr = leftToRight;
 
         Insets insets = tree.getInsets();
 
@@ -1402,7 +1375,8 @@ public class BasicTreeUI extends TreeUI
             lineX = lineX - getRightChildIndent() + insets.left;
 	}
 	else {
-	    lineX = lastWidth - getRowX(-1, depth) - 9;
+            lineX = tree.getWidth() - lineX - insets.right +
+                    getRightChildIndent();
 	}
 	int clipLeft = clipBounds.x;
 	int clipRight = clipBounds.x + (clipBounds.width - 1);
@@ -1837,90 +1811,18 @@ public class BasicTreeUI extends TreeUI
 	    if(isLargeModel()) {
 		Rectangle            visRect = tree.getVisibleRect();
 
-		if(i != null) {
-		    visRect.x -= i.left;
-		    visRect.y -= i.top;
-		}
-		if (leftToRight) {
-		    preferredSize.width = treeState.getPreferredWidth(visRect);
-		}
-		else {
-		    if (getRowCount(tree) == 0) {
-			preferredSize.width = 0;
-		    }
-		    else {
-			preferredSize.width = lastWidth - getMinX(visRect);
-		    }
-		}
-	    }
-	    else if (leftToRight) {
-		preferredSize.width = treeState.getPreferredWidth(null);
+                visRect.x -= i.left;
+                visRect.y -= i.top;
+                preferredSize.width = treeState.getPreferredWidth(visRect);
 	    }
 	    else {
-		Rectangle tempRect = null;
-		int rowCount = tree.getRowCount();
-		int width = 0;
-		for (int counter = 0; counter < rowCount; counter++) {
-		    tempRect = treeState.getBounds
-			       (treeState.getPathForRow(counter), tempRect);
-		    if (tempRect != null) {
-			width = Math.max(lastWidth - tempRect.x, width);
-		    }
-		}
-		preferredSize.width = width;
+                preferredSize.width = treeState.getPreferredWidth(null);
 	    }
 	    preferredSize.height = treeState.getPreferredHeight();
-	    if(i != null) {
-		preferredSize.width += i.left + i.right;
-		preferredSize.height += i.top + i.bottom;
-	    }
+            preferredSize.width += i.left + i.right;
+            preferredSize.height += i.top + i.bottom;
 	}
 	validCachedPreferredSize = true;
-    }
-
-    /**
-     * Returns the minimum x location for the nodes in <code>bounds</code>.
-     */
-    private int getMinX(Rectangle bounds) {
-	TreePath      firstPath;
-	int           endY;
-
-	if(bounds == null) {
-	    firstPath = getPathForRow(tree, 0);
-	    endY = Integer.MAX_VALUE;
-	}
-	else {
-	    firstPath = treeState.getPathClosestTo(bounds.x, bounds.y);
-	    endY = bounds.height + bounds.y;
-	}
-
-	Enumeration   paths = treeState.getVisiblePathsFrom(firstPath);
-	int           minX = 0;
-
-	if(paths != null && paths.hasMoreElements()) {
-	    Rectangle   pBounds = treeState.getBounds
-		                  ((TreePath)paths.nextElement(), null);
-	    int         width;
-
-	    if(pBounds != null) {
-		minX = pBounds.x + pBounds.width;
-		if (pBounds.y >= endY) {
-		    return minX;
-		}
-	    }
-	    while (pBounds != null && paths.hasMoreElements()) {
-		pBounds = treeState.getBounds((TreePath)paths.nextElement(),
-					      pBounds);
-		if (pBounds != null && pBounds.y < endY) {
-		    minX = Math.min(minX, pBounds.x);
-		}
-		else {
-		    pBounds = null;
-		}
-	    }
-	    return minX;
-	}
-	return minX;
     }
 
     /**
@@ -2143,7 +2045,6 @@ public class BasicTreeUI extends TreeUI
 		      (tree, path.getLastPathComponent(),
 		       tree.isPathSelected(path), tree.isExpanded(path),
 		       treeModel.isLeaf(path.getLastPathComponent()), row);
-
 		Rectangle           nodeBounds = getPathBounds(tree, path);
 
 		editingRow = row;
@@ -2261,22 +2162,17 @@ public class BasicTreeUI extends TreeUI
 	    else
 		boxWidth = 8;
 
-	    int boxLeftX = getRowX(tree.getRowForPath(path),
-                   path.getPathCount() - 1) - getRightChildIndent() -
-                   boxWidth / 2;
+            int boxLeftX = getRowX(tree.getRowForPath(path), 
+                                   path.getPathCount() - 1);
 
-	    if (leftToRight) {
-                boxLeftX += i.left;
-	    }
-	    else {
-	        boxLeftX = i.left + lastWidth - 1 - 
-		            ((path.getPathCount() - 2 + depthOffset) *
-			     totalChildIndent) - getLeftChildIndent() -
-		            boxWidth / 2;
-	    }
-	    int boxRightX = boxLeftX + boxWidth;
-
-	    return mouseX >= boxLeftX && mouseX <= boxRightX;
+            if (leftToRight) {
+                boxLeftX = boxLeftX - getRightChildIndent() -
+                   boxWidth / 2 + i.left;
+            } else {
+                boxLeftX = tree.getWidth() - boxLeftX - i.right +
+                    getRightChildIndent() - boxWidth / 2;
+            }
+            return (mouseX >= boxLeftX && mouseX <= (boxLeftX + boxWidth));
 	}
 	return false;
     }
@@ -2794,10 +2690,6 @@ public class BasicTreeUI extends TreeUI
 		    size = new Rectangle(getRowX(row, depth), 0,
 					 prefSize.width, prefSize.height);
 		}
-
-		if(!leftToRight) {
-		    size.x = lastWidth - size.width - size.x - 2;
-		}
 		return size;
 	    }
 	    // Not editing, use renderer.
@@ -2823,10 +2715,6 @@ public class BasicTreeUI extends TreeUI
 		else {
 		    size = new Rectangle(getRowX(row, depth), 0,
 					 prefSize.width, prefSize.height);
-		}
-
-		if(!leftToRight) {
-		    size.x = lastWidth - size.width - size.x - 2;
 		}
 		return size;
 	    }

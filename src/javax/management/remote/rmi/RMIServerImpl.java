@@ -1,5 +1,5 @@
 /*
- * @(#)RMIServerImpl.java	1.58 05/12/30
+ * @(#)RMIServerImpl.java	1.59 06/09/29
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,9 +17,7 @@ import java.lang.ref.WeakReference;
 import java.rmi.Remote;
 import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
-import java.security.AccessController;
 import java.security.Principal;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -141,13 +139,13 @@ public abstract class RMIServerImpl implements Closeable, RMIServer {
     }
 
     public String getVersion() {
-	// Expected format is: "protocol-version implementation-name"
-	return "1.0 java_runtime_" + (String)
-	    AccessController.doPrivileged(new PrivilegedAction() {
-		    public Object run() {
-			return System.getProperty("java.runtime.version");
-		    }
-		});
+        // Expected format is: "protocol-version implementation-name"
+        try {
+            return "1.0 java_runtime_" +
+                    System.getProperty("java.runtime.version");
+        } catch (SecurityException e) {
+            return "1.0 ";
+        }
     }
 
     /**

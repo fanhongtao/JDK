@@ -1,17 +1,11 @@
 /*
- * @(#)ServiceName.java	1.118 06/06/22
+ * @(#)ServiceName.java	1.119 06/09/29
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.jmx.defaults;
-
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import com.sun.jmx.mbeanserver.GetPropertyAction;
-
 
 /**
  * Used for storing default values used by JMX services.
@@ -82,16 +76,4 @@ public class ServiceName {
      * The value is <CODE>Sun Microsystems</CODE>.
      */
     public static final String JMX_IMPL_VENDOR = "Sun Microsystems";
-
-    /**
-     * The version of this implementation of the JMX specification.  
-     * <BR>
-     * For example, with a JMX implementation as part of the 
-     * Java Runtime Environment, this property has the same value as
-     * the <tt>java.runtime.version</tt> system property.
-     */
-    public static final String JMX_IMPL_VERSION =
-	AccessController.doPrivileged(new GetPropertyAction("java.runtime." +
-							    "version"));
-
 }

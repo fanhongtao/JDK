@@ -1,5 +1,5 @@
 /**
- * @(#)SplashScreen.java	1.12 06/07/27
+ * @(#)SplashScreen.java	1.13 06/11/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -88,7 +88,8 @@ public final class SplashScreen {
         }
         // SplashScreen class is now a singleton
         if (SplashScreen.theInstance == null) {
-            System.loadLibrary("splashscreen");
+            java.security.AccessController.doPrivileged( 
+                    new sun.security.action.LoadLibraryAction("splashscreen"));
             long ptr = _getInstance();
             if (ptr == 0) {
                 return null;

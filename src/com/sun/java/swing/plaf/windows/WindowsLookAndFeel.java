@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.230 06/08/02
+ * @(#)WindowsLookAndFeel.java	1.231 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -64,6 +64,9 @@ import sun.swing.SwingUtilities2;
 import static com.sun.java.swing.plaf.windows.TMSchema.*;
 import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
+import com.sun.java.swing.plaf.windows.WindowsIconFactory
+    .VistaMenuItemCheckIconFactory;
+
 /**
  * Implements the Windows95/98/NT/2000 Look and Feel.
  * UI classes not implemented specifically for Windows will
@@ -76,7 +79,7 @@ import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.230 08/02/06
+ * @version 1.231 12/15/06
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -1642,8 +1645,152 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 
         table.putDefaults(defaults);
 	table.putDefaults(getLazyValueDefaults());
+        initVistaComponentDefaults(table);
     }
+    
+    static boolean isOnVista() {
+        boolean rv = false;
+        String osName = System.getProperty("os.name");
+        String osVers = System.getProperty("os.version");
+        if (osName != null
+                && osName.startsWith("Windows")
+                && osVers != null
+                && osVers.length() > 0) {
 
+            int p = osVers.indexOf('.');
+            if (p >= 0) {
+                osVers = osVers.substring(0, p);
+            }
+
+            try {
+                rv = (Integer.parseInt(osVers) >= 6);
+            } catch (NumberFormatException nfe) {
+            }
+        }
+        return rv;
+    }
+    private void initVistaComponentDefaults(UIDefaults table) {
+        if (! isOnVista()) {
+            return;
+        }
+        /* START handling menus for Vista */
+        String[] menuClasses = { "MenuItem", "Menu", 
+                "CheckBoxMenuItem", "RadioButtonMenuItem",
+        };
+
+        Object menuDefaults[] = new Object[menuClasses.length * 2];
+
+        /* all the menus need to be non opaque. */
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".opaque";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = 
+                new XPValue(Boolean.FALSE, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* 
+         * acceleratorSelectionForeground color is the same as 
+         * acceleratorForeground 
+         */
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".acceleratorSelectionForeground";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key; 
+            menuDefaults[j++] = 
+                new XPValue(
+                    table.getColor(
+                        menuClasses[i] + ".acceleratorForeground"),
+                        oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* they have the same MenuItemCheckIconFactory */
+        VistaMenuItemCheckIconFactory menuItemCheckIconFactory = 
+            WindowsIconFactory.getMenuItemCheckIconFactory();
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".checkIconFactory";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] =
+                new XPValue(menuItemCheckIconFactory, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+        
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".checkIcon";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] =
+                new XPValue(menuItemCheckIconFactory.getIcon(menuClasses[i]), 
+                    oldValue);
+        }
+        table.putDefaults(menuDefaults);
+        
+
+        /* height can be even */
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".evenHeight";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = new XPValue(Boolean.TRUE, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* no margins */
+        InsetsUIResource insets = new InsetsUIResource(0, 0, 0, 0);
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".margin";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = new XPValue(insets, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* set checkIcon offset */
+        Integer checkIconOffsetInteger = 
+            Integer.valueOf(0);
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".checkIconOffset";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = 
+                new XPValue(checkIconOffsetInteger, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* text is started after this position */
+        Object minimumTextOffset = new UIDefaults.ActiveValue() {
+            public Object createValue(UIDefaults table) {
+                return VistaMenuItemCheckIconFactory.getIconWidth()
+                + WindowsPopupMenuUI.getSpanBeforeGutter()
+                + WindowsPopupMenuUI.getGutterWidth()
+                + WindowsPopupMenuUI.getSpanAfterGutter(); 
+            }
+        };
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".minimumTextOffset";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = new XPValue(minimumTextOffset, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /*  
+         * JPopupMenu has a bit of free space around menu items
+         */
+        String POPUP_MENU_BORDER = "PopupMenu.border";
+        
+        Object popupMenuBorder = new XPBorderValue(Part.MENU,
+                new SwingLazyValue(
+                  "javax.swing.plaf.basic.BasicBorders",
+                  "getInternalFrameBorder"),
+                  BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        table.put(POPUP_MENU_BORDER, popupMenuBorder);
+        /* END handling menus for Vista */
+    }
+    
     /**
      * If we support loading of fonts from the desktop this will return
      * a DesktopProperty representing the font. If the font can't be

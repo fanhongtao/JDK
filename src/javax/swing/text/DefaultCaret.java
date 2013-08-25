@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultCaret.java	1.147 06/04/14
+ * @(#)DefaultCaret.java	1.148 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -85,7 +85,7 @@ import sun.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.147 04/14/06
+ * @version 1.148 11/30/06
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -621,7 +621,7 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 		g.setColor(component.getCaretColor());
                 int paintWidth = getCaretWidth(r.height);
                 r.x -= paintWidth  >> 1;
-                g.fillRect(r.x, r.y, paintWidth , r.height - 1);
+                g.fillRect(r.x, r.y, paintWidth, r.height);
 
 		// see if we should paint a flag to indicate the bias
 		// of the caret.  

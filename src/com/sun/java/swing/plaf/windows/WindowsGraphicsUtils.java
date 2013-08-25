@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsGraphicsUtils.java	1.23 06/06/22
+ * @(#)WindowsGraphicsUtils.java	1.24 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import static com.sun.java.swing.plaf.windows.TMSchema.*;
  * A collection of static utility methods used for rendering the Windows look 
  * and feel.
  * 
- * @version 1.23 06/22/06
+ * @version 1.24 12/15/06
  * @author Mark Davidson
  * @since 1.4
  */
@@ -100,9 +100,14 @@ public class WindowsGraphicsUtils {
 
     static void paintXPText(AbstractButton b, Graphics g, int x, int y,
                             String text, int mnemIndex) {
-        XPStyle xp = XPStyle.getXP();
         Part part = WindowsButtonUI.getXPButtonType(b);
-        State state = WindowsButtonUI.getXPButtonState(b); 
+        State state = WindowsButtonUI.getXPButtonState(b);
+        paintXPText(b, part, state, g, x, y, text, mnemIndex);
+    }
+    
+    static void paintXPText(AbstractButton b, Part part, State state, 
+            Graphics g, int x, int y, String text, int mnemIndex) {
+        XPStyle xp = XPStyle.getXP();
         Color textColor = b.getForeground();
         
         if (textColor instanceof UIResource) {

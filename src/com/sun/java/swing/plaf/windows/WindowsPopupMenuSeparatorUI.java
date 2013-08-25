@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsPopupMenuSeparatorUI.java	1.2 05/11/17
+ * @(#)WindowsPopupMenuSeparatorUI.java	1.3 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,11 +13,16 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicPopupMenuSeparatorUI;
 import javax.swing.plaf.ComponentUI;
 
+import com.sun.java.swing.plaf.windows.TMSchema.Part;
+import com.sun.java.swing.plaf.windows.TMSchema.State;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 /**
  * Windows L&F implementation of PopupMenuSeparatorUI.
  *
- * @version 1.2 11/17/05
+ * @version 1.3 12/15/06
  * @author Leif Samuelsson
+ * @author Igor Kushnirskiy
  */
 
 public class WindowsPopupMenuSeparatorUI extends BasicPopupMenuSeparatorUI {
@@ -28,13 +33,35 @@ public class WindowsPopupMenuSeparatorUI extends BasicPopupMenuSeparatorUI {
 
     public void paint(Graphics g, JComponent c) {
         Dimension s = c.getSize();
-	int y = s.height / 2;
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            int x = 1;
+            Component parent = c.getParent();
+            if (parent instanceof JComponent) {
+                Object gutterOffsetObject = 
+                    ((JComponent) parent).getClientProperty(
+                        WindowsPopupMenuUI.GUTTER_OFFSET_KEY);
+                if (gutterOffsetObject instanceof Integer) {
+                    /* 
+                     * gutter offset is in parent's coordinates.
+                     * See comment in 
+                     * WindowsPopupMenuUI.getTextOffset(JComponent)
+                     */
+                    x = ((Integer) gutterOffsetObject).intValue() - c.getX();
+                    x += WindowsPopupMenuUI.getGutterWidth();
+                }
+            }
+            Skin skin = XPStyle.getXP().getSkin(c, Part.MP_POPUPSEPARATOR);
+            int skinHeight = skin.getHeight();
+            int y = (s.height - skinHeight) / 2;
+            skin.paintSkin(g, x, y, s.width - x - 1, skinHeight, State.NORMAL);
+        } else {
+            int y = s.height / 2;
+            g.setColor(c.getForeground());
+            g.drawLine(1, y - 1, s.width - 2, y - 1);
 
-	g.setColor(c.getForeground());
-	g.drawLine(1, y - 1, s.width - 2, y - 1);
-
-	g.setColor(c.getBackground());
-	g.drawLine(1, y,     s.width - 2, y);
+            g.setColor(c.getBackground());
+            g.drawLine(1, y,     s.width - 2, y);
+        }
     }
 
     public Dimension getPreferredSize(JComponent c) {

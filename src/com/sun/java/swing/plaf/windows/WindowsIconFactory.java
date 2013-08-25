@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsIconFactory.java	1.30 06/05/24
+ * @(#)WindowsIconFactory.java	1.31 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,7 @@
 package com.sun.java.swing.plaf.windows;
 
 import javax.swing.*;
+import javax.swing.plaf.ButtonUI;
 import javax.swing.plaf.UIResource;
 
 import java.awt.*;
@@ -15,6 +16,8 @@ import java.io.Serializable;
 
 import static com.sun.java.swing.plaf.windows.TMSchema.*;
 import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
+import sun.swing.MenuItemCheckIconFactory;
 
 /**
  * Factory object that can vend Icons appropriate for the Windows L & F.
@@ -26,7 +29,7 @@ import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.30 05/24/06
+ * @version 1.31 12/15/06
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -45,6 +48,7 @@ public class WindowsIconFactory implements Serializable
     private static Icon menuItemCheckIcon;
     private static Icon menuItemArrowIcon;
     private static Icon menuArrowIcon;
+    private static VistaMenuItemCheckIconFactory menuItemCheckIconFactory;
 
     public static Icon getMenuItemCheckIcon() {
 	if (menuItemCheckIcon == null) {
@@ -93,6 +97,15 @@ public class WindowsIconFactory implements Serializable
 	    radioButtonMenuItemIcon = new RadioButtonMenuItemIcon();
 	}
 	return radioButtonMenuItemIcon;
+    }
+
+    static
+    synchronized VistaMenuItemCheckIconFactory getMenuItemCheckIconFactory() {
+        if (menuItemCheckIconFactory == null) {
+            menuItemCheckIconFactory =
+                new VistaMenuItemCheckIconFactory();
+        }
+        return menuItemCheckIconFactory;
     }
 
     public static Icon createFrameCloseIcon() {
@@ -583,22 +596,292 @@ public class WindowsIconFactory implements Serializable
 
     private static class MenuArrowIcon implements Icon, UIResource, Serializable {
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.translate(x,y);
-            if( WindowsGraphicsUtils.isLeftToRight(c) ) {
-                g.drawLine( 0, 0, 0, 7 );
-                g.drawLine( 1, 1, 1, 6 );
-                g.drawLine( 2, 2, 2, 5 );
-                g.drawLine( 3, 3, 3, 4 );
+            if (WindowsMenuItemUI.isVistaPainting()) {
+                XPStyle xp = XPStyle.getXP();
+                State state = State.NORMAL;
+                if (c instanceof JMenuItem) {
+                    state = ((JMenuItem) c).getModel().isEnabled() 
+                    ? State.NORMAL : State.DISABLED;
+                }
+                Skin skin = xp.getSkin(c, Part.MP_POPUPSUBMENU);
+                if (WindowsGraphicsUtils.isLeftToRight(c)) {
+                    skin.paintSkin(g, x, y, state);
+                } else {
+                    Graphics2D g2d = (Graphics2D)g.create();
+                    g2d.translate(x + skin.getWidth(), y);
+                    g2d.scale(-1, 1);
+                    skin.paintSkin(g2d, 0, 0, state);
+                    g2d.dispose();
+                }
             } else {
-                g.drawLine( 4, 0, 4, 7 );
-                g.drawLine( 3, 1, 3, 6 );
-                g.drawLine( 2, 2, 2, 5 );
-                g.drawLine( 1, 3, 1, 4 );
+                g.translate(x,y);
+                if( WindowsGraphicsUtils.isLeftToRight(c) ) {
+                    g.drawLine( 0, 0, 0, 7 );
+                    g.drawLine( 1, 1, 1, 6 );
+                    g.drawLine( 2, 2, 2, 5 );
+                    g.drawLine( 3, 3, 3, 4 );
+                } else {
+                    g.drawLine( 4, 0, 4, 7 );
+                    g.drawLine( 3, 1, 3, 6 );
+                    g.drawLine( 2, 2, 2, 5 );
+                    g.drawLine( 1, 3, 1, 4 );
+                }
+                g.translate(-x,-y);
             }
-            g.translate(-x,-y);
 	}
-	public int getIconWidth() { return 4; }
-	public int getIconHeight() { return 8; }
+        public int getIconWidth() {
+            if (WindowsMenuItemUI.isVistaPainting()) {
+                Skin skin = XPStyle.getXP().getSkin(null, Part.MP_POPUPSUBMENU);
+                return skin.getWidth();
+            } else {
+                return 4;
+            }
+        }
+        public int getIconHeight() {
+            if (WindowsMenuItemUI.isVistaPainting()) {
+                Skin skin = XPStyle.getXP().getSkin(null, Part.MP_POPUPSUBMENU);
+                return skin.getHeight();
+            } else {
+                return 8;
+            } 
+        }
     } // End class MenuArrowIcon
+
+    static class VistaMenuItemCheckIconFactory 
+           implements MenuItemCheckIconFactory {
+        private static final int OFFSET = 3;
+        
+        public Icon getIcon(JMenuItem component) {
+            return new VistaMenuItemCheckIcon(component);
+        }
+        
+        public boolean isCompatible(Object icon, String prefix) {
+            return icon instanceof VistaMenuItemCheckIcon
+              && ((VistaMenuItemCheckIcon) icon).type == getType(prefix);
+        }
+        
+        public Icon getIcon(String type) {
+            return new VistaMenuItemCheckIcon(type);
+        }
+        
+        static int getIconWidth() {
+            return XPStyle.getXP().getSkin(null, Part.MP_POPUPCHECK).getWidth()
+                + 2 * OFFSET;
+        }
+        
+        private static Class<? extends JMenuItem> getType(Component c) {
+            Class<? extends JMenuItem> rv = null;
+            if (c instanceof JCheckBoxMenuItem) {
+                rv = JCheckBoxMenuItem.class;
+            } else if (c instanceof JRadioButtonMenuItem) {
+                rv = JRadioButtonMenuItem.class;
+            } else if (c instanceof JMenu) {
+                rv = JMenu.class;
+            } else if (c instanceof JMenuItem) {
+                rv = JMenuItem.class;
+            }
+            return rv;
+        }
+        
+        private static Class<? extends JMenuItem> getType(String type) {
+            Class<? extends JMenuItem> rv = null;
+            if (type == "CheckBoxMenuItem") {
+                rv = JCheckBoxMenuItem.class;
+            } else if (type == "RadioButtonMenuItem") {
+                rv = JRadioButtonMenuItem.class;
+            } else if (type == "Menu") {
+                rv = JMenu.class;
+            } else if (type == "MenuItem") {
+                rv = JMenuItem.class;
+            } else {
+                // this should never happen
+                rv = JMenuItem.class;
+            }
+            return rv;
+        }
+        
+        /**
+         * CheckIcon for JMenuItem, JMenu, JCheckBoxMenuItem and 
+         * JRadioButtonMenuItem.
+         * Note: to be used on Vista only.
+         */
+        private static class VistaMenuItemCheckIcon 
+              implements Icon, UIResource, Serializable {
+            
+            private final JMenuItem menuItem;
+            private final Class<? extends JMenuItem> type;
+            
+            VistaMenuItemCheckIcon(JMenuItem menuItem) {
+                this.type = getType(menuItem);
+                this.menuItem = menuItem;
+            }
+            VistaMenuItemCheckIcon(String type) {
+                this.type = getType(type);
+                this.menuItem = null;
+            }
+            
+            public int getIconHeight() {
+                Icon lafIcon = getLaFIcon();
+                if (lafIcon != null) {
+                    return lafIcon.getIconHeight();
+                }
+                Icon icon = getIcon();
+                int height = 0;
+                if (icon != null) {
+                    height = icon.getIconHeight() + 2 * OFFSET;
+                } else {
+                    Skin skin = 
+                        XPStyle.getXP().getSkin(null, Part.MP_POPUPCHECK);
+                    height = skin.getHeight() + 2 * OFFSET;
+                }
+                return height;
+            }
+
+            public int getIconWidth() {
+                Icon lafIcon = getLaFIcon();
+                if (lafIcon != null) {
+                    return lafIcon.getIconWidth();
+                }
+                Icon icon = getIcon();
+                int width = 0;
+                if (icon != null) {
+                    width = icon.getIconWidth() + 2 * OFFSET;
+                } else {
+                    width = VistaMenuItemCheckIconFactory.getIconWidth();
+                }
+                return width;
+            }
+            
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Icon lafIcon = getLaFIcon();
+                if (lafIcon != null) {
+                    lafIcon.paintIcon(c, g, x, y);
+                    return;
+                }
+                assert menuItem == null || c == menuItem;
+                Icon icon = getIcon();
+                if (type == JCheckBoxMenuItem.class
+                      || type == JRadioButtonMenuItem.class) {
+                    AbstractButton b = (AbstractButton) c;
+                    if (b.isSelected()) {
+                        Part backgroundPart = Part.MP_POPUPCHECKBACKGROUND;
+                        Part part = Part.MP_POPUPCHECK; 
+                        State backgroundState;
+                        State state;
+                        if (isEnabled(c, null)) {
+                            backgroundState =  
+                                (icon != null) ? State.BITMAP : State.NORMAL;
+                            state = (type == JRadioButtonMenuItem.class) 
+                              ? State.BULLETNORMAL 
+                              : State.CHECKMARKNORMAL;
+                        } else {
+                            backgroundState = State.DISABLEDPUSHED;
+                            state = 
+                                (type == JRadioButtonMenuItem.class) 
+                                  ? State.BULLETDISABLED 
+                                  : State.CHECKMARKDISABLED;
+                        }
+                        Skin skin;
+                        XPStyle xp = XPStyle.getXP();
+                        skin =  xp.getSkin(c, backgroundPart);
+                        skin.paintSkin(g, x, y, 
+                            getIconWidth(), getIconHeight(), backgroundState);
+                        if (icon == null) {
+                            skin = xp.getSkin(c, part);
+                            skin.paintSkin(g, x + OFFSET, y + OFFSET, state);
+                        }
+                    }
+                }
+                if (icon != null) {
+                    icon.paintIcon(c, g, x + OFFSET, y + OFFSET);
+                }
+            }
+            private static WindowsMenuItemUIAccessor getAccessor(
+                    JMenuItem menuItem) {
+                WindowsMenuItemUIAccessor rv = null;
+                ButtonUI uiObject = (menuItem != null) ? menuItem.getUI()
+                        : null;
+                if (uiObject instanceof WindowsMenuItemUI) {
+                    rv = ((WindowsMenuItemUI) uiObject).accessor;
+                } else if (uiObject instanceof WindowsMenuUI) {
+                    rv = ((WindowsMenuUI) uiObject).accessor;
+                } else if (uiObject instanceof WindowsCheckBoxMenuItemUI) {
+                    rv = ((WindowsCheckBoxMenuItemUI) uiObject).accessor;
+                } else if (uiObject instanceof WindowsRadioButtonMenuItemUI) {
+                    rv = ((WindowsRadioButtonMenuItemUI) uiObject).accessor;
+                }
+                return rv;
+            }
+            
+            private static boolean isEnabled(Component  c, State state) {
+                if (state == null && c instanceof JMenuItem) {
+                    WindowsMenuItemUIAccessor accessor = 
+                        getAccessor((JMenuItem) c);
+                    if (accessor != null) {
+                        state = accessor.getState((JMenuItem) c);    
+                    }
+                }
+                if (state == null) {
+                    if (c != null) {
+                        return c.isEnabled();
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return (state != State.DISABLED)
+                        && (state != State.DISABLEDHOT)
+                        && (state != State.DISABLEDPUSHED);
+                }
+            }
+            private Icon getIcon() {
+                Icon rv = null;
+                if (menuItem == null) {
+                    return rv;
+                }
+                WindowsMenuItemUIAccessor accessor = 
+                    getAccessor(menuItem);
+                State state = (accessor != null) ? accessor.getState(menuItem) 
+                        : null;
+                if (isEnabled(menuItem, null)) {
+                    if (state == State.PUSHED) {
+                        rv = menuItem.getPressedIcon();
+                    } else {
+                        rv = menuItem.getIcon();
+                    }
+                } else {
+                    rv = menuItem.getDisabledIcon();
+                }
+                return rv;
+            }
+            /**
+             * Check if developer changed icon in the UI table.
+             * 
+             * @return the icon to use or {@code null} if the current one is to 
+             * be used
+             */
+            private Icon getLaFIcon() {
+                // use icon from the UI table if it does not match this one.
+                Icon rv = (Icon) UIManager.getDefaults().get(typeToString(type));
+                if (rv instanceof VistaMenuItemCheckIcon
+                      && ((VistaMenuItemCheckIcon) rv).type == type) {
+                    rv = null;
+                }
+                return rv;
+            }
+            
+            private static String typeToString(
+                    Class<? extends JMenuItem> type) {
+                assert type == JMenuItem.class 
+                    || type == JMenu.class 
+                    || type == JCheckBoxMenuItem.class 
+                    || type == JRadioButtonMenuItem.class; 
+                StringBuilder sb = new StringBuilder(type.getName());
+                // remove package name, dot and the first character
+                sb.delete(0, sb.lastIndexOf("J") + 1);
+                sb.append(".checkIcon");
+                return sb.toString();
+            }
+        }
+    } // End class VistaMenuItemCheckIconFactory
 }
 

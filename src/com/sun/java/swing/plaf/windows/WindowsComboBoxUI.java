@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.57 06/10/16
+ * @(#)WindowsComboBoxUI.java	1.59 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import sun.swing.DefaultLookup;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.57, 10/16/06
+ * @version 1.59, 11/30/06
  * @author Tom Santos
  * @author Igor Kushnirskiy
  */
@@ -215,7 +215,8 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         XPStyle xp = XPStyle.getXP();
         State state = getXPComboBoxState(c);
         Skin skin = null;
-        if (! comboBox.isEditable()) {
+        if (! comboBox.isEditable()
+              && xp.isSkinDefined(c, Part.CP_READONLY)) {
             skin = xp.getSkin(c, Part.CP_READONLY);
         }
         if (skin == null) {
@@ -403,15 +404,17 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         @Override 
         protected State getState() {
             State rv;
-            if (! comboBox.isEditable() 
+            rv = super.getState();
+            if (rv != State.DISABLED
+                && ! comboBox.isEditable() 
                 && XPStyle.getXP().isSkinDefined(comboBox, 
                                                  Part.CP_DROPDOWNBUTTONRIGHT)) {
-                //for non editable ComboBoxes Vista seems to have the
-                //same glyph for all the states
+                /*
+                 * for non editable ComboBoxes Vista seems to have the
+                 * same glyph for all non DISABLED states
+                 */
                 rv = State.NORMAL;
-            } else {
-                rv = super.getState();
-            }
+            } 
             return rv;
         }
 

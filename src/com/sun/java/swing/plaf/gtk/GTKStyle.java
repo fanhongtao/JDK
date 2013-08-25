@@ -1,5 +1,5 @@
 /*
- * @(#)GTKStyle.java	1.125 06/06/07
+ * @(#)GTKStyle.java	1.129 06/12/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -270,9 +270,6 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
         }
         
         if (id == Region.ARROW_BUTTON || id == Region.BUTTON ||
-                id == Region.CHECK_BOX || id == Region.RADIO_BUTTON ||
-                id == Region.CHECK_BOX_MENU_ITEM ||
-                id == Region.RADIO_BUTTON_MENU_ITEM ||
                 id == Region.TOGGLE_BUTTON) {
             if ("Spinner.previousButton" == name ||
                     "Spinner.nextButton" == name) {
@@ -281,9 +278,17 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
                 return getButtonInsets(state, insets);
             }
         }
+        else if (id == Region.CHECK_BOX || id == Region.RADIO_BUTTON) {
+            return getRadioInsets(state, insets);
+        }
+        else if (id == Region.MENU_BAR) {
+            return getMenuBarInsets(state, insets);
+        }
         else if (id == Region.MENU ||
-                 id == Region.MENU_BAR || id == Region.MENU_ITEM) {
-            return getMenuInsets(state, insets);
+                 id == Region.MENU_ITEM ||
+                 id == Region.CHECK_BOX_MENU_ITEM ||
+                 id == Region.RADIO_BUTTON_MENU_ITEM) {
+            return getMenuItemInsets(state, insets);
         }
         else if (id == Region.FORMATTED_TEXT_FIELD) {
             return getTextFieldInsets(state, insets);
@@ -311,7 +316,9 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
         }
         else if (id == Region.PROGRESS_BAR || id == Region.SLIDER ||
                  id == Region.TABBED_PANE  || id == Region.TABBED_PANE_CONTENT ||
-                 id == Region.TOOL_BAR     || id == Region.TOOL_TIP) {
+                 id == Region.TOOL_BAR     ||
+                 id == Region.TOOL_BAR_DRAG_WINDOW ||
+                 id == Region.TOOL_TIP) {
             return getThicknessInsets(state, insets);
         }
         else if (id == Region.SCROLL_BAR) {
@@ -329,22 +336,37 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
             }
             return getTextFieldInsets(state, insets);
         }
+        else if (id == Region.SEPARATOR ||
+                 id == Region.POPUP_MENU_SEPARATOR ||
+                 id == Region.TOOL_BAR_SEPARATOR) {
+            return getSeparatorInsets(state, insets);
+        }
         return insets;
     }
 
     private Insets getButtonInsets(SynthContext context, Insets insets) {
+        // The following calculations are derived from gtkbutton.c
+        // (GTK+ version 2.8.20), gtk_button_size_allocate() method.
+        int CHILD_SPACING = 1;
         int focusSize = getClassSpecificIntValue(context, "focus-line-width",1);
         int focusPad = getClassSpecificIntValue(context, "focus-padding", 1);
         int xThickness = getXThickness();
         int yThickness = getYThickness();
-        int w = focusSize + focusPad + xThickness;
-        int h = focusSize + focusPad + yThickness;
-        Component component = context.getComponent();
-
+        int w = focusSize + focusPad + xThickness + CHILD_SPACING;
+        int h = focusSize + focusPad + yThickness + CHILD_SPACING;
         insets.left = insets.right = w;
         insets.top = insets.bottom = h;
+
+        Component component = context.getComponent();
         if ((component instanceof JButton) &&
-                       ((JButton)component).isDefaultCapable()) {
+            !(component.getParent() instanceof JToolBar) &&
+            ((JButton)component).isDefaultCapable())
+        {
+            // Include the default border insets, but only for JButtons
+            // that are default capable.  Note that
+            // JButton.getDefaultCapable() returns true by default, but
+            // GtkToolButtons are never default capable, so we skip this
+            // step if the button is contained in a toolbar.
             Insets defaultInsets = getClassSpecificInsetsValue(context,
                           "default-border", BUTTON_DEFAULT_BORDER_INSETS);
             insets.left += defaultInsets.left;
@@ -352,21 +374,76 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
             insets.top += defaultInsets.top;
             insets.bottom += defaultInsets.bottom;
         }
+
         return insets;
     }
 
-    private Insets getMenuInsets(SynthContext context, Insets insets) {
+    /*
+     * This is used for both RADIO_BUTTON and CHECK_BOX.
+     */
+    private Insets getRadioInsets(SynthContext context, Insets insets) {
+        // The following calculations are derived from gtkcheckbutton.c
+        // (GTK+ version 2.8.20), gtk_check_button_size_allocate() method.
+        int focusSize =
+            getClassSpecificIntValue(context, "focus-line-width", 1);
+        int focusPad =
+            getClassSpecificIntValue(context, "focus-padding", 1);
+        int totalFocus = focusSize + focusPad;
+
+        // Note: GTKIconFactory.DelegateIcon will have already included the
+        // "indicator-spacing" value in the size of the indicator icon,
+        // which explains why we use zero as the left inset (or right inset
+        // in the RTL case); see 6489585 for more details.
+        insets.top    = totalFocus;
+        insets.bottom = totalFocus;
+        if (context.getComponent().getComponentOrientation().isLeftToRight()) {
+            insets.left  = 0;
+            insets.right = totalFocus;
+        } else {
+            insets.left  = totalFocus;
+            insets.right = 0;
+        }
+
+        return insets;
+    }
+
+    private Insets getMenuBarInsets(SynthContext context, Insets insets) {
+        // The following calculations are derived from gtkmenubar.c
+        // (GTK+ version 2.8.20), gtk_menu_bar_size_allocate() method.
         int internalPadding = getClassSpecificIntValue(context,
-                                                       "internal-padding", 0);
+                                                       "internal-padding", 1);
         int xThickness = getXThickness();
         int yThickness = getYThickness();
-        insets.top = insets.bottom = internalPadding + yThickness;
-        insets.left = insets.right = internalPadding + xThickness;
+        insets.left = insets.right = xThickness + internalPadding;
+        insets.top = insets.bottom = yThickness + internalPadding;
+        return insets;
+    }
+
+    private Insets getMenuItemInsets(SynthContext context, Insets insets) {
+        // The following calculations are derived from gtkmenuitem.c
+        // (GTK+ version 2.8.20), gtk_menu_item_size_allocate() method.
+        int horizPadding = getClassSpecificIntValue(context,
+                                                    "horizontal-padding", 3);
+        int xThickness = getXThickness();
+        int yThickness = getYThickness();
+        insets.left = insets.right = xThickness + horizPadding;
+        insets.top = insets.bottom = yThickness;
         return insets;
     }
 
     private Insets getThicknessInsets(SynthContext context, Insets insets) {
         insets.left = insets.right = getXThickness();
+        insets.top = insets.bottom = getYThickness();
+        return insets;
+    }
+
+    private Insets getSeparatorInsets(SynthContext context, Insets insets) {
+        int horizPadding = 0;
+        if (context.getRegion() == Region.POPUP_MENU_SEPARATOR) {
+            horizPadding =
+                getClassSpecificIntValue(context, "horizontal-padding", 3);
+        }
+        insets.right = insets.left = getXThickness() + horizPadding;
         insets.top = insets.bottom = getYThickness();
         return insets;
     }
@@ -426,6 +503,55 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
         inset += troughBorder;
         insets.left = insets.right = insets.top = insets.bottom = inset;
         return insets;
+    }
+
+    /**
+     * Returns the value for a class specific property for a particular
+     * region.  This method is useful in those cases where we need to fetch
+     * a value for a Region that is not associated with the component
+     * currently in use (e.g. we need to figure out the size of a
+     * SEPARATOR, but certain values can only be extracted from a
+     * TOOL_BAR region).
+     *
+     * REMIND: This method can be safely removed once the fixes for
+     * 6468814 and 6464868 are backported to a JDK 6 update release.
+     *
+     * @param r Region for which to fetch the value
+     * @param key Key identifying class specific value
+     * @return Value, or null if one has not been defined
+     */
+    private static Object getClassSpecificValueForRegion(Region r,
+                                                         String key)
+    {
+        GTKStyleFactory factory = (GTKStyleFactory)
+            GTKLookAndFeel.getStyleFactory(); 
+        GTKStyle style = (GTKStyle)factory.getStyle(null, r);
+        return style.getClassSpecificValue(r, key);
+    }
+
+    /**
+     * Convenience method to get a class specific integer value for
+     * a particular region.
+     *
+     * REMIND: This method can be safely removed once the fixes for
+     * 6468814 and 6464868 are backported to a JDK 6 update release.
+     *
+     * @param r Region for which to fetch the value
+     * @param key Key identifying class specific value
+     * @param defaultValue Returned if there is no value for the specified
+     *        type
+     * @return Value, or defaultValue if <code>key</code> is not defined
+     * @see #getClassSpecificValueForRegion
+     */
+    private static int getClassSpecificIntValueForRegion(Region r,
+                                                         String key,
+                                                         int defaultValue)
+    {
+        Object value = getClassSpecificValueForRegion(r, key);
+        if (value instanceof Number) {
+            return ((Number)value).intValue();
+        }
+        return defaultValue;
     }
 
     /**
@@ -555,8 +681,37 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
         // Is it a specific value ?
         if (key == "ScrollPane.viewportBorderInsets") {
             return getThicknessInsets(context, new Insets(0, 0, 0, 0));
-        } else if (key == "Slider.tickColor") {
+        }
+        else if (key == "Slider.tickColor") {
             return getColorForState(context, ColorType.FOREGROUND);
+        }
+        else if (key == "Separator.thickness") {
+            JSeparator sep = (JSeparator)context.getComponent();
+            if (sep.getOrientation() == JSeparator.HORIZONTAL) {
+                return getYThickness();
+            } else {
+                return getXThickness();
+            }
+        }
+        else if (key == "ToolBar.separatorSize") {
+            int size = getClassSpecificIntValueForRegion(Region.TOOL_BAR,
+                                                         "space-size", 12);
+            return new DimensionUIResource(size, size);
+        }
+        else if ("CheckBox.iconTextGap".equals(key) ||
+                 "RadioButton.iconTextGap".equals(key))
+        {
+            // The iconTextGap value needs to include "indicator-spacing"
+            // and it also needs to leave enough space for the focus line,
+            // which falls between the indicator icon and the text.
+            // See getRadioInsets() and 6489585 for more details.
+            int indicatorSpacing =
+                getClassSpecificIntValue(context, "indicator-spacing", 2);
+            int focusSize =
+                getClassSpecificIntValue(context, "focus-line-width", 1);
+            int focusPad =
+                getClassSpecificIntValue(context, "focus-padding", 1);
+            return indicatorSpacing + focusSize + focusPad;
         }
 
         // Is it a stock icon ?
@@ -849,7 +1004,7 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
     }
 
     /**
-     * MetalLazyValue is a slimmed down version of <code>ProxyLaxyValue</code>.
+     * GTKLazyValue is a slimmed down version of <code>ProxyLaxyValue</code>.
      * The code is duplicate so that it can get at the package private
      * classes in gtk.
      */
@@ -892,7 +1047,6 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
 
     static {
         CLASS_SPECIFIC_MAP = new HashMap<String,String>();
-        CLASS_SPECIFIC_MAP.put("CheckBox.iconTextGap", "indicator-spacing");
         CLASS_SPECIFIC_MAP.put("Slider.thumbHeight", "slider-width");
         CLASS_SPECIFIC_MAP.put("Slider.trackBorder", "trough-border");
         CLASS_SPECIFIC_MAP.put("SplitPane.size", "handle-size");

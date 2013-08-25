@@ -56,7 +56,7 @@ class XPStyle {
 
     private static Boolean themeActive = null;
 
-    private HashMap<Skin, Border> borderMap;
+    private HashMap<String, Border> borderMap;
     private HashMap<String, Color>  colorMap;
 
     private boolean flatMenus;
@@ -256,7 +256,7 @@ class XPStyle {
             }
         }
         Skin skin = new Skin(c, part, null);
-        Border border = borderMap.get(skin);
+        Border border = borderMap.get(skin.string);
         if (border == null) {
             String bgType = getTypeEnumName(c, part, null, Prop.BGTYPE);
             if ("borderfill".equalsIgnoreCase(bgType)) {
@@ -283,7 +283,7 @@ class XPStyle {
                 }
             }
             if (border != null) {
-                borderMap.put(skin, border);
+                borderMap.put(skin.string, border);
             }
         }
         return border;
@@ -401,13 +401,17 @@ class XPStyle {
         }
 
         public Insets getBorderInsets(Component c, Insets insets)       {
+            insets = super.getBorderInsets(c, insets);
+                
             Insets margin = null;
             if (c instanceof AbstractButton) {
                 Insets m = ((AbstractButton)c).getMargin();
                 // if this is a toolbar button then ignore getMargin()
                 // and subtract the padding added by the constructor
-                if(c.getParent() instanceof JToolBar &&
-                        m instanceof InsetsUIResource) {
+                if(c.getParent() instanceof JToolBar 
+                   && ! (c instanceof JRadioButton)
+                   && ! (c instanceof JCheckBox)
+                   && m instanceof InsetsUIResource) {
                     insets.top -= 2;
                     insets.left -= 2;
                     insets.bottom -= 2;
@@ -440,15 +444,11 @@ class XPStyle {
      * for a named part (component type)
      *
      * @param part a <code>Part</code>
-     * @return a <code>Skin</code> object or null if the part is
-     * not found in the current style
+     * @return a <code>Skin</code> object 
      */
     synchronized Skin getSkin(Component c, Part part) {
-        Skin rv = null;
-        if (isSkinDefined(c, part)) {
-            rv = new Skin(c, part, null);
-        }
-        return rv;
+        assert isSkinDefined(c, part) : "part " + part + " is not defined";
+        return new Skin(c, part, null);
     }
 
 
@@ -573,7 +573,9 @@ class XPStyle {
          */
         void paintSkin(Graphics g, int dx, int dy, int dw, int dh, State state) {
             if (ThemeReader.isGetThemeTransitionDurationDefined() 
-                  && component instanceof JComponent ) {
+                  && component instanceof JComponent 
+                  && SwingUtilities.getAncestorOfClass(CellRendererPane.class, 
+                                                       component) == null) {
                 AnimationController.paintSkin((JComponent) component, this, 
                                               g, dx, dy, dw, dh, state);
             } else {
@@ -727,7 +729,7 @@ class XPStyle {
         flatMenus = getSysBoolean(Prop.FLATMENUS);
 
         colorMap  = new HashMap<String, Color>();
-        borderMap = new HashMap<Skin, Border>();
+        borderMap = new HashMap<String, Border>();
         // Note: All further access to the maps must be synchronized
     }
 

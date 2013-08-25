@@ -1,5 +1,5 @@
 /*
- * @(#)KeyboardFocusManager.java	1.72 06/07/13
+ * @(#)KeyboardFocusManager.java	1.73 06/11/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ import sun.awt.CausedFocusEvent;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.72, 07/13/06 
+ * @version 1.73, 11/21/06 
  *
  * @see Window
  * @see Frame
@@ -2163,6 +2163,7 @@ public abstract class KeyboardFocusManager
     private static LinkedList heavyweightRequests = new LinkedList();
     private static LinkedList currentLightweightRequests;
     private static boolean clearingCurrentLightweightRequests;
+    private static boolean allowSyncFocusRequests = true;
     private static Component newFocusOwner = null;
 
     static final int SNFH_FAILURE = 0;
@@ -2171,7 +2172,8 @@ public abstract class KeyboardFocusManager
 
     static boolean processSynchronousLightweightTransfer(Component heavyweight, Component descendant,
                                                   boolean temporary, boolean focusedWindowChangeAllowed,
-                                                  long time) {
+                                                  long time)
+    {
         Window parentWindow = Component.getContainingWindow(heavyweight);
         if (parentWindow == null || !parentWindow.syncLWRequests) {
             return false;
@@ -2194,7 +2196,8 @@ public abstract class KeyboardFocusManager
                 ((heavyweightRequests.size() > 0)
                  ? heavyweightRequests.getLast() : null);
             if (hwFocusRequest == null &&
-                heavyweight == manager.getNativeFocusOwner())
+                heavyweight == manager.getNativeFocusOwner() &&
+                allowSyncFocusRequests)
             {
 
                 if (descendant == currentFocusOwner) {
@@ -2532,11 +2535,22 @@ public abstract class KeyboardFocusManager
     static void processCurrentLightweightRequests() {
         KeyboardFocusManager manager = getCurrentKeyboardFocusManager();
         LinkedList localLightweightRequests = null;
-        
+
+        Component globalFocusOwner = manager.getGlobalFocusOwner();
+        if ((globalFocusOwner != null) &&
+            (globalFocusOwner.appContext != AppContext.getAppContext()))
+        {
+            // The current app context differs from the app context of a focus
+            // owner (and all pending lightweight requests), so we do nothing
+            // now and wait for a next event.
+            return;
+        }
+
         synchronized(heavyweightRequests) {
             if (currentLightweightRequests != null) {
                 clearingCurrentLightweightRequests = true;
                 localLightweightRequests = currentLightweightRequests;
+                allowSyncFocusRequests = (localLightweightRequests.size() < 2);
                 currentLightweightRequests = null;
             } else {
                 // do nothing
@@ -2580,6 +2594,7 @@ public abstract class KeyboardFocusManager
         } finally {
             clearingCurrentLightweightRequests = false;
             localLightweightRequests = null;
+            allowSyncFocusRequests = true;
         }
     }
 

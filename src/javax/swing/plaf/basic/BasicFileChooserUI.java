@@ -1,5 +1,5 @@
 /*
- * @(#)BasicFileChooserUI.java	1.72 06/07/25
+ * @(#)BasicFileChooserUI.java	1.73 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -463,9 +463,8 @@ public class BasicFileChooserUI extends FileChooserUI {
 		JList list = (JList)evt.getSource();
 
 		int fsm = chooser.getFileSelectionMode();
-		boolean useSetDirectory =
-		    usesSingleFilePane ? (fsm == JFileChooser.FILES_ONLY)
-				       : (fsm != JFileChooser.DIRECTORIES_ONLY);
+		boolean useSetDirectory = usesSingleFilePane && 
+                                          (fsm == JFileChooser.FILES_ONLY);
 
 		if (chooser.isMultiSelectionEnabled()) {
 		    File[] files = null;

@@ -1,5 +1,5 @@
 /*
- * @(#)TMSchema.java	1.11 06/08/17
+ * @(#)TMSchema.java	1.12 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import sun.awt.windows.ThemeReader;
  *
  * See http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/commctls/userex/topics/partsandstates.asp
  *
- * @version 1.11 08/17/06
+ * @version 1.12 12/15/06
  * @author Leif Samuelsson
  */
 class TMSchema {
@@ -68,6 +68,16 @@ class TMSchema {
      */
     public static enum Part {
 	MENU (Control.MENU, 0),	// Special case, not in native
+        MP_BARBACKGROUND   (Control.MENU, 7),
+        MP_BARITEM         (Control.MENU, 8),
+        MP_POPUPBACKGROUND (Control.MENU, 9),
+        MP_POPUPBORDERS    (Control.MENU, 10),
+        MP_POPUPCHECK      (Control.MENU, 11),
+        MP_POPUPCHECKBACKGROUND (Control.MENU, 12),
+        MP_POPUPGUTTER     (Control.MENU, 13),
+        MP_POPUPITEM       (Control.MENU, 14),
+        MP_POPUPSEPARATOR  (Control.MENU, 15),
+        MP_POPUPSUBMENU    (Control.MENU, 16),
 
         BP_PUSHBUTTON (Control.BUTTON, 1),
         BP_RADIOBUTTON(Control.BUTTON, 2),
@@ -196,14 +206,21 @@ class TMSchema {
     public static enum State {
         ACTIVE,
         ASSIST,
+        BITMAP,
         CHECKED,
         CHECKEDDISABLED,
         CHECKEDHOT,
         CHECKEDNORMAL,
         CHECKEDPRESSED,
+        CHECKMARKNORMAL,
+        CHECKMARKDISABLED,
+        BULLETNORMAL,
+        BULLETDISABLED,
         CLOSED,
         DEFAULTED,
         DISABLED,
+        DISABLEDHOT,
+        DISABLEDPUSHED,
         DOWNDISABLED,
         DOWNHOT,
         DOWNNORMAL,
@@ -370,6 +387,22 @@ class TMSchema {
 	    stateMap.put(Part.WP_CAPTION,    captionStates);
 	    stateMap.put(Part.WP_MINCAPTION, captionStates);
 	    stateMap.put(Part.WP_MAXCAPTION, captionStates);
+
+            stateMap.put(Part.MP_BARBACKGROUND, 
+                         new State[] { ACTIVE, INACTIVE });
+            stateMap.put(Part.MP_BARITEM, 
+                         new State[] { NORMAL, HOT, PUSHED, 
+                                       DISABLED, DISABLEDHOT, DISABLEDPUSHED });
+            stateMap.put(Part.MP_POPUPCHECK,
+                         new State[] { CHECKMARKNORMAL, CHECKMARKDISABLED,
+                                       BULLETNORMAL, BULLETDISABLED });
+            stateMap.put(Part.MP_POPUPCHECKBACKGROUND,
+                         new State[] { DISABLEDPUSHED, NORMAL, BITMAP });
+            stateMap.put(Part.MP_POPUPITEM,
+                         new State[] { NORMAL, HOT, DISABLED, DISABLEDHOT });
+            stateMap.put(Part.MP_POPUPSUBMENU,
+                         new State[] { NORMAL, DISABLED });
+            
         }
 
 

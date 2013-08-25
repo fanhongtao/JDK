@@ -1,5 +1,5 @@
 /*
- * @(#)GTKGraphicsUtils.java	1.17 06/06/07
+ * @(#)GTKGraphicsUtils.java	1.18 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 /**
- * @version 1.17, 06/07/06
+ * @version 1.18, 11/30/06
  * @author Joshua Outwater
  */
 class GTKGraphicsUtils extends SynthGraphicsUtils {
@@ -76,11 +76,30 @@ class GTKGraphicsUtils extends SynthGraphicsUtils {
             if (!(source instanceof AbstractButton) ||
                 ((AbstractButton)source).isFocusPainted()) {
 
+                // The "bounds" parameter encompasses only the actual text;
+                // when drawing the focus, we need to expand that bounding
+                // box by "focus-line-width" plus "focus-padding".  Note that
+                // the layout process for these components will have already
+                // taken these values into account, so there should always
+                // be enough space allocated for drawing the focus indicator.
+                int synthState = context.getComponentState();
+                GTKStyle style = (GTKStyle)context.getStyle();
+                int focusSize =
+                    style.getClassSpecificIntValue(context,
+                                                   "focus-line-width", 1);
+                int focusPad =
+                    style.getClassSpecificIntValue(context,
+                                                   "focus-padding", 1);
+                int totalFocus = focusSize + focusPad;
+                int x = bounds.x - totalFocus;
+                int y = bounds.y - totalFocus;
+                int w = bounds.width  + (2 * totalFocus);
+                int h = bounds.height + (2 * totalFocus);
+
                 Color color = g.getColor();
                 GTKPainter.INSTANCE.paintFocus(context, g, id,
-                        context.getComponentState(), "checkbutton",
-                        bounds.x - 2, bounds.y - 2,
-                        bounds.width + 4, bounds.height + 4);
+                                               synthState, "checkbutton",
+                                               x, y, w, h);
                 g.setColor(color);
             }
         }

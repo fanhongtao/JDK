@@ -1,5 +1,5 @@
 /*
- * @(#)MXBeanLookup.java	1.11 05/11/17
+ * @(#)MXBeanLookup.java	1.12 06/10/16
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -70,10 +70,11 @@ public class MXBeanLookup {
     
     static MXBeanLookup lookupFor(MBeanServerConnection mbsc) {
         synchronized (mbscToLookup) {
-            MXBeanLookup lookup = mbscToLookup.get(mbsc);
+            WeakReference<MXBeanLookup> weakLookup = mbscToLookup.get(mbsc);
+            MXBeanLookup lookup = (weakLookup == null) ? null : weakLookup.get();
             if (lookup == null) {
                 lookup = new MXBeanLookup(mbsc);
-                mbscToLookup.put(mbsc, lookup);
+                mbscToLookup.put(mbsc, new WeakReference<MXBeanLookup>(lookup));
             }
             return lookup;
         }
@@ -127,6 +128,7 @@ public class MXBeanLookup {
         mxbeanToObjectName = WeakIdentityHashMap.make();
     private final Map<ObjectName, WeakReference<Object>>
         objectNameToProxy = newMap();
-    private static WeakIdentityHashMap<MBeanServerConnection, MXBeanLookup>
+    private static WeakIdentityHashMap<MBeanServerConnection,
+                                       WeakReference<MXBeanLookup>>
         mbscToLookup = WeakIdentityHashMap.make();
 }

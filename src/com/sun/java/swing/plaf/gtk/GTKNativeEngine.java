@@ -1,5 +1,5 @@
 /*
- * @(#)GTKNativeEngine.java	1.8 06/06/07
+ * @(#)GTKNativeEngine.java	1.9 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import sun.swing.ImageCache;
  * Finally, finishPainting() should be called. It fills the data buffer passed
  *   in with the image data.
  *
- * @version 1.8, 06/07/06
+ * @version 1.9, 11/30/06
  * @author Josh Outwater
  */
 public class GTKNativeEngine extends GTKEngine {
@@ -221,7 +221,18 @@ public class GTKNativeEngine extends GTKEngine {
             return (((JScrollBar)c).getOrientation() == JScrollBar.HORIZONTAL) ?
                 widgets[0] : widgets[1];
         } else if (c instanceof JSeparator) {
-            return (((JSeparator)c).getOrientation() == JSeparator.HORIZONTAL) ?
+            JSeparator separator = (JSeparator)c; 
+
+            /* We should return correct WidgetType if the separator is inserted 
+             * in Menu/PopupMenu/ToolBar. BugID: 6465603 
+             */ 
+            if (separator.getParent() instanceof JPopupMenu) { 
+               return WidgetType.POPUP_MENU_SEPARATOR; 
+            } else if (separator.getParent() instanceof JToolBar) { 
+                return WidgetType.TOOL_BAR_SEPARATOR; 
+            } 
+
+            return (separator.getOrientation() == JSeparator.HORIZONTAL) ? 
                 widgets[0] : widgets[1];
         } else if (c instanceof JSlider) {
             return (((JSlider)c).getOrientation() == JSlider.HORIZONTAL) ?

@@ -1,5 +1,5 @@
 /*
- * @(#)GTKLookAndFeel.java	1.105 06/08/03
+ * @(#)GTKLookAndFeel.java	1.106 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
 
 /**
- * @version 1.105, 08/03/06
+ * @version 1.106, 11/30/06
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -492,6 +492,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 "released ENTER", "released" 
               }),
             "Button.font", new FontLazyValue(Region.BUTTON),
+            "Button.margin", zeroInsets,
 
 
 	    "CheckBox.focusInputMap", new UIDefaults.LazyInputMap(new Object[]{
@@ -502,6 +503,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getCheckBoxIcon"),
             "CheckBox.font", new FontLazyValue(Region.CHECK_BOX),
+            "CheckBox.margin", zeroInsets,
 
 
             "CheckBoxMenuItem.arrowIcon", new GTKStyle.GTKLazyValue(
@@ -804,6 +806,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getRadioButtonIcon"),
             "RadioButton.font", new FontLazyValue(Region.RADIO_BUTTON),
+            "RadioButton.margin", zeroInsets,
 
 
             "RadioButtonMenuItem.arrowIcon", new GTKStyle.GTKLazyValue(
@@ -1120,6 +1123,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                    "released SPACE", "released" 
 	           }),
             "ToggleButton.font", new FontLazyValue(Region.TOGGLE_BUTTON),
+            "ToggleButton.margin", zeroInsets,
 
 
             "ToolBar.separatorSize", new DimensionUIResource(10, 10),

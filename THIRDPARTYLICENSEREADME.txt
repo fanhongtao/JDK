@@ -461,6 +461,7 @@ Note that, as provided in the License, the Software is distributed on an "AS IS"
                       * This software consists of voluntary contributions madeby many
                       * individuals on behalf of the Apache Software
 Foundation.  For more
+
                       * information on the Apache Software Foundation, pleasesee
                       * .
                       */
@@ -2007,3 +2008,73 @@ http://www.microsoft.com.
 
 Everett VSPro 12 
 Final 11.04.02 
+
+%% The following software may be included in this product: zlib; Use of any of this software is governed by the terms of the license below: 
+
+zlib.h -- interface of the 'zlib' general purpose compression library
+  version 1.1.3, July 9th, 1998
+
+  Copyright (C) 1995-1998 Jean-loup Gailly and Mark Adler
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Jean-loup Gailly        Mark Adler
+  jloup@gzip.org          madler@alumni.caltech.edu
+
+
+  The data format used by the zlib library is described by RFCs (Request for
+  Comments) 1950 to 1952 in the files ftp://ds.internic.net/rfc/rfc1950.txt
+  (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format
+
+
+%% The following software may be included in this product: Mozilla Rhino.  Use of any of this software is governed by the terms of the license below: 
+
+ * The contents of this file are subject to the Netscape Public
+ * License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of
+ * the License at http://www.mozilla.org/NPL/
+ *
+ * Software distributed under the License is distributed on an "AS
+ * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * rights and limitations under the License.
+ *
+ * The Original Code is Rhino code, released
+ * May 6, 1999.
+ *
+ * The Initial Developer of the Original Code is Netscape
+ * Communications Corporation.  Portions created by Netscape are
+ * Copyright (C) 1997-2000 Netscape Communications Corporation. All
+ * Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Kemal Bayram
+ * Patrick Beard
+ * Norris Boyd
+ * Igor Bukanov, igor@mir2.org
+ * Brendan Eich
+ * Ethan Hugg
+ * Roger Lawrence
+ * Terry Lucas
+ * Mike McCabe
+ * Milen Nankov
+ * Attila Szegedi, szegedia@freemail.hu
+ * Ian D. Stewart
+ * Andi Vajda
+ * Andrew Wason
+ */

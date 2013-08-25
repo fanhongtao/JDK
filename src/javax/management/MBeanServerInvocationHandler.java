@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanServerInvocationHandler.java	1.29 05/11/17
+ * @(#)MBeanServerInvocationHandler.java	1.30 06/10/16
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,6 +9,7 @@ package javax.management;
 
 import com.sun.jmx.mbeanserver.MXBeanProxy;
 import com.sun.jmx.mbeanserver.MXBeanSupport;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -310,16 +311,19 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
     
     private static MXBeanProxy findMXBeanProxy(Class<?> mxbeanInterface) {
         synchronized (mxbeanProxies) {
-            MXBeanProxy p = mxbeanProxies.get(mxbeanInterface);
+            WeakReference<MXBeanProxy> proxyRef =
+                    mxbeanProxies.get(mxbeanInterface);
+            MXBeanProxy p = (proxyRef == null) ? null : proxyRef.get();
             if (p == null) {
                 p = new MXBeanProxy(mxbeanInterface);
-                mxbeanProxies.put(mxbeanInterface, p);
+                mxbeanProxies.put(mxbeanInterface,
+                                  new WeakReference<MXBeanProxy>(p));
             }
             return p;
         }
     }
-    private static final WeakHashMap<Class<?>, MXBeanProxy> mxbeanProxies =
-            new WeakHashMap<Class<?>, MXBeanProxy>();
+    private static final WeakHashMap<Class<?>, WeakReference<MXBeanProxy>>
+            mxbeanProxies = new WeakHashMap<Class<?>, WeakReference<MXBeanProxy>>();
 
     private Object invokeBroadcasterMethod(Object proxy, Method method,
                                            Object[] args) throws Exception {

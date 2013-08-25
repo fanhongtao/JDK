@@ -1,5 +1,5 @@
 /*
- * @(#)FileLoginModule.java	1.4 05/11/17
+ * @(#)FileLoginModule.java	1.5 06/09/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,7 +10,9 @@ package com.sun.jmx.remote.security;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilePermission;
 import java.io.IOException;
+import java.security.AccessControlException;
 import java.security.AccessController;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -131,6 +133,9 @@ public class FileLoginModule implements LoginModule {
     private Map sharedState;
     private Map options;
     private String passwordFile;
+    private String passwordFileDisplayName;
+    private boolean userSuppliedPasswordFile;
+    private boolean hasJavaHomePermission;
     private Properties userCredentials;
 
     /**
@@ -165,10 +170,22 @@ public class FileLoginModule implements LoginModule {
 		"true".equalsIgnoreCase((String)options.get("clearPass"));
 
 	passwordFile = (String)options.get("passwordFile");
+	passwordFileDisplayName = passwordFile;
+        userSuppliedPasswordFile = true;
 
 	// set the location of the password file
 	if (passwordFile == null) {
 	    passwordFile = DEFAULT_PASSWORD_FILE_NAME;
+            userSuppliedPasswordFile = false;
+            try {
+                System.getProperty("java.home");
+                hasJavaHomePermission = true;
+                passwordFileDisplayName = passwordFile;
+            } catch (SecurityException e) {
+                hasJavaHomePermission = false;
+                passwordFileDisplayName =
+                        ConnectorBootstrap.DefaultValues.PASSWORD_FILE_NAME;
+            }
 	}
     }
 
@@ -189,8 +206,9 @@ public class FileLoginModule implements LoginModule {
 	try {
 	    loadPasswordFile();
 	} catch (IOException ioe) {
-	    LoginException le = new LoginException
-		("Error: unable to load the password file: " + passwordFile);
+	    LoginException le = new LoginException(
+                    "Error: unable to load the password file: " +
+                    passwordFileDisplayName);
 	    throw (LoginException) EnvHelp.initCause(le, ioe);
 	}
 
@@ -200,7 +218,8 @@ public class FileLoginModule implements LoginModule {
 	}
 
 	if (logger.debugOn()) {
-	    logger.debug("login", "Using password file: " + passwordFile);
+	    logger.debug("login",
+                    "Using password file: " + passwordFileDisplayName);
 	}
 
 	// attempt the authentication
@@ -435,12 +454,25 @@ public class FileLoginModule implements LoginModule {
      * Read the password file.
      */
     private void loadPasswordFile() throws IOException {
-
-	BufferedInputStream bis = 
-	    new BufferedInputStream(new FileInputStream(passwordFile));
-	userCredentials = new Properties();
-	userCredentials.load(bis);
-	bis.close();
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream(passwordFile);
+        } catch (SecurityException e) {
+            if (userSuppliedPasswordFile || hasJavaHomePermission) {
+                throw e;
+            } else {
+                FilePermission fp =
+                        new FilePermission(passwordFileDisplayName, "read");
+                AccessControlException ace = new AccessControlException(
+                        "access denied " + fp.toString());
+                ace.setStackTrace(e.getStackTrace());
+                throw ace;
+            }
+        }
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        userCredentials = new Properties();
+        userCredentials.load(bis);
+        bis.close();
     }
 
     /**

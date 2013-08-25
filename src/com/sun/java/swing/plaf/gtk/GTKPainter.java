@@ -1,5 +1,5 @@
 /*
- * @(#)GTKPainter.java	1.79 06/06/07
+ * @(#)GTKPainter.java	1.82 06/12/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @version 1.79, 06/07/06
+ * @version 1.82, 12/01/06
  * @author Joshua Outwater
  * @author Scott Violet
  */
@@ -76,7 +76,7 @@ class GTKPainter extends SynthPainter {
     }
 
     //
-    // TOOL_DRAG_WINDOW
+    // TOOL_BAR_DRAG_WINDOW
     //
     public void paintToolBarDragWindowBackground(SynthContext context,
                                      Graphics g, int x, int y,
@@ -92,13 +92,31 @@ class GTKPainter extends SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
         Region id = context.getRegion();
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                id, context.getComponentState());
+        int state = context.getComponentState();
+        int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
+        int orientation = ((JToolBar)context.getComponent()).getOrientation();
         synchronized (UNIXToolkit.GTK_LOCK) {
-            if (! ENGINE.paintCachedImage(g, x, y, w, h, id, gtkState)) {
-                ENGINE.startPainting(g, x, y, w, h, id, gtkState);
-                ENGINE.paintFlatBox(g, context, id, gtkState, ShadowType.OUT,
-                        "handlebox_bin", x, y, w, h, ColorType.BACKGROUND);
+            if (! ENGINE.paintCachedImage(g, x, y, w, h, id,
+                                          state, orientation))
+            {
+                ENGINE.startPainting(g, x, y, w, h, id, state, orientation);
+                ENGINE.paintBox(g, context, id, gtkState, ShadowType.OUT,
+                                "handlebox_bin", x, y, w, h);
+                ENGINE.finishPainting();
+            }
+        }
+    }
+
+    public void paintToolBarContentBackground(SynthContext context,
+                                              Graphics g,
+                                              int x, int y, int w, int h) {
+        Region id = context.getRegion();
+        int orientation = ((JToolBar)context.getComponent()).getOrientation();
+        synchronized (UNIXToolkit.GTK_LOCK) {
+            if (! ENGINE.paintCachedImage(g, x, y, w, h, id, orientation)) {
+                ENGINE.startPainting(g, x, y, w, h, id, orientation);
+                ENGINE.paintBox(g, context, id, SynthConstants.ENABLED,
+                                ShadowType.OUT, "toolbar", x, y, w, h);
                 ENGINE.finishPainting();
             }
         }
@@ -252,7 +270,7 @@ class GTKPainter extends SynthPainter {
 
             // Paint the default indicator
             GTKStyle style = (GTKStyle)context.getStyle();
-            if (defaultCapable) {
+            if (defaultCapable && !toolButton) {
                 Insets defaultInsets = (Insets)style.getClassSpecificInsetsValue(
                         context, "default-border",
                         GTKStyle.BUTTON_DEFAULT_BORDER_INSETS);
@@ -288,9 +306,21 @@ class GTKPainter extends SynthPainter {
             }
         
             int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
-            if ((paintBackground && !toolButton) ||
-                (gtkState != SynthConstants.ENABLED))
-            {
+            boolean paintBg;
+            if (toolButton) {
+                // Toolbar buttons should only have their background painted
+                // in the PRESSED, SELECTED, or MOUSE_OVER states.
+                paintBg =
+                    (gtkState != SynthConstants.ENABLED) &&
+                    (gtkState != SynthConstants.DISABLED);
+            } else {
+                // Otherwise, always paint the button's background, unless
+                // the user has overridden it and we're in the ENABLED state.
+                paintBg =
+                    paintBackground ||
+                    (gtkState != SynthConstants.ENABLED);
+            }
+            if (paintBg) {
                 ShadowType shadowType = ShadowType.OUT;
                 if ((state & (SynthConstants.PRESSED |
                               SynthConstants.SELECTED)) != 0) {
@@ -538,13 +568,85 @@ class GTKPainter extends SynthPainter {
 
     public void paintSeparatorBackground(SynthContext context,
                                           Graphics g,
-                                          int x, int y, int w, int h) {
+                                          int x, int y, int w, int h,
+                                         int orientation) {
         Region id = context.getRegion();
+        int state = context.getComponentState();
+        JComponent c = context.getComponent();
+
+        /*
+         * Note: In theory, the style's x/y thickness values would determine
+         * the width of the separator content.  In practice, however, some
+         * engines will render a line that is wider than the corresponding
+         * thickness value.  For example, ubuntulooks reports x/y thickness
+         * values of 1 for separators, but always renders a 2-pixel wide line.
+         * As a result of all this, we need to be careful not to restrict
+         * the w/h values below too much, so that the full thickness of the
+         * rendered line will be captured by our image caching code.
+         */
+        String detail;
+        if (c instanceof JToolBar.Separator) {
+            /*
+             * GTK renders toolbar separators differently in that an
+             * artificial padding is added to each end of the separator.
+             * The value of 0.2f below is derived from the source code of
+             * gtktoolbar.c in the current version of GTK+ (2.8.20 at the
+             * time of this writing).  Specifically, the relevant values are:
+             *     SPACE_LINE_DIVISION 10.0
+             *     SPACE_LINE_START     2.0
+             *     SPACE_LINE_END       8.0
+             * These are used to determine the distance from the top (or left)
+             * edge of the toolbar to the other edge.  So for example, the
+             * starting/top point of a vertical separator is 2/10 of the
+             * height of a horizontal toolbar away from the top edge, which
+             * is how we arrive at 0.2f below.  Likewise, the ending/bottom
+             * point is 8/10 of the height away from the top edge, or in other
+             * words, it is 2/10 away from the bottom edge, which is again
+             * how we arrive at the 0.2f value below.
+             *
+             * The separator is also centered horizontally or vertically,
+             * depending on its orientation.  This was determined empirically
+             * and by examining the code referenced above.
+             */
+            detail = "toolbar";
+            float pct = 0.2f;
+            JToolBar.Separator sep = (JToolBar.Separator)c;
+            Dimension size = sep.getSeparatorSize();
+            GTKStyle style = (GTKStyle)context.getStyle();
+            if (orientation == JSeparator.HORIZONTAL) {
+                x += (int)(w * pct);
+                w -= (int)(w * pct * 2);
+                y += (size.height - style.getYThickness()) / 2;
+            } else {
+                y += (int)(h * pct);
+                h -= (int)(h * pct * 2);
+                x += (size.width - style.getXThickness()) / 2;
+            }
+        } else {
+            // For regular/menu separators, we simply subtract out the insets.
+            detail = "separator";
+            Insets insets = c.getInsets();
+            x += insets.left;
+            y += insets.top;
+            if (orientation == JSeparator.HORIZONTAL) {
+                w -= (insets.left + insets.right);
+            } else {
+                h -= (insets.top + insets.bottom);
+            }
+        }
+
         synchronized (UNIXToolkit.GTK_LOCK) {
-            if (! ENGINE.paintCachedImage(g, x, y, w, h, id)) {
-                ENGINE.startPainting(g, x, y, w, h, id);
-                ENGINE.paintHline(g, context, id, SynthConstants.ENABLED,
-                        "separator", x, y, w, h);
+            if (! ENGINE.paintCachedImage(g, x, y, w, h, id,
+                                          state, detail, orientation)) {
+                ENGINE.startPainting(g, x, y, w, h, id,
+                                     state, detail, orientation);
+                if (orientation == JSeparator.HORIZONTAL) {
+                    ENGINE.paintHline(g, context, id, state,
+                                      detail, x, y, w, h);
+                } else {
+                    ENGINE.paintVline(g, context, id, state,
+                                      detail, x, y, w, h);
+                }
                 ENGINE.finishPainting();
             }
         }
@@ -814,8 +916,10 @@ class GTKPainter extends SynthPainter {
         boolean paintBG = toggleButton.isContentAreaFilled() &&
                           toggleButton.isBorderPainted();
         boolean paintFocus = toggleButton.isFocusPainted();
+        boolean toolButton = (toggleButton.getParent() instanceof JToolBar);
         paintButtonBackgroundImpl(context, g, id, "button",
-                x, y, w, h, paintBG, paintFocus, false, false);
+                                  x, y, w, h,
+                                  paintBG, paintFocus, false, toolButton);
     }
 
 
@@ -868,19 +972,6 @@ class GTKPainter extends SynthPainter {
                     Orientation.HORIZONTAL : Orientation.VERTICAL);
                 ENGINE.paintSlider(g, context, id, gtkState,
                         ShadowType.OUT, "slider", x, y, w, h, orientation);
-                ENGINE.finishPainting();
-            }
-        }
-    }
-
-    public void paintToolBarContentBackground(SynthContext context,
-            Graphics g, int x, int y, int w, int h) {
-        Region id = context.getRegion();
-        synchronized (UNIXToolkit.GTK_LOCK) {
-            if (! ENGINE.paintCachedImage(g, x, y, w, h, id)) {
-                ENGINE.startPainting(g, x, y, w, h, id);
-                ENGINE.paintShadow(g, context, id, SynthConstants.ENABLED,
-                        ShadowType.OUT, "frame", x, y, w, h);
                 ENGINE.finishPainting();
             }
         }
@@ -1138,6 +1229,15 @@ class GTKPainter extends SynthPainter {
             int state, int x, int y, int w, int h, Orientation orientation) {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                 context.getRegion(), state);
+
+        // The orientation parameter passed down by Synth refers to the
+        // orientation of the toolbar, but the one we pass to GTK refers
+        // to the orientation of the handle.  Therefore, we need to swap
+        // the value here: horizontal toolbars have vertical handles, and
+        // vice versa.
+        orientation = (orientation == Orientation.HORIZONTAL) ?
+            Orientation.VERTICAL : Orientation.HORIZONTAL;
+
         ENGINE.paintHandle(g, context, Region.TOOL_BAR, gtkState,
                 ShadowType.OUT, "handlebox", x, y, w, h, orientation);
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.287 06/08/08
+ * @(#)JTable.java	1.288 06/11/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -186,7 +186,7 @@ import sun.swing.PrintingStatus;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.287 08/08/06
+ * @version 1.288 11/15/06
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  * @see javax.swing.table.DefaultTableModel
@@ -1996,17 +1996,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
             setRowSelectionInterval(0, getRowCount()-1);
 
-            if (oldAnchor == -1) {
-                oldAnchor = oldLead;
-            }
-
             // this is done to restore the anchor and lead
-            if (oldLead == -1) {
-                selModel.setAnchorSelectionIndex(-1);
-                selModel.setLeadSelectionIndex(-1);
-            } else {
-                selModel.addSelectionInterval(oldAnchor, oldLead);
-            }
+            SwingUtilities2.setLeadAnchorWithoutSelection(selModel, oldLead, oldAnchor);
 
             selModel.setValueIsAdjusting(false);
 
@@ -2017,17 +2008,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
             setColumnSelectionInterval(0, getColumnCount()-1);
 
-            if (oldAnchor == -1) {
-                oldAnchor = oldLead;
-            }
-
             // this is done to restore the anchor and lead
-            if (oldLead == -1) {
-                selModel.setAnchorSelectionIndex(-1);
-                selModel.setLeadSelectionIndex(-1);
-            } else {
-                selModel.addSelectionInterval(oldAnchor, oldLead);
-            }
+            SwingUtilities2.setLeadAnchorWithoutSelection(selModel, oldLead, oldAnchor);
 
             selModel.setValueIsAdjusting(false);        
 	}
@@ -2353,12 +2335,16 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         boolean anchorSelected = true;
 
         if (anchorRow == -1) {
-            anchorRow = 0;
+            if (getRowCount() > 0) {
+                anchorRow = 0;
+            }
             anchorSelected = false;
         }
 
         if (anchorCol == -1) {
-            anchorCol = 0;
+            if (getColumnCount() > 0) {
+                anchorCol = 0;
+            }
             anchorSelected = false;
         }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)SwingWorker.java	1.7 06/08/10
+ * @(#)SwingWorker.java	1.8 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,6 +8,7 @@ package javax.swing;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeEvent;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,8 +19,6 @@ import java.util.concurrent.locks.*;
 import java.awt.event.*;
 
 import javax.swing.SwingUtilities;
-import javax.swing.event.SwingPropertyChangeSupport;
-
 
 import sun.awt.AppContext;
 import sun.swing.AccumulativeRunnable;
@@ -197,7 +196,7 @@ import sun.swing.AccumulativeRunnable;
  * {@link java.util.concurrent.Executor} for execution.
  *  
  * @author Igor Kushnirskiy
- * @version 1.7 08/10/06
+ * @version 1.8 11/30/06
  * 
  * @param <T> the result type returned by this {@code SwingWorker's}
  *        {@code doInBackground} and {@code get} methods
@@ -231,7 +230,7 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
     /**
      * all propertyChangeSupport goes through this.
      */
-    private final SwingPropertyChangeSupport propertyChangeSupport;
+    private final PropertyChangeSupport propertyChangeSupport;
 
     /**
      * handler for {@code process} mehtod.
@@ -289,8 +288,7 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
                    };
 
        state = StateValue.PENDING;
-       propertyChangeSupport = new SwingPropertyChangeSupport(this, true);
-
+       propertyChangeSupport = new SwingWorkerPropertyChangeSupport(this);
        doProcess = null;
        doNotifyProgressChange = null;
     }
@@ -723,7 +721,7 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
         if (SwingUtilities.isEventDispatchThread()) {
             doDone.run();
         } else {
-            SwingUtilities.invokeLater(doDone);
+            doSubmit.add(doDone);
         }
     }
 
@@ -874,6 +872,27 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
         }
         public void actionPerformed(ActionEvent event) {
             run();
+        }
+    }
+    
+    private class SwingWorkerPropertyChangeSupport 
+            extends PropertyChangeSupport {
+        SwingWorkerPropertyChangeSupport(Object source) {
+            super(source);
+        }
+        @Override
+        public void firePropertyChange(final PropertyChangeEvent evt) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                super.firePropertyChange(evt);
+            } else {
+                doSubmit.add(
+                    new Runnable() {
+                        public void run() {
+                            SwingWorkerPropertyChangeSupport.this
+                                .firePropertyChange(evt);
+                        }
+                    });
+            }
         }
     }
 }

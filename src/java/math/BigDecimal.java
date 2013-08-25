@@ -1,5 +1,5 @@
 /*
- * @(#)BigDecimal.java	1.63 06/04/07
+ * @(#)BigDecimal.java	1.64 06/11/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -2458,7 +2458,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *          less than, equal to, or greater than <tt>val</tt>.
      */
     public int compareTo(BigDecimal val) {
-	// Optimization: would run fine without the next three lines
+	if (this.scale == val.scale &&
+	    this.intCompact != INFLATED && 
+	    val.intCompact  != INFLATED)
+	    return longCompareTo(this.intCompact, val.intCompact);
+
+ 	// Optimization: would run fine without the next three lines
 	int sigDiff = signum() - val.signum();
 	if (sigDiff != 0)
 	    return (sigDiff > 0 ? 1 : -1);
@@ -2475,7 +2480,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
 	// Scale and compare intVals
 	BigDecimal arg[] = {this, val};
 	matchScale(arg);
-	if (arg[0].intCompact != INFLATED && arg[1].intCompact != INFLATED)
+	if (arg[0].intCompact != INFLATED && 
+	    arg[1].intCompact != INFLATED)
 	    return longCompareTo(arg[0].intCompact, arg[1].intCompact);
 	return arg[0].inflate().intVal.compareTo(arg[1].inflate().intVal);
     }

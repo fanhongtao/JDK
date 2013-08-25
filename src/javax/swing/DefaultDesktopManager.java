@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultDesktopManager.java	1.58 06/05/09
+ * @(#)DefaultDesktopManager.java	1.59 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.awt.event.ComponentEvent;
   * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.58 05/09/06
+  * @version 1.59 11/30/06
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -200,7 +200,6 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         Container c = desktopIcon.getParent();
         JDesktopPane d = f.getDesktopPane();
         if (c != null && d != null) {
-            d.setComponentOrderCheckingEnabled(false);
             c.add(f);
             // If the frame is to be restored to a maximized state make
             // sure it still fills the whole desktop.
@@ -223,7 +222,6 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
                 } catch (PropertyVetoException e2) {}
 
             }
-            d.setComponentOrderCheckingEnabled(true);
         }
     }
 

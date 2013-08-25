@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.69 06/07/18
+ * @(#)RepaintManager.java	1.70 06/10/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import sun.security.action.GetPropertyAction;
  * Any calls to <code>repaint</code> on one of these will call into the
  * appropriate <code>addDirtyRegion</code> method.
  *
- * @version 1.69 07/18/06
+ * @version 1.70 10/17/06
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -69,7 +69,6 @@ public class RepaintManager
     // painted with the rest of the components.
     //
     private Map<Container,Rectangle> hwDirtyComponents;
-    private Map<Container,Rectangle> tmpHWDirtyComponents;
 
     private Map<Component,Rectangle> dirtyComponents;
     private Map<Component,Rectangle> tmpDirtyComponents;
@@ -266,7 +265,6 @@ public class RepaintManager
             tmpDirtyComponents = new IdentityHashMap<Component,Rectangle>();
             this.bufferStrategyType = bufferStrategyType;
             hwDirtyComponents = new IdentityHashMap<Container,Rectangle>();
-            tmpHWDirtyComponents = new IdentityHashMap<Container,Rectangle>();
         }
     }
 
@@ -494,9 +492,7 @@ public class RepaintManager
                 return;
             }
             hws = hwDirtyComponents;
-            hwDirtyComponents = tmpHWDirtyComponents;
-            tmpHWDirtyComponents = hws;
-            hwDirtyComponents.clear();
+            hwDirtyComponents =  new IdentityHashMap<Container,Rectangle>();
         }
         for (Container hw : hws.keySet()) {
             Rectangle dirty = hws.get(hw);

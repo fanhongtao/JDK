@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.232 06/04/17
+ * @(#)Font.java	1.234 06/12/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1455,6 +1455,16 @@ public class Font implements java.io.Serializable
     public int hashCode() {
         if (hash == 0) {
             hash = name.hashCode() ^ style ^ size;
+            /* It is possible many fonts differ only in transform.
+             * So include the transform in the hash calculation.
+             * nonIdentityTx is set whenever there is a transform in
+             * 'values'. The tests for null are required because it can
+             * also be set for other reasons.
+             */
+            if (nonIdentityTx &&
+                values != null && values.getTransform() != null) {
+                hash ^= values.getTransform().hashCode();
+            }
         }
         return hash;
     }
@@ -1484,10 +1494,21 @@ public class Font implements java.io.Serializable
                     pointSize == font.pointSize &&
                     name.equals(font.name)) {
 
+                    /* 'values' is usually initialized lazily, except when
+                     * the font is constructed from a Map, or derived using
+                     * a Map or other values. So if only one font has
+                     * the field initialized we need to initialize it in
+                     * the other instance and compare.
+                     */
                     if (values == null) {
-                        return font.values == null;
+                        if (font.values == null) {
+                            return true;
+                        } else {
+                            return getAttributeValues().equals(font.values);
+                        }
+                    } else {
+                        return values.equals(font.getAttributeValues());
                     }
-                    return values.equals(font.values);
                 }
             }
             catch (ClassCastException e) {

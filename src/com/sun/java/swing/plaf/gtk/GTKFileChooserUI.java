@@ -1,5 +1,5 @@
 /*
- * @(#)GTKFileChooserUI.java	1.40 06/05/24
+ * @(#)GTKFileChooserUI.java	1.41 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -433,7 +433,7 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 		    if (file != null
 			&& file.isDirectory()
 			&& chooser.isTraversable(file)
-			&& (chooser.getFileSelectionMode() != chooser.DIRECTORIES_ONLY
+			&& (chooser.getFileSelectionMode() == chooser.FILES_ONLY
 			    || !chooser.getFileSystemView().isFileSystem(file))) {
 
 			setDirectorySelected(true);

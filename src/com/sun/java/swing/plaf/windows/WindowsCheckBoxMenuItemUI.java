@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsCheckBoxMenuItemUI.java	1.17 05/11/17
+ * @(#)WindowsCheckBoxMenuItemUI.java	1.18 06/12/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,8 @@ import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.Part;
+import com.sun.java.swing.plaf.windows.TMSchema.State;
 
 
 /**
@@ -26,10 +28,34 @@ import javax.swing.plaf.basic.*;
  */
 public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
 
+    final WindowsMenuItemUIAccessor accessor = 
+        new WindowsMenuItemUIAccessor() {
+
+            public JMenuItem getMenuItem() {
+                return menuItem;
+            }
+
+            public State getState(JMenuItem menuItem) {
+                return WindowsMenuItemUI.getState(this, menuItem);
+            }
+
+            public Part getPart(JMenuItem menuItem) {
+                return WindowsMenuItemUI.getPart(this, menuItem);
+            }
+    };
     public static ComponentUI createUI(JComponent b) {
         return new WindowsCheckBoxMenuItemUI();
+    }   
+    
+    @Override
+    protected  void paintBackground(Graphics g, JMenuItem menuItem, 
+            Color bgColor) {
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintBackground(accessor, g, menuItem, bgColor);
+            return;
+        }
+        super.paintBackground(g, menuItem, bgColor);
     }
-
     /**
      * Method which renders the text of the current menu item.
      * <p>
@@ -41,7 +67,11 @@ public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
      */
     protected void paintText(Graphics g, JMenuItem menuItem,
                              Rectangle textRect, String text) {
-
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintText(accessor, g, menuItem, 
+                                        textRect, text);
+            return;
+        }
         ButtonModel model = menuItem.getModel();
         Color oldColor = g.getColor();
 
@@ -53,6 +83,5 @@ public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
 
         g.setColor(oldColor);
     }
-
 }
 

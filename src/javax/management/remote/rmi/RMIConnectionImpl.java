@@ -1,5 +1,5 @@
 /*
- * @(#)RMIConnectionImpl.java	1.93 06/06/12
+ * @(#)RMIConnectionImpl.java	1.94 06/09/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -158,25 +158,27 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
 	return connectionId;
     }
 
-    public synchronized void close() throws IOException {
+    public void close() throws IOException {
         final boolean debug = logger.debugOn();
         final String  idstr = (debug?"["+this.toString()+"]":null);
 
-        if (terminated) {
-            if (debug) logger.debug("close",idstr + " already terminated.");
-            return;
-        }
+	synchronized(this) {
+	    if (terminated) {
+		if (debug) logger.debug("close",idstr + " already terminated.");
+		return;
+	    }
 
-        if (debug) logger.debug("close",idstr + " closing.");
+	    if (debug) logger.debug("close",idstr + " closing.");
 
-        terminated = true;
+	    terminated = true;
 
-	if (serverCommunicatorAdmin != null) {
-	    serverCommunicatorAdmin.terminate();
-	}
+	    if (serverCommunicatorAdmin != null) {
+		serverCommunicatorAdmin.terminate();
+	    }
 
-	if (serverNotifForwarder != null) {
-	    serverNotifForwarder.terminate();
+	    if (serverNotifForwarder != null) {
+		serverNotifForwarder.terminate();
+	    }
 	}
 
         rmiServer.clientClosed(this);

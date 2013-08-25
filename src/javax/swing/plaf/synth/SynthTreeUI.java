@@ -1,5 +1,5 @@
 /*
- * @(#)SynthTreeUI.java	1.32 06/03/16
+ * @(#)SynthTreeUI.java	1.33 06/11/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import sun.swing.plaf.synth.*;
 /**
  * Skinnable TreeUI.
  *
- * @version 1.32, 03/16/06
+ * @version 1.33, 11/30/06
  * @author Scott Violet
  */
 class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,
@@ -218,16 +218,6 @@ class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,
         context.dispose();
     }
 
-    private void adjustCellBounds(JTree tree, Rectangle bounds, Insets i){
-        if (bounds != null) {
-            if (i == null) {
-                i = SynthLookAndFeel.EMPTY_UIRESOURCE_INSETS;
-            }
-            bounds.x += i.left;
-            bounds.y += i.top;
-        }
-    }
-
     private void updateLeadRow() {
 	leadRow = getRowForPath(tree, tree.getLeadSelectionPath());
     }
@@ -281,8 +271,7 @@ class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,
 			isExpanded = treeState.getExpandedState(path);
 			hasBeenExpanded = tree.hasBeenExpanded(path);
 		    }
-		    bounds = treeState.getBounds(path, boundsBuffer);
-                    adjustCellBounds(tree, bounds, insets);
+                    bounds = getPathBounds(tree, path);
                     rowBounds.y = bounds.y;
                     rowBounds.height = bounds.height;
 		    paintRow(renderer, dtcr, context, cellContext, g,
@@ -321,8 +310,7 @@ class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,
 			isExpanded = treeState.getExpandedState(path);
 			hasBeenExpanded = tree.hasBeenExpanded(path);
 		    }
-		    bounds = treeState.getBounds(path, boundsBuffer);
-                    adjustCellBounds(tree, bounds, insets);
+                    bounds = getPathBounds(tree, path);
 		    // See if the vertical line to the parent has been drawn.
 		    parentPath = path.getParentPath();
 		    if (parentPath != null) {

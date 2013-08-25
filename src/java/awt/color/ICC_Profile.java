@@ -1,5 +1,5 @@
 /*
- * @(#)ICC_Profile.java	1.37 06/04/07
+ * @(#)ICC_Profile.java	1.38 06/11/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1764,54 +1764,45 @@ public class ICC_Profile implements Serializable {
         FileInputStream fis = null;
         String path, dir, fullPath;
 
-	    try {
-	        fis = new FileInputStream(fileName);  /* absolute file name */
-	    }
-	    catch (FileNotFoundException e) {
-	    }
+        File f = new File(fileName); /* try absolute file name */
 
-	    if ((fis == null) &&
+        if ((!f.isFile()) &&
 		((path = System.getProperty("java.iccprofile.path")) != null)){
                                     /* try relative to java.iccprofile.path */
 	        StringTokenizer st = 
 		    new StringTokenizer(path, File.pathSeparator);
-		while (st.hasMoreTokens() && (fis == null)) {
+                while (st.hasMoreTokens() && (!f.isFile())) {
 		    dir = st.nextToken();
-		    try {
 		        fullPath = dir + File.separatorChar + fileName;
-			fis = new FileInputStream(fullPath);
-		    }
-		    catch (FileNotFoundException e) {
-		    }
+                    f = new File(fullPath);
 		}
 	    }
 
-	    if ((fis == null) &&
+        if ((!f.isFile()) &&
 		((path = System.getProperty("java.class.path")) != null)) {
                                     /* try relative to java.class.path */
 	        StringTokenizer st =
 		    new StringTokenizer(path, File.pathSeparator);
-		while (st.hasMoreTokens() && (fis == null)) {
+                while (st.hasMoreTokens() && (!f.isFile())) {
 		    dir = st.nextToken();
-		    try {
 		        fullPath = dir + File.separatorChar + fileName;
-			fis = new FileInputStream(fullPath);
-		    }
-		    catch (FileNotFoundException e) {
-		    }
+                    f = new File(fullPath);
 		}
 	    }
 
-	    if (fis == null) {    /* try the directory of built-in profiles */
+        if (!f.isFile()) { /* try the directory of built-in profiles */
 	        dir = System.getProperty("java.home") +
 		    File.separatorChar + "lib" + File.separatorChar + "cmm";
 		fullPath = dir + File.separatorChar + fileName;
-		try {
-		    fis = new FileInputStream(fullPath);
-		}
-		catch (FileNotFoundException e) {
-		}
+                f = new File(fullPath);
 	    }
+
+        if (f.isFile()) {
+            try {
+                fis = new FileInputStream(f);
+            } catch (FileNotFoundException e) {
+            }
+        }
         return fis;
     }
 
