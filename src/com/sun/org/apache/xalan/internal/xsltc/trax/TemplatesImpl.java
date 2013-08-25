@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TemplatesImpl.java,v 1.2.4.1 2005/09/06 12:19:26 pvedula Exp $
+ * $Id: TemplatesImpl.java,v 1.8 2007/03/26 20:12:27 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -214,22 +214,37 @@ public final class TemplatesImpl implements Templates, Serializable {
     /**
      * The TransformerFactory must pass us the translet bytecodes using this
      * method before we can create any translet instances
+     *
+     * Note: This method is private for security reasons. See
+     * CR 6537898. When merging with Apache, we must ensure 
+     * that the privateness of this method is maintained (that
+     * is why it wasn't removed).
      */
-    protected synchronized void setTransletBytecodes(byte[][] bytecodes) {
+    private synchronized void setTransletBytecodes(byte[][] bytecodes) {
 	_bytecodes = bytecodes;
     }
 
     /**
      * Returns the translet bytecodes stored in this template
+     *
+     * Note: This method is private for security reasons. See
+     * CR 6537898. When merging with Apache, we must ensure 
+     * that the privateness of this method is maintained (that
+     * is why it wasn't removed).
      */
-    public synchronized byte[][] getTransletBytecodes() {
+    private synchronized byte[][] getTransletBytecodes() {
 	return _bytecodes;
     }
 
     /**
      * Returns the translet bytecodes stored in this template
+     *
+     * Note: This method is private for security reasons. See
+     * CR 6537898. When merging with Apache, we must ensure 
+     * that the privateness of this method is maintained (that
+     * is why it wasn't removed).
      */
-    public synchronized Class[] getTransletClasses() {
+    private synchronized Class[] getTransletClasses() {
 	try {
 	    if (_class == null) defineTransletClasses();
 	}

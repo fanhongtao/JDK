@@ -1,12 +1,12 @@
 /*
- * @(#)GTKStyleFactory.java	1.36 06/12/01
+ * @(#)GTKStyleFactory.java	1.37 07/02/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
-import com.sun.java.swing.plaf.gtk.GTKNativeEngine.WidgetType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.WidgetType;
 import javax.swing.plaf.synth.*;
 import javax.swing.*;
 import java.util.*;
@@ -57,7 +57,20 @@ class GTKStyleFactory extends SynthStyleFactory {
         WidgetType wt = GTKNativeEngine.getWidgetType(c, id);
 
         Object key = null;
-        if (id == Region.CHECK_BOX || id == Region.RADIO_BUTTON) {
+        if (id == Region.SCROLL_BAR) {
+            // The style/insets of a scrollbar can depend on a number of
+            // factors (see GTKStyle.getScrollBarInsets()) so use a
+            // complex key here.
+            if (c != null) {
+                JScrollBar sb = (JScrollBar)c;
+                boolean sp = (sb.getParent() instanceof JScrollPane);
+                boolean horiz = (sb.getOrientation() == JScrollBar.HORIZONTAL);
+                boolean ltr = sb.getComponentOrientation().isLeftToRight();
+                boolean focusable = sb.isFocusable();
+                key = new ComplexKey(wt, sp, horiz, ltr, focusable);
+            }
+        } 
+        else if (id == Region.CHECK_BOX || id == Region.RADIO_BUTTON) {
             // The style/insets of a checkbox or radiobutton can depend
             // on the component orientation, so use a complex key here.
             if (c != null) {

@@ -1,5 +1,5 @@
 /*
- *  @(#)HashMap.java	1.72 06/04/24
+ *  @(#)HashMap.java	1.73 07/03/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -95,7 +95,7 @@ import java.io.*;
  * @author  Josh Bloch
  * @author  Arthur van Hoff
  * @author  Neal Gafter
- * @version 1.72, 04/24/06
+ * @version 1.73, 03/13/07
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -791,7 +791,7 @@ public class HashMap<K,V>
         final Entry<K,V> nextEntry() {
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
-            Entry<K,V> e = current = next;
+            Entry<K,V> e = next;
             if (e == null)
                 throw new NoSuchElementException();
 
@@ -800,6 +800,7 @@ public class HashMap<K,V>
                 while (index < t.length && (next = t[index++]) == null)
                     ;
             }
+	    current = e;
             return e;
         }
 

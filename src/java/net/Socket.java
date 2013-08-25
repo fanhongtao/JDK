@@ -1,5 +1,5 @@
 /*
- * @(#)Socket.java	1.113 06/07/19
+ * @(#)Socket.java	1.114 07/01/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.113, 07/19/06
+ * @version 1.114, 01/19/07
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -178,7 +178,7 @@ class Socket {
     {
 	this(host != null ? new InetSocketAddress(host, port) :
 	     new InetSocketAddress(InetAddress.getByName(null), port),
-	     new InetSocketAddress(0), true);
+	     (SocketAddress) null, true);
     }
 
     /**
@@ -206,7 +206,7 @@ class Socket {
      */
     public Socket(InetAddress address, int port) throws IOException {
 	this(address != null ? new InetSocketAddress(address, port) : null, 
-	     new InetSocketAddress(0), true);
+	     (SocketAddress) null, true);
     }
 
     /**
@@ -308,7 +308,7 @@ class Socket {
     public Socket(String host, int port, boolean stream) throws IOException {
 	this(host != null ? new InetSocketAddress(host, port) :
 	       new InetSocketAddress(InetAddress.getByName(null), port),
-	     new InetSocketAddress(0), stream);
+	     (SocketAddress) null, stream);
     }
 
     /**
@@ -359,9 +359,8 @@ class Socket {
 
 	try {
 	    createImpl(stream);
-	    if (localAddr == null)
-		localAddr = new InetSocketAddress(0);
-	    bind(localAddr);
+	    if (localAddr != null)
+		bind(localAddr);
 	    if (address != null)
 		connect(address);
 	} catch (IOException e) {

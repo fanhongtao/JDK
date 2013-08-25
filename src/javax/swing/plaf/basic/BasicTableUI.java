@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.159 06/04/14
+ * @(#)BasicTableUI.java	1.160 06/12/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.159 04/14/06
+ * @version 1.160 12/07/06
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
  */
@@ -1409,6 +1409,11 @@ public class BasicTableUI extends TableUI
 	TransferHandler th = table.getTransferHandler();
 	if (th == null || th instanceof UIResource) {
 	    table.setTransferHandler(defaultTransferHandler);
+            // default TransferHandler doesn't support drop
+            // so we don't want drop handling
+            if (table.getDropTarget() instanceof UIResource) {
+                table.setDropTarget(null);
+            }
 	}
     }
 

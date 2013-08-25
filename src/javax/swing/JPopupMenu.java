@@ -1,5 +1,5 @@
 /*
- * @(#)JPopupMenu.java	1.198 06/08/08
+ * @(#)JPopupMenu.java	1.199 07/04/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -58,7 +58,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.198 @(#)JPopupMenu.java	1.198
+ * @version 1.199 @(#)JPopupMenu.java	1.199
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -845,7 +845,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @return true if this menu is a standalone popup menu, otherwise false
      */
     private boolean isPopupMenu() {
-        return  !(invoker instanceof JMenu);
+        return  ((invoker != null) && !(invoker instanceof JMenu));
     }
 
     /**

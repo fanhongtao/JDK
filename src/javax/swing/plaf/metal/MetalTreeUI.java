@@ -1,5 +1,5 @@
 /*
- * @(#)MetalTreeUI.java	1.24 05/11/17
+ * @(#)MetalTreeUI.java	1.25 07/01/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -55,7 +55,7 @@ import javax.swing.plaf.basic.*;
  * <p>
  * The default is <code>Angled</code>.
  *
- * @version 1.24 11/17/05
+ * @version 1.25 01/08/07
  * @author Tom Santos
  * @author Steve Wilson (value add stuff)
  */
@@ -88,7 +88,7 @@ public class MetalTreeUI extends BasicTreeUI {
 
     protected int getHorizontalLegBuffer()
       {
-	return 4;
+          return 3;
       } 
 
     public void installUI( JComponent c ) {

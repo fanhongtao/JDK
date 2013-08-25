@@ -1,5 +1,5 @@
 /*
- * @(#)SynthComboBoxUI.java	1.17 06/03/16
+ * @(#)SynthComboBoxUI.java	1.18 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's ComboBoxUI.
  *
- * @version 1.17, 03/16/06
+ * @version 1.18, 03/15/07
  * @author Scott Violet
  */
 class SynthComboBoxUI extends BasicComboBoxUI implements
@@ -249,6 +249,15 @@ class SynthComboBoxUI extends BasicComboBoxUI implements
                 }
                 setText(text);
             }
+
+            // The renderer component should inherit the enabled and
+            // orientation state of its parent combobox.  This is
+            // especially needed for GTK comboboxes, where the
+            // ListCellRenderer's state determines the visual state
+            // of the combobox.
+            setEnabled(comboBox.isEnabled());
+            setComponentOrientation(comboBox.getComponentOrientation());
+
             return this;
         }
 

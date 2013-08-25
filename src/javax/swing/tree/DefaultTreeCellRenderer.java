@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTreeCellRenderer.java	1.60 05/11/17
+ * @(#)DefaultTreeCellRenderer.java	1.61 07/01/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -52,7 +52,7 @@ import java.util.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.60 11/17/05
+ * @version 1.61 01/08/07
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -116,8 +116,6 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
       * UIManager.
       */
     public DefaultTreeCellRenderer() {
-	setHorizontalAlignment(JLabel.LEFT);
-
 	setLeafIcon(UIManager.getIcon("Tree.leafIcon"));
 	setClosedIcon(UIManager.getIcon("Tree.closedIcon"));
 	setOpenIcon(UIManager.getIcon("Tree.openIcon"));

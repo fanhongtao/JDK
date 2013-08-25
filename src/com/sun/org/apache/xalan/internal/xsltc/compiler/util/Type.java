@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Type.java,v 1.2.4.2 2005/09/15 18:34:13 jeffsuttor Exp $
+ * $Id: Type.java,v 1.8 2007/03/28 16:51:19 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -63,6 +63,9 @@ public abstract class Type implements Constants {
             return Type.ObjectString;
         } 
         else {
+            //
+            java.security.AccessControlContext acc = java.security.AccessController.getContext();
+            acc.checkPermission(new RuntimePermission("getContextClassLoader"));
             return new ObjectType(javaClassName);
         }
     }

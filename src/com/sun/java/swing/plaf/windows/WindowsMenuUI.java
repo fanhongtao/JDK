@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsMenuUI.java	1.27 06/12/15
+ * @(#)WindowsMenuUI.java	1.28 07/02/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -46,7 +46,8 @@ public class WindowsMenuUI extends BasicMenuUI {
                 if (model.isArmed() || model.isSelected()) {
                     state = (menu.isEnabled()) ? State.PUSHED 
                             : State.DISABLEDPUSHED;
-                } else if (model.isRollover()) {
+                } else if (model.isRollover() 
+                           && ((JMenu) menu).isTopLevelMenu()) {
                     /* 
                      * Only paint rollover if no other menu on menubar is 
                      * selected

@@ -1,8 +1,8 @@
 /*
  * @(#)file      RequiredModelMBean.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.61
- * @(#)lastedit      05/12/29
+ * @(#)version   1.63
+ * @(#)lastedit      07/03/30
  *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
  *
@@ -76,6 +76,8 @@ import javax.management.NotificationEmitter;
 import javax.management.loading.ClassLoaderRepository;
 
 import com.sun.jmx.trace.Trace;
+import sun.reflect.misc.MethodUtil;
+import sun.reflect.misc.ReflectUtil;
 
 
 /**
@@ -1068,14 +1070,8 @@ public class RequiredModelMBean
 				Object targetObject, Object[] opArgs)
 	    throws MBeanException, ReflectionException {
 	try {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                if (method.getName().equals("forName") &&
-                    targetObject.getClass() == Class.class) {
-                    sm.checkPackageAccess((String)opArgs[0]);
-                }
-            }
-            return method.invoke(targetObject, opArgs);
+	    ReflectUtil.checkPackageAccess(method.getDeclaringClass());
+	    return MethodUtil.invoke(method, targetObject, opArgs);
 	} catch (RuntimeErrorException ree) {
 	    throw new RuntimeOperationsException(ree,
 		      "RuntimeException occurred in RequiredModelMBean "+

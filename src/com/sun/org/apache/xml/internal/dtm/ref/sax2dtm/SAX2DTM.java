@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SAX2DTM.java,v 1.2.4.1 2005/09/15 08:15:11 suresh_emailid Exp $
+ * $Id: SAX2DTM.java,v 1.6 2007/03/23 18:12:53 spericas Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref.sax2dtm;
 
@@ -397,11 +397,15 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * "this" if the DTM object has a built-in SAX ContentHandler,
    * the IncrementalSAXSource if we're bound to one and should receive
    * the SAX stream via it for incremental build purposes...
+   *
+   * Note that IncrementalSAXSource_Filter is package private, hence
+   * it can be statically referenced using instanceof (CR 6537912).
    */
   public ContentHandler getContentHandler()
   {
 
-    if (m_incrementalSAXSource instanceof IncrementalSAXSource_Filter)
+    if (m_incrementalSAXSource.getClass()
+        .getName().equals("com.sun.org.apache.xml.internal.dtm.ref.IncrementalSAXSource_Filter"))
       return (ContentHandler) m_incrementalSAXSource;
     else
       return this;
@@ -416,11 +420,15 @@ public class SAX2DTM extends DTMDefaultBaseIterators
    * "this" if the DTM object has a built-in SAX ContentHandler,
    * the IncrementalSAXSource if we're bound to one and should receive
    * the SAX stream via it for incremental build purposes...
+   *
+   * Note that IncrementalSAXSource_Filter is package private, hence
+   * it can be statically referenced using instanceof (CR 6537912).
    */
   public LexicalHandler getLexicalHandler()
   {
 
-    if (m_incrementalSAXSource instanceof IncrementalSAXSource_Filter)
+    if (m_incrementalSAXSource.getClass()
+        .getName().equals("com.sun.org.apache.xml.internal.dtm.ref.IncrementalSAXSource_Filter"))
       return (LexicalHandler) m_incrementalSAXSource;
     else
       return this;

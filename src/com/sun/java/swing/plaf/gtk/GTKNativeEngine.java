@@ -1,5 +1,5 @@
 /*
- * @(#)GTKNativeEngine.java	1.9 06/11/30
+ * @(#)GTKNativeEngine.java	1.11 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,8 @@ import com.sun.java.swing.plaf.gtk.GTKConstants.ExpanderStyle;
 import com.sun.java.swing.plaf.gtk.GTKConstants.Orientation;
 import com.sun.java.swing.plaf.gtk.GTKConstants.PositionType;
 import com.sun.java.swing.plaf.gtk.GTKConstants.ShadowType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.WidgetType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.TextDirection;
 
 import javax.imageio.*;
 import java.io.*;
@@ -33,30 +35,12 @@ import sun.swing.ImageCache;
  * Finally, finishPainting() should be called. It fills the data buffer passed
  *   in with the image data.
  *
- * @version 1.9, 11/30/06
+ * @version 1.11, 03/15/07
  * @author Josh Outwater
  */
 public class GTKNativeEngine extends GTKEngine {
     /** Size of the image cache */
     private static final int CACHE_SIZE = 50;
-
-    /** This enum mirrors that in gtk2_interface.h */
-    static enum WidgetType {
-        ARROW_BUTTON, BUTTON, CHECK_BOX, CHECK_BOX_MENU_ITEM, COLOR_CHOOSER,
-        COMBO_BOX, DESKTOP_ICON, DESKTOP_PANE, EDITOR_PANE, FORMATTED_TEXT_FIELD,
-        HANDLE_BOX, HSCROLL_BAR, HSCROLL_BAR_TRACK, HSCROLL_BAR_THUMB,
-        HSEPARATOR, HSLIDER, HSLIDER_TRACK, HSLIDER_THUMB, HSPLIT_PANE_DIVIDER,
-        INTERNAL_FRAME, INTERNAL_FRAME_TITLE_PANE, IMAGE, LABEL, LIST, MENU,
-        MENU_BAR, MENU_ITEM, MENU_ITEM_ACCELERATOR, OPTION_PANE, PANEL,
-        PASSWORD_FIELD, POPUP_MENU, POPUP_MENU_SEPARATOR, PROGRESS_BAR,
-        RADIO_BUTTON, RADIO_BUTTON_MENU_ITEM, ROOT_PANE, SCROLL_PANE, SPINNER,
-        SPLIT_PANE, TABBED_PANE, TABBED_PANE_TAB_AREA, TABBED_PANE_CONTENT,
-        TABBED_PANE_TAB, TABLE, TABLE_HEADER, TEXT_AREA, TEXT_FIELD, TEXT_PANE,
-        TOGGLE_BUTTON, TOOL_BAR, TOOL_BAR_DRAG_WINDOW, TOOL_BAR_SEPARATOR,
-        TOOL_TIP, TREE, TREE_CELL, VIEWPORT, VSCROLL_BAR, VSCROLL_BAR_TRACK,
-        VSCROLL_BAR_THUMB, VSEPARATOR, VSLIDER, VSLIDER_TRACK, VSLIDER_THUMB,
-        VSPLIT_PANE_DIVIDER
-    }
 
     private static HashMap regionToWidgetTypeMap;
     private ImageCache cache = new ImageCache(CACHE_SIZE);
@@ -69,7 +53,7 @@ public class GTKNativeEngine extends GTKEngine {
             int x, int y, int width, int height, int arrowType);
     private native void native_paint_box(
             int widgetType, int state, int shadowType, String detail,
-            int x, int y, int width, int height, int synth_state);
+            int x, int y, int width, int height, int synth_state, int dir);
     private native void native_paint_box_gap(
             int widgetType, int state, int shadowType, String detail,
             int x, int y, int width, int height,
@@ -100,7 +84,7 @@ public class GTKNativeEngine extends GTKEngine {
             int x, int y, int width, int height);
     private native void native_paint_shadow(
             int widgetType, int state, int shadowType, String detail,
-            int x, int y, int width, int height);
+            int x, int y, int width, int height, int synthState, int dir);
     private native void native_paint_slider(
             int widgetType, int state, int shadowType, String detail,
             int x, int y, int width, int height, int orientation);
@@ -123,7 +107,13 @@ public class GTKNativeEngine extends GTKEngine {
         
         // Initialize regionToWidgetTypeMap
         regionToWidgetTypeMap = new HashMap(50);
-        regionToWidgetTypeMap.put(Region.ARROW_BUTTON, WidgetType.ARROW_BUTTON);
+        regionToWidgetTypeMap.put(Region.ARROW_BUTTON, new WidgetType[] { 
+            WidgetType.SPINNER_ARROW_BUTTON, 
+            WidgetType.COMBO_BOX_ARROW_BUTTON, 
+            WidgetType.HSCROLL_BAR_BUTTON_LEFT, 
+            WidgetType.HSCROLL_BAR_BUTTON_RIGHT, 
+            WidgetType.VSCROLL_BAR_BUTTON_UP, 
+            WidgetType.VSCROLL_BAR_BUTTON_DOWN});
         regionToWidgetTypeMap.put(Region.BUTTON, WidgetType.BUTTON);
         regionToWidgetTypeMap.put(Region.CHECK_BOX, WidgetType.CHECK_BOX);
         regionToWidgetTypeMap.put(Region.CHECK_BOX_MENU_ITEM,
@@ -134,14 +124,15 @@ public class GTKNativeEngine extends GTKEngine {
         regionToWidgetTypeMap.put(Region.DESKTOP_ICON, WidgetType.DESKTOP_ICON);
         regionToWidgetTypeMap.put(Region.DESKTOP_PANE, WidgetType.DESKTOP_PANE);
         regionToWidgetTypeMap.put(Region.EDITOR_PANE, WidgetType.EDITOR_PANE);
-        regionToWidgetTypeMap.put(Region.FORMATTED_TEXT_FIELD,
-                                  WidgetType.FORMATTED_TEXT_FIELD);
+        regionToWidgetTypeMap.put(Region.FORMATTED_TEXT_FIELD, new WidgetType[] { 
+            WidgetType.FORMATTED_TEXT_FIELD, WidgetType.SPINNER_TEXT_FIELD}); 
         regionToWidgetTypeMap.put(GTKRegion.HANDLE_BOX, WidgetType.HANDLE_BOX);
         regionToWidgetTypeMap.put(Region.INTERNAL_FRAME,
                                   WidgetType.INTERNAL_FRAME);
         regionToWidgetTypeMap.put(Region.INTERNAL_FRAME_TITLE_PANE,
                                   WidgetType.INTERNAL_FRAME_TITLE_PANE);
-        regionToWidgetTypeMap.put(Region.LABEL, WidgetType.LABEL);
+        regionToWidgetTypeMap.put(Region.LABEL, new WidgetType[] { 
+            WidgetType.LABEL, WidgetType.COMBO_BOX_TEXT_FIELD}); 
         regionToWidgetTypeMap.put(Region.LIST, WidgetType.LIST);
         regionToWidgetTypeMap.put(Region.MENU, WidgetType.MENU);
         regionToWidgetTypeMap.put(Region.MENU_BAR, WidgetType.MENU_BAR);
@@ -189,7 +180,8 @@ public class GTKNativeEngine extends GTKEngine {
         regionToWidgetTypeMap.put(Region.TABLE, WidgetType.TABLE);
         regionToWidgetTypeMap.put(Region.TABLE_HEADER, WidgetType.TABLE_HEADER);
         regionToWidgetTypeMap.put(Region.TEXT_AREA, WidgetType.TEXT_AREA);
-        regionToWidgetTypeMap.put(Region.TEXT_FIELD, WidgetType.TEXT_FIELD);
+        regionToWidgetTypeMap.put(Region.TEXT_FIELD, new WidgetType[] { 
+            WidgetType.TEXT_FIELD, WidgetType.COMBO_BOX_TEXT_FIELD});
         regionToWidgetTypeMap.put(Region.TEXT_PANE, WidgetType.TEXT_PANE);
         regionToWidgetTypeMap.put(Region.TOGGLE_BUTTON, WidgetType.TOGGLE_BUTTON);
         regionToWidgetTypeMap.put(Region.TOOL_BAR, WidgetType.TOOL_BAR);
@@ -240,15 +232,60 @@ public class GTKNativeEngine extends GTKEngine {
         } else if (c instanceof JSplitPane) {
             return (((JSplitPane)c).getOrientation() == JSplitPane.HORIZONTAL_SPLIT) ?
                 widgets[1] : widgets[0];
-        } else if (c.getParent() instanceof JScrollBar) {
-            JScrollBar sb = (JScrollBar)c.getParent();
-            return (sb.getOrientation() == JScrollBar.HORIZONTAL) ?
-                widgets[0] : widgets[1];
+        } else if (id == Region.LABEL || id == Region.TEXT_FIELD) {
+            String name = c.getName();
+            if (name != null && name.startsWith("ComboBox")) {
+                return widgets[1];
+            } else {
+                return widgets[0];
+            }
+        } else if (id == Region.FORMATTED_TEXT_FIELD) {
+            String name = c.getName();
+            if (name != null && name.startsWith("Spinner")) {
+                return widgets[1];
+            } else {
+                return widgets[0];
+            }
+        } else if (id == Region.ARROW_BUTTON) { 
+            if (c.getParent() instanceof JScrollBar) { 
+                Integer prop = (Integer)c.getClientProperty("__arrow_direction__"); 
+                int dir = (prop != null) ? 
+                    prop.intValue() : SwingConstants.WEST; 
+                switch (dir) { 
+                case SwingConstants.WEST: 
+                    return WidgetType.HSCROLL_BAR_BUTTON_LEFT; 
+                case SwingConstants.EAST: 
+                    return WidgetType.HSCROLL_BAR_BUTTON_RIGHT; 
+                case SwingConstants.NORTH: 
+                    return WidgetType.VSCROLL_BAR_BUTTON_UP; 
+                case SwingConstants.SOUTH: 
+                    return WidgetType.VSCROLL_BAR_BUTTON_DOWN; 
+                default: 
+                    return null; 
+                } 
+            } else if (c.getParent() instanceof JComboBox) {
+                return WidgetType.COMBO_BOX_ARROW_BUTTON;
+            } else { 
+                return WidgetType.SPINNER_ARROW_BUTTON; 
+            }
         }
         
         return null;
     }
     
+    private static int getTextDirection(SynthContext context) {
+        TextDirection dir = TextDirection.NONE;
+        JComponent comp = context.getComponent();
+        if (comp != null) {
+            ComponentOrientation co = comp.getComponentOrientation();
+            if (co != null) {
+                dir = co.isLeftToRight() ?
+                    TextDirection.LTR : TextDirection.RTL;
+            }
+        }
+        return dir.ordinal();
+    }
+
     public void paintArrow(Graphics g, SynthContext context,
             Region id, int state, ShadowType shadowType, ArrowType direction,
             String detail, int x, int y, int w, int h) {
@@ -263,10 +300,13 @@ public class GTKNativeEngine extends GTKEngine {
             Region id, int state, ShadowType shadowType,
             String detail, int x, int y, int w, int h) {
 
-        state = GTKLookAndFeel.synthStateToGTKStateType(state).ordinal();
+        int gtkState = 
+            GTKLookAndFeel.synthStateToGTKStateType(state).ordinal(); 
+        int synthState = context.getComponentState(); 
+        int dir = getTextDirection(context);
         int widget = getWidgetType(context.getComponent(), id).ordinal();
-        native_paint_box(widget, state, shadowType.ordinal(),
-                detail, x - x0, y - y0, w, h, context.getComponentState());
+        native_paint_box(widget, gtkState, shadowType.ordinal(),
+                detail, x - x0, y - y0, w, h, synthState, dir);
     }
 
     public void paintBoxGap(Graphics g, SynthContext context,
@@ -359,10 +399,13 @@ public class GTKNativeEngine extends GTKEngine {
             Region id, int state, ShadowType shadowType, String detail,
             int x, int y, int w, int h) {
 
-        state = GTKLookAndFeel.synthStateToGTKStateType(state).ordinal();
+        int gtkState = 
+            GTKLookAndFeel.synthStateToGTKStateType(state).ordinal(); 
+        int synthState = context.getComponentState(); 
+        int dir = getTextDirection(context); 
         int widget = getWidgetType(context.getComponent(), id).ordinal();
-        native_paint_shadow(widget, state, shadowType.ordinal(), detail,
-                            x - x0, y - y0, w, h);
+        native_paint_shadow(widget, gtkState, shadowType.ordinal(), detail,
+                            x - x0, y - y0, w, h, synthState, dir);
     }
 
     public void paintSlider(Graphics g, SynthContext context,

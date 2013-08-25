@@ -1,5 +1,5 @@
 /*
- * @(#)POAFactory.java	1.22 05/11/17
+ * @(#)POAFactory.java	1.23 07/03/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -58,6 +58,7 @@ public class POAFactory implements ObjectAdapterFactory
     private ORB orb ;
     private POASystemException wrapper ;
     private OMGSystemException omgWrapper ;
+    private boolean isShuttingDown = false;
 
     public POASystemException getWrapper() 
     {
@@ -148,6 +149,7 @@ public class POAFactory implements ObjectAdapterFactory
 	// pm.deactivate removes itself from poaManagers!
 	Iterator managers = null ;
 	synchronized (this) {
+	    isShuttingDown = true ;
 	    managers = (new HashSet(poaManagers)).iterator();
 	}
 
@@ -190,9 +192,15 @@ public class POAFactory implements ObjectAdapterFactory
 	    ClosureFactory.makeFuture( rpClosure ) ) ;
     }
 
+
     public synchronized POA getRootPOA()
     {
 	if (rootPOA == null) {
+	    // See if we are trying to getRootPOA while shutting down the ORB.
+	    if (isShuttingDown) {
+		throw omgWrapper.noObjectAdaptor( ) ;
+	    }
+
 	    try {
 		Object obj = orb.resolve_initial_references(
 		    ORBConstants.ROOT_POA_NAME ) ;

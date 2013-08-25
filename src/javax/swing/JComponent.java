@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.283 06/08/17
+ * @(#)JComponent.java	2.284 07/02/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -155,7 +155,7 @@ import sun.swing.UIClientPropertyKey;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.283, 08/17/06
+ * @version 2.284, 02/01/07
  * @author Hans Muller
  * @author Arnaud Weber
  */
@@ -212,6 +212,16 @@ public abstract class JComponent extends Container implements Serializable,
      * Set to true when DebugGraphics has been loaded.
      */
     static boolean DEBUG_GRAPHICS_LOADED;
+
+    /**
+     * Key used to look up a value from the AppContext to determine the 
+     * JComponent the InputVerifier is running for. That is, if
+     * AppContext.get(INPUT_VERIFIER_SOURCE_KEY) returns non-null, it
+     * indicates the EDT is calling into the InputVerifier from the
+     * returned component.
+     */
+    private static final Object INPUT_VERIFIER_SOURCE_KEY = 
+            new StringBuilder("InputVerifierSourceKey");
 
     /* The following fields support set methods for the corresponding
      * java.awt.Component properties.
@@ -338,11 +348,6 @@ public abstract class JComponent extends Container implements Serializable,
     private static final int AUTOSCROLLS_SET                          = 25;
     private static final int FOCUS_TRAVERSAL_KEYS_FORWARD_SET         = 26;
     private static final int FOCUS_TRAVERSAL_KEYS_BACKWARD_SET        = 27;
-
-    /**
-     * Whether or not some JComponent is calling into an InputVerifier.
-     */
-    private static boolean inInputVerifier;
 
     /**
      * Temporary rectangles.
@@ -3496,12 +3501,6 @@ public abstract class JComponent extends Container implements Serializable,
                                               boolean temporary, boolean focusedWindowChangeAllowed,
                                               sun.awt.CausedFocusEvent.Cause cause)
             {
-                if (JComponent.inInputVerifier) {
-                    // We're already running the InputVerifier, assume the
-                    // developer knows what they're doing.
-                    return true;
-                }
-
                 if ((to == null) || !(to instanceof JComponent)) {
                     return true;
                 }
@@ -3521,11 +3520,30 @@ public abstract class JComponent extends Container implements Serializable,
                 if (iv == null) {
                     return true;
                 } else {
-                    JComponent.inInputVerifier = true;
+                    Object currentSource = SwingUtilities.appContextGet(
+                            INPUT_VERIFIER_SOURCE_KEY);
+                    if (currentSource == jFocusOwner) {
+                        // We're currently calling into the InputVerifier
+                        // for this component, so allow the focus change.
+                        return true;
+                    }
+                    SwingUtilities.appContextPut(INPUT_VERIFIER_SOURCE_KEY,
+                                                 jFocusOwner);
                     try {
                         return iv.shouldYieldFocus(jFocusOwner);
                     } finally {
-                        JComponent.inInputVerifier = false;
+                        if (currentSource != null) {
+                            // We're already in the InputVerifier for
+                            // currentSource. By resetting the currentSource
+                            // we ensure that if the InputVerifier for
+                            // currentSource does a requestFocus, we don't
+                            // try and run the InputVerifier again.
+                            SwingUtilities.appContextPut(
+                                INPUT_VERIFIER_SOURCE_KEY, currentSource);
+                        } else {
+                            SwingUtilities.appContextRemove(
+                                INPUT_VERIFIER_SOURCE_KEY);
+                        }
                     }
                 }
             }

@@ -1,5 +1,5 @@
 /*
- * @(#)GTKPainter.java	1.82 06/12/01
+ * @(#)GTKPainter.java	1.84 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @version 1.82, 12/01/06
+ * @version 1.84, 03/15/07
  * @author Joshua Outwater
  * @author Scott Violet
  */
@@ -378,13 +378,10 @@ class GTKPainter extends SynthPainter {
             } else {
                 detail = "hscrollbar";
             }
-            id = Region.SCROLL_BAR;
         } else if (name == "Spinner.nextButton" ||
                    name == "Spinner.previousButton") {
             detail = "spinbutton";
-        } else if (name == "ComboBox.arrowButton") {
-            id = Region.COMBO_BOX;
-        } else {
+        } else if (name != "ComboBox.arrowButton") {
             assert false;
         }
         
@@ -408,32 +405,73 @@ class GTKPainter extends SynthPainter {
             Graphics g, int x, int y, int w, int h) {
         Region id = context.getRegion();
         AbstractButton button = (AbstractButton)context.getComponent();
-        boolean paintBG = button.isContentAreaFilled() &&
-                          button.isBorderPainted();
-        boolean focusPainted = button.isFocusPainted();
 
         String name = button.getName();
         String detail = "button";
+        int direction = SwingConstants.CENTER;
         if (name == "ScrollBar.button") {
-            Component parent = button.getParent();
-            if (parent instanceof JScrollBar) {
-                if (((JScrollBar)parent).getOrientation() ==
-                        SwingConstants.HORIZONTAL) {
-                    detail = "hscrollbar";
-                } else {
-                    detail = "vscrollbar";
-                }
-                id = Region.SCROLL_BAR;
+            Integer prop = (Integer) 
+                button.getClientProperty("__arrow_direction__"); 
+            direction = (prop != null) ? 
+                prop.intValue() : SwingConstants.WEST; 
+            switch (direction) { 
+            default: 
+            case SwingConstants.EAST: 
+            case SwingConstants.WEST: 
+                detail = "hscrollbar"; 
+                break; 
+            case SwingConstants.NORTH: 
+            case SwingConstants.SOUTH: 
+                detail = "vscrollbar"; 
+                break; 
             }
         } else if (name == "Spinner.previousButton") {
             detail = "spinbutton_down";
         } else if (name == "Spinner.nextButton") {
             detail = "spinbutton_up";
-        } else if (name == "ComboBox.arrowButton") {
-            id = Region.BUTTON;
+        } else if (name != "ComboBox.arrowButton") { 
+            assert false;
         }
-        paintButtonBackgroundImpl(context, g, id, detail, x, y, w, h,
-                paintBG, focusPainted, false, false);
+
+        int state = context.getComponentState(); 
+        synchronized (UNIXToolkit.GTK_LOCK) { 
+            if (ENGINE.paintCachedImage(g, x, y, w, h, id, 
+                                        state, detail, direction)) 
+            { 
+                return; 
+            } 
+            ENGINE.startPainting(g, x, y, w, h, id, 
+                                 state, detail, direction); 
+
+            if (detail.startsWith("spin")) {
+                /*
+                 * The ubuntulooks engine (and presumably others) expect us to
+                 * first draw the full "spinbutton" background, and then draw
+                 * the individual "spinbutton_up/down" buttons on top of that.
+                 * Note that it is the state of the JSpinner (not its arrow
+                 * button) that determines how we draw this background.
+                 */
+                int spinState = button.getParent().isEnabled() ?
+                    SynthConstants.ENABLED : SynthConstants.DISABLED;
+                int mody = (detail == "spinbutton_up") ? y : y-h;
+                int modh = h*2;
+                ENGINE.paintBox(g, context, id, spinState,
+                                ShadowType.IN, "spinbutton",
+                                x, mody, w, modh);
+            }
+
+            int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state); 
+            ShadowType shadowType = ShadowType.OUT; 
+            if ((gtkState & (SynthConstants.PRESSED | 
+                             SynthConstants.SELECTED)) != 0) 
+            { 
+                shadowType = ShadowType.IN; 
+            } 
+            ENGINE.paintBox(g, context, id, gtkState, 
+                            shadowType, detail, x, y, w, h); 
+ 
+            ENGINE.finishPainting(); 
+        }
     }
 
 
@@ -831,11 +869,6 @@ class GTKPainter extends SynthPainter {
         // Text is odd in that it uses the TEXT_BACKGROUND vs BACKGROUND.
         JComponent c = context.getComponent();
         GTKStyle style = (GTKStyle)context.getStyle();
-        if (c.isOpaque() && c.getBackground() instanceof ColorUIResource) {
-            g.setColor(style.getGTKColor(context, SynthConstants.ENABLED,
-                                         GTKColorType.TEXT_BACKGROUND));
-            g.fillRect(x, y, w, h);
-        }
 
         Region id = context.getRegion();
         int state = context.getComponentState();
@@ -861,13 +894,16 @@ class GTKPainter extends SynthPainter {
             int yThickness = style.getYThickness();
                 
             ENGINE.startPainting(g, x, y, w, h, id, state);
-            ENGINE.paintShadow(g, context, id, SynthConstants.ENABLED,
+            ENGINE.paintShadow(g, context, id, gtkState,
                     ShadowType.IN, "entry", x, y, w, h);
             ENGINE.paintFlatBox(g, context, id,
-                    SynthConstants.ENABLED, ShadowType.NONE, "entry_bg",
-                    x + xThickness, y + yThickness, w - (2 * xThickness),
-                    h - (2 * yThickness), ColorType.TEXT_BACKGROUND);
-                
+                                gtkState, ShadowType.NONE, "entry_bg", 
+                                x + xThickness, 
+                                y + yThickness, 
+                                w - (2 * xThickness), 
+                                h - (2 * yThickness), 
+                                ColorType.TEXT_BACKGROUND); 
+
             if (focusSize > 0) {
                 x -= focusSize;
                 y -= focusSize;
@@ -938,16 +974,27 @@ class GTKPainter extends SynthPainter {
             }
             ENGINE.startPainting(g, x, y, w, h, id, focused);
 
+            // Note: the scrollbar insets already include the "trough-border",
+            // which is needed to position the scrollbar buttons properly.
+            // But when we render, we need to take the trough border out
+            // of the equation so that we paint the entire area covered by
+            // the trough border and the scrollbar content itself.
+            Insets insets = context.getComponent().getInsets();
             GTKStyle style = (GTKStyle)context.getStyle();
-            int focusSize = style.getClassSpecificIntValue(
-                    context, "focus-line-width",1);
-            int focusPad = style.getClassSpecificIntValue(
-                    context, "focus-padding", 1);
-            int totalFocus = focusSize + focusPad;
+            int troughBorder = 
+                style.getClassSpecificIntValue(context, "trough-border", 1); 
+            insets.left   -= troughBorder; 
+            insets.right  -= troughBorder; 
+            insets.top    -= troughBorder; 
+            insets.bottom -= troughBorder; 
+            
             ENGINE.paintBox(g, context, id, SynthConstants.PRESSED,
-                    ShadowType.IN, "trough", x + totalFocus, y + totalFocus,
-                    w - 2 * totalFocus, h - 2 * totalFocus);
-
+                            ShadowType.IN, "trough", 
+                            x + insets.left, 
+                            y + insets.top, 
+                            w - insets.left - insets.right, 
+                            h - insets.top - insets.bottom);
+            
             if (focused) {
                 ENGINE.paintFocus(g, context, id,
                         SynthConstants.ENABLED, "trough", x, y, w, h);

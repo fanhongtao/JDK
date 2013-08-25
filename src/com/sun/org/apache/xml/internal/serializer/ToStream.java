@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ToStream.java,v 1.4 2005/11/10 06:43:26 suresh_emailid Exp $
+ * $Id: ToStream.java,v 1.5.2.2 2007/01/23 06:25:59 joehw Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -1967,12 +1967,13 @@ abstract public class ToStream extends SerializerBase
         string.getChars(0,len, m_attrBuff, 0);   
         final char[] stringChars = m_attrBuff;
 
-        for (int i = 0; i < len; i++)
+        for (int i = 0; i < len; )
         {
             char ch = stringChars[i];
             if (escapingNotNeeded(ch) && (!m_charInfo.isSpecialAttrChar(ch)))
             {
                 writer.write(ch);
+                i++;
             }
             else
             { // I guess the parser doesn't normalize cr/lf in attributes. -sb
@@ -1984,7 +1985,7 @@ abstract public class ToStream extends SerializerBase
 //                    ch = CharInfo.S_LINEFEED;
 //                }
 
-                accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
+                i = accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
             }
         }
 
@@ -2281,6 +2282,12 @@ abstract public class ToStream extends SerializerBase
     {
         try
         {
+            // Don't output doctype declaration until startDocumentInternal
+            // has been called. Otherwise, it can appear before XML decl.
+            if (m_needToCallStartDocument) {
+                return;
+            }
+            
             if (m_needToOutputDocTypeDecl)
             {
                 outputDocTypeDecl(m_elemContext.m_elementName, false);

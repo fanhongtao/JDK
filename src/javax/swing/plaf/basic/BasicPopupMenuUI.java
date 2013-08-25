@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.135 06/08/08
+ * @(#)BasicPopupMenuUI.java	1.138 07/04/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import sun.awt.AppContext;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.135 08/08/06
+ * @version 1.138 04/03/07
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -46,12 +46,12 @@ import sun.awt.AppContext;
 public class BasicPopupMenuUI extends PopupMenuUI {
     static final StringBuilder MOUSE_GRABBER_KEY = new StringBuilder(
                    "javax.swing.plaf.basic.BasicPopupMenuUI.MouseGrabber");
+    static final StringBuilder MENU_KEYBOARD_HELPER_KEY = new StringBuilder(
+                   "javax.swing.plaf.basic.BasicPopupMenuUI.MenuKeyboardHelper");
 
     protected JPopupMenu popupMenu = null;
     private transient PopupMenuListener popupMenuListener = null;
     private MenuKeyListener menuKeyListener = null;
-    static boolean menuKeyboardHelperInstalled = false;
-    static MenuKeyboardHelper menuKeyboardHelper = null;
 
     private static boolean checkedUnpostPopup;
     private static boolean unpostPopup;
@@ -100,8 +100,8 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         }
         popupMenu.addMenuKeyListener(menuKeyListener);
 
-        synchronized (MOUSE_GRABBER_KEY) { 
-            AppContext context = AppContext.getAppContext(); 
+        AppContext context = AppContext.getAppContext();
+        synchronized (MOUSE_GRABBER_KEY) {
             MouseGrabber mouseGrabber = (MouseGrabber)context.get(
                                                      MOUSE_GRABBER_KEY);   
             if (mouseGrabber == null) {    
@@ -109,14 +109,15 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 context.put(MOUSE_GRABBER_KEY, mouseGrabber);   
             } 
         }
-
-        if (!menuKeyboardHelperInstalled) {
-            if (menuKeyboardHelper == null) {
-                menuKeyboardHelper = new MenuKeyboardHelper();
+        synchronized (MENU_KEYBOARD_HELPER_KEY) {
+            MenuKeyboardHelper helper =
+                    (MenuKeyboardHelper)context.get(MENU_KEYBOARD_HELPER_KEY);
+            if (helper == null) {
+                helper = new MenuKeyboardHelper();
+                context.put(MENU_KEYBOARD_HELPER_KEY, helper);
+                MenuSelectionManager msm = MenuSelectionManager.defaultManager();
+                msm.addChangeListener(helper);
             }
-            MenuSelectionManager msm = MenuSelectionManager.defaultManager();
-            msm.addChangeListener(menuKeyboardHelper);
-            menuKeyboardHelperInstalled = true;
         }
     }
 
@@ -686,9 +687,11 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         }
 
         void uninstall() {
-            MenuSelectionManager.defaultManager().removeChangeListener(this);
-            ungrabWindow();
-            AppContext.getAppContext().put(MOUSE_GRABBER_KEY, null);
+            synchronized (BasicPopupMenuUI.MOUSE_GRABBER_KEY) {
+                MenuSelectionManager.defaultManager().removeChangeListener(this);
+                ungrabWindow();
+                AppContext.getAppContext().remove(MOUSE_GRABBER_KEY);
+            }
         }
 
         void grabWindow(MenuElement[] newPath) {
@@ -711,7 +714,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             if (invoker instanceof JPopupMenu) {
                 invoker = ((JPopupMenu)invoker).getInvoker();
             }
-            grabbedWindow = (invoker == null || invoker instanceof Window)?
+            grabbedWindow = invoker instanceof Window?
                     (Window)invoker :
                     SwingUtilities.getWindowAncestor(invoker);
             if(grabbedWindow != null) {
@@ -796,7 +799,9 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 src = (Component)ev.getSource();
                 if(!(src instanceof MenuElement)) {
                     // Do not forward event to MSM, let component handle it
-                    break;
+                    if (isInPopup(src)) {
+                        break;
+                    }
                 }
                 if(src instanceof JMenu || !(src instanceof JMenuItem)) {
                     MenuSelectionManager.defaultManager().
@@ -892,7 +897,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
      * is active. It forwards key events to MenuSelectionManager for mnemonic
      * keys handling.
      */
-    private static class MenuKeyboardHelper
+    static class MenuKeyboardHelper
         implements ChangeListener, KeyListener {
 
         private Component lastFocused = null;
@@ -932,7 +937,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 lastFocused = null;
             }
             if (invokerRootPane != null) {
-                invokerRootPane.removeKeyListener(menuKeyboardHelper);
+                invokerRootPane.removeKeyListener(this);
                 invokerRootPane.setFocusTraversalKeysEnabled(focusTraversalKeysEnabled);
                 removeUIInputMap(invokerRootPane, menuInputMap);
                 removeUIActionMap(invokerRootPane, menuActionMap);
@@ -1038,10 +1043,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 
         public void stateChanged(ChangeEvent ev) {
             if (!(UIManager.getLookAndFeel() instanceof BasicLookAndFeel)) {
-                MenuSelectionManager msm = MenuSelectionManager.
-                                           defaultManager();
-                msm.removeChangeListener(this);
-                menuKeyboardHelperInstalled = false;
+                uninstall();
                 return;
             }
 	    MenuSelectionManager msm = (MenuSelectionManager)ev.getSource();
@@ -1099,7 +1101,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 if (invokerRootPane != null) {
                     invokerRootPane.addFocusListener(rootPaneFocusListener);
                     invokerRootPane.requestFocus(true);
-                    invokerRootPane.addKeyListener(menuKeyboardHelper);
+                    invokerRootPane.addKeyListener(this);
                     focusTraversalKeysEnabled = invokerRootPane.
                                       getFocusTraversalKeysEnabled();
                     invokerRootPane.setFocusTraversalKeysEnabled(false);
@@ -1138,6 +1140,13 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         public void keyTyped(KeyEvent ev) {
 	    if (receivedKeyPressed) {
                 MenuSelectionManager.defaultManager().processKeyEvent(ev);
+            }
+        }
+
+        void uninstall() {
+            synchronized (MENU_KEYBOARD_HELPER_KEY) {
+                MenuSelectionManager.defaultManager().removeChangeListener(this);
+                AppContext.getAppContext().remove(MENU_KEYBOARD_HELPER_KEY);
             }
         }
     }

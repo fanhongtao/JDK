@@ -1,5 +1,5 @@
 /*
- * @(#)GTKStyle.java	1.129 06/12/01
+ * @(#)GTKStyle.java	1.133 07/04/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -224,6 +224,17 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
         return getFontForState(context.getComponent(), context.getRegion(),
                                context.getComponentState());
     }
+    
+    /**
+     * Returns fontname specific for the given WidgetType
+     *
+     * @param wt WidgetType to return fontname for
+     * @return fontname
+     */
+    String getFontNameForWidgetType(WidgetType wt) {
+        return GTKLookAndFeel.DEFAULT_FONT_NAME;
+    }
+    
     
     /**
      * Returns the X thickness to use for this GTKStyle.
@@ -490,64 +501,75 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
     }
 
     private Insets getScrollBarInsets(SynthContext context, Insets insets) {
-        int inset = 0;
-        if (context.getComponent().isFocusable()) {
-            int focusSize =
-                    getClassSpecificIntValue(context, "focus-line-width",1);
-            int focusPad =
+        int troughBorder = 
+            getClassSpecificIntValue(context, "trough-border", 1); 
+        insets.left = insets.right = insets.top = insets.bottom = troughBorder; 
+ 
+        JComponent c = context.getComponent(); 
+        if (c.getParent() instanceof JScrollPane) { 
+            // This scrollbar is part of a scrollpane; use only the 
+            // "scrollbar-spacing" style property to determine the padding 
+            // between the scrollbar and its parent scrollpane. 
+            int spacing = 
+                getClassSpecificIntValue(WidgetType.SCROLL_PANE, 
+                                         "scrollbar-spacing", 3); 
+            if (((JScrollBar)c).getOrientation() == JScrollBar.HORIZONTAL) { 
+                insets.top += spacing; 
+            } else { 
+                if (c.getComponentOrientation().isLeftToRight()) { 
+                    insets.left += spacing; 
+                } else { 
+                    insets.right += spacing; 
+                } 
+            } 
+        } else { 
+            // This is a standalone scrollbar; leave enough room for the 
+            // focus line in addition to the trough border. 
+            if (c.isFocusable()) { 
+                int focusSize = 
+                    getClassSpecificIntValue(context, "focus-line-width", 1); 
+                int focusPad = 
                     getClassSpecificIntValue(context, "focus-padding", 1);
-            inset = focusSize + focusPad;
+                int totalFocus = focusSize + focusPad; 
+                insets.left   += totalFocus; 
+                insets.right  += totalFocus; 
+                insets.top    += totalFocus; 
+                insets.bottom += totalFocus; 
+            }
         }
-        int troughBorder =
-                getClassSpecificIntValue(context, "trough-border", 1);
-        inset += troughBorder;
-        insets.left = insets.right = insets.top = insets.bottom = inset;
         return insets;
     }
-
+   
     /**
      * Returns the value for a class specific property for a particular
-     * region.  This method is useful in those cases where we need to fetch
-     * a value for a Region that is not associated with the component
-     * currently in use (e.g. we need to figure out the size of a
-     * SEPARATOR, but certain values can only be extracted from a
-     * TOOL_BAR region).
+     * WidgetType.  This method is useful in those cases where we need to
+     * fetch a value for a Region that is not associated with the component
+     * currently in use (e.g. we need to figure out the insets for a
+     * SCROLL_BAR, but certain values can only be extracted from a
+     * SCROLL_PANE region).
      *
-     * REMIND: This method can be safely removed once the fixes for
-     * 6468814 and 6464868 are backported to a JDK 6 update release.
-     *
-     * @param r Region for which to fetch the value
+     * @param wt WidgetType for which to fetch the value
      * @param key Key identifying class specific value
      * @return Value, or null if one has not been defined
      */
-    private static Object getClassSpecificValueForRegion(Region r,
-                                                         String key)
-    {
-        GTKStyleFactory factory = (GTKStyleFactory)
-            GTKLookAndFeel.getStyleFactory(); 
-        GTKStyle style = (GTKStyle)factory.getStyle(null, r);
-        return style.getClassSpecificValue(r, key);
+    Object getClassSpecificValue(WidgetType wt, String key) {
+        return null;
     }
 
     /**
      * Convenience method to get a class specific integer value for
-     * a particular region.
+     * a particular WidgetType.
      *
-     * REMIND: This method can be safely removed once the fixes for
-     * 6468814 and 6464868 are backported to a JDK 6 update release.
-     *
-     * @param r Region for which to fetch the value
+     * @param wt WidgetType for which to fetch the value
      * @param key Key identifying class specific value
      * @param defaultValue Returned if there is no value for the specified
      *        type
      * @return Value, or defaultValue if <code>key</code> is not defined
-     * @see #getClassSpecificValueForRegion
      */
-    private static int getClassSpecificIntValueForRegion(Region r,
-                                                         String key,
-                                                         int defaultValue)
+    int getClassSpecificIntValue(WidgetType wt, String key,
+                                                int defaultValue)
     {
-        Object value = getClassSpecificValueForRegion(r, key);
+        Object value = getClassSpecificValue(wt, key);
         if (value instanceof Number) {
             return ((Number)value).intValue();
         }
@@ -694,8 +716,8 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
             }
         }
         else if (key == "ToolBar.separatorSize") {
-            int size = getClassSpecificIntValueForRegion(Region.TOOL_BAR,
-                                                         "space-size", 12);
+            int size = getClassSpecificIntValue(WidgetType.TOOL_BAR, 
+                                                "space-size", 12);
             return new DimensionUIResource(size, size);
         }
         else if ("CheckBox.iconTextGap".equals(key) ||
@@ -712,8 +734,42 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
             int focusPad =
                 getClassSpecificIntValue(context, "focus-padding", 1);
             return indicatorSpacing + focusSize + focusPad;
+        } else if (key == "ScrollBar.minimumThumbSize") {
+            int len = getClassSpecificIntValue(context, "min-slider-length", 21);
+            JScrollBar sb = (JScrollBar)context.getComponent();
+            if (sb.getOrientation() == JScrollBar.HORIZONTAL) {
+                return new DimensionUIResource(len, 0);
+            } else {
+                return new DimensionUIResource(0, len);
+            }
+        } else if (key == "ScrollBar.buttonSize") {
+            JScrollBar sb = (JScrollBar)context.getComponent().getParent();
+            boolean horiz = (sb.getOrientation() == JScrollBar.HORIZONTAL);
+            WidgetType wt = horiz ?
+                WidgetType.HSCROLL_BAR : WidgetType.VSCROLL_BAR;
+            int sliderWidth = getClassSpecificIntValue(wt, "slider-width", 14);
+            int stepperSize = getClassSpecificIntValue(wt, "stepper-size", 14);
+            return horiz ?
+                new DimensionUIResource(stepperSize, sliderWidth) :
+                new DimensionUIResource(sliderWidth, stepperSize);
+        } else if (key == "ArrowButton.size") {
+            String name = context.getComponent().getName();
+            if (name != null && name.startsWith("Spinner")) {
+                // Believe it or not, the size of a spinner arrow button is
+                // dependent upon the size of the spinner's font.  These
+                // calculations come from gtkspinbutton.c (version 2.8.20),
+                // spin_button_get_arrow_size() method.
+                String pangoFontName = getFontNameForWidgetType(WidgetType.SPINNER);
+                int arrowSize = (pangoFontName != null) ?
+                    PangoFonts.getFontSize(pangoFontName) : 10;
+                return (arrowSize + (getXThickness() * 2));
+            }
+            // For all other kinds of arrow buttons (e.g. combobox arrow
+            // buttons), we will simply fall back on the value of
+            // ArrowButton.size as defined in the UIDefaults for
+            // GTKLookAndFeel when we call UIManager.get() below...
         }
-
+        
         // Is it a stock icon ?
         GTKStockIcon stockIcon = null;
         synchronized (ICONS_MAP) {
@@ -1052,6 +1108,7 @@ abstract class GTKStyle extends SynthStyle implements GTKConstants {
         CLASS_SPECIFIC_MAP.put("SplitPane.size", "handle-size");
         CLASS_SPECIFIC_MAP.put("Tree.expanderSize", "expander-size");
         CLASS_SPECIFIC_MAP.put("ScrollBar.thumbHeight", "slider-width");
+        CLASS_SPECIFIC_MAP.put("ScrollBar.width", "slider-width");
         CLASS_SPECIFIC_MAP.put("TextArea.caretForeground", "cursor-color");
         CLASS_SPECIFIC_MAP.put("TextArea.caretAspectRatio", "cursor-aspect-ratio");
         CLASS_SPECIFIC_MAP.put("TextField.caretForeground", "cursor-color");

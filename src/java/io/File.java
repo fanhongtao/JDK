@@ -1,5 +1,5 @@
 /*
- * @(#)File.java	1.139 06/06/20
+ * @(#)File.java	1.140 07/03/09
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,7 +112,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.139, 06/20/06
+ * @version 1.140, 03/09/07
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -1190,10 +1190,10 @@ public class File
         } catch (IOException e) {
             return false;
         }
-	String parent = canonFile.getParent();
-        return (parent != null) && 
-               (new File(parent, fs.prefixLength(parent)).mkdirs() &&
-                                    canonFile.mkdir());
+
+	File parent = canonFile.getParentFile();
+	return (parent != null && (parent.mkdirs() || parent.exists()) &&
+		canonFile.mkdir());
     }
 
     /**

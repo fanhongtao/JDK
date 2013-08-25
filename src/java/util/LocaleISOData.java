@@ -1,5 +1,5 @@
 /*
- * @(#)LocaleISOData.java	1.2 05/11/17
+ * @(#)LocaleISOData.java	1.3 07/02/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -341,6 +341,7 @@ class LocaleISOData {
 	+ "MA" + "MAR"	// Morocco, Kingdom of
 	+ "MC" + "MCO"	// Monaco, Principality of
 	+ "MD" + "MDA"	// Moldova, Republic of
+	+ "ME" + "MNE"	// Montenegro, Republic of
 	+ "MG" + "MDG"	// Madagascar, Republic of
 	+ "MH" + "MHL"	// Marshall Islands
 	+ "MK" + "MKD"	// Macedonia, the former Yugoslav Republic of
@@ -389,6 +390,7 @@ class LocaleISOData {
 	+ "QA" + "QAT"	// Qatar, State of
 	+ "RE" + "REU"	// Reunion
 	+ "RO" + "ROU"	// Romania, Socialist Republic of
+	+ "RS" + "SRB"	// Serbia, Republic of
 	+ "RU" + "RUS"	// Russian Federation
 	+ "RW" + "RWA"	// Rwanda, Rwandese Republic
 	+ "SA" + "SAU"	// Saudi Arabia, Kingdom of

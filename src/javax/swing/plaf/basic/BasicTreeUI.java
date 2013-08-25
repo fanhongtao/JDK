@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.194 06/11/30
+ * @(#)BasicTreeUI.java	1.196 07/01/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.194 11/30/06
+ * @version 1.196 01/08/07
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */
@@ -764,6 +764,11 @@ public class BasicTreeUI extends TreeUI
 	TransferHandler th = tree.getTransferHandler();
 	if (th == null || th instanceof UIResource) {
 	    tree.setTransferHandler(defaultTransferHandler);
+            // default TransferHandler doesn't support drop
+            // so we don't want drop handling
+            if (tree.getDropTarget() instanceof UIResource) {
+                tree.setDropTarget(null);
+            }
 	}
 
         LookAndFeel.installProperty(tree, "opaque", Boolean.TRUE);
@@ -1320,40 +1325,38 @@ public class BasicTreeUI extends TreeUI
         }
 
 	int clipLeft = clipBounds.x;
-	int clipRight = clipBounds.x + (clipBounds.width - 1);
+        int clipRight = clipBounds.x + clipBounds.width;
 	int clipTop = clipBounds.y;
-	int clipBottom = clipBounds.y + (clipBounds.height - 1);
+        int clipBottom = clipBounds.y + clipBounds.height;
 	int lineY = bounds.y + bounds.height / 2;
-	// Offset leftX from parents indent.
-	if (leftToRight) {
-	    int leftX = bounds.x - getRightChildIndent();
-	    int nodeX = bounds.x - getHorizontalLegBuffer();
-	
-	    if(lineY >= clipTop && lineY <= clipBottom && nodeX >= clipLeft &&
-	                                                 leftX <= clipRight ) {
-	        leftX = Math.max(Math.max(insets.left, leftX), clipLeft);
-		nodeX = Math.min(Math.max(insets.left, nodeX), clipRight);
 
-                if (leftX != nodeX) {
-                    g.setColor(getHashColor());
-                    paintHorizontalLine(g, tree, lineY, leftX, nodeX);
-                }
-	    }
-	}
-	else {
-	    int leftX = bounds.x + bounds.width + getRightChildIndent();
-	    int nodeX = bounds.x + bounds.width + 
-	                                  getHorizontalLegBuffer() - 1;
+        if (leftToRight) {
+            int leftX = bounds.x - getRightChildIndent();
+            int nodeX = bounds.x - getHorizontalLegBuffer();
 
-	    if(lineY >= clipTop && lineY <= clipBottom &&
-	       leftX >= clipLeft && nodeX <= clipRight) {
-	        leftX = Math.min(leftX, clipRight);
-		nodeX = Math.max(nodeX, clipLeft);
+            if(lineY >= clipTop 
+                    && lineY < clipBottom 
+                    && nodeX >= clipLeft 
+                    && leftX < clipRight 
+                    && leftX < nodeX) { 
 
-		g.setColor(getHashColor());
-		paintHorizontalLine(g, tree, lineY, nodeX, leftX);
-	    }
-	}
+                g.setColor(getHashColor()); 
+                paintHorizontalLine(g, tree, lineY, leftX, nodeX - 1); 
+            }
+        } else {
+            int nodeX = bounds.x + bounds.width + getHorizontalLegBuffer(); 
+            int rightX = bounds.x + bounds.width + getRightChildIndent(); 
+
+            if(lineY >= clipTop 
+                    && lineY < clipBottom 
+                    && rightX >= clipLeft 
+                    && nodeX < clipRight 
+                    && nodeX < rightX) { 
+
+                g.setColor(getHashColor()); 
+                paintHorizontalLine(g, tree, lineY, nodeX, rightX - 1); 
+            }
+        }
     }
 
     /**
@@ -1376,7 +1379,7 @@ public class BasicTreeUI extends TreeUI
 	}
 	else {
             lineX = tree.getWidth() - lineX - insets.right +
-                    getRightChildIndent();
+                    getRightChildIndent() - 1;
 	}
 	int clipLeft = clipBounds.x;
 	int clipRight = clipBounds.x + (clipBounds.width - 1);
@@ -1447,14 +1450,13 @@ public class BasicTreeUI extends TreeUI
 	// or the model child count is > 0.
 	if (!isLeaf && (!hasBeenExpanded ||
 			treeModel.getChildCount(value) > 0)) {
-	    int middleXOfKnob;
-	    if (leftToRight) {
-	        middleXOfKnob = bounds.x - (getRightChildIndent() - 1);
-	    }
-	    else {
-	        middleXOfKnob = bounds.x + bounds.width + getRightChildIndent();
-	    }
-	    int middleYOfKnob = bounds.y + (bounds.height / 2);
+            int middleXOfKnob;
+            if (leftToRight) {
+                middleXOfKnob = bounds.x - getRightChildIndent() + 1;
+            } else {
+                middleXOfKnob = bounds.x + bounds.width + getRightChildIndent() - 1;
+            }
+            int middleYOfKnob = bounds.y + (bounds.height / 2);
 
 	    if (isExpanded) {
 		Icon expandedIcon = getExpandedIcon();
@@ -1562,6 +1564,12 @@ public class BasicTreeUI extends TreeUI
 	return 0;
     } 
 
+    private int findCenteredX(int x, int iconWidth) {
+        return leftToRight
+               ? x - (int)Math.ceil(iconWidth / 2.0)
+               : x - (int)Math.floor(iconWidth / 2.0);
+    }
+
     //
     // Generic painting methods
     //
@@ -1569,8 +1577,9 @@ public class BasicTreeUI extends TreeUI
     // Draws the icon centered at (x,y)
     protected void drawCentered(Component c, Graphics graphics, Icon icon,
 				int x, int y) {
-	icon.paintIcon(c, graphics, x - icon.getIconWidth()/2, y -
-		       icon.getIconHeight()/2);
+        icon.paintIcon(c, graphics,
+                      findCenteredX(x, icon.getIconWidth()),
+                      y - icon.getIconHeight() / 2);
     }
 
     // This method is slow -- revisit when Java2D is ready.
@@ -2166,13 +2175,14 @@ public class BasicTreeUI extends TreeUI
                                    path.getPathCount() - 1);
 
             if (leftToRight) {
-                boxLeftX = boxLeftX - getRightChildIndent() -
-                   boxWidth / 2 + i.left;
+                boxLeftX = boxLeftX + i.left - getRightChildIndent() + 1;
             } else {
-                boxLeftX = tree.getWidth() - boxLeftX - i.right +
-                    getRightChildIndent() - boxWidth / 2;
+                boxLeftX = tree.getWidth() - boxLeftX - i.right + getRightChildIndent() - 1;
             }
-            return (mouseX >= boxLeftX && mouseX <= (boxLeftX + boxWidth));
+
+            boxLeftX = findCenteredX(boxLeftX, boxWidth);
+
+            return (mouseX >= boxLeftX && mouseX < (boxLeftX + boxWidth));
 	}
 	return false;
     }
@@ -3488,7 +3498,7 @@ public class BasicTreeUI extends TreeUI
             if(pressedPath != null) {
                 Rectangle bounds = getPathBounds(tree, pressedPath);
 
-                if(e.getY() > (bounds.y + bounds.height)) {
+                if(e.getY() >= (bounds.y + bounds.height)) {
                     return;
                 }
 
@@ -3502,7 +3512,7 @@ public class BasicTreeUI extends TreeUI
 
                 // Perhaps they clicked the cell itself. If so,
                 // select it.
-                if (x > bounds.x && x <= (bounds.x + bounds.width)) {
+                if (x >= bounds.x && x < (bounds.x + bounds.width)) {
                     if (tree.getDragEnabled() || !startEditing(pressedPath, e)) {
                         selectPathForEvent(pressedPath, e);
                     }

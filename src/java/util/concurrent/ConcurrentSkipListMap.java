@@ -1,5 +1,5 @@
 /*
- * @(#)ConcurrentSkipListMap.java	1.7 06/05/12
+ * @(#)ConcurrentSkipListMap.java	1.8 07/03/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -2232,8 +2232,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
 
         /** Advances next to higher entry. */
         final void advance() {
-            if ((lastReturned = next) == null)
+            if (next == null)
                 throw new NoSuchElementException();
+	    lastReturned = next;
             for (;;) {
 		next = next.next;
                 if (next == null)
@@ -3037,8 +3038,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             }
 
             final void advance() {
-                if ((lastReturned = next) == null)
+                if (next == null)
                     throw new NoSuchElementException();
+		lastReturned = next;
                 if (isDescending)
                     descend();
                 else

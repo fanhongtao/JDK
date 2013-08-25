@@ -19,8 +19,8 @@
  */
 
 /*
- * $Id: PropertyManager.java,v 1.4 2005/12/02 09:02:18 neerajbj Exp $
- * @(#)PropertyManager.java	1.8 06/02/08
+ * $Id: PropertyManager.java,v 1.5.2.2 2007/01/23 06:25:58 joehw Exp $
+ * @(#)PropertyManager.java	1.9 07/01/24
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -50,7 +50,7 @@ public class PropertyManager {
     protected static final String STAX_NOTATIONS = "javax.xml.stream.notations";
     protected static final String STAX_ENTITIES = "javax.xml.stream.entities";
     
-    private static final String STRING_INTERNING = "http://xml.org/sax/features/string-interning".intern() ;
+    private static final String STRING_INTERNING = "http://xml.org/sax/features/string-interning";
     
             
     HashMap supportedProps = new HashMap();
@@ -137,10 +137,7 @@ public class PropertyManager {
     }
     
     public Object getProperty(String property){
-        if(property == null) return null;
-        if(supportedProps.containsKey(property))
-            return supportedProps.get(property);
-        return null;
+        return supportedProps.get(property);
     }
     
     public void setProperty(String property, Object value){

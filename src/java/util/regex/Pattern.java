@@ -1,5 +1,5 @@
 /*
- * @(#)Pattern.java	1.123 06/06/28
+ * @(#)Pattern.java	1.124 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.text.CharacterIterator;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Arrays;
 
 
 /**
@@ -580,9 +581,9 @@ import java.util.HashMap;
  *
  *
  * <p> For a more precise description of the behavior of regular expression
- * constructs, please see <a href="http://www.oreilly.com/catalog/regex2/">
- * <i>Mastering Regular Expressions, 2nd Edition</i>, Jeffrey E. F. Friedl,
- * O'Reilly and Associates, 2002.</a>
+ * constructs, please see <a href="http://www.oreilly.com/catalog/regex3/">
+ * <i>Mastering Regular Expressions, 3nd Edition</i>, Jeffrey E. F. Friedl,
+ * O'Reilly and Associates, 2006.</a>
  * </p>
  *
  * @see java.lang.String#split(String, int)
@@ -591,7 +592,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.123, 06/06/28
+ * @version 	1.124, 07/03/15
  * @since       1.4
  * @spec	JSR-51
  */
@@ -782,7 +783,7 @@ public final class Pattern
     transient GroupHead[] groupNodes;
 
     /**
-     * Temporary null terminated char array used by pattern compiling.
+     * Temporary null terminated code point array used by pattern compiling.
      */
     private transient int[] temp;
 
@@ -878,10 +879,12 @@ public final class Pattern
      * @return  A new matcher for this pattern
      */
     public Matcher matcher(CharSequence input) {
-        synchronized(this) {
-            if (!compiled)
-                compile();
-        }
+	if (!compiled) {
+	    synchronized(this) {
+		if (!compiled)
+		    compile();
+	    }
+	}
         Matcher m = new Matcher(this, input);
         return m;
     }
@@ -1358,47 +1361,57 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
     }
 
     /**
-     * Preprocess any /Q.../E sequences in `temp', meta-quoting them.
+     * Preprocess any \Q...\E sequences in `temp', meta-quoting them.
      * See the description of `quotemeta' in perlfunc(1).
      */
     private void RemoveQEQuoting() {
-	for (int i = 0; i < patternLength-1; i++)
-	    if (temp[i] == '\\' && temp[i+1] == 'Q') {
-		int j = i;
-		int[] newtemp = new int[j + 2*(temp.length-j) - 6];
-		System.arraycopy(temp, 0, newtemp, 0, j);
-		i+=2;
-		boolean inQuote = true;
-		while (i < patternLength) {
-		    int c = temp[i++];
-		    if (! ASCII.isAscii(c) || ASCII.isAlnum(c)) {
-			newtemp[j++] = c;
-		    } else if (c != '\\') {
-			if (inQuote) newtemp[j++] = '\\';
-			newtemp[j++] = c;
-		    } else if (inQuote) {
-			if (temp[i] == 'E') {
-			    i++;
-			    inQuote = false;
-			} else {
-			    newtemp[j++] = '\\';
-			    newtemp[j++] = '\\';
-			}
-		    } else {
-			if (temp[i] == 'Q') {
-			    i++;
-			    inQuote = true;
-			} else {
-			    newtemp[j++] = c;
-			}
-		    }
+	final int pLen = patternLength;
+	int i = 0;
+	while (i < pLen-1) {
+	    if (temp[i] != '\\')
+		i += 1;
+	    else if (temp[i + 1] != 'Q')
+		i += 2;
+	    else
+		break;
+	}
+	if (i >= pLen - 1)    // No \Q sequence found
+	    return;
+	int j = i;
+	i += 2;
+	int[] newtemp = new int[j + 2*(pLen-i) + 2];
+	System.arraycopy(temp, 0, newtemp, 0, j);
+
+	boolean inQuote = true;
+	while (i < pLen) {
+	    int c = temp[i++];
+	    if (! ASCII.isAscii(c) || ASCII.isAlnum(c)) {
+		newtemp[j++] = c;
+	    } else if (c != '\\') {
+		if (inQuote) newtemp[j++] = '\\';
+		newtemp[j++] = c;
+	    } else if (inQuote) {
+		if (temp[i] == 'E') {
+		    i++;
+		    inQuote = false;
+		} else {
+		    newtemp[j++] = '\\';
+		    newtemp[j++] = '\\';
 		}
-		patternLength = j;
-		int[] newtemp2 = new int[patternLength+2];
-		System.arraycopy(newtemp, 0, newtemp2, 0, patternLength);
-		temp = newtemp2;
-		return;
+	    } else {
+		if (temp[i] == 'Q') {
+		    i++;
+		    inQuote = true;
+		} else {
+		    newtemp[j++] = c;
+		    if (i != pLen)
+			newtemp[j++] = temp[i++];
+		}
 	    }
+	}
+
+	patternLength = j;
+	temp = Arrays.copyOf(newtemp, j + 2); // double zero termination
     }
 
     /**
@@ -2020,8 +2033,8 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 		break;
             }
         }
-        if (has(CASE_INSENSITIVE) || has(UNICODE_CASE))
-            return new CIBackRef(refNum);
+        if (has(CASE_INSENSITIVE))
+            return new CIBackRef(refNum, has(UNICODE_CASE));
         else
             return new BackRef(refNum);
     }
@@ -2161,7 +2174,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 	default:
 	    return ch;
         }
-        throw error("Illegal/unsupported escape squence");
+        throw error("Illegal/unsupported escape sequence");
     }
 
     /**
@@ -2272,6 +2285,36 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
         }
     }
 
+    private CharProperty bitsOrSingle(BitClass bits, int ch) {
+	/* Bits can only handle codepoints in [u+0000-u+00ff] range.
+	   Use "single" node instead of bits when dealing with unicode
+	   case folding for codepoints listed below.
+	   (1)Uppercase out of range: u+00ff, u+00b5 
+	      toUpperCase(u+00ff) -> u+0178
+	      toUpperCase(u+00b5) -> u+039c
+           (2)LatinSmallLetterLongS u+17f
+	      toUpperCase(u+017f) -> u+0053
+	   (3)LatinSmallLetterDotlessI u+131
+	      toUpperCase(u+0131) -> u+0049
+	   (4)LatinCapitalLetterIWithDotAbove u+0130
+	      toLowerCase(u+0130) -> u+0069
+	   (5)KelvinSign u+212a
+	      toLowerCase(u+212a) ==> u+006B
+	   (6)AngstromSign u+212b
+	      toLowerCase(u+212b) ==> u+00e5
+	*/
+	int d;
+	if (ch < 256 &&
+	    !(has(CASE_INSENSITIVE) && has(UNICODE_CASE) &&
+	      (ch == 0xff || ch == 0xb5 ||
+	       ch == 0x49 || ch == 0x69 ||  //I and i
+	       ch == 0x53 || ch == 0x73 ||  //S and s
+	       ch == 0x4b || ch == 0x6b ||  //K and k
+	       ch == 0xc5 || ch == 0xe5)))  //A+ring
+	    return bits.add(ch, flags());
+	return newSingle(ch);
+    }
+
     /**
      * Parse a single character or a character range in a character class
      * and return its representative node.
@@ -2303,24 +2346,20 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             if (peek() == '-') {
                 int endRange = temp[cursor+1];
                 if (endRange == '[') {
-                    if (ch < 256)
-                        return bits.add(ch, flags());
-                    return newSingle(ch);
+		    return bitsOrSingle(bits, ch);
                 }
                 if (endRange != ']') {
                     next();
                     int m = single();
                     if (m < ch)
                         throw error("Illegal character range");
-                    if (has(CASE_INSENSITIVE) || has(UNICODE_CASE))
+                    if (has(CASE_INSENSITIVE))
                         return caseInsensitiveRangeFor(ch, m);
                     else
                         return rangeFor(ch, m);
                 }
             }
-            if (ch < 256)
-                return bits.add(ch, flags());
-            return newSingle(ch);
+	    return bitsOrSingle(bits, ch);
         }
         throw error("Unexpected character '"+((char)ch)+"'");
     }
@@ -2870,21 +2909,22 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 	final boolean[] bits;
 	BitClass() { bits = new boolean[256]; }
         private BitClass(boolean[] bits) { this.bits = bits; }
-        BitClass add(int c, int f) {
+        BitClass add(int c, int flags) {
 	    assert c >= 0 && c <= 255;
-            if ((f & CASE_INSENSITIVE) == 0) {
-                bits[c] = true;
-            } else if (ASCII.isAscii(c)) {
-                bits[ASCII.toUpper(c)] = true;
-                bits[ASCII.toLower(c)] = true;
-            } else {
-                bits[Character.toLowerCase((char)c)] = true;
-                bits[Character.toUpperCase((char)c)] = true;
-            }
-            return this;
+            if ((flags & CASE_INSENSITIVE) != 0) {
+                if (ASCII.isAscii(c)) {
+		    bits[ASCII.toUpper(c)] = true;
+		    bits[ASCII.toLower(c)] = true;
+		} else if ((flags & UNICODE_CASE) != 0) {
+		    bits[Character.toLowerCase(c)] = true;
+		    bits[Character.toUpperCase(c)] = true;
+		}
+	    }
+	    bits[c] = true;
+	    return this;
         }
 	boolean isSatisfiedBy(int ch) {
-	    return ch > 255 ? false : bits[ch];
+	    return ch < 256 && bits[ch];
         }
     }
 
@@ -2892,29 +2932,23 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
      *  Returns a suitably optimized, single character matcher.
      */
     private CharProperty newSingle(final int ch) {
-	if (has(UNICODE_CASE)) {
-	    // Case independent unicode
-	    final int d = Character.toLowerCase(Character.toUpperCase(ch));
-	    return new CharProperty() {
-		    boolean isSatisfiedBy(int c) {
-			return c == d ||
-			    Character.toLowerCase(
-				Character.toUpperCase(c)) == d; }};
-	} else if (has(CASE_INSENSITIVE) && ASCII.isAscii(ch)) {
-	    // Case independent ASCII characters
-	    final int d = ASCII.toLower(ch);
-	    return new BmpCharProperty() {
-		    boolean isSatisfiedBy(int c) {
-			return c == d || ASCII.toLower(c) == d; }};
-	} else if (isSupplementary(ch)) {
-	    // Match a given Unicode character
-	    return new CharProperty() {
-		    boolean isSatisfiedBy(int c) { return ch == c; }};
-	} else {
-	    // Optimization -- match a given BMP character
-	    return new BmpCharProperty() {
-		    boolean isSatisfiedBy(int c) { return ch == c; }};
+	if (has(CASE_INSENSITIVE)) {
+	    int lower, upper;
+	    if (has(UNICODE_CASE)) {
+		upper = Character.toUpperCase(ch);
+		lower = Character.toLowerCase(upper);
+		if (upper != lower)
+		    return new SingleU(lower);
+	    } else if (ASCII.isAscii(ch)) {
+		lower = ASCII.toLower(ch);
+		upper = ASCII.toUpper(ch);
+		if (lower != upper)
+		    return new SingleI(lower, upper);
+	    }
 	}
+	if (isSupplementary(ch))
+	    return new SingleS(ch);    // Match a given Unicode character
+	return new Single(ch);         // Match a given BMP character
     }
 
     /**
@@ -2922,26 +2956,23 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
      */
     private Node newSlice(int[] buf, int count, boolean hasSupplementary) {
         int[] tmp = new int[count];
-        int i = flags;
-        if ((i & (CASE_INSENSITIVE|UNICODE_CASE)) == 0) {
-            for (i = 0; i < count; i++) {
-                tmp[i] = buf[i];
-            }
-            return hasSupplementary ? new SliceS(tmp) : new Slice(tmp);
-        } else if ((i & UNICODE_CASE) == 0) {
-            for (i = 0; i < count; i++) {
-                tmp[i] = (char)ASCII.toLower(buf[i]);
-            }
-            return new SliceA(tmp);
-        } else {
-            for (i = 0; i < count; i++) {
-                int c = buf[i];
-                c = Character.toUpperCase(c);
-                c = Character.toLowerCase(c);
-                tmp[i] = c;
-            }
-            return new SliceU(tmp);
-        }
+        if (has(CASE_INSENSITIVE)) {
+	    if (has(UNICODE_CASE)) {
+		for (int i = 0; i < count; i++) {
+		    tmp[i] = Character.toLowerCase(
+			         Character.toUpperCase(buf[i]));
+		}
+		return hasSupplementary? new SliceUS(tmp) : new SliceU(tmp);
+	    }
+	    for (int i = 0; i < count; i++) {
+		tmp[i] = ASCII.toLower(buf[i]);
+	    }
+	    return hasSupplementary? new SliceIS(tmp) : new SliceI(tmp);
+	}
+	for (int i = 0; i < count; i++) {
+	    tmp[i] = buf[i];
+	}
+	return hasSupplementary ? new SliceS(tmp) : new Slice(tmp);
     }
 
     /**
@@ -3342,6 +3373,57 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
     }
 
     /**
+     * Node class that matches a Supplementary Unicode character
+     */
+    static final class SingleS extends CharProperty {
+        final int c;
+        SingleS(int c) { this.c = c; }
+	boolean isSatisfiedBy(int ch) {
+	    return ch == c;
+	}
+    }
+
+    /**
+     * Optimization -- matches a given BMP character
+     */
+    static final class Single extends BmpCharProperty {
+        final int c;
+        Single(int c) { this.c = c; }
+	boolean isSatisfiedBy(int ch) {
+	    return ch == c;
+	}
+    }
+
+    /**
+     * Case insensitive matches a given BMP character
+     */
+    static final class SingleI extends BmpCharProperty {
+        final int lower;
+	final int upper;
+        SingleI(int lower, int upper) {
+	    this.lower = lower;
+	    this.upper = upper;
+	}
+	boolean isSatisfiedBy(int ch) {
+	    return ch == lower || ch == upper;
+	}
+    }
+
+    /**
+     * Unicode case insensitive matches a given Unicode character
+     */
+    static final class SingleU extends CharProperty {
+        final int lower;
+        SingleU(int lower) {
+	    this.lower = lower;
+	}
+	boolean isSatisfiedBy(int ch) {
+	    return lower == ch ||
+		lower == Character.toLowerCase(Character.toUpperCase(ch));
+	}
+    }
+
+    /**
      * Node class that matches a Unicode category.
      */
     static final class Category extends CharProperty {
@@ -3364,24 +3446,31 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
     }
 
     /**
-     * Node class for a case sensitive sequence of literal characters.
+     * Base class for all Slice nodes
      */
-    static class Slice extends Node {
+    static class SliceNode extends Node {
         int[] buffer;
-        Slice(int[] buf) {
+        SliceNode(int[] buf) {
             buffer = buf;
+        }
+        boolean study(TreeInfo info) {
+            info.minLength += buffer.length;
+            info.maxLength += buffer.length;
+            return next.study(info);
+        }
+    }
+
+    /**
+     * Node class for a case sensitive/BMP-only sequence of literal
+     * characters.
+     */
+    static final class Slice extends SliceNode {
+        Slice(int[] buf) {
+            super(buf);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
             int len = buf.length;
-
-            // Unfortunately we must now void this opto
-            // in order to properly report hitEnd...
-            //if (i + len > matcher.to) {
-            //    matcher.hitEnd = true;
-            //    return false;
-            //}
-
             for (int j=0; j<len; j++) {
                 if ((i+j) >= matcher.to) {
                     matcher.hitEnd = true;
@@ -3390,23 +3479,17 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 if (buf[j] != seq.charAt(i+j))
                     return false;
             }
-
             return next.match(matcher, i+len, seq);
-        }
-        boolean study(TreeInfo info) {
-            info.minLength += buffer.length;
-            info.maxLength += buffer.length;
-            return next.study(info);
         }
     }
 
     /**
-     * Node class for a case insensitive sequence of literal characters.
+     * Node class for a case_insensitive/BMP-only sequence of literal
+     * characters.
      */
-    static final class SliceA extends Node {
-        int[] buffer;
-        SliceA(int[] buf) {
-            buffer = buf;
+    static class SliceI extends SliceNode {
+        SliceI(int[] buf) {
+            super(buf);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
@@ -3416,54 +3499,37 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                     matcher.hitEnd = true;
                     return false;
                 }
-                int c = ASCII.toLower(seq.charAt(i+j));
-                if (buf[j] != c)
+		int c = seq.charAt(i+j);
+                if (buf[j] != c &&
+		    buf[j] != ASCII.toLower(c))
                     return false;
             }
             return next.match(matcher, i+len, seq);
         }
-        boolean study(TreeInfo info) {
-            info.minLength += buffer.length;
-            info.maxLength += buffer.length;
-            return next.study(info);
-        }
     }
 
     /**
-     * Node class for a case insensitive sequence of literal characters.
-     * Uses unicode case folding.
+     * Node class for a unicode_case_insensitive/BMP-only sequence of
+     * literal characters. Uses unicode case folding.
      */
-    static final class SliceU extends Node {
-        int[] buffer;
+    static final class SliceU extends SliceNode {
         SliceU(int[] buf) {
-            buffer = buf;
+	    super(buf);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
             int[] buf = buffer;
-            int x = i;
-            for (int j = 0; j < buf.length; j++) {
-                if (x >= matcher.to) {
+            int len = buf.length;
+            for (int j=0; j<len; j++) {
+                if ((i+j) >= matcher.to) {
                     matcher.hitEnd = true;
                     return false;
                 }
-                int c = Character.codePointAt(seq, x);
-                int cc = Character.toUpperCase(c);
-                cc = Character.toLowerCase(cc);
-                if (buf[j] != cc) {
-                    return false;
-                }
-		x += Character.charCount(c);
-		if (x > matcher.to) {
-                    matcher.hitEnd = true;
+		int c = seq.charAt(i+j);
+                if (buf[j] != c &&
+		    buf[j] != Character.toLowerCase(Character.toUpperCase(c)))
 		    return false;
-		}
             }
-            return next.match(matcher, x, seq);
-        }
-        boolean study(TreeInfo info) {
-            info.minLength += buffer.length;
-            info.maxLength += buffer.length;
-            return next.study(info);
+            return next.match(matcher, i+len, seq);
         }
     }
 
@@ -3471,7 +3537,7 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
      * Node class for a case sensitive sequence of literal characters
      * including supplementary characters.
      */
-    static final class SliceS extends Slice {
+    static final class SliceS extends SliceNode {
         SliceS(int[] buf) {
             super(buf);
         }
@@ -3492,18 +3558,58 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 		    return false;
                 }
 	    }
-
             return next.match(matcher, x, seq);
         }
+    }
+
+    /**
+     * Node class for a case insensitive sequence of literal characters
+     * including supplementary characters.
+     */
+    static class SliceIS extends SliceNode {
+        SliceIS(int[] buf) {
+            super(buf);
+        }
+	int toLower(int c) {
+	    return ASCII.toLower(c);
+	}
+        boolean match(Matcher matcher, int i, CharSequence seq) {
+	    int[] buf = buffer;
+	    int x = i;
+	    for (int j = 0; j < buf.length; j++) {
+                if (x >= matcher.to) {
+                    matcher.hitEnd = true;
+                    return false;
+                }
+		int c = Character.codePointAt(seq, x);
+		if (buf[j] != c && buf[j] != toLower(c))
+		    return false;
+		x += Character.charCount(c);
+		if (x > matcher.to) {
+                    matcher.hitEnd = true;
+		    return false;
+                }
+	    }
+            return next.match(matcher, x, seq);
+        }
+    }
+
+    /**
+     * Node class for a case insensitive sequence of literal characters.
+     * Uses unicode case folding.
+     */
+    static final class SliceUS extends SliceIS {
+        SliceUS(int[] buf) {
+	    super(buf);
+        }
+	int toLower(int c) {
+	    return Character.toLowerCase(Character.toUpperCase(c));
+	}
     }
 
     private static boolean inRange(int lower, int ch, int upper) {
 	return lower <= ch && ch <= upper;
     }
-
-    /**
-     * Node class for matching characters within an explicit value range.
-     */
 
     /**
      * Returns node for matching characters within an explicit value range.
@@ -3519,13 +3625,23 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
      * Returns node for matching characters within an explicit value
      * range in a case insensitive manner.
      */
-    private static CharProperty caseInsensitiveRangeFor(final int lower,
-							final int upper) {
-	return new CharProperty() {
-	    boolean isSatisfiedBy(int ch) {
-		return inRange(lower, ch, upper) ||
-		inRange(lower, Character.toUpperCase(ch), upper) ||
-		inRange(lower, Character.toLowerCase(ch), upper);}};
+    private CharProperty caseInsensitiveRangeFor(final int lower,
+						 final int upper) {
+	if (has(UNICODE_CASE))
+	    return new CharProperty() {
+		boolean isSatisfiedBy(int ch) {
+		    if (inRange(lower, ch, upper))
+			return true;
+		    int up = Character.toUpperCase(ch);
+		    return inRange(lower, up, upper) ||
+		           inRange(lower, Character.toLowerCase(up), upper);}};
+        return new CharProperty() { 
+            boolean isSatisfiedBy(int ch) { 
+                return inRange(lower, ch, upper) || 
+                    ASCII.isAscii(ch) && 
+                        (inRange(lower, ASCII.toUpper(ch), upper) || 
+			 inRange(lower, ASCII.toLower(ch), upper)); 
+	    }}; 
     }
 
     /**
@@ -4313,9 +4429,11 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
 
     static class CIBackRef extends Node {
         int groupIndex;
-        CIBackRef(int groupCount) {
+	boolean doUnicodeCase;
+        CIBackRef(int groupCount, boolean doUnicodeCase) {
             super();
             groupIndex = groupCount + groupCount;
+	    this.doUnicodeCase = doUnicodeCase;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
             int j = matcher.groups[groupIndex];
@@ -4340,15 +4458,18 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 int c1 = Character.codePointAt(seq, x);
                 int c2 = Character.codePointAt(seq, j);
                 if (c1 != c2) {
-                    int cc1 = Character.toUpperCase(c1);
-                    int cc2 = Character.toUpperCase(c2);
-                    if (cc1 != cc2) {
-                        cc1 = Character.toLowerCase(cc1);
-                        cc2 = Character.toLowerCase(cc2);
-                        if (cc1 != cc2)
-                            return false;
-                    }
-                }
+		    if (doUnicodeCase) {
+			int cc1 = Character.toUpperCase(c1);
+			int cc2 = Character.toUpperCase(c2);
+			if (cc1 != cc2 &&
+			    Character.toLowerCase(cc1) != 
+			    Character.toLowerCase(cc2))
+			    return false;
+		    } else {
+			if (ASCII.toLower(c1) != ASCII.toLower(c2))
+			    return false;
+		    }
+		}
 		x += Character.charCount(c1);
 		j += Character.charCount(c2);
             }

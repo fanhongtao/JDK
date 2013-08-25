@@ -1,5 +1,5 @@
 /*
- * @(#)PlainSocketImpl.java	1.66 05/11/17
+ * @(#)PlainSocketImpl.java	1.67 07/03/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.66, 11/17/05
+ * @version 1.67, 03/08/07
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -504,6 +504,15 @@ class PlainSocketImpl extends SocketImpl
 		}
 	    }
 	}
+    }
+    
+    void reset() throws IOException {
+        if (fd != null || fd1 != null) {
+            socketClose();
+        }
+        fd = null;
+        fd1 = null;
+        super.reset();
     }
 
 

@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.234 06/12/11
+ * @(#)Font.java	1.235 07/01/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1787,7 +1787,7 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(int style){
-        if (fRequestedAttributes == null) {
+        if (values == null) {
            return new Font(name, style, size, createdFont, font2DHandle);
         }
         AttributeValues newValues = getAttributeValues().clone();

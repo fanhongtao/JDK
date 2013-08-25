@@ -1,5 +1,5 @@
 /*
- * @(#)BoxView.java	1.69 06/11/30
+ * @(#)BoxView.java	1.70 07/02/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.69 11/30/06
+ * @version 1.70 02/15/07
  */
 public class BoxView extends CompositeView {
 
@@ -404,7 +404,15 @@ public class BoxView extends CompositeView {
 	    tempRect.y = y + getOffset(Y_AXIS, i);
 	    tempRect.width = getSpan(X_AXIS, i);
 	    tempRect.height = getSpan(Y_AXIS, i);
-            if (tempRect.intersects(clip)) {
+            int trx0 = tempRect.x, trx1 = trx0 + tempRect.width;
+            int try0 = tempRect.y, try1 = try0 + tempRect.height;
+            int crx0 = clip.x, crx1 = crx0 + clip.width;
+            int cry0 = clip.y, cry1 = cry0 + clip.height;
+            // We should paint views that intersect with clipping region
+            // even if the intersection has no inside points (is a line).
+            // This is needed for supporting views that have zero width, like
+            // views that contain only combining marks.
+            if ((trx1 >= crx0) && (try1 >= cry0) && (crx1 >= trx0) && (cry1 >= try0)) {
 		paintChild(g, tempRect, i);
 	    }
 	}

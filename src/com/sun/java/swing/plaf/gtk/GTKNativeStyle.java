@@ -1,7 +1,7 @@
 /*
  * GTKNativeStyle.java
  *
- * @(#)GTKNativeStyle.java	1.5 06/11/30
+ * @(#)GTKNativeStyle.java	1.7 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,7 +15,7 @@ import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.synth.*;
 
-import com.sun.java.swing.plaf.gtk.GTKNativeEngine.WidgetType;
+import com.sun.java.swing.plaf.gtk.GTKConstants.WidgetType;
 import com.sun.java.swing.plaf.gtk.GTKConstants.StateType;
 import sun.awt.image.CachingSurfaceManager;
 import sun.awt.image.SurfaceManager;
@@ -23,7 +23,7 @@ import sun.awt.UNIXToolkit;
 
 /**
  *
- * @version 1.5, 11/30/06
+ * @version 1.7, 03/15/07
  * @author Kirill Kirichenko
  */
 class GTKNativeStyle extends GTKStyle {
@@ -126,12 +126,42 @@ class GTKNativeStyle extends GTKStyle {
     }
 
     /**
+     * Returns the value for a class specific property for a particular
+     * WidgetType.  This method is useful in those cases where we need to
+     * fetch a value for a Region that is not associated with the component
+     * currently in use (e.g. we need to figure out the insets for a
+     * SCROLL_BAR, but certain values can only be extracted from a
+     * SCROLL_PANE region).
+     *
+     * @param wt WidgetType for which to fetch the value
+     * @param key Key identifying class specific value
+     * @return Value, or null if one has not been defined
+     */
+    Object getClassSpecificValue(WidgetType wt, String key) {
+        synchronized (UNIXToolkit.GTK_LOCK) {
+            return native_get_class_value(wt.ordinal(), key);
+        }
+    }
+
+    /**
      * Returns true if the style should fill in the background of the
      * specified context for the specified state.
      */
     boolean fillBackground(SynthContext context, int state) {
         Object image = getBackgroundImage(state);
         return image == EMPTY_IMAGE_TAG;
+    }
+
+    /**
+     * Returns fontname specific for the given WidgetType
+     *
+     * @param wt WidgetType to return fontname for
+     * @return fontname
+     */
+    String getFontNameForWidgetType(WidgetType wt) {
+        synchronized (sun.awt.UNIXToolkit.GTK_LOCK) {
+            return native_get_pango_font_name(wt.ordinal());
+        }
     }
 
     /**

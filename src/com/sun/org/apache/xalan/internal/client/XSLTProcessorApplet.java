@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTProcessorApplet.java,v 1.2.4.1 2005/09/15 02:20:05 jeffsuttor Exp $
+ * $Id: XSLTProcessorApplet.java,v 1.6 2007/04/03 21:21:21 joehw Exp $
  */
 package com.sun.org.apache.xalan.internal.client;
 
@@ -242,7 +242,18 @@ public class XSLTProcessorApplet extends Applet
    */
   public void start()
   {
-
+      //check if user code's on the stack before invoking the worker thread
+     boolean passed = false;
+     try {
+       java.security.AccessController.checkPermission(new java.security.AllPermission());
+     } catch (SecurityException se) {
+         //expected
+         passed = true;
+     }
+     if (!passed) {
+         throw new SecurityException("The XSLTProcessorApplet class must be extended and its method start() overridden.");
+     } 
+     
     m_trustedAgent = new TrustedAgent();
     Thread currentThread = Thread.currentThread();
     m_trustedWorker = new Thread(currentThread.getThreadGroup(),

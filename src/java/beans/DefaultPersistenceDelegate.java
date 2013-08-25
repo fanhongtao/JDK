@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultPersistenceDelegate.java	1.20 06/05/23
+ * @(#)DefaultPersistenceDelegate.java	1.21 07/02/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.reflect.misc.*;
  *
  * @since 1.4
  *
- * @version 1.20 05/23/06
+ * @version 1.21 02/21/07
  * @author Philip Milne
  */
 
@@ -134,19 +134,34 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
     protected Expression instantiate(Object oldInstance, Encoder out) {
         int nArgs = constructor.length;
         Class type = oldInstance.getClass();
-        // System.out.println("writeObject: " + oldInstance);
         Object[] constructorArgs = new Object[nArgs];
         for(int i = 0; i < nArgs; i++) {
-            String name = constructor[i];
             try {
-                constructorArgs[i] = MethodUtil.invoke(ReflectionUtils.getPublicMethod(type, "get" + NameGenerator.capitalize(name),
-                                                    new Class[0]), oldInstance, new Object[0]);
+                Method method = findMethod(type, this.constructor[i]);
+                constructorArgs[i] = MethodUtil.invoke(method, oldInstance, new Object[0]);
             }
             catch (Exception e) {
                 out.getExceptionListener().exceptionThrown(e);
             }
         }
         return new Expression(oldInstance, oldInstance.getClass(), "new", constructorArgs);
+    }
+
+    private Method findMethod(Class type, String property) throws IntrospectionException {
+        if (property == null) {
+            throw new IllegalArgumentException("Property name is null");
+        }
+        BeanInfo info = Introspector.getBeanInfo(type);
+        for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
+            if (property.equals(pd.getName())) {
+                Method method = pd.getReadMethod();
+                if (method != null) {
+                    return method;
+                }
+                throw new IllegalStateException("Could not find getter for the property " + property);
+            }
+        }
+        throw new IllegalStateException("Could not find property by the name " + property);
     }
 
     // This is a workaround for a bug in the introspector.

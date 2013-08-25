@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.231 06/12/15
+ * @(#)WindowsLookAndFeel.java	1.232 07/01/31
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,7 +79,7 @@ import com.sun.java.swing.plaf.windows.WindowsIconFactory
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.231 12/15/06
+ * @version 1.232 01/31/07
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -1558,6 +1558,8 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "Tree.background", WindowBackgroundColor,
             "Tree.foreground", WindowTextColor,
 	    "Tree.hash", gray,
+            "Tree.leftChildIndent", new Integer(8),
+            "Tree.rightChildIndent", new Integer(11),
 	    "Tree.textForeground", WindowTextColor,
 	    "Tree.textBackground", WindowBackgroundColor,
 	    "Tree.selectionForeground", SelectionTextColor,

@@ -1,5 +1,5 @@
 /*
- * @(#)ServerSocket.java	1.90 06/03/27
+ * @(#)ServerSocket.java	1.91 07/03/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.security.PrivilegedExceptionAction;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.90, 03/27/06
+ * @version 1.91, 03/08/07
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -443,6 +443,9 @@ class ServerSocket {
 	try {
 	    if (s.impl == null)
 	      s.setImpl();
+            else {
+                s.impl.reset();
+            }
 	    si = s.impl;	    
 	    s.impl = null;
 	    si.address = new InetAddress();

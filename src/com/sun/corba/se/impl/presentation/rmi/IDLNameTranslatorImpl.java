@@ -1,5 +1,5 @@
 /*
- * @(#)IDLNameTranslatorImpl.java	1.13 05/11/17
+ * @(#)IDLNameTranslatorImpl.java	1.14 07/04/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -184,6 +184,10 @@ public class IDLNameTranslatorImpl implements IDLNameTranslator {
     private IDLNameTranslatorImpl(Class[] interfaces) 
     {
 
+	SecurityManager s = System.getSecurityManager();
+        if (s != null) {
+            s.checkPermission(new DynamicAccessPermission("access"));
+	}
         try {
             IDLTypesUtil idlTypesUtil = new IDLTypesUtil();
 	    for (int ctr=0; ctr<interfaces.length; ctr++)

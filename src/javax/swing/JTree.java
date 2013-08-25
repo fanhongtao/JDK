@@ -1,5 +1,5 @@
 /*
- * @(#)JTree.java	1.195 06/08/08
+ * @(#)JTree.java	1.196 07/01/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -120,7 +120,7 @@ import static sun.swing.SwingUtilities2.Section.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.195, 08/08/06
+ * @version 1.196, 01/17/07
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -694,19 +694,17 @@ public class JTree extends JComponent implements Scrollable, Accessible
         setUI((TreeUI)UIManager.getUI(this));
 
         TreeCellRenderer renderer = getCellRenderer();
-        if (!(renderer instanceof UIResource) && renderer instanceof Component) {
+        if (renderer instanceof Component) {
             SwingUtilities.updateComponentTreeUI((Component)renderer);
         }
 
         TreeCellEditor editor = getCellEditor();
-        if (!(editor instanceof UIResource)) {
-            if (editor instanceof Component) {
-                SwingUtilities.updateComponentTreeUI((Component)editor);
-            } else if (editor instanceof DefaultCellEditor) {
-                Component comp = ((DefaultCellEditor)editor).getComponent();
-                if (comp != null) {
-                    SwingUtilities.updateComponentTreeUI(comp);
-                }
+        if (editor instanceof Component) {
+            SwingUtilities.updateComponentTreeUI((Component)editor);
+        } else if (editor instanceof DefaultCellEditor) {
+            Component comp = ((DefaultCellEditor)editor).getComponent();
+            if (comp != null) {
+                SwingUtilities.updateComponentTreeUI(comp);
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicLookAndFeel.java	1.275 06/08/25
+ * @(#)BasicLookAndFeel.java	1.276 07/03/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -81,7 +81,7 @@ import java.beans.PropertyChangeEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.275 08/25/06
+ * @version 1.276 03/29/07
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -164,11 +164,17 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
      * {@inheritDoc}
      */
     public void uninitialize() {
+        AppContext context = AppContext.getAppContext();
         synchronized (BasicPopupMenuUI.MOUSE_GRABBER_KEY) {
-            Object grabber = AppContext.getAppContext().get(
-                                          BasicPopupMenuUI.MOUSE_GRABBER_KEY);
+            Object grabber = context.get(BasicPopupMenuUI.MOUSE_GRABBER_KEY);
             if (grabber != null) {
                 ((BasicPopupMenuUI.MouseGrabber)grabber).uninstall();
+            }
+        }
+        synchronized (BasicPopupMenuUI.MENU_KEYBOARD_HELPER_KEY) {
+            Object helper = context.get(BasicPopupMenuUI.MENU_KEYBOARD_HELPER_KEY);
+            if (helper != null) {
+                ((BasicPopupMenuUI.MenuKeyboardHelper) helper).uninstall();
             }
         }
 
@@ -182,9 +188,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             // during the course of AppContext.firePropertyChange().
             // However, EventListenerAggreggate has code to safely modify
             // the list under such circumstances.
-            AppContext.getAppContext().removePropertyChangeListener(
-                                                        AppContext.GUI_DISPOSED,
-                                                        disposer);
+            context.removePropertyChangeListener(AppContext.GUI_DISPOSED,
+                                                 disposer);
             disposer = null;
         }
     }

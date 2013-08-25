@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractQueuedLongSynchronizer.java	1.5 06/03/30
+ * @(#)AbstractQueuedLongSynchronizer.java	1.6 07/01/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -428,12 +428,43 @@ public abstract class AbstractQueuedLongSynchronizer
      * @param node the node
      */
     private void cancelAcquire(Node node) {
-        if (node != null) { // Ignore if node doesn't exist
-            node.thread = null;
-            // Can use unconditional write instead of CAS here
-            node.waitStatus = Node.CANCELLED;
-            unparkSuccessor(node);
-        }
+	// Ignore if node doesn't exist
+        if (node == null)
+	    return;
+
+	node.thread = null;
+
+	// Skip cancelled predecessors
+	Node pred = node.prev;
+	while (pred.waitStatus > 0)
+	    node.prev = pred = pred.prev;
+
+	// Getting this before setting waitStatus ensures staleness
+	Node predNext = pred.next;
+
+	// Can use unconditional write instead of CAS here
+	node.waitStatus = Node.CANCELLED;
+
+	// If we are the tail, remove ourselves
+	if (node == tail && compareAndSetTail(node, pred)) {
+	    compareAndSetNext(pred, predNext, null);
+	} else {
+	    // If "active" predecessor found...
+	    if (pred != head
+		&& (pred.waitStatus == Node.SIGNAL
+		    || compareAndSetWaitStatus(pred, 0, Node.SIGNAL))
+		&& pred.thread != null) {
+
+		// If successor is active, set predecessor's next link
+		Node next = node.next;
+		if (next != null && next.waitStatus <= 0)
+		    compareAndSetNext(pred, predNext, next);
+	    } else {
+		unparkSuccessor(node);
+	    }
+
+	    node.next = node; // help GC
+	}
     }
 
     /**
@@ -453,12 +484,16 @@ public abstract class AbstractQueuedLongSynchronizer
              * to signal it, so it can safely park
              */
             return true;
-        if (s > 0)
+        if (s > 0) {
             /*
-             * Predecessor was cancelled. Move up to its predecessor
-             * and indicate retry.
+             * Predecessor was cancelled. Skip over predecessors and
+             * indicate retry.
              */
-            node.prev = pred.prev;
+	    do {
+		node.prev = pred = pred.prev;
+	    } while (pred.waitStatus > 0);
+	    pred.next = node;
+	}
         else
             /*
              * Indicate that we need a signal, but don't park yet. Caller
@@ -1470,8 +1505,13 @@ public abstract class AbstractQueuedLongSynchronizer
          * @return its new wait node
          */
         private Node addConditionWaiter() {
-            Node node = new Node(Thread.currentThread(), Node.CONDITION);
             Node t = lastWaiter;
+            // If lastWaiter is cancelled, clean out.
+            if (t != null && t.waitStatus != Node.CONDITION) {
+                unlinkCancelledWaiters();
+                t = lastWaiter;
+            }
+            Node node = new Node(Thread.currentThread(), Node.CONDITION);
             if (t == null)
                 firstWaiter = node;
             else
@@ -1510,40 +1550,36 @@ public abstract class AbstractQueuedLongSynchronizer
         }
 
         /**
-         * Returns true if given node is on this condition queue.
-         * Call only when holding lock.
+         * Unlinks cancelled waiter nodes from condition queue.
+         * Called only while holding lock. This is called when
+         * cancellation occurred during condition wait, and upon
+         * insertion of a new waiter when lastWaiter is seen to have
+         * been cancelled. This method is needed to avoid garbage
+         * retention in the absence of signals. So even though it may
+         * require a full traversal, it comes into play only when
+         * timeouts or cancellations occur in the absence of
+         * signals. It traverses all nodes rather than stopping at a
+         * particular target to unlink all pointers to garbage nodes
+         * without requiring many re-traversals during cancellation
+         * storms.
          */
-        private boolean isOnConditionQueue(Node node) {
-            return node.next != null || node == lastWaiter;
-        }
-
-        /**
-         * Unlinks a cancelled waiter node from condition queue.  This
-         * is called when cancellation occurred during condition wait,
-         * not lock wait, and is called only after lock has been
-         * re-acquired by a cancelled waiter and the node is not known
-         * to already have been dequeued.  It is needed to avoid
-         * garbage retention in the absence of signals. So even though
-         * it may require a full traversal, it comes into play only
-         * when timeouts or cancellations occur in the absence of
-         * signals.
-         */
-        private void unlinkCancelledWaiter(Node node) {
+        private void unlinkCancelledWaiters() {
             Node t = firstWaiter;
             Node trail = null;
             while (t != null) {
-                if (t == node) {
-                    Node next = t.nextWaiter;
+                Node next = t.nextWaiter;
+                if (t.waitStatus != Node.CONDITION) {
+                    t.nextWaiter = null;
                     if (trail == null)
                         firstWaiter = next;
                     else
                         trail.nextWaiter = next;
-                    if (lastWaiter == node)
+                    if (next == null)
                         lastWaiter = trail;
-                    break;
                 }
-                trail = t;
-                t = t.nextWaiter;
+                else
+                    trail = t;
+                t = next;
             }
         }
 
@@ -1667,8 +1703,8 @@ public abstract class AbstractQueuedLongSynchronizer
             }
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
-            if (isOnConditionQueue(node))
-                unlinkCancelledWaiter(node);
+            if (node.nextWaiter != null)
+                unlinkCancelledWaiters();
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
         }
@@ -1709,8 +1745,8 @@ public abstract class AbstractQueuedLongSynchronizer
             }
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
-            if (isOnConditionQueue(node))
-                unlinkCancelledWaiter(node);
+            if (node.nextWaiter != null)
+                unlinkCancelledWaiters();
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
             return nanosTimeout - (System.nanoTime() - lastTime);
@@ -1752,8 +1788,8 @@ public abstract class AbstractQueuedLongSynchronizer
             }
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
-            if (isOnConditionQueue(node))
-                unlinkCancelledWaiter(node);
+            if (node.nextWaiter != null)
+                unlinkCancelledWaiters();
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
             return !timedout;
@@ -1799,8 +1835,8 @@ public abstract class AbstractQueuedLongSynchronizer
             }
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
-            if (isOnConditionQueue(node))
-                unlinkCancelledWaiter(node);
+            if (node.nextWaiter != null)
+                unlinkCancelledWaiters();
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
             return !timedout;
@@ -1894,6 +1930,7 @@ public abstract class AbstractQueuedLongSynchronizer
     private static final long headOffset;
     private static final long tailOffset;
     private static final long waitStatusOffset;
+    private static final long nextOffset;
 
     static {
         try {
@@ -1905,6 +1942,8 @@ public abstract class AbstractQueuedLongSynchronizer
                 (AbstractQueuedLongSynchronizer.class.getDeclaredField("tail"));
             waitStatusOffset = unsafe.objectFieldOffset
                 (Node.class.getDeclaredField("waitStatus"));
+            nextOffset = unsafe.objectFieldOffset
+                (Node.class.getDeclaredField("next"));
 
         } catch (Exception ex) { throw new Error(ex); }
     }
@@ -1931,5 +1970,14 @@ public abstract class AbstractQueuedLongSynchronizer
                                                          int update) {
         return unsafe.compareAndSwapInt(node, waitStatusOffset,
                                         expect, update);
+    }
+
+    /**
+     * CAS next field of a node.
+     */
+    private final static boolean compareAndSetNext(Node node,
+                                                   Node expect,
+                                                   Node update) {
+        return unsafe.compareAndSwapObject(node, nextOffset, expect, update);
     }
 }

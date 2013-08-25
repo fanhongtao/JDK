@@ -1,5 +1,5 @@
 /*
- * @(#)JnlpDownloadServlet.java	1.9 05/11/30
+ * @(#)JnlpDownloadServlet.java	1.10 07/03/15
  * 
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -103,12 +103,18 @@ public class JnlpDownloadServlet extends HttpServlet {
     }
     
     
-    /** We handle get requests too - eventhough the spec. only requeres POST requests */
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        handleRequest(request, response);
+    public void doHead(HttpServletRequest request, HttpServletResponse response) 
+        throws ServletException, IOException {
+        handleRequest(request, response, true);
     }
     
-    private void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    /** We handle get requests too - eventhough the spec. only requeres POST requests */
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        handleRequest(request, response, false);
+    }
+    
+    private void handleRequest(HttpServletRequest request, 
+            HttpServletResponse response, boolean isHead) throws IOException {
 	String requestStr = request.getRequestURI();
 	if (request.getQueryString() != null) requestStr += "?" + request.getQueryString().trim();
 	
@@ -120,8 +126,10 @@ public class JnlpDownloadServlet extends HttpServlet {
 	}
 	if (_log.isDebugLevel()) {
 	    _log.addDebug(dreq.toString());
-	}
-	
+	}   
+       
+        long ifModifiedSince = request.getDateHeader("If-Modified-Since");
+
 	// Check if it is a valid request
 	try { 
 	    // Check if the request is valid
@@ -135,10 +143,38 @@ public class JnlpDownloadServlet extends HttpServlet {
 	    if (_log.isInformationalLevel()) {
 		_log.addInformational("servlet.log.info.goodrequest", jnlpres.getPath());		
 	    }
-	    
-	    // Return selected resource
-	    DownloadResponse dres = constructResponse(jnlpres, dreq);	    
-	    
+    
+            DownloadResponse dres = null;
+            
+            if (isHead) {   
+                
+                int cl = 
+                      jnlpres.getResource().openConnection().getContentLength(); 
+        
+                // head request response
+                dres = DownloadResponse.getHeadRequestResponse(
+                        jnlpres.getMimeType(), jnlpres.getVersionId(),
+                        jnlpres.getLastModified(), cl);               
+                
+            } else if (ifModifiedSince != -1 && 
+                    (ifModifiedSince / 1000) >= 
+                    (jnlpres.getLastModified() / 1000)) {
+                // We divide the value returned by getLastModified here by 1000
+                // because if protocol is HTTP, last 3 digits will always be 
+                // zero.  However, if protocol is JNDI, that's not the case.
+                // so we divide the value by 1000 to remove the last 3 digits
+                // before comparison
+                
+                // return 304 not modified if possible
+                _log.addDebug("return 304 Not modified");
+                dres = DownloadResponse.getNotModifiedResponse();
+            
+            } else {
+                
+                // Return selected resource
+                dres = constructResponse(jnlpres, dreq);
+            }
+            
 	    dres.sendRespond(response);
 	    
 	} catch(ErrorResponseException ere) {

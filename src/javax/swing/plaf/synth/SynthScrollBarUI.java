@@ -1,5 +1,5 @@
 /*
- * @(#)SynthScrollBarUI.java	1.31 05/11/17
+ * @(#)SynthScrollBarUI.java	1.32 07/02/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,12 +22,11 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's ScrollBarUI.
  *
- * @version 1.31, 11/17/05
+ * @version 1.32, 02/28/07
  * @author Scott Violet
  */
 class SynthScrollBarUI extends BasicScrollBarUI implements
                                     PropertyChangeListener, SynthUI {
-    private static final Insets tmpInsets = new Insets(0, 0, 0, 0);
 
     private SynthStyle style;
     private SynthStyle thumbStyle;
@@ -306,7 +305,8 @@ class SynthScrollBarUI extends BasicScrollBarUI implements
         if (SynthLookAndFeel.shouldUpdateStyle(e)) {
             updateStyle((JScrollBar)e.getSource());
         }
-        else if ("orientation" == propertyName) {
+
+        if ("orientation" == propertyName) {
             updateButtonDirections();
         }
         else if ("componentOrientation" == propertyName) {

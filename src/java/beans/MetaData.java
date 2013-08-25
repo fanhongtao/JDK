@@ -1,5 +1,5 @@
 /*
- * @(#)MetaData.java	1.48 06/09/21
+ * @(#)MetaData.java	1.49 07/02/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,10 +18,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Enumeration;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+import java.util.*;
 
 import javax.swing.border.MatteBorder;
 
@@ -33,7 +33,7 @@ import javax.swing.border.MatteBorder;
  *
  * @see java.beans.Intropector
  *
- * @version 1.48 09/21/06
+ * @version 1.49 02/21/07
  * @author Philip Milne
  * @author Steve Langley
  */
@@ -225,6 +225,247 @@ the ordering of delegates attached to interfaces have lead us to
 ignore any delegates attached to interfaces and force all persistence
 delegates to be registered with concrete classes.
 */
+
+/**
+ * The base class for persistence delegates for inner classes
+ * that can be created using {@link Collections}.
+ *
+ * @author Sergey A. Malenkov
+ */
+abstract class java_util_Collections extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        if (!super.mutatesTo(oldInstance, newInstance)) {
+            return false;
+        }
+        if ((oldInstance instanceof List) || (oldInstance instanceof Set) || (oldInstance instanceof Map)) {
+            return oldInstance.equals(newInstance);
+        }
+        Collection oldC = (Collection) oldInstance;
+        Collection newC = (Collection) newInstance;
+        return (oldC.size() == newC.size()) && oldC.containsAll(newC);
+    }
+
+    private static Object getPrivateField(final Object instance, final String name) {
+        return AccessController.doPrivileged(
+                new PrivilegedAction() {
+                    public Object run() {
+                        Class type = instance.getClass();
+                        while ( true ) {
+                            try {
+                                Field field = type.getDeclaredField(name);
+                                field.setAccessible(true);
+                                return field.get( instance );
+                            }
+                            catch (NoSuchFieldException exception) {
+                                type = type.getSuperclass();
+                                if (type == null) {
+                                    throw new IllegalStateException("Could not find field " + name, exception);
+                                }
+                            }
+                            catch (Exception exception) {
+                                throw new IllegalStateException("Could not get value " + type.getName() + '.' + name, exception);
+                            }
+                        }
+                    }
+                } );
+    }
+
+    static final class EmptyList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            return new Expression(oldInstance, Collections.class, "emptyList", null);
+        }
+    }
+
+    static final class EmptySet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            return new Expression(oldInstance, Collections.class, "emptySet", null);
+        }
+    }
+
+    static final class EmptyMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            return new Expression(oldInstance, Collections.class, "emptyMap", null);
+        }
+    }
+
+    static final class SingletonList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = (List) oldInstance;
+            return new Expression(oldInstance, Collections.class, "singletonList", new Object[]{list.get(0)});
+        }
+    }
+
+    static final class SingletonSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Set set = (Set) oldInstance;
+            return new Expression(oldInstance, Collections.class, "singleton", new Object[]{set.iterator().next()});
+        }
+    }
+
+    static final class SingletonMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Map map = (Map) oldInstance;
+            Object key = map.keySet().iterator().next();
+            return new Expression(oldInstance, Collections.class, "singletonMap", new Object[]{key, map.get(key)});
+        }
+    }
+
+    static final class UnmodifiableCollection_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = new ArrayList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableCollection", new Object[]{list});
+        }
+    }
+
+    static final class UnmodifiableList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = new LinkedList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableList", new Object[]{list});
+        }
+    }
+
+    static final class UnmodifiableRandomAccessList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = new ArrayList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableList", new Object[]{list});
+        }
+    }
+
+    static final class UnmodifiableSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Set set = new HashSet((Set) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableSet", new Object[]{set});
+        }
+    }
+
+    static final class UnmodifiableSortedSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            SortedSet set = new TreeSet((SortedSet) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableSortedSet", new Object[]{set});
+        }
+    }
+
+    static final class UnmodifiableMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Map map = new HashMap((Map) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableMap", new Object[]{map});
+        }
+    }
+
+    static final class UnmodifiableSortedMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            SortedMap map = new TreeMap((SortedMap) oldInstance);
+            return new Expression(oldInstance, Collections.class, "unmodifiableSortedMap", new Object[]{map});
+        }
+    }
+
+    static final class SynchronizedCollection_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = new ArrayList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedCollection", new Object[]{list});
+        }
+    }
+
+    static final class SynchronizedList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = new LinkedList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedList", new Object[]{list});
+        }
+    }
+
+    static final class SynchronizedRandomAccessList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            List list = new ArrayList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedList", new Object[]{list});
+        }
+    }
+
+    static final class SynchronizedSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Set set = new HashSet((Set) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedSet", new Object[]{set});
+        }
+    }
+
+    static final class SynchronizedSortedSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            SortedSet set = new TreeSet((SortedSet) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedSortedSet", new Object[]{set});
+        }
+    }
+
+    static final class SynchronizedMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Map map = new HashMap((Map) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedMap", new Object[]{map});
+        }
+    }
+
+    static final class SynchronizedSortedMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            SortedMap map = new TreeMap((SortedMap) oldInstance);
+            return new Expression(oldInstance, Collections.class, "synchronizedSortedMap", new Object[]{map});
+        }
+    }
+
+    static final class CheckedCollection_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object type = getPrivateField(oldInstance, "type");
+            List list = new ArrayList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedCollection", new Object[]{list, type});
+        }
+    }
+
+    static final class CheckedList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object type = getPrivateField(oldInstance, "type");
+            List list = new LinkedList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedList", new Object[]{list, type});
+        }
+    }
+
+    static final class CheckedRandomAccessList_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object type = getPrivateField(oldInstance, "type");
+            List list = new ArrayList((Collection) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedList", new Object[]{list, type});
+        }
+    }
+
+    static final class CheckedSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object type = getPrivateField(oldInstance, "type");
+            Set set = new HashSet((Set) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedSet", new Object[]{set, type});
+        }
+    }
+
+    static final class CheckedSortedSet_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object type = getPrivateField(oldInstance, "type");
+            SortedSet set = new TreeSet((SortedSet) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedSortedSet", new Object[]{set, type});
+        }
+    }
+
+    static final class CheckedMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object keyType = getPrivateField(oldInstance, "keyType");
+            Object valueType = getPrivateField(oldInstance, "valueType");
+            Map map = new HashMap((Map) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedMap", new Object[]{map, keyType, valueType});
+        }
+    }
+
+    static final class CheckedSortedMap_PersistenceDelegate extends java_util_Collections {
+        protected Expression instantiate(Object oldInstance, Encoder out) {
+            Object keyType = getPrivateField(oldInstance, "keyType");
+            Object valueType = getPrivateField(oldInstance, "valueType");
+            SortedMap map = new TreeMap((SortedMap) oldInstance);
+            return new Expression(oldInstance, Collections.class, "checkedSortedMap", new Object[]{map, keyType, valueType});
+        }
+    }
+}
 
 // Collection
 class java_util_Collection_PersistenceDelegate extends DefaultPersistenceDelegate {

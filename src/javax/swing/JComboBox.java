@@ -1,5 +1,5 @@
 /*
- * @(#)JComboBox.java	1.142 06/08/08
+ * @(#)JComboBox.java	1.143 07/01/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -55,7 +55,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.142 08/08/06
+ * @version 1.143 01/17/07
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -247,7 +247,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
         setUI((ComboBoxUI)UIManager.getUI(this));
 
         ListCellRenderer renderer = getRenderer();
-        if (!(renderer instanceof UIResource) && renderer instanceof Component) {
+        if (renderer instanceof Component) {
             SwingUtilities.updateComponentTreeUI((Component)renderer);
         }
     }

@@ -19,8 +19,8 @@
  */
 
 /*
- * $Id: FactoryFinder.java,v 1.4 2006/07/13 18:42:23 spericas Exp $
- * @(#)FactoryFinder.java	1.12 06/08/24
+ * $Id: FactoryFinder.java,v 1.5.2.2 2007/01/23 06:25:57 joehw Exp $
+ * @(#)FactoryFinder.java	1.13 07/01/24
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -144,8 +144,10 @@ class FactoryFinder {
         try {
             Class providerClass = getProviderClass(className, cl, doFallback);                        
             Object instance = providerClass.newInstance();
-            dPrint("created new instance of " + providerClass +
-                   " using ClassLoader: " + cl);
+            if (debug) {    // Extra check to avoid computing cl strings
+                dPrint("created new instance of " + providerClass +
+                       " using ClassLoader: " + cl);
+            }
             return instance;
         } 
         catch (ClassNotFoundException x) {
@@ -273,7 +275,9 @@ class FactoryFinder {
             return null;
         }
         
-        dPrint("found jar resource=" + serviceId + " using ClassLoader: " + cl);
+        if (debug) {    // Extra check to avoid computing cl strings
+            dPrint("found jar resource=" + serviceId + " using ClassLoader: " + cl);
+        }
         
         BufferedReader rd;
         try {

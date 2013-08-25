@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: IncrementalSAXSource_Filter.java,v 1.2.4.1 2005/09/15 08:15:07 suresh_emailid Exp $
+ * $Id: IncrementalSAXSource_Filter.java,v 1.6 2007/03/23 18:12:54 spericas Exp $
  */
 
 package com.sun.org.apache.xml.internal.dtm.ref;
@@ -61,8 +61,12 @@ import org.xml.sax.ext.LexicalHandler;
  * and the only requirement is that deliverMoreNodes(false) be called if you want to
  * discard the rest of the stream and the previous deliverMoreNodes() didn't return
  * false.
+ *
+ * This class is final and package private for security reasons. Please
+ * see CR 6537912 for further details. 
+ *
  * */
-public class IncrementalSAXSource_Filter
+final class IncrementalSAXSource_Filter
 implements IncrementalSAXSource, ContentHandler, DTDHandler, LexicalHandler, ErrorHandler, Runnable
 {
   boolean DEBUG=false; //Internal status report

@@ -1,7 +1,7 @@
 /*
- * @(#)ConcurrentHashMap.java	1.19 06/08/07
+ * @(#)ConcurrentHashMap.java	1.21 07/01/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -151,14 +151,17 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V>
      * defends against poor quality hash functions.  This is critical
      * because ConcurrentHashMap uses power-of-two length hash tables,
      * that otherwise encounter collisions for hashCodes that do not
-     * differ in lower bits.
+     * differ in lower or upper bits.
      */
     private static int hash(int h) {
-        // This function ensures that hashCodes that differ only by
-        // constant multiples at each bit position have a bounded
-        // number of collisions (approximately 8 at default load factor).
-        h ^= (h >>> 20) ^ (h >>> 12);
-        return h ^ (h >>> 7) ^ (h >>> 4);
+        // Spread bits to regularize both segment and index locations,
+        // using variant of single-word Wang/Jenkins hash.
+        h += (h <<  15) ^ 0xffffcd7d;
+        h ^= (h >>> 10);
+        h += (h <<   3);
+        h ^= (h >>>  6);
+        h += (h <<   2) + (h << 14);
+        return h ^ (h >>> 16);
     }
 
     /**
@@ -776,7 +779,7 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V>
      * @throws NullPointerException if the specified key is null
      */
     public boolean containsKey(Object key) {
-        int hash = hash(key.hashCode()); 
+        int hash = hash(key.hashCode());
         return segmentFor(hash).containsKey(key, hash);
     }
 

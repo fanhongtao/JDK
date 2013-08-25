@@ -1,5 +1,5 @@
 /*
- * @(#)UIDefaults.java	1.63 06/05/23
+ * @(#)UIDefaults.java	1.64 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -50,7 +50,7 @@ import sun.util.CoreResourceBundleControl;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see UIManager
- * @version 1.63 05/23/06
+ * @version 1.64 03/15/07
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable<Object,Object>
@@ -283,8 +283,13 @@ public class UIDefaults extends Hashtable<Object,Object>
             for (int i=resourceBundles.size()-1; i >= 0; i--) {
                 String bundleName = (String)resourceBundles.get(i);
                 try {
-                    ResourceBundle b = ResourceBundle.
-			getBundle(bundleName, l, CoreResourceBundleControl.getRBControlInstance());
+		    Control c = CoreResourceBundleControl.getRBControlInstance(bundleName);
+                    ResourceBundle b;
+		    if (c != null) {
+                        b = ResourceBundle.getBundle(bundleName, l, c);
+		    } else {
+                        b = ResourceBundle.getBundle(bundleName, l);
+		    }
                     Enumeration keys = b.getKeys();
 
                     while (keys.hasMoreElements()) {

@@ -1,5 +1,5 @@
 /*
- * @(#)PangoFonts.java	1.16 06/02/27
+ * @(#)PangoFonts.java	1.17 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ import sun.font.FontManager;
 /**
  * @author Shannon Hickey
  * @author Leif Samuelsson
- * @version 1.16 02/27/06
+ * @version 1.17 03/15/07
  */
 class PangoFonts {
 
@@ -180,6 +180,33 @@ class PangoFonts {
             Font font = new FontUIResource(family, style, size);
             return FontManager.getCompositeFontUIResource(font);
         }
+    }
+
+
+    /**
+     * Parses a String containing a pango font description and returns
+     * the (unscaled) font size as an integer.
+     *
+     * @param pangoName a String describing a pango font
+     * @return the size of the font described by pangoName (e.g. if
+     *         pangoName is "Sans Italic 10", then this method returns 10)
+     */
+    static int getFontSize(String pangoName) {
+        int size = 10;
+
+        StringTokenizer tok = new StringTokenizer(pangoName);
+        while (tok.hasMoreTokens()) {
+        String word = tok.nextToken();
+
+        if (CHARS_DIGITS.indexOf(word.charAt(0)) != -1) {
+                try {
+                    size = Integer.parseInt(word);
+                } catch (NumberFormatException ex) {
+                }
+            }
+        }
+
+        return size;
     }
 }
 

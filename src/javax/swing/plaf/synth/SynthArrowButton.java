@@ -1,5 +1,5 @@
 /*
- * @(#)SynthArrowButton.java	1.17 05/11/30
+ * @(#)SynthArrowButton.java	1.18 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import javax.swing.plaf.UIResource;
 /**
  * JButton object that draws a scaled Arrow in one of the cardinal directions.
  *
- * @version 1.17, 11/30/05
+ * @version 1.18, 03/15/07
  * @author Scott Violet
  */
 class SynthArrowButton extends JButton implements SwingConstants, UIResource {
@@ -80,11 +80,24 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
 
         public Dimension getPreferredSize(JComponent c) {
             SynthContext context = getContext(c);
-            int size = context.getStyle().getInt(context, "ArrowButton.size",
-                                                 16);
-
+            Dimension dim = null;
+            if (context.getComponent().getName() == "ScrollBar.button") {
+                // ScrollBar arrow buttons can be non-square when
+                // the ScrollBar.squareButtons property is set to FALSE
+                // and the ScrollBar.buttonSize property is non-null
+                dim = (Dimension)
+                    context.getStyle().get(context, "ScrollBar.buttonSize");
+            }
+            if (dim == null) {
+                // For all other cases (including Spinner, ComboBox), we will
+                // fall back on the single ArrowButton.size value to create
+                // a square return value
+                int size =
+                    context.getStyle().getInt(context, "ArrowButton.size", 16);
+                dim = new Dimension(size, size);
+            }
             context.dispose();
-            return new Dimension(size, size);
+            return dim;
         }
     }
 }

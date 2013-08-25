@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanAnalyzer.java	1.11 06/06/20
+ * @(#)MBeanAnalyzer.java	1.17 07/01/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,9 @@ import static com.sun.jmx.mbeanserver.Util.*;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +36,7 @@ import javax.management.NotCompliantMBeanException;
  * @since 1.6
  */
 class MBeanAnalyzer<M> {
-    
+
     static interface MBeanVisitor<M> {
         public void visitAttribute(String attributeName,
                 M getter,
@@ -41,7 +44,7 @@ class MBeanAnalyzer<M> {
         public void visitOperation(String operationName,
                 M operation);
     }
-    
+
     void visit(MBeanVisitor<M> visitor) {
         // visit attributes
         for (Map.Entry<String, AttrMethods<M>> entry : attrMap.entrySet()) {
@@ -49,24 +52,24 @@ class MBeanAnalyzer<M> {
             AttrMethods<M> am = entry.getValue();
             visitor.visitAttribute(name, am.getter, am.setter);
         }
-        
+
         // visit operations
         for (Map.Entry<String, List<M>> entry : opMap.entrySet()) {
             for (M m : entry.getValue())
                 visitor.visitOperation(entry.getKey(), m);
         }
     }
-    
+
     /* Map op name to method */
-    private Map<String, List<M>> opMap = newSortedMap();
+    private Map<String, List<M>> opMap = newInsertionOrderMap();
     /* Map attr name to getter and/or setter */
-    private Map<String, AttrMethods<M>> attrMap = newSortedMap();
+    private Map<String, AttrMethods<M>> attrMap = newInsertionOrderMap();
     
     private static class AttrMethods<M> {
         M getter;
         M setter;
     }
-    
+
     /**
      * <p>Return an MBeanAnalyzer for the given MBean interface and
      * MBeanIntrospector.  Calling this method twice with the same
@@ -83,7 +86,7 @@ class MBeanAnalyzer<M> {
             throws NotCompliantMBeanException {
         return new MBeanAnalyzer<M>(mbeanInterface, introspector);
     }
-    
+
     private MBeanAnalyzer(Class<?> mbeanInterface,
             MBeanIntrospector<M> introspector)
             throws NotCompliantMBeanException {
@@ -91,43 +94,43 @@ class MBeanAnalyzer<M> {
             throw new NotCompliantMBeanException("Not an interface: " +
                     mbeanInterface.getName());
         }
-   
+
         try {
-            initMaps(mbeanInterface,introspector);
+            initMaps(mbeanInterface, introspector);
         } catch (Exception x) {
             throw Introspector.throwException(mbeanInterface,x);
         }
     }
-    
+
     // Introspect the mbeanInterface and initialize this object's maps.
     //
     private void initMaps(Class<?> mbeanInterface,
             MBeanIntrospector<M> introspector) throws Exception {
         final Method[] methodArray = mbeanInterface.getMethods();
-        
+
         final List<Method> methods = eliminateCovariantMethods(methodArray);
         
-           /* Run through the methods to detect inconsistencies and to enable
+        /* Run through the methods to detect inconsistencies and to enable
            us to give getter and setter together to visitAttribute. */
         for (Method m : methods) {
             String name = m.getName();
-            
+
             final M cm = introspector.mFrom(m);
-            
+
             String attrName = "";
             if (name.startsWith("get"))
                 attrName = name.substring(3);
             else if (name.startsWith("is")
             && m.getReturnType() == boolean.class)
                 attrName = name.substring(2);
-            
+
             if (attrName.length() != 0 && m.getParameterTypes().length == 0
                     && m.getReturnType() != void.class) {
                 // It's a getter
                 // Check we don't have both isX and getX
-                AttrMethods am = attrMap.get(attrName);
+                AttrMethods<M> am = attrMap.get(attrName);
                 if (am == null)
-                    am = new AttrMethods();
+                    am = new AttrMethods<M>();
                 else {
                     if (am.getter != null) {
                         final String msg = "Attribute " + attrName +
@@ -142,9 +145,9 @@ class MBeanAnalyzer<M> {
                     m.getReturnType() == void.class) {
                 // It's a setter
                 attrName = name.substring(3);
-                AttrMethods am = attrMap.get(attrName);
+                AttrMethods<M> am = attrMap.get(attrName);
                 if (am == null)
-                    am = new AttrMethods();
+                    am = new AttrMethods<M>();
                 else if (am.setter != null) {
                     final String msg = "Attribute " + attrName +
                             " has more than one setter";
@@ -172,6 +175,41 @@ class MBeanAnalyzer<M> {
         }
     }
     
+    /**
+     * A comparator that defines a total order so that methods have the 
+     * same name and identical signatures appear next to each others.
+     * The methods are sorted in such a way that methods which 
+     * override each other will sit next to each other, with the 
+     * overridden method first - e.g. Object getFoo() is placed before 
+     * Integer getFoo(). This makes it possible to determine whether
+     * a method overrides another one simply by looking at the method(s)
+     * that precedes it in the list. (see eliminateCovariantMethods).
+     **/
+    private static class MethodOrder implements Comparator<Method> {
+        public int compare(Method a, Method b) {
+            final int cmp = a.getName().compareTo(b.getName());
+            if (cmp != 0) return cmp;
+            final Class<?>[] aparams = a.getParameterTypes();
+            final Class<?>[] bparams = b.getParameterTypes();
+            if (aparams.length != bparams.length)
+                return aparams.length - bparams.length;
+            if (!Arrays.equals(aparams, bparams)) {
+                return Arrays.toString(aparams).
+                        compareTo(Arrays.toString(bparams));
+            }
+            final Class<?> aret = a.getReturnType();
+            final Class<?> bret = b.getReturnType();
+            if (aret == bret) return 0;
+            
+            // Super type comes first: Object, Number, Integer
+            if (aret.isAssignableFrom(bret))
+                return -1;
+            return +1;      // could assert bret.isAssignableFrom(aret)
+        }
+        public final static MethodOrder instance = new MethodOrder(); 
+    }
+
+
     /* Eliminate methods that are overridden with a covariant return type.
        Reflection will return both the original and the overriding method
        but only the overriding one is of interest.  We return the methods
@@ -183,46 +221,31 @@ class MBeanAnalyzer<M> {
         // We are assuming that you never have very many methods with the
         // same name, so it is OK to use algorithms that are quadratic
         // in the number of methods with the same name.
-        Map<String, Collection<Method>> map = newMap();
-        for (Method m : methodArray) {
-            Collection<Method> others = map.get(m.getName());
-            if (others == null) {
-                others = newList();
-                map.put(m.getName(), others);
+
+        final int len = methodArray.length;
+        final Method[] sorted = methodArray.clone();
+        Arrays.sort(sorted,MethodOrder.instance);
+        final Set<Method> overridden = newSet();
+        for (int i=1;i<len;i++) {
+            final Method m0 = sorted[i-1];
+            final Method m1 = sorted[i];
+            
+            // Methods that don't have the same name can't override each others
+            if (!m0.getName().equals(m1.getName())) continue;
+            
+            // Methods that have the same name and same signature override
+            // each other. In that case, the second method overrides the first,
+            // due to the way we have sorted them in MethodOrder.
+            if (Arrays.equals(m0.getParameterTypes(),
+                    m1.getParameterTypes())) {
+                overridden.add(m0);
             }
-            others.add(m);
         }
-        Set<Method> overridden = newSet();
-        for (Collection<Method> sameName : map.values()) {
-            for (Method a : sameName) {
-                for (Method b : sameName) {
-                    if (a != b && overrides(a, b))
-                        overridden.add(b);
-                }
-            }
-        }
-        List<Method> methods = newList(Arrays.asList(methodArray));
+        
+        final List<Method> methods = newList(Arrays.asList(methodArray));
         methods.removeAll(overridden);
         return methods;
     }
     
-    /* Return true if a overrides b. */
-    private static boolean overrides(Method a, Method b) {
-        if (!a.getName().equals(b.getName()))
-            return false;
-        Class aclass = a.getDeclaringClass();
-        Class bclass = b.getDeclaringClass();
-        if (!bclass.isAssignableFrom(aclass) ||
-                !b.getReturnType().isAssignableFrom(a.getReturnType()))
-            return false;
-        Class[] ap = a.getParameterTypes();
-        Class[] bp = b.getParameterTypes();
-        if (ap.length != bp.length)
-            return false;
-        for (int i = 0; i < ap.length; i++) {
-            if (ap[i] != bp[i])
-                return false;
-        }
-        return true;
-    }
+    
 }

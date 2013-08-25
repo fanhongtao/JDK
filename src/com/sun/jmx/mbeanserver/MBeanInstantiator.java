@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanInstantiator.java	1.38 05/12/29
+ * @(#)MBeanInstantiator.java	1.39 07/03/30
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,10 +13,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import javax.management.*; 
-import javax.management.loading.ClassLoaderRepository;
 
 
 import com.sun.jmx.trace.Trace;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * Implements the MBeanInstantiator interface. Provides methods for
@@ -183,10 +183,7 @@ public class MBeanInstantiator {
         }
         // Instantiate the new object
         try {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                sm.checkPackageAccess(theClass.getName());
-            }
+	    ReflectUtil.checkPackageAccess(theClass);
             moi= cons.newInstance();
         } catch (InvocationTargetException e) {
             // Wrap the exception.

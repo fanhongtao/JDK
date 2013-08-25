@@ -1,5 +1,5 @@
 /*
- * @(#)DownloadResponse.java	1.7 05/11/17
+ * @(#)DownloadResponse.java	1.8 07/03/15
  * 
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -78,6 +78,17 @@ abstract public class DownloadResponse {
     static DownloadResponse getJnlpErrorResponse(int jnlpErrorCode) { return new JnlpErrorResponse(jnlpErrorCode); }
     
     /** Factory method for file download responses */
+   
+    static DownloadResponse getNotModifiedResponse() { 
+        return new NotModifiedResponse(); 
+    }
+    
+    static DownloadResponse getHeadRequestResponse(String mimeType,
+            String versionId, long lastModified, int contentLength) {
+        return new HeadRequestResponse(mimeType, versionId, lastModified, 
+                contentLength);
+    }
+    
     static DownloadResponse getFileDownloadResponse(byte[] content, String mimeType, long timestamp, String versionId) {
 	return new ByteArrayFileDownloadResponse(content, mimeType, versionId, timestamp);
     }	
@@ -94,6 +105,13 @@ abstract public class DownloadResponse {
     // Private classes implementing the various types
     //
     
+    static private class NotModifiedResponse extends DownloadResponse {
+        public void sendRespond(HttpServletResponse response) throws 
+                IOException {
+            response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+        }
+    }
+
     static private class NotFoundResponse extends DownloadResponse {	
 	public void sendRespond(HttpServletResponse response) throws IOException {
 	    response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -104,6 +122,36 @@ abstract public class DownloadResponse {
 	public void sendRespond(HttpServletResponse response) throws IOException {
 	    response.sendError(HttpServletResponse.SC_NO_CONTENT);
 	}	
+    }
+    
+    static private class HeadRequestResponse extends DownloadResponse {
+        private String _mimeType;
+	private String _versionId;
+	private long _lastModified;
+	private int _contentLength;
+        
+        HeadRequestResponse(String mimeType, String versionId, 
+                long lastModified, int contentLength) {
+	    _mimeType = mimeType;
+	    _versionId = versionId;
+	    _lastModified = lastModified;
+	    _contentLength = contentLength;
+	}
+        
+        /** Post information to an HttpResponse */
+	public void sendRespond(HttpServletResponse response) throws 
+                IOException {		
+	    // Set header information
+	    response.setContentType(_mimeType);
+	    response.setContentLength(_contentLength);
+	    if (_versionId != null) {
+                response.setHeader(HEADER_JNLP_VERSION, _versionId);
+            }
+	    if (_lastModified != 0) {
+                response.setDateHeader(HEADER_LASTMOD, _lastModified);
+            }
+            response.sendError(HttpServletResponse.SC_OK);
+        }
     }
     
     static public class JnlpErrorResponse extends DownloadResponse {

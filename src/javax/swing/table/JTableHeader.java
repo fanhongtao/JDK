@@ -1,5 +1,5 @@
 /*
- * @(#)JTableHeader.java	1.75 06/04/07
+ * @(#)JTableHeader.java	1.76 07/01/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import java.io.IOException;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.75 04/07/06
+ * @version 1.76 01/17/07
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.JTable
@@ -451,7 +451,7 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 	setUI((TableHeaderUI)UIManager.getUI(this));
 
         TableCellRenderer renderer = getDefaultRenderer();
-        if (!(renderer instanceof UIResource) && renderer instanceof Component) {
+        if (renderer instanceof Component) {
             SwingUtilities.updateComponentTreeUI((Component)renderer);
         }
     }

@@ -1,35 +1,34 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
- *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
+ * $Id: XMLStreamFilterImpl.java,v 1.5.2.3 2007/01/08 17:04:41 spericas Exp $
  */
 
 /*
- * $Id: XMLStreamFilterImpl.java,v 1.4 2005/12/02 09:02:19 neerajbj Exp $
- * @(#)XMLStreamFilterImpl.java	1.8 06/03/23
- *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License).  You may not use this file except in
+ * compliance with the License.
+ * 
+ * You can obtain a copy of the license at
+ * https://glassfish.dev.java.net/public/CDDLv1.0.html.
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at https://glassfish.dev.java.net/public/CDDLv1.0.html.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * you own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ * 
+ * [Name of File] [ver.__] [Date]
+ * 
+ * Copyright 2006 Sun Microsystems Inc. All Rights Reserved
  */
+
 
 package com.sun.org.apache.xerces.internal.impl;
 
-import com.sun.xml.internal.stream.events.AttributeImpl;
-import com.sun.xml.internal.stream.events.NamespaceImpl;
-import java.util.ArrayList;
 import javax.xml.XMLConstants;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamReader;
@@ -37,64 +36,48 @@ import javax.xml.stream.StreamFilter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
 import javax.xml.stream.events.XMLEvent;
-import com.sun.org.apache.xerces.internal.util.NamespaceContextWrapper;
-import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
-import com.sun.org.apache.xerces.internal.util.XMLAttributesImpl;
-import com.sun.org.apache.xerces.internal.util.XMLChar;
 
 
 /**
  *
- * @author  K.Venugopal@sun.com
+ * @author Joe Wang: 
+ * This is a rewrite of the original class. The focus is on removing caching, and make the filtered 
+ * stream reader more compatible with those in other implementations. Note however, that this version 
+ * will not solve all the issues related to the undefined condition in the spec. The priority is 
+ * to pass the TCK. Issues arising due to the requirement, that is, (1) should it initiate at BEGIN_DOCUMENT 
+ * or an accepted event; (2) should hasNext() advance the underlining stream in order to find an acceptable
+ * event, would have to wait until 1.1 of StAX in which the filtered stream reader would be defined more clearly.
  */
 
 public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     
     private StreamFilter fStreamFilter = null;
     private XMLStreamReader fStreamReader = null;
-    private int fCurrentEventType = -1;
-    private QName fElementName = null;
-    private String fLocalName = null;
-    private boolean fHasName = false;
-    private boolean fReadNext = true;
-    private boolean fHasMoreEvents = true;
+    private int fCurrentEvent;
+    private boolean fEventAccepted = false;
     
-    private boolean fReadFromCache = true;
-    private ArrayList fCachedAttributes = null;
-    private ArrayList fCachedNamespaceAttr = null;
-    private NamespaceContextWrapper fCachedNamespaceContext = null;
-    private String fCachedElementText = null;
-    private int fCachedEventType = -1;
-    private String fCachedVersion = null;
-    private String fCachedEncoding = null;
-    private boolean fCachedStandalone = false;
-    private Location fCachedLocation = null;
-    private String fCachedTextValue = null;
-    private String fCachedPITarget = null;
-    private String fCachedPIData = null;
-    private String fCachedCharEncoding = null;
-    private static boolean DEBUG = false;
+    /**the very issue around a long discussion. but since we must pass the TCK, we have to allow 
+     * hasNext() to advance the underlining stream in order to find the next acceptable event
+     */
+    private boolean fStreamAdvancedByHasNext = false;
     
     /** Creates a new instance of XMLStreamFilterImpl */
     
     public XMLStreamFilterImpl(XMLStreamReader reader,StreamFilter filter){
-        this.fStreamReader = reader;
+        fStreamReader = reader;
         this.fStreamFilter = filter;
-        fCachedAttributes = new ArrayList();
-        fCachedNamespaceAttr = new ArrayList();
-        try{
-            if(!fStreamFilter.accept(fStreamReader)){
-                next();
-                cache();
+        
+        //this is debatable to initiate at an acceptable event, 
+        //but it's neccessary in order to pass the TCK and yet avoid skipping element
+        try {
+            if (fStreamFilter.accept(fStreamReader)) {
+                fEventAccepted = true;
+            } else {
+                findNextEvent();
             }
-            
         }catch(XMLStreamException xs){
             System.err.println("Error while creating a stream Filter"+xs);
         }
-        //fCachedEventType = fStreamReader.getEventType();
-        fCurrentEventType = fStreamReader.getEventType();
-        if(DEBUG)
-            System.out.println("Cached Event"+fCachedEventType);
     }
     
     /**
@@ -107,27 +90,98 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     
     /**
      *
+     * @return
+     * @throws XMLStreamException
+     */
+    public int next() throws XMLStreamException {
+        if (fStreamAdvancedByHasNext && fEventAccepted) {
+            fStreamAdvancedByHasNext = false;
+            return fCurrentEvent;
+        }
+        int event = findNextEvent();
+        if (event != -1) {
+            return event;
+        }
+        
+        throw new IllegalStateException("The stream reader has reached the end of the document, or there are no more "+
+                                    " items to return");
+    }
+    /**
+     *
+     * @throws XMLStreamException
+     * @return
+     */
+    public int nextTag() throws XMLStreamException {
+        if (fStreamAdvancedByHasNext && fEventAccepted && 
+                (fCurrentEvent == XMLEvent.START_ELEMENT || fCurrentEvent == XMLEvent.START_ELEMENT)) {
+            fStreamAdvancedByHasNext = false;
+            return fCurrentEvent;
+        }
+        
+        int event = findNextTag();
+        if (event != -1) {
+            return event;
+        }
+        throw new IllegalStateException("The stream reader has reached the end of the document, or there are no more "+
+                                    " items to return");
+    }
+
+    /**
+     *
      * @throws XMLStreamException
      * @return
      */
     public boolean hasNext() throws XMLStreamException {
-        if(fReadNext){
-            fReadNext = false;
-            cache();
-            if(DEBUG)
-                System.out.println("Cached Event in hasNext"+fCachedEventType);
-            return readNext();
-            
+        if (fStreamReader.hasNext()) {
+            if (!fEventAccepted) {
+                if ((fCurrentEvent = findNextEvent()) == -1) {
+                    return false;
+                } else {
+                    fStreamAdvancedByHasNext = true;
+                }
+            }
+            return true;
         }
-        return fHasMoreEvents;
+        return false;
     }
-    
+
+    private int findNextEvent() throws XMLStreamException {
+        fStreamAdvancedByHasNext = false;
+        while(fStreamReader.hasNext()){
+            fCurrentEvent = fStreamReader.next();
+            if(fStreamFilter.accept(fStreamReader)){
+                fEventAccepted = true;
+                return fCurrentEvent;
+            }
+        }
+        //although it seems that IllegalStateException should be thrown when next() is called
+        //on a stream that has no more items, we have to assume END_DOCUMENT is always accepted 
+        //in order to pass the TCK
+        if (fCurrentEvent == XMLEvent.END_DOCUMENT)
+            return fCurrentEvent;
+        else
+            return -1;
+    }
+    private int findNextTag() throws XMLStreamException {
+        fStreamAdvancedByHasNext = false;
+        while(fStreamReader.hasNext()){
+            fCurrentEvent = fStreamReader.nextTag();
+            if(fStreamFilter.accept(fStreamReader)){
+                fEventAccepted = true;
+                return fCurrentEvent;
+            }
+        }
+        if (fCurrentEvent == XMLEvent.END_DOCUMENT)
+            return fCurrentEvent;
+        else
+            return -1;
+    }
     /**
      *
      * @throws XMLStreamException
      */
     public void close() throws XMLStreamException {
-        this.fStreamReader.close();
+        fStreamReader.close();
     }
     
     /**
@@ -135,11 +189,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int getAttributeCount() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getAttributeCount();
-        }else{
-            return fCachedAttributes.size();
-        }
+        return fStreamReader.getAttributeCount();
     }
     
     /**
@@ -148,14 +198,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public QName getAttributeName(int index) {
-        if(!fReadFromCache){
-            return this.fStreamReader.getAttributeName(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null)
-                return attr.getName();
-        }
-        return null;
+        return fStreamReader.getAttributeName(index);
     }
     
     /**
@@ -164,14 +207,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getAttributeNamespace(int index) {
-        if(!fReadFromCache){
-            return fStreamReader.getAttributeNamespace(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null)
-                return attr.getName().getNamespaceURI();
-        }
-        return null;
+        return fStreamReader.getAttributeNamespace(index);
     }
     
     /**
@@ -180,14 +216,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getAttributePrefix(int index) {
-        if(!fReadFromCache){
-            return fStreamReader.getAttributePrefix(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null)
-                return attr.getName().getPrefix();
-        }
-        return null;
+        return fStreamReader.getAttributePrefix(index);
     }
     
     /**
@@ -196,32 +225,16 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getAttributeType(int index) {
-        if(!fReadFromCache){
-            return fStreamReader.getAttributeType(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null)
-                return attr.getDTDType();
-            
-        }
-        return null;
+        return fStreamReader.getAttributeType(index);
     }
     
     /**
      *
-     * @return
      * @param index
+     * @return
      */
     public String getAttributeValue(int index) {
-        if(!fReadFromCache){
-            return fStreamReader.getAttributeValue(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null)
-                return attr.getValue();
-            
-        }
-        return null;
+        return fStreamReader.getAttributeValue(index);
     }
     
     /**
@@ -231,19 +244,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getAttributeValue(String namespaceURI, String localName) {
-        if(!fReadFromCache){
-            return fStreamReader.getAttributeValue(namespaceURI,localName);
-        }else{
-            if( fCachedEventType != XMLEvent.START_ELEMENT || fCachedEventType != XMLEvent.ATTRIBUTE)
-                throw new IllegalStateException("Current event state is " + fCachedEventType );
-            for(int i=0; i< fCachedAttributes.size();i++){
-                AttributeImpl attr = (AttributeImpl)fCachedAttributes.get(i);
-                if(attr != null && (attr.getName().getLocalPart().equals(localName)) &&
-                (namespaceURI.equals(attr.getName().getNamespaceURI())))
-                    return attr.getValue();
-            }
-        }
-        return null;
+        return fStreamReader.getAttributeValue(namespaceURI,localName);
     }
     
     /**
@@ -251,11 +252,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getCharacterEncodingScheme() {
-        if(!fReadFromCache){
-            return fStreamReader.getCharacterEncodingScheme();
-        }else{
-            return fCachedCharEncoding;
-        }
+        return fStreamReader.getCharacterEncodingScheme();
     }
     
     /**
@@ -264,15 +261,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getElementText() throws XMLStreamException {
-        if(!fReadFromCache){
-            return fStreamReader.getElementText();
-        }else{
-            if(fCachedEventType != XMLEvent.START_ELEMENT) {
-                throw new XMLStreamException(
-                "parser must be on START_ELEMENT to read next text", getLocation());
-            }
-            return fCachedElementText;
-        }
+        return fStreamReader.getElementText();
     }
     
     /**
@@ -280,11 +269,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getEncoding() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getEncoding();
-        }else{
-            return fCachedEncoding;
-        }
+        return fStreamReader.getEncoding();
     }
     
     /**
@@ -292,11 +277,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int getEventType() {
-        if(!fReadFromCache){
-            return fStreamReader.getEventType();
-        }else {
-            return fCachedEventType;
-        }
+        return fStreamReader.getEventType();
     }
     
     /**
@@ -304,11 +285,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getLocalName() {
-        if(!fReadFromCache){
-            return fStreamReader.getLocalName();
-        }else{
-            return fLocalName;
-        }
+        return fStreamReader.getLocalName();
     }
     
     /**
@@ -316,11 +293,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public javax.xml.stream.Location getLocation() {
-        if(!fReadFromCache){
-            return fStreamReader.getLocation();
-        }else{
-            return fCachedLocation;
-        }
+        return fStreamReader.getLocation();
     }
     
     /**
@@ -328,17 +301,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public javax.xml.namespace.QName getName() {
-        if(!fReadFromCache){
-            return fStreamReader.getName();
-        }else{
-            if(fCachedEventType == XMLEvent.START_ELEMENT || fCachedEventType == XMLEvent.END_ELEMENT){
-                return fElementName;
-            }
-            else{
-                throw new java.lang.IllegalArgumentException("Illegal to call getName() "+
-                "when event type is "+fCachedEventType);
-            }
-        }
+        return fStreamReader.getName();
     }
     
     /**
@@ -346,11 +309,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public javax.xml.namespace.NamespaceContext getNamespaceContext() {
-        if(!fReadFromCache){
-            return fStreamReader.getNamespaceContext();
-        }else{
-            return fCachedNamespaceContext;
-        }
+        return fStreamReader.getNamespaceContext();
     }
     
     /**
@@ -358,15 +317,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int getNamespaceCount() {
-        if(!fReadFromCache){
-            return fStreamReader.getNamespaceCount();
-        }else{
-            if(fCachedEventType == XMLEvent.START_ELEMENT || fCachedEventType == XMLEvent.END_ELEMENT || fCachedEventType == XMLEvent.NAMESPACE){
-                return fCachedNamespaceAttr.size();
-            }else{
-                throw new IllegalStateException("Current event state is " + fCachedEventType );
-            }
-        }
+        return fStreamReader.getNamespaceCount();
     }
     
     /**
@@ -375,15 +326,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getNamespacePrefix(int index) {
-        if(!fReadFromCache){
-            return fStreamReader.getNamespacePrefix(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null){
-                return attr.getName().getPrefix();
-            }
-        }
-        return null;
+        return fStreamReader.getNamespacePrefix(index);
     }
     
     /**
@@ -391,14 +334,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getNamespaceURI() {
-        if(!fReadFromCache){
-            return fStreamReader.getNamespaceURI();
-        }else{
-            if((fCachedEventType == XMLEvent.START_ELEMENT || fCachedEventType == XMLEvent.END_ELEMENT) && (fElementName != null)) {
-                return fElementName.getNamespaceURI();
-            }
-        }
-        return null;
+        return fStreamReader.getNamespaceURI();
     }
     
     /**
@@ -407,15 +343,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getNamespaceURI(int index) {
-        if(!fReadFromCache){
-            return this.fStreamReader.getNamespaceURI(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr != null){
-                return attr.getName().getNamespaceURI();
-            }
-        }
-        return null;
+        return fStreamReader.getNamespaceURI(index);
     }
     
     /**
@@ -424,11 +352,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getNamespaceURI(String prefix) {
-        if(!fReadFromCache){
-            return this.fStreamReader.getNamespaceURI();
-        }else{
-            return fCachedNamespaceContext.getNamespaceURI(prefix);
-        }
+        return fStreamReader.getNamespaceURI(prefix);
     }
     
     /**
@@ -436,11 +360,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getPIData() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getPIData();
-        }else{
-            return fCachedPIData;
-        }
+        return fStreamReader.getPIData();
     }
     
     /**
@@ -448,11 +368,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getPITarget() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getPITarget();
-        }else{
-            return fCachedPITarget;
-        }
+        return fStreamReader.getPITarget();
     }
     
     /**
@@ -460,14 +376,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getPrefix() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getPrefix();
-        }else{
-            if(fCachedEventType == XMLEvent.START_ELEMENT || fCachedEventType == XMLEvent.END_ELEMENT){
-                return fElementName.getPrefix();
-            }
-        }
-        return null;
+        return fStreamReader.getPrefix();
     }
     
     /**
@@ -477,7 +386,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public Object getProperty(java.lang.String name) throws java.lang.IllegalArgumentException {
-        return this.fStreamReader.getProperty(name);
+        return fStreamReader.getProperty(name);
     }
     
     /**
@@ -485,11 +394,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getText() {
-        if(!fReadFromCache){
-            return fStreamReader.getText();
-        }else{
-            return fCachedTextValue;
-        }
+        return fStreamReader.getText();
     }
     
     /**
@@ -497,13 +402,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public char[] getTextCharacters() {
-        if(!fReadFromCache){
-            return fStreamReader.getTextCharacters();
-        }else{
-            if(fCachedTextValue != null)
-                return fCachedTextValue.toCharArray();
-        }
-        return null;
+        return fStreamReader.getTextCharacters();
     }
     
     /**
@@ -516,40 +415,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int length) throws XMLStreamException {
-        if(!fReadFromCache){
-            return this.fStreamReader.getTextCharacters(sourceStart, target,targetStart,length);
-        }else{
-            if(target == null){
-                throw new NullPointerException("target char array can't be null") ;
-            }
-            
-            if(targetStart < 0 || length < 0 || sourceStart < 0 || targetStart >= target.length ||
-            (targetStart + length ) > target.length) {
-                throw new IndexOutOfBoundsException();
-            }
-            
-            //getTextStart() + sourceStart should not be greater than the lenght of number of characters
-            //present
-            if(fCachedTextValue == null)
-                return 0;
-            int copiedLength = 0;
-            //int presentDataLen = getTextLength() - (getTextStart()+sourceStart);
-            int available = fCachedTextValue.length() - sourceStart;
-            if(available < 0){
-                throw new IndexOutOfBoundsException("sourceStart is greater than" +
-                "number of characters associated with this event");
-            }
-            if(available < length){
-                copiedLength = available;
-            }
-            else{
-                copiedLength = length;
-            }
-            
-            System.arraycopy(fCachedTextValue,  sourceStart , target, targetStart, copiedLength);
-            return copiedLength;
-            
-        }
+        return fStreamReader.getTextCharacters(sourceStart, target,targetStart,length);
     }
     
     /**
@@ -557,13 +423,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int getTextLength() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getTextLength();
-        }else{
-            if(fCachedTextValue != null)
-                return fCachedTextValue.length();
-        }
-        return 0;
+        return fStreamReader.getTextLength();
     }
     
     /**
@@ -571,11 +431,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int getTextStart() {
-        if(!fReadFromCache){
-            return this.fStreamReader.getTextStart();
-        }else{
-            return 0;
-        }
+        return fStreamReader.getTextStart();
     }
     
     /**
@@ -583,11 +439,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getVersion() {
-        if(!fReadFromCache){
-            return fStreamReader.getVersion();
-        }else{
-            return fCachedVersion;
-        }
+        return fStreamReader.getVersion();
         
     }
     
@@ -596,15 +448,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean hasName() {
-        if(!fReadFromCache){
-            return this.fStreamReader.hasName();
-        }else{
-            if(fCachedEventType == XMLEvent.START_ELEMENT || fCachedEventType == XMLEvent.END_ELEMENT
-            || fCachedEventType == XMLEvent.ENTITY_REFERENCE || fCachedEventType == XMLEvent.PROCESSING_INSTRUCTION) {
-                return true;
-            }
-        }
-        return false;
+        return fStreamReader.hasName();
     }
     
     /**
@@ -612,13 +456,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean hasText() {
-        if(!fReadFromCache){
-            return this.fStreamReader.hasText();
-        }else{
-            if(fCachedTextValue != null)
-                return true;
-        }
-        return false;
+        return fStreamReader.hasText();
     }
     
     /**
@@ -627,14 +465,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @param index
      */
     public boolean isAttributeSpecified(int index) {
-        if(!fReadFromCache){
-            return this.fStreamReader.isAttributeSpecified(index);
-        }else{
-            AttributeImpl attr =getCachedAttribute(index);
-            if(attr!=null)
-                return attr.isSpecified();
-        }
-        return false;
+        return fStreamReader.isAttributeSpecified(index);
     }
     
     /**
@@ -642,11 +473,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean isCharacters() {
-        if(!fReadFromCache){
-            return this.fStreamReader.isCharacters();
-        }else{
-            return fCachedEventType == XMLEvent.CHARACTERS ;
-        }
+        return fStreamReader.isCharacters();
     }
     
     /**
@@ -654,11 +481,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean isEndElement() {
-        if(!fReadFromCache){
-            return this.fStreamReader.isEndElement();
-        }else{
-            return  fCachedEventType == XMLEvent.END_ELEMENT;
-        }
+        return fStreamReader.isEndElement();
     }
     
     /**
@@ -666,11 +489,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean isStandalone() {
-        if(!fReadFromCache){
-            return this.fStreamReader.isStandalone();
-        }else{
-            return fCachedStandalone;
-        }
+        return fStreamReader.isStandalone();
     }
     
     /**
@@ -678,11 +497,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean isStartElement() {
-        if(!fReadFromCache){
-            return this.fStreamReader.isStartElement();
-        }else{
-            return fCachedEventType == XMLEvent.START_ELEMENT;
-        }
+        return fStreamReader.isStartElement();
     }
     
     /**
@@ -690,64 +505,10 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean isWhiteSpace() {
-        if(!fReadFromCache){
-            return this.fStreamReader.isWhiteSpace();
-        }else{
-            if(isCharacters() || (fCachedEventType == XMLEvent.CDATA)){
-                if(fCachedTextValue == null)
-                    return false;
-                char [] ch = fCachedTextValue.toCharArray();
-                int start = 0;
-                int length = fCachedTextValue.length();
-                for (int i=start; i< length;i++){
-                    if(!XMLChar.isSpace(ch[i])){
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
+        return fStreamReader.isWhiteSpace();
     }
     
-    /**
-     *
-     * @return
-     * @throws XMLStreamException
-     */
-    public int next() throws XMLStreamException {
-        if(fReadNext){
-            if(readNext()){
-                fReadFromCache = false;
-            }
-        }else{
-            fReadNext = true;
-            fReadFromCache = false;
-            //  return fCachedEventType;
-        }
-        return fCurrentEventType;
-    }
-    
-    /**
-     *
-     * @throws XMLStreamException
-     * @return
-     */
-    public int nextTag() throws XMLStreamException {
-        if(fReadNext){
-            if(readNextTag()){
-                fReadFromCache = false;
-            }
-        }else{
-            fReadNext = true;
-            if( (fCurrentEventType != XMLEvent.START_ELEMENT) || (fCurrentEventType != XMLEvent.END_ELEMENT) ){
-                fCurrentEventType = fStreamReader.nextTag();
-                fReadFromCache = false;
-            }
-        }
-        return fCurrentEventType;
-    }
-    
+        
     /**
      *
      * @param type
@@ -756,17 +517,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @throws XMLStreamException
      */
     public void require(int type, String namespaceURI, String localName) throws XMLStreamException {
-        if(!fReadFromCache){
-            fStreamReader.require(type,namespaceURI,localName);
-        }else{
-            if( type != fCachedEventType)
-                throw new XMLStreamException("Event type " +XMLStreamReaderImpl.getEventTypeString(type)+" specified did not match with current parser event");
-            if( namespaceURI != null && !namespaceURI.equals(getNamespaceURI()) )
-                throw new XMLStreamException("Namespace URI " +namespaceURI+" specified did not match with current namespace URI");
-            if(localName != null && !localName.equals(getLocalName()))
-                throw new XMLStreamException("LocalName " +localName+" specified did not match with current local name");
-            
-        }
+        fStreamReader.require(type,namespaceURI,localName);
     }
     
     /**
@@ -774,11 +525,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean standaloneSet() {
-        if(!fReadFromCache){
-            return fStreamReader.standaloneSet();
-        }else{
-            return fCachedStandalone;
-        }
+        return fStreamReader.standaloneSet();
     }
     
     /**
@@ -787,186 +534,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public String getAttributeLocalName(int index){
-        if(!fReadFromCache){
-            return fStreamReader.getAttributeLocalName(index);
-        }else{
-            AttributeImpl attr = getCachedAttribute(index);
-            if(attr!= null){
-                attr.getName().getLocalPart();
-            }
-        }
+        return fStreamReader.getAttributeLocalName(index);
+    }
         
-        return null;
-    }
-    
-    private void cache(){
-        fReadFromCache = true;
-        fCachedEventType = fCurrentEventType;
-        clearCache();
-		fCachedLocation = fStreamReader.getLocation();
-        switch(fCurrentEventType){
-            case XMLEvent.CHARACTERS :
-            case XMLEvent.CDATA:
-            case XMLEvent.SPACE:
-            case XMLEvent.COMMENT:{
-                fCachedTextValue = fStreamReader.getText();
-                break;
-            }
-            case XMLEvent.DTD:{
-                fCachedTextValue = fStreamReader.getText();
-                break;
-            }
-            case XMLEvent.END_DOCUMENT:{
-                break;
-            }
-            case XMLEvent.END_ELEMENT:{
-                fElementName = fStreamReader.getName();
-                fHasName = fStreamReader.hasName();
-                fLocalName = fElementName.getLocalPart();
-                cacheNamespaceContext();
-                break;
-            }
-            case XMLEvent.ENTITY_DECLARATION:{
-                break;
-            }
-            case XMLEvent.NOTATION_DECLARATION:{
-                break;
-            }
-            case XMLEvent.ENTITY_REFERENCE:{
-                fLocalName = fStreamReader.getLocalName();
-                fCachedTextValue = fStreamReader.getText();
-                break;
-            }
-            case XMLEvent.PROCESSING_INSTRUCTION:{
-                fCachedPIData = fStreamReader.getPIData();
-                fCachedPITarget = fStreamReader.getPITarget();
-                break;
-            }
-            case XMLEvent.START_DOCUMENT:{
-                fCachedVersion = fStreamReader.getVersion();
-                fCachedEncoding = fStreamReader.getEncoding();
-                fCachedStandalone = fStreamReader.isStandalone();
-                fCachedCharEncoding = fStreamReader.getCharacterEncodingScheme();
-                break;
-            }
-            case XMLEvent.START_ELEMENT:{
-                try{
-                    fElementName = fStreamReader.getName();
-                    fHasName = fStreamReader.hasName();
-                    fLocalName = fElementName.getLocalPart();
-                    if(DEBUG){
-                        System.out.println("Name is "+fLocalName);
-                        System.out.println("Name is "+fElementName);
-                    }
-                    cacheAttributes();
-                    cacheNamespaceAttributes();
-                    cacheNamespaceContext();
-                    if(fStreamReader.hasText())
-                        fCachedElementText = fStreamReader.getElementText();
-                }catch(Exception ex){
-                    System.err.println("Error occurred while trying to cache START_ELEMENT"+ex.getMessage());
-                }
-                break;
-            }
-        }
-    }
-    
-    private boolean readNext() throws XMLStreamException{
-        while(fStreamReader.hasNext()){
-            this.fStreamReader.next();
-            fHasMoreEvents = fStreamFilter.accept(fStreamReader);
-            if(fHasMoreEvents){
-                fCurrentEventType = this.fStreamReader.getEventType();
-                return true;
-            }
-        }
-
-        fHasMoreEvents = false;
-        return false;
-    }
-    
-    private boolean readNextTag() throws XMLStreamException {
-        while(fStreamReader.hasNext()){
-            this.fStreamReader.nextTag();
-            fHasMoreEvents = fStreamFilter.accept(fStreamReader);
-            if(fHasMoreEvents){
-                fCurrentEventType = this.fStreamReader.getEventType();
-                return true;
-            }
-        }
-
-        fHasMoreEvents = false;
-        return false;
-    }
-    
-    private void cacheAttributes(){
-        int len = fStreamReader.getAttributeCount();
-        QName qname = null;
-        String prefix = null;
-        String localpart = null;
-        AttributeImpl attr = null;
-        fCachedAttributes.clear();
-        for(int i=0; i<len ;i++){
-            qname = fStreamReader.getAttributeName(i);
-            prefix = qname.getPrefix();
-            localpart = qname.getLocalPart();
-            attr = new AttributeImpl();
-            attr.setName(qname);
-            attr.setAttributeType(fStreamReader.getAttributeType(i));
-            attr.setSpecified(fStreamReader.isAttributeSpecified(i));
-            attr.setValue(fStreamReader.getAttributeValue(i));
-            fCachedAttributes.add(attr);
-        }
-    }
-    
-    protected void cacheNamespaceAttributes(){
-        int count = fStreamReader.getNamespaceCount();
-        String uri = null;
-        String prefix = null;
-        NamespaceImpl attr = null;
-        fCachedNamespaceAttr.clear();
-        for(int i=0;i< count;i++){
-            uri = fStreamReader.getNamespaceURI(i);
-            prefix = fStreamReader.getNamespacePrefix(i);
-            if(prefix == null){
-                prefix = XMLConstants.DEFAULT_NS_PREFIX;
-            }
-            attr = new NamespaceImpl(prefix,uri);
-            fCachedNamespaceAttr.add(attr);
-        }
-    }
-    
-    private void cacheNamespaceContext(){
-        NamespaceContextWrapper nc = (NamespaceContextWrapper) fStreamReader.getNamespaceContext();
-        NamespaceSupport ns =  new NamespaceSupport(nc.getNamespaceContext());
-        fCachedNamespaceContext = new NamespaceContextWrapper(ns);
-    }
-    
-    private AttributeImpl getCachedAttribute(int index){
-        if( fCachedEventType == XMLEvent.START_ELEMENT || fCachedEventType == XMLEvent.ATTRIBUTE) {
-            if(index < fCachedAttributes.size()){
-                return (AttributeImpl)fCachedAttributes.get(index);
-            }
-        }else{
-            throw new IllegalStateException("Current event state is " + fCachedEventType );
-        }
-        return null;
-    }
-    
-    private void clearCache(){
-        fCachedAttributes.clear();
-        fCachedNamespaceAttr.clear();
-        fCachedNamespaceContext = null;
-        fCachedElementText = null;
-        fCachedVersion = null;
-        fCachedEncoding = null;
-        fCachedLocation = null;
-        fCachedTextValue = null;
-        fCachedPITarget = null;
-        fCachedPIData = null;
-        fCachedCharEncoding = null;
-        fElementName = null;
-        fHasName = false;
-        fLocalName = null;
-    }
 }

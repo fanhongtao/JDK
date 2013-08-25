@@ -59,7 +59,7 @@ import org.xml.sax.SAXException;
  * <p>A validator helper for <code>DOMSource</code>s.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: DOMValidatorHelper.java,v 1.1.4.1 2005/09/05 11:38:25 sunithareddy Exp $
+ * @version $Id: DOMValidatorHelper.java,v 1.2.2.1 2007/03/15 16:01:20 spericas Exp $
  */
 final class DOMValidatorHelper implements ValidatorHelper, EntityState {
     
@@ -397,10 +397,26 @@ final class DOMValidatorHelper implements ValidatorHelper, EntityState {
         final String localName = node.getLocalName();
         final String rawName = node.getNodeName();
         final String namespace = node.getNamespaceURI();
-        toFill.prefix = (prefix != null) ? fSymbolTable.addSymbol(prefix) : XMLSymbols.EMPTY_STRING;
-        toFill.localpart = (localName != null) ? fSymbolTable.addSymbol(localName) : XMLSymbols.EMPTY_STRING;
-        toFill.rawname = (rawName != null) ? fSymbolTable.addSymbol(rawName) : XMLSymbols.EMPTY_STRING; 
+        
         toFill.uri = (namespace != null && namespace.length() > 0) ? fSymbolTable.addSymbol(namespace) : null;
+        toFill.rawname = (rawName != null) ? fSymbolTable.addSymbol(rawName) : XMLSymbols.EMPTY_STRING;  
+        
+        // Is this a DOM level1 document?
+        if (localName == null) {
+            int k = rawName.indexOf(':');
+            if (k > 0) {
+                toFill.prefix = fSymbolTable.addSymbol(rawName.substring(0, k));
+                toFill.localpart = fSymbolTable.addSymbol(rawName.substring(k + 1));                
+            }
+            else {
+                toFill.prefix = XMLSymbols.EMPTY_STRING;
+                toFill.localpart = toFill.rawname;
+            }            
+        }
+        else {
+            toFill.prefix = (prefix != null) ? fSymbolTable.addSymbol(prefix) : XMLSymbols.EMPTY_STRING;
+            toFill.localpart = (localName != null) ? fSymbolTable.addSymbol(localName) : XMLSymbols.EMPTY_STRING;
+        }
     }
     
     private void processAttributes(NamedNodeMap attrMap) {

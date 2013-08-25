@@ -1,5 +1,5 @@
 /*
- * @(#)SynthTreeUI.java	1.33 06/11/30
+ * @(#)SynthTreeUI.java	1.34 07/01/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import sun.swing.plaf.synth.*;
 /**
  * Skinnable TreeUI.
  *
- * @version 1.33, 11/30/06
+ * @version 1.34, 01/11/07
  * @author Scott Violet
  */
 class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,
@@ -551,13 +551,20 @@ class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,
 				    bounds.width, bounds.height, true);
     }
 
+    private int findCenteredX(int x, int iconWidth) {
+        return tree.getComponentOrientation().isLeftToRight()
+               ? x - (int)Math.ceil(iconWidth / 2.0)
+               : x - (int)Math.floor(iconWidth / 2.0);
+    }
+
     protected void drawCentered(Component c, Graphics graphics, Icon icon,
 				int x, int y) {
         int w = SynthIcon.getIconWidth(icon, paintContext);
         int h = SynthIcon.getIconHeight(icon, paintContext);
 
-	SynthIcon.paintIcon(icon, paintContext, graphics, x - w/2, y - h/2, w,
-                            h);
+	SynthIcon.paintIcon(icon, paintContext, graphics,
+                            findCenteredX(x, w),
+                            y - h/2, w, h);
     }
 
     public void propertyChange(PropertyChangeEvent event) {

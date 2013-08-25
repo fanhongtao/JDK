@@ -1,5 +1,5 @@
 /*
- * @(#)CopyOnWriteArrayList.java	1.21 06/04/21
+ * @(#)CopyOnWriteArrayList.java	1.22 07/03/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -976,19 +976,15 @@ public class CopyOnWriteArrayList<E>
         }
 
         public E next() {
-            try {
-                return (E)(snapshot[cursor++]);
-            } catch (IndexOutOfBoundsException ex) {
+	    if (! hasNext())
                 throw new NoSuchElementException();
-            }
+	    return (E) snapshot[cursor++];
         }
 
         public E previous() {
-            try {
-                return (E)(snapshot[--cursor]);
-            } catch (IndexOutOfBoundsException e) {
+	    if (! hasPrevious())
                 throw new NoSuchElementException();
-            }
+	    return (E) snapshot[--cursor];
         }
 
         public int nextIndex() {

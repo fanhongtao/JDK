@@ -1,5 +1,5 @@
 /*
- * @(#)java_md.c	1.75 06/06/01
+ * @(#)java_md.c	1.76 07/03/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1118,7 +1118,6 @@ get_cpuid(uint32_t arg,
   uint32_t value_of_edx = 0;
   __asm__ volatile (/* Instructions */
                         /* ebx is callee-save, so push it */
-                        /* even though it's in the clobbers section */
                     "   pushl   %%ebx      \n"
                     "	movl	%4, %%eax  \n"
                     "	cpuid              \n"
@@ -1137,7 +1136,7 @@ get_cpuid(uint32_t arg,
                     : /* Inputs */
                     "m" (arg)
                     : /* Clobbers */
-                    "%eax", "%ebx", "%ecx", "%edx"
+                    "%eax", "%ecx", "%edx"
                     );
   *eaxp = value_of_eax;
   *ebxp = value_of_ebx;

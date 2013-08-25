@@ -1,5 +1,5 @@
 /*
- * @(#)ServiceUI.java	1.18 05/11/17
+ * @(#)ServiceUI.java	1.19 07/03/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -198,11 +198,8 @@ public class ServiceUI {
 	GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 	GraphicsDevice[] gs = ge.getScreenDevices();
 	for (int j=0; j<gs.length; j++) {
-	    GraphicsDevice gd = gs[j];
-	    GraphicsConfiguration[] gcs = gd.getConfigurations();
-	    for (int i=0; i<gcs.length; i++) {
-		gcBounds = gcBounds.union(gcs[i].getBounds());
-	    }
+            gcBounds =
+                gcBounds.union(gs[j].getDefaultConfiguration().getBounds());
 	}
 
 	// if portion of dialog is not within the gc boundary

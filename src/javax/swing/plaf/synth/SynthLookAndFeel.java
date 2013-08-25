@@ -222,7 +222,11 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
             // Always update on a name change
             return true;
         }
-        if ("ancestor" == eName && event.getNewValue() != null) {
+        else if ("componentOrientation" == eName) {
+            // Always update on a component orientation change
+            return true;
+        }
+        else if ("ancestor" == eName && event.getNewValue() != null) {
             // Only update on an ancestor change when getting a valid
             // parent and the LookAndFeel wants this.
             LookAndFeel laf = UIManager.getLookAndFeel();

@@ -1,5 +1,5 @@
 /*
- * @(#)JapaneseImperialCalendar.java	1.7 06/07/26
+ * @(#)JapaneseImperialCalendar.java	1.8 07/01/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.util.resources.LocaleData;
  *     0       N/A         N/A
  *     1       Meiji       1868-01-01 midnight local time
  *     2       Taisho      1912-07-30 midnight local time
- *     3       Showa       1926-12-26 midnight local time
+ *     3       Showa       1926-12-25 midnight local time
  *     4       Heisei      1989-01-08 midnight local time
  * ------------------------------------------------------
  * </tt></pre>

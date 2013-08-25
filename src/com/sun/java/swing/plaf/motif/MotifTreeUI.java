@@ -1,5 +1,5 @@
 /*
- * @(#)MotifTreeUI.java	1.25 05/11/17
+ * @(#)MotifTreeUI.java	1.26 07/01/08
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -51,12 +51,16 @@ public class MotifTreeUI extends BasicTreeUI
   
     protected void paintVerticalLine( Graphics g, JComponent c, int x, int top, int bottom )
       {
-          g.fillRect( x - 1, top, 2, bottom - top + 2 );
+          if (tree.getComponentOrientation().isLeftToRight()) {
+              g.fillRect( x, top, 2, bottom - top + 2 );
+          } else {
+              g.fillRect( x - 1, top, 2, bottom - top + 2 );
+          }
       }
 
     protected void paintHorizontalLine( Graphics g, JComponent c, int y, int left, int right )
       {
-	g.fillRect( left - 1, y, right - left, 2 );
+          g.fillRect( left, y, right - left + 1, 2 );
       }
 
 

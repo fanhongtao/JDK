@@ -1,5 +1,5 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.49 05/11/17
+ * @(#)SubjectDomainCombiner.java	1.50 07/01/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import java.lang.ref.WeakReference;
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.49, 11/17/05
+ * @version 1.50, 01/26/07
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
@@ -374,7 +374,8 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 			    }
 			}
 		    }
-		    subjectPd = new ProtectionDomain(finalCs, perms);
+		    subjectPd = new ProtectionDomain
+			(finalCs, perms, pd.getClassLoader(), principals);
 
 		    if (allowCaching)
 			cachedPDs.putValue(pd, subjectPd);

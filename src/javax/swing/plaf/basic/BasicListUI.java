@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.123 06/11/30
+ * @(#)BasicListUI.java	1.124 06/12/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.123 11/30/06
+ * @version 1.124 12/07/06
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
@@ -677,6 +677,11 @@ public class BasicListUI extends ListUI
 	TransferHandler th = list.getTransferHandler();
 	if (th == null || th instanceof UIResource) {
 	    list.setTransferHandler(defaultTransferHandler);
+            // default TransferHandler doesn't support drop
+            // so we don't want drop handling
+            if (list.getDropTarget() instanceof UIResource) {
+                list.setDropTarget(null);
+            }
 	}
 
         focusListener = createFocusListener();

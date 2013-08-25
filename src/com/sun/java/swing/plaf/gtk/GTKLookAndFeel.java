@@ -1,5 +1,5 @@
 /*
- * @(#)GTKLookAndFeel.java	1.106 06/11/30
+ * @(#)GTKLookAndFeel.java	1.108 07/03/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
 
 /**
- * @version 1.106, 11/30/06
+ * @version 1.108, 03/15/07
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -82,6 +82,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
      */
     private static String gtkThemeName = "Default";
 
+    /**
+     * Fallback fontname for GTK L&F
+     */
+    final static String DEFAULT_FONT_NAME = "sans 10";
+    
     static {
         // Backup for specifying the version, this isn't currently documented.
         // If you pass in anything but 2.2 you got the 2.0 colors/look.
@@ -828,7 +833,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             },
 
 
-            "ScrollBar.squareButtons", Boolean.TRUE,
+            "ScrollBar.squareButtons", Boolean.FALSE,
             "ScrollBar.thumbHeight", new Integer(14),
             "ScrollBar.width", new Integer(16),
             "ScrollBar.minimumThumbSize", new Dimension(8, 8),
@@ -1523,7 +1528,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
        if (!(fontName instanceof String)) {
             fontName = engine.getSetting(GTKEngine.Settings.GTK_FONT_NAME);
             if (!(fontName instanceof String)) {
-               fontName = "sans 10";
+               fontName = DEFAULT_FONT_NAME;
             }
         }
 

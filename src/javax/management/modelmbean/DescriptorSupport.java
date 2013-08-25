@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorSupport.java
  * @(#)author    IBM Corp.
- * @(#)version   1.66
- * @(#)lastedit      06/06/15
+ * @(#)version   1.68
+ * @(#)lastedit      07/03/30
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -47,8 +47,8 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
 import com.sun.jmx.trace.Trace;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
+import sun.reflect.misc.ReflectUtil;
 
 
 /**
@@ -1162,12 +1162,8 @@ public class DescriptorSupport
 	try {
 	    final ClassLoader contextClassLoader =
 		Thread.currentThread().getContextClassLoader();
-            if (contextClassLoader == null) {
-                SecurityManager sm = System.getSecurityManager();
-                if (sm != null) {
-                    sm.checkPackageAccess(className);
-                }
-            }
+            if (contextClassLoader == null)
+		ReflectUtil.checkPackageAccess(className);
             final Class c =
 		Class.forName(className, false, contextClassLoader);
 	    constr = c.getConstructor(new Class[] {String.class});
@@ -1258,8 +1254,7 @@ public class DescriptorSupport
 
     private void debug(String inClass, String inMethod, String inText) {
 	Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MODELMBEAN, inClass,
-		   inMethod,
-		   Integer.toHexString(this.hashCode()) + " " + inText);
+		   inMethod, inText);
     }
 
     private void debug(String inMethod, String inText) {

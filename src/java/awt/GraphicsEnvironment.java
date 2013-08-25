@@ -1,5 +1,5 @@
 /*
- * @(#)GraphicsEnvironment.java	1.67 06/02/14
+ * @(#)GraphicsEnvironment.java	1.68 07/02/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 	1.67, 02/14/06
+ * @version 	1.68, 02/13/07
  */
 
 public abstract class GraphicsEnvironment {
@@ -314,6 +314,9 @@ public abstract class GraphicsEnvironment {
      * @since 1.6
      */
     public boolean registerFont(Font font) {
+        if (font == null) {
+            throw new NullPointerException("font cannot be null.");
+        }
         return sun.font.FontManager.registerFont(font);
     }
 

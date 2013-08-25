@@ -1,5 +1,5 @@
 /*
- * @(#)JList.java	1.137 06/08/08
+ * @(#)JList.java	1.138 07/01/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -244,7 +244,7 @@ import static sun.swing.SwingUtilities2.Section.*;
  *   attribute: isContainer false
  * description: A component which allows for the selection of one or more objects from a list.
  *
- * @version 1.137 08/08/06
+ * @version 1.138 01/17/07
  * @author Hans Muller
  */
 public class JList extends JComponent implements Scrollable, Accessible
@@ -508,7 +508,7 @@ public class JList extends JComponent implements Scrollable, Accessible
         setUI((ListUI)UIManager.getUI(this));
 
         ListCellRenderer renderer = getCellRenderer();
-        if (!(renderer instanceof UIResource) && renderer instanceof Component) {
+        if (renderer instanceof Component) {
             SwingUtilities.updateComponentTreeUI((Component)renderer);
         }
     }
