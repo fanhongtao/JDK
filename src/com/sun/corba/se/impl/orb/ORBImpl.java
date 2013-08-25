@@ -1,4 +1,4 @@
-/* @(#)ORBImpl.java	1.74 09/02/23
+/* @(#)ORBImpl.java	1.76 09/09/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1786,9 +1786,10 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 	synchronized (this) {
 		checkShutdownState();
 	}
+	int entryCount = -1;
+        ClientInvocationInfo clientInvocationInfo = null;
 	StackImpl invocationInfoStack =
 	    (StackImpl)clientInvocationInfoStack.get();
-	ClientInvocationInfo clientInvocationInfo = null;
 	if (!invocationInfoStack.empty()) {
 	    clientInvocationInfo =
 		(ClientInvocationInfo)invocationInfoStack.peek();
@@ -1796,9 +1797,13 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 	    throw wrapper.invocationInfoStackEmpty() ;
 	}
 	clientInvocationInfo.decrementEntryCount();
-	if (clientInvocationInfo.getEntryCount() == 0) {
-	    invocationInfoStack.pop();
-	    finishedDispatch();
+	entryCount = clientInvocationInfo.getEntryCount();
+        if (clientInvocationInfo.getEntryCount() == 0) {
+            // 6763340: don't pop if this is a retry!
+            if (!clientInvocationInfo.isRetryInvocation()) {
+	        invocationInfoStack.pop();
+            }
+            finishedDispatch();
 	}
     }
     

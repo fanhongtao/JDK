@@ -1,7 +1,7 @@
 /*
- * @(#)ByteBufferAs-X-Buffer.java	1.18 05/11/17
+ * @(#)ByteBufferAs-X-Buffer.java	1.19 09/09/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -145,6 +145,8 @@ class ByteBufferAsLongBufferRB			// package-private
     public boolean isReadOnly() {
 	return true;
     }
+
+
 
 
 

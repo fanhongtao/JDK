@@ -1,11 +1,14 @@
 /*
- * @(#)SwingWorker.java	1.9 09/08/07
+ * @(#)SwingWorker.java	1.10 09/10/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
+import java.lang.ref.WeakReference;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeEvent;
@@ -192,7 +195,7 @@ import sun.swing.AccumulativeRunnable;
  * {@link java.util.concurrent.Executor} for execution.
  *  
  * @author Igor Kushnirskiy
- * @version 1.9 08/07/09
+ * @version 1.10 10/19/09
  * 
  * @param <T> the result type returned by this {@code SwingWorker's}
  *        {@code doInBackground} and {@code get} methods
@@ -696,7 +699,7 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
     
     /**
      * Sets this {@code SwingWorker} state bound property.
-     * @param the state state to set
+     * @param state the state to set
      */
     private void setState(StateValue state) {
         StateValue old = this.state;
@@ -726,17 +729,16 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
      * returns workersExecutorService.
      *
      * returns the service stored in the appContext or creates it if
-     * necessary. If the last one it triggers autoShutdown thread to
-     * get started.
+     * necessary.
      * 
      * @return ExecutorService for the {@code SwingWorkers}
-     * @see #startAutoShutdownThread
      */
     private static synchronized ExecutorService getWorkersExecutorService() {
         final AppContext appContext = AppContext.getAppContext();
-        Object obj = appContext.get(SwingWorker.class);
-        if (obj == null) {
-            //this creates non-daemon threads. 
+        ExecutorService executorService =
+            (ExecutorService) appContext.get(SwingWorker.class);
+        if (executorService == null) {
+            //this creates daemon threads.
             ThreadFactory threadFactory = 
                 new ThreadFactory() {
                     final ThreadFactory defaultFactory = 
@@ -746,97 +748,49 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
                             defaultFactory.newThread(r);
                         thread.setName("SwingWorker-" 
                             + thread.getName());
+                        thread.setDaemon(true);
                         return thread;
                     }
                 };
 
-            /*
-             * We want a to have no more than MAX_WORKER_THREADS
-             * running threads.
-             *
-             * We want a worker thread to wait no longer than 1 second
-             * for new tasks before terminating.
-             */
-            obj = new ThreadPoolExecutor(0, MAX_WORKER_THREADS,
-                                         1L, TimeUnit.SECONDS,
-                                         new LinkedBlockingQueue<Runnable>(),
-                                         threadFactory) {
+            executorService =
+                new ThreadPoolExecutor(1, MAX_WORKER_THREADS,
+                                       10L, TimeUnit.MINUTES,
+                                       new LinkedBlockingQueue<Runnable>(),
+                                       threadFactory);
 
-                    private final ReentrantLock pauseLock = new ReentrantLock();
-                    private final Condition unpaused = pauseLock.newCondition();
-                    private boolean isPaused = false;
-                    private final ReentrantLock executeLock = new ReentrantLock();
-                    
+            appContext.put(SwingWorker.class, executorService);
+
+            // Don't use ShutdownHook here as it's not enough. We should track
+            // AppContext disposal instead of JVM shutdown, see 6799345 for details
+            final ExecutorService es = executorService;
+
+            appContext.addPropertyChangeListener(AppContext.DISPOSED_PROPERTY_NAME,
+                new PropertyChangeListener() {
                     @Override
-                    public void execute(Runnable command) {
-                        /*
-                         * ThreadPoolExecutor first tries to run task
-                         * in a corePool. If all threads are busy it
-                         * tries to add task to the waiting queue. If it
-                         * fails it run task in maximumPool.
-                         *
-                         * We want corePool to be 0 and
-                         * maximumPool to be MAX_WORKER_THREADS
-                         * We need to change the order of the execution.
-                         * First try corePool then try maximumPool
-                         * pool and only then store to the waiting
-                         * queue. We can not do that because we would
-                         * need access to the private methods.
-                         *
-                         * Instead we enlarge corePool to
-                         * MAX_WORKER_THREADS before the execution and
-                         * shrink it back to 0 after. 
-                         * It does pretty much what we need.
-                         *
-                         * While we changing the corePoolSize we need
-                         * to stop running worker threads from accepting new
-                         * tasks.
-                         */
-                        
-                        //we need atomicity for the execute method.
-                        executeLock.lock();
-                        try {
-
-                            pauseLock.lock();
-                            try {
-                                isPaused = true;
-                            } finally {
-                                pauseLock.unlock();
+                    public void propertyChange(PropertyChangeEvent pce) {
+                        boolean disposed = (Boolean)pce.getNewValue();
+                        if (disposed) {
+                            final WeakReference<ExecutorService> executorServiceRef =
+                                new WeakReference<ExecutorService>(es);
+                            final ExecutorService executorService =
+                                executorServiceRef.get();
+                            if (executorService != null) {
+                                AccessController.doPrivileged(
+                                    new PrivilegedAction<Void>() {
+                                        public Void run() {
+                                            executorService.shutdown();
+                                            return null;
+                                        }
+                                    }
+                                );
                             }
-                            
-                            setCorePoolSize(MAX_WORKER_THREADS);
-                            super.execute(command);
-                            setCorePoolSize(0);
-                            
-                            pauseLock.lock();
-                            try {
-                                isPaused = false;
-                                unpaused.signalAll();
-                            } finally {
-                                pauseLock.unlock();
-                            }
-                        } finally {
-                            executeLock.unlock();
                         }
                     }
-                    @Override 
-                    protected void afterExecute(Runnable r, Throwable t) { 
-                        super.afterExecute(r, t);
-                        pauseLock.lock();
-                        try {
-                            while(isPaused) {
-                                unpaused.await();
-                            }
-                        } catch(InterruptedException ignore) {
-                            
-                        } finally {
-                            pauseLock.unlock();
-                        }
-                    }
-                };
-            appContext.put(SwingWorker.class, obj);
+                }
+            );
         }
-        return (ExecutorService)obj; 
+        return executorService;
     }
     
     private static final Object DO_SUBMIT_KEY = new Object(); // doSubmit

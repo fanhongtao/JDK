@@ -53,7 +53,7 @@ import java.util.NoSuchElementException;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: Constants.java,v 1.4 2005/10/03 14:04:59 neerajbj Exp $
+ * @version $Id: Constants.java,v 1.10 2009/08/04 05:07:19 joehw Exp $
  */
 public final class Constants {
     
@@ -63,6 +63,10 @@ public final class Constants {
     // Schema Types:
     public static final String NS_XMLSCHEMA = "http://www.w3.org/2001/XMLSchema".intern();
     public static final String NS_DTD = "http://www.w3.org/TR/REC-xml".intern();
+
+    // Schema features
+    public static final String SUN_SCHEMA_FEATURE_PREFIX = "http://java.sun.com/xml/schema/features/";
+    public static final String SUN_REPORT_IGNORED_ELEMENT_CONTENT_WHITESPACE = "report-ignored-element-content-whitespace";
 
     //stax properties
     
@@ -74,6 +78,17 @@ public final class Constants {
     public static final String ADD_NAMESPACE_DECL_AS_ATTRIBUTE = "add-namespacedecl-as-attrbiute";
     public static final String ESCAPE_CHARACTERS = "escapeCharacters";
     public static final String REUSE_INSTANCE = "reuse-instance" ;
+    
+    //DOM properties
+    public static final String SUN_DOM_PROPERTY_PREFIX = "http://java.sun.com/xml/dom/properties/" ;
+    public static final String SUN_DOM_ANCESTOR_CHECCK = "ancestor-check";
+
+    /**
+     * If true, ignore DOCTYPE declaration as if it wasn't present at all.
+     * Note that this is a violation of the XML recommendation.
+     * The full property name is prefixed by {@link #ZEPHYR_PROPERTY_PREFIX}.
+     */
+    public static final String IGNORE_EXTERNAL_DTD = "ignore-external-dtd";
     
     // sax features
     
@@ -228,7 +243,7 @@ public final class Constants {
     public static final String DOM_ERROR_HANDLER = "error-handler";
     public static final String DOM_SCHEMA_TYPE = "schema-type";
     public static final String DOM_SCHEMA_LOCATION = "schema-location";
-
+    public static final String DOM_ANCESTOR_CHECCK = "ancestor-check";
     // XSModel
     public static final String DOM_PSVI = "psvi";
     

@@ -62,7 +62,7 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
 
 /**
- * @version $Id: MixedContentModel.java,v 1.1.2.1 2005/08/01 03:34:23 jeffsuttor Exp $
+ * @version $Id: MixedContentModel.java,v 1.3 2007/07/19 04:38:28 ofung Exp $
  * MixedContentModel is a derivative of the abstract content model base
  * class that handles the special case of mixed model elements. If an element
  * is mixed model, it has PCDATA as its first possible content, followed
@@ -77,7 +77,7 @@ import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
  * 
  * @xerces.internal
  * 
- * @version $Id: MixedContentModel.java,v 1.1.2.1 2005/08/01 03:34:23 jeffsuttor Exp $
+ * @version $Id: MixedContentModel.java,v 1.3 2007/07/19 04:38:28 ofung Exp $
  */
 public class MixedContentModel
     implements ContentModelValidator {

@@ -35,6 +35,7 @@ public final class TransletException extends SAXException {
     
     public TransletException(Exception e) {
 	super(e.toString());
+        initCause(e);
     }
     
     public TransletException(String message) {

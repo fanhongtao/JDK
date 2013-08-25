@@ -8,7 +8,7 @@ import java.util.Iterator;
  * information through the property interface.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see XMLInputFactory
  * @see XMLEventWriter
  * @since 1.6
@@ -73,6 +73,3 @@ public interface XMLEventReader extends Iterator {
    */
   public void close() throws XMLStreamException;
 }
-
-
-

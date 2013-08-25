@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultCaret.java	1.148 06/11/30
+ * @(#)DefaultCaret.java	1.149 09/09/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -85,7 +85,7 @@ import sun.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.148 11/30/06
+ * @version 1.149 09/15/09
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -493,9 +493,9 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 	if ((e.getModifiers() & ActionEvent.SHIFT_MASK) != 0 &&
 	    getDot() != -1) {
 	    moveCaret(e);
-	} else {
-	    positionCaret(e);
-	}
+	} else if (!e.isPopupTrigger()) {
+            positionCaret(e);
+        }
     }
 
     /**

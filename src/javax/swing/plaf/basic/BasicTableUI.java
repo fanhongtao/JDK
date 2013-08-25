@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.162 09/08/07
+ * @(#)BasicTableUI.java	1.163 09/10/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.162 08/07/09
+ * @version 1.163 10/19/09
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
  */
@@ -994,7 +994,7 @@ public class BasicTableUI extends TableUI
                 shouldStartTimer =
                     table.isCellSelected(pressedRow, pressedCol) &&
                     !e.isShiftDown() &&
-                    !e.isControlDown() &&
+                    !BasicGraphicsUtils.isMenuShortcutKeyDown(e) &&
                     !outsidePrefSize;
             }
 
@@ -1018,7 +1018,7 @@ public class BasicTableUI extends TableUI
 
                 dragPressDidSelection = false;
 
-                if (e.isControlDown() && isFileList) {
+                if (BasicGraphicsUtils.isMenuShortcutKeyDown(e) && isFileList) {
                     // do nothing for control - will be handled on release
                     // or when drag starts
                     return;
@@ -1082,7 +1082,9 @@ public class BasicTableUI extends TableUI
 
             CellEditor editor = table.getCellEditor();
             if (dragEnabled || editor == null || editor.shouldSelectCell(e)) {
-                table.changeSelection(pressedRow, pressedCol, e.isControlDown(), e.isShiftDown());
+                table.changeSelection(pressedRow, pressedCol, 
+                        BasicGraphicsUtils.isMenuShortcutKeyDown(e), 
+                        e.isShiftDown());
             }
         }
 
@@ -1179,7 +1181,7 @@ public class BasicTableUI extends TableUI
         public void dragStarting(MouseEvent me) {
             dragStarted = true;
 
-            if (me.isControlDown() && isFileList) {
+            if (BasicGraphicsUtils.isMenuShortcutKeyDown(me) && isFileList) {
                 table.getSelectionModel().addSelectionInterval(pressedRow,
                                                                pressedRow);
                 table.getColumnModel().getSelectionModel().
@@ -1218,7 +1220,8 @@ public class BasicTableUI extends TableUI
                 return;
             }
 
-            table.changeSelection(row, column, e.isControlDown(), true);
+            table.changeSelection(row, column, 
+                    BasicGraphicsUtils.isMenuShortcutKeyDown(e), true);
         }
 
 

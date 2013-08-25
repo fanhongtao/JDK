@@ -1,5 +1,5 @@
 /*
- * @(#)RuleBasedBreakIterator.java	1.19 05/11/30
+ * @(#)RuleBasedBreakIterator.java	1.20 09/08/20
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -605,6 +605,8 @@ class RuleBasedBreakIterator extends BreakIterator {
         return handleNext();
     }
 
+    private int cachedLastKnownBreak = BreakIterator.DONE;
+
     /**
      * Advances the iterator backwards, to the last boundary preceding this one.
      * @return The position of the last boundary position preceding this one.
@@ -622,8 +624,17 @@ class RuleBasedBreakIterator extends BreakIterator {
         // the current position), but not necessarily the last one before
         // where we started
         int start = current();
-        getPrevious();
-        int lastResult = handlePrevious();
+        int lastResult = cachedLastKnownBreak;
+        if (lastResult >= start || lastResult <= BreakIterator.DONE) {
+            getPrevious();
+            lastResult = handlePrevious();
+        } else {
+            //it might be better to check if handlePrevious() give us closer
+            //safe value but handlePrevious() is slow too
+            //So, this has to be done carefully
+            text.setIndex(lastResult);
+        }
+
         int result = lastResult;
 
         // iterate forward from the known break position until we pass our
@@ -637,6 +648,7 @@ class RuleBasedBreakIterator extends BreakIterator {
         // set the current iteration position to be the last break position
         // before where we started, and then return that value
         text.setIndex(lastResult);
+        cachedLastKnownBreak = lastResult;
         return lastResult;
     }
 
@@ -741,7 +753,8 @@ class RuleBasedBreakIterator extends BreakIterator {
         // then we can just use next() to get our return value
         text.setIndex(offset);
         if (offset == text.getBeginIndex()) {
-            return handleNext();
+            cachedLastKnownBreak = handleNext();
+            return cachedLastKnownBreak;
         }
 
         // otherwise, we have to sync up first.  Use handlePrevious() to back
@@ -751,10 +764,19 @@ class RuleBasedBreakIterator extends BreakIterator {
         // position at or before our starting position.  Advance forward
         // from here until we've passed the starting position.  The position
         // we stop on will be the first break position after the specified one.
-        int result = handlePrevious();
+        int result = cachedLastKnownBreak;
+        if (result >= offset || result <= BreakIterator.DONE) {
+            result = handlePrevious();
+        } else {
+            //it might be better to check if handlePrevious() give us closer
+            //safe value but handlePrevious() is slow too
+            //So, this has to be done carefully
+            text.setIndex(result);
+        }
         while (result != BreakIterator.DONE && result <= offset) {
             result = handleNext();
         }
+        cachedLastKnownBreak = result;
         return result;
     }
 
@@ -849,6 +871,8 @@ class RuleBasedBreakIterator extends BreakIterator {
             text = new SafeCharIterator(newText);
         }
         text.first();
+
+        cachedLastKnownBreak = BreakIterator.DONE;
     }
 
 

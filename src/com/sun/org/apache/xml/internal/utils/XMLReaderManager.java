@@ -40,7 +40,6 @@ public class XMLReaderManager {
                              "http://xml.org/sax/features/namespace-prefixes";
     private static final XMLReaderManager m_singletonManager =
                                                      new XMLReaderManager();
-
     private static final String property = "org.xml.sax.driver";
     /**
      * Parser factory to be used to construct XMLReader objects
@@ -96,7 +95,7 @@ public class XMLReaderManager {
         reader = (XMLReader) m_readers.get();
         boolean threadHasReader = (reader != null);
         String factory = SecuritySupport.getInstance().getSystemProperty(property);
-         if (threadHasReader && m_inUse.get(reader) != Boolean.TRUE &&
+        if (threadHasReader && m_inUse.get(reader) != Boolean.TRUE &&
                 ( factory == null || reader.getClass().getName().equals(factory))) {
             m_inUse.put(reader, Boolean.TRUE);
         } else {
@@ -143,7 +142,7 @@ public class XMLReaderManager {
                 m_readers.set(reader);
                 m_inUse.put(reader, Boolean.TRUE);
             }
-        }
+        } 
 
         return reader;
     }

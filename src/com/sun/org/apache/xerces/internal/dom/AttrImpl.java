@@ -105,7 +105,7 @@ import org.w3c.dom.Text;
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM 
- * @version $Id: AttrImpl.java,v 1.2.6.1 2005/08/30 11:26:26 sunithareddy Exp $
+ * @version $Id: AttrImpl.java,v 1.5 2008/06/10 00:59:32 joehw Exp $
  * @since PR-DOM-Level-1-19980818.
  *
  */
@@ -137,7 +137,7 @@ public class AttrImpl
     // REVISIT: we are losing the type information in DOM during serialization
     transient Object type;
 
-    protected static TextImpl textNode = null;
+    protected TextImpl textNode = null;
 
     //
     // Constructors

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.194 09/08/07
+ * @(#)BasicComboBoxUI.java	1.195 09/10/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.194 08/07/09
+ * @version 1.195 10/19/09
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -1753,7 +1753,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
         }
 
         private boolean isTypeAheadKey( KeyEvent e ) {
-            return !e.isAltDown() && !e.isControlDown() && !e.isMetaDown();
+            return !e.isAltDown() && !BasicGraphicsUtils.isMenuShortcutKeyDown(e);
         }
 
         //

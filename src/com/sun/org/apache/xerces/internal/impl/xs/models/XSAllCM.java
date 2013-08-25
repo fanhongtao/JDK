@@ -23,6 +23,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaException;
 import com.sun.org.apache.xerces.internal.impl.xs.XSConstraints;
 
 import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * XSAllCM implements XSCMValidator and handles <all>
@@ -30,7 +31,7 @@ import java.util.Vector;
  * @xerces.internal 
  *
  * @author Pavani Mukthipudi, Sun Microsystems Inc.
- * @version $Id: XSAllCM.java,v 1.4 2006/07/19 22:39:34 spericas Exp $
+ * @version $Id: XSAllCM.java,v 1.7 2009/07/28 15:18:11 spericas Exp $
  */
 public class XSAllCM implements XSCMValidator {
 
@@ -74,20 +75,6 @@ public class XSAllCM implements XSCMValidator {
     // XSCMValidator methods
     //
 
-    /**
-     * This method is only implemented by <code>XSDFACM</code>.
-     */
-    public Object getUserData() {
-        return null;
-    }
-
-    /**
-     * This method is only implemented by <code>XSDFACM</code>.
-     */
-    public int getOneTransitionCounter() {
-        throw new UnsupportedOperationException();
-    }
-    
     /**
      * This methods to be called on entering a first element whose type
      * has this content model. It will return the initial state of the
@@ -224,6 +211,10 @@ public class XSAllCM implements XSCMValidator {
                 ret.addElement(fAllElements[i]);
         }
         return ret;
+    }
+
+    public ArrayList checkMinMaxBounds() {
+        return null;
     }
 
 } // class XSAllCM

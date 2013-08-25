@@ -105,8 +105,13 @@ final class Copy extends Instruction {
 	il.append(new ALOAD(name.getIndex()));
 	final int lengthMethod = cpg.addMethodref(STRING_CLASS,"length","()I");
 	il.append(new INVOKEVIRTUAL(lengthMethod));
+        il.append(DUP);
 	il.append(new ISTORE(length.getIndex()));
 
+        // Ignore attribute sets if current node is ROOT. DOM.shallowCopy()
+        // returns "" for ROOT, so skip attribute sets if length == 0
+	final BranchHandle ifBlock4 = il.append(new IFEQ(null));
+        
 	// Copy in attribute sets if specified
 	if (_useSets != null) {
 	    // If the parent of this element will result in an element being
@@ -130,6 +135,7 @@ final class Copy extends Instruction {
 	}
 
 	// Instantiate body of xsl:copy
+        ifBlock4.setTarget(il.append(NOP));
 	translateContents(classGen, methodGen);
 
 	// Call the output handler's endElement() if we copied an element

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboPopup.java	1.85 07/10/25
+ * @(#)BasicComboPopup.java	1.86 09/09/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.85 10/25/07
+ * @version 1.86 09/15/09
  * @author Tom Santos
  * @author Mark Davidson
  */
@@ -466,11 +466,12 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     protected JList createList() {
 	return new JList( comboBox.getModel() ) {
             public void processMouseEvent(MouseEvent e)  {
-                if (e.isControlDown())  {
+                if (BasicGraphicsUtils.isMenuShortcutKeyDown(e))  {
                     // Fix for 4234053. Filter out the Control Key from the list. 
                     // ie., don't allow CTRL key deselection.
+                    Toolkit toolkit = Toolkit.getDefaultToolkit();
                     e = new MouseEvent((Component)e.getSource(), e.getID(), e.getWhen(), 
-                                       e.getModifiers() ^ InputEvent.CTRL_MASK,
+                                       e.getModifiers() ^ toolkit.getMenuShortcutKeyMask(),
                                        e.getX(), e.getY(),
                                        e.getXOnScreen(), e.getYOnScreen(),
                                        e.getClickCount(),

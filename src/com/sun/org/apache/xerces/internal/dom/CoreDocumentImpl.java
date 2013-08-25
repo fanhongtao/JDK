@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import com.sun.org.apache.xerces.internal.util.URI;
+import com.sun.org.apache.xerces.internal.impl.Constants;
 
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.UserDataHandler;
@@ -72,7 +73,7 @@ import org.w3c.dom.ls.LSSerializer;
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: CoreDocumentImpl.java,v 1.3 2005/09/26 13:02:11 sunithareddy Exp $
+ * @version $Id: CoreDocumentImpl.java,v 1.7 2009/08/04 05:07:20 joehw Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 
@@ -184,7 +185,9 @@ extends ParentNode implements Document  {
 
     /** Bypass error checking. */
     protected boolean errorChecking = true;
-
+    /** Ancestor checking */
+    protected boolean ancestorChecking = true;
+    
     //Did version change at any point when the document was created ?
     //this field helps us to optimize when normalizingDocument.
     protected boolean xmlVersionChanged = false ;
@@ -251,6 +254,13 @@ extends ParentNode implements Document  {
         super(null);
         ownerDocument = this;
         allowGrammarAccess = grammarAccess;
+        SecuritySupport ss = SecuritySupport.getInstance();
+        String systemProp = ss.getSystemProperty(Constants.SUN_DOM_PROPERTY_PREFIX+Constants.SUN_DOM_ANCESTOR_CHECCK);
+        if (systemProp != null) {
+            if (systemProp.equalsIgnoreCase("false")) {
+                ancestorChecking = false;
+            }
+        }
     }
 
     /**
@@ -882,6 +892,7 @@ extends ParentNode implements Document  {
      * DOM Level 3 WD - Experimental.
      * The version of this document (part of XML Declaration)
      */
+
     public String getXmlVersion() {
         return (version == null)?"1.0":version;
     }

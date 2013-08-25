@@ -43,7 +43,7 @@ import java.io.InputStreamReader;
  * class and modified to be used as a general utility for creating objects 
  * dynamically.
  *
- * @version $Id: ObjectFactory.java,v 1.4 2005/08/30 10:12:05 neerajbj Exp $
+ * @version $Id: ObjectFactory.java,v 1.9 2008/04/02 00:41:01 joehw Exp $
  */
 class ObjectFactory {
 
@@ -379,7 +379,9 @@ class ObjectFactory {
 
     /** Prints a message to standard error if debugging is enabled. */
     private static void debugPrintln(String msg) {
-        System.err.println("JAXP: " + msg);
+        if (DEBUG) {
+            System.err.println("JAXP: " + msg);
+        }
     } // debugPrintln(String)
 
     /**

@@ -56,10 +56,10 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
     private Node _lastSibling = null;
     private Locator locator = null;
     private boolean needToSetDocumentInfo = true;
-
+    
+    //Replace StringBuffer with StringBuilder now that we no long support jdk1.4
     private StringBuilder _textBuffer = new StringBuilder();
     private Node _nextSiblingCache = null;
-    
     /**
      * JAXP document builder factory. Create a single instance and use
      * synchronization because the Javadoc is not explicit about 
@@ -67,20 +67,19 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
      */
     static final DocumentBuilderFactory _factory =
             DocumentBuilderFactory.newInstance();
-            
-    static final DocumentBuilder _internalBuilder; 
-    static { 
-        DocumentBuilder tmpBuilder = null; 
-        try { 
-            if (_factory instanceof com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl) { 
-                tmpBuilder = _factory.newDocumentBuilder(); 
-            } 
-        } catch(Exception e) { 
-            // It's OK. Will create DocumentBuilder every time 
-        } 
-        _internalBuilder = tmpBuilder; 
-    } 
-
+    static final DocumentBuilder _internalBuilder;
+    static {
+        DocumentBuilder tmpBuilder = null;
+        try {
+            if (_factory instanceof com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl) {
+                tmpBuilder = _factory.newDocumentBuilder();
+            }
+        } catch(Exception e) {
+            // It's OK. Will create DocumentBuilder every time
+        }
+        _internalBuilder = tmpBuilder;
+    }
+    
     public SAX2DOM() throws ParserConfigurationException {
         _document = createDocument();
 	_root = _document;
@@ -124,19 +123,18 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
             _textBuffer.append(ch, start, length);
         }
     }
-
     private void appendTextNode() {
         if (_textBuffer.length() > 0) {
             final Node last = (Node)_nodeStk.peek();
             if (last == _root && _nextSiblingCache != null) {
                 _lastSibling = last.insertBefore(_document.createTextNode(_textBuffer.toString()), _nextSiblingCache);
-            } else {
-               _lastSibling = last.appendChild(_document.createTextNode(_textBuffer.toString()));
-             }
-             _textBuffer.setLength(0);
-         }
+            }
+            else {
+                _lastSibling = last.appendChild(_document.createTextNode(_textBuffer.toString()));
+            }
+            _textBuffer.setLength(0);
+        }
     }
-
     public void startDocument() {
 	_nodeStk.push(_root);
     }
@@ -232,7 +230,7 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
     }
 
     public void endElement(String namespace, String localName, String qName) {
-	appendTextNode();
+        appendTextNode();
 	_nodeStk.pop();
         _lastSibling = null;
     }
@@ -260,7 +258,7 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
      * adds processing instruction node to DOM.
      */
     public void processingInstruction(String target, String data) {
-	appendTextNode();
+        appendTextNode();
 	final Node last = (Node)_nodeStk.peek();
 	ProcessingInstruction pi = _document.createProcessingInstruction(
 		target, data);
@@ -294,7 +292,7 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
      * Lexical Handler method to create comment node in DOM tree.
      */
     public void comment(char[] ch, int start, int length) {
-	appendTextNode();
+        appendTextNode();
 	final Node last = (Node)_nodeStk.peek();
 	Comment comment = _document.createComment(new String(ch,start,length));
 	if (comment != null){
@@ -315,18 +313,18 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
     public void endEntity(String name) { }
     public void startDTD(String name, String publicId, String systemId)
         throws SAXException {}
-
-    private static Document createDocument() throws ParserConfigurationException { 
-        Document doc; 
-        if (_internalBuilder != null) { 
-            //default implementation is thread safe 
-            doc = _internalBuilder.newDocument(); 
-        } else { 
-            synchronized(SAX2DOM.class) { 
-                doc = _factory.newDocumentBuilder().newDocument(); 
-            } 
-        } 
-        return doc; 
-    } 
-
+    
+    private static Document createDocument() throws ParserConfigurationException {
+        Document doc;
+        if (_internalBuilder != null) {
+            //default implementation is thread safe
+            doc = _internalBuilder.newDocument();
+        } else {
+            synchronized(SAX2DOM.class) {
+                doc = _factory.newDocumentBuilder().newDocument();
+            }
+        }
+        return doc;
+    }
+    
 }

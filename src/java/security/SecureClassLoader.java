@@ -1,5 +1,5 @@
 /*
- * @(#)SecureClassLoader.java	1.86 05/11/17
+ * @(#)SecureClassLoader.java	1.88 09/10/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,9 @@ package java.security;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 import sun.security.util.Debug;
 
@@ -18,7 +21,7 @@ import sun.security.util.Debug;
  * classes with an associated code source and permissions which are
  * retrieved by the system policy by default.
  *
- * @version 1.86, 11/17/05
+ * @version 1.88, 10/16/09
  * @author  Li Gong 
  * @author  Roland Schemers
  */
@@ -34,6 +37,20 @@ public class SecureClassLoader extends ClassLoader {
     private HashMap pdcache = new HashMap(11);
 
     private static final Debug debug = Debug.getInstance("scl");
+    private static final Method defineClassCondMethod;
+
+    static {
+        Method m;
+        try {
+            m = ClassLoader.class.getDeclaredMethod("defineClassCond",
+                new Class[]{String.class, ByteBuffer.class,
+                            ProtectionDomain.class, Boolean.TYPE}); 
+            m.setAccessible(true); 
+        } catch (NoSuchMethodException nsme) {
+            m = null;
+        }
+        defineClassCondMethod = m;
+    }
 
     /**
      * Creates a new SecureClassLoader using the specified parent
@@ -151,13 +168,39 @@ public class SecureClassLoader extends ClassLoader {
      *
      * @since  1.5
      */
-    protected final Class<?> defineClass(String name, java.nio.ByteBuffer b,
+    protected final Class<?> defineClass(String name, ByteBuffer b,
 					 CodeSource cs)
     {
 	if (cs == null)
 	    return defineClass(name, b, (ProtectionDomain)null);
 	else 
 	    return defineClass(name, b, getProtectionDomain(cs));
+    }
+
+    // special method for improving performance
+    private final Class<?> defineClassNoVerify(String name,
+                                               ByteBuffer b,
+		                               CodeSource cs)
+    {
+        try {
+            return (Class<?>)
+                (defineClassCondMethod.invoke(this, new Object[]{name, b,
+                (cs == null? (ProtectionDomain)null : getProtectionDomain(cs)),
+                Boolean.FALSE}));
+        } catch (IllegalAccessException iae) {
+            // Should never happen; fall back to the regular defineClass?
+            return defineClass(name, b, cs);
+        } catch (InvocationTargetException ite) {
+            // Propagate it up
+            Throwable te = ite.getTargetException();
+            if (te instanceof LinkageError) {
+                throw (LinkageError) te;
+            } else if (te instanceof RuntimeException) {
+                throw (RuntimeException) te;
+            } else {
+                throw new RuntimeException("Error defining class " + name, te);
+            }
+        }
     }
 
     /**

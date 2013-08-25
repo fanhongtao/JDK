@@ -89,7 +89,7 @@ import org.w3c.dom.Text;
  * 
  * @author Elena Litani, IBM
  * @author Neeraj Bajaj, Sun Microsystems, inc.
- * @version $Id: DOMNormalizer.java,v 1.2.6.3 2005/09/12 05:16:40 sunithareddy Exp $
+ * @version $Id: DOMNormalizer.java,v 1.6 2007/07/19 04:38:19 ofung Exp $
  */
 public class DOMNormalizer implements XMLDocumentHandler {
 
@@ -760,6 +760,12 @@ public class DOMNormalizer implements XMLDocumentHandler {
                 uri = attr.getNamespaceURI();
                 if (uri != null && uri.equals(NamespaceContext.XMLNS_URI)) {
                     // namespace attribute
+                    
+                    // "namespace-declarations" == false; Discard all namespace declaration attributes
+                    if ((fConfiguration.features & DOMConfigurationImpl.NSDECL) == 0) {
+                        continue;
+                    }
+
                     value = attr.getNodeValue();
                     if (value == null) {
                         value=XMLSymbols.EMPTY_STRING;
@@ -822,7 +828,12 @@ public class DOMNormalizer implements XMLDocumentHandler {
 
         uri = element.getNamespaceURI();
         prefix = element.getPrefix();
-        if (uri != null) {  // Element has a namespace
+        
+        // "namespace-declarations" == false? Discard all namespace declaration attributes
+        if ((fConfiguration.features & DOMConfigurationImpl.NSDECL) == 0) {
+            // no namespace declaration == no namespace URI, semantics are to keep prefix
+            uri = null;
+        } else if (uri != null) {  // Element has a namespace
             uri = fSymbolTable.addSymbol(uri);
             prefix = (prefix == null || 
                       prefix.length() == 0) ? XMLSymbols.EMPTY_STRING :fSymbolTable.addSymbol(prefix);

@@ -2126,7 +2126,7 @@ public class Catalog {
       return uriref;
     }
 
-    StringBuffer newRef = new StringBuffer(bytes.length);
+    StringBuilder newRef = new StringBuilder(bytes.length);
     for (int count = 0; count < bytes.length; count++) {
       int ch = bytes[count] & 0xFF;
 
@@ -2144,7 +2144,7 @@ public class Catalog {
 	  || (ch == 0x7F)) {
 	newRef.append(encodedByte(ch));
       } else {
-	newRef.append((char) bytes[count]);
+        newRef.append((char) bytes[count]);
       }
     }
 

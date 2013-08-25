@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.198 09/08/07
+ * @(#)BasicTreeUI.java	1.199 09/10/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.198 08/07/09
+ * @version 1.199 10/19/09
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */
@@ -2223,7 +2223,7 @@ public class BasicTreeUI extends TreeUI
      */
     protected boolean isToggleSelectionEvent(MouseEvent event) {
 	return (SwingUtilities.isLeftMouseButton(event) &&
-		event.isControlDown());
+		BasicGraphicsUtils.isMenuShortcutKeyDown(event));
     }
 
     /**
@@ -3213,7 +3213,7 @@ public class BasicTreeUI extends TreeUI
 	    // handle first letter navigation
 	    if(tree != null && tree.getRowCount()>0 && tree.hasFocus() &&
                tree.isEnabled()) {
-		if (e.isAltDown() || e.isControlDown() || e.isMetaDown() ||
+		if (e.isAltDown() || BasicGraphicsUtils.isMenuShortcutKeyDown(e) ||
 		    isNavigationKey(e)) {
 		    return;
 		}
@@ -3472,7 +3472,7 @@ public class BasicTreeUI extends TreeUI
 
                 dragPressDidSelection = false;
                 
-                if (e.isControlDown()) {
+                if (BasicGraphicsUtils.isMenuShortcutKeyDown(e)) {
                     // do nothing for control - will be handled on release
                     // or when drag starts
                     return;
@@ -3526,7 +3526,7 @@ public class BasicTreeUI extends TreeUI
         public void dragStarting(MouseEvent me) {
             dragStarted = true;
 
-            if (me.isControlDown()) {
+            if (BasicGraphicsUtils.isMenuShortcutKeyDown(me)) {
                 tree.addSelectionPath(pressedPath);
                 setAnchorSelectionPath(pressedPath);
                 setLeadSelectionPath(pressedPath, true);

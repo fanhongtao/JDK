@@ -1,5 +1,5 @@
 /*
- * @(#)RequestInfoImpl.java	1.47 05/11/17
+ * @(#)RequestInfoImpl.java	1.48 09/09/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -169,7 +169,8 @@ public abstract class RequestInfoImpl
         startingPointCall = 0;
         intermediatePointCall = 0;
         endingPointCall = 0;
-        replyStatus = UNINITIALIZED;
+        // 6763340
+        setReplyStatus( UNINITIALIZED ) ;
         currentExecutionPoint = EXECUTION_POINT_STARTING;
         alreadyExecuted = false;
 	connection = null;

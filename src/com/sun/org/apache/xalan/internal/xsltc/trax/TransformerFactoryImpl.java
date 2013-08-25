@@ -55,6 +55,7 @@ import javax.xml.transform.sax.TemplatesHandler;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.stax.*;
 
 import com.sun.org.apache.xml.internal.utils.StylesheetPIHandler;
 import com.sun.org.apache.xml.internal.utils.StopParseException;
@@ -427,6 +428,8 @@ public class TransformerFactoryImpl
 	    DOMResult.FEATURE,
 	    SAXSource.FEATURE,
 	    SAXResult.FEATURE,
+	    StAXSource.FEATURE,
+	    StAXResult.FEATURE,
 	    StreamSource.FEATURE,
 	    StreamResult.FEATURE,
 	    SAXTransformerFactory.FEATURE,

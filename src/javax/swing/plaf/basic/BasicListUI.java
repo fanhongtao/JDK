@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.128 09/08/07
+ * @(#)BasicListUI.java	1.129 09/10/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.128 08/07/09
+ * @version 1.129 10/19/09
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
@@ -2354,8 +2354,9 @@ public class BasicListUI extends ListUI
 	    JList src = (JList)e.getSource();
 	    ListModel model = src.getModel();
 
-            if (model.getSize() == 0 || e.isAltDown() || e.isControlDown() || e.isMetaDown() ||
-		isNavigationKey(e)) {
+            if (model.getSize() == 0 || e.isAltDown() ||
+                    BasicGraphicsUtils.isMenuShortcutKeyDown(e) ||
+                    isNavigationKey(e)) {
                 // Nothing to select
                 return;
             }
@@ -2652,7 +2653,7 @@ public class BasicListUI extends ListUI
                 if (row != -1 && DragRecognitionSupport.mousePressed(e)) {
                     dragPressDidSelection = false;
 
-                    if (e.isControlDown()) {
+                    if (BasicGraphicsUtils.isMenuShortcutKeyDown(e)) {
                         // do nothing for control - will be handled on release
                         // or when drag starts
                         return;
@@ -2704,7 +2705,7 @@ public class BasicListUI extends ListUI
                     anchorSelected = list.isSelectedIndex(anchorIndex);
                 }
 
-                if (e.isControlDown()) {
+                if (BasicGraphicsUtils.isMenuShortcutKeyDown(e)) {
                     if (e.isShiftDown()) {
                         if (anchorSelected) {
                             list.addSelectionInterval(anchorIndex, row);
@@ -2729,7 +2730,7 @@ public class BasicListUI extends ListUI
         }
 
         public void dragStarting(MouseEvent me) {
-            if (me.isControlDown()) {
+            if (BasicGraphicsUtils.isMenuShortcutKeyDown(me)) {
                 int row = SwingUtilities2.loc2IndexFileList(list, me.getPoint());
                 list.addSelectionInterval(row, row);
             }
@@ -2745,7 +2746,7 @@ public class BasicListUI extends ListUI
                 return;
             }
 
-            if (e.isShiftDown() || e.isControlDown()) {
+            if (e.isShiftDown() || BasicGraphicsUtils.isMenuShortcutKeyDown(e)) {
                 return;
             }
 

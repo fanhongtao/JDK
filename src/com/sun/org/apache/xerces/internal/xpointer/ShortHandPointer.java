@@ -33,7 +33,7 @@ import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
  * in document order that has a matching NCName as an identifier.
  * </p>
  *
- * @version $Id: ShortHandPointer.java,v 1.1.4.1 2005/09/08 05:25:44 sunithareddy Exp $
+ * @version $Id: ShortHandPointer.java,v 1.3 2007/07/19 04:39:09 ofung Exp $
  *
  */
 class ShortHandPointer implements XPointerPart {

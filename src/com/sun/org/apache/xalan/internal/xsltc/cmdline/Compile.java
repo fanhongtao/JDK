@@ -136,7 +136,7 @@ public final class Compile {
 		    if (inputIsURL)
 			url = new URL(name);
 		    else
-			url = (new File(name)).toURL();
+			url = (new File(name)).toURI().toURL();
 		    stylesheetVector.addElement(url);
 		}
 		compileOK = xsltc.compile(stylesheetVector);

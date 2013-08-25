@@ -89,7 +89,7 @@ import com.sun.org.apache.xerces.internal.impl.Constants;
  * @author Glenn Marcy, IBM
  * @author Eric Ye, IBM
  *
- * @version $Id: XMLDTDScannerImpl.java,v 1.4 2005/11/03 17:54:05 jeffsuttor Exp $
+ * @version $Id: XMLDTDScannerImpl.java,v 1.7 2007/09/26 12:52:40 ndw Exp $
  */
 public class XMLDTDScannerImpl
 extends XMLScanner
@@ -1966,6 +1966,7 @@ implements XMLDTDScanner, XMLComponent, XMLEntityHandler {
                 if (fEntityScanner.skipChar('?')) {
                     fStringBuffer.clear();
                     scanPI(fStringBuffer);
+                    fMarkUpDepth--; // we're done with this decl
                 }
                 else if (fEntityScanner.skipChar('!')) {
                     if (fEntityScanner.skipChar('-')) {

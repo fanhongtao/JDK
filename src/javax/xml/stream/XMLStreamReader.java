@@ -127,7 +127,7 @@ import javax.xml.namespace.QName;
  *  </table>
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see javax.xml.stream.events.XMLEvent
  * @see XMLInputFactory
  * @see XMLStreamWriter
@@ -674,7 +674,3 @@ public interface XMLStreamReader extends XMLStreamConstants {
    */
   public String getPIData();
 }
-
-
-
-

@@ -72,7 +72,7 @@ import org.w3c.dom.ls.LSSerializerFilter;
  * @author Gopal Sharma, Sun Microsystems
  * @author Arun Yadav, Sun Microsystems
  * @author Sunitha Reddy, Sun Microsystems
- * @version $Id: DOMSerializerImpl.java,v 1.5 2006/01/23 06:47:25 sunithareddy Exp $
+ * @version $Id: DOMSerializerImpl.java,v 1.7 2007/07/19 04:39:18 ofung Exp $
  */
 public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
 
@@ -539,7 +539,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 // stopped at user request
                 return null;
             }
-            throw new LSException(LSException.SERIALIZE_ERR, e.toString());            
+            throw (LSException) new LSException(LSException.SERIALIZE_ERR, e.toString()).initCause(e);
         } catch (IOException ioe) {
             // REVISIT: A generic IOException doesn't provide enough information
             // to determine that the serialized document is too large to fit
@@ -548,7 +548,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 DOMMessageFormatter.DOM_DOMAIN,
                 "STRING_TOO_LONG",
                 new Object[] { ioe.getMessage()});
-            throw new DOMException(DOMException.DOMSTRING_SIZE_ERR,msg);
+            throw (DOMException) new DOMException(DOMException.DOMSTRING_SIZE_ERR, msg).initCause(ioe);
         }
         
         return destination.toString();

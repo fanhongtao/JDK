@@ -95,7 +95,7 @@ import javax.xml.stream.events.XMLEvent;
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  * @author Sunitha Reddy, SUN Microsystems
- * @version $Id: XMLDocumentFragmentScannerImpl.java,v 1.13 2007/05/09 15:23:31 ndw Exp $
+ * @version $Id: XMLDocumentFragmentScannerImpl.java,v 1.17 2009/06/10 18:50:48 joehw Exp $
  *
  */
 public class XMLDocumentFragmentScannerImpl
@@ -276,6 +276,7 @@ public class XMLDocumentFragmentScannerImpl
     protected boolean fHasExternalDTD;
     
     /** Standalone. */
+    protected boolean fStandaloneSet;
     protected boolean fStandalone;
     protected String fVersion;
     
@@ -602,6 +603,7 @@ public class XMLDocumentFragmentScannerImpl
         fCurrentElement = null;
         fElementStack.clear();
         fHasExternalDTD = false;
+        fStandaloneSet = false;
         fStandalone = false;
         fInScanContent = false;
         //skipping algorithm
@@ -647,6 +649,7 @@ public class XMLDocumentFragmentScannerImpl
         fElementStack.clear();
         //fElementStack2.clear();
         fHasExternalDTD = false;
+        fStandaloneSet = false;
         fStandalone = false;
         //fReplaceEntityReferences = true;
         //fSupportExternalEntities = true;
@@ -957,7 +960,8 @@ public class XMLDocumentFragmentScannerImpl
         String standalone = fStrings[2];
         fDeclaredEncoding = encoding;
         // set standalone
-        fStandalone = standalone != null && standalone.equals("yes");
+        fStandaloneSet = standalone != null;
+        fStandalone = fStandaloneSet && standalone.equals("yes");
         ///xxx see where its used.. this is not used anywhere. it may be useful for entity to store this information
         //but this information is only related with Document Entity.
         fEntityManager.setStandalone(fStandalone);
@@ -1482,6 +1486,10 @@ public class XMLDocumentFragmentScannerImpl
         return fAttributes;
     }
     
+    /** return if standalone is set */
+    public boolean standaloneSet(){
+        return fStandaloneSet;
+    }
     /** return if the doucment is standalone */
     public boolean isStandAlone(){
         return fStandalone ;
@@ -3071,8 +3079,8 @@ public class XMLDocumentFragmentScannerImpl
                                     }
                                 }
                                 String target = fSymbolTable.addSymbol(fStringBuffer.ch, fStringBuffer.offset, fStringBuffer.length);
-                                fStringBuffer.clear();
-                                scanPIData(target, fStringBuffer);
+                                fContentBuffer.clear();
+                                scanPIData(target, fContentBuffer);
                             }
                             
                             // standard text declaration

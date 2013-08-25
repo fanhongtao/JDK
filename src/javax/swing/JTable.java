@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.292 08/05/30
+ * @(#)JTable.java	1.293 09/09/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -186,7 +186,7 @@ import sun.swing.PrintingStatus;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.292 05/30/08
+ * @version 1.293 09/25/09
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  * @see javax.swing.table.DefaultTableModel
@@ -2547,10 +2547,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see #convertColumnIndexToView
      */
     public int convertColumnIndexToModel(int viewColumnIndex) {
-        if (viewColumnIndex < 0) {
-            return viewColumnIndex;
-        }
-        return getColumnModel().getColumn(viewColumnIndex).getModelIndex();
+        return SwingUtilities2.convertColumnIndexToModel(
+                getColumnModel(), viewColumnIndex);
     }
 
     /**
@@ -2567,16 +2565,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see #convertColumnIndexToModel
      */
     public int convertColumnIndexToView(int modelColumnIndex) {
-        if (modelColumnIndex < 0) {
-            return modelColumnIndex;
-        }
-        TableColumnModel cm = getColumnModel();
-        for (int column = 0; column < getColumnCount(); column++) {
-            if (cm.getColumn(column).getModelIndex() == modelColumnIndex) {
-                return column;
-            }
-        }
-        return -1;
+        return SwingUtilities2.convertColumnIndexToView(
+                getColumnModel(), modelColumnIndex);    
     }
 
     /**

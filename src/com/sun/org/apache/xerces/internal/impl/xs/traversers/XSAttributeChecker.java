@@ -61,7 +61,7 @@ import org.w3c.dom.Element;
  * @xerces.internal
  *
  * @author Sandy Gao, IBM
- * @version $Id: XSAttributeChecker.java,v 1.6.2.2 2007/10/20 17:56:44 joehw Exp $
+ * @version $Id: XSAttributeChecker.java,v 1.9 2007/07/29 20:47:06 joehw Exp $
  */
 
 public class XSAttributeChecker {
@@ -1311,12 +1311,11 @@ public class XSAttributeChecker {
                 throw new InvalidDatatypeValueException("cvc-datatype-valid.1.2.1", new Object[]{value, "positiveInteger"});
             break;
         case DT_BLOCK:
-            // block = (#all | List of (substitution | extension | restriction | list | union))
+            // block = (#all | List of (substitution | extension | restriction))
             choice = 0;
             if (value.equals (SchemaSymbols.ATTVAL_POUNDALL)) {
                 choice = XSConstants.DERIVATION_SUBSTITUTION|XSConstants.DERIVATION_EXTENSION|
-                         XSConstants.DERIVATION_RESTRICTION|XSConstants.DERIVATION_LIST|
-                         XSConstants.DERIVATION_UNION;
+                         XSConstants.DERIVATION_RESTRICTION;
             }
             else {
                 // use the default \t\r\n\f delimiters

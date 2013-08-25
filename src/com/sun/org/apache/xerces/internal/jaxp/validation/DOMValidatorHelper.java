@@ -59,7 +59,7 @@ import org.xml.sax.SAXException;
  * <p>A validator helper for <code>DOMSource</code>s.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: DOMValidatorHelper.java,v 1.2.2.1 2007/03/15 16:01:20 spericas Exp $
+ * @version $Id: DOMValidatorHelper.java,v 1.6 2008/03/22 02:53:49 joehw Exp $
  */
 final class DOMValidatorHelper implements ValidatorHelper, EntityState {
     
@@ -195,7 +195,7 @@ final class DOMValidatorHelper implements ValidatorHelper, EntityState {
                 finally {
                     // Release references to application objects
                     fRoot = null;
-                    fCurrentElement = null;
+                    //fCurrentElement = null; -- keep the reference to support current-element-node property
                     fEntities = null;
                     if (fDOMValidatorHandler != null) {
                         fDOMValidatorHandler.setDOMResult(null);

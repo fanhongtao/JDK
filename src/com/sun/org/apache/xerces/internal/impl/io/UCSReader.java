@@ -19,6 +19,7 @@ package com.sun.org.apache.xerces.internal.impl.io;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.Reader;
+
 import com.sun.xml.internal.stream.util.BufferAllocator;
 import com.sun.xml.internal.stream.util.ThreadLocalBufferAllocator;
 
@@ -30,7 +31,7 @@ import com.sun.xml.internal.stream.util.ThreadLocalBufferAllocator;
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: UCSReader.java,v 1.2.6.1 2005/09/09 07:22:54 neerajbj Exp $
+ * @version $Id: UCSReader.java,v 1.5 2007/07/19 04:38:36 ofung Exp $
  */
 public class UCSReader extends Reader {
 

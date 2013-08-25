@@ -1,5 +1,5 @@
 /*
- * @(#)DialogPeer.java	1.14 05/11/17
+ * @(#)DialogPeer.java	1.16 09/10/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,6 +19,7 @@ import java.awt.*;
 public interface DialogPeer extends WindowPeer {
     void setTitle(String title);
     void setResizable(boolean resizeable);
+    void blockWindows(java.util.List<Window> windows);
 }
 
 

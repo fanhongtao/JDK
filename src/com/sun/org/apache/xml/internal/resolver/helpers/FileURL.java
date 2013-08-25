@@ -84,6 +84,6 @@ public abstract class FileURL {
     }
      */
       File file = new File(pathname);
-      return file.toURL();
+      return file.toURI().toURL();
   }
 }

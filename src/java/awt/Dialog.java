@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.131 09/04/13
+ * @(#)Dialog.java	1.133 09/10/19
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import javax.accessibility.*;
 import java.util.Vector;
+import java.util.LinkedList;
 import java.util.Iterator;
 import sun.awt.AppContext;
 import sun.awt.AWTAccessor;
@@ -75,7 +76,7 @@ import sun.awt.util.IdentityArrayList;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.131, 04/13/09
+ * @version	1.133, 10/19/09
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -1424,6 +1425,7 @@ public class Dialog extends Window {
             k++;
         }
 
+	java.util.List<Window> toBlock = new LinkedList<Window>();
         // block all windows from scope of blocking except from blockers' hierarchies
         IdentityArrayList<Window> unblockedWindows = Window.getAllUnblockedWindows();
         for (Window w : unblockedWindows) {
@@ -1434,9 +1436,10 @@ public class Dialog extends Window {
                         continue;
                     }
                 }
-                blockWindow(w);
+                toBlock.add(w);
             }
         }
+        blockWindows(toBlock);
 
         if (!isModalBlocked()) {
             updateChildrenBlocking();
@@ -1540,10 +1543,29 @@ public class Dialog extends Window {
      */
     void blockWindow(Window w) {
         if (!w.isModalBlocked()) {
-            w.setModalBlocked(this, true);
+            w.setModalBlocked(this, true, true);
             blockedWindows.add(w);
         }
     }
+
+    void blockWindows(java.util.List<Window> toBlock) {
+        DialogPeer dpeer = (DialogPeer)peer;
+        if (dpeer == null) {
+            return;
+        }
+        Iterator<Window> it = toBlock.iterator();
+        while (it.hasNext()) {
+            Window w = it.next();
+            if (!w.isModalBlocked()) {
+                w.setModalBlocked(this, true, false);
+            } else {
+                it.remove();
+            }
+        }
+        dpeer.blockWindows(toBlock);
+        blockedWindows.addAll(toBlock);
+    }
+
 
     /*
      * Removes the given top-level window from the list of blocked
@@ -1553,7 +1575,7 @@ public class Dialog extends Window {
     void unblockWindow(Window w) {
         if (w.isModalBlocked() && blockedWindows.contains(w)) {
             blockedWindows.remove(w);
-            w.setModalBlocked(this, false);
+            w.setModalBlocked(this, false, true);
         }
     }
 

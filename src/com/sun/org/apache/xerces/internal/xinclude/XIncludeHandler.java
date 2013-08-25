@@ -107,7 +107,7 @@ import com.sun.org.apache.xerces.internal.xpointer.XPointerProcessor;
  * @author Peter McCracken, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XIncludeHandler.java,v 1.2.6.1 2005/09/05 13:46:07 sunithareddy Exp $
+ * @version $Id: XIncludeHandler.java,v 1.5 2007/07/19 04:39:02 ofung Exp $
  *
  * @see XIncludeNamespaceSupport
  */
@@ -940,7 +940,8 @@ public class XIncludeHandler
                 setState(STATE_IGNORE);
             }
             else {
-                reportFatalError("NoFallback");
+                reportFatalError("NoFallback", 
+                    new Object[] { attributes.getValue(null, "href") });
             }
         }
         else if (isFallbackElement(element)) {
@@ -998,7 +999,8 @@ public class XIncludeHandler
             // we check to see if the children of this include element contained a fallback
             if (getState() == STATE_EXPECT_FALLBACK
                 && !getSawFallback(fDepth + 1)) {
-                reportFatalError("NoFallback");
+                reportFatalError("NoFallback",
+                    new Object[] { "unknown" });
             }
         }
         if (isFallbackElement(element)) {

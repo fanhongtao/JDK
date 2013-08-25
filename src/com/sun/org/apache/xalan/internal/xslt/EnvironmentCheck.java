@@ -85,7 +85,7 @@ import org.w3c.dom.Node;
  * of thing but in a much simpler manner.</p>
  *
  * @author Shane_Curcuru@us.ibm.com
- * @version $Id: EnvironmentCheck.java,v 1.4 2005/08/30 10:06:03 neerajbj Exp $
+ * @version $Id: EnvironmentCheck.java,v 1.8 2007/07/19 04:36:38 ofung Exp $
  */
 public class EnvironmentCheck
 {
@@ -255,7 +255,7 @@ public class EnvironmentCheck
     boolean errors = false;
 
     logMsg(
-      "#---- BEGIN writeEnvironmentReport($Revision: 1.4 $): Useful stuff found: ----");
+      "#---- BEGIN writeEnvironmentReport($Revision: 1.8 $): Useful stuff found: ----");
 
     // Fake the Properties-like output
     for (Enumeration keys = h.keys(); 
@@ -414,7 +414,7 @@ public class EnvironmentCheck
     try
     {
       Element envCheckNode = factory.createElement("EnvironmentCheck");
-      envCheckNode.setAttribute("version", "$Revision: 1.4 $");
+      envCheckNode.setAttribute("version", "$Revision: 1.8 $");
       container.appendChild(envCheckNode);
 
       if (null == h)

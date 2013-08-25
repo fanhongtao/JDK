@@ -1,5 +1,5 @@
 /*
- * @(#)Heap-X-Buffer.java	1.29 05/11/17
+ * @(#)Heap-X-Buffer.java	1.30 09/09/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -535,6 +535,9 @@ class HeapDoubleBufferR
 
 
 
+
+
+
 
 
 

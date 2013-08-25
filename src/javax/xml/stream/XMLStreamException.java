@@ -5,7 +5,7 @@ package javax.xml.stream;
  * class is used to report well-formedness errors as well as unexpected
  * processing conditions.
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public class XMLStreamException extends Exception {
@@ -99,9 +99,3 @@ public class XMLStreamException extends Exception {
   }
 
 }
-
-
-
-
-
-

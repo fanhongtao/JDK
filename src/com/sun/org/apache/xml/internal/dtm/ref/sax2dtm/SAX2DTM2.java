@@ -3375,7 +3375,7 @@ public class SAX2DTM2 extends SAX2DTM
         String nodeName = (prefix != null) ? qname : localName;
         String nodeValue = (String)m_values.elementAt(valueIndex);
 
-        handler.addAttribute(nodeName, nodeValue);
+        handler.addAttribute(uri, localName, nodeName, "CDATA", nodeValue);
     }
 
 }

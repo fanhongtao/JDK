@@ -1,5 +1,5 @@
 /*
- * @(#)URLClassLoader.java	1.91 07/04/06
+ * @(#)URLClassLoader.java	1.93 09/10/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,10 +9,12 @@ package java.net;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.InvocationTargetException;
 import java.io.File;
 import java.io.FilePermission;
 import java.io.InputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandlerFactory;
@@ -50,7 +52,7 @@ import sun.security.util.SecurityConstants;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.91, 04/06/07
+ * @version 1.93, 10/16/09
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -192,7 +194,7 @@ public class URLClassLoader extends SecureClassLoader {
 			Resource res = ucp.getResource(path, false);
 			if (res != null) {
 			    try {
-				return defineClass(name, res);
+				return defineClass(name, res, true);
 			    } catch (IOException e) {
 				throw new ClassNotFoundException(name, e);
 			    }
@@ -207,11 +209,16 @@ public class URLClassLoader extends SecureClassLoader {
     }
 
     /*
-     * Defines a Class using the class bytes obtained from the specified
-     * Resource. The resulting Class must be resolved before it can be
-     * used.
+     * Defines and verifies a Class using the class bytes obtained from 
+     * the specified Resource. The resulting Class must be resolved before 
+     * it can be used.
      */
     private Class defineClass(String name, Resource res) throws IOException {
+        return defineClass(name, res, true);
+    }
+
+    private Class defineClass(String name, Resource res, boolean verify)
+        throws IOException {
 	int i = name.lastIndexOf('.');
 	URL url = res.getCodeSourceURL();
 	if (i != -1) {
@@ -246,19 +253,35 @@ public class URLClassLoader extends SecureClassLoader {
 	    }
 	}
 	// Now read the class bytes and define the class
-	java.nio.ByteBuffer bb = res.getByteBuffer();
-	if (bb != null) {
-	    // Use (direct) ByteBuffer:
-	    CodeSigner[] signers = res.getCodeSigners();
-	    CodeSource cs = new CodeSource(url, signers);
-	    return defineClass(name, bb, cs);
-	} else {
-	    byte[] b = res.getBytes();
-	    // must read certificates AFTER reading bytes.
-	    CodeSigner[] signers = res.getCodeSigners();
-	    CodeSource cs = new CodeSource(url, signers);
-	    return defineClass(name, b, 0, b.length, cs);
-	}
+	ByteBuffer bb = res.getByteBuffer();
+        byte[] bytes = ((bb == null)? res.getBytes() : null);
+        // NOTE: Must read certificates AFTER reading bytes above.
+        CodeSigner[] signers = res.getCodeSigners();
+        CodeSource cs = new CodeSource(url, signers);
+
+        if (!verify) {
+            // Need to use reflection since methods are private in super class
+            Object[] args = {
+                name, (bb == null? ByteBuffer.wrap(bytes) : bb), cs
+            };
+            try {
+                return (Class) defineClassNoVerifyMethod.invoke(this, args);
+            } catch (IllegalAccessException iae) {
+                // Should never happen; fall back to the regular defineClass
+            } catch (InvocationTargetException ite) {
+                // Propagate it up
+                Throwable te = ite.getTargetException();
+                if (te instanceof LinkageError) {
+    	    	    throw (LinkageError) te;
+                } else if (te instanceof RuntimeException) {
+                    throw (RuntimeException) te;
+                } else {
+                    throw new RuntimeException("Error defining class " + name, te);
+                }
+            }
+        }
+        return (bb != null? defineClass(name, bb, cs) : 
+	                    defineClass(name, bytes, 0, bytes.length, cs));
     }
 
     /**
@@ -556,6 +579,8 @@ public class URLClassLoader extends SecureClassLoader {
 	return ucl;
     }
 
+    private static final Method defineClassNoVerifyMethod;
+
     static {
     	sun.misc.SharedSecrets.setJavaNetAccess (
 	    new sun.misc.JavaNetAccess() {
@@ -564,6 +589,16 @@ public class URLClassLoader extends SecureClassLoader {
 		}
 	    }
 	);
+        Method m;
+        try {
+            m = SecureClassLoader.class.getDeclaredMethod
+                ("defineClassNoVerify", 
+                new Class[]{String.class, ByteBuffer.class, CodeSource.class});
+            m.setAccessible(true);
+        } catch (NoSuchMethodException nsme) {
+            m = null;
+        }
+        defineClassNoVerifyMethod = m;
     }
 }
 

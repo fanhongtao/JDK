@@ -1,5 +1,5 @@
 /*
- * @(#)WrappedPlainView.java	1.41 06/05/05
+ * @(#)WrappedPlainView.java	1.42 09/08/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.41 05/05/06
+ * @version 1.42 08/24/09
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
@@ -224,9 +224,11 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 						tabBase, tabBase + currentWidth,
 						this, p0);
 	} else {
-	    p = p0 + Utilities.getTabbedTextOffset(segment, metrics, 
-						   tabBase, tabBase + currentWidth,
-						   this, p0, false);
+            int offset = Utilities.getTabbedTextOffset(segment, metrics,
+                            tabBase, tabBase + currentWidth, this, p0, false);
+            offset = Utilities.adjustOffsetForFractionalMetrics(
+                                    segment, metrics, offset, currentWidth);
+            p = p0 + offset;
 	}
         SegmentCache.releaseSharedSegment(segment);
 	return p;

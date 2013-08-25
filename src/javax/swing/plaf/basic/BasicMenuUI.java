@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuUI.java	1.162 05/11/30
+ * @(#)BasicMenuUI.java	1.163 09/08/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.162 11/30/05
+ * @version 1.163 08/24/09
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -180,10 +180,6 @@ public class BasicMenuUI extends BasicMenuItemUI
 	return getHandler();
     }
     
-    protected MenuKeyListener createMenuKeyListener(JComponent c) {
-	return (MenuKeyListener)getHandler();
-    }
-
     public Dimension getMaximumSize(JComponent c) {
 	if (((JMenu)menuItem).isTopLevelMenu() == true) {
 	    Dimension d = c.getPreferredSize();
@@ -385,8 +381,7 @@ public class BasicMenuUI extends BasicMenuItemUI
         public void stateChanged(ChangeEvent e) { }
     }
 
-    private class Handler extends BasicMenuItemUI.Handler implements
-            MenuKeyListener {
+    private class Handler extends BasicMenuItemUI.Handler {
         //
         // PropertyChangeListener
         //
@@ -568,41 +563,5 @@ public class BasicMenuUI extends BasicMenuItemUI
 	public void menuDragMouseExited(MenuDragMouseEvent e) {}
 	public void menuDragMouseReleased(MenuDragMouseEvent e) {}	    
 
-
-        //
-        // MenuKeyListener
-        //
-	/**
-	 * Open the Menu
-	 */
-	public void menuKeyTyped(MenuKeyEvent e) {
-            if (!crossMenuMnemonic && BasicPopupMenuUI.getLastPopup() != null) {
-                // when crossMenuMnemonic is not set, we don't open a toplevel
-                // menu if another toplevel menu is already open
-                    return;
-                }
-
-            char key = Character.toLowerCase((char)menuItem.getMnemonic());
-            MenuElement path[] = e.getPath();
-            if (key == Character.toLowerCase(e.getKeyChar())) {
-                JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
-                ArrayList newList = new ArrayList(Arrays.asList(path));
-                newList.add(popupMenu);
-                MenuElement subs[] = popupMenu.getSubElements();
-                MenuElement sub =
-                        BasicPopupMenuUI.findEnabledChild(subs, -1, true);
-                if(sub != null) {
-                    newList.add(sub);
-                }
-                MenuSelectionManager manager = e.getMenuSelectionManager();
-                MenuElement newPath[] = new MenuElement[0];;
-                newPath = (MenuElement[]) newList.toArray(newPath);
-                manager.setSelectedPath(newPath);
-                e.consume();
-            }
-        }
-
-        public void menuKeyPressed(MenuKeyEvent e) {}
-	public void menuKeyReleased(MenuKeyEvent e) {}
     }
 }

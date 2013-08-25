@@ -1,5 +1,5 @@
 /*
- * @(#)ScheduledThreadPoolExecutor.java	1.9 07/12/14
+ * @(#)ScheduledThreadPoolExecutor.java	1.10 09/08/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -183,7 +183,7 @@ public class ScheduledThreadPoolExecutor
             // Reschedule if not cancelled and not shutdown or policy allows
             if (ok && (!down ||
                        (getContinueExistingPeriodicTasksAfterShutdownPolicy() &&
-                        !isTerminating()))) {
+                        !isStopped()))) {
                 long p = period;
                 if (p > 0)
                     time += p;

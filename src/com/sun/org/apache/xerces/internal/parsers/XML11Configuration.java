@@ -69,7 +69,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLPullParserConfiguration;
  * @author Neil Graham, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XML11Configuration.java,v 1.2.6.1 2005/09/07 07:40:18 sunithareddy Exp $
+ * @version $Id: XML11Configuration.java,v 1.5 2008/08/29 06:17:02 joehw Exp $
  */
 public class XML11Configuration extends ParserConfigurationSettings
     implements XMLPullParserConfiguration, XML11Configurable {
@@ -764,8 +764,9 @@ public class XML11Configuration extends ParserConfigurationSettings
         // reset and configure pipeline and set InputSource.
         if (fInputSource != null) {
             try {
-				fValidationManager.reset();
+		fValidationManager.reset();
                 fVersionDetector.reset(this);
+                fConfigUpdated = true;
                 resetCommon();
 
                 short version = fVersionDetector.determineDocVersion(fInputSource);

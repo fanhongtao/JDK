@@ -117,7 +117,7 @@ import com.sun.org.apache.xerces.internal.util.URI;
  * @author K.Venugopal SUN Microsystems
  * @author Neeraj Bajaj SUN Microsystems
  * @author Sunitha Reddy SUN Microsystems
- * @version $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
+ * @version $Id: XMLEntityManager.java,v 1.16 2009/03/02 19:34:25 joehw Exp $
  */
 public class XMLEntityManager implements XMLComponent, XMLEntityResolver {
     
@@ -2618,9 +2618,8 @@ protected static final String PARSER_SETTINGS =
                 str = "file:" + str;
             }
         }
-
-        // SAPJVM 2008-07-22 Replace spaces in file names with %20.
-        // This was done in JDK5 and wrongly removed in JDK6.
+        
+        // replace spaces in file names with %20.
         // Original comment from JDK5: the following algorithm might not be
         // very performant, but people who want to use invalid URI's have to
         // pay the price.

@@ -1,5 +1,5 @@
 /*
- * @(#)ThreadPoolExecutor.java	1.20 07/07/31
+ * @(#)ThreadPoolExecutor.java	1.21 09/08/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1210,6 +1210,14 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
     public boolean isShutdown() {
         return runState != RUNNING;
+    }
+
+    /**
+     * Returns true if shutdownNow has been invoked but this executor
+     * has not completely terminated.
+     */
+    boolean isStopped() {
+        return runState == STOP;
     }
 
     /**

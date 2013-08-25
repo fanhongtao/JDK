@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.173 09/02/27
+ * @(#)BasicTabbedPaneUI.java	1.175 09/10/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -3509,7 +3509,13 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             }
             else if (name =="indexForTitle") {
                 calculatedBaseline = false;
-                updateHtmlViews((Integer)e.getNewValue());
+                Integer index = (Integer) e.getNewValue();
+                // remove the current index 
+                // to let updateHtmlViews() insert the correct one
+                if (htmlViews != null) {
+                    htmlViews.removeElementAt(index);
+                }
+                updateHtmlViews(index);
             } else if (name == "tabLayoutPolicy") {
                 BasicTabbedPaneUI.this.uninstallUI(pane);
                 BasicTabbedPaneUI.this.installUI(pane);

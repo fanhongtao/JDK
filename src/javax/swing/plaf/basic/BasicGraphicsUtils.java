@@ -1,5 +1,5 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.63 05/11/30
+ * @(#)BasicGraphicsUtils.java	1.64 09/09/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,7 +15,10 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
+
 import sun.swing.SwingUtilities2;
 
 
@@ -285,5 +288,10 @@ public class BasicGraphicsUtils
      */
     static boolean isLeftToRight( Component c ) {
         return c.getComponentOrientation().isLeftToRight();
+    }
+    
+    static boolean isMenuShortcutKeyDown(InputEvent event) {
+        return (event.getModifiers() & 
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0;
     }
 }

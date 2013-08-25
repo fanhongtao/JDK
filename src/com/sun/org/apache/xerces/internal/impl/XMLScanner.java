@@ -89,7 +89,7 @@ import com.sun.xml.internal.stream.Entity;
  * @author Eric Ye, IBM
  * @author K.Venugopal SUN Microsystems
  * @author Sunitha Reddy, SUN Microsystems
- * @version $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
+ * @version $Id: XMLScanner.java,v 1.11 2009/08/18 00:54:44 joehw Exp $
  */
 public abstract class XMLScanner
         implements XMLComponent {
@@ -509,7 +509,7 @@ public abstract class XMLScanner
                         standalone = fString.toString();
                         state = STATE_DONE;
                         if (!standalone.equals("yes") && !standalone.equals("no")) {
-                            reportFatalError("SDDeclInvalid", null);
+                            reportFatalError("SDDeclInvalid", new Object[] {standalone});
                         }
                     } else {
                         reportFatalError("EncodingDeclRequired", null);
@@ -525,7 +525,7 @@ public abstract class XMLScanner
                         standalone = fString.toString();
                         state = STATE_DONE;
                         if (!standalone.equals("yes") && !standalone.equals("no")) {
-                            reportFatalError("SDDeclInvalid", null);
+                            reportFatalError("SDDeclInvalid",  new Object[] {standalone});
                         }
                     } else {
                         reportFatalError("EncodingDeclRequired", null);

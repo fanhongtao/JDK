@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.37 06/08/06
+ * @(#)Date.java	1.39 09/11/30
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -85,25 +85,59 @@ public class Date extends java.util.Date {
      *         JDBC date escape format (yyyy-mm-dd)
      */
     public static Date valueOf(String s) {
-	int year;
-	int month;
-	int day;
-	int firstDash;
-	int secondDash;
+        final int YEAR_LENGTH = 4;
+        final int MONTH_LENGTH = 2;
+        final int DAY_LENGTH = 2;
+        final int MAX_MONTH = 12;
+        final int MAX_DAY = 31;
+        int firstDash;
+        int secondDash;
+        Date d = null;
 
-	if (s == null) throw new java.lang.IllegalArgumentException();
+        if (s == null) {
+            throw new java.lang.IllegalArgumentException();
+        }
 
-	firstDash = s.indexOf('-');
-	secondDash = s.indexOf('-', firstDash+1);
-	if ((firstDash > 0) & (secondDash > 0) & (secondDash < s.length()-1)) {
-	    year = Integer.parseInt(s.substring(0, firstDash)) - 1900;
-	    month = Integer.parseInt(s.substring(firstDash+1, secondDash)) - 1;
-	    day = Integer.parseInt(s.substring(secondDash+1));	 
-	} else {
-	    throw new java.lang.IllegalArgumentException();
-	}
-			
-	return new Date(year, month, day);
+        firstDash = s.indexOf('-');
+        secondDash = s.indexOf('-', firstDash + 1);
+        if ((firstDash > 0) && (secondDash > 0) && (secondDash < s.length()-1)) {
+            String yyyy = s.substring(0, firstDash);
+            String mm = s.substring(firstDash + 1, secondDash);
+            String dd = s.substring(secondDash + 1);
+            if (yyyy.length() == YEAR_LENGTH && mm.length() == MONTH_LENGTH &&
+                dd.length() == DAY_LENGTH) {
+                int year = Integer.parseInt(yyyy);
+                int month = Integer.parseInt(mm);
+                int day = Integer.parseInt(dd);
+                if (month >= 1 && month <= MAX_MONTH) {
+                    int maxDays = MAX_DAY;
+                    switch (month) {
+                        // February determine if a leap year or not
+                        case 2:
+                            if((year % 4 == 0 && !(year % 100 == 0)) || (year % 400 == 0)) {
+                                maxDays = MAX_DAY-2; // leap year so 29 days in February
+                            } else {
+                                maxDays = MAX_DAY-3; //  not a leap year so 28 days in February 
+                            }
+                            break;
+                        // April, June, Sept, Nov 30 day months
+                        case 4:
+                        case 6:
+                        case 9:
+                        case 11:
+                            maxDays = MAX_DAY-1;
+                            break;
+                    }
+                    if (day >= 1 && day <= maxDays) {
+                        d = new Date(year - 1900, month - 1, day);
+                    }
+                }
+            }
+        }
+        if (d == null) {
+            throw new java.lang.IllegalArgumentException();
+        }
+        return d;
     }
 
     /**

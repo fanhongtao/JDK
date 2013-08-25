@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.142 09/08/07
+ * @(#)BasicPopupMenuUI.java	1.143 09/10/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.awt.AppContext;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.142 08/07/09
+ * @version 1.143 10/15/09
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -312,7 +312,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                         indexes[matches++] = j;
                     }
                 }
-                if (item.isArmed()) {
+                if (item.isArmed() || item.isSelected()) {
                     currentIndex = matches - 1;
                 }
             }

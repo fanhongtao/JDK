@@ -1,5 +1,5 @@
 /*
- * @(#)BigDecimal.java	1.68 09/05/08
+ * @(#)BigDecimal.java	1.69 09/09/01
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -303,6 +303,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         new BigDecimal(BigInteger.ZERO, 0, 14, 1),
         new BigDecimal(BigInteger.ZERO, 0, 15, 1),
     };
+
+    // Half of Long.MIN_VALUE & Long.MAX_VALUE.
+    private static final long HALF_LONG_MAX_VALUE = Long.MAX_VALUE / 2;
+    private static final long HALF_LONG_MIN_VALUE = Long.MIN_VALUE / 2;
 
     // Constants
     /**
@@ -1086,7 +1090,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             // See "Hacker's Delight" section 2-12 for explanation of
             // the overflow test.
             if ( (((sum ^ xs) & (sum ^ ys))) >= 0L) // not overflowed
-                return new BigDecimal(null, sum, rscale, 0);
+                return BigDecimal.valueOf(sum, rscale);
         }
         if (fst == null)
             fst = BigInteger.valueOf(xs);
@@ -1299,7 +1303,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             long product = x * y;
             if ((Math.abs(x) >>> 31 == 0 && Math.abs(y) >>> 31 == 0) ||
                 y == 0 || product / y == x)
-                return new BigDecimal(null, product, productScale, 0);
+                return BigDecimal.valueOf(product, productScale);
             return new BigDecimal(BigInteger.valueOf(x).multiply(y), INFLATED,
                                   productScale, 0);
 	}
@@ -1442,10 +1446,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             } else if (roundingMode == ROUND_FLOOR) {   // Towards -infinity
                 increment = (qsign < 0);
             } else {
-                if (isLongDivision || ldivisor != INFLATED)
+                if (isLongDivision || ldivisor != INFLATED) {
+                  if (r <= HALF_LONG_MIN_VALUE || r > HALF_LONG_MAX_VALUE) {
+                    cmpFracHalf = 1; // 2 * r can't fit into long
+                  } else {
                     cmpFracHalf = longCompareMagnitude(2 * r, ldivisor);
-                else
+                  }
+                } else {
                     cmpFracHalf = mr.compareHalf(mdivisor);
+                }
                 if (cmpFracHalf < 0)
                     increment = false;     // We're closer to higher digit
                 else if (cmpFracHalf > 0)  // We're closer to lower digit
@@ -1571,7 +1580,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         if (this.signum() == 0)      // 0/y
             return (0<=preferredScale && preferredScale<ZERO_SCALED_BY.length) ? 
                 ZERO_SCALED_BY[preferredScale] :
-                new BigDecimal(null, 0, preferredScale, 1);
+                BigDecimal.valueOf(0, preferredScale);
 	else {
 	    this.inflate();
 	    divisor.inflate();

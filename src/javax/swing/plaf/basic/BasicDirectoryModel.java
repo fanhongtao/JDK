@@ -1,5 +1,5 @@
 /*
- * @(#)BasicDirectoryModel.java	1.38 08/08/08
+ * @(#)BasicDirectoryModel.java	1.39 09/10/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -213,8 +213,8 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
         }
 
         public void run0() {
-            DoChangeContents doChangeContents = ShellFolder.getInvoker().invoke(new Callable<DoChangeContents>() {
-                public DoChangeContents call() throws Exception {
+            DoChangeContents doChangeContents = ShellFolder.invoke(new Callable<DoChangeContents>() {
+                public DoChangeContents call() {
                     FileSystemView fileSystem = filechooser.getFileSystemView();
                     
                     File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());

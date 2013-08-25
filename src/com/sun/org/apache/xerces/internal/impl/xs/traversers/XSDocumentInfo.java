@@ -26,6 +26,9 @@ import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaException;
 import com.sun.org.apache.xerces.internal.impl.xs.util.XInt;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Attr;
+import org.w3c.dom.NamedNodeMap;
 
 /**
  * Objects of this class hold all information pecular to a
@@ -36,7 +39,7 @@ import org.w3c.dom.Element;
  * @xerces.internal 
  *
  * @author Neil Graham, IBM
- * @version $Id: XSDocumentInfo.java,v 1.2.6.1 2005/09/09 07:26:33 sunithareddy Exp $
+ * @version $Id: XSDocumentInfo.java,v 1.5 2007/10/15 22:27:48 spericas Exp $
  */
 class XSDocumentInfo {
 
@@ -88,8 +91,7 @@ class XSDocumentInfo {
     XSDocumentInfo (Element schemaRoot, XSAttributeChecker attrChecker, SymbolTable symbolTable)
                     throws XMLSchemaException {
         fSchemaElement = schemaRoot;
-        fNamespaceSupport = new SchemaNamespaceSupport();
-        fNamespaceSupport.reset();
+        initNamespaceSupport(schemaRoot);
         fIsChameleonSchema = false;
 
         fSymbolTable = symbolTable;
@@ -127,6 +129,46 @@ class XSDocumentInfo {
 
             // don't return the attribute array yet!
             //attrChecker.returnAttrArray(schemaAttrs, null);
+        }
+    }
+
+    /**
+     * Initialize namespace support by collecting all of the namespace
+     * declarations in the root's ancestors. This is necessary to
+     * support schemas fragments, i.e. schemas embedded in other 
+     * documents. See,
+     * 
+     * https://jaxp.dev.java.net/issues/show_bug.cgi?id=43
+     * 
+     * Requires the DOM to be created with namespace support enabled.
+     */
+    private void initNamespaceSupport(Element schemaRoot) {
+        fNamespaceSupport = new SchemaNamespaceSupport();
+        fNamespaceSupport.reset();
+        
+        Node parent = schemaRoot.getParentNode();
+        while (parent != null && parent.getNodeType() == Node.ELEMENT_NODE
+                && !parent.getNodeName().equals("DOCUMENT_NODE")) 
+        {
+            Element eparent = (Element) parent;
+            NamedNodeMap map = eparent.getAttributes();
+            int length = (map != null) ? map.getLength() : 0;                
+            for (int i = 0; i < length; i++) {
+                Attr attr = (Attr) map.item(i);
+                String uri = attr.getNamespaceURI();
+
+                // Check if attribute is an ns decl -- requires ns support
+                if (uri != null && uri.equals("http://www.w3.org/2000/xmlns/")) {
+                    String prefix = attr.getLocalName().intern();
+                    if (prefix == "xmlns") prefix = "";
+                    // Declare prefix if not set -- moving upwards
+                    if (fNamespaceSupport.getURI(prefix) == null) {
+                        fNamespaceSupport.declarePrefix(prefix, 
+                                attr.getValue().intern());
+                    }
+                }
+            }
+            parent = parent.getParentNode();
         }
     }
 

@@ -12,7 +12,7 @@ import javax.xml.namespace.NamespaceContext;
  * form of the XML.  
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see XMLEventReader
  * @see javax.xml.stream.events.XMLEvent
  * @see javax.xml.stream.events.Characters
@@ -226,4 +226,3 @@ public interface XMLEventWriter extends XMLEventConsumer {
 
   
 }
-

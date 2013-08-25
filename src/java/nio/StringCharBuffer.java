@@ -1,7 +1,7 @@
 /*
- * @(#)StringCharBuffer.java	1.20 08/08/19
+ * @(#)StringCharBuffer.java	1.21 09/09/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -84,10 +84,12 @@ class StringCharBuffer					// package-private
     public final CharSequence subSequence(int start, int end) {
 	try {
 	    int pos = position();
-	    return new StringCharBuffer(str, -1,
+	    return new StringCharBuffer(str,
+					-1,
 					pos + checkIndex(start, pos),
 					pos + checkIndex(end, pos),
-                                        remaining(), offset);
+                                        capacity(),
+                                        offset);
 	} catch (IllegalArgumentException x) {
 	    throw new IndexOutOfBoundsException();
 	}

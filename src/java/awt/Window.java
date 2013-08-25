@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.270 09/04/28
+ * @(#)Window.java	1.273 09/10/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -281,7 +281,8 @@ public class Window extends Container implements Accessible {
     transient boolean isTrayIconWindow = false;
 
     /**
-     * These fields are initialized in the native peer code.
+     * These fields are initialized in the native peer code
+     * or via AWTAccessor's WindowAccessor.
      */
     private transient volatile int securityWarningWidth = 0;
     private transient volatile int securityWarningHeight = 0;
@@ -1311,11 +1312,13 @@ public class Window extends Container implements Accessible {
         return modalBlocker != null;
     }
 
-    void setModalBlocked(Dialog blocker, boolean blocked) {
+    void setModalBlocked(Dialog blocker, boolean blocked, boolean peerCall) {
         this.modalBlocker = blocked ? blocker : null;
-        WindowPeer peer = (WindowPeer)this.peer;
-        if (peer != null) {
-            peer.setModalBlocked(blocker, blocked);
+        if (peerCall) { 
+            WindowPeer peer = (WindowPeer)this.peer; 
+            if (peer != null) { 
+                peer.setModalBlocked(blocker, blocked); 
+            } 
         }
     }
 
@@ -3342,13 +3345,34 @@ public class Window extends Container implements Accessible {
         }
     }
 
-    private void updateWindow(BufferedImage backBuffer) {
+    private void updateWindow() {
         checkTreeLock();
 
         WindowPeer peer = (WindowPeer)getPeer();
         if (peer != null) {
-            peer.updateWindow(backBuffer);
+            peer.updateWindow();
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void paint(Graphics g) {
+        if (!opaque) {
+            Graphics gg = g.create();
+            try {
+                if (gg instanceof Graphics2D) {
+                    Color bgColor = getBackground();
+                    gg.setColor(bgColor);
+                    ((Graphics2D)gg).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC));
+                    gg.fillRect(0, 0, getWidth(), getHeight());
+                }
+            } finally {
+                gg.dispose();
+            }
+        }
+        super.paint(g);
     }
 
     /**
@@ -3441,15 +3465,21 @@ public class Window extends Container implements Accessible {
                 }
             }
 
-            public void updateWindow(Window window, BufferedImage backBuffer) {
+            public void updateWindow(Window window) {
                 synchronized (window.getTreeLock()) {
-                    window.updateWindow(backBuffer);
+                    window.updateWindow();
                 }
             }
 
             public Dimension getSecurityWarningSize(Window window) {
                 return new Dimension(window.securityWarningWidth,
                         window.securityWarningHeight);
+            }
+            
+            public void setSecurityWarningSize(Window window, int width, int height)
+            {
+                window.securityWarningWidth = width;
+                window.securityWarningHeight = height;
             }
             
             public void setSecurityWarningPosition(Window window,

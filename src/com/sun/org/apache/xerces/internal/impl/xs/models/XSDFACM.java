@@ -28,6 +28,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaException;
 import com.sun.org.apache.xerces.internal.impl.xs.XSConstraints;
 
 import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * DFAContentModel is the implementation of XSCMValidator that does
@@ -38,7 +39,7 @@ import java.util.Vector;
  * @xerces.internal 
  *
  * @author Neil Graham, IBM
- * @version $Id: XSDFACM.java,v 1.4 2006/07/19 22:39:36 spericas Exp $
+ * @version $Id: XSDFACM.java,v 1.7 2009/07/28 15:18:12 spericas Exp $
  */
 public class XSDFACM
     implements XSCMValidator {
@@ -139,9 +140,31 @@ public class XSDFACM
      */
     private int fTransTableSize = 0;
     
-    private int fOneTransitionCounter = 0;
-    
-    private Object fUserData;
+    /**
+     * Array of counters for all the for elements (or wildcards)
+     * of the form a{n,m} where n > 1 and m <= unbounded. Used
+     * to count the a's to later check against n and m. Counter
+     * set to -1 if element (or wildcard) not optimized by
+     * constant space algorithm.
+     */
+    private int fElemMapCounter[];
+
+    /**
+     * Array of lower bounds for all the for elements (or wildcards)
+     * of the form a{n,m} where n > 1 and m <= unbounded. This array
+     * stores the n's for those elements (or wildcards) for which
+     * the constant space algorithm applies (or -1 otherwise).
+     */
+    private int fElemMapCounterLowerBound[];
+
+    /**
+     * Array of upper bounds for all the for elements (or wildcards)
+     * of the form a{n,m} where n > 1 and m <= unbounded. This array
+     * stores the n's for those elements (or wildcards) for which
+     * the constant space algorithm applies, or -1 if algorithm does
+     * not apply or m = unbounded.
+     */
+    private int fElemMapCounterUpperBound[];   // -1 if no upper bound
 
     // temp variables
 
@@ -162,8 +185,6 @@ public class XSDFACM
    
         // Store away our index and pools in members
         fLeafCount = leafCount;
-        
-        fUserData = syntaxTree.getUserData();
 
         //
         //  Create some string pool indexes that represent the names of some
@@ -199,24 +220,6 @@ public class XSDFACM
     // XSCMValidator methods
     //
     
-    /**
-     * Return the number of times the <code>oneTransition()</code> method 
-     * was called, resulting on the DFA to move into a non-error state. 
-     * This is used to check the minOccurs and maxOccurs bounds using a 
-     * constant space algorithm.
-     */ 
-    public int getOneTransitionCounter() {
-        return fOneTransitionCounter;
-    }
-    
-    /**
-     * Allows the user to get arbitrary data originally set on the content 
-     * model node used to create this DFA.
-     */
-    public Object getUserData() {
-        return fUserData;
-    }
-
     /**
      * check whether the given state is one of the final states
      *
@@ -267,12 +270,20 @@ public class XSDFACM
             if (type == XSParticleDecl.PARTICLE_ELEMENT) {
                 matchingDecl = subGroupHandler.getMatchingElemDecl(curElem, (XSElementDecl)fElemMap[elemIndex]);
                 if (matchingDecl != null) {
+                    // Increment counter if constant space algorithm applies
+                    if (fElemMapCounter[elemIndex] >= 0) {
+                        fElemMapCounter[elemIndex]++;
+                    }
                     break;
                 }
             }
             else if (type == XSParticleDecl.PARTICLE_WILDCARD) {
                 if(((XSWildcardDecl)fElemMap[elemIndex]).allowNamespace(curElem.uri)) {
                     matchingDecl = fElemMap[elemIndex];
+                    // Increment counter if constant space algorithm applies
+                    if (fElemMapCounter[elemIndex] >= 0) {
+                        fElemMapCounter[elemIndex]++;
+                    }
                     break;
                 }
             }
@@ -286,7 +297,6 @@ public class XSDFACM
             return findMatchingDecl(curElem, subGroupHandler);
         }
 
-        fOneTransitionCounter++;
         state[0] = nextState;
         return matchingDecl;
     } // oneTransition(QName, int[], SubstitutionGroupHandler):  Object
@@ -315,7 +325,12 @@ public class XSDFACM
     public int[] startContentModel() {
         int[] val = new int[2];
         val[0] = 0;
-        fOneTransitionCounter = 0;      // reset transition counter
+        // Clear all constant space algorithm counters in use
+        for (int elemIndex = 0; elemIndex < fElemMapSize; elemIndex++) {
+            if (fElemMapCounter[elemIndex] != -1) {
+                fElemMapCounter[elemIndex] = 0;
+            }
+        }
         return val;
     } // startContentModel():int[]
 
@@ -436,7 +451,13 @@ public class XSDFACM
         fElemMap = new Object[fLeafCount];
         fElemMapType = new int[fLeafCount];
         fElemMapId = new int[fLeafCount];
+
+        fElemMapCounter = new int[fLeafCount];
+        fElemMapCounterLowerBound = new int[fLeafCount];
+        fElemMapCounterUpperBound = new int[fLeafCount];
+
         fElemMapSize = 0;
+        
         for (int outIndex = 0; outIndex < fLeafCount; outIndex++) {
             // optimization from Henry Zongaro:
             //fElemMap[outIndex] = new Object ();
@@ -454,6 +475,20 @@ public class XSDFACM
                 fElemMap[fElemMapSize] = fLeafList[outIndex].getLeaf();
                 fElemMapType[fElemMapSize] = fLeafListType[outIndex];
                 fElemMapId[fElemMapSize] = id;
+
+                // Init counters and bounds for a{n,m} algorithm
+                XSCMLeaf leaf = fLeafList[outIndex];
+                int[] bounds = (int[]) leaf.getUserData();
+                if (bounds != null) {
+                    fElemMapCounter[fElemMapSize] = 0;
+                    fElemMapCounterLowerBound[fElemMapSize] = bounds[0];
+                    fElemMapCounterUpperBound[fElemMapSize] = bounds[1];
+                } else {
+                    fElemMapCounter[fElemMapSize] = -1;
+                    fElemMapCounterLowerBound[fElemMapSize] = -1;
+                    fElemMapCounterUpperBound[fElemMapSize] = -1;
+                }
+                
                 fElemMapSize++;
             }
         }
@@ -965,5 +1000,41 @@ public class XSDFACM
         }
         return ret;
     }
-        
+
+    /**
+     * Used by constant space algorithm for a{n,m} for n > 1 and
+     * m <= unbounded. Called by a validator if validation of
+     * countent model succeeds after subsuming a{n,m} to a*
+     * (or a+) to check the n and m bounds.
+     * Returns <code>null</code> if validation of bounds is
+     * successful. Returns a list of strings with error info
+     * if not. Even entries in list returned are error codes
+     * (used to look up properties) and odd entries are parameters
+     * to be passed when formatting error message. Each parameter
+     * is associated with the error code that preceeds it in
+     * the list.
+     */
+    public ArrayList checkMinMaxBounds() {
+        ArrayList result = null;
+        for (int elemIndex = 0; elemIndex < fElemMapSize; elemIndex++) {
+            int count = fElemMapCounter[elemIndex];
+            if (count == -1) {
+                continue;
+            }
+            final int minOccurs = fElemMapCounterLowerBound[elemIndex];
+            final int maxOccurs = fElemMapCounterUpperBound[elemIndex];
+            if (count < minOccurs) {
+                if (result == null) result = new ArrayList();
+                result.add("cvc-complex-type.2.4.b");
+                result.add("{" + fElemMap[elemIndex] + "}");
+            }
+            if (maxOccurs != -1 && count > maxOccurs) {
+                if (result == null) result = new ArrayList();
+                result.add("cvc-complex-type.2.4.e");
+                result.add("{" + fElemMap[elemIndex] + "}");
+            }
+        }
+        return result;
+    }
+
 } // class DFAContentModel

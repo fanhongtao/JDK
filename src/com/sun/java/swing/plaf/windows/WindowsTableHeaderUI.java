@@ -17,6 +17,7 @@ import javax.swing.table.*;
 import static com.sun.java.swing.plaf.windows.TMSchema.*;
 import static com.sun.java.swing.plaf.windows.XPStyle.*;
 import sun.swing.table.*;
+import sun.swing.SwingUtilities2;
 
 
 public class WindowsTableHeaderUI extends BasicTableHeaderUI {
@@ -145,19 +146,14 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
             return this;
 	}
 
-	private int viewIndexForColumn(TableColumn aColumn) {
-            JTable table = header.getTable();
-            if (table != null && aColumn != null) {
-                return table.convertColumnIndexToView(
-                        aColumn.getModelIndex());
-            }
-	    return -1;
-	}
-
 	public void paint(Graphics g) {
 	    Dimension size = getSize();
 	    State state = State.NORMAL;
-	    if (column == viewIndexForColumn(header.getDraggedColumn())) {
+            TableColumn draggedColumn = header.getDraggedColumn();
+            if (draggedColumn != null && 
+                    column == SwingUtilities2.convertColumnIndexToView(
+                            header.getColumnModel(), 
+                            draggedColumn.getModelIndex())) {
 		state = State.PRESSED;
 	    } else if (isSelected || hasFocus || hasRollover) {
 		state = State.HOT;

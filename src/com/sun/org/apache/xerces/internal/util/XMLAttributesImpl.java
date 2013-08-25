@@ -79,7 +79,7 @@ import com.sun.org.apache.xerces.internal.xni.XMLString;
  * @author Elena Litani, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XMLAttributesImpl.java,v 1.3 2005/09/26 13:03:01 sunithareddy Exp $
+ * @version $Id: XMLAttributesImpl.java,v 1.6 2009/05/13 18:13:21 spericas Exp $
  */
 public class XMLAttributesImpl
 implements XMLAttributes, XMLBufferListener {
@@ -630,6 +630,25 @@ implements XMLAttributes, XMLBufferListener {
     } // getIndex(String,String):int
 
     /**
+     * Look up the index of an attribute by local name only,
+     * ignoring its namespace.
+     *
+     * @param localName The attribute's local name.
+     * @return The index of the attribute, or -1 if it does not
+     *         appear in the list.
+     */
+    public int getIndexByLocalName(String localPart) {
+        for (int i = 0; i < fLength; i++) {
+            Attribute attribute = fAttributes[i];
+            if (attribute.name.localpart != null &&
+                attribute.name.localpart.equals(localPart)) {
+                return i;
+            }
+        }
+        return -1;
+    } // getIndex(String):int
+
+    /**
      * Look up an attribute's local name by index.
      *
      * @param index The attribute index (zero-based).
@@ -995,21 +1014,24 @@ implements XMLAttributes, XMLBufferListener {
     } // getURI(int):String
 
     /**
-     * Look up an attribute's value by Namespace name.
+     * Look up an attribute's value by Namespace name and
+     * Local name. If Namespace is null, ignore namespace
+     * comparison. If Namespace is "", map it to null as
+     * required internally by this class.
      *
      * <p>See {@link #getValue(int) getValue(int)} for a description
      * of the possible values.</p>
      *
-     * @param uri The Namespace URI, or null if the
+     * @param uri The Namespace URI, or null namespaces are ignored.
      * @param localName The local name of the attribute.
      * @return The attribute value as a string, or null if the
      *         attribute is not in the list.
      */
     public String getValue(String uri, String localName) {
-        int index = getIndex(uri, localName);
+        int index = (uri == null) ? getIndexByLocalName(localName)
+                : getIndex(uri.length() == 0 ? null : uri, localName);
         return index != -1 ? getValue(index) : null;
     } // getValue(String,String):String
-
 
     /**
      * Look up an augmentations by Namespace name.

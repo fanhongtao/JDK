@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.76 09/02/06
+ * @(#)RepaintManager.java	1.77 09/10/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,6 @@ import sun.security.action.GetPropertyAction;
 import com.sun.awt.AWTUtilities;
 import com.sun.java.swing.SwingUtilities3;
 
-
 /**
  * This class manages repaint requests, allowing the number
  * of repaints to be minimized, for example by collapsing multiple 
@@ -36,7 +35,7 @@ import com.sun.java.swing.SwingUtilities3;
  * Any calls to <code>repaint</code> on one of these will call into the
  * appropriate <code>addDirtyRegion</code> method.
  *
- * @version 1.76 02/06/09
+ * @version 1.77 10/16/09
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -714,9 +713,7 @@ public class RepaintManager
         paintDirtyRegions(tmpDirtyComponents);
     }
 
-    private Map<Component,Rectangle>
-        updateWindows(Map<Component,Rectangle> dirtyComponents)
-    {
+    private void updateWindows(Map<Component,Rectangle> dirtyComponents) {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
 
         if (!AWTUtilities.isTranslucencySupported(
@@ -724,7 +721,7 @@ public class RepaintManager
                 !(toolkit instanceof SunToolkit &&
                     ((SunToolkit)toolkit).needUpdateWindow()))
         {
-            return dirtyComponents;
+            return;
         }
 
         Set<Window> windows = new HashSet<Window>();
@@ -734,25 +731,16 @@ public class RepaintManager
             Window window = dirty instanceof Window ?
                 (Window)dirty :
                 SwingUtilities.getWindowAncestor(dirty);
-
             if (window != null &&
                 !AWTAccessor.getWindowAccessor().isOpaque(window))
             {
-                // if this component's toplevel is perpixel translucent, it will
-                // be repainted below
-                it.remove();
-                // add to the set of windows to update (so that we don't update
-                // the window many times for each component to be repainted that
-                // belongs to this window)
                 windows.add(window);
             }
         }
 
         for (Window window : windows) {
-            AWTAccessor.getWindowAccessor().updateWindow(window, null);
+            AWTAccessor.getWindowAccessor().updateWindow(window);
         }
-
-        return dirtyComponents;
     }
 
     private void paintDirtyRegions(Map<Component,Rectangle>
@@ -773,10 +761,6 @@ public class RepaintManager
         int localBoundsW = 0;	
         Enumeration keys;
 
-        // the components belonging to perpixel-translucent windows will be
-        // removed from the list
-        tmpDirtyComponents = updateWindows(tmpDirtyComponents);
-
         roots = new ArrayList<Component>(tmpDirtyComponents.size());
 
         for (Component dirty : tmpDirtyComponents.keySet()) {
@@ -784,13 +768,11 @@ public class RepaintManager
         }
 
         count = roots.size();
-        //        System.out.println("roots size is " + count);
         painting = true;
         try {
             for(i=0 ; i < count ; i++) {
                 dirtyComponent = roots.get(i);
                 rect = tmpDirtyComponents.get(dirtyComponent);
-                //            System.out.println("Should refresh :" + rect);
                 localBoundsH = dirtyComponent.getHeight();
                 localBoundsW = dirtyComponent.getWidth();
 
@@ -833,6 +815,9 @@ public class RepaintManager
         } finally {
             painting = false;
         }
+
+        updateWindows(tmpDirtyComponents);
+
         tmpDirtyComponents.clear();
     }
 
@@ -992,6 +977,16 @@ public class RepaintManager
             return delegate.getVolatileOffscreenBuffer(c, proposedWidth, 
                                                         proposedHeight);
         }
+
+        // If the window is non-opaque, it's double-buffered at peer's level
+        Window w = (c instanceof Window) ? (Window)c : SwingUtilities.getWindowAncestor(c);
+        if (!AWTAccessor.getWindowAccessor().isOpaque(w)) {
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            if ((tk instanceof SunToolkit) && (((SunToolkit)tk).needUpdateWindow())) {
+                return null;
+            }
+        }
+
         GraphicsConfiguration config = c.getGraphicsConfiguration();
         if (config == null) {
             config = GraphicsEnvironment.getLocalGraphicsEnvironment().
@@ -1018,6 +1013,15 @@ public class RepaintManager
 	Dimension maxSize = getDoubleBufferMaximumSize();
 	DoubleBufferInfo doubleBuffer = null;
         int width, height;
+
+        // If the window is non-opaque, it's double-buffered at peer's level
+        Window w = (c instanceof Window) ? (Window)c : SwingUtilities.getWindowAncestor(c);
+        if (!AWTAccessor.getWindowAccessor().isOpaque(w)) {
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            if ((tk instanceof SunToolkit) && (((SunToolkit)tk).needUpdateWindow())) {
+                return null;
+            }
+        }
 
         if (standardDoubleBuffer == null) {
             standardDoubleBuffer = new DoubleBufferInfo();

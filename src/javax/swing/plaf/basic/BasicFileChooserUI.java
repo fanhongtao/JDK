@@ -1,5 +1,5 @@
 /*
- * @(#)BasicFileChooserUI.java	1.75 09/02/05
+ * @(#)BasicFileChooserUI.java	1.76 09/09/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -885,7 +885,8 @@ public class BasicFileChooserUI extends FileChooserUI {
 		    boolean isTrav = (selectedFile != null && chooser.isTraversable(selectedFile));
 		    boolean isDirSelEnabled = chooser.isDirectorySelectionEnabled();
 		    boolean isFileSelEnabled = chooser.isFileSelectionEnabled();
-		    boolean isCtrl = (e != null && (e.getModifiers() & ActionEvent.CTRL_MASK) != 0);
+		    boolean isCtrl = (e != null && (e.getModifiers() & 
+                            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0);
 
 		    if (isDir && isTrav && (isCtrl || !isDirSelEnabled)) {
 			changeDirectory(selectedFile);

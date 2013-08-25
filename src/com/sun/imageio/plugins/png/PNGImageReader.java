@@ -1,5 +1,5 @@
 /*
- * @(#)PNGImageReader.java	1.62 09/04/17
+ * @(#)PNGImageReader.java	1.63 09/09/25
  *
  * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,6 +39,7 @@ import javax.imageio.stream.ImageInputStream;
 import com.sun.imageio.plugins.common.InputStreamAdapter;
 import com.sun.imageio.plugins.common.ReaderUtil;
 import com.sun.imageio.plugins.common.SubImageInputStream;
+import sun.awt.image.ByteInterleavedRaster;
 
 class PNGImageDataEnumeration implements Enumeration {
 
@@ -1048,7 +1049,9 @@ public class PNGImageReader extends ImageReader {
         // will can setRect to copy a contiguous span
         boolean useSetRect = srcXStep == 1 &&
             updateXStep == 1 &&
-            !adjustBitDepths;
+            !adjustBitDepths &&
+            (imRas instanceof ByteInterleavedRaster);
+
         if (useSetRect) {
             passRow = passRow.createWritableChild(srcX, 0,
                                                   updateWidth, 1, 
@@ -1324,14 +1327,18 @@ public class PNGImageReader extends ImageReader {
         return metadata.IHDR_height;
     }
 
-    public Iterator getImageTypes(int imageIndex) throws IIOException {
+    public Iterator<ImageTypeSpecifier> getImageTypes(int imageIndex)
+      throws IIOException
+    {
         if (imageIndex != 0) {
             throw new IndexOutOfBoundsException("imageIndex != 0!");
         }
 
         readHeader();
 
-        ArrayList l = new ArrayList(1); // List of ImageTypeSpecifiers
+        ArrayList<ImageTypeSpecifier> l =
+            new ArrayList<ImageTypeSpecifier>(1);
+
         ColorSpace rgb;
         ColorSpace gray;
         int[] bandOffsets;
@@ -1355,6 +1362,19 @@ public class PNGImageReader extends ImageReader {
             break;
 
         case PNG_COLOR_RGB:
+            if (bitDepth == 8) {
+                // some standard types of buffered images 
+                // which can be used as destination
+                l.add(ImageTypeSpecifier.createFromBufferedImageType(
+                          BufferedImage.TYPE_3BYTE_BGR));
+
+                l.add(ImageTypeSpecifier.createFromBufferedImageType(
+                          BufferedImage.TYPE_INT_RGB));
+
+                l.add(ImageTypeSpecifier.createFromBufferedImageType(
+                          BufferedImage.TYPE_INT_BGR));
+
+            }
             // Component R, G, B
             rgb = ColorSpace.getInstance(ColorSpace.CS_sRGB);
             bandOffsets = new int[3];
@@ -1451,6 +1471,16 @@ public class PNGImageReader extends ImageReader {
             break;
 
         case PNG_COLOR_RGB_ALPHA:
+            if (bitDepth == 8) {
+                // some standard types of buffered images
+                // wich can be used as destination
+                l.add(ImageTypeSpecifier.createFromBufferedImageType(
+                          BufferedImage.TYPE_4BYTE_ABGR));
+
+                l.add(ImageTypeSpecifier.createFromBufferedImageType(
+                          BufferedImage.TYPE_INT_ARGB));
+            }
+
             // Component R, G, B, A (non-premultiplied)
             rgb = ColorSpace.getInstance(ColorSpace.CS_sRGB);
             bandOffsets = new int[4];
@@ -1471,6 +1501,37 @@ public class PNGImageReader extends ImageReader {
         }
 
         return l.iterator();
+    }
+
+    /*
+     * Super class implementation uses first element
+     * of image types list as raw image type.
+     *
+     * Also, super implementation uses first element of this list
+     * as default destination type image read param does not specify
+     * anything other.
+     *
+     * However, in case of RGB and RGBA color types, raw image type
+     * produces buffered image of custom type. It causes some
+     * performance degradation of subsequent rendering operations.
+     *
+     * To resolve this contradiction we put standard image types
+     * at the first positions of image types list (to produce standard
+     * images by default) and put raw image type (which is custom)
+     * at the last position of this list.
+     *
+     * After this changes we should override getRawImageType()
+     * to return last element of image types list.
+     */
+    public ImageTypeSpecifier getRawImageType(int imageIndex)
+      throws IOException {
+
+        Iterator<ImageTypeSpecifier> types = getImageTypes(imageIndex);
+        ImageTypeSpecifier raw = null;
+        do {
+            raw = types.next();
+        } while (types.hasNext());
+        return raw;
     }
 
     public ImageReadParam getDefaultReadParam() {

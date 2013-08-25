@@ -80,7 +80,7 @@ public final class StAXValidatorHelper implements ValidatorHelper {
             }
 
             handler = new ValidatorHandlerImpl(fComponentManager);
-            if( result != null ) {
+            if( result!=null ) {
                 handler.setContentHandler(identityTransformer2);
                 identityTransformer2.setResult(result);
             }

@@ -33,7 +33,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLErrorHandler;
  *
  * @xerces.internal
  * 
- * @version $Id: ElementSchemePointer.java,v 1.1.4.1 2005/09/08 05:25:43 sunithareddy Exp $
+ * @version $Id: ElementSchemePointer.java,v 1.4 2009/06/11 23:51:50 joehw Exp $
  *
  */
 class ElementSchemePointer implements XPointerPart {
@@ -301,6 +301,7 @@ class ElementSchemePointer implements XPointerPart {
         //     
         if (fIsResolveElement) {
             // start
+            fWasOnlyEmptyElementFound = false;
             if (event == XPointerPart.EVENT_ELEMENT_START) {
                 fCurrentChildSequence[fCurrentChildDepth] = fCurrentChildPosition;
                 fCurrentChildDepth++;
@@ -491,7 +492,7 @@ class ElementSchemePointer implements XPointerPart {
      * @xerces.internal
      * 
      * @author Neil Delima, IBM
-     * @version $Id: ElementSchemePointer.java,v 1.1.4.1 2005/09/08 05:25:43 sunithareddy Exp $
+     * @version $Id: ElementSchemePointer.java,v 1.4 2009/06/11 23:51:50 joehw Exp $
      * 
      */
     private final class Tokens {
@@ -657,7 +658,7 @@ class ElementSchemePointer implements XPointerPart {
      * 
      * @xerces.internal
      * 
-     * @version $Id: ElementSchemePointer.java,v 1.1.4.1 2005/09/08 05:25:43 sunithareddy Exp $
+     * @version $Id: ElementSchemePointer.java,v 1.4 2009/06/11 23:51:50 joehw Exp $
      */
     private class Scanner {
 

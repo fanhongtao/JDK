@@ -44,7 +44,7 @@ import org.xml.sax.ErrorHandler;
  * <p>An implementation of XMLComponentManager for a schema validator.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: XMLSchemaValidatorComponentManager.java,v 1.1.4.1 2005/09/05 11:48:40 sunithareddy Exp $
+ * @version $Id: XMLSchemaValidatorComponentManager.java,v 1.4 2009/02/06 19:00:19 joehw Exp $
  */
 final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettings implements
         XMLComponentManager {
@@ -220,7 +220,7 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
         else if (XMLConstants.FEATURE_SECURE_PROCESSING.equals(featureId)) {
             return getProperty(SECURITY_MANAGER) != null;
         }
-	else if (SCHEMA_ELEMENT_DEFAULT.equals(featureId)) {
+        else if (SCHEMA_ELEMENT_DEFAULT.equals(featureId)) {
             return true; //pre-condition: VALIDATION and SCHEMA_VALIDATION are always true
         }
         return super.getFeature(featureId);

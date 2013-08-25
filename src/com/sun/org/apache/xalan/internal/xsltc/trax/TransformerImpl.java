@@ -471,9 +471,8 @@ public final class TransformerImpl extends Transformer
                 }
                 else {
                     // system id is just a filename
-                    url = new File(systemId).toURL();
 		    _tohFactory.setOutputStream(
-		        _ostream = new FileOutputStream(url.getFile()));
+		        _ostream = new FileOutputStream(new File(systemId)));
 		    return _tohFactory.getSerializationHandler();
                 }
 	    }

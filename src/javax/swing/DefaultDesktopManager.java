@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultDesktopManager.java	1.63 09/02/23
+ * @(#)DefaultDesktopManager.java	1.64 09/10/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,9 @@ import java.awt.event.ComponentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+import sun.awt.AWTAccessor;
+import sun.awt.SunToolkit;
+
 /** This is an implementation of the <code>DesktopManager</code>.
   * It currently implements the basic behaviors for managing
   * <code>JInternalFrame</code>s in an arbitrary parent.
@@ -29,7 +32,7 @@ import java.awt.event.ComponentEvent;
   * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.63 02/23/09
+  * @version 1.64 10/16/09
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -717,6 +720,16 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
           }
       } finally {
           currentManager.endPaint();
+      }
+
+      // update window if it's non-opaque
+      Window topLevel = SwingUtilities.getWindowAncestor(f);
+      Toolkit tk = Toolkit.getDefaultToolkit();
+      if (!AWTAccessor.getWindowAccessor().isOpaque(topLevel) &&
+          (tk instanceof SunToolkit) &&
+          ((SunToolkit)tk).needUpdateWindow())
+      {
+          AWTAccessor.getWindowAccessor().updateWindow(topLevel);
       }
    }
 

@@ -31,7 +31,7 @@ import com.sun.org.apache.xerces.internal.xni.QName;
  *
  * @author Andy Clark, IBM
  * @author Sunitha Reddy, Sun Microsystems
- * @version $Id: XPath.java,v 1.3 2005/09/26 13:02:31 sunithareddy Exp $
+ * @version $Id: XPath.java,v 1.5 2007/07/19 04:38:40 ofung Exp $
  */
 public class XPath {
 
@@ -681,7 +681,7 @@ public class XPath {
      * @author Glenn Marcy, IBM
      * @author Andy Clark, IBM
      *
-     * @version $Id: XPath.java,v 1.3 2005/09/26 13:02:31 sunithareddy Exp $
+     * @version $Id: XPath.java,v 1.5 2007/07/19 04:38:40 ofung Exp $
      */
     private static final class Tokens {
 
@@ -1214,7 +1214,7 @@ public class XPath {
      * @author Glenn Marcy, IBM
      * @author Andy Clark, IBM
      *
-     * @version $Id: XPath.java,v 1.3 2005/09/26 13:02:31 sunithareddy Exp $
+     * @version $Id: XPath.java,v 1.5 2007/07/19 04:38:40 ofung Exp $
      */
     private static class Scanner {
 

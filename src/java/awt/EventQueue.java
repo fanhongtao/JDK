@@ -1,5 +1,5 @@
 /*
- * @(#)EventQueue.java	1.105 06/07/11
+ * @(#)EventQueue.java	1.106 09/09/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -73,7 +73,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.105, 07/11/06
+ * @version 	1.106, 09/11/09
  * @since 	1.1
  */
 public class EventQueue {
@@ -815,7 +815,8 @@ public class EventQueue {
 
     final void initDispatchThread() { 
         synchronized (this) {
-            if (dispatchThread == null && !threadGroup.isDestroyed()) {
+            AppContext appContext = AppContext.getAppContext();
+            if (dispatchThread == null && !threadGroup.isDestroyed() && !appContext.isDisposed()) {
                 dispatchThread = (EventDispatchThread)
                     AccessController.doPrivileged(new PrivilegedAction() {
                         public Object run() {

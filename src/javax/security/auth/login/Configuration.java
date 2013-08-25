@@ -1,7 +1,7 @@
 /*
- * @(#)Configuration.java	1.63 06/04/21
+ * @(#)Configuration.java	1.64 09/07/22
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -171,7 +171,7 @@ import sun.security.jca.GetInstance;
  * Java Cryptography Architecture API Specification &amp; Reference </a>
  * for a list of standard Configuration types.
  *
- * @version 1.63, 04/21/06
+ * @version 1.64, 07/22/09
  * @see javax.security.auth.login.LoginContext
  */
 public abstract class Configuration {
@@ -217,56 +217,58 @@ public abstract class Configuration {
      *
      * @see #setConfiguration
      */
-    public static synchronized Configuration getConfiguration() {
+    public static Configuration getConfiguration() {
 
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null)
 	    sm.checkPermission(new AuthPermission("getLoginConfiguration"));
 
-	if (configuration == null) {
-	    String config_class = null;
-	    config_class = (String)AccessController.doPrivileged
-		(new PrivilegedAction() {
-		public Object run() {
-		    return java.security.Security.getProperty
-				("login.configuration.provider");
-		}
-	    });
-	    if (config_class == null) {
-		config_class = "com.sun.security.auth.login.ConfigFile";
-	    }
- 
-	    try {
-		final String finalClass = config_class;
-		configuration = (Configuration)AccessController.doPrivileged
-		    (new PrivilegedExceptionAction() {
-		    public Object run() throws ClassNotFoundException,
-					InstantiationException,
-					IllegalAccessException {
-			return Class.forName
-				(finalClass,
-				true,
-				contextClassLoader).newInstance();
+        synchronized (Configuration.class) {
+	    if (configuration == null) {
+	        String config_class = null;
+	        config_class = (String)AccessController.doPrivileged
+		    (new PrivilegedAction() {
+		    public Object run() {
+		        return java.security.Security.getProperty
+				    ("login.configuration.provider");
 		    }
-		});
-	    } catch (PrivilegedActionException e) {
-		Exception ee = e.getException();
-		if (ee instanceof InstantiationException) {
-		    throw (SecurityException) new
-			SecurityException
-				("Configuration error:" +
-				 ee.getCause().getMessage() + 
-				 "\n").initCause(ee.getCause());
-		} else {
-		    throw (SecurityException) new
-			SecurityException
-				("Configuration error: " +
-				 ee.toString() + 
-				 "\n").initCause(ee);
-		}
+	        });
+	        if (config_class == null) {
+		    config_class = "com.sun.security.auth.login.ConfigFile";
+	        }
+ 
+	        try {
+		    final String finalClass = config_class;
+		    configuration = (Configuration)AccessController.doPrivileged
+		        (new PrivilegedExceptionAction() {
+		        public Object run() throws ClassNotFoundException,
+					    InstantiationException,
+					    IllegalAccessException {
+			    return Class.forName
+				    (finalClass,
+				    true,
+				    contextClassLoader).newInstance();
+		        }
+		    });
+	        } catch (PrivilegedActionException e) {
+		    Exception ee = e.getException();
+		    if (ee instanceof InstantiationException) {
+		        throw (SecurityException) new
+			    SecurityException
+				    ("Configuration error:" +
+				     ee.getCause().getMessage() + 
+				     "\n").initCause(ee.getCause());
+		    } else {
+		        throw (SecurityException) new
+			    SecurityException
+				    ("Configuration error: " +
+				     ee.toString() + 
+				     "\n").initCause(ee);
+		    }
+	        }
 	    }
-	}
-	return configuration;
+	    return configuration;
+        }
     }
     
     /**

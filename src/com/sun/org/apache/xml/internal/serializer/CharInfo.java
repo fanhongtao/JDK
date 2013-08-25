@@ -388,7 +388,7 @@ final class CharInfo
      */
     String getOutputStringForChar(char value)
     {
-        CharKey charKey = new CharKey();
+        CharKey charKey = new CharKey(); 
         charKey.setChar(value);
         return (String) m_charToString.get(charKey);
     }

@@ -295,9 +295,13 @@ public abstract class ClassLoader {
 		if (parent != null) {
 		    c = parent.loadClass(name, false);
 		} else {
-		    c = findBootstrapClass0(name);
+		    c = findBootstrapClassOrNull(name);
 		}
 	    } catch (ClassNotFoundException e) {
+                // ClassNotFoundException thrown if class not found
+                // from the non-null parent class loader
+            }
+            if (c == null) {
 	        // If still not found, then invoke findClass in order
 	        // to find the class.
 	        c = findClass(name);
@@ -498,7 +502,8 @@ public abstract class ClassLoader {
 
     private Class defineTransformedClass(String name, byte[] b, int off, int len,
 					 ProtectionDomain protectionDomain,
-					 ClassFormatError cfe, String source)
+					 ClassFormatError cfe, String source,
+                                         boolean verify)
       throws ClassFormatError
     {
         // Class format error - try to transform the bytecode and
@@ -511,7 +516,8 @@ public abstract class ClassLoader {
 	    try {
 	      // Transform byte code using transformer
 	      byte[] tb = ((ClassFileTransformer) transformers[i]).transform(b, off, len);
-	      c = defineClass1(name, tb, 0, tb.length, protectionDomain, source);
+	      c = defineClass1(name, tb, 0, tb.length, protectionDomain, source,
+                               verify);
 	      break;
 	    } catch (ClassFormatError cfe2)	{
 	      // If ClassFormatError occurs, try next transformer
@@ -607,15 +613,27 @@ public abstract class ClassLoader {
 					 ProtectionDomain protectionDomain)
 	throws ClassFormatError
     {
+         return defineClassCond(name, b, off, len, protectionDomain, true);
+    }
+
+    // Private method w/ an extra argument for skipping class verification
+    private final Class<?> defineClassCond(String name,
+                                           byte[] b, int off, int len,
+                                           ProtectionDomain protectionDomain,
+                                           boolean verify)
+        throws ClassFormatError
+    {
 	protectionDomain = preDefineClass(name, protectionDomain);
 
 	Class c = null;
         String source = defineClassSourceLocation(protectionDomain);
 
 	try {
-	    c = defineClass1(name, b, off, len, protectionDomain, source);
+	    c = defineClass1(name, b, off, len, protectionDomain, source,
+                             verify);
 	} catch (ClassFormatError cfe) {
-	    c = defineTransformedClass(name, b, off, len, protectionDomain, cfe, source);
+	    c = defineTransformedClass(name, b, off, len, protectionDomain, cfe,
+                                       source, verify);
 	}
 
 	postDefineClass(c, protectionDomain);
@@ -688,19 +706,30 @@ public abstract class ClassLoader {
 					 ProtectionDomain protectionDomain)
 	throws ClassFormatError
     {
+        return defineClassCond(name, b, protectionDomain, true);
+    }
+ 
+    // Private method w/ an extra argument for skipping class verification
+    private final Class<?> defineClassCond(String name,
+                                           java.nio.ByteBuffer b,
+                                           ProtectionDomain protectionDomain,
+                                           boolean verify)
+         throws ClassFormatError
+    {
 	int len = b.remaining();
 
 	// Use byte[] if not a direct ByteBufer:
 	if (!b.isDirect()) {
 	    if (b.hasArray()) {
-		return defineClass(name, b.array(),
-				   b.position() + b.arrayOffset(), len,
-				   protectionDomain);
+		return defineClassCond(name, b.array(),
+				       b.position() + b.arrayOffset(), len,
+				       protectionDomain, verify);
 	    } else {
 		// no array, or read-only array
 		byte[] tb = new byte[len];
 		b.get(tb);  // get bytes out of byte buffer.
-		return defineClass(name, tb, 0, len, protectionDomain);
+		return defineClassCond(name, tb, 0, len, protectionDomain,
+                                       verify);
 	    }
 	}
 
@@ -710,26 +739,35 @@ public abstract class ClassLoader {
 	String source = defineClassSourceLocation(protectionDomain);
 
 	try {
-	    c = defineClass2(name, b, b.position(), len, protectionDomain, source);
+	    c = defineClass2(name, b, b.position(), len, protectionDomain,
+                             source, verify);
 	} catch (ClassFormatError cfe) {
 	    byte[] tb = new byte[len];
 	    b.get(tb);  // get bytes out of byte buffer.
-	    c = defineTransformedClass(name, tb, 0, len, protectionDomain, cfe, source);
+	    c = defineTransformedClass(name, tb, 0, len, protectionDomain, cfe,
+                                       source, verify);
 	}
 
 	postDefineClass(c, protectionDomain);
 	return c;
     }
 
+    // Need to keep this one release after fixing 4735126 - see 4931983
+    private Class defineClass0(String name, byte[] b, int off, int len,
+                               ProtectionDomain pd) {
+         return defineClass0(name, b, off, len, pd, true);
+    }
+
     private native Class defineClass0(String name, byte[] b, int off, int len,
-	                              ProtectionDomain pd);
+	                              ProtectionDomain pd, boolean verify);
 
     private native Class defineClass1(String name, byte[] b, int off, int len,
-	                              ProtectionDomain pd, String source);
+	                              ProtectionDomain pd, String source,
+                                      boolean verify);
 
     private native Class defineClass2(String name, java.nio.ByteBuffer b,
 				      int off, int len, ProtectionDomain pd,
-				      String source);
+				      String source, boolean verify);
 
     // true if the name is null or has the potential to be a valid binary name
     private boolean checkName(String name) {
@@ -869,21 +907,28 @@ public abstract class ClassLoader {
 	if (system == null) {
 	    if (!checkName(name))
 		throw new ClassNotFoundException(name);
-	    return findBootstrapClass(name);
+            Class cls = findBootstrapClass(name);
+            if (cls == null) {
+                throw new ClassNotFoundException(name);
+            } 
+	    return cls;
 	}
 	return system.loadClass(name);
     }
 
-    private Class findBootstrapClass0(String name)
-	throws ClassNotFoundException
+    /**
+     * Returns a class loaded by the bootstrap class loader;
+     * or return null if not found.
+     */
+    private Class findBootstrapClassOrNull(String name)
     {
-	if (!checkName(name))
-	    throw new ClassNotFoundException(name);
-	return findBootstrapClass(name);
+        if (!checkName(name)) return null;
+
+        return findBootstrapClass(name);
     }
 
-    private native Class findBootstrapClass(String name)
-	throws ClassNotFoundException;
+    // return null if not found
+    private native Class findBootstrapClass(String name);
 
     /**
      * Returns the class with the given <a href="#name">binary name</a> if this

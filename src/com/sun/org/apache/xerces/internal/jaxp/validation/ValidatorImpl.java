@@ -28,6 +28,7 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
 import com.sun.org.apache.xerces.internal.xs.AttributePSVI;
@@ -45,7 +46,7 @@ import org.xml.sax.SAXNotSupportedException;
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author Michael Glavassevich, IBM
  * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
- * @version $Id: ValidatorImpl.java,v 1.3 2005/09/26 13:02:52 sunithareddy Exp $
+ * @version $Id: ValidatorImpl.java,v 1.6 2008/03/22 02:53:49 joehw Exp $
  */
 final class ValidatorImpl extends Validator implements PSVIProvider {
     
@@ -76,6 +77,9 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
     
     /** Flag for tracking whether the resource resolver changed since last reset. */
     private boolean fResourceResolverChanged = false;
+    
+    /** Support current-element-node property */
+    private static final String CURRENT_ELEMENT_NODE = Constants.XERCES_PROPERTY_PREFIX + Constants.CURRENT_ELEMENT_NODE_PROPERTY;
     
     public ValidatorImpl(XSGrammarPoolContainer grammarContainer) {
         fComponentManager = new XMLSchemaValidatorComponentManager(grammarContainer);
@@ -185,6 +189,10 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
         if (name == null) {
             throw new NullPointerException();
         }
+        //Support current-element-node; return current node if DOMSource is used.
+        if (CURRENT_ELEMENT_NODE.equals(name)) { 
+            return (fDOMValidatorHelper != null) ? fDOMValidatorHelper.getCurrentElement() : null; 
+        } 
         try {
             return fComponentManager.getProperty(name);
         }

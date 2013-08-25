@@ -55,7 +55,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLErrorHandler;
  *
  * @xerces.internal
  * 
- * @version $Id: XPointerHandler.java,v 1.1.4.1 2005/09/08 05:25:44 sunithareddy Exp $
+ * @version $Id: XPointerHandler.java,v 1.3 2007/07/19 04:39:09 ofung Exp $
  */
 public final class XPointerHandler extends XIncludeHandler implements
         XPointerProcessor {

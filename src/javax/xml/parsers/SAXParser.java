@@ -73,11 +73,11 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  * Implementors of this class which wrap an underlaying implementation
  * can consider using the {@link org.xml.sax.helpers.ParserAdapter}
- * class to initially adapt their SAX1 impelemntation to work under
+ * class to initially adapt their SAX1 implementation to work under
  * this revised class.
  *
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.4 $, $Date: 2005/11/03 19:34:15 $
+ * @version $Revision: 1.7 $, $Date: 2007/07/19 04:34:31 $
  */
 public abstract class SAXParser {
         

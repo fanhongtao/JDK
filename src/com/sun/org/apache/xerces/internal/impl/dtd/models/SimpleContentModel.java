@@ -62,7 +62,7 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
 
 /**
- * @version $Id: SimpleContentModel.java,v 1.1.2.1 2005/08/01 03:34:26 jeffsuttor Exp $
+ * @version $Id: SimpleContentModel.java,v 1.3 2007/07/19 04:38:28 ofung Exp $
  * SimpleContentModel is a derivative of the abstract content model base
  * class that handles a small set of simple content models that are just
  * way overkill to give the DFA treatment.
@@ -84,7 +84,7 @@ import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
  * 
  * @xerces.internal
  * 
- * @version $Id: SimpleContentModel.java,v 1.1.2.1 2005/08/01 03:34:26 jeffsuttor Exp $
+ * @version $Id: SimpleContentModel.java,v 1.3 2007/07/19 04:38:28 ofung Exp $
  */
 public class SimpleContentModel
     implements ContentModelValidator {

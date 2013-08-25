@@ -1,7 +1,7 @@
 /*
- * @(#)TimerQueue.java	1.40 09/08/07
+ * @(#)TimerQueue.java	1.41 09/10/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import sun.awt.AppContext;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.40 08/07/09
+ * @version 1.41 10/19/09
  * @author Dave Moore
  */
 class TimerQueue implements Runnable
@@ -231,7 +231,12 @@ class TimerQueue implements Runnable
                 try {
                     wait(timeToWait);
                 }
-                catch (InterruptedException e) {
+                catch (InterruptedException ie) {
+                    // Shouldn't ignore InterruptedExceptions here, so AppContext
+                    // is disposed gracefully, see 6799345 for details
+                    if (AppContext.getAppContext().isDisposed()) {
+                        break;
+                    }
                 }
             }
         }

@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.55 09/05/17
+ * @(#)LogManager.java	1.56 09/09/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,6 +11,7 @@ package java.util.logging;
 import java.io.*;
 import java.util.*;
 import java.security.*;
+import java.lang.ref.WeakReference;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.net.URL;
@@ -122,7 +123,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.55, 05/17/09
+ * @version 1.56, 09/18/09
  * @since 1.4
 */
 
@@ -137,7 +138,8 @@ public class LogManager {
     private final static Level defaultLevel = Level.INFO;
 
     // Table of known loggers.  Maps names to Loggers.
-    private Hashtable<String,Logger> loggers = new Hashtable<String,Logger>();
+    private Hashtable<String,WeakReference<Logger>> loggers =
+        new Hashtable<String,WeakReference<Logger>>();
     // Tree of known loggers
     private LogNode root = new LogNode(null);
     private Logger rootLogger;
@@ -153,7 +155,7 @@ public class LogManager {
     private boolean deathImminent;
 
     static {
-	AccessController.doPrivileged(new PrivilegedAction() {
+	AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 public Object run() {
                     String cname = null;
                     try {
@@ -205,9 +207,9 @@ public class LogManager {
         }
 
 	public void run() {
-	    // This is to ensure the LogManager.<clinit> is completed
-	    // before synchronized block. Otherwise deadlocks are possible.
-	    LogManager mgr = manager;
+            // This is to ensure the LogManager.<clinit> is completed
+            // before synchronized block. Otherwise deadlocks are possible.
+            LogManager mgr = manager;
 
 	    // If the global handlers haven't been initialized yet, we
 	    // don't want to initialize them just so we can close them!
@@ -261,7 +263,7 @@ public class LogManager {
                     }
                     readPrimordialConfiguration = true;
                     try {
-                        AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                        AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
                                 public Object run() throws Exception {
                                     readConfiguration();
                                     return null;
@@ -314,6 +316,71 @@ public class LogManager {
 	changes.removePropertyChangeListener(l);
     }
 
+    // If logger.getUseParentHandlers() returns 'true' and any of the logger's
+    // parents have levels or handlers defined, make sure they are instantiated.
+    private void processParentHandlers(Logger logger, String name) {
+	int ix = 1;
+	for (;;) {
+	    int ix2 = name.indexOf(".", ix);
+	    if (ix2 < 0) {
+		break;
+	    }
+	    String pname = name.substring(0,ix2);
+
+            if (getProperty(pname+".level")    != null ||
+                getProperty(pname+".handlers") != null) {
+                // This pname has a level/handlers definition.
+                // Make sure it exists.
+                demandLogger(pname);
+            }
+	    ix = ix2+1;
+	}
+    }
+
+    // Add new per logger handlers.
+    // We need to raise privilege here. All our decisions will
+    // be made based on the logging configuration, which can
+    // only be modified by trusted code.
+    private void loadLoggerHandlers(final Logger logger, final String name,
+                                    final String handlersPropertyName) {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                if (logger != rootLogger) {
+                    boolean useParent = getBooleanProperty(name + ".useParentHandlers", true);
+                    if (!useParent) {
+                        logger.setUseParentHandlers(false);
+                    }
+                }
+
+                String names[] = parseClassNames(handlersPropertyName);
+                for (int i = 0; i < names.length; i++) {
+                    String word = names[i];
+                    try {
+                        Class   clz = ClassLoader.getSystemClassLoader().loadClass(word);
+                        Handler hdl = (Handler) clz.newInstance();
+                        try {
+                            // Check if there is a property defining the
+                            // this handler's level.
+                            String levs = getProperty(word + ".level");
+                            if (levs != null) {
+                                hdl.setLevel(Level.parse(levs));
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("Can't set level for " + word);
+                            // Probably a bad level. Drop through.
+                        }
+                        // Add this Handler to the logger
+                        logger.addHandler(hdl);
+                    } catch (Exception ex) {
+                        System.err.println("Can't load log handler \"" + word + "\"");
+                        System.err.println("" + ex);
+                        ex.printStackTrace();
+                    }
+                }
+                return null;
+            }});
+    }
+
      // Package-level method.
      // Find or create a specified logger instance. If a logger has
      // already been created with the given name it is returned.
@@ -352,16 +419,22 @@ public class LogManager {
 	    throw new NullPointerException();
 	}
 
-	Logger old = loggers.get(name);
-	if (old != null) {
-	    // We already have a registered logger with the given name.
-	    return false;
+	WeakReference<Logger> ref = loggers.get(name);
+	if (ref != null) {
+            if (ref.get() == null) {
+                // Hashtable holds stale weak reference 
+                // to a logger which has been GC-ed.
+                // Allow to register new one.
+                loggers.remove(name);
+            } else {
+	        // We already have a registered logger with the given name.
+	        return false;
+            }
 	}
 
 	// We're adding a new logger.
-	// Note that we are creating a strong reference here that will
-	// keep the Logger in existence indefinitely.
-	loggers.put(name, logger);
+	// Note that we are creating a weak reference here.
+	loggers.put(name, new WeakReference<Logger>(logger));
 
 	// Apply any initial level defined for the new logger.
 	Level level = getLevelProperty(name+".level", null);
@@ -371,113 +444,21 @@ public class LogManager {
 
         // Do we have a per logger handler too?
 	// Note: this will add a 200ms penalty 
-        if (getProperty(name+".handlers") != null) {
-           // This code is taken from the root handler initialization
-           AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                // Add new per logger handlers.
-                String names[] = parseClassNames(name+".handlers");
-                for (int i = 0; i < names.length; i++) {
-                    String word = names[i];
-                    try {
-                        Class clz = ClassLoader.getSystemClassLoader().loadClass(word);
-                        Handler h = (Handler) clz.newInstance();
-                        try {
-                            // Check if there is a property defining the
-                            // this handler's level.
-                            String levs = getProperty(word + ".level");
-                            if (levs != null) {
-                                h.setLevel(Level.parse(levs));
-                            }
-                            boolean useParent = getBooleanProperty(name + ".useParentHandlers", true);
-                            if (!useParent) {
-                                getLogger(name).setUseParentHandlers(false);
-                            }
-                        } catch (Exception ex) {
-                            System.err.println("Can't set level for " + word);
-                            // Probably a bad level. Drop through.
-                        }
-                        // Add this Handler to the logger
-                        getLogger(name).addHandler(h);
-                    } catch (Exception ex) {
-                        System.err.println("Can't load log handler \"" + word + "\"");
-                        System.err.println("" + ex);
-                        ex.printStackTrace();
-                    }
-                }
-                return null;
-            }});
-        } // do we have per logger handlers
-
-	// If any of the logger's parents have levels defined,
-	// make sure they are instantiated.
-	int ix = 1;
-	for (;;) {
-	    int ix2 = name.indexOf(".", ix);
-	    if (ix2 < 0) {
-		break;
-	    }
-	    String pname = name.substring(0,ix2);
-	    if (getProperty(pname+".level") != null) {
-		// This pname has a level definition.  Make sure it exists.
-		Logger plogger = demandLogger(pname);
-	    }
-            // While we are walking up the tree I can check for our
-            // own root logger and get its handlers initialized too with
-            // the same code
-            if (getProperty(pname+".handlers") != null) {
-               final String nname=pname;
-                                                                                
-               AccessController.doPrivileged(new PrivilegedAction() {
-                   public Object run() {
-                   String names[] = parseClassNames(nname+".handlers");
-                                                                                
-                   for (int i = 0; i < names.length; i++) {
-                       String word = names[i];
-                       try {
-                           Class clz = ClassLoader.getSystemClassLoader().loadClass(word);
-                           Handler h = (Handler) clz.newInstance();
-                           try {
-                              // Check if there is a property defining the
-                              // handler's level.
-                              String levs = getProperty(word + ".level");
-                              if (levs != null) {
-                                  h.setLevel(Level.parse(levs));
-                              }
-                           } catch (Exception ex) {
-                                System.err.println("Can't set level for " + word);
-                            // Probably a bad level. Drop through.
-                           }
-                           if (getLogger(nname) == null ) {
-                               Logger nplogger=demandLogger(nname);
-                               addLogger(nplogger);
-                           }
-                           boolean useParent = getBooleanProperty(nname + ".useParentHandlers", true);
-                           if (!useParent) {
-                               getLogger(nname).setUseParentHandlers(false);
-                           }
-                       } catch (Exception ex) {
-                          System.err.println("Can't load log handler \"" + word + "\"");
-                          System.err.println("" + ex);
-                          ex.printStackTrace();
-                       }
-                   }
-                   return null;
-                   }});
-            } //found a parent handler
-
-	    ix = ix2+1;
-	}
+        loadLoggerHandlers(logger, name, name+".handlers");
+        processParentHandlers(logger, name);
 
 	// Find the new node and its parent.
 	LogNode node = findNode(name);
-	node.logger = logger;
+	node.loggerRef = new WeakReference<Logger>(logger);
 	Logger parent = null;
 	LogNode nodep = node.parent;
 	while (nodep != null) {
-	    if (nodep.logger != null) {
-		parent = nodep.logger;
-		break;
+            WeakReference<Logger> nodeRef = nodep.loggerRef;
+	    if (nodeRef != null) {
+		parent = nodeRef.get();
+                if (parent != null) {
+		    break;
+                }
 	    }
 	    nodep = nodep.parent;
 	}
@@ -503,7 +484,7 @@ public class LogManager {
 	} 
 	// There is a security manager.  Raise privilege before
 	// calling setLevel.
-	AccessController.doPrivileged(new PrivilegedAction() {
+	AccessController.doPrivileged(new PrivilegedAction<Object>() {
 	    public Object run() {
 	        logger.setLevel(level);
 		return null;
@@ -523,7 +504,7 @@ public class LogManager {
 	} 
 	// There is a security manager.  Raise privilege before
 	// calling setParent.
-	AccessController.doPrivileged(new PrivilegedAction() {
+	AccessController.doPrivileged(new PrivilegedAction<Object>() {
 	    public Object run() {
 		logger.setParent(parent);
 		return null;
@@ -548,9 +529,9 @@ public class LogManager {
 		name = "";
 	    }
 	    if (node.children == null) {
-		node.children = new HashMap<Object,Object>();
+		node.children = new HashMap<String,LogNode>();
 	    }
-	    LogNode child = (LogNode)node.children.get(head);
+	    LogNode child = node.children.get(head);
 	    if (child == null) {
 		child = new LogNode(node);
 		node.children.put(head, child);
@@ -571,7 +552,17 @@ public class LogManager {
      * @return  matching logger or null if none is found
      */
     public synchronized Logger getLogger(String name) {
-	return loggers.get(name);
+        WeakReference<Logger> ref = loggers.get(name);
+	if (ref == null) {
+            return null;
+        }
+        Logger logger = ref.get();
+	if (logger == null) {
+            // Hashtable holds stale weak reference 
+            // to a logger which has been GC-ed.
+            loggers.remove(name);
+        }
+	return logger;
     }
 
     /**
@@ -904,39 +895,7 @@ public class LogManager {
 	    // Avoid allocating global handlers.
 	    return;
 	}
-
-        // We need to raise privilege here.  All our decisions will
-	// be made based on the logging configuration, which can
-	// only be modified by trusted code.
-	AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-		// Add new global handlers.
-		String names[] = parseClassNames("handlers");
-		for (int i = 0; i < names.length; i++) {
-	    	    String word = names[i];
-	    	    try {
-		        Class clz = ClassLoader.getSystemClassLoader().loadClass(word);
-		        Handler h = (Handler) clz.newInstance();
-			try {
-		    	    // Check if there is a property defining the
-		    	    // handler's level.
-		    	    String levs = getProperty(word + ".level");
-		    	    if (levs != null) {
-				h.setLevel(Level.parse(levs));
-		    	    }
-			} catch (Exception ex) {
-			    System.err.println("Can't set level for " + word);
-		    	    // Probably a bad level. Drop through.
-			}
-			rootLogger.addHandler(h);
-	    	    } catch (Exception ex) {
-			System.err.println("Can't load log handler \"" + word + "\"");
-			System.err.println("" + ex);
-			ex.printStackTrace();
-		    }
-		}
-		return null;
-	    }});
+        loadLoggerHandlers(rootLogger, null, "handlers");
     }
 
 
@@ -962,8 +921,8 @@ public class LogManager {
 
     // Nested class to represent a node in our tree of named loggers.
     private static class LogNode {
-	HashMap<Object,Object> children;
-	Logger logger;
+	HashMap<String,LogNode> children;
+	WeakReference<Logger> loggerRef;
 	LogNode parent;
 
 	LogNode(LogNode parent) {
@@ -976,13 +935,15 @@ public class LogManager {
 	    if (children == null) {
 	        return;
 	    }
-	    Iterator values = children.values().iterator();
+	    Iterator<LogNode> values = children.values().iterator();
 	    while (values.hasNext()) {
-	        LogNode node = (LogNode) values.next();
-	        if (node.logger == null) {
+	        LogNode node = values.next();
+                WeakReference<Logger> ref = node.loggerRef;
+                Logger logger = (ref == null) ? null : ref.get();
+	        if (logger == null) {
 	    	    node.walkAndSetParent(parent);
 	        } else {
-	            doSetParent(node.logger, parent);
+	            doSetParent(logger, parent);
 		}
 	    }
 	}
@@ -1075,4 +1036,3 @@ public class LogManager {
     }
 
 }
-

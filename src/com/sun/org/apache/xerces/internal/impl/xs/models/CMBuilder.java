@@ -32,7 +32,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.XSParticleDecl;
  * @author Elena Litani, IBM
  * @author Sandy Gao, IBM
  *
- * @version $Id: CMBuilder.java,v 1.6 2007/04/16 15:34:54 spericas Exp $
+ * @version $Id: CMBuilder.java,v 1.9 2009/08/10 16:52:55 spericas Exp $
  */
 public class CMBuilder {
 
@@ -175,7 +175,10 @@ public class CMBuilder {
             for (int i = 0; i < group.fParticleCount; i++) {
                 // first convert each child to a CM tree
                 temp = buildSyntaxTree(group.fParticles[i], 
-                        optimize && (group.fParticleCount == 1));
+                        optimize &&
+                        minOccurs == 1 && maxOccurs == 1 &&
+                        (group.fCompositor == XSModelGroupImpl.MODELGROUP_SEQUENCE ||
+                         group.fParticleCount == 1));
                 // then combine them using binary operation
                 if (temp != null) {
                     if (nodeRet == null) {

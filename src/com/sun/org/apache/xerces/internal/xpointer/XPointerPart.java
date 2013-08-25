@@ -29,7 +29,7 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *
  * @xerces.internal
  * 
- * @version $Id: XPointerPart.java,v 1.1.4.1 2005/09/08 05:25:45 sunithareddy Exp $
+ * @version $Id: XPointerPart.java,v 1.3 2007/07/19 04:39:09 ofung Exp $
  */
 public interface XPointerPart {
 

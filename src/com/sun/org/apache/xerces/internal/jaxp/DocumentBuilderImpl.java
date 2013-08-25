@@ -50,7 +50,7 @@ import org.xml.sax.SAXNotSupportedException;
 /**
  * @author Rajiv Mordani
  * @author Edwin Goei
- * @version $Id: DocumentBuilderImpl.java,v 1.2.6.1 2005/09/05 10:05:40 sunithareddy Exp $
+ * @version $Id: DocumentBuilderImpl.java,v 1.5 2007/07/20 14:11:20 spericas Exp $
  */
 public class DocumentBuilderImpl extends DocumentBuilder
         implements JAXPConstants
@@ -174,14 +174,15 @@ public class DocumentBuilderImpl extends DocumentBuilder
             }
             config.addRecognizedFeatures(validatorComponent.getRecognizedFeatures());
             config.addRecognizedProperties(validatorComponent.getRecognizedProperties());
+            setFeatures(features);      // Must set before calling setDocumentHandler()
             config.setDocumentHandler((XMLDocumentHandler) validatorComponent);
             ((XMLDocumentSource)validatorComponent).setDocumentHandler(domParser);
             domParser.setDocumentSource((XMLDocumentSource) validatorComponent);
             fSchemaValidator = validatorComponent;
         }
-
-        // Set features
+        else {
         setFeatures(features);
+        }
         
         // Set attributes
         setDocumentBuilderFactoryAttributes(dbfAttrs);

@@ -6,8 +6,8 @@ import java.util.Iterator;
 /**
  * This interface defines a utility class for creating instances of
  * XMLEvents
- * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @version 1.2
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see javax.xml.stream.events.StartElement
  * @see javax.xml.stream.events.EndElement
  * @see javax.xml.stream.events.ProcessingInstruction
@@ -22,10 +22,10 @@ public abstract class XMLEventFactory {
   protected XMLEventFactory(){}
 
   /**
-   * Create a new instance of the factory 
+   * Create a new instance of the factory
    * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
    */
-  public static XMLEventFactory newInstance() 
+  public static XMLEventFactory newInstance()
     throws FactoryConfigurationError
   {
     return (XMLEventFactory) FactoryFinder.find(
@@ -34,7 +34,73 @@ public abstract class XMLEventFactory {
   }
 
   /**
-   * Create a new instance of the factory 
+   * Create a new instance of the factory.
+   * This static method creates a new factory instance.
+   * This method uses the following ordered lookup procedure to determine
+   * the XMLEventFactory implementation class to load:
+   *   Use the javax.xml.stream.XMLEventFactory system property.
+   *   Use the properties file "lib/stax.properties" in the JRE directory.
+   *     This configuration file is in standard java.util.Properties format
+   *     and contains the fully qualified name of the implementation class
+   *     with the key being the system property defined above.
+   *   Use the Services API (as detailed in the JAR specification), if available,
+   *     to determine the classname. The Services API will look for a classname
+   *     in the file META-INF/services/javax.xml.stream.XMLEventFactory in jars
+   *     available to the runtime.
+   *   Platform default XMLEventFactory instance.
+   *
+   *   Once an application has obtained a reference to a XMLEventFactory it
+   *   can use the factory to configure and obtain stream instances.
+   *
+   *   Note that this is a new method that replaces the deprecated newInstance() method.
+   *     No changes in behavior are defined by this replacement method relative to
+   *     the deprecated method.
+   *
+   * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
+   */
+  public static XMLEventFactory newFactory()
+    throws FactoryConfigurationError
+  {
+    return (XMLEventFactory) FactoryFinder.find(
+      "javax.xml.stream.XMLEventFactory",
+      "com.sun.xml.internal.stream.events.XMLEventFactoryImpl");
+  }
+
+  /**
+   * Create a new instance of the factory
+   *
+   * @param factoryId             Name of the factory to find, same as
+   *                              a property name
+   * @param classLoader           classLoader to use
+   * @return the factory implementation
+   * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
+   *
+   * @deprecated  This method has been deprecated to maintain API consistency.
+   *              All newInstance methods have been replaced with corresponding
+   *              newFactory methods. The replacement {@link
+   *              #newFactory(java.lang.String, java.lang.ClassLoader)}
+   *              method defines no changes in behavior.
+   */
+  public static XMLEventFactory newInstance(String factoryId,
+          ClassLoader classLoader)
+          throws FactoryConfigurationError {
+      try {
+          //do not fallback if given classloader can't find the class, throw exception
+          return (XMLEventFactory) FactoryFinder.newInstance(factoryId, classLoader, false);
+      } catch (FactoryFinder.ConfigurationError e) {
+          throw new FactoryConfigurationError(e.getException(),
+                  e.getMessage());
+      }
+  }
+
+  /**
+   * Create a new instance of the factory.
+   * If the classLoader argument is null, then the ContextClassLoader is used.
+   *
+   * Note that this is a new method that replaces the deprecated
+   *   newInstance(String factoryId, ClassLoader classLoader) method.
+   * No changes in behavior are defined by this replacement method relative
+   * to the deprecated method.
    *
    * @param factoryId             Name of the factory to find, same as
    *                              a property name
@@ -42,7 +108,7 @@ public abstract class XMLEventFactory {
    * @return the factory implementation
    * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
    */
-  public static XMLEventFactory newInstance(String factoryId,
+  public static XMLEventFactory newFactory(String factoryId,
           ClassLoader classLoader)
           throws FactoryConfigurationError {
       try {
@@ -57,7 +123,7 @@ public abstract class XMLEventFactory {
  /**
    * This method allows setting of the Location on each event that
    * is created by this factory.  The values are copied by value into
-   * the events created by this factory.  To reset the location 
+   * the events created by this factory.  To reset the location
    * information set the location to null.
    * @param location the location to set on each event created
    */
@@ -107,13 +173,13 @@ public abstract class XMLEventFactory {
   /**
    * Create a new StartElement.  Namespaces can be added to this StartElement
    * by passing in an Iterator that walks over a set of Namespace interfaces.
-   * Attributes can be added to this StartElement by passing an iterator 
+   * Attributes can be added to this StartElement by passing an iterator
    * that walks over a set of Attribute interfaces.
    *
    * @param name the qualified name of the attribute, may not be null
-   * @param attributes an optional unordered set of objects that 
+   * @param attributes an optional unordered set of objects that
    * implement Attribute to add to the new StartElement, may be null
-   * @param namespaces an optional unordered set of objects that 
+   * @param namespaces an optional unordered set of objects that
    * implement Namespace to add to the new StartElement, may be null
    * @return an instance of the requested StartElement
    */
@@ -137,15 +203,15 @@ public abstract class XMLEventFactory {
   /**
    * Create a new StartElement.  Namespaces can be added to this StartElement
    * by passing in an Iterator that walks over a set of Namespace interfaces.
-   * Attributes can be added to this StartElement by passing an iterator 
+   * Attributes can be added to this StartElement by passing an iterator
    * that walks over a set of Attribute interfaces.
    *
    * @param namespaceUri the uri of the QName of the new StartElement
    * @param localName the local name of the QName of the new StartElement
    * @param prefix the prefix of the QName of the new StartElement
-   * @param attributes an unordered set of objects that implement 
+   * @param attributes an unordered set of objects that implement
    * Attribute to add to the new StartElement
-   * @param namespaces an unordered set of objects that implement 
+   * @param namespaces an unordered set of objects that implement
    * Namespace to add to the new StartElement
    * @return an instance of the requested StartElement
    */
@@ -158,15 +224,15 @@ public abstract class XMLEventFactory {
   /**
    * Create a new StartElement.  Namespaces can be added to this StartElement
    * by passing in an Iterator that walks over a set of Namespace interfaces.
-   * Attributes can be added to this StartElement by passing an iterator 
+   * Attributes can be added to this StartElement by passing an iterator
    * that walks over a set of Attribute interfaces.
    *
    * @param namespaceUri the uri of the QName of the new StartElement
    * @param localName the local name of the QName of the new StartElement
    * @param prefix the prefix of the QName of the new StartElement
-   * @param attributes an unordered set of objects that implement 
+   * @param attributes an unordered set of objects that implement
    * Attribute to add to the new StartElement, may be null
-   * @param namespaces an unordered set of objects that implement 
+   * @param namespaces an unordered set of objects that implement
    * Namespace to add to the new StartElement, may be null
    * @param context the namespace context of this element
    * @return an instance of the requested StartElement
@@ -182,11 +248,11 @@ public abstract class XMLEventFactory {
   /**
    * Create a new EndElement
    * @param name the qualified name of the EndElement
-   * @param namespaces an optional unordered set of objects that 
+   * @param namespaces an optional unordered set of objects that
    * implement Namespace that have gone out of scope, may be null
    * @return an instance of the requested EndElement
    */
-  public abstract EndElement createEndElement(QName name, 
+  public abstract EndElement createEndElement(QName name,
                                               Iterator namespaces);
 
   /**
@@ -196,7 +262,7 @@ public abstract class XMLEventFactory {
    * @param prefix the prefix of the QName of the new StartElement
    * @return an instance of the requested EndElement
    */
-  public abstract EndElement createEndElement(String prefix, 
+  public abstract EndElement createEndElement(String prefix,
                                               String namespaceUri,
                                               String localName);
   /**
@@ -204,11 +270,11 @@ public abstract class XMLEventFactory {
    * @param namespaceUri the uri of the QName of the new StartElement
    * @param localName the local name of the QName of the new StartElement
    * @param prefix the prefix of the QName of the new StartElement
-   * @param namespaces an unordered set of objects that implement 
+   * @param namespaces an unordered set of objects that implement
    * Namespace that have gone out of scope, may be null
    * @return an instance of the requested EndElement
    */
-  public abstract EndElement createEndElement(String prefix, 
+  public abstract EndElement createEndElement(String prefix,
                                               String namespaceUri,
                                               String localName,
                                               Iterator namespaces);
@@ -241,13 +307,13 @@ public abstract class XMLEventFactory {
    */
   public abstract Characters createIgnorableSpace(String content);
 
-  /** 
+  /**
    * Creates a new instance of a StartDocument event
    * @return a StartDocument event
    */
   public abstract StartDocument createStartDocument();
 
-  /** 
+  /**
    * Creates a new instance of a StartDocument event
    *
    * @param encoding the encoding style
@@ -259,7 +325,7 @@ public abstract class XMLEventFactory {
                                                   String version,
                                                   boolean standalone);
 
-  /** 
+  /**
    * Creates a new instance of a StartDocument event
    *
    * @param encoding the encoding style
@@ -269,7 +335,7 @@ public abstract class XMLEventFactory {
   public abstract StartDocument createStartDocument(String encoding,
                                                   String version);
 
-  /** 
+  /**
    * Creates a new instance of a StartDocument event
    *
    * @param encoding the encoding style
@@ -316,7 +382,3 @@ public abstract class XMLEventFactory {
    */
   public abstract DTD createDTD(String dtd);
 }
-
-
-
-

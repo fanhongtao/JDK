@@ -7,7 +7,7 @@ package javax.xml.stream;
  * an application may only report line numbers.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public interface Location {
@@ -47,6 +47,3 @@ public interface Location {
    */
   public String getSystemId();
 }
-
-
-

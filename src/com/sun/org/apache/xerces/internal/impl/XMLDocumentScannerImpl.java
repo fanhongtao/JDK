@@ -85,11 +85,11 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentScanner;
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  * @author Sunitha Reddy, Sun Microsystems
- *
+ * 
  * Refer to the table in unit-test javax.xml.stream.XMLStreamReaderTest.SupportDTD for changes
  * related to property SupportDTD.
  * @author Joe Wang, Sun Microsystems
- * @version $Id: XMLDocumentScannerImpl.java,v 1.9 2007/05/09 15:23:31 ndw Exp $
+ * @version $Id: XMLDocumentScannerImpl.java,v 1.14 2009/06/10 18:50:48 joehw Exp $
  */
 public class XMLDocumentScannerImpl
         extends XMLDocumentFragmentScannerImpl{
@@ -304,7 +304,7 @@ public class XMLDocumentScannerImpl
         fDisallowDoctype = !((Boolean)propertyManager.getProperty(XMLInputFactory.SUPPORT_DTD)).booleanValue();
         
         // xerces features
-        fLoadExternalDTD = true ;
+        fLoadExternalDTD = !((Boolean)propertyManager.getProperty(Constants.ZEPHYR_PROPERTY_PREFIX + Constants.IGNORE_EXTERNAL_DTD)).booleanValue();
         setScannerState(XMLEvent.START_DOCUMENT);
         setDriver(fXMLDeclDriver);
         fSeenInternalSubset = false;
@@ -737,7 +737,7 @@ public class XMLDocumentScannerImpl
     protected void setEndDTDScanState() {
         setScannerState(SCANNER_STATE_PROLOG);
         setDriver(fPrologDriver);
-        fEntityManager.setEntityHandler(XMLDocumentScannerImpl.this);
+        fEntityManager.setEntityHandler(XMLDocumentScannerImpl.this);  
         fReadingDTD=false;
     }
     
@@ -804,8 +804,8 @@ public class XMLDocumentScannerImpl
                         }
                         String target = fSymbolTable.addSymbol(fStringBuffer.ch, fStringBuffer.offset, fStringBuffer.length);
                         //this function should fill the data.. and set the fEvent object to this event.
-                        fStringBuffer.clear() ;
-                        scanPIData(target, fStringBuffer);
+                        fContentBuffer.clear() ;
+                        scanPIData(target, fContentBuffer);
                         //REVISIT:where else we can set this value to 'true'
                         fEntityManager.fCurrentEntity.mayReadChunks = true;
                         //return PI event since PI was encountered
@@ -993,14 +993,14 @@ public class XMLDocumentScannerImpl
                         if (fDoctypeSystemId != null) {
                             if (((fValidation || fLoadExternalDTD) 
                                 && (fValidationManager == null || !fValidationManager.isCachedDTD()))) {
-                                if (!fDisallowDoctype)
-                                    setScannerState(SCANNER_STATE_DTD_EXTERNAL);
-                                else
-                                    setScannerState(SCANNER_STATE_PROLOG);
-                                setDriver(fContentDriver);
-                                if(fDTDDriver == null)
-                                    fDTDDriver = new DTDDriver();
-                                return fDTDDriver.next();
+                            if (!fDisallowDoctype)
+                                setScannerState(SCANNER_STATE_DTD_EXTERNAL);
+                            else
+                                setScannerState(SCANNER_STATE_PROLOG);
+                            setDriver(fContentDriver);
+                            if(fDTDDriver == null)
+                                fDTDDriver = new DTDDriver();
+                            return fDTDDriver.next();
                                 
                             }
                         }
@@ -1010,14 +1010,14 @@ public class XMLDocumentScannerImpl
                                 // This handles the case of a DOCTYPE that had neither an internal subset or an external subset.
                                 fDTDScanner.setInputSource(fExternalSubsetSource);
                                 fExternalSubsetSource = null;
-                                if (!fDisallowDoctype)
-                                    setScannerState(SCANNER_STATE_DTD_EXTERNAL_DECLS);
-                                else
-                                    setScannerState(SCANNER_STATE_PROLOG);
-                                setDriver(fContentDriver);
-                                if(fDTDDriver == null)
-                                    fDTDDriver = new DTDDriver();
-                                return fDTDDriver.next();
+                            if (!fDisallowDoctype)
+                                setScannerState(SCANNER_STATE_DTD_EXTERNAL_DECLS);
+                            else
+                                setScannerState(SCANNER_STATE_PROLOG);
+                            setDriver(fContentDriver);
+                            if(fDTDDriver == null)
+                                fDTDDriver = new DTDDriver();
+                            return fDTDDriver.next();
                             }                       	
                         }
 
@@ -1157,7 +1157,7 @@ public class XMLDocumentScannerImpl
                                 fMarkupDepth--;
                                 
                                 if (fDisallowDoctype) {
-                                    //simply reset the entity store without having to mess around
+                                    //simply reset the entity store without having to mess around 
                                     //with the DTD Scanner code
                                     fEntityStore = fEntityManager.getEntityStore();
                                     fEntityStore.reset();
@@ -1166,11 +1166,12 @@ public class XMLDocumentScannerImpl
                                     if (fDoctypeSystemId != null && (fValidation || fLoadExternalDTD)) {
                                         setScannerState(SCANNER_STATE_DTD_EXTERNAL);
                                         break;
-                                    }
+                                    }                                    
                                 }
-                                
+
                                 setEndDTDScanState();
                                 return true;
+                            
                             }
                             break;
                         }

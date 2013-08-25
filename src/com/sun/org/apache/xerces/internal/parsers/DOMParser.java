@@ -51,7 +51,7 @@ import org.xml.sax.helpers.LocatorImpl;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: DOMParser.java,v 1.2.6.1 2005/09/06 13:06:37 sunithareddy Exp $
+ * @version $Id: DOMParser.java,v 1.5 2007/07/19 04:38:54 ofung Exp $
  */
 public class DOMParser
     extends AbstractDOMParser {
@@ -66,6 +66,14 @@ public class DOMParser
     protected static final String USE_ENTITY_RESOLVER2 =
         Constants.SAX_FEATURE_PREFIX + Constants.USE_ENTITY_RESOLVER2_FEATURE;
 
+    protected static final String REPORT_WHITESPACE =
+            Constants.SUN_SCHEMA_FEATURE_PREFIX + Constants.SUN_REPORT_IGNORED_ELEMENT_CONTENT_WHITESPACE;
+
+    // recognized features:
+    private static final String[] RECOGNIZED_FEATURES = {
+        REPORT_WHITESPACE
+    };
+    
     // properties
 
     /** Property identifier: symbol table. */
@@ -135,6 +143,8 @@ public class DOMParser
         if (grammarPool != null) {
             fConfiguration.setProperty(XMLGRAMMAR_POOL, grammarPool);
         }
+
+        fConfiguration.addRecognizedFeatures(RECOGNIZED_FEATURES);
 
     } // <init>(SymbolTable,XMLGrammarPool)
 

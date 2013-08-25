@@ -378,7 +378,9 @@ class ObjectFactory {
 
     /** Prints a message to standard error if debugging is enabled. */
     private static void debugPrintln(String msg) {
-        System.err.println("JAXP: " + msg);
+        if (DEBUG) {
+            System.err.println("JAXP: " + msg);
+        }
     } // debugPrintln(String)
 
     /**

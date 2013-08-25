@@ -29,7 +29,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: SAXParser.java,v 1.2.6.1 2005/09/06 13:45:43 sunithareddy Exp $
+ * @version $Id: SAXParser.java,v 1.5 2007/07/19 04:38:54 ofung Exp $
  */
 public class SAXParser
     extends AbstractSAXParser {
@@ -44,9 +44,13 @@ public class SAXParser
     protected static final String NOTIFY_BUILTIN_REFS =
         Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_BUILTIN_REFS_FEATURE;
 
+    protected static final String REPORT_WHITESPACE =
+            Constants.SUN_SCHEMA_FEATURE_PREFIX + Constants.SUN_REPORT_IGNORED_ELEMENT_CONTENT_WHITESPACE;
+    
     /** Recognized features. */
     private static final String[] RECOGNIZED_FEATURES = {
         NOTIFY_BUILTIN_REFS,
+        REPORT_WHITESPACE
     };
 
     // properties
