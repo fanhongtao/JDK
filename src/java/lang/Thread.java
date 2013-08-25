@@ -1,5 +1,5 @@
 /*
- * @(#)Thread.java	1.173 06/07/13
+ * @(#)Thread.java	1.174 08/01/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -104,7 +104,7 @@ import sun.security.util.SecurityConstants;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.173, 07/13/06
+ * @version 1.174, 01/23/08
  * @see     Runnable
  * @see     Runtime#exit(int)
  * @see     #run()
@@ -1409,6 +1409,7 @@ class Thread implements Runnable {
      *
      * @since 1.5
      */
+
     public StackTraceElement[] getStackTrace() {
         if (this != Thread.currentThread()) {
             // check for getStackTrace permission
@@ -1417,10 +1418,19 @@ class Thread implements Runnable {
                 security.checkPermission(
                     SecurityConstants.GET_STACK_TRACE_PERMISSION);
             }
-	    if (!isAlive()) {
-		return EMPTY_STACK_TRACE;
-	    }
-	    return dumpThreads(new Thread[] {this})[0];
+            // optimization so we do not call into the vm for threads that 
+            // have not yet started or have terminated
+            if (!isAlive()) {
+                return EMPTY_STACK_TRACE;
+            }
+            StackTraceElement[][] stackTraceArray = dumpThreads(new Thread[] {this});
+            StackTraceElement[] stackTrace = stackTraceArray[0];
+            // a thread that was alive during the previous isAlive call may have
+            // since terminated, therefore not having a stacktrace.
+            if (stackTrace == null) {
+                stackTrace = EMPTY_STACK_TRACE;
+            }
+            return stackTrace;
         } else {
 	    // Don't need JVM help for current thread
 	    return (new Exception()).getStackTrace();
@@ -1478,13 +1488,13 @@ class Thread implements Runnable {
         Map<Thread, StackTraceElement[]> m
 	    = new HashMap<Thread, StackTraceElement[]>(threads.length);
         for (int i = 0; i < threads.length; i++) {
-            if (threads[i].isAlive()) { 
-                StackTraceElement[] stackTrace = traces[i];
-                if (stackTrace == null) {
-                    stackTrace = EMPTY_STACK_TRACE;
-                } 
-                m.put(threads[i], stackTrace);
-            }
+
+             StackTraceElement[] stackTrace = traces[i];
+             if (stackTrace != null) {
+
+                 m.put(threads[i], stackTrace);
+             } 
+             // else terminated so we don't put it in the map
         }
         return m;
     }

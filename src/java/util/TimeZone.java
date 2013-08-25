@@ -1,5 +1,5 @@
 /*
- * @(#)TimeZone.java	1.75 05/11/30
+ * @(#)TimeZone.java	1.76 07/12/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -110,7 +110,7 @@ import sun.util.calendar.ZoneInfoFile;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.75 11/30/05
+ * @version      1.76 12/07/07
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since        JDK1.1
  */
@@ -585,11 +585,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
 		}
 	    });
 
-	if (hasPermission()) {
-	    defaultTimeZone = tz;
-	} else {
-	    defaultZoneTL.set(tz);
-	}
+	defaultTimeZone = tz;
 	return tz;
     }
 
@@ -620,6 +616,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
 	if (hasPermission()) {
 	    synchronized (TimeZone.class) {
 		defaultTimeZone = zone;
+		defaultZoneTL.set(null);
 	    }
 	} else {
 	    defaultZoneTL.set(zone);

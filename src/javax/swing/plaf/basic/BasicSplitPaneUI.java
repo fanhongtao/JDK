@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.83 06/06/07
+ * @(#)BasicSplitPaneUI.java	1.84 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.swing.SwingUtilities2;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.83 06/07/06
+ * @version 1.84 05/29/08
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -330,8 +330,9 @@ public class BasicSplitPaneUI extends SplitPaneUI
 	// This plus 2 here is to provide backwards consistancy. Previously,
 	// the old size did not include the 2 pixel border around the divider,
 	// it now does.
-        LookAndFeel.installProperty(splitPane, "dividerSize", 
-				    UIManager.get("SplitPane.dividerSize"));
+        Integer dividerSize = (Integer)UIManager.get("SplitPane.dividerSize");
+        if (divider == null) dividerSize = 10;
+        LookAndFeel.installProperty(splitPane, "dividerSize", dividerSize);
 
         divider.setDividerSize(splitPane.getDividerSize());
 	dividerSize = divider.getDividerSize();

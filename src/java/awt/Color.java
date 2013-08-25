@@ -1,5 +1,5 @@
 /*
- * @(#)Color.java	1.78 06/04/07
+ * @(#)Color.java	1.80 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -674,7 +674,7 @@ public class Color implements Paint, java.io.Serializable {
      * @since   JDK1.0
      */
     public boolean equals(Object obj) {
-        return obj instanceof Color && ((Color)obj).value == this.value;
+        return obj instanceof Color && ((Color)obj).getRGB() == this.getRGB();
     }
 
     /**
@@ -1194,8 +1194,8 @@ public class Color implements Paint, java.io.Serializable {
 						   AffineTransform xform,
                                                    RenderingHints hints) {
 	PaintContext pc = theContext;
-	if (pc == null) {
-	    pc = new ColorPaintContext(value, cm);
+	if (pc == null || ((ColorPaintContext)pc).color != getRGB()) {
+	    pc = new ColorPaintContext(getRGB(), cm);
 	    theContext = pc;
 	}
 	return pc;

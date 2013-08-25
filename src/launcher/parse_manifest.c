@@ -1,5 +1,5 @@
 /*
- * @(#)parse_manifest.c	1.24 06/07/25
+ * @(#)parse_manifest.c	1.25 07/08/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -221,8 +221,12 @@ find_file(int fd, zentry *entry, const char *file_name)
     int	    base_offset;
     Byte    *p;
     Byte    *bp;
-    Byte    buffer[BUFSIZE];
+    Byte    *buffer;
     Byte    locbuf[LOCHDR];
+
+    if ((buffer = (Byte*)malloc(BUFSIZE)) == NULL) {
+	return(-1);
+    }
 
     p = buffer;
     bp = buffer;
@@ -232,8 +236,10 @@ find_file(int fd, zentry *entry, const char *file_name)
      * (Clearly designed to make writing a zip file easier than reading
      * one. Now isn't that precious...)
      */
-    if ((base_offset = find_end(fd, bp)) == -1)
+    if ((base_offset = find_end(fd, bp)) == -1) {
+        free(buffer);
 	return (-1);
+    }
 
     /*
      * There is a historical, but undocumented, ability to allow for
@@ -261,10 +267,14 @@ find_file(int fd, zentry *entry, const char *file_name)
      * Begin by seeking to the beginning of the Central Directory and
      * reading in the first buffer full of bits.
      */
-    if (lseek(fd, base_offset + ENDOFF(p), SEEK_SET) < (off_t)0)
+    if (lseek(fd, base_offset + ENDOFF(p), SEEK_SET) < (off_t)0) {
+        free(buffer);
 	return (-1);
-    if ((bytes = read(fd, bp, MINREAD)) < 0)
+    }
+    if ((bytes = read(fd, bp, MINREAD)) < 0) {
+        free(buffer);
 	return (-1);
+    }
 
     /*
      * Loop through the Central Directory Headers. Note that a valid zip/jar
@@ -283,8 +293,10 @@ find_file(int fd, zentry *entry, const char *file_name)
 	 */
 	if (bytes < CENHDR) {
 	    p = memmove(bp, p, bytes);
-	    if ((res = read(fd, bp + bytes, MINREAD)) <= 0)
+	    if ((res = read(fd, bp + bytes, MINREAD)) <= 0) {
+	      	free(buffer);
 		return (-1);
+	    }
 	    bytes += res;
 	}
 	entry_size = CENHDR + CENNAM(p) + CENEXT(p) + CENCOM(p);
@@ -293,8 +305,10 @@ find_file(int fd, zentry *entry, const char *file_name)
 		p = memmove(bp, p, bytes);
 	    read_size = entry_size - bytes + SIGSIZ;
 	    read_size = (read_size < MINREAD) ? MINREAD : read_size;
-	    if ((res = read(fd, bp + bytes,  read_size)) <= 0)
+	    if ((res = read(fd, bp + bytes,  read_size)) <= 0) {
+	      	free(buffer);
 		return (-1);
+ 	    }
 	    bytes += res;
 	}
 
@@ -305,17 +319,24 @@ find_file(int fd, zentry *entry, const char *file_name)
 	 */
         if (CENNAM(p) == strlen(file_name) &&
           memcmp((p + CENHDR), file_name, strlen(file_name)) == 0) {
-	    if (lseek(fd, base_offset + CENOFF(p), SEEK_SET) < (off_t)0)
+	    if (lseek(fd, base_offset + CENOFF(p), SEEK_SET) < (off_t)0) {
+    		free(buffer);
 		return (-1);
-	    if (read(fd, locbuf, LOCHDR) < 0)
+	    }
+	    if (read(fd, locbuf, LOCHDR) < 0) {
+    		free(buffer);
 		return (-1);
-	    if (GETSIG(locbuf) != LOCSIG)
+	    }
+	    if (GETSIG(locbuf) != LOCSIG) {
+    		free(buffer);
 		return (-1);
+	    }
 	    entry->isize = CENLEN(p);
 	    entry->csize = CENSIZ(p);
 	    entry->offset = base_offset + CENOFF(p) + LOCHDR +
 		LOCNAM(locbuf) + LOCEXT(locbuf);
 	    entry->how = CENHOW(p);
+	    free(buffer);
 	    return (0);
 	}
 
@@ -326,7 +347,7 @@ find_file(int fd, zentry *entry, const char *file_name)
 	bytes -= entry_size;
 	p += entry_size;
     }
-
+    free(buffer);
     return (-1);	/* Fell off the end the loop without a Manifest */
 }
 

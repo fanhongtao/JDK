@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanServerInvocationHandler.java	1.30 06/10/16
+ * @(#)MBeanServerInvocationHandler.java	1.31 08/07/01
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -315,7 +315,13 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
                     mxbeanProxies.get(mxbeanInterface);
             MXBeanProxy p = (proxyRef == null) ? null : proxyRef.get();
             if (p == null) {
-                p = new MXBeanProxy(mxbeanInterface);
+                try {
+                    p = new MXBeanProxy(mxbeanInterface);
+                } catch (IllegalArgumentException e) {
+                    String msg = "Cannot make MXBean proxy for " +
+                            mxbeanInterface.getName() + ": " + e.getMessage();
+                    throw new IllegalArgumentException(msg, e.getCause());
+                }
                 mxbeanProxies.put(mxbeanInterface,
                                   new WeakReference<MXBeanProxy>(p));
             }

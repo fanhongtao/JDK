@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.233 07/06/25
+ * @(#)WindowsLookAndFeel.java	1.234 08/05/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,7 +79,7 @@ import com.sun.java.swing.plaf.windows.WindowsIconFactory
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.233 06/25/07
+ * @version 1.234 05/25/08
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -1022,6 +1022,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "PopupMenu.background", MenuBackgroundColor,
 	    "PopupMenu.foreground", MenuTextColor,
             "PopupMenu.popupSound", "win.sound.menuPopup",
+            "PopupMenu.consumeEventOnClose", Boolean.TRUE,
 
 	    // Menus
             "Menu.font", MenuFont,

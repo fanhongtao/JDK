@@ -1,5 +1,5 @@
 /*
- * @(#)JComboBox.java	1.143 07/01/17
+ * @(#)JComboBox.java	1.144 07/12/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,12 +14,10 @@ import java.awt.event.*;
 
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 
 import javax.swing.event.*;
 import javax.swing.plaf.*;
-import javax.swing.border.*;
 
 import javax.accessibility.*;
 
@@ -55,7 +53,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.143 01/17/07
+ * @version 1.144 12/03/07
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -208,7 +206,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 
     private void init() {
         installAncestorListener();
-        setOpaque(true);
+        setUIProperty("opaque",true);
         updateUI();
     }
 

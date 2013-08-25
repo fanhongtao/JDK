@@ -121,9 +121,9 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
             }
         }
         else {
-            selectedUIState = SynthConstants.FOCUSED;
             if (enabled) {
                 selectedUIState |= SynthConstants.ENABLED;
+                selectedUIState = SynthConstants.FOCUSED;
             }
             else {
                 selectedUIState |= SynthConstants.DISABLED;
@@ -233,6 +233,26 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
             return (laf instanceof SynthLookAndFeel &&
                     ((SynthLookAndFeel)laf).
                      shouldUpdateStyleOnAncestorChanged());
+        }
+        // Note: The following two nimbus based overrides should be refactored
+        // to be in the Nimbus LAF. Due to constraints in an update release,
+        // we couldn't actually provide the public API necessary to allow
+        // NimbusLookAndFeel (a subclass of SynthLookAndFeel) to provide its
+        // own rules for shouldUpdateStyle.
+        else if ("Nimbus.Overrides" == eName) {
+            // Always update when the Nimbus.Overrides client property has
+            // been changed
+            return true;
+        }
+        else if ("Nimbus.Overrides.InheritDefaults" == eName) {
+            // Always update when the Nimbus.Overrides.InheritDefaults
+            // client property has changed
+            return true;
+        }
+        else if ("JComponent.sizeVariant" == eName) {
+            // Always update when the JComponent.sizeVariant
+            // client property has changed
+            return true;
         }
         return false;
     }
@@ -605,6 +625,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
     /**
      * Called by UIManager when this look and feel is installed.
      */
+    @Override
     public void initialize() {
         super.initialize();
         DefaultLookup.setDefaultLookup(new SynthDefaultLookup());
@@ -616,6 +637,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
     /**
      * Called by UIManager when this look and feel is uninstalled.
      */
+    @Override
     public void uninitialize() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().
             removePropertyChangeListener(_handler);
@@ -630,6 +652,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      *
      * @return Defaults table.
      */
+    @Override
     public UIDefaults getDefaults() {
         UIDefaults table = new UIDefaults(60, 0.75f);
     
@@ -687,6 +710,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      *
      * @return true.
      */
+    @Override
     public boolean isSupportedLookAndFeel() {
         return true;
     }
@@ -696,6 +720,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      *
      * @return false
      */
+    @Override
     public boolean isNativeLookAndFeel() {
         return false;
     }
@@ -705,6 +730,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      *
      * @return textual description of synth.
      */
+    @Override
     public String getDescription() {
         return "Synth look and feel";
     }
@@ -714,6 +740,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      *
      * @return a short string identifying this look and feel.
      */
+    @Override
     public String getName() {
         return "Synth look and feel";
     }
@@ -723,6 +750,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
      *
      * @return a short string identifying this look and feel.
      */
+    @Override
     public String getID() {
         return "Synth";
     }
@@ -788,6 +816,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
             tk.addPropertyChangeListener(key, this);
         }
     
+        @Override
         public void propertyChange(PropertyChangeEvent pce) {
             UIDefaults defaults = UIManager.getLookAndFeelDefaults();
             if (defaults.getBoolean("Synth.doNotSetTextAA")) {
@@ -856,6 +885,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
             if (!isUpdatePending()) {
                 setUpdatePending(true);
                 Runnable uiUpdater = new Runnable() {
+                    @Override
                     public void run() {
                         updateAllUIs();
                         setUpdatePending(false);
@@ -872,6 +902,7 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
     }
 
     private class Handler implements PropertyChangeListener {
+        @Override
         public void propertyChange(PropertyChangeEvent evt) {
             String propertyName = evt.getPropertyName();
             Object newValue = evt.getNewValue();

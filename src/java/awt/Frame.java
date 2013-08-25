@@ -1,5 +1,5 @@
 /*
- * @(#)Frame.java	1.161 06/07/27
+ * @(#)Frame.java	1.162 08/08/14
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,7 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
+import sun.awt.AWTAccessor;
 import java.lang.ref.WeakReference;
 import javax.accessibility.*;
 
@@ -108,7 +109,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.161, 07/27/06
+ * @version 	1.162, 08/14/08
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -808,6 +809,16 @@ public class Frame extends Window implements MenuContainer {
         synchronized (getTreeLock()) {
             if (isDisplayable()) {
                 throw new IllegalComponentStateException("The frame is displayable.");
+            }
+            if (!undecorated) {
+                //XXX: this needs to be documented in a further release,
+                //or better: we may throw an exception here.
+                if (!AWTAccessor.getWindowAccessor().isOpaque(this)) {
+                    AWTAccessor.getWindowAccessor().setOpaque(this, true);
+                }
+                if (AWTAccessor.getWindowAccessor().getShape(this) != null) {
+                    AWTAccessor.getWindowAccessor().setShape(this, null);
+                }
             }
             this.undecorated = undecorated;
         }

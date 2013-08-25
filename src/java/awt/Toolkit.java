@@ -1,5 +1,5 @@
 /*
- * @(#)Toolkit.java	1.221 06/04/07
+ * @(#)Toolkit.java	1.222 07/09/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,19 +7,18 @@
 
 package java.awt;
 
+import java.beans.PropertyChangeEvent;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.awt.event.*;
 import java.awt.peer.*;
-import java.awt.*;
 import java.awt.im.InputMethodHighlight;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.awt.image.ColorModel;
 import java.awt.datatransfer.Clipboard;
-import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
 import java.awt.dnd.DragGestureRecognizer;
 import java.awt.dnd.DragGestureEvent;
@@ -27,25 +26,24 @@ import java.awt.dnd.DragGestureListener;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.dnd.peer.DragSourceContextPeer;
 import java.net.URL;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import java.util.EventListener;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.WeakHashMap;
-import java.util.List;
 import java.util.ArrayList;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import sun.awt.AppContext;
 
 import sun.awt.DebugHelper;
 import sun.awt.HeadlessToolkit;
 import sun.awt.NullComponentPeer;
+import sun.awt.PeerEvent;
+import sun.awt.SunToolkit;
 import sun.security.util.SecurityConstants;
 
 import sun.util.CoreResourceBundleControl;
@@ -101,7 +99,7 @@ import sun.util.CoreResourceBundleControl;
  * @author	Fred Ecks
  * @since       JDK1.0
  */
-public abstract class  Toolkit {
+public abstract class Toolkit {
 
     /**
      * Creates this toolkit's implementation of the <code>Desktop</code>
@@ -1806,10 +1804,7 @@ public abstract class  Toolkit {
      * @param	pcl The property change listener
      * @since	1.2
      */
-    public synchronized void addPropertyChangeListener(String name, PropertyChangeListener pcl) {
-	if (pcl == null) {
-	    return;
-	}
+    public void addPropertyChangeListener(String name, PropertyChangeListener pcl) {
 	desktopPropsSupport.addPropertyChangeListener(name, pcl);
     }
 
@@ -1822,10 +1817,7 @@ public abstract class  Toolkit {
      * @param	pcl The property change listener
      * @since	1.2
      */
-    public synchronized void removePropertyChangeListener(String name, PropertyChangeListener pcl) {
-	if (pcl == null) {
-	    return;
-	}
+    public void removePropertyChangeListener(String name, PropertyChangeListener pcl) {
 	desktopPropsSupport.removePropertyChangeListener(name, pcl);
     }
 
@@ -1853,13 +1845,14 @@ public abstract class  Toolkit {
      *         been added
      * @since 1.4
      */
-    public synchronized PropertyChangeListener[] getPropertyChangeListeners(String propertyName) {
+    public PropertyChangeListener[] getPropertyChangeListeners(String propertyName) {
         return desktopPropsSupport.getPropertyChangeListeners(propertyName);
     }
 
-    protected final Map<String,Object> desktopProperties
-	= new HashMap<String,Object>();
-    protected final PropertyChangeSupport desktopPropsSupport = new PropertyChangeSupport(this);
+    protected final Map<String,Object> desktopProperties =
+            new HashMap<String,Object>();
+    protected final PropertyChangeSupport desktopPropsSupport =
+            Toolkit.createPropertyChangeSupport(this);
 
     /**
      * Returns whether the always-on-top mode is supported by this toolkit.
@@ -2379,5 +2372,127 @@ public abstract class  Toolkit {
 	mapInputMethodHighlight(InputMethodHighlight highlight)
 	throws HeadlessException;
 
-}
+    private static PropertyChangeSupport createPropertyChangeSupport(Toolkit toolkit) {
+        if (toolkit instanceof SunToolkit || toolkit instanceof HeadlessToolkit) {
+            return new DesktopPropertyChangeSupport(toolkit);
+        } else {
+            return new PropertyChangeSupport(toolkit);
+        }
+    }
 
+    private static class DesktopPropertyChangeSupport extends PropertyChangeSupport {
+        private static final StringBuilder PROP_CHANGE_SUPPORT_KEY =
+                new StringBuilder("desktop property change support key");
+        private final Object source;
+
+        public DesktopPropertyChangeSupport(Object sourceBean) {
+            super(sourceBean);
+            source = sourceBean;
+        }
+
+        @Override
+        public synchronized void addPropertyChangeListener(
+                String propertyName,
+                PropertyChangeListener listener)
+        {
+            PropertyChangeSupport pcs = (PropertyChangeSupport)
+                    AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+            if (null == pcs) {
+                pcs = new PropertyChangeSupport(source);
+                AppContext.getAppContext().put(PROP_CHANGE_SUPPORT_KEY, pcs);
+            }
+            pcs.addPropertyChangeListener(propertyName, listener);
+        }
+
+        @Override
+        public synchronized void removePropertyChangeListener(
+                String propertyName,
+                PropertyChangeListener listener)
+        {
+            PropertyChangeSupport pcs = (PropertyChangeSupport)
+                    AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+            if (null != pcs) {
+                pcs.removePropertyChangeListener(propertyName, listener);
+            }
+        }
+
+        @Override
+        public synchronized PropertyChangeListener[] getPropertyChangeListeners()
+        {
+            PropertyChangeSupport pcs = (PropertyChangeSupport)
+                    AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+            if (null != pcs) {
+                return pcs.getPropertyChangeListeners();
+            } else {
+                return new PropertyChangeListener[0];
+            }
+        }
+
+        @Override
+        public synchronized PropertyChangeListener[] getPropertyChangeListeners(String propertyName)
+        {
+            PropertyChangeSupport pcs = (PropertyChangeSupport)
+                    AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+            if (null != pcs) {
+                return pcs.getPropertyChangeListeners(propertyName);
+            } else {
+                return new PropertyChangeListener[0];
+            }
+        }
+
+        @Override
+        public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
+            PropertyChangeSupport pcs = (PropertyChangeSupport)
+                    AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+            if (null == pcs) {
+                pcs = new PropertyChangeSupport(source);
+                AppContext.getAppContext().put(PROP_CHANGE_SUPPORT_KEY, pcs);
+            }
+            pcs.addPropertyChangeListener(listener);
+        }
+
+        @Override
+        public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
+            PropertyChangeSupport pcs = (PropertyChangeSupport)
+                    AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+            if (null != pcs) {
+                pcs.removePropertyChangeListener(listener);
+            }
+        }
+
+        /*
+         * we do expect that all other fireXXX() methods of java.beans.PropertyChangeSupport
+         * use this method.  If this will be changed we will need to change this class.
+         */
+        @Override
+        public void firePropertyChange(final PropertyChangeEvent evt) {
+            Object oldValue = evt.getOldValue();
+            Object newValue = evt.getNewValue();
+            String propertyName = evt.getPropertyName();
+            if (oldValue != null && newValue != null && oldValue.equals(newValue)) {
+                return;
+            }
+            Runnable updater = new Runnable() {
+                public void run() {
+                    PropertyChangeSupport pcs = (PropertyChangeSupport)
+                            AppContext.getAppContext().get(PROP_CHANGE_SUPPORT_KEY);
+                    if (null != pcs) {
+                        pcs.firePropertyChange(evt);
+                    }
+                }
+            };
+            final AppContext currentAppContext = AppContext.getAppContext();
+            for (AppContext appContext : AppContext.getAppContexts()) {
+                if (null == appContext || appContext.isDisposed()) {
+                    continue;
+                }
+                if (currentAppContext == appContext) {
+                    updater.run();
+                } else {
+                    final PeerEvent e = new PeerEvent(source, updater, PeerEvent.ULTIMATE_PRIORITY_EVENT);
+                    SunToolkit.postEvent(appContext, e);
+                }
+            }
+        }
+    }
+}

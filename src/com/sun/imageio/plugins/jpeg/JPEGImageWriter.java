@@ -756,13 +756,13 @@ public class JPEGImageWriter extends ImageWriter {
                             }
                             break;
                         case ColorSpace.TYPE_3CLR:
-                            if (cs == JPEG.YCC) {
+                            if (cs == JPEG.JCS.YCC) {
                                 if (!alpha) {
                                     if (jfif != null) {
                                         convertTosRGB = true;
                                         convertOp = 
                                         new ColorConvertOp(cs, 
-                                                           JPEG.sRGB, 
+                                                           JPEG.JCS.sRGB, 
                                                            null);
                                         outCsType = JPEG.JCS_YCbCr;
                                     } else if (adobe != null) {
@@ -1402,7 +1402,7 @@ public class JPEGImageWriter extends ImageWriter {
                 }
                 break;
             case ColorSpace.TYPE_3CLR:
-                if (cs == JPEG.YCC) {
+                if (cs == JPEG.JCS.YCC) {
                     if (alpha) {
                         retval = JPEG.JCS_YCCA;
                     } else {
@@ -1441,7 +1441,7 @@ public class JPEGImageWriter extends ImageWriter {
                 }
                 break;
             case ColorSpace.TYPE_3CLR:
-                if (cs == JPEG.YCC) {
+                if (cs == JPEG.JCS.YCC) {
                     if (alpha) {
                         retval = JPEG.JCS_YCCA;
                     } else {
@@ -1487,7 +1487,7 @@ public class JPEGImageWriter extends ImageWriter {
                 }
                 break;
             case ColorSpace.TYPE_3CLR:
-                if (cs == JPEG.YCC) {
+                if (cs == JPEG.JCS.YCC) {
                     if (alpha) {
                         retval = JPEG.JCS_YCCA;
                     } else {

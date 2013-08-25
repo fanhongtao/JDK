@@ -1,5 +1,5 @@
 /*
- * @(#)XmlSupport.java	1.10 05/11/17
+ * @(#)XmlSupport.java	1.12 08/04/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ import org.w3c.dom.*;
  * nodes and subtrees.
  *
  * @author  Josh Bloch and Mark Reinhold
- * @version 1.10, 11/17/05
+ * @version 1.12, 04/23/08
  * @see     Preferences
  * @since   1.4
  */
@@ -244,7 +244,12 @@ class XmlSupport {
     {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
-            tf.setAttribute("indent-number", new Integer(2));
+            try {
+                tf.setAttribute("indent-number", new Integer(2));
+            } catch (IllegalArgumentException iae) {
+                //Ignore. "indent-number" is an implementation specific
+	        //output, it's OKay if it is not emitted to the doc.
+            }
             Transformer t = tf.newTransformer();
             t.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doc.getDoctype().getSystemId());
             t.setOutputProperty(OutputKeys.INDENT, "yes");

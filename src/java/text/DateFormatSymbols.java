@@ -1,5 +1,5 @@
 /*
- * @(#)DateFormatSymbols.java	1.48 06/04/25
+ * @(#)DateFormatSymbols.java	1.49 07/12/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -80,7 +80,7 @@ import sun.util.resources.LocaleData;
  * @see          DateFormat
  * @see          SimpleDateFormat
  * @see          java.util.SimpleTimeZone
- * @version      1.48 04/25/06
+ * @version      1.49 12/19/07
  * @author       Chen-Lieh Huang
  */
 public class DateFormatSymbols implements Serializable, Cloneable {
@@ -302,7 +302,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @return the era strings.
      */
     public String[] getEras() {
-        return duplicate(eras);
+        return Arrays.copyOf(eras, eras.length);
     }
 
     /**
@@ -310,7 +310,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @param newEras the new era strings.
      */
     public void setEras(String[] newEras) {
-        eras = duplicate(newEras);
+        eras = Arrays.copyOf(newEras, newEras.length);
     }
 
     /**
@@ -318,7 +318,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @return the month strings.
      */
     public String[] getMonths() {
-        return duplicate(months);
+        return Arrays.copyOf(months, months.length);
     }
 
     /**
@@ -326,7 +326,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @param newMonths the new month strings.
      */
     public void setMonths(String[] newMonths) {
-        months = duplicate(newMonths);
+        months = Arrays.copyOf(newMonths, newMonths.length);
     }
 
     /**
@@ -334,7 +334,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @return the short month strings.
      */
     public String[] getShortMonths() {
-        return duplicate(shortMonths);
+        return Arrays.copyOf(shortMonths, shortMonths.length);
     }
 
     /**
@@ -342,7 +342,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @param newShortMonths the new short month strings.
      */
     public void setShortMonths(String[] newShortMonths) {
-        shortMonths = duplicate(newShortMonths);
+        shortMonths = Arrays.copyOf(newShortMonths, newShortMonths.length);
     }
 
     /**
@@ -351,7 +351,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * <code>Calendar.MONDAY</code>, etc. to index the result array.
      */
     public String[] getWeekdays() {
-        return duplicate(weekdays);
+        return Arrays.copyOf(weekdays, weekdays.length);
     }
 
     /**
@@ -361,7 +361,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * <code>Calendar.MONDAY</code>, etc.
      */
     public void setWeekdays(String[] newWeekdays) {
-        weekdays = duplicate(newWeekdays);
+        weekdays = Arrays.copyOf(newWeekdays, newWeekdays.length);
     }
 
     /**
@@ -370,7 +370,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * <code>Calendar.MONDAY</code>, etc. to index the result array.
      */
     public String[] getShortWeekdays() {
-        return duplicate(shortWeekdays);
+        return Arrays.copyOf(shortWeekdays, shortWeekdays.length);
     }
 
     /**
@@ -380,7 +380,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * <code>Calendar.MONDAY</code>, etc.
      */
     public void setShortWeekdays(String[] newShortWeekdays) {
-        shortWeekdays = duplicate(newShortWeekdays);
+        shortWeekdays = Arrays.copyOf(newShortWeekdays, newShortWeekdays.length);
     }
 
     /**
@@ -388,7 +388,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @return the ampm strings.
      */
     public String[] getAmPmStrings() {
-        return duplicate(ampms);
+        return Arrays.copyOf(ampms, ampms.length);
     }
 
     /**
@@ -396,7 +396,7 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * @param newAmpms the new ampm strings.
      */
     public void setAmPmStrings(String[] newAmpms) {
-        ampms = duplicate(newAmpms);
+        ampms = Arrays.copyOf(newAmpms, newAmpms.length);
     }
 
     /**
@@ -473,10 +473,11 @@ public class DateFormatSymbols implements Serializable, Cloneable {
     public void setZoneStrings(String[][] newZoneStrings) {
         String[][] aCopy = new String[newZoneStrings.length][];
         for (int i = 0; i < newZoneStrings.length; ++i) {
-	    if (newZoneStrings[i].length < 5) {
+	    int len = newZoneStrings[i].length;
+	    if (len < 5) {
 	        throw new IllegalArgumentException();
 	    }
-            aCopy[i] = duplicate(newZoneStrings[i]);
+            aCopy[i] = Arrays.copyOf(newZoneStrings[i], len);
 	}
         zoneStrings = aCopy;
 	isZoneStringsSet = true;
@@ -565,20 +566,20 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * cache if necessary.
      */
     private static ResourceBundle cacheLookup(Locale desiredLocale) {
-    ResourceBundle rb;
-    SoftReference data
-        = (SoftReference)cachedLocaleData.get(desiredLocale);
-    if (data == null) {
-        rb = LocaleData.getDateFormatData(desiredLocale);
-        data = new SoftReference(rb);
-        cachedLocaleData.put(desiredLocale, data);
-    } else {
-        if ((rb = (ResourceBundle)data.get()) == null) {
-        rb = LocaleData.getDateFormatData(desiredLocale);
-        data = new SoftReference(rb);
-        }
-    }
-    return rb;
+	ResourceBundle rb;
+	SoftReference data
+	    = (SoftReference)cachedLocaleData.get(desiredLocale);
+	if (data == null) {
+	    rb = LocaleData.getDateFormatData(desiredLocale);
+	    data = new SoftReference(rb);
+	    cachedLocaleData.put(desiredLocale, data);
+	} else {
+	    if ((rb = (ResourceBundle)data.get()) == null) {
+		rb = LocaleData.getDateFormatData(desiredLocale);
+		data = new SoftReference(rb);
+	    }
+	}
+	return rb;
     }
 
     private void initializeData(Locale desiredLocale) {
@@ -617,12 +618,12 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      * the given time zone ID can't be located in the DateFormatSymbols object.
      * @see java.util.SimpleTimeZone
      */
-    final int getZoneIndex (String ID)
+    final int getZoneIndex(String ID)
     {
         String[][] zoneStrings = getZoneStringsWrapper();
         for (int index=0; index<zoneStrings.length; index++)
         {
-            if (ID.equalsIgnoreCase(zoneStrings[index][0])) return index;
+            if (ID.equals(zoneStrings[index][0])) return index;
         }
 
         return -1;
@@ -646,32 +647,20 @@ public class DateFormatSymbols implements Serializable, Cloneable {
             zoneStrings = TimeZoneNameUtility.getZoneStrings(locale);
         }
 
-        if (needsCopy) {
-            String[][] aCopy = new String[zoneStrings.length][];
-            for (int i = 0; i < zoneStrings.length; ++i) {
-                aCopy[i] = duplicate(zoneStrings[i]);
-            }
-            return aCopy;
-        } else {
+        if (!needsCopy) {
             return zoneStrings;
-        }
+	}
+
+	int len = zoneStrings.length;
+	String[][] aCopy = new String[len][];
+	for (int i = 0; i < len; i++) {
+	    aCopy[i] = Arrays.copyOf(zoneStrings[i], zoneStrings[i].length);
+	}
+	return aCopy;
     }
 
     private final boolean isSubclassObject() {
         return !getClass().getName().equals("java.text.DateFormatSymbols");
-    }
-
-    /**
-     * Clones an array of Strings.
-     * @param srcArray the source array to be cloned.
-     * @param count the number of elements in the given source array.
-     * @return a cloned array.
-     */
-    private final String[] duplicate(String[] srcArray)
-    {
-        String[] dstArray = new String[srcArray.length];
-        System.arraycopy(srcArray, 0, dstArray, 0, srcArray.length);
-        return dstArray;
     }
 
     /**
@@ -682,38 +671,18 @@ public class DateFormatSymbols implements Serializable, Cloneable {
      */
     private final void copyMembers(DateFormatSymbols src, DateFormatSymbols dst)
     {
-        dst.eras = duplicate(src.eras);
-        dst.months = duplicate(src.months);
-        dst.shortMonths = duplicate(src.shortMonths);
-        dst.weekdays = duplicate(src.weekdays);
-        dst.shortWeekdays = duplicate(src.shortWeekdays);
-        dst.ampms = duplicate(src.ampms);
+        dst.eras = Arrays.copyOf(src.eras, src.eras.length);
+        dst.months = Arrays.copyOf(src.months, src.months.length);
+        dst.shortMonths = Arrays.copyOf(src.shortMonths, src.shortMonths.length);
+        dst.weekdays = Arrays.copyOf(src.weekdays, src.weekdays.length);
+        dst.shortWeekdays = Arrays.copyOf(src.shortWeekdays, src.shortWeekdays.length);
+        dst.ampms = Arrays.copyOf(src.ampms, src.ampms.length);
         if (src.zoneStrings != null) {
-            if (dst.zoneStrings == null) {
-                dst.zoneStrings = new String[src.zoneStrings.length][];
-            }
-            for (int i = 0; i < dst.zoneStrings.length; ++i) {
-                dst.zoneStrings[i] = duplicate(src.zoneStrings[i]);
-            }
+	    dst.zoneStrings = src.getZoneStringsImpl(true);
         } else {
             dst.zoneStrings = null;
         }
         dst.localPatternChars = new String (src.localPatternChars);
-    }
-
-    /**
-     * Compares the equality of the two arrays of String.
-     * @param current this String array.
-     * @param other that String array.
-     */
-    private final boolean equals(String[] current, String[] other)
-    {
-        int count = current.length;
-
-        for (int i = 0; i < count; ++i)
-            if (!current[i].equals(other[i]))
-                return false;
-        return true;
     }
 
     /**

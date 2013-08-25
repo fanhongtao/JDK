@@ -37,6 +37,8 @@
 
 <li><a href="#endorsed">Java 签名标准覆盖机制</a></li>
 
+<li><a href="#javadb">Java DB</a></li>
+
 <li><a href="#webpages">Web 页</a></li>
   </ul>
 
@@ -289,6 +291,20 @@ Java<sup><font size="-2">TM</font></sup> Runtime Environment (JRE<sup><font size
 <dd>Java Web Start</dd>
 
 <dt><code>db/</code></dt>
+<dd>
+Java DB，它是 Sun Microsystems 的 Apache Derby 数据库技术的分发。
+默认安装位置为：
+
+<ul>
+<li>Solaris：<code>/opt/SUNWjavadb</code></li>
+
+<li>Linux：<code>/opt/sun/javadb</code></li>
+
+<li>Windows：<code>C:\Program Files\Sun\JavaDB</code></li>
+</ul>有关 Java DB 和 Derby 的信息（包括用户
+和 API 文档、Java DB 的功能以及更多资源），
+请参见上述目录中的 index.html 文件。
+</dd>
 
 <dd>Java<sup><font size="-2">TM</font></sup>DB，Sun Microsystems 的 Apache Derby 数据库技术分发。</dd>
 
@@ -314,7 +330,7 @@ Java<sup><font size="-2">TM</font></sup> Runtime Environment (JRE<sup><font size
   <blockquote>
 下面列出了有限几组 JDK 文件和目录，供应商在再分发 Java<sup><font size=
     "-2">TM</font></sup> Runtime Environment (JRE<sup><font size=
-    "-2">TM</font></sup>) 时，可能会将这些文件和目录随附其中。这些文件不能单独再分发，而必须随 JRE 一起分发。所有路径都是相对 JDK 的顶层目录而言的。对于任何已包含的可执行文件，应包含相应的手册页（包含下面列出的以 <code>bin/</code> 开头的路径，适用于 Solaris<sup><font size="-2">TM</font></sup> 操作系统和 Linux）。
+    "-2">TM</font></sup>) 时，可能会将这些文件和目录随附其中。不能单独对它们进行再分发，而必须随相同版本的 JRE 一起分发。所有路径都是相对 JDK 的顶层目录而言的。对于任何已包含的可执行文件，应包含相应的手册页（包含下面列出的以 <code>bin/</code> 开头的路径，适用于 Solaris<sup><font size="-2">TM</font></sup> 操作系统和 Linux）。
   </blockquote>
 
   <dl>
@@ -338,12 +354,45 @@ Java<sup><font size="-2">TM</font></sup> Runtime Environment (JRE<sup><font size
 <dd><code>bin/javac</code> [Solaris<sup><font size="-2">TM</font></sup> 操作系统和 Linux]<br> <code>bin/sparcv9/javac</code> [Solaris<sup><font size="-2">TM</font></sup> 操作系统（SPARC(R) 平台版）]<br> <code>bin/amd64/javac</code> [Solaris<sup><font size="-2">TM</font></sup> 操作系统 (AMD)]<br> <code>bin/javac.exe</code> [Microsoft Windows]<br> <code>lib/tools.jar</code> [所有平台]</dd>
 
 <dt>注释处理工具由下列文件组成：</dt>
-
+<dd><code>lib/tools.jar</code> [所有平台]<br>
 <dd><code>bin/apt</code> [Solaris<sup><font size="-2">TM</font></sup> 操作系统和 Linux]<br> <code>bin/sparcv9/apt</code> [Solaris<sup><font size="-2">TM</font></sup> 操作系统（SPARC(R) 平台版）]<br> <code>bin/amd64/apt</code> [Solaris<sup><font size="-2">TM</font></sup> 操作系统 (AMD)]<br> <code>bin/apt.exe</code> [Microsoft Windows]</dd>
 
 <dt><code>lib/jconsole.jar</code></dt>
 
-<dd>Jconsole 应用程序。</dd>
+<dd>Jconsole 应用程序。注意：</dd>
+Jconsole 应用程序要求使用动态连接机制。</dd>
+
+<dt>动态连接机制由下列文件组成：</dt>
+
+<dd><code>lib/tools.jar</code> [所有平台]<br>
+<code>jre/lib/sparc/libattach.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统（SPARC(R) 平台版）和 Linux]
+<br>
+<code>jre/lib/sparcv9/libattach.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统（SPARC(R) 平台版）和 Linux]
+<br>
+<code>jre/lib/i386/libattach.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统 (x86) 和 Linux]<br>
+<code>jre/lib/amd64/libattach.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统 (AMD) 和 Linux]
+<code>jre\bin\attach.dll</code> [Microsoft Windows]<br></dd>
+
+<dt>Java 平台调试器体系结构实现由
+在上述动态连接部分中显示的文件和
+下列文件组成：</dt>
+
+<dd><code>lib/tools.jar</code> [所有平台]<br>
+<code>lib/sa-jdi.jar</code> [所有平台]<br>
+<code>jre/lib/sparc/libsaproc.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统（SPARC(R) 平台版）和 Linux]
+<br>
+<code>jre/lib/sparcv9/libsaproc.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统（SPARC(R) 平台版）和 Linux]
+<br>
+<code>jre/lib/i386/libsaproc.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统 (x86) 和 Linux]<br>
+<code>jre/lib/amd64/libsaproc.so</code> [Solaris<sup><font size=
+"-2">TM</font></sup> 操作系统 (AMD) 和 Linux]<br></dd>
 
 <dt><code>jre\bin\server\</code></dt>
 
@@ -397,6 +446,27 @@ Java<sup><font size="-2">TM</font></sup> Runtime Environment (JRE<sup><font size
 <a href=
     "http://java.sun.com/javase/6/docs/technotes/guides/standards/">http://java.sun.com/javase/6/docs/technotes/guides/standards/</a>
   </blockquote>
+  
+  <h2><a name="javadb" id="javadb"></a>Java DB</h2>
+  
+  <blockquote>
+  分发包 Java DB，它是 Sun Microsystems 
+  的 Apache Derby 纯 Java 数据库技术的分发。
+  默认安装位置为：
+  
+  <ul>
+  <li>Solaris: <code>/opt/SUNWjavadb</code></li>
+  
+  <li>Linux: <code>/opt/sun/javadb</code></li>
+  
+  <li>Windows: <code>C:\Program Files\Sun\JavaDB</code></li>
+  </ul>
+  
+  <p>有关 Java DB 和 Derby 的信息（包括用户和 API 文档、Java DB 
+  的功能以及更多资源），
+  请参见上述目录中的 index.html 文件。</p>
+  </blockquote>
+  
 
 <h2><a name="webpages" id="webpages"></a>Web 页</h2>
 
@@ -431,5 +501,7 @@ Java<sup><font size="-2">TM</font></sup> Runtime Environment (JRE<sup><font size
   <hr>
 
 <p><font size="2">Java<sup><font size="-2">TM</font></sup> Development Kit (JDK<sup><font size="-2">TM</font></sup>) 是 Sun Microsystems<sup><font size="-2">TM</font></sup>, Inc. 的产品。<br> <br> 版权所有 (C) 2008 Sun Microsystems, Inc.<br> 4150 Network Circle, Santa Clara, California 95054, U.S.A.<br> 保留所有权利。</font></p>
+<script type="text/javascript" language="JavaScript" src="/js/omi/jsc/s_code_remote.js">
+</script>
 </body>
 </html>

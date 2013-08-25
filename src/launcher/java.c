@@ -1,7 +1,7 @@
 /*
- * @(#)java.c	1.138 06/04/14
+ * @(#)java.c	1.139 08/04/08
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006-2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -454,8 +454,12 @@ JavaMain(void * _args)
 	}
 	mainClass = LoadClass(env, classname);
 	if(mainClass == NULL) { /* exception occured */
+            const char * format = "Could not find the main class: %s. Program will exit.";
 	    ReportExceptionDescription(env);
-	    message = "Could not find the main class.  Program will exit.";
+            message = (char *)JLI_MemAlloc((strlen(format) + 
+					    strlen(classname)) * sizeof(char) );
+            messageDest = JNI_TRUE;
+            sprintf(message, format, classname);
 	    goto leave;
 	}
 	(*env)->ReleaseStringUTFChars(env, mainClassName, classname);
@@ -476,8 +480,12 @@ JavaMain(void * _args)
       }
       mainClass = LoadClass(env, classname);
       if(mainClass == NULL) { /* exception occured */
+        const char * format = "Could not find the main class: %s.  Program will exit.";
 	ReportExceptionDescription(env);
-	message = "Could not find the main class. Program will exit.";
+        message = (char *)JLI_MemAlloc((strlen(format) +
+					strlen(classname)) * sizeof(char) );
+        messageDest = JNI_TRUE;
+        sprintf(message, format, classname);
 	goto leave;
       }
       (*env)->ReleaseStringUTFChars(env, mainClassName, classname);

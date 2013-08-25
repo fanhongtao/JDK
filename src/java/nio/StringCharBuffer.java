@@ -1,5 +1,5 @@
 /*
- * @(#)StringCharBuffer.java	1.19 05/11/17
+ * @(#)StringCharBuffer.java	1.20 08/08/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,16 +42,9 @@ class StringCharBuffer					// package-private
 	str = s;
     }
 
-    private StringCharBuffer(CharSequence s, int mark,
-			     int pos, int limit, int cap)
-    {
-	super(mark, pos, limit, cap);
-	str = s;
-    }
-
     public CharBuffer duplicate() {
 	return new StringCharBuffer(str, markValue(),
-				    position(), limit(), capacity());
+				    position(), limit(), capacity(), offset);
     }
 
     public CharBuffer asReadOnlyBuffer() {
@@ -59,11 +52,11 @@ class StringCharBuffer					// package-private
     }
 
     public final char get() {
-	return str.charAt(nextGetIndex());
+	return str.charAt(nextGetIndex() + offset);
     }
 
     public final char get(int index) {
-	return str.charAt(checkIndex(index));
+	return str.charAt(checkIndex(index) + offset);
     }
 
     // ## Override bulk get methods for better performance
@@ -85,15 +78,16 @@ class StringCharBuffer					// package-private
     }
 
     final String toString(int start, int end) {
-	return str.toString().substring(start, end);
+	return str.toString().substring(start + offset, end + offset);
     }
 
     public final CharSequence subSequence(int start, int end) {
 	try {
 	    int pos = position();
-	    return new StringCharBuffer(str,
+	    return new StringCharBuffer(str, -1,
 					pos + checkIndex(start, pos),
-					pos + checkIndex(end, pos));
+					pos + checkIndex(end, pos),
+                                        remaining(), offset);
 	} catch (IllegalArgumentException x) {
 	    throw new IndexOutOfBoundsException();
 	}

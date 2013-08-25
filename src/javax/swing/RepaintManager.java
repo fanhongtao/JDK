@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.70 06/10/17
+ * @(#)RepaintManager.java	1.75 08/08/14
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,18 +9,20 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.peer.ComponentPeer;
-import java.awt.peer.ContainerPeer;
-import java.awt.image.VolatileImage;
+import java.awt.image.*;
 import java.security.AccessController;
 import java.util.*;
 import java.applet.*;
 
+import sun.awt.AWTAccessor;
 import sun.awt.AppContext;
 import sun.awt.DisplayChangedListener;
 import sun.awt.SunToolkit;
 import sun.java2d.SunGraphicsEnvironment;
 import sun.security.action.GetPropertyAction;
+
+import com.sun.awt.AWTUtilities;
+import com.sun.java.swing.SwingUtilities3;
 
 
 /**
@@ -34,7 +36,7 @@ import sun.security.action.GetPropertyAction;
  * Any calls to <code>repaint</code> on one of these will call into the
  * appropriate <code>addDirtyRegion</code> method.
  *
- * @version 1.70 10/17/06
+ * @version 1.75 08/14/08
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -282,6 +284,11 @@ public class RepaintManager
      */
     public synchronized void addInvalidComponent(JComponent invalidComponent) 
     {
+        RepaintManager delegate = getDelegate(invalidComponent);
+        if (delegate != null) {
+            delegate.addInvalidComponent(invalidComponent);
+            return;
+        }
         Component validateRoot = null;
 
 	/* Find the first JComponent ancestor of this component whose
@@ -353,6 +360,11 @@ public class RepaintManager
      * @see #addInvalidComponent
      */
     public synchronized void removeInvalidComponent(JComponent component) {
+        RepaintManager delegate = getDelegate(component);
+        if (delegate != null) {
+            delegate.removeInvalidComponent(component);
+            return;
+        }
         if(invalidComponents != null) {
             int index = invalidComponents.indexOf(component);
             if(index != -1) {
@@ -445,6 +457,11 @@ public class RepaintManager
      */
     public void addDirtyRegion(JComponent c, int x, int y, int w, int h) 
     {
+        RepaintManager delegate = getDelegate(c);
+        if (delegate != null) {
+            delegate.addDirtyRegion(c, x, y, w, h);
+            return;
+        }
         addDirtyRegion0(c, x, y, w, h);
     }
 
@@ -571,6 +588,10 @@ public class RepaintManager
      *  dirty.
      */
     public Rectangle getDirtyRegion(JComponent aComponent) {
+        RepaintManager delegate = getDelegate(aComponent);
+        if (delegate != null) {
+            return delegate.getDirtyRegion(aComponent);
+        }
 	Rectangle r = null;
 	synchronized(this) {
 	    r = (Rectangle)dirtyComponents.get(aComponent);
@@ -586,6 +607,11 @@ public class RepaintManager
      * completely painted during the next paintDirtyRegions() call.
      */
     public void markCompletelyDirty(JComponent aComponent) {
+        RepaintManager delegate = getDelegate(aComponent);
+        if (delegate != null) {
+            delegate.markCompletelyDirty(aComponent);
+            return;
+        }
 	addDirtyRegion(aComponent,0,0,Integer.MAX_VALUE,Integer.MAX_VALUE);
     }
 	    
@@ -594,6 +620,11 @@ public class RepaintManager
      * get painted during the next paintDirtyRegions() call.
      */
     public void markCompletelyClean(JComponent aComponent) {
+        RepaintManager delegate = getDelegate(aComponent);
+        if (delegate != null) {
+            delegate.markCompletelyClean(aComponent);
+            return;
+        }
 	synchronized(this) {
 		dirtyComponents.remove(aComponent);
 	}
@@ -606,6 +637,10 @@ public class RepaintManager
      * if it return true.
      */
     public boolean isCompletelyDirty(JComponent aComponent) {
+        RepaintManager delegate = getDelegate(aComponent);
+        if (delegate != null) {
+            return delegate.isCompletelyDirty(aComponent);
+        }
 	Rectangle r;
 	
 	r = getDirtyRegion(aComponent);
@@ -679,6 +714,47 @@ public class RepaintManager
         paintDirtyRegions(tmpDirtyComponents);
     }
 
+    private Map<Component,Rectangle>
+        updateWindows(Map<Component,Rectangle> dirtyComponents)
+    {
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+
+        if (!AWTUtilities.isTranslucencySupported(
+                AWTUtilities.Translucency.PERPIXEL_TRANSLUCENT) ||
+                !(toolkit instanceof SunToolkit &&
+                    ((SunToolkit)toolkit).needUpdateWindow()))
+        {
+            return dirtyComponents;
+        }
+
+        Set<Window> windows = new HashSet<Window>();
+        Set<Component> dirtyComps = dirtyComponents.keySet();
+        for (Iterator<Component> it = dirtyComps.iterator(); it.hasNext();) {
+            Component dirty = it.next();
+            Window window = dirty instanceof Window ?
+                (Window)dirty :
+                SwingUtilities.getWindowAncestor(dirty);
+
+            if (window != null &&
+                !AWTAccessor.getWindowAccessor().isOpaque(window))
+            {
+                // if this component's toplevel is perpixel translucent, it will
+                // be repainted below
+                it.remove();
+                // add to the set of windows to update (so that we don't update
+                // the window many times for each component to be repainted that
+                // belongs to this window)
+                windows.add(window);
+            }
+        }
+
+        for (Window window : windows) {
+            AWTAccessor.getWindowAccessor().updateWindow(window, null);
+        }
+
+        return dirtyComponents;
+    }
+
     private void paintDirtyRegions(Map<Component,Rectangle>
                                    tmpDirtyComponents){
         int i, count;
@@ -697,7 +773,11 @@ public class RepaintManager
         int localBoundsW = 0;	
         Enumeration keys;
 
-        roots = new ArrayList<Component>(count);
+        // the components belonging to perpixel-translucent windows will be
+        // removed from the list
+        tmpDirtyComponents = updateWindows(tmpDirtyComponents);
+
+        roots = new ArrayList<Component>(tmpDirtyComponents.size());
 
         for (Component dirty : tmpDirtyComponents.keySet()) {
             collectDirtyComponents(tmpDirtyComponents, dirty, roots);
@@ -753,7 +833,7 @@ public class RepaintManager
         } finally {
             painting = false;
         }
-	tmpDirtyComponents.clear();
+        tmpDirtyComponents.clear();
     }
 
 
@@ -883,6 +963,10 @@ public class RepaintManager
      * repaint manager.
      */
     public Image getOffscreenBuffer(Component c,int proposedWidth,int proposedHeight) {
+        RepaintManager delegate = getDelegate(c);
+        if (delegate != null) {
+            return delegate.getOffscreenBuffer(c, proposedWidth, proposedHeight);
+        }
 	return _getOffscreenBuffer(c, proposedWidth, proposedHeight);
     }
 
@@ -900,6 +984,11 @@ public class RepaintManager
    */
     public Image getVolatileOffscreenBuffer(Component c, 
 					    int proposedWidth,int proposedHeight) {
+        RepaintManager delegate = getDelegate(c);
+        if (delegate != null) {
+            return delegate.getVolatileOffscreenBuffer(c, proposedWidth, 
+                                                        proposedHeight);
+        }
         GraphicsConfiguration config = c.getGraphicsConfiguration();
         if (config == null) {
             config = GraphicsEnvironment.getLocalGraphicsEnvironment().
@@ -1242,10 +1331,11 @@ public class RepaintManager
         if (paintManager == null) {
             PaintManager paintManager = null;
             if (doubleBufferingEnabled && !nativeDoubleBuffering) {
+                Toolkit toolkit = Toolkit.getDefaultToolkit();
                 switch (bufferStrategyType) {
                 case BUFFER_STRATEGY_NOT_SPECIFIED:
-                    if (((SunToolkit)Toolkit.getDefaultToolkit()).
-                                                useBufferPerWindow()) {
+                    if (toolkit instanceof SunToolkit && 
+                            ((SunToolkit)toolkit).useBufferPerWindow()) {
                         paintManager = new BufferStrategyPaintManager();
                     }
                     break;
@@ -1482,5 +1572,12 @@ public class RepaintManager
         public void run() {
             RepaintManager.currentManager((JComponent)null).displayChanged();
         }
+    }
+    private RepaintManager getDelegate(Component c) {
+        RepaintManager delegate = SwingUtilities3.getDelegateRepaintManager(c);
+        if (this == delegate) {
+            delegate = null;
+        } 
+        return delegate;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextUI.java	1.120 06/08/25
+ * @(#)BasicTextUI.java	1.121 07/12/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,13 +9,10 @@ package javax.swing.plaf.basic;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.*;
 import java.awt.datatransfer.*;
-import java.awt.dnd.*;
 import java.awt.im.InputContext;
 import java.beans.*;
 import java.io.*;
-import java.net.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.text.*;
@@ -83,7 +80,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  *
  * @author Timothy Prinzing
  * @author Shannon Hickey (drag and drop)
- * @version 1.120 08/25/06
+ * @version 1.121 12/03/07
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -768,11 +765,15 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             installDefaults();
             installDefaults2();
 
-            // common case is background painted... this can
-            // easily be changed by subclasses or from outside
-            // of the component.
-            LookAndFeel.installProperty(editor, "opaque", Boolean.TRUE);
-            LookAndFeel.installProperty(editor, "autoscrolls", Boolean.TRUE);
+            // This is a workaround as these should not override what synth has
+            // set them to
+            if (!(this instanceof sun.swing.plaf.synth.SynthUI)){
+                // common case is background painted... this can
+                // easily be changed by subclasses or from outside
+                // of the component.
+                LookAndFeel.installProperty(editor, "opaque", Boolean.TRUE);
+                LookAndFeel.installProperty(editor, "autoscrolls", Boolean.TRUE);
+            }
 
             // attach to the model and editor
             editor.addPropertyChangeListener(updateHandler);

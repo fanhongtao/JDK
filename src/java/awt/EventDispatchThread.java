@@ -1,5 +1,5 @@
 /*
- * @(#)EventDispatchThread.java	1.60 05/11/17
+ * @(#)EventDispatchThread.java	1.62 08/05/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,6 +21,7 @@ import sun.awt.SunToolkit;
 import java.util.Vector;
 
 import sun.awt.dnd.SunDragSourceContextPeer;
+import sun.awt.EventQueueDelegate;
 
 /**
  * EventDispatchThread is a package-private AWT class which takes
@@ -39,7 +40,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.60, 11/17/05
+ * @version 1.62, 05/28/08
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -222,29 +223,20 @@ class EventDispatchThread extends Thread {
         }
     }
 
-    static boolean checkMouseEventForModalJInternalFrame(MouseEvent me, Component modalComp) {
-        // Check if the MouseEvent is targeted to the HW parent of the
-        // LW component, if so, then return true. The job of distinguishing
-        // between the LW components is done by the LW dispatcher.
-        if (Component.isInstanceOf(modalComp, "javax.swing.JInternalFrame")) {
-            Container c;
-            synchronized (modalComp.getTreeLock()) {
-                c = ((Container)modalComp).getHeavyweightContainer();
-            }
-            if (me.getSource() == c) 
-                return true;
-        }
-        return false;
-    }
-
     boolean pumpOneEventForFilters(int id) {
         try {
             AWTEvent event;
             boolean eventOK;
+            EventQueueDelegate.Delegate delegate =
+                EventQueueDelegate.getDelegate();
             do {
-                event = (id == ANY_EVENT)
-                    ? theQueue.getNextEvent()
-                    : theQueue.getNextEvent(id);
+                if (delegate != null && id == ANY_EVENT) {
+                    event = delegate.getNextEvent(theQueue);
+                } else {
+                    event = (id == ANY_EVENT)
+                        ? theQueue.getNextEvent()
+                        : theQueue.getNextEvent(id);
+                }
 
                 eventOK = true;
                 synchronized (eventFilters) {
@@ -270,7 +262,14 @@ class EventDispatchThread extends Thread {
                 dbg.println("Dispatching: "+event);
             }
 
+            Object handle = null;
+            if (delegate != null) {
+                handle = delegate.beforeDispatch(event);
+            }
             theQueue.dispatchEvent(event);
+            if (delegate != null) {
+                delegate.afterDispatch(event, handle);
+            }
             return true;
         }
         catch (ThreadDeath death) {
@@ -408,20 +407,28 @@ class EventDispatchThread extends Thread {
         }
         public FilterAction acceptEvent(AWTEvent event) {
             if (modalComponent != null) {
+                int eventID = event.getID();
+                boolean mouseEvent = (eventID >= MouseEvent.MOUSE_FIRST) &&
+                                     (eventID <= MouseEvent.MOUSE_LAST);
+                boolean actionEvent = (eventID >= ActionEvent.ACTION_FIRST) &&
+                                      (eventID <= ActionEvent.ACTION_LAST);
+                boolean windowClosingEvent = (eventID == WindowEvent.WINDOW_CLOSING);
                 /*
                  * filter out MouseEvent and ActionEvent that's outside
                  * the modalComponent hierarchy.
                  * KeyEvent is handled by using enqueueKeyEvent
                  * in Dialog.show
                  */
-                int eventID = event.getID();
-                if (((eventID >= MouseEvent.MOUSE_FIRST &&
-                      eventID <= MouseEvent.MOUSE_LAST) &&
-                     !(checkMouseEventForModalJInternalFrame((MouseEvent)event, modalComponent))) || 
-                    (eventID >= ActionEvent.ACTION_FIRST &&
-                     eventID <= ActionEvent.ACTION_LAST) ||
-                    eventID == WindowEvent.WINDOW_CLOSING)
-                {
+                 if (Component.isInstanceOf(modalComponent, "javax.swing.JInternalFrame")) {
+                     /*
+                      * Modal internal frames are handled separately. If event is
+                      * for some component from another heavyweight than modalComp,
+                      * it is accepted. If heavyweight is the same - we still accept
+                      * event and perform further filtering in LightweightDispatcher
+                      */
+		     return windowClosingEvent ? FilterAction.REJECT : FilterAction.ACCEPT; 
+                }
+                if (mouseEvent || actionEvent || windowClosingEvent) { 
                     Object o = event.getSource();
                     if (o instanceof sun.awt.ModalExclude) {
                         // Exclude this object from modality and

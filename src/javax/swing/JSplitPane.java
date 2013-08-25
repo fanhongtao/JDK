@@ -1,5 +1,5 @@
 /*
- * @(#)JSplitPane.java	1.79 06/08/08
+ * @(#)JSplitPane.java	1.80 08/01/28
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -78,7 +78,7 @@ import java.io.IOException;
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.79 08/08/06
+ * @version 1.80 01/28/08
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible
@@ -229,7 +229,8 @@ public class JSplitPane extends JComponent implements Accessible
      * layout, using two buttons for the components.
      */
     public JSplitPane() {
-        this(JSplitPane.HORIZONTAL_SPLIT, false,
+        this(JSplitPane.HORIZONTAL_SPLIT,
+            UIManager.getBoolean("SplitPane.continuousLayout"),
             new JButton(UIManager.getString("SplitPane.leftButtonText")),
             new JButton(UIManager.getString("SplitPane.rightButtonText")));
     }
@@ -245,7 +246,8 @@ public class JSplitPane extends JComponent implements Accessible
      *		is not one of HORIZONTAL_SPLIT or VERTICAL_SPLIT.
      */
     public JSplitPane(int newOrientation) {
-        this(newOrientation, false);
+        this(newOrientation,
+            UIManager.getBoolean("SplitPane.continuousLayout"));
     }
 
 
@@ -289,7 +291,9 @@ public class JSplitPane extends JComponent implements Accessible
     public JSplitPane(int newOrientation,
                       Component newLeftComponent,
                       Component newRightComponent){
-        this(newOrientation, false, newLeftComponent, newRightComponent);
+        this(newOrientation,
+            UIManager.getBoolean("SplitPane.continuousLayout"),
+            newLeftComponent, newRightComponent);
     }
 
 

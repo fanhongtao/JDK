@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.235 07/01/27
+ * @(#)Font.java	1.236 08/04/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -693,7 +693,7 @@ public class Font implements java.io.Serializable
                                 EBIDI_EMBEDDING, EJUSTIFICATION, 
                                 EINPUT_METHOD_HIGHLIGHT, EINPUT_METHOD_UNDERLINE,
                                 ESWAP_COLORS, ENUMERIC_SHAPING, EKERNING,
-                                ELIGATURES, ETRACKING);
+                                ELIGATURES, ETRACKING, ESUPERSCRIPT);
 
     private static final int EXTRA_MASK = 
             AttributeValues.getMask(ETRANSFORM, ESUPERSCRIPT, EWIDTH);

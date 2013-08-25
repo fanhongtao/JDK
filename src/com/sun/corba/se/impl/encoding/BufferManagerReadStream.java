@@ -1,5 +1,5 @@
 /*
- * @(#)BufferManagerReadStream.java	1.14 05/11/17
+ * @(#)BufferManagerReadStream.java	1.15 08/01/10
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,6 +26,7 @@ public class BufferManagerReadStream
     // We should convert endOfStream to a final static dummy end node
     private boolean endOfStream = true;
     private BufferQueue fragmentQueue = new BufferQueue();
+    private long FRAGMENT_TIMEOUT = 60000;
 
     // REVISIT - This should go in BufferManagerRead. But, since
     //           BufferManagerRead is an interface. BufferManagerRead
@@ -93,9 +94,16 @@ public class BufferManagerReadStream
 		    throw wrapper.endOfStream() ;
                 }
 
+                boolean interrupted = false;
                 try {
-                    fragmentQueue.wait();
-                } catch (InterruptedException e) {}
+                    fragmentQueue.wait(FRAGMENT_TIMEOUT);
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                }
+
+                if (!interrupted && fragmentQueue.size() == 0) {
+                    throw wrapper.bufferReadManagerTimeout();
+                }
 
                 if (receivedCancel) {
                     throw new RequestCanceledException(cancelReqId);

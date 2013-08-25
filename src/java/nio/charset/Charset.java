@@ -1,7 +1,7 @@
 /*
- * @(#)Charset.java	1.53 06/06/28
+ * @(#)Charset.java	1.54 08/04/07
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -228,7 +228,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.53, 06/06/28
+ * @version 1.54, 08/04/07
  * @since 1.4
  *
  * @see CharsetDecoder
@@ -243,19 +243,18 @@ public abstract class Charset
 
     /* -- Static methods -- */
 
-    private static String bugLevel = null;
+    private static volatile String bugLevel = null;
 
-    static boolean atBugLevel(String bl) {		// package-private
-	if (bugLevel == null) {
-	    if (!sun.misc.VM.isBooted())
-		return false;
-	    java.security.PrivilegedAction pa =
-		new GetPropertyAction("sun.nio.cs.bugLevel");
-	    bugLevel = (String)AccessController.doPrivileged(pa);
-	    if (bugLevel == null)
-		bugLevel = "";
-	}
-	return (bugLevel != null) && bugLevel.equals(bl);
+    static boolean atBugLevel(String bl) {              // package-private
+        if (bugLevel == null) {
+            if (!sun.misc.VM.isBooted())
+                return false;
+            java.security.PrivilegedAction pa =
+                new GetPropertyAction("sun.nio.cs.bugLevel");
+            String value = (String)AccessController.doPrivileged(pa);
+            bugLevel = (value != null) ? value : "";
+        }
+        return bugLevel.equals(bl);
     }
 
     /**

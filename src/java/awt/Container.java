@@ -1,7 +1,7 @@
 /*
- * @(#)Container.java	1.286 06/07/27
+ * @(#)Container.java	1.293 08/05/28
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -32,9 +32,7 @@ import java.awt.event.WindowListener;
 import java.awt.event.WindowEvent;
 import java.awt.dnd.DropTarget;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
-import java.util.Iterator;
 import java.util.Arrays;
 import javax.accessibility.*;
 import java.beans.PropertyChangeListener;
@@ -62,7 +60,7 @@ import sun.awt.CausedFocusEvent;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version 	1.286, 07/27/06
+ * @version 	1.293, 05/28/08
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -72,21 +70,14 @@ import sun.awt.CausedFocusEvent;
  */
 public class Container extends Component {
 
-    /**
-     * The number of components in this container.
-     * This value can be null.
-     * @see #getComponent
-     * @see #getComponents
-     * @see #getComponentCount
-     */
-    int ncomponents;
+    private static final Component[] EMPTY_ARRAY = new Component[0];
 
     /** 
      * The components in this container.
      * @see #add
      * @see #getComponents
      */
-    Component component[] = new Component[0];
+    private java.util.List<Component> component = new java.util.ArrayList<Component>();
 
     /** 
      * Layout manager for this container.
@@ -157,6 +148,9 @@ public class Container extends Component {
     transient int listeningChildren;
     transient int listeningBoundsChildren;
     transient int descendantsCount;
+
+    /* Non-opaque window support -- see Window.setLayersOpaque */
+    transient Color preserveBackgroundColor = null;
 
     /**
      * JDK 1.1 serialVersionUID 
@@ -265,7 +259,9 @@ public class Container extends Component {
      */
     @Deprecated
     public int countComponents() {
-	return ncomponents;
+        synchronized (getTreeLock()) {
+            return component.size();
+        }
     }
 
     /** 
@@ -277,10 +273,10 @@ public class Container extends Component {
      */
     public Component getComponent(int n) {
 	synchronized (getTreeLock()) {
-	    if ((n < 0) || (n >= ncomponents)) {
+            if ((n < 0) || (n >= component.size())) {
 		throw new ArrayIndexOutOfBoundsException("No such child: " + n);
 	    }
-	    return component[n];
+            return component.get(n);
 	}
     }
 
@@ -297,7 +293,7 @@ public class Container extends Component {
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
     final Component[] getComponents_NoClientCode() {
 	synchronized (getTreeLock()) {
-            return Arrays.copyOf(component, ncomponents);
+            return component.toArray(EMPTY_ARRAY);
 	}
     } // getComponents_NoClientCode()
 
@@ -402,6 +398,29 @@ public class Container extends Component {
         }
     }
     /**
+     * Checks that the component 
+     * isn't supposed to be added into itself.
+     */
+    private void checkAddToSelf(Component comp){
+        if (comp instanceof Container) {
+            for (Container cn = this; cn != null; cn=cn.parent) {
+                if (cn == comp) {
+                    throw new IllegalArgumentException("adding container's parent to itself");
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks that the component is not a Window instance.
+     */
+    private void checkNotAWindow(Component comp){
+        if (comp instanceof Window) {
+            throw new IllegalArgumentException("adding a window to a container");
+        }
+    }
+
+    /**
      * Checks that the component comp can be added to this container
      * Checks :  index in bounds of container's size,
      * comp is not one of this container's parents,
@@ -417,26 +436,18 @@ public class Container extends Component {
 
         GraphicsConfiguration thisGC = getGraphicsConfiguration();
 
-        if (index > ncomponents || index < 0) {
+        if (index > component.size() || index < 0) {
             throw new IllegalArgumentException("illegal component position");
         }
         if (comp.parent == this) {
-            if (index == ncomponents) {
+            if (index == component.size()) {
                 throw new IllegalArgumentException("illegal component position " + 
-                                                   index + " should be less then " + ncomponents);
+                                                   index + " should be less then " + component.size());
             }
         }
-        if (comp instanceof Container) {
-            for (Container cn = this; cn != null; cn=cn.parent) {
-                if (cn == comp) {
-                    throw new IllegalArgumentException("adding container's parent to itself");
-                }
-            }
+        checkAddToSelf(comp);
+        checkNotAWindow(comp);
 
-            if (comp instanceof Window) {
-                throw new IllegalArgumentException("adding a window to a container");
-            }
-        }
         Window thisTopLevel = getContainingWindow();
         Window compTopLevel = comp.getContainingWindow();
         if (thisTopLevel != compTopLevel) {
@@ -473,25 +484,19 @@ public class Container extends Component {
             adjustDescendants(-(comp.countHierarchyMembers()));
 
             comp.parent = null;
-            System.arraycopy(component, index + 1,
-                             component, index,
-                             ncomponents - index - 1);
-            component[--ncomponents] = null;
+            component.remove(index);
 
             if (valid) {
                 invalidate();
             }
         } else {
-            if (newIndex > index) { // 2->4: 012345 -> 013425, 2->5: 012345 -> 013452
-                if (newIndex-index > 0) {
-                    System.arraycopy(component, index+1, component, index, newIndex-index);
-                }
-            } else { // 4->2: 012345 -> 014235
-                if (index-newIndex > 0) {
-                    System.arraycopy(component, newIndex, component, newIndex+1, index-newIndex);
-                }
-            }
-            component[newIndex] = comp;
+            // According to the rules below we should remove component and then
+            // add it by the newIndex without newIndex decrement if even we shift components to the left
+            // after remove.
+            // 2->4: 012345 -> 013425, 2->5: 012345 -> 013452
+            // 4->2: 012345 -> 014235
+            component.remove(index);
+            component.add(newIndex, comp);
         }
         if (comp.parent == null) { // was actually removed
             if (containerListener != null ||
@@ -677,7 +682,7 @@ public class Container extends Component {
              if (curParent != null) {
                  curParent.removeDelicately(comp, this, index);
              }
-             
+
              addDelicately(comp, curParent, index);
          }
     }
@@ -736,17 +741,11 @@ public class Container extends Component {
 
         // Check if moving between containers
         if (curParent != this) {
-            /* Add component to list; allocate new array if necessary. */
-            if (ncomponents == component.length) {
-                component = Arrays.copyOf(component, ncomponents * 2 + 1);
-            }
-            if (index == -1 || index == ncomponents) {
-                component[ncomponents++] = comp;
+            //index == -1 means add to the end.
+            if (index == -1) {
+                component.add(comp);
             } else {
-                System.arraycopy(component, index, component,
-                                 index + 1, ncomponents - index);
-                component[index] = comp;
-                ncomponents++;
+                component.add(index, comp);
             }
             comp.parent = this;
 
@@ -756,8 +755,8 @@ public class Container extends Component {
                                     comp.numListening(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK));
             adjustDescendants(comp.countHierarchyMembers());
         } else {
-            if (index < ncomponents) {
-                component[index] = comp;
+            if (index < component.size()) {
+                component.set(index, comp);
             }
         }
 
@@ -866,14 +865,8 @@ public class Container extends Component {
             if (comp.parent != this) {
                 return -1;
             }
-            for (int i = 0; i < ncomponents; i++) {
-                if (component[i] == comp) {
-                    return i;
-                }
-            }            
+            return component.indexOf(comp);
         }
-        // To please javac
-        return -1;
     }
 
     /**
@@ -1007,22 +1000,12 @@ public class Container extends Component {
 	     */
 	    GraphicsConfiguration thisGC = this.getGraphicsConfiguration();
 
-	    if (index > ncomponents || (index < 0 && index != -1)) {
+            if (index > component.size() || (index < 0 && index != -1)) {
 		throw new IllegalArgumentException(
 			  "illegal component position");
 	    }
-        if (comp instanceof Container) {
-            for (Container cn = this; cn != null; cn=cn.parent) {
-                if (cn == comp) {
-                throw new IllegalArgumentException(
-                      "adding container's parent to itself");
-                }
-            }
-            if (comp instanceof Window) {
-                throw new IllegalArgumentException(
-                       "adding a window to a container");
-            }
-        }
+            checkAddToSelf(comp);
+            checkNotAWindow(comp);
         if (thisGC != null) {
             comp.checkGD(thisGC.getDevice().getIDstring());
         }
@@ -1030,22 +1013,16 @@ public class Container extends Component {
 	    /* Reparent the component and tidy up the tree's state. */
 	    if (comp.parent != null) {
 		comp.parent.remove(comp);
-                    if (index > ncomponents) {
+                    if (index > component.size()) {
                         throw new IllegalArgumentException("illegal component position");
                     }
             }
 
-	    /* Add component to list; allocate new array if necessary. */
-	    if (ncomponents == component.length) {
-                component = Arrays.copyOf(component, ncomponents * 2 + 1);
-	    }
-	    if (index == -1 || index == ncomponents) {
-		component[ncomponents++] = comp;
+            //index == -1 means add to the end.
+            if (index == -1) {
+                component.add(comp);
 	    } else {
-		System.arraycopy(component, index, component,
-				 index + 1, ncomponents - index);
-		component[index] = comp;
-		ncomponents++;
+                component.add(index, comp);
 	    }
 	    comp.parent = this;
 
@@ -1094,12 +1071,10 @@ public class Container extends Component {
      * IllegalArgumentException.
      */
     void checkGD(String stringID) {
-        Component tempComp;
-        for (int i = 0; i < component.length; i++) {
-            tempComp= component[i];
-            if (tempComp != null) {
-                tempComp.checkGD(stringID);
-            }	
+        for (Component comp : component) {
+            if (comp != null) {
+                comp.checkGD(stringID);
+            }
         }
     }
 
@@ -1128,10 +1103,10 @@ public class Container extends Component {
      */
     public void remove(int index) {
 	synchronized (getTreeLock()) {
-            if (index < 0  || index >= ncomponents) {
+            if (index < 0  || index >= component.size()) {
                 throw new ArrayIndexOutOfBoundsException(index);
             }
-    	    Component comp = component[index];
+            Component comp = component.get(index);
 	    if (peer != null) {
 		comp.removeNotify();
 	    }
@@ -1146,10 +1121,7 @@ public class Container extends Component {
             adjustDescendants(-(comp.countHierarchyMembers()));
 
 	    comp.parent = null;
-	    System.arraycopy(component, index + 1,
-			     component, index,
-			     ncomponents - index - 1);
-	    component[--ncomponents] = null;
+            component.remove(index);
 
 	    if (valid) {
 		invalidate();
@@ -1194,17 +1166,12 @@ public class Container extends Component {
     public void remove(Component comp) {
 	synchronized (getTreeLock()) {
 	    if (comp.parent == this)  {
-    		/* Search backwards, expect that more recent additions
-		 * are more likely to be removed.
-    	    	 */
-		Component component[] = this.component;
-		for (int i = ncomponents; --i >= 0; ) {
-		    if (component[i] == comp) {
-    	    	    	remove(i);
-		    }
-		}
-	    }
-	}
+                int index = component.indexOf(comp);
+                if (index >= 0) {
+                    remove(index);
+                }
+            }
+        }
     }
 
     /** 
@@ -1223,9 +1190,8 @@ public class Container extends Component {
 		                    -listeningBoundsChildren);
             adjustDescendants(-descendantsCount);
 
-	    while (ncomponents > 0) {
-		Component comp = component[--ncomponents];
-		component[ncomponents] = null;
+            while (!component.isEmpty()) {
+                Component comp = component.remove(component.size()-1);
 
 		if (peer != null) {
 		    comp.removeNotify();
@@ -1265,8 +1231,8 @@ public class Container extends Component {
 	    if (dbg.on) {
 	        // Verify listeningChildren is correct
 	        int sum = 0;
-		for (int i = 0; i < ncomponents; i++) {
-		    sum += component[i].numListening(mask);
+                for (Component comp : component) {
+                    sum += comp.numListening(mask);
 		}
 		dbg.assertion(listeningChildren == sum);
 	    }
@@ -1275,8 +1241,8 @@ public class Container extends Component {
 	    if (dbg.on) {
 	        // Verify listeningBoundsChildren is correct
 	        int sum = 0;
-		for (int i = 0; i < ncomponents; i++) {
-		    sum += component[i].numListening(mask);
+                for (Component comp : component) {
+                    sum += comp.numListening(mask);
 		}
 		dbg.assertion(listeningBoundsChildren == sum);
 	    }
@@ -1332,8 +1298,8 @@ public class Container extends Component {
         if (dbg.on) {
             // Verify descendantsCount is correct
             int sum = 0;
-            for (int i = 0; i < ncomponents; i++) {
-                sum += component[i].countHierarchyMembers();
+            for (Component comp : component) {
+                sum += comp.countHierarchyMembers();
             }
             dbg.assertion(descendantsCount == sum);
         }
@@ -1363,7 +1329,7 @@ public class Container extends Component {
         int listeners = getListenersCount(id, enabledOnToolkit);
 
         for (int count = listeners, i = 0; count > 0; i++) {
-	    count -= component[i].createHierarchyEvents(id, changed,
+            count -= component.get(i).createHierarchyEvents(id, changed,
                 changedParent, changeFlags, enabledOnToolkit);
 	}
 	return listeners + 
@@ -1375,13 +1341,13 @@ public class Container extends Component {
         boolean enabledOnToolkit) 
     {
         assert Thread.holdsLock(getTreeLock());
-        if (ncomponents == 0) {
+        if (component.isEmpty()) {
             return;
         }
         int listeners = getListenersCount(id, enabledOnToolkit);
 
         for (int count = listeners, i = 0; count > 0; i++) {
-            count -= component[i].createHierarchyEvents(id, this, parent,
+            count -= component.get(i).createHierarchyEvents(id, this, parent,
                 changeFlags, enabledOnToolkit);
         }
     }
@@ -1517,17 +1483,16 @@ public class Container extends Component {
 		((ContainerPeer)peer).beginLayout();
 	    }
 	    doLayout();
-            Component component[] = this.component;
-	    for (int i = 0 ; i < ncomponents ; ++i) {
-		Component comp = component[i];
-		if (   (comp instanceof Container) 
-	            && !(comp instanceof Window)
-		    && !comp.valid) {
-		    ((Container)comp).validateTree();
-		} else {
-		    comp.validate();
-		}
-	    }
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (   (comp instanceof Container) 
+                       && !(comp instanceof Window)
+                       && !comp.valid) {
+                    ((Container)comp).validateTree();
+                } else {
+                    comp.validate();
+                }
+            }
 	    if (peer instanceof ContainerPeer) {
 		((ContainerPeer)peer).endLayout();
 	    }
@@ -1541,8 +1506,8 @@ public class Container extends Component {
      */
     void invalidateTree() {
         synchronized (getTreeLock()) {
-	    for (int i = 0; i < ncomponents; ++i) {
-	        Component comp = component[i];
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
 		if (comp instanceof Container) {
 		    ((Container)comp).invalidateTree();
 		}
@@ -1795,7 +1760,7 @@ public class Container extends Component {
 	    // super.paint(); -- Don't bother, since it's a NOP.
 
 	    GraphicsCallback.PaintCallback.getInstance().
-	        runComponents(component, g, GraphicsCallback.LIGHTWEIGHTS);
+                runComponents(component.toArray(EMPTY_ARRAY), g, GraphicsCallback.LIGHTWEIGHTS);
 	}
     }
 
@@ -1850,7 +1815,7 @@ public class Container extends Component {
 	    }
 
 	    GraphicsCallback.PrintCallback.getInstance().
-	        runComponents(component, g, GraphicsCallback.LIGHTWEIGHTS);
+                runComponents(component.toArray(EMPTY_ARRAY), g, GraphicsCallback.LIGHTWEIGHTS);
 	}
     }
 
@@ -1863,7 +1828,7 @@ public class Container extends Component {
     public void paintComponents(Graphics g) {
         if (isShowing()) {
 	    GraphicsCallback.PaintAllCallback.getInstance().
-	        runComponents(component, g, GraphicsCallback.TWO_PASSES);
+                runComponents(component.toArray(EMPTY_ARRAY), g, GraphicsCallback.TWO_PASSES);
 	}
     }
 
@@ -1885,7 +1850,7 @@ public class Container extends Component {
     void paintHeavyweightComponents(Graphics g) {
         if (isShowing()) {
 	    GraphicsCallback.PaintHeavyweightComponentsCallback.getInstance().
-	        runComponents(component, g, GraphicsCallback.LIGHTWEIGHTS |
+                runComponents(component.toArray(EMPTY_ARRAY), g, GraphicsCallback.LIGHTWEIGHTS |
                                             GraphicsCallback.HEAVYWEIGHTS);
 	}
     }
@@ -1899,7 +1864,7 @@ public class Container extends Component {
     public void printComponents(Graphics g) {
         if (isShowing()) {
 	    GraphicsCallback.PrintAllCallback.getInstance().
-	        runComponents(component, g, GraphicsCallback.TWO_PASSES);
+                runComponents(component.toArray(EMPTY_ARRAY), g, GraphicsCallback.TWO_PASSES);
 	}
     }
 
@@ -1921,7 +1886,7 @@ public class Container extends Component {
     void printHeavyweightComponents(Graphics g) {
         if (isShowing()) {
 	    GraphicsCallback.PrintHeavyweightComponentsCallback.getInstance().
-	        runComponents(component, g, GraphicsCallback.LIGHTWEIGHTS |
+                runComponents(component.toArray(EMPTY_ARRAY), g, GraphicsCallback.LIGHTWEIGHTS |
                                             GraphicsCallback.HEAVYWEIGHTS);
 	}
     }
@@ -2216,53 +2181,52 @@ public class Container extends Component {
                                          EventTargetFilter filter,
                                          boolean searchHeavyweightChildren,
                                          boolean searchHeavyweightDescendants) {
-        int ncomponents = this.ncomponents;
-        Component component[] = this.component;
-
-        for (int i = 0 ; i < ncomponents ; i++) {
-            Component comp = component[i];
-            if (comp != null && comp.visible &&
-                ((!searchHeavyweightChildren && 
-                  comp.peer instanceof LightweightPeer) ||
-                 (searchHeavyweightChildren &&
-                  !(comp.peer instanceof LightweightPeer))) &&
-                comp.contains(x - comp.x, y - comp.y)) {
-
-                // found a component that intersects the point, see if there is 
-                // a deeper possibility.
-                if (comp instanceof Container) {
-                    Container child = (Container) comp;
-		    Component deeper = child.getMouseEventTarget(x - child.x,
-                                                                 y - child.y,
-                                                                 includeSelf,
-                                                                 filter,
-                                                                 searchHeavyweightDescendants);
-                    if (deeper != null) {
-                        return deeper;
-                    }
-                } else {
-                    if (filter.accept(comp)) {
-                        // there isn't a deeper target, but this component is a
-                        // target
-                        return comp;
+        synchronized (getTreeLock()) {    
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null && comp.visible &&
+                    ((!searchHeavyweightChildren && 
+                      comp.peer instanceof LightweightPeer) ||
+                     (searchHeavyweightChildren &&
+                      !(comp.peer instanceof LightweightPeer))) &&
+                    comp.contains(x - comp.x, y - comp.y)) {
+                    
+                    // found a component that intersects the point, see if there is 
+                    // a deeper possibility.
+                    if (comp instanceof Container) {
+                        Container child = (Container) comp;
+                        Component deeper = child.getMouseEventTarget(x - child.x,
+                                                                     y - child.y,
+                                                                     includeSelf,
+                                                                     filter,
+                                                                     searchHeavyweightDescendants);
+                        if (deeper != null) {
+                            return deeper;
+                        }
+                    } else {
+                        if (filter.accept(comp)) {
+                            // there isn't a deeper target, but this component is a
+                            // target
+                            return comp;
+                        }
                     }
                 }
             }
+            
+            boolean isPeerOK;
+            boolean	isMouseOverMe;
+            
+            isPeerOK = (peer instanceof LightweightPeer) || includeSelf;
+            isMouseOverMe = contains(x,y);
+            
+            // didn't find a child target, return this component if it's a possible
+            // target
+            if (isMouseOverMe && isPeerOK && filter.accept(this)) {
+                return this;
+            }
+            // no possible target
+            return null;
         }
-	
-        boolean isPeerOK;
-        boolean	isMouseOverMe;
-	
-        isPeerOK = (peer instanceof LightweightPeer) || includeSelf;
-        isMouseOverMe = contains(x,y);
-
-        // didn't find a child target, return this component if it's a possible
-        // target
-        if (isMouseOverMe && isPeerOK && filter.accept(this)) {
-            return this;
-        }
-        // no possible target
-        return null;
     }
 
     static interface EventTargetFilter {
@@ -2369,8 +2333,8 @@ public class Container extends Component {
 	}
 	synchronized (getTreeLock()) {
 	    // Two passes: see comment in sun.awt.SunGraphicsCallback
-	    for (int i = 0 ; i < ncomponents ; i++) {
-	        Component comp = component[i];
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
 		if (comp != null &&
 		    !(comp.peer instanceof LightweightPeer)) {
 		    if (comp.contains(x - comp.x, y - comp.y)) {
@@ -2378,8 +2342,8 @@ public class Container extends Component {
 		    }
 		}
 	    }
-	    for (int i = 0 ; i < ncomponents ; i++) {
-	        Component comp = component[i];
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
 		if (comp != null &&
 		    comp.peer instanceof LightweightPeer) {
 		    if (comp.contains(x - comp.x, y - comp.y)) {
@@ -2498,46 +2462,46 @@ public class Container extends Component {
         if (!(contains(x, y) && visible && (ignoreEnabled || enabled))) {
  	    return null;
 	}
-	int ncomponents = this.ncomponents;
-	Component component[] = this.component;
 
 	// Two passes: see comment in sun.awt.SunGraphicsCallback
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = component[i];
-            if (comp != null &&
-		!(comp.peer instanceof LightweightPeer)) {
-		if (comp instanceof Container) {
-		    comp = ((Container)comp).findComponentAtImpl(x - comp.x,
-							     y - comp.y,
-                                                             ignoreEnabled);
-		} else {
-		    comp = comp.locate(x - comp.x, y - comp.y);
-		}
-		if (comp != null && comp.visible &&
-		    (ignoreEnabled || comp.enabled))
-		{
-		    return comp;
-		}
-	    }
-	}
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = component[i];
-            if (comp != null &&
-		comp.peer instanceof LightweightPeer) {
-		if (comp instanceof Container) {
-		    comp = ((Container)comp).findComponentAtImpl(x - comp.x,
-							     y - comp.y,
-                                                             ignoreEnabled);
-		} else {
-		    comp = comp.locate(x - comp.x, y - comp.y);
-		}
-		if (comp != null && comp.visible &&
-		    (ignoreEnabled || comp.enabled))
-		{
-		    return comp;
-		}
-	    }
-	}
+        synchronized (getTreeLock()) {
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null &&
+                    !(comp.peer instanceof LightweightPeer)) {
+                    if (comp instanceof Container) {
+                        comp = ((Container)comp).findComponentAtImpl(x - comp.x,
+                                                                     y - comp.y,
+                                                                     ignoreEnabled);
+                    } else {
+                        comp = comp.locate(x - comp.x, y - comp.y);
+                    }
+                    if (comp != null && comp.visible &&
+                        (ignoreEnabled || comp.enabled))
+                        {
+                            return comp;
+                        }
+                }
+            }
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null &&
+                    comp.peer instanceof LightweightPeer) {
+                    if (comp instanceof Container) {
+                        comp = ((Container)comp).findComponentAtImpl(x - comp.x,
+                                                                     y - comp.y,
+                                                                     ignoreEnabled);
+                    } else {
+                        comp = comp.locate(x - comp.x, y - comp.y);
+                    }
+                    if (comp != null && comp.visible &&
+                        (ignoreEnabled || comp.enabled))
+                        {
+                            return comp;
+                        }
+                }
+            }
+        }
 	return this;
     }
 
@@ -2586,11 +2550,15 @@ public class Container extends Component {
 	    if (! (peer instanceof LightweightPeer)) {
 	        dispatcher = new LightweightDispatcher(this);
 	    }
-	    int ncomponents = this.ncomponents;
-            Component component[] = this.component;
-	    for (int i = 0 ; i < ncomponents ; i++) {
-	        component[i].addNotify();
-	    }
+            
+            // We shouldn't use iterator because of the Swing menu 
+            // implementation specifics:
+            // the menu is being assigned as a child to JLayeredPane
+            // instead of particular component so always affect 
+            // collection of component if menu is becoming shown or hidden.
+            for (int i = 0; i < component.size(); i++) {
+                component.get(i).addNotify();
+            }
             // Update stacking order if native platform allows
             ContainerPeer cpeer = (ContainerPeer)peer;
             if (cpeer.isRestackSupported()) {
@@ -2612,15 +2580,20 @@ public class Container extends Component {
      */
     public void removeNotify() {
         synchronized (getTreeLock()) {
-	    int ncomponents = this.ncomponents;
-            Component component[] = this.component;
-            for (int i = ncomponents-1 ; i >= 0 ; i--) {
-                if( component[i] != null )
-	        component[i].removeNotify();
-	    }
+            // We shouldn't use iterator because of the Swing menu 
+            // implementation specifics:
+            // the menu is being assigned as a child to JLayeredPane
+            // instead of particular component so always affect 
+            // collection of component if menu is becoming shown or hidden.
+            for (int i = component.size()-1 ; i >= 0 ; i--) {
+                Component comp = component.get(i);
+                if (comp != null) {
+                    comp.removeNotify();
+                }
+            }
 	    if ( dispatcher != null ) {
 		dispatcher.dispose();
-        dispatcher = null;
+                dispatcher = null;
 	    }
 	    super.removeNotify();
         }
@@ -2722,7 +2695,9 @@ public class Container extends Component {
                     postEvent(new PeerEvent(this,
                                 pumpEventsForHierarchy,
                                 PeerEvent.PRIORITY_EVENT));
-                while (windowClosingException == null) {
+                while ((windowClosingException == null) && 
+                       (nativeContainer.modalComp != null)) 
+                { 
                     try {
                         getTreeLock().wait();
                     } catch (InterruptedException e) {
@@ -2807,15 +2782,15 @@ public class Container extends Component {
      * @since    JDK1.0
      */
     public void list(PrintStream out, int indent) {
-	super.list(out, indent);
-	int ncomponents = this.ncomponents;
-        Component component[] = this.component;
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = component[i];
-	    if (comp != null) {
-		comp.list(out, indent+1);
-	    }
-	}
+        super.list(out, indent);
+        synchronized(getTreeLock()) {
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null) {
+                    comp.list(out, indent+1);
+                }
+            }
+        }
     }
 
     /**
@@ -2833,15 +2808,15 @@ public class Container extends Component {
      * @since    JDK1.1
      */
     public void list(PrintWriter out, int indent) {
-	super.list(out, indent);
-	int ncomponents = this.ncomponents;
-        Component component[] = this.component;
-	for (int i = 0 ; i < ncomponents ; i++) {
-	    Component comp = component[i];
-	    if (comp != null) {
-		comp.list(out, indent+1);
-	    }
-	}
+        super.list(out, indent);
+        synchronized(getTreeLock()) {
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null) {
+                    comp.list(out, indent+1);
+                }
+            }
+        }
     }
 
     /**
@@ -3422,9 +3397,11 @@ public class Container extends Component {
      */
     public void applyComponentOrientation(ComponentOrientation o) {
         super.applyComponentOrientation(o);
-        
-        for (int i = 0 ; i < ncomponents ; ++i) {
-             component[i].applyComponentOrientation(o);
+        synchronized (getTreeLock()) {
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                comp.applyComponentOrientation(o);
+            }
         }
     }
     
@@ -3542,8 +3519,8 @@ public class Container extends Component {
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
         ObjectOutputStream.PutField f = s.putFields();
-        f.put("ncomponents", ncomponents);
-        f.put("component", component);
+        f.put("ncomponents", component.size());
+        f.put("component", component.toArray(EMPTY_ARRAY));
         f.put("layoutMgr", layoutMgr);
         f.put("dispatcher", dispatcher);
         f.put("maxSize", maxSize);
@@ -3582,8 +3559,12 @@ public class Container extends Component {
 	throws ClassNotFoundException, IOException
     {
         ObjectInputStream.GetField f = s.readFields();
-        ncomponents = f.get("ncomponents", 0);
-        component = (Component[])f.get("component", new Component[0]);
+        Component [] tmpComponent = (Component[])f.get("component", EMPTY_ARRAY);
+        int ncomponents = (Integer) f.get("ncomponents", 0);
+        component = new java.util.ArrayList<Component>(ncomponents);
+        for (int i = 0; i < ncomponents; ++i) {
+            component.add(tmpComponent[i]);
+        }
         layoutMgr = (LayoutManager)f.get("layoutMgr", null);
         dispatcher = (LightweightDispatcher)f.get("dispatcher", null);
         // Old stream. Doesn't contain maxSize among Component's fields.
@@ -3593,17 +3574,15 @@ public class Container extends Component {
         focusCycleRoot = f.get("focusCycleRoot", false);
         containerSerializedDataVersion = f.get("containerSerializedDataVersion", 1);
         focusTraversalPolicyProvider = f.get("focusTraversalPolicyProvider", false);
-
-	Component component[] = this.component;
-	for(int i = 0; i < ncomponents; i++) {
-	    component[i].parent = this;
-	    adjustListeningChildren(AWTEvent.HIERARCHY_EVENT_MASK, 
-	        component[i].numListening(AWTEvent.HIERARCHY_EVENT_MASK));
-	    adjustListeningChildren(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK,
-                component[i].numListening(
-                    AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK));
-            adjustDescendants(component[i].countHierarchyMembers());
-	}
+        java.util.List<Component> component = this.component;
+        for(Component comp : component) {
+            comp.parent = this;
+            adjustListeningChildren(AWTEvent.HIERARCHY_EVENT_MASK, 
+                                    comp.numListening(AWTEvent.HIERARCHY_EVENT_MASK));
+            adjustListeningChildren(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK,
+                                    comp.numListening(AWTEvent.HIERARCHY_BOUNDS_EVENT_MASK));
+            adjustDescendants(comp.countHierarchyMembers());
+        }
    
 	Object keyOrNull;
 	while(null != (keyOrNull = s.readObject())) {

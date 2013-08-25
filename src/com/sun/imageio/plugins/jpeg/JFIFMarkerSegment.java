@@ -1,5 +1,5 @@
 /*
- * @(#)JFIFMarkerSegment.java	1.10 05/11/17
+ * @(#)JFIFMarkerSegment.java	1.11 07/11/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -985,7 +985,7 @@ class JFIFMarkerSegment extends MarkerSegment {
                                                3,
                                                new int [] {0, 1, 2},
                                                null);
-            ColorModel cm = new ComponentColorModel(JPEG.sRGB,
+            ColorModel cm = new ComponentColorModel(JPEG.JCS.sRGB,
                                                     false,
                                                     false,
                                                     ColorModel.OPAQUE,

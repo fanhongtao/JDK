@@ -1,5 +1,5 @@
 /*
- * @(#)ComponentPeer.java	1.50 05/11/17
+ * @(#)ComponentPeer.java	1.52 08/01/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,8 @@ import java.awt.event.FocusEvent;
 
 import java.awt.dnd.peer.DropTargetPeer;
 import sun.awt.CausedFocusEvent;
+import sun.java2d.pipe.Region;
+
 
 /**
  * The peer interfaces are intended only for use in porting
@@ -71,7 +73,7 @@ public interface ComponentPeer {
     boolean     handlesWheelScrolling();
     void createBuffers(int numBuffers, BufferCapabilities caps) throws AWTException;
     Image getBackBuffer();
-    void flip(BufferCapabilities.FlipContents flipAction);
+    void flip(int x1, int y1, int x2, int y2, BufferCapabilities.FlipContents flipAction);
     void destroyBuffers();
 
     /**
@@ -97,6 +99,11 @@ public interface ComponentPeer {
 
 
         Rectangle getBounds();
+
+    /**
+     * Applies the shape to the native component window.
+     */
+    void applyShape(Region shape);
 
     /**
      * DEPRECATED:  Replaced by getPreferredSize().

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.139 07/06/25
+ * @(#)BasicPopupMenuUI.java	1.141 07/09/21
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import sun.awt.AppContext;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.139 06/25/07
+ * @version 1.141 09/21/07
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -522,13 +522,19 @@ public class BasicPopupMenuUI extends PopupMenuUI {
         private void selectItem(boolean direction) {
             MenuSelectionManager msm = MenuSelectionManager.defaultManager();
             MenuElement path[] = msm.getSelectedPath();
-            if (path.length < 2) {
+            if (path.length == 0) {
                 return;
             }
             int len = path.length;
-
-            if (path[0] instanceof JMenuBar &&
-                path[1] instanceof JMenu && len == 2) {
+            if (len == 1 && path[0] instanceof JPopupMenu) {
+             
+                JPopupMenu popup = (JPopupMenu) path[0];
+                MenuElement[] newPath = new MenuElement[2];
+                newPath[0] = popup;
+                newPath[1] = findEnabledChild(popup.getSubElements(), -1, direction);
+                msm.setSelectedPath(newPath);
+            } else if (len == 2 &&
+                    path[0] instanceof JMenuBar && path[1] instanceof JMenu) {
 
                 // a toplevel menu is selected, but its popup not shown.
                 // Show the popup and select the first item
@@ -770,9 +776,14 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 cancelPopupMenu( );
                 return;
             }
-            switch (ev.getID()) {
+            if (!(ev instanceof MouseEvent)) {
+                // We are interested in MouseEvents only
+                return;
+            }
+            MouseEvent me = (MouseEvent) ev;
+            Component src = me.getComponent();
+            switch (me.getID()) {
             case MouseEvent.MOUSE_PRESSED:
-                Component src = (Component)ev.getSource();
                 if (isInPopup(src) ||
                     (src instanceof JMenu && ((JMenu)src).isSelected())) {
                     return;
@@ -790,13 +801,12 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                         UIManager.getBoolean("PopupMenu.consumeEventOnClose");
                     // Consume the event so that normal processing stops.
                     if(consumeEvent && !(src instanceof MenuElement)) {
-                        ((MouseEvent)ev).consume();
+                        me.consume();
                     }
                 }
                 break;
 
             case MouseEvent.MOUSE_RELEASED:
-                src = (Component)ev.getSource();
                 if(!(src instanceof MenuElement)) {
                     // Do not forward event to MSM, let component handle it
                     if (isInPopup(src)) {
@@ -805,11 +815,10 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                 }
                 if(src instanceof JMenu || !(src instanceof JMenuItem)) {
                     MenuSelectionManager.defaultManager().
-                        processMouseEvent((MouseEvent)ev);
+                        processMouseEvent(me);
                 }
                 break;
             case MouseEvent.MOUSE_DRAGGED:
-                src = (Component)ev.getSource();
                 if(!(src instanceof MenuElement)) {
                     // For the MOUSE_DRAGGED event the src is
                     // the Component in which mouse button was pressed. 
@@ -820,10 +829,10 @@ public class BasicPopupMenuUI extends PopupMenuUI {
                     }
                 }
                 MenuSelectionManager.defaultManager().
-                    processMouseEvent((MouseEvent)ev);
+                    processMouseEvent(me);
                 break;
             case MouseEvent.MOUSE_WHEEL:
-                if (isInPopup((Component)ev.getSource())) {
+                if (isInPopup(src)) {
                     return;
                 }
                 cancelPopupMenu();

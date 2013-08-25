@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultPersistenceDelegate.java	1.21 07/02/21
+ * @(#)DefaultPersistenceDelegate.java	1.22 08/05/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.reflect.misc.*;
  *
  * @since 1.4
  *
- * @version 1.21 02/21/07
+ * @version 1.22 05/16/08
  * @author Philip Milne
  */
 
@@ -324,6 +324,10 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
             // Eventually, this may need to do true differencing.
             String addListenerMethodName = d.getAddListenerMethod().getName();
             for (int i = newL.length; i < oldL.length; i++) {
+                // The BufferStrategyPaintManager adds BufferInfo as a WindowsListener automatically
+                if (oldL[i].getClass().getName().equals("javax.swing.BufferStrategyPaintManager$BufferInfo")) {
+                    continue;
+                }
                 // System.out.println("Adding listener: " + addListenerMethodName + oldL[i]);
                 invokeStatement(oldInstance, addListenerMethodName, new Object[]{oldL[i]}, out);
             }

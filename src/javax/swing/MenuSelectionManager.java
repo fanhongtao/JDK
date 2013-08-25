@@ -1,5 +1,5 @@
 /*
- * @(#)MenuSelectionManager.java	1.41 06/05/04
+ * @(#)MenuSelectionManager.java	1.42 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,8 +15,8 @@ import sun.awt.AppContext;
 
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
- * 
- * @version 1.41 05/04/06
+ *
+ * @version 1.42 05/29/08
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
@@ -201,9 +201,9 @@ public class MenuSelectionManager {
         int selectionSize;
         p = event.getPoint();
 	
-	Component source = (Component)event.getSource();
+        Component source = event.getComponent();
 
-	if (!source.isShowing()) {
+	if ((source != null) && !source.isShowing()) {
 	    // This can happen if a mouseReleased removes the
 	    // containing component -- bug 4146684
 	    return;
@@ -219,7 +219,9 @@ public class MenuSelectionManager {
 	    return;
 	}
 
-        SwingUtilities.convertPointToScreen(p,source);
+        if (source != null) {
+            SwingUtilities.convertPointToScreen(p, source);
+        }
 
         screenX = p.x;
         screenY = p.y;

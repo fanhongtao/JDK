@@ -12,6 +12,7 @@ import java.awt.event.WindowEvent;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
 import java.beans.PropertyChangeListener;
+import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -46,8 +47,13 @@ import sun.awt.CausedFocusEvent;
 public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
     private static final Logger focusLog = Logger.getLogger("java.awt.focus.DefaultKeyboardFocusManager");
 
-    private Window realOppositeWindow;
-    private Component realOppositeComponent;
+    // null weak references to not create too many objects
+    private static final WeakReference<Window> NULL_WINDOW_WR =
+        new WeakReference<Window>(null);
+    private static final WeakReference<Component> NULL_COMPONENT_WR =
+        new WeakReference<Component>(null);
+    private WeakReference<Window> realOppositeWindow = NULL_WINDOW_WR;
+    private WeakReference<Component> realOppositeComponent = NULL_COMPONENT_WR;
     private int inSendMessage;
     private LinkedList enqueuedKeyEvents = new LinkedList(),
         typeAheadMarkers = new LinkedList();
@@ -83,7 +89,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
      * the user attempts to focus a non-focusable Component or Window.
      */
     private void restoreFocus(FocusEvent fe, Window newFocusedWindow) {
-        Component realOppositeComponent = this.realOppositeComponent;
+        Component realOppositeComponent = this.realOppositeComponent.get();
         Component vetoedComponent = fe.getComponent();
 
         if (newFocusedWindow != null && restoreFocus(newFocusedWindow, 
@@ -98,7 +104,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
         }
     }
     private void restoreFocus(WindowEvent we) {
-        Window realOppositeWindow = this.realOppositeWindow;
+        Window realOppositeWindow = this.realOppositeWindow.get();
         if (realOppositeWindow != null && restoreFocus(realOppositeWindow,
                                                        null, false)) {
         } else if (we.getOppositeWindow() != null &&
@@ -356,7 +362,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     }
                 }
 
-                Window realOppositeWindow = this.realOppositeWindow;
+                Window realOppositeWindow = this.realOppositeWindow.get();
                 if (realOppositeWindow != we.getOppositeWindow()) {
                     we = new WindowEvent(newFocusedWindow,
                                          WindowEvent.WINDOW_GAINED_FOCUS,
@@ -493,7 +499,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 
                 setNativeFocusOwner(getHeavyweight(newFocusOwner));
 
-                Component realOppositeComponent = this.realOppositeComponent;
+                Component realOppositeComponent = this.realOppositeComponent.get();
                 if (realOppositeComponent != null &&
                     realOppositeComponent != fe.getOppositeComponent()) {
                     fe = new CausedFocusEvent(newFocusOwner,
@@ -550,7 +556,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                 fe.setSource(currentFocusOwner);
 
                 realOppositeComponent = (fe.getOppositeComponent() != null)
-                    ? currentFocusOwner : null;
+                    ? new WeakReference<Component>(currentFocusOwner)
+                    : NULL_COMPONENT_WR;
 
                 return typeAheadAssertions(currentFocusOwner, fe);
             }
@@ -634,8 +641,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 
                 we.setSource(currentFocusedWindow);
                 realOppositeWindow = (oppositeWindow != null)
-                    ? currentFocusedWindow
-                    : null;
+                    ? new WeakReference<Window>(currentFocusedWindow)
+                    : NULL_WINDOW_WR;
                 typeAheadAssertions(currentFocusedWindow, we);
 
                 if (oppositeWindow == null) {
@@ -1033,6 +1040,11 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     focusNextComponent(focusedComponent);
                 }
                 return;
+		} 
+		else if (e.getID() == KeyEvent.KEY_PRESSED) 
+		{
+		// Fix for 6637607: consumeNextKeyTyped should be reset.
+		consumeNextKeyTyped = false;
             }
 
             toTest = focusedComponent.getFocusTraversalKeys(

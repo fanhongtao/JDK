@@ -1,5 +1,5 @@
 /*
- * @(#)BufferStrategyPaintManager.java	1.12 06/07/18
+ * @(#)BufferStrategyPaintManager.java	1.14 08/04/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,15 +15,19 @@ import java.lang.ref.WeakReference;
 import java.security.AccessController;
 import java.util.*;
 import java.util.logging.*;
+
+import com.sun.java.swing.SwingUtilities3;
+
 import sun.awt.SubRegionShowable;
 import sun.java2d.SunGraphics2D;
 import sun.security.action.GetPropertyAction;
+import sun.java2d.pipe.hw.ExtendedBufferCapabilities;
 
 /**
  * A PaintManager implementation that uses a BufferStrategy for
  * rendering.
  *
- * @version 1.12, 07/18/06
+ * @version 1.14, 04/16/08
  * @author Scott Violet
  */
 class BufferStrategyPaintManager extends RepaintManager.PaintManager {
@@ -55,12 +59,6 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
     //
     private static Method COMPONENT_CREATE_BUFFER_STRATEGY_METHOD;
     private static Method COMPONENT_GET_BUFFER_STRATEGY_METHOD;
-
-    /**
-     * Indicates whether or not we should try and get a flip buffer strategy
-     * first, default is false.
-     */
-    private static boolean TRY_FLIP;
 
     private static final Logger LOGGER = Logger.getLogger(
                            "javax.swing.BufferStrategyPaintManager");
@@ -133,12 +131,6 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
      * paint loop is done.
      */
     private boolean disposeBufferOnEnd;
-
-
-    static {
-        TRY_FLIP = "true".equals(AccessController.doPrivileged(
-              new GetPropertyAction("swing.useFlipBufferStrategy", "false")));
-    }
 
     private static Method getGetBufferStrategyMethod() {
         if (COMPONENT_GET_BUFFER_STRATEGY_METHOD == null) {
@@ -240,13 +232,13 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
         try {
             BufferInfo info = getBufferInfo(c);
             BufferStrategy bufferStrategy;
-            if (info != null && !info.usingFlip && info.isInSync() &&
+            if (info != null && info.isInSync() &&
                 (bufferStrategy = info.getBufferStrategy(false)) != null) {
                 SubRegionShowable bsSubRegion = 
                         (SubRegionShowable)bufferStrategy;
                 boolean paintAllOnExpose = info.getPaintAllOnExpose();
                 info.setPaintAllOnExpose(false);
-                if (bsSubRegion.validateAndShow(x, y, (x + w), (y + h))) {
+                if (bsSubRegion.showIfNotLost(x, y, (x + w), (y + h))) {
                     return !paintAllOnExpose;
                 }
                 // Mark the buffer as needing to be repainted.  We don't
@@ -668,8 +660,6 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
         // same reason.
         private WeakReference<BufferStrategy> weakBS;
         private WeakReference<Container> root;
-        // Whether or not we're using flip bs or blit.
-        private boolean usingFlip;
         // Indicates whether or not the backbuffer and display are in sync.
         // This is set to true when a full repaint on the rootpane is done.
         private boolean inSync;
@@ -747,13 +737,6 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
         }
 
         /**
-         * Returns true if using a flip buffer strategy.
-         */
-        public boolean usingFlip() {
-            return usingFlip;
-        }
-
-        /**
          * Returns true if the buffer strategy of the component differs
          * from current buffer strategy.
          */
@@ -797,23 +780,19 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
          * blit.
          */
         private BufferStrategy createBufferStrategy() {
-	    BufferCapabilities caps;
             Container root = getRoot();
             if (root == null) {
                 return null;
             }
             BufferStrategy bs = null;
-            if (TRY_FLIP) {
-                bs = createBufferStrategy(root,BufferCapabilities.FlipContents.
-                                          COPIED);
-                usingFlip = true;
+            if (SwingUtilities3.isVsyncRequested(root)) {
+                bs = createBufferStrategy(root, true);
                 if (LOGGER.isLoggable(Level.FINER)) {
-                    LOGGER.finer("createBufferStrategy: using flip strategy");
+                    LOGGER.finer("createBufferStrategy: using vsynced strategy");
                 }
             }
             if (bs == null) {
-                bs = createBufferStrategy(root, null);
-                usingFlip = false;
+                bs = createBufferStrategy(root, false);
             }
             if (!(bs instanceof SubRegionShowable)) {
                 // We do this for two reasons:
@@ -826,15 +805,22 @@ class BufferStrategyPaintManager extends RepaintManager.PaintManager {
             return bs;
         }
 
-        // Creates and returns a buffer strategy of the requested type.  If
+        // Creates and returns a buffer strategy.  If
         // there is a problem creating the buffer strategy this will
         // eat the exception and return null.
-        private BufferStrategy createBufferStrategy(Container root,
-                                     BufferCapabilities.FlipContents type) {
-            BufferCapabilities caps = new BufferCapabilities(
-		    new ImageCapabilities(true),
-                    new ImageCapabilities(true),
-                    type);
+        private BufferStrategy createBufferStrategy(Container root, 
+                boolean isVsynced) {
+            BufferCapabilities caps;
+            if (isVsynced) {
+                caps = new ExtendedBufferCapabilities(
+		    new ImageCapabilities(true), new ImageCapabilities(true),
+                    BufferCapabilities.FlipContents.COPIED, 
+                    ExtendedBufferCapabilities.VSyncType.VSYNC_ON);
+            } else {
+                caps = new BufferCapabilities(
+		    new ImageCapabilities(true), new ImageCapabilities(true),
+                    null);
+            }
             BufferStrategy bs = null;
             if (root instanceof Applet) {
                 try {

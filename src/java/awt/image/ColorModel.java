@@ -1,5 +1,5 @@
 /*
- * @(#)ColorModel.java	1.82 06/04/07
+ * @(#)ColorModel.java	1.83 07/11/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1680,15 +1680,15 @@ public abstract class ColorModel implements Transparency{
     static Map lg16Toog16Map = null; // 16-bit linear to 16-bit "other" gray
 
     static boolean isLinearRGBspace(ColorSpace cs) {
-        // Note: CMM.LINEAR_RGBspace will be null if the linear
+        // Note: CMM.CSAccessor.LINEAR_RGBspace will be null if the linear
         // RGB space has not been created yet.
-        return (cs == CMM.LINEAR_RGBspace);
+        return (cs == CMM.CSAccessor.LINEAR_RGBspace);
     }
 
     static boolean isLinearGRAYspace(ColorSpace cs) {
-        // Note: CMM.GRAYspace will be null if the linear
+        // Note: CMM.CSAccessor.GRAYspace will be null if the linear
         // gray space has not been created yet.
-        return (cs == CMM.GRAYspace);
+        return (cs == CMM.CSAccessor.GRAYspace);
     }
 
     static byte[] getLinearRGB8TosRGB8LUT() {

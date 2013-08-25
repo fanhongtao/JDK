@@ -1,5 +1,5 @@
 /*
- * @(#)BasicProgressBarUI.java	1.73 06/04/17
+ * @(#)BasicProgressBarUI.java	1.74 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.swing.DefaultLookup;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.73 04/17/06
+ * @version 1.74 05/29/08
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
@@ -141,8 +141,9 @@ public class BasicProgressBarUI extends ProgressBarUI {
 					 "ProgressBar.foreground",
 					 "ProgressBar.font");
 	cellLength = UIManager.getInt("ProgressBar.cellLength");
-	cellSpacing = UIManager.getInt("ProgressBar.cellSpacing");
-	selectionForeground = UIManager.getColor("ProgressBar.selectionForeground");
+        if (cellLength == 0) cellLength = 1;
+        cellSpacing = UIManager.getInt("ProgressBar.cellSpacing");
+        selectionForeground = UIManager.getColor("ProgressBar.selectionForeground");
 	selectionBackground = UIManager.getColor("ProgressBar.selectionBackground");
     }
     

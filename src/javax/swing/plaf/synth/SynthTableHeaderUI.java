@@ -1,5 +1,5 @@
 /*
- * @(#)SynthTableHeaderUI.java	1.18 06/03/16
+ * @(#)SynthTableHeaderUI.java	1.20 08/02/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,13 +15,14 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.table.*;
 
+import sun.swing.DefaultLookup;
 import sun.swing.plaf.synth.*;
 import sun.swing.table.*;
 
 /**
  * SynthTableHeaderUI implementation
  *
- * @version 1.18, 03/16/06
+ * @version 1.20, 02/04/08
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -143,6 +144,7 @@ class SynthTableHeaderUI extends BasicTableHeaderUI implements
     private class HeaderRenderer extends DefaultTableCellHeaderRenderer {
         HeaderRenderer() {
             setHorizontalAlignment(JLabel.LEADING);
+            setName("TableHeader.renderer");
         }
 
         @Override
@@ -161,24 +163,40 @@ class SynthTableHeaderUI extends BasicTableHeaderUI implements
                 SynthLookAndFeel.resetSelectedUI();
             }
 
+            //stuff a variable into the client property of this renderer indicating the sort order,
+            //so that different rendering can be done for the header based on sorted state.
+            RowSorter rs = table == null ? null : table.getRowSorter();
+            java.util.List<? extends RowSorter.SortKey> sortKeys = rs == null ? null : rs.getSortKeys();
+            if (sortKeys != null && sortKeys.size() > 0 && sortKeys.get(0).getColumn() ==
+                    table.convertColumnIndexToModel(column)) {
+                switch(sortKeys.get(0).getSortOrder()) {
+                    case ASCENDING:
+                        putClientProperty("Table.sortOrder", "ASCENDING");
+                        break;
+                    case DESCENDING:
+                        putClientProperty("Table.sortOrder", "DESCENDING");
+                        break;
+                    case UNSORTED:
+                        putClientProperty("Table.sortOrder", "UNSORTED");
+                        break;
+                    default:
+                        throw new AssertionError("Cannot happen");
+                }
+            } else {
+                putClientProperty("Table.sortOrder", "UNSORTED");
+            }
+
             super.getTableCellRendererComponent(table, value, isSelected,
                                                 hasFocus, row, column);
-
+            
             return this;
         }
 
+        @Override
         public void setBorder(Border border) {
             if (border instanceof SynthBorder) {
                 super.setBorder(border);
             }
-        }
-
-        public String getName() {
-            String name = super.getName();
-            if (name == null) {
-                return "TableHeader.renderer";
-            }
-            return name;
         }
     }
 }

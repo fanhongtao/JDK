@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.32 06/04/07
+ * @(#)DefaultTreeCellEditor.java	1.34 08/01/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,6 @@ import javax.swing.event.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.*;
 import java.io.*;
 import java.util.EventObject;
 import java.util.Vector;
@@ -40,7 +39,7 @@ import java.util.Vector;
  *
  * @see javax.swing.JTree
  *
- * @version 1.32 04/07/06
+ * @version 1.34 01/29/08
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,

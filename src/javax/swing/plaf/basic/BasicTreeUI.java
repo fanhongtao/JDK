@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.196 07/01/08
+ * @(#)BasicTreeUI.java	1.197 07/11/12
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.196 01/08/07
+ * @version 1.197 11/12/07
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */
@@ -2367,11 +2367,19 @@ public class BasicTreeUI extends TreeUI
 
 	if(repaint) {
 	    if(bounds != null)
-		tree.repaint(bounds);
+		tree.repaint(getRepaintPathBounds(bounds));
 	    bounds = getPathBounds(tree, newPath);
 	    if(bounds != null)
-		tree.repaint(bounds);
+		tree.repaint(getRepaintPathBounds(bounds));
 	}
+    }
+
+    private Rectangle getRepaintPathBounds(Rectangle bounds) {
+        if(UIManager.getBoolean("Tree.repaintWholeRow")) {
+           bounds.x = 0;
+           bounds.width = tree.getWidth();
+        }
+        return bounds;
     }
 
     private TreePath getLeadSelectionPath() {
@@ -3610,14 +3618,6 @@ public class BasicTreeUI extends TreeUI
 	public void focusLost(FocusEvent e) {
 	    focusGained(e);
 	}
-
-        private Rectangle getRepaintPathBounds(Rectangle bounds) {
-            if(UIManager.getBoolean("Tree.repaintWholeRow")) {
-               bounds.x = 0;
-               bounds.width = tree.getWidth();
-            }
-            return bounds;
-        }
 
         //
         // CellEditorListener

@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.127 07/06/19
+ * @(#)Dialog.java	1.129 08/08/14
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,7 @@ import javax.accessibility.*;
 import java.util.Vector;
 import java.util.Iterator;
 import sun.awt.AppContext;
+import sun.awt.AWTAccessor;
 import sun.awt.SunToolkit;
 import sun.awt.PeerEvent;
 import java.lang.ref.WeakReference;
@@ -74,7 +75,7 @@ import sun.awt.util.IdentityArrayList;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.127, 06/19/07
+ * @version	1.129, 08/14/08
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -903,6 +904,7 @@ public class Dialog extends Window {
                 if (!isModal()) {
                     checkShouldBeBlocked(this);
                 } else {
+                    modalDialogs.add(this);
                     modalShow();
                 }
 
@@ -1179,14 +1181,13 @@ public class Dialog extends Window {
         isInHide = true;
         if (keepBlocking) {
             synchronized (getTreeLock()) {
-                if (modalDialogs.contains(this)) {
-                    modalHide();
-                    // dialog can be shown and the disposed before its
-                    // modal filter is created
-                    if (modalFilter != null) {
-                        modalFilter.disable();
-                    }
+                modalHide();
+                // dialog can be shown and the disposed before its
+                // modal filter is created
+                if (modalFilter != null) {
+                    modalFilter.disable();
                 }
+		modalDialogs.remove(this);
             }
         }
     }
@@ -1321,6 +1322,16 @@ public class Dialog extends Window {
             if (isDisplayable()) {
                 throw new IllegalComponentStateException("The dialog is displayable.");
             }
+            if (!undecorated) {
+                //XXX: this needs to be documented in a further release,
+                //or better: we may throw an exception here.
+                if (!AWTAccessor.getWindowAccessor().isOpaque(this)) {
+                    AWTAccessor.getWindowAccessor().setOpaque(this, true);
+                }
+                if (AWTAccessor.getWindowAccessor().getShape(this) != null) {
+                    AWTAccessor.getWindowAccessor().setShape(this, null);
+                }
+            }
             this.undecorated = undecorated;
         }
     }
@@ -1374,8 +1385,6 @@ public class Dialog extends Window {
      * the windows from the second group.
      */
     void modalShow() {
-        modalDialogs.add(this);
-
         // find all the dialogs that block this one
         IdentityArrayList<Dialog> blockers = new IdentityArrayList<Dialog>();
         for (Dialog d : modalDialogs) {
@@ -1444,7 +1453,6 @@ public class Dialog extends Window {
      * any other modal dialogs.
      */
     void modalHide() {
-        modalDialogs.remove(this);
         // we should unblock all the windows first...
         IdentityArrayList<Window> save = new IdentityArrayList<Window>();
         int blockedWindowsCount = blockedWindows.size();

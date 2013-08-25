@@ -1,5 +1,5 @@
 /*
- * @(#)HTMLDocument.java	1.180 06/05/10
+ * @(#)HTMLDocument.java	1.181 08/03/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,6 +20,7 @@ import javax.swing.text.*;
 import javax.swing.undo.*;
 import java.text.Bidi;
 import sun.swing.SwingUtilities2;
+import static sun.swing.SwingUtilities2.IMPLIED_CR;
 
 /**
  * A document that models HTML.  The purpose of this model
@@ -79,7 +80,7 @@ import sun.swing.SwingUtilities2;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.180 05/10/06
+ * @version 1.181 03/05/08
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -1423,7 +1424,6 @@ public class HTMLDocument extends DefaultStyledDocument {
     static String MAP_PROPERTY = "__MAP__";
 
     private static char[] NEWLINE;
-    private static final String IMPLIED_CR = "CR";
 
     /**
      * I18N property key.  

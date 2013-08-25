@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGMetadata.java	1.29 05/11/17
+ * @(#)JPEGMetadata.java	1.30 07/11/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -472,7 +472,7 @@ public class JPEGMetadata extends IIOMetadata implements Cloneable {
                 }
                 break;
             case ColorSpace.TYPE_3CLR:
-                if (cs == JPEG.YCC) {
+                if (cs == JPEG.JCS.YCC) {
                     wantJFIF = false;
                     componentIDs[0] = (byte) 'Y';
                     componentIDs[1] = (byte) 'C';

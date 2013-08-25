@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.171 06/07/12
+ * @(#)BasicTabbedPaneUI.java	1.172 08/06/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -352,7 +352,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         tabInsets = UIManager.getInsets("TabbedPane.tabInsets");
         selectedTabPadInsets = UIManager.getInsets("TabbedPane.selectedTabPadInsets");
         tabAreaInsets = UIManager.getInsets("TabbedPane.tabAreaInsets");
-	tabsOverlapBorder = UIManager.getBoolean("TabbedPane.tabsOverlapBorder");
+        tabsOverlapBorder = UIManager.getBoolean("TabbedPane.tabsOverlapBorder");
         contentBorderInsets = UIManager.getInsets("TabbedPane.contentBorderInsets");
         tabRunOverlay = UIManager.getInt("TabbedPane.tabRunOverlay");
         tabsOpaque = UIManager.getBoolean("TabbedPane.tabsOpaque");
@@ -362,6 +362,14 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             opaque = Boolean.FALSE;
         }
         LookAndFeel.installProperty(tabPane, "opaque", opaque);
+
+        // Fix for 6711145 BasicTabbedPanuUI should not throw a NPE if these
+        // keys are missing. So we are setting them to there default values here
+        // if the keys are missing.
+        if (tabInsets == null) tabInsets = new Insets(0,4,1,4);
+        if (selectedTabPadInsets == null) selectedTabPadInsets = new Insets(2,2,2,1);
+        if (tabAreaInsets == null) tabAreaInsets = new Insets(3,2,0,2);
+        if (contentBorderInsets == null) contentBorderInsets = new Insets(2,2,3,3);
     }
 
     protected void uninstallDefaults() {

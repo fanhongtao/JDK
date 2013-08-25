@@ -1,5 +1,5 @@
 /*
- * @(#)Timer.java	4.63 05/12/29
+ * @(#)Timer.java	4.64 08/02/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.ArrayList;
 
 // jmx imports
 //
@@ -62,7 +63,7 @@ import com.sun.jmx.trace.Trace;
  * executions.  See {@link NotificationBroadcasterSupport}.
  * </OL>
  *
- * @version     4.63     12/29/05
+ * @version     4.64     02/26/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -1025,7 +1026,9 @@ public class Timer extends NotificationBroadcasterSupport
         Integer notifID;
         Date date;
 
-	for (Object[] obj : timerTable.values()) {
+	ArrayList<Object[]> values = new ArrayList<Object[]>(timerTable.values());
+		
+	for (Object[] obj : values) {
 
             // Retrieve the timer notification and the date notification.
             //

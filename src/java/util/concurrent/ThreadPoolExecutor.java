@@ -1,5 +1,5 @@
 /*
- * @(#)ThreadPoolExecutor.java	1.19 06/08/07
+ * @(#)ThreadPoolExecutor.java	1.20 07/07/31
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -840,7 +840,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             final ReentrantLock runLock = this.runLock;
             if (runLock.tryLock()) {
                 try {
-                    thread.interrupt();
+		    if (thread != Thread.currentThread())
+			thread.interrupt();
                 } finally {
                     runLock.unlock();
                 }

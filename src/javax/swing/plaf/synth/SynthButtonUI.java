@@ -1,5 +1,5 @@
 /*
- * @(#)SynthButtonUI.java	1.28 06/01/13
+ * @(#)SynthButtonUI.java	1.29 07/11/22
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.swing.plaf.synth.DefaultSynthStyle;
 /**
  * Synth's ButtonUI implementation.
  *
- * @version 1.28, 01/13/06
+ * @version 1.29, 11/22/07
  * @author Scott Violet
  */
 class SynthButtonUI extends BasicButtonUI implements
@@ -430,7 +430,7 @@ class SynthButtonUI extends BasicButtonUI implements
     protected Icon getSizingIcon(AbstractButton b) {
         // NOTE: this is slightly different than BasicButtonUI, where it
         // would just use getIcon, but this should be ok.
-        Icon icon = (b.isEnabled()) ? b.getIcon() : b.getDisabledIcon();
+        Icon icon = (b.isEnabled() || b.getDisabledIcon() == null) ? b.getIcon() : b.getDisabledIcon();
         if (icon == null) {
             icon = getDefaultIcon(b);
         }

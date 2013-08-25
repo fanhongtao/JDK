@@ -1,5 +1,5 @@
 /*
- * @(#)JScrollPane.java	1.110 06/08/08
+ * @(#)JScrollPane.java	1.111 07/12/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,15 +14,12 @@ import javax.accessibility.*;
 
 import java.awt.Component;
 import java.awt.ComponentOrientation;
-import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Insets;
-import java.awt.Color;
 import java.awt.LayoutManager;
 import java.awt.Point;
 
 import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 
 import java.beans.*;
@@ -150,7 +147,7 @@ import java.beans.*;
  *     attribute: containerDelegate getViewport
  *   description: A specialized container that manages a viewport, optional scrollbars and headers
  *
- * @version 1.110 @(#)JScrollPane.java	1.110
+ * @version 1.111 @(#)JScrollPane.java	1.111
  * @author Hans Muller
  */
 public class JScrollPane extends JComponent implements ScrollPaneConstants, Accessible
@@ -286,7 +283,7 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
 	if (view != null) {
 	    setViewportView(view);
 	}
-	setOpaque(true);
+        setUIProperty("opaque",true);
         updateUI();
 
 	if (!this.getComponentOrientation().isLeftToRight()) {

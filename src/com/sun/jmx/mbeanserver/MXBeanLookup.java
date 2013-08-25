@@ -1,6 +1,6 @@
 /*
- * @(#)MXBeanLookup.java	1.12 06/10/16
- * 
+ * @(#)MXBeanLookup.java	1.15 07/09/11
+ *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -12,6 +12,8 @@ import java.util.Map;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.security.AccessController;
+import javax.management.InstanceAlreadyExistsException;
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
@@ -67,7 +69,7 @@ public class MXBeanLookup {
     private MXBeanLookup(MBeanServerConnection mbsc) {
 	this.mbsc = mbsc;
     }
-    
+
     static MXBeanLookup lookupFor(MBeanServerConnection mbsc) {
         synchronized (mbscToLookup) {
             WeakReference<MXBeanLookup> weakLookup = mbscToLookup.get(mbsc);
@@ -79,7 +81,7 @@ public class MXBeanLookup {
             return lookup;
         }
     }
-    
+
     synchronized <T> T objectNameToMXBean(ObjectName name, Class<T> type) {
         WeakReference<Object> wr = objectNameToProxy.get(name);
 	if (wr != null) {
@@ -93,7 +95,7 @@ public class MXBeanLookup {
 	objectNameToProxy.put(name, new WeakReference<Object>(proxy));
 	return proxy;
     }
-    
+
     synchronized ObjectName mxbeanToObjectName(Object mxbean) {
         if (mxbean instanceof Proxy) {
 	    InvocationHandler ih = Proxy.getInvocationHandler(mxbean);
@@ -107,11 +109,21 @@ public class MXBeanLookup {
         } else
             return mxbeanToObjectName.get(mxbean);
     }
-    
-    synchronized void addReference(ObjectName name, Object mxbean) {
+
+    synchronized void addReference(ObjectName name, Object mxbean)
+    throws InstanceAlreadyExistsException {
+        ObjectName existing = mxbeanToObjectName.get(mxbean);
+        if (existing != null) {
+            String multiname = AccessController.doPrivileged(
+                    new GetPropertyAction("jmx.mxbean.multiname"));
+            if (!"true".equalsIgnoreCase(multiname)) {
+                throw new InstanceAlreadyExistsException(
+                        "MXBean already registered with name " + existing);
+            }
+        }
         mxbeanToObjectName.put(mxbean, name);
     }
-    
+
     synchronized boolean removeReference(ObjectName name, Object mxbean) {
         if (name.equals(mxbeanToObjectName.get(mxbean))) {
             mxbeanToObjectName.remove(mxbean);

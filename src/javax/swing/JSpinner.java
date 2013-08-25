@@ -1,5 +1,5 @@
 /*
- * @(#)JSpinner.java	1.52 06/08/08
+ * @(#)JSpinner.java	1.53 07/12/03
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,7 +10,6 @@ package javax.swing;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.plaf.SpinnerUI;
@@ -102,7 +101,7 @@ import javax.accessibility.*;
  * @see SpinnerDateModel
  * @see JFormattedTextField
  * 
- * @version 1.52 08/08/06
+ * @version 1.53 12/03/07
  * @author Hans Muller
  * @author Lynn Monsanto (accessibility)
  * @since 1.4
@@ -131,7 +130,7 @@ public class JSpinner extends JComponent implements Accessible
     public JSpinner(SpinnerModel model) {
 	this.model = model;
 	this.editor = createEditor(model);
-	setOpaque(true);
+        setUIProperty("opaque",true);
         updateUI();
     }
 

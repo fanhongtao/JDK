@@ -1,5 +1,5 @@
 /*
- * @(#)Region.java	1.31 05/11/17
+ * @(#)Region.java	1.32 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ import java.util.*;
  * &lt;bind style="splitPaneStyle" type="region" key="SplitPane"/>
  * </pre>
  *
- * @version 1.31, 11/17/05
+ * @version 1.32, 05/29/08
  * @since 1.5
  * @author Scott Violet
  */
@@ -438,11 +438,7 @@ public class Region {
     }
 
     static void registerUIs(UIDefaults table) {
-        Iterator uis = uiToRegionMap.keySet().iterator();
-
-        while (uis.hasNext()) {
-            Object key = uis.next();
-
+        for (Object key : uiToRegionMap.keySet()) {
             table.put(key, "javax.swing.plaf.synth.SynthLookAndFeel");
         }
     }

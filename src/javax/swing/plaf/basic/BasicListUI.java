@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.124 06/12/07
+ * @(#)BasicListUI.java	1.125 08/06/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.124 12/07/06
+ * @version 1.125 06/06/08
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
@@ -467,6 +467,13 @@ public class BasicListUI extends ListUI
         if (renderer == null) {
             ListCellRenderer lcr = (ListCellRenderer)UIManager.get(
                     "List.cellRenderer");
+
+            // fix for 6711072 some LAFs like Nimbus do not provide this
+            // UIManager key and we should not through a NPE here because of it
+            if (lcr == null) {
+                lcr = new DefaultListCellRenderer();
+            }
+            
             renderer = lcr.getListCellRendererComponent(
                     list, "a", -1, false, false);
             lafDefaults.put(BASELINE_COMPONENT_KEY, renderer);

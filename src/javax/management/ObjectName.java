@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectName.java	1.82 06/06/23
+ * @(#)ObjectName.java	1.83 08/05/21
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1141,9 +1141,18 @@ public class ObjectName implements Comparable<ObjectName>, QueryExp {
 	    //
 	    //in.defaultReadObject();
 	    final ObjectInputStream.GetField fields = in.readFields();
-	    cn = (String)fields.get("domain", "default")+
-		":"+
+	    String propListString =
 		(String)fields.get("propertyListString", "");
+
+	    // 6616825: take care of property patterns
+	    final boolean propPattern =
+	        fields.get("propertyPattern" , false);
+	    if (propPattern) {
+	        propListString =
+	            (propListString.length()==0?"*":(propListString+",*"));
+	    }
+
+	    cn = (String)fields.get("domain", "default") + ":"+ propListString;
 	} else {
 	    // Read an object serialized in the new serial form
 	    //

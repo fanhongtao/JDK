@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.143 07/06/21
+ * @(#)BasicMenuItemUI.java	1.144 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.143 06/21/07
+ * @version 1.144 05/29/08
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -108,6 +108,11 @@ public class BasicMenuItemUI extends MenuItemUI
         String prefix = getPropertyPrefix();
 
         acceleratorFont = UIManager.getFont("MenuItem.acceleratorFont");
+        // use default if missing so that BasicMenuItemUI can be used in other
+        // LAFs like Nimbus
+        if (acceleratorFont == null) {
+            acceleratorFont = UIManager.getFont("MenuItem.font");
+        }
 
         Object opaque = UIManager.get(getPropertyPrefix() + ".opaque");
         if (opaque != null) {
@@ -127,7 +132,7 @@ public class BasicMenuItemUI extends MenuItemUI
         LookAndFeel.installBorder(menuItem, prefix + ".border");
         oldBorderPainted = menuItem.isBorderPainted();
         LookAndFeel.installProperty(menuItem, "borderPainted",
-                                    UIManager.get(prefix + ".borderPainted"));
+                                    UIManager.getBoolean(prefix + ".borderPainted"));
         LookAndFeel.installColorsAndFont(menuItem,
                                          prefix + ".background",
                                          prefix + ".foreground",

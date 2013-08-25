@@ -1,6 +1,6 @@
 /*
- * @(#)OpenConverter.java	1.20 06/06/20
- * 
+ * @(#)OpenConverter.java	1.23 08/07/01
+ *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -109,7 +109,7 @@ public abstract class OpenConverter {
         else
             return fromNonNullOpenValue(lookup, value);
     }
-    
+
     abstract Object fromNonNullOpenValue(MXBeanLookup lookup, Object value)
             throws InvalidObjectException;
 
@@ -127,7 +127,7 @@ public abstract class OpenConverter {
         else
             return toNonNullOpenValue(lookup, value);
     }
-    
+
     abstract Object toNonNullOpenValue(MXBeanLookup lookup, Object value)
             throws OpenDataException;
 
@@ -137,9 +137,6 @@ public abstract class OpenConverter {
 	return false;
     }
 
-    /** <p>True if and only if isIdentity() and even an array of the underlying type
-       is transformed as the identity.  This is true for Integer and
-       ObjectName, for instance, but not for int.</p> */
     final Type getTargetType() {
 	return targetType;
     }
@@ -158,7 +155,7 @@ public abstract class OpenConverter {
     private final Type targetType;
     private final OpenType openType;
     private final Class openClass;
-    
+
     private static final class ConverterMap
         extends WeakHashMap<Type, WeakReference<OpenConverter>> {}
 
@@ -169,6 +166,13 @@ public abstract class OpenConverter {
     private static final List<OpenConverter> permanentConverters = newList();
 
     private static synchronized OpenConverter getConverter(Type type) {
+        // Work around bug 5041784:
+        if (type instanceof GenericArrayType) {
+            Type component = ((GenericArrayType) type).getGenericComponentType();
+            if (component instanceof Class)
+                type = Array.newInstance((Class<?>) component, 0).getClass();
+        }
+
         WeakReference<OpenConverter> wr = converterMap.get(type);
         return (wr == null) ? null : wr.get();
     }
@@ -179,7 +183,7 @@ public abstract class OpenConverter {
             new WeakReference<OpenConverter>(conv);
         converterMap.put(type, wr);
     }
-    
+
     private static synchronized void putPermanentConverter(Type type,
                                                            OpenConverter conv) {
         putConverter(type, conv);
@@ -241,19 +245,23 @@ public abstract class OpenConverter {
     /** Get the converter for the given Java type, creating it if necessary. */
     public static synchronized OpenConverter toConverter(Type objType)
 	    throws OpenDataException {
-        
-        if (inProgress.containsKey(objType))
-            throw new OpenDataException("Recursive data structure");
-        
+
+        if (inProgress.containsKey(objType)) {
+            throw new OpenDataException(
+                    "Recursive data structure, including " + typeName(objType));
+        }
+
         OpenConverter conv;
 
 	conv = getConverter(objType);
 	if (conv != null)
             return conv;
-        
+
         inProgress.put(objType, objType);
         try {
             conv = makeConverter(objType);
+        } catch (OpenDataException e) {
+            throw openDataException("Cannot convert type: " + objType, e);
         } finally {
             inProgress.remove(objType);
         }
@@ -261,10 +269,10 @@ public abstract class OpenConverter {
 	putConverter(objType, conv);
         return conv;
     }
-    
+
     private static OpenConverter makeConverter(Type objType)
             throws OpenDataException {
-        
+
 	/* It's not yet worth formalizing these tests by having for example
 	   an array of factory classes, each of which says whether it
 	   recognizes the Type (Chain of Responsibility pattern).  */
@@ -403,10 +411,10 @@ public abstract class OpenConverter {
             throws OpenDataException {
         return new MXBeanConverter(t);
     }
-    
+
     private static OpenConverter makeCompositeConverter(Class c)
 	    throws OpenDataException {
-        
+
         // For historical reasons GcInfo implements CompositeData but we
         // shouldn't count its CompositeData.getCompositeType() field as
         // an item in the computed CompositeType.
@@ -617,7 +625,7 @@ public abstract class OpenConverter {
                     final String msg =
                         "Cannot convert SortedSet with non-null comparator: " +
                         comparator;
-                    throw new OpenDataException(msg);
+                    throw openDataException(msg, new IllegalArgumentException(msg));
                 }
             }
 	    final Object[] openArray = (Object[])
@@ -686,7 +694,7 @@ public abstract class OpenConverter {
             }
             return mxbean;
         }
-        
+
         private <T extends Exception> void
             lookupNotNull(MXBeanLookup lookup, Class<T> excClass)
                 throws T {
@@ -704,7 +712,7 @@ public abstract class OpenConverter {
             }
         }
     }
-    
+
     private static final class TabularConverter extends OpenConverter {
 	TabularConverter(Type targetType,
                          boolean sortedMap,
@@ -726,7 +734,10 @@ public abstract class OpenConverter {
                     final String msg =
                         "Cannot convert SortedMap with non-null comparator: " +
                         comparator;
-                    throw new OpenDataException(msg);
+                    IllegalArgumentException iae = new IllegalArgumentException(msg);
+                    OpenDataException ode = new OpenDataException(msg);
+                    ode.initCause(iae);
+                    throw ode;
                 }
             }
 	    final TabularType tabularType = (TabularType) getOpenType();
@@ -848,7 +859,8 @@ public abstract class OpenConverter {
 	    /* We try to make a meaningful exception message by
 	       concatenating each Builder's explanation of why it
 	       isn't applicable.  */
-	    StringBuffer whyNots = new StringBuffer();
+	    StringBuilder whyNots = new StringBuilder();
+            Throwable possibleCause = null;
         find:
 	    for (CompositeBuilder[] relatedBuilders : builders) {
                 for (int i = 0; i < relatedBuilders.length; i++) {
@@ -858,6 +870,9 @@ public abstract class OpenConverter {
                         foundBuilder = builder;
                         break find;
                     }
+                    Throwable cause = builder.possibleCause();
+                    if (cause != null)
+                        possibleCause = cause;
                     if (whyNot.length() > 0) {
                         if (whyNots.length() > 0)
                             whyNots.append("; ");
@@ -868,10 +883,12 @@ public abstract class OpenConverter {
                 }
 	    }
 	    if (foundBuilder == null) {
-		final String msg =
+		String msg =
 		    "Do not know how to make a " + targetClass.getName() +
 		    " from a CompositeData: " + whyNots;
-		throw new InvalidObjectException(msg);
+                if (possibleCause != null)
+                    msg += ". Remaining exceptions show a POSSIBLE cause.";
+		throw invalidObjectException(msg, possibleCause);
 	    }
 	    compositeBuilder = foundBuilder;
 	}
@@ -918,6 +935,16 @@ public abstract class OpenConverter {
 	abstract String applicable(Method[] getters)
                 throws InvalidObjectException;
 
+        /** If the subclass returns an explanation of why it is not applicable,
+            it can additionally indicate an exception with details.  This is
+            potentially confusing, because the real problem could be that one
+            of the other subclasses is supposed to be applicable but isn't.
+            But the advantage of less information loss probably outweighs the
+            disadvantage of possible confusion.  */
+        Throwable possibleCause() {
+            return null;
+        }
+
         abstract Object fromCompositeData(MXBeanLookup lookup, CompositeData cd,
                                           String[] itemNames,
                                           OpenConverter[] converters)
@@ -954,8 +981,8 @@ public abstract class OpenConverter {
 		if (fromMethod.getReturnType() != getTargetClass()) {
 		    final String msg =
 			"Method from(CompositeData) returns " +
-			fromMethod.getReturnType().getName() +
-			" not " + targetClass.getName();
+			typeName(fromMethod.getReturnType()) +
+			" not " + typeName(targetClass);
 		    throw new InvalidObjectException(msg);
 		}
 
@@ -1006,20 +1033,27 @@ public abstract class OpenConverter {
                 try {
                     getterConverters[i].checkReconstructible();
                 } catch (InvalidObjectException e) {
+                    possibleCause = e;
                     return "method " + getters[i].getName() + " returns type " +
                         "that cannot be mapped back from OpenData";
                 }
             }
             return "";
         }
-        
+
+        @Override
+        Throwable possibleCause() {
+            return possibleCause;
+        }
+
         final Object fromCompositeData(MXBeanLookup lookup, CompositeData cd,
                                        String[] itemNames,
                                        OpenConverter[] converters) {
             throw new Error();
         }
-        
+
         private final OpenConverter[] getterConverters;
+        private Throwable possibleCause;
     }
 
     /** Builder for when the target class has a setter for every getter. */
@@ -1092,12 +1126,12 @@ public abstract class OpenConverter {
 	}
 
 	String applicable(Method[] getters) throws InvalidObjectException {
-            
+
             final Class<ConstructorProperties> propertyNamesClass = ConstructorProperties.class;
-            
+
 	    Class targetClass = getTargetClass();
 	    Constructor[] constrs = targetClass.getConstructors();
-            
+
             // Applicable if and only if there are any annotated constructors
             List<Constructor> annotatedConstrList = newList();
             for (Constructor constr : constrs) {
@@ -1108,7 +1142,7 @@ public abstract class OpenConverter {
 
 	    if (annotatedConstrList.isEmpty())
 		return "no constructor has @ConstructorProperties annotation";
-            
+
             annotatedConstructors = newList();
 
             // Now check that all the annotated constructors are valid
@@ -1119,7 +1153,7 @@ public abstract class OpenConverter {
             String[] itemNames = getItemNames();
             for (int i = 0; i < itemNames.length; i++)
                 getterMap.put(itemNames[i], i);
-            
+
             // Run through the constructors making the checks in the spec.
             // For each constructor, remember the correspondence between its
             // parameters and the items.  The int[] for a constructor says
@@ -1133,9 +1167,6 @@ public abstract class OpenConverter {
             for (Constructor constr : annotatedConstrList) {
                 String[] propertyNames =
                     constr.getAnnotation(propertyNamesClass).value();
-                
-                Set<String> propertyNameSet =
-                    newSet(Arrays.asList(propertyNames));
 
                 Type[] paramTypes = constr.getGenericParameterTypes();
                 if (paramTypes.length != propertyNames.length) {
@@ -1144,7 +1175,11 @@ public abstract class OpenConverter {
                         "@ConstructorProperties annotation: " + constr;
                     throw new InvalidObjectException(msg);
                 }
-                
+
+                // Work around bug 6710498 (really caused by 5041784):
+                for (int i = 0; i < paramTypes.length; i++)
+                    paramTypes[i] = fixType(paramTypes[i]);
+
                 int[] paramIndexes = new int[getters.length];
                 for (int i = 0; i < getters.length; i++)
                     paramIndexes[i] = -1;
@@ -1153,10 +1188,16 @@ public abstract class OpenConverter {
                 for (int i = 0; i < propertyNames.length; i++) {
                     String propertyName = propertyNames[i];
                     if (!getterMap.containsKey(propertyName)) {
-                        final String msg =
+                        String msg =
                             "@ConstructorProperties includes name " + propertyName +
-                            " which does not correspond to a property: " +
-                            constr;
+                            " which does not correspond to a property";
+                        for (String getterName : getterMap.keySet()) {
+                            if (getterName.equalsIgnoreCase(propertyName)) {
+                                msg += " (differs only in case from property " +
+                                        getterName + ")";
+                            }
+                        }
+                        msg += ": " + constr;
                         throw new InvalidObjectException(msg);
                     }
                     int getterIndex = getterMap.get(propertyName);
@@ -1186,8 +1227,8 @@ public abstract class OpenConverter {
                         Arrays.toString(propertyNames);
                     throw new InvalidObjectException(msg);
                 }
-                
-                Constr c = new Constr(constr, paramIndexes, present);                
+
+                Constr c = new Constr(constr, paramIndexes, present);
                 annotatedConstructors.add(c);
             }
 
@@ -1247,7 +1288,7 @@ public abstract class OpenConverter {
                 if (ct.getType(itemNames[i]) != null)
                     present.set(i);
             }
-            
+
             Constr max = null;
             for (Constr constr : annotatedConstructors) {
                 if (subset(constr.presentParams, present) &&
@@ -1255,14 +1296,14 @@ public abstract class OpenConverter {
                          subset(max.presentParams, constr.presentParams)))
                     max = constr;
             }
-            
+
             if (max == null) {
                 final String msg =
                     "No constructor has a @ConstructorProperties for this set of " +
                     "items: " + ct.keySet();
                 throw new InvalidObjectException(msg);
             }
-            
+
             Object[] params = new Object[max.presentParams.cardinality()];
             for (int i = 0; i < itemNames.length; i++) {
                 if (!max.presentParams.get(i))
@@ -1282,13 +1323,13 @@ public abstract class OpenConverter {
                 throw invalidObjectException(msg, e);
 	    }
         }
-        
+
         private static boolean subset(BitSet sub, BitSet sup) {
             BitSet subcopy = (BitSet) sub.clone();
             subcopy.andNot(sup);
             return subcopy.isEmpty();
         }
-        
+
         private static class Constr {
             final Constructor constructor;
             final int[] paramIndexes;
@@ -1300,7 +1341,7 @@ public abstract class OpenConverter {
                 this.presentParams = presentParams;
             }
         }
-        
+
         private List<Constr> annotatedConstructors;
     }
 
@@ -1361,19 +1402,19 @@ public abstract class OpenConverter {
                                                          Throwable cause) {
         return EnvHelp.initCause(new InvalidObjectException(msg), cause);
     }
-    
+
     static InvalidObjectException invalidObjectException(Throwable cause) {
         return invalidObjectException(cause.getMessage(), cause);
     }
-    
+
     static OpenDataException openDataException(String msg, Throwable cause) {
         return EnvHelp.initCause(new OpenDataException(msg), cause);
     }
-    
+
     static OpenDataException openDataException(Throwable cause) {
         return openDataException(cause.getMessage(), cause);
     }
-    
+
     static void mustBeComparable(Class collection, Type element)
             throws OpenDataException {
         if (!(element instanceof Class)
@@ -1439,6 +1480,38 @@ public abstract class OpenConverter {
 	    || name.equals("getClass"))
 	    return null;
 	return rest;
+    }
+
+    private static String typeName(Type t) {
+        if (t instanceof Class<?>) {
+            Class<?> c = (Class<?>) t;
+            if (c.isArray())
+                return typeName(c.getComponentType()) + "[]";
+            else
+                return c.getName();
+        }
+        return t.toString();
+    }
+
+    // Work around for bug 5041784, where types like String[] are sometimes
+    // represented as GenericArrayType instead of Class.
+    private static Type fixType(Type t) {
+        if (!(t instanceof GenericArrayType))
+            return t;
+        GenericArrayType gat = (GenericArrayType) t;
+        Type ultimate = ultimateComponentType(gat);
+        if (!(ultimate instanceof Class<?>))
+            return t;
+        Class<?> component = (Class<?>) fixType(gat.getGenericComponentType());
+        return Array.newInstance(component, 0).getClass();
+    }
+
+    private static Type ultimateComponentType(GenericArrayType gat) {
+        Type component = gat.getGenericComponentType();
+        if (component instanceof GenericArrayType)
+            return ultimateComponentType((GenericArrayType) component);
+        else
+            return component;
     }
 
     private final static Map<Type, Type> inProgress = newIdentityHashMap();

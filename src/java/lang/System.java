@@ -1,5 +1,5 @@
 /*
- * @(#)System.java	1.158 06/03/13
+ * @(#)System.java	1.159 07/11/27
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import sun.reflect.annotation.AnnotationType;
  * method for quickly copying a portion of an array.
  *
  * @author  unascribed
- * @version 1.158, 03/13/06
+ * @version 1.159, 11/27/07
  * @since   JDK1.0
  */
 public final class System {
@@ -1071,16 +1071,17 @@ public final class System {
 	props = new Properties();
 	initProperties(props);
 	sun.misc.Version.init();
+
+	// Load the zip library now in order to keep java.util.zip.ZipFile
+	// from trying to use itself to load this library later.
+	loadLibrary("zip");
+
 	FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
 	FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
 	FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
 	setIn0(new BufferedInputStream(fdIn));
 	setOut0(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
 	setErr0(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
-
-	// Load the zip library now in order to keep java.util.zip.ZipFile
-	// from trying to use itself to load this library later.
-	loadLibrary("zip");
 
 	// Setup Java signal handlers for HUP, TERM, and INT (where available).
         Terminator.setup();

@@ -1,5 +1,5 @@
 /*
- * @(#)IdentityHashMap.java	1.30 06/04/21
+ * @(#)IdentityHashMap.java	1.31 08/05/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -360,8 +360,8 @@ public class IdentityHashMap<K,V>
      */
     public boolean containsValue(Object value) {
         Object[] tab = table;
-        for (int i = 1; i < tab.length; i+= 2)
-            if (tab[i] == value)
+        for (int i = 1; i < tab.length; i += 2)
+            if (tab[i] == value && tab[i - 1] != null) 
                 return true;
 
         return false;

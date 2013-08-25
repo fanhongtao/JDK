@@ -1,5 +1,5 @@
 /*
- * @(#)ColorSpace.java	1.42 05/11/17
+ * @(#)ColorSpace.java	1.43 07/11/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -315,7 +315,7 @@ public abstract class ColorSpace implements java.io.Serializable {
                     ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
                     GRAYspace = new ICC_ColorSpace (theProfile);
                     /* to allow access from java.awt.ColorModel */
-                    CMM.GRAYspace = GRAYspace;
+                    CMM.CSAccessor.GRAYspace = GRAYspace;
                 }
 
                 theColorSpace = GRAYspace;
@@ -330,7 +330,7 @@ public abstract class ColorSpace implements java.io.Serializable {
                         ICC_Profile.getInstance(CS_LINEAR_RGB);
                     LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
                     /* to allow access from java.awt.ColorModel */
-                    CMM.LINEAR_RGBspace = LINEAR_RGBspace;
+                    CMM.CSAccessor.LINEAR_RGBspace = LINEAR_RGBspace;
                 }
 
                 theColorSpace = LINEAR_RGBspace;

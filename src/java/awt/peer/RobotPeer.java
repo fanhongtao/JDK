@@ -1,5 +1,5 @@
 /*
- * @(#)RobotPeer.java	1.10 05/11/17
+ * @(#)RobotPeer.java	1.11 08/04/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import java.awt.*;
  * java.awt.* hierarchy; it is not to be considered public and is subject
  * to change.
  *
- * @version 	1.10, 11/17/05
+ * @version 	1.11, 04/30/08
  * @author 	Robi Khan
  */
 public interface RobotPeer
@@ -33,4 +33,6 @@ public interface RobotPeer
 
     public int getRGBPixel(int x, int y);
     public int [] getRGBPixels(Rectangle bounds);
+
+    public void dispose();
 }

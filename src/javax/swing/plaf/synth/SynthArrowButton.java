@@ -1,5 +1,5 @@
 /*
- * @(#)SynthArrowButton.java	1.18 07/03/15
+ * @(#)SynthArrowButton.java	1.20 08/05/22
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import javax.swing.plaf.UIResource;
 /**
  * JButton object that draws a scaled Arrow in one of the cardinal directions.
  *
- * @version 1.18, 03/15/07
+ * @version 1.20, 05/22/08
  * @author Scott Violet
  */
 class SynthArrowButton extends JButton implements SwingConstants, UIResource {
@@ -96,6 +96,30 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
                     context.getStyle().getInt(context, "ArrowButton.size", 16);
                 dim = new Dimension(size, size);
             }
+
+            // handle scaling for sizeVarients for special case components. The
+            // key "JComponent.sizeVariant" scales for large/small/mini
+            // components are based on Apples LAF
+            JComponent parent = (JComponent)context.getComponent().getParent();
+            if (parent != null && !(parent instanceof JComboBox)){
+                String scaleKey = (String)parent.getClientProperty("JComponent.sizeVariant");
+                if (scaleKey != null){
+                    if ("large".equals(scaleKey)){
+                        dim = new Dimension(
+                                (int)(dim.width * 1.15),
+                                (int)(dim.height * 1.15));
+                    } else if ("small".equals(scaleKey)){
+                        dim = new Dimension(
+                                (int)(dim.width * 0.857),
+                                (int)(dim.height * 0.857));
+                    } else if ("mini".equals(scaleKey)){
+                        dim = new Dimension(
+                                (int)(dim.width * 0.714),
+                                (int)(dim.height * 0.714));
+                    }
+                }
+            }
+
             context.dispose();
             return dim;
         }

@@ -1,5 +1,5 @@
 /*
- * @(#)MXBeanSupport.java	1.23 06/01/20
+ * @(#)MXBeanSupport.java	1.24 07/09/11
  * 
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -139,11 +139,6 @@ public class MXBeanSupport extends MBeanSupport<ConvertingMethod> {
         // eventually we could have some logic to supply a default name
         
         synchronized (lock) {
-            if (this.objectName != null) {
-                final String msg =
-                    "MXBean already registered with name " + this.objectName;
-                throw new InstanceAlreadyExistsException(msg);
-            }
             this.mxbeanLookup = MXBeanLookup.lookupFor(server);
             this.mxbeanLookup.addReference(name, getResource());
             this.objectName = name;

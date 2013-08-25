@@ -1,5 +1,5 @@
 /*
- * @(#)SynthSpinnerUI.java	1.14 06/04/10
+ * @(#)SynthSpinnerUI.java	1.17 07/12/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,14 +24,23 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's SpinnerUI.
  *
- * @version 1.14, 04/10/06
+ * @version 1.17, 12/07/07
  * @author Hans Muller
  * @author Joshua Outwater
  */
 class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
         SynthUI {
     private SynthStyle style;
-
+    /**
+     * A FocusListener implementation which causes the entire spinner to be
+     * repainted whenever the editor component (typically a text field) becomes
+     * focused, or loses focus. This is necessary because since SynthSpinnerUI
+     * is composed of an editor and two buttons, it is necessary that all three
+     * components indicate that they are "focused" so that they can be drawn
+     * appropriately. The repaint is used to ensure that the buttons are drawn
+     * in the new focused or unfocused state, mirroring that of the editor.
+     */
+    private EditorFocusHandler editorFocusHandler = new EditorFocusHandler();
 
     /**
      * Returns a new instance of SynthSpinnerUI.  
@@ -45,8 +54,15 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
     }
 
     protected void installListeners() {
-	super.installListeners();
+        super.installListeners();
         spinner.addPropertyChangeListener(this);
+        JComponent editor = spinner.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor)editor).getTextField();
+            if (tf != null) {
+                tf.addFocusListener(editorFocusHandler);
+            }
+        }
     }
 
     /**
@@ -58,8 +74,15 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      * @see #installListeners
      */
     protected void uninstallListeners() {
-	super.uninstallListeners();
-	spinner.removePropertyChangeListener(this);
+        super.uninstallListeners();
+        spinner.removePropertyChangeListener(this);
+        JComponent editor = spinner.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor)editor).getTextField();
+            if (tf != null) {
+                tf.removeFocusListener(editorFocusHandler);
+            }
+        }
     }
 
     /**
@@ -139,10 +162,10 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      * @see #createNextButton
      */
     protected Component createPreviousButton() {
-	JButton b = new SynthArrowButton(SwingConstants.SOUTH);
+        JButton b = new SpinnerArrowButton(SwingConstants.SOUTH);
         b.setName("Spinner.previousButton");
         installPreviousButtonListeners(b);
-	return b;
+        return b;
     }
 
 
@@ -160,10 +183,10 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      * @see #createPreviousButton
      */
     protected Component createNextButton() {
-	JButton b = new SynthArrowButton(SwingConstants.NORTH);
+        JButton b = new SpinnerArrowButton(SwingConstants.NORTH);
         b.setName("Spinner.nextButton");
         installNextButtonListeners(b);
-	return b;
+        return b;
     }
 
 
@@ -194,7 +217,7 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
         JComponent editor = spinner.getEditor();
         editor.setName("Spinner.editor");
         updateEditorAlignment(editor);
-	return editor;
+        return editor;
     }
 
 
@@ -214,9 +237,21 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      * @see #createPropertyChangeListener
      */
     protected void replaceEditor(JComponent oldEditor, JComponent newEditor) {
-	spinner.remove(oldEditor);
+        spinner.remove(oldEditor);
         updateEditorAlignment(newEditor);
-	spinner.add(newEditor, "Editor");
+        spinner.add(newEditor, "Editor");
+        if (oldEditor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor)oldEditor).getTextField();
+            if (tf != null) {
+                tf.removeFocusListener(editorFocusHandler);
+            }
+        }
+        if (newEditor instanceof JSpinner.DefaultEditor) {
+            JTextField tf = ((JSpinner.DefaultEditor)newEditor).getTextField();
+            if (tf != null) {
+                tf.addFocusListener(editorFocusHandler);
+            }
+        }
     }
 
     private void updateEditorAlignment(JComponent editor) {
@@ -224,10 +259,14 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
             SynthContext context = getContext(spinner);
             Integer alignment = (Integer)context.getStyle().get(
                     context, "Spinner.editorAlignment");
+            JTextField text = ((JSpinner.DefaultEditor)editor).getTextField();
             if (alignment != null) {
-                JTextField text = ((JSpinner.DefaultEditor)editor).getTextField();
                 text.setHorizontalAlignment(alignment);
+
             }
+            // copy across the sizeVariant property to the editor
+            text.putClientProperty("JComponent.sizeVariant",
+                    spinner.getClientProperty("JComponent.sizeVariant"));
         }
     }
 
@@ -285,93 +324,93 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
      */
     private static class SpinnerLayout implements LayoutManager, UIResource
     {
-	private Component nextButton = null;
-	private Component previousButton = null;
-	private Component editor = null;
+        private Component nextButton = null;
+        private Component previousButton = null;
+        private Component editor = null;
 
-	public void addLayoutComponent(String name, Component c) {
-	    if ("Next".equals(name)) {
-		nextButton = c;
-	    }
-	    else if ("Previous".equals(name)) {
-		previousButton = c;
-	    }
-	    else if ("Editor".equals(name)) {
-		editor = c;
-	    }
-	}
+        public void addLayoutComponent(String name, Component c) {
+            if ("Next".equals(name)) {
+                nextButton = c;
+            }
+            else if ("Previous".equals(name)) {
+                previousButton = c;
+            }
+            else if ("Editor".equals(name)) {
+                editor = c;
+            }
+        }
 
-	public void removeLayoutComponent(Component c) {
-	    if (c == nextButton) {
-		c = null;
-	    }
-	    else if (c == previousButton) {
-		previousButton = null;
-	    }
-	    else if (c == editor) {
-		editor = null;
-	    }
-	}
+        public void removeLayoutComponent(Component c) {
+            if (c == nextButton) {
+                c = null;
+            }
+            else if (c == previousButton) {
+                previousButton = null;
+            }
+            else if (c == editor) {
+                editor = null;
+            }
+        }
 
-	private Dimension preferredSize(Component c) {
-	    return (c == null) ? new Dimension(0, 0) : c.getPreferredSize();
-	}
+        private Dimension preferredSize(Component c) {
+            return (c == null) ? new Dimension(0, 0) : c.getPreferredSize();
+        }
 
-	public Dimension preferredLayoutSize(Container parent) {
-	    Dimension nextD = preferredSize(nextButton);
-	    Dimension previousD = preferredSize(previousButton);
-	    Dimension editorD = preferredSize(editor);
+        public Dimension preferredLayoutSize(Container parent) {
+            Dimension nextD = preferredSize(nextButton);
+            Dimension previousD = preferredSize(previousButton);
+            Dimension editorD = preferredSize(editor);
 
-	    /* Force the editors height to be a multiple of 2
-	     */
-	    editorD.height = ((editorD.height + 1) / 2) * 2;     
+            /* Force the editors height to be a multiple of 2
+             */
+            editorD.height = ((editorD.height + 1) / 2) * 2;
 
-	    Dimension size = new Dimension(editorD.width, editorD.height);
-	    size.width += Math.max(nextD.width, previousD.width);
-	    Insets insets = parent.getInsets();
-	    size.width += insets.left + insets.right;
-	    size.height += insets.top + insets.bottom;
-	    return size;
-	}
+            Dimension size = new Dimension(editorD.width, editorD.height);
+            size.width += Math.max(nextD.width, previousD.width);
+            Insets insets = parent.getInsets();
+            size.width += insets.left + insets.right;
+            size.height += insets.top + insets.bottom;
+            return size;
+        }
 
-	public Dimension minimumLayoutSize(Container parent) {
-	    return preferredLayoutSize(parent);
-	}
+        public Dimension minimumLayoutSize(Container parent) {
+            return preferredLayoutSize(parent);
+        }
 
-	private void setBounds(Component c, int x, int y, int width, int height) {
-	    if (c != null) {
-		c.setBounds(x, y, width, height);
-	    }
-	}
+        private void setBounds(Component c, int x, int y, int width, int height) {
+            if (c != null) {
+                c.setBounds(x, y, width, height);
+            }
+        }
 
-	public void layoutContainer(Container parent) {
-	    Insets insets = parent.getInsets();
-	    int availWidth = parent.getWidth() - (insets.left + insets.right);
-	    int availHeight = parent.getHeight() - (insets.top + insets.bottom);
-	    Dimension nextD = preferredSize(nextButton);
-	    Dimension previousD = preferredSize(previousButton);	    
-	    int nextHeight = availHeight / 2;
-	    int previousHeight = availHeight - nextHeight;
-	    int buttonsWidth = Math.max(nextD.width, previousD.width);
-	    int editorWidth = availWidth - buttonsWidth;
+        public void layoutContainer(Container parent) {
+            Insets insets = parent.getInsets();
+            int availWidth = parent.getWidth() - (insets.left + insets.right);
+            int availHeight = parent.getHeight() - (insets.top + insets.bottom);
+            Dimension nextD = preferredSize(nextButton);
+            Dimension previousD = preferredSize(previousButton);
+            int nextHeight = availHeight / 2;
+            int previousHeight = availHeight - nextHeight;
+            int buttonsWidth = Math.max(nextD.width, previousD.width);
+            int editorWidth = availWidth - buttonsWidth;
 
-	    /* Deal with the spinners componentOrientation property.
-	     */
-	    int editorX, buttonsX;
-	    if (parent.getComponentOrientation().isLeftToRight()) {
-		editorX = insets.left;
-		buttonsX = editorX + editorWidth;
-	    }
-	    else {
-		buttonsX = insets.left;
-		editorX = buttonsX + buttonsWidth;
-	    }
+            /* Deal with the spinners componentOrientation property.
+             */
+            int editorX, buttonsX;
+            if (parent.getComponentOrientation().isLeftToRight()) {
+                editorX = insets.left;
+                buttonsX = editorX + editorWidth;
+            }
+            else {
+                buttonsX = insets.left;
+                editorX = buttonsX + buttonsWidth;
+            }
 
-	    int previousY = insets.top + nextHeight;
-	    setBounds(editor, editorX, insets.top, editorWidth, availHeight);
-	    setBounds(nextButton, buttonsX, insets.top, buttonsWidth, nextHeight);
-	    setBounds(previousButton, buttonsX, previousY, buttonsWidth, previousHeight);
-	}
+            int previousY = insets.top + nextHeight;
+            setBounds(editor, editorX, insets.top, editorWidth, availHeight);
+            setBounds(nextButton, buttonsX, insets.top, buttonsWidth, nextHeight);
+            setBounds(previousButton, buttonsX, previousY, buttonsWidth, previousHeight);
+        }
     }
 
 
@@ -385,6 +424,40 @@ class SynthSpinnerUI extends BasicSpinnerUI implements PropertyChangeListener,
     
             if (SynthLookAndFeel.shouldUpdateStyle(e)) {
                 ui.updateStyle(spinner);
+            }
+        }
+    }
+
+    /** Listen to editor text field focus changes and repaint whole spinner */
+    private class EditorFocusHandler implements FocusListener{
+        /** Invoked when a editor text field gains the keyboard focus. */
+        public void focusGained(FocusEvent e) {
+            spinner.repaint();
+        }
+
+        /** Invoked when a editor text field loses the keyboard focus. */
+        public void focusLost(FocusEvent e) {
+            spinner.repaint();
+        }
+    }
+
+    /** Override the arrowbuttons focus handling to follow the text fields focus */
+    private class SpinnerArrowButton extends SynthArrowButton{
+        public SpinnerArrowButton(int direction) {
+            super(direction);
+        }
+
+        @Override
+        public boolean isFocusOwner() {
+            if (spinner == null){
+                return super.isFocusOwner();
+            } else if (spinner.getEditor() instanceof JSpinner.DefaultEditor){
+                return ((JSpinner.DefaultEditor)spinner.getEditor())
+                        .getTextField().isFocusOwner();
+            } else if (spinner.getEditor()!= null) {
+                return spinner.getEditor().isFocusOwner();
+            } else {
+                return super.isFocusOwner();
             }
         }
     }

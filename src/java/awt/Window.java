@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.240 06/03/15
+ * @(#)Window.java	1.265 08/08/22
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,8 +8,10 @@ package java.awt;
 
 import java.applet.Applet;
 import java.awt.event.*;
+import java.awt.geom.Path2D;
 import java.awt.im.InputContext;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.WindowPeer;
 import java.beans.PropertyChangeListener;
@@ -32,10 +34,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.accessibility.*;
+import sun.awt.AWTAccessor;
 import sun.awt.AppContext;
 import sun.awt.CausedFocusEvent;
 import sun.awt.SunToolkit;
 import sun.awt.util.IdentityArrayList;
+import sun.java2d.pipe.Region;
 import sun.security.action.GetPropertyAction;
 import sun.security.util.SecurityConstants;
 
@@ -325,18 +329,21 @@ public class Window extends Container implements Accessible {
     static class WindowDisposerRecord implements sun.java2d.DisposerRecord {
         final WeakReference<Window> owner;
         final WeakReference weakThis;
-        final AppContext context;
+        final WeakReference<AppContext> context;
         WindowDisposerRecord(AppContext context, Window victim) {
             owner = new WeakReference<Window>(victim.getOwner());
             weakThis = victim.weakThis;
-            this.context = context;
+            this.context = new WeakReference<AppContext>(context);
         }
         public void dispose() {
             Window parent = owner.get();
             if (parent != null) {
                 parent.removeOwnedWindow(weakThis);
             }
-            Window.removeFromWindowList(context, weakThis);
+            AppContext ac = context.get();
+            if (null != ac) {
+                Window.removeFromWindowList(ac, weakThis);
+            }
         }
     }
     
@@ -636,6 +643,17 @@ public class Window extends Container implements Accessible {
                 allWindows.add(this);
             }
             super.addNotify();
+
+            // Applying the effects
+            if (shape != null) {
+                applyShape();
+            }
+            if (!opaque) {
+                applyOpaque();
+            }
+            if (opacity < 1.0f) {
+                applyOpacity();
+            }
         }
     }
 
@@ -2727,6 +2745,9 @@ public class Window extends Container implements Accessible {
          if(aot) {
              setAlwaysOnTop(aot); // since 1.5; subject to permission check
          }
+         this.opacity = 1.0f;
+         this.opaque = true;
+         this.shape = null;
          
          deserializeResources(s);
     }
@@ -3144,6 +3165,202 @@ public class Window extends Container implements Accessible {
         // We're overriding isRecursivelyVisible to implement this policy.
         return visible;
     }    
+
+    private static boolean doesClassImplement(Class cls, String interfaceName) {
+        if (cls == null) return false;
+
+        for (Class c : cls.getInterfaces()) {
+            if (c.getName().equals(interfaceName)) {
+                return true;
+            }
+        }
+        return doesClassImplement(cls.getSuperclass(), interfaceName);
+    }
+    
+    /**
+     * Checks that the given object implements the given interface.
+     * @param obj Object to be checked
+     * @param interfaceName The name of the interface. Must be fully-qualified interface name.
+     * @return true, if this object implements the given interface,
+     *         false, otherwise, or if obj or interfaceName is null
+     */
+    static boolean doesImplement(Object obj, String interfaceName) {
+        if (obj == null) return false;
+        if (interfaceName == null) return false;
+
+        return doesClassImplement(obj.getClass(), interfaceName);
+    }
+
+    private static final Color TRANSPARENT_BACKGROUND_COLOR = 
+        new Color(0, 0, 0, 0);
+
+    private static void setLayersOpaque(Component component, boolean isOpaque) {
+        // Shouldn't use instanceof to avoid loading Swing classes
+        //    if it's a pure AWT application.
+        if (doesImplement(component, "javax.swing.RootPaneContainer")) {
+            javax.swing.RootPaneContainer rpc = (javax.swing.RootPaneContainer)component;
+            javax.swing.JRootPane root = rpc.getRootPane();
+            javax.swing.JLayeredPane lp = root.getLayeredPane();
+            Container c = root.getContentPane();
+            javax.swing.JComponent content = 
+                (c instanceof javax.swing.JComponent) ? (javax.swing.JComponent)c : null;
+            javax.swing.JComponent gp = 
+                (rpc.getGlassPane() instanceof javax.swing.JComponent) ?
+                (javax.swing.JComponent)rpc.getGlassPane() : null;
+            if (gp != null) {
+                gp.setDoubleBuffered(isOpaque);
+            }
+            lp.setOpaque(isOpaque);
+            //lp.setDoubleBuffered(isOpaque); //XXX: this might be needed maybe...
+            root.setOpaque(isOpaque);
+            root.setDoubleBuffered(isOpaque); //XXX: the "white rect" workaround
+            if (content != null) {
+                content.setOpaque(isOpaque);
+                content.setDoubleBuffered(isOpaque); //XXX: the "white rect" workaround
+
+                // Iterate down one level to see whether we have a JApplet
+                // (which is also a RootPaneContainer) which requires processing
+                int numChildren = content.getComponentCount();
+                if (numChildren > 0) {
+                    Component child = content.getComponent(0);
+                    // It's OK to use instanceof here because we've
+                    // already loaded the RootPaneContainer class by now
+                    if (child instanceof javax.swing.RootPaneContainer) {
+                        setLayersOpaque(child, isOpaque);
+                    }
+                }
+            }
+        }
+
+        Color bg = component.getBackground();
+        boolean hasTransparentBg = TRANSPARENT_BACKGROUND_COLOR.equals(bg);
+
+        Container container = null;
+        if (component instanceof Container) {
+            container = (Container) component;
+        }
+
+        if (isOpaque) {
+            if (hasTransparentBg) {
+                // Note: we use the SystemColor.window color as the default.
+                // This color is used in the WindowPeer implementations to
+                // initialize the background color of the window if it is null.
+                // (This might not be the right thing to do for other
+                // RootPaneContainers we might be invoked with)
+                Color newColor = null;
+                if (container != null && container.preserveBackgroundColor != null) {
+                    newColor = container.preserveBackgroundColor;
+                } else {
+                    newColor = SystemColor.window;
+                }
+                component.setBackground(newColor);
+            }
+        } else {
+            if (!hasTransparentBg && container != null) {
+                container.preserveBackgroundColor = bg;
+            }
+            component.setBackground(TRANSPARENT_BACKGROUND_COLOR);
+        }
+    }
+
+    /* The opacity level of the window
+     */
+    private transient float opacity = 1.0f;
+
+    /* The shape assigned to this window
+     */
+    private transient Shape shape = null;
+
+    /* Indicates whether this window is opaque (true) or translcuent (false)
+     */
+    private transient boolean opaque = true;
+
+    private void applyOpacity() {
+        checkTreeLock();
+
+        WindowPeer peer = (WindowPeer)getPeer();
+        if (peer != null) {
+            peer.setOpacity(opacity);
+        }
+    }
+
+    private void applyShape() {
+        checkTreeLock();
+
+        WindowPeer peer = (WindowPeer)getPeer();
+        if (peer != null) {
+            peer.applyShape(shape != null ?
+                    Region.getInstance(shape, null) :
+                    null);
+        }
+    }
+    
+    private void applyOpaque() {
+        checkTreeLock();
+
+        setLayersOpaque(this, opaque);
+
+        WindowPeer peer = (WindowPeer)getPeer();
+        if (peer != null) {
+            peer.setOpaque(opaque);
+        }
+    }
+
+    private void updateWindow(BufferedImage backBuffer) {
+        checkTreeLock();
+
+        WindowPeer peer = (WindowPeer)getPeer();
+        if (peer != null) {
+            peer.updateWindow(backBuffer);
+        }
+    }
+
+    static {
+        AWTAccessor.setWindowAccessor(new AWTAccessor.WindowAccessor() {
+            public float getOpacity(Window window) {
+                return window.opacity;
+            }
+
+            public void setOpacity(Window window, float opacity) {
+                synchronized (window.getTreeLock()) {
+                    window.opacity = opacity;
+                    window.applyOpacity();
+                }
+            }
+
+            public Shape getShape(Window window) {
+                return window.shape == null ? null : new Path2D.Float(window.shape);
+            }
+
+            public void setShape(Window window, Shape shape) {
+                if (shape != null) {
+                    shape = new Path2D.Float(shape);
+                }
+                synchronized (window.getTreeLock()) {
+                    window.shape = shape;
+                    window.applyShape();
+                }
+            }
+
+            public boolean isOpaque(Window window) {
+                return window.opaque;
+            }
+
+            public void setOpaque(Window window, boolean isOpaque) {
+                synchronized (window.getTreeLock()) {
+                    window.opaque = isOpaque;
+                    window.applyOpaque();
+                }
+            }
+
+            public void updateWindow(Window window, BufferedImage backBuffer) {
+                synchronized (window.getTreeLock()) {
+                    window.updateWindow(backBuffer);
+                }
+            }
+        });        
+    }
+
 } // class Window
 
 

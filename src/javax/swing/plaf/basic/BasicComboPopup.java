@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboPopup.java	1.84 06/08/03
+ * @(#)BasicComboPopup.java	1.85 07/10/25
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.84 08/03/06
+ * @version 1.85 10/25/07
  * @author Tom Santos
  * @author Mark Davidson
  */
@@ -810,11 +810,10 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             if (e.getSource() == list) {
                 if (list.getModel().getSize() > 0) {
                     // JList mouse listener
-                    if (comboBox.getSelectedIndex() != list.getSelectedIndex()) {
-                        comboBox.setSelectedIndex( list.getSelectedIndex() );
-                    } else {
-                        comboBox.getEditor().setItem( list.getSelectedValue() );
+                    if (comboBox.getSelectedIndex() == list.getSelectedIndex()) {
+                        comboBox.getEditor().setItem(list.getSelectedValue());
                     }
+                    comboBox.setSelectedIndex(list.getSelectedIndex());
                 }
                 comboBox.setPopupVisible(false);
                 // workaround for cancelling an edited item (bug 4530953)
@@ -834,11 +833,10 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                 Rectangle r = new Rectangle();
 		list.computeVisibleRect( r );
 		if ( r.contains( location ) ) {
-                    if (comboBox.getSelectedIndex() != list.getSelectedIndex()) {
-                        comboBox.setSelectedIndex( list.getSelectedIndex() );
-                    } else {
-                        comboBox.getEditor().setItem( list.getSelectedValue() );
+                    if (comboBox.getSelectedIndex() == list.getSelectedIndex()) {
+                        comboBox.getEditor().setItem(list.getSelectedValue());
                     }
+                    comboBox.setSelectedIndex(list.getSelectedIndex());
                 }
 		comboBox.setPopupVisible(false);
             }

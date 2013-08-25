@@ -1,7 +1,7 @@
 /*
- * @(#)ThreadGroup.java	1.65 05/11/17
+ * @(#)ThreadGroup.java	1.66 08/03/13
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.65, 11/17/05
+ * @version 1.66, 03/13/08
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -233,11 +233,11 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
 	ThreadGroup[] groupsSnapshot;
 	synchronized (this) {
 	    checkAccess();
-	    if (pri < Thread.MIN_PRIORITY) {
-		maxPriority = Thread.MIN_PRIORITY;
-	    } else if (pri < maxPriority) {
-		maxPriority = pri;
-	    }
+            if (pri < Thread.MIN_PRIORITY || pri > Thread.MAX_PRIORITY) { 
+                return; 
+            }
+            maxPriority = (parent != null) ? Math.min(pri, parent.maxPriority) : pri;
+
 	    ngroupsSnapshot = ngroups;
 	    if (groups != null) {
                 groupsSnapshot = Arrays.copyOf(groups, ngroupsSnapshot);

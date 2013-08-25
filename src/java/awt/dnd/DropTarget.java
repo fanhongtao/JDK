@@ -1,5 +1,5 @@
 /*
- * @(#)DropTarget.java	1.51 06/04/07
+ * @(#)DropTarget.java	1.52 07/12/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import java.awt.dnd.peer.DropTargetPeer;
  * The default <code>FlavorMap</code> hereafter designates the
  * <code>FlavorMap</code> returned by <code>SystemFlavorMap.getDefaultFlavorMap()</code>. 
  * 
- * @version 	1.51, 04/07/06
+ * @version 	1.52, 12/04/07
  * @since 1.2
  */
 
@@ -94,7 +94,11 @@ public class DropTarget implements DropTargetListener, Serializable {
 	    setActive(act);
 	}
 
-        if (fm != null) flavorMap = fm;
+        if (fm != null) {
+            flavorMap = fm;
+        } else {
+            flavorMap = SystemFlavorMap.getDefaultFlavorMap();
+        }
     }
 
     /**
@@ -834,5 +838,5 @@ public class DropTarget implements DropTargetListener, Serializable {
      * The FlavorMap
      */
 
-    private transient FlavorMap flavorMap = SystemFlavorMap.getDefaultFlavorMap();
+    private transient FlavorMap flavorMap;
 }

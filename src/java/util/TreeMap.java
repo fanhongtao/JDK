@@ -1,5 +1,5 @@
 /*
- * @(#)TreeMap.java	1.76 07/03/13
+ * @(#)TreeMap.java	1.77 08/05/15
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1004,7 +1004,7 @@ public class TreeMap<K,V>
     }
 
     Iterator<K> descendingKeyIterator() {
-        return new DescendingKeyIterator(getFirstEntry());
+        return new DescendingKeyIterator(getLastEntry());
     }
 
     static final class KeySet<E> extends AbstractSet<E> implements NavigableSet<E> {

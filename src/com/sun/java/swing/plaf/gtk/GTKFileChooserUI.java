@@ -1,5 +1,5 @@
 /*
- * @(#)GTKFileChooserUI.java	1.41 06/11/30
+ * @(#)GTKFileChooserUI.java	1.42 07/09/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -120,6 +120,15 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 
     public GTKFileChooserUI(JFileChooser filechooser) {
         super(filechooser);
+    }
+
+    protected ActionMap createActionMap() {
+        ActionMap map = new ActionMapUIResource();
+        map.put("approveSelection", getApproveSelectionAction());
+        map.put("cancelSelection", getCancelSelectionAction());
+        map.put("Go Up", getChangeToParentDirectoryAction());
+        map.put("fileNameCompletion", getFileNameCompletionAction());
+        return map;
     }
 
     public String getFileName() {

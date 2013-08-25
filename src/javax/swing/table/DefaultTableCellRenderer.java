@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.46 05/11/30
+ * @(#)DefaultTableCellRenderer.java	1.48 08/09/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,6 +16,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 
 import java.io.Serializable;
+import sun.swing.DefaultLookup;
 
 
 /**
@@ -61,7 +62,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.46 11/30/05
+ * @version 1.48 09/18/08
  * @author Philip Milne 
  * @see JTable
  */
@@ -75,8 +76,9 @@ public class DefaultTableCellRenderer extends JLabel
     * <code>getTableCellRendererComponent</code> method and set the border
     * of the returned component directly.
     */
-    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1); 
     private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
+    private static final Border DEFAULT_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
+    protected static Border noFocusBorder = DEFAULT_NO_FOCUS_BORDER;
 
     // We need a place to store the color the JLabel should be returned 
     // to after its foreground and background colors have been set 
@@ -92,14 +94,20 @@ public class DefaultTableCellRenderer extends JLabel
 	super();
 	setOpaque(true);
         setBorder(getNoFocusBorder());
+        setName("Table.cellRenderer");
     }
 
-    private static Border getNoFocusBorder() {
+    private Border getNoFocusBorder() {
+        Border border = DefaultLookup.getBorder(this, ui, "Table.cellNoFocusBorder");
         if (System.getSecurityManager() != null) {
+            if (border != null) return border;
             return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
+        } else if (border != null) {
+            if (noFocusBorder == null || noFocusBorder == DEFAULT_NO_FOCUS_BORDER) {
+                return border;
+            }
         }
+        return noFocusBorder;
     }
 
     /**
@@ -173,8 +181,8 @@ public class DefaultTableCellRenderer extends JLabel
                 && dropLocation.getRow() == row
                 && dropLocation.getColumn() == column) {
 
-            fg = UIManager.getColor("Table.dropCellForeground");
-            bg = UIManager.getColor("Table.dropCellBackground");
+            fg = DefaultLookup.getColor(this, ui, "Table.dropCellForeground");
+            bg = DefaultLookup.getColor(this, ui, "Table.dropCellBackground");
 
             isSelected = true;
         }
@@ -185,12 +193,18 @@ public class DefaultTableCellRenderer extends JLabel
             super.setBackground(bg == null ? table.getSelectionBackground()
                                            : bg);
 	} else {
+            Color background = unselectedBackground != null
+                                    ? unselectedBackground
+                                    : table.getBackground();
+            if (background == null || background instanceof javax.swing.plaf.UIResource) {
+                Color alternateColor = DefaultLookup.getColor(this, ui, "Table.alternateRowColor");
+                if (alternateColor != null && row % 2 == 0)
+                    background = alternateColor;
+            }
             super.setForeground(unselectedForeground != null
                                     ? unselectedForeground
                                     : table.getForeground());
-	    super.setBackground(unselectedBackground != null
-                                    ? unselectedBackground
-                                    : table.getBackground());
+            super.setBackground(background);
 	}
 
 	setFont(table.getFont());
@@ -198,20 +212,20 @@ public class DefaultTableCellRenderer extends JLabel
 	if (hasFocus) {
             Border border = null;
             if (isSelected) {
-                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
+                border = DefaultLookup.getBorder(this, ui, "Table.focusSelectedCellHighlightBorder");
             }
             if (border == null) {
-                border = UIManager.getBorder("Table.focusCellHighlightBorder");
+                border = DefaultLookup.getBorder(this, ui, "Table.focusCellHighlightBorder");
             }
             setBorder(border);
 
 	    if (!isSelected && table.isCellEditable(row, column)) {
                 Color col;
-                col = UIManager.getColor("Table.focusCellForeground");
+                col = DefaultLookup.getColor(this, ui, "Table.focusCellForeground");
                 if (col != null) {
                     super.setForeground(col);
                 }
-                col = UIManager.getColor("Table.focusCellBackground");
+                col = DefaultLookup.getColor(this, ui, "Table.focusCellBackground");
                 if (col != null) {
                     super.setBackground(col);
                 }
@@ -244,6 +258,7 @@ public class DefaultTableCellRenderer extends JLabel
 	if (p != null) { 
 	    p = p.getParent(); 
 	}
+        
 	// p should now be the JTable. 
 	boolean colorMatch = (back != null) && (p != null) && 
 	    back.equals(p.getBackground()) && 

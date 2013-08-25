@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.289 07/08/07
+ * @(#)JTable.java	1.292 08/05/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -186,7 +186,7 @@ import sun.swing.PrintingStatus;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.289 08/07/07
+ * @version 1.292 05/30/08
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  * @see javax.swing.table.DefaultTableModel
@@ -710,14 +710,63 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                     return;
                 }
                 scrollPane.setColumnHeaderView(getTableHeader());
+                // configure the scrollpane for any LAF dependent settings
+                configureEnclosingScrollPaneUI();
+            }
+        }
+    }
+
+    /**
+     * This is a sub-part of configureEnclosingScrollPane() that configures
+     * anything on the scrollpane that may change when the look and feel
+     * changes. It needed to be split out from configureEnclosingScrollPane() so
+     * that it can be called from updateUI() when the LAF changes without
+     * causing the regression found in bug 6687962. This was because updateUI()
+     * is called from the constructor which then caused
+     * configureEnclosingScrollPane() to be called by the constructor which
+     * changes its contract for any subclass that overrides it. So by splitting
+     * it out in this way configureEnclosingScrollPaneUI() can be called both
+     * from configureEnclosingScrollPane() and updateUI() in a safe manor.
+     */
+    private void configureEnclosingScrollPaneUI() {
+        Container p = getParent();
+        if (p instanceof JViewport) {
+            Container gp = p.getParent();
+            if (gp instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane)gp;
+                // Make certain we are the viewPort's view and not, for
+                // example, the rowHeaderView of the scrollPane -
+                // an implementor of fixed columns might do this.
+                JViewport viewport = scrollPane.getViewport();
+                if (viewport == null || viewport.getView() != this) {
+                    return;
+                }
 		//  scrollPane.getViewport().setBackingStoreEnabled(true);
                 Border border = scrollPane.getBorder();
                 if (border == null || border instanceof UIResource) {
-                    Border scrollPaneBorder = 
+                    Border scrollPaneBorder =
                         UIManager.getBorder("Table.scrollPaneBorder");
                     if (scrollPaneBorder != null) {
                         scrollPane.setBorder(scrollPaneBorder);
                     }
+                }
+                // add JScrollBar corner component if available from LAF and not already set by the user
+                Component corner =
+                        scrollPane.getCorner(JScrollPane.UPPER_TRAILING_CORNER);
+                if (corner == null || corner instanceof UIResource){
+                    corner = null;
+                    Object componentClass = UIManager.get(
+                            "Table.scrollPaneCornerComponent");
+                    if (componentClass instanceof Class){
+                        try {
+                            corner = (Component)
+                                    ((Class)componentClass).newInstance();
+                        } catch (Exception e) {
+                            // just ignore and don't set corner
+                        }
+                    }
+                    scrollPane.setCorner(JScrollPane.UPPER_TRAILING_CORNER,
+                            corner);
                 }
             }
         }
@@ -762,6 +811,13 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                     return;
                 }
                 scrollPane.setColumnHeaderView(null);
+                // remove ScrollPane corner if one was added by the LAF
+                Component corner =
+                        scrollPane.getCorner(JScrollPane.UPPER_TRAILING_CORNER);
+                if (corner instanceof UIResource){
+                    scrollPane.setCorner(JScrollPane.UPPER_TRAILING_CORNER, 
+                            null);
+                }
             }
         }
     }
@@ -3579,6 +3635,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         if (tableHeader != null && tableHeader.getParent() == null) {
             tableHeader.updateUI();
         }
+
+        // Update UI applied to parent ScrollPane
+        configureEnclosingScrollPaneUI();
         
         setUI((TableUI)UIManager.getUI(this));
     }

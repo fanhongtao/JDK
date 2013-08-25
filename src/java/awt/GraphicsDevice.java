@@ -1,5 +1,5 @@
 /*
- * @(#)GraphicsDevice.java	1.41 06/07/31
+ * @(#)GraphicsDevice.java	1.44 08/02/12
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,7 @@ package java.awt;
 
 import java.awt.image.ColorModel;
 import sun.awt.AppContext;
+import sun.awt.AWTAccessor;
 
 /**
  * The <code>GraphicsDevice</code> class describes the graphics devices
@@ -53,7 +54,7 @@ import sun.awt.AppContext;
  *
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.41, 07/31/06
+ * @version 1.44, 02/12/08
  */
 public abstract class GraphicsDevice {
 
@@ -218,7 +219,24 @@ public abstract class GraphicsDevice {
      * @since 1.4
      */
     public void setFullScreenWindow(Window w) {
+        if (w != null) {
+            //XXX: The actions should be documented in some non-update release.
+            if (AWTAccessor.getWindowAccessor().getShape(w) != null) {
+                AWTAccessor.getWindowAccessor().setShape(w, null);
+            }
+            if (!AWTAccessor.getWindowAccessor().isOpaque(w)) {
+                AWTAccessor.getWindowAccessor().setOpaque(w, true);
+            }
+            if (AWTAccessor.getWindowAccessor().getOpacity(w) < 1.0f) {
+                AWTAccessor.getWindowAccessor().setOpacity(w, 1.0f);
+            }
+        }
+
         if (fullScreenWindow != null && windowedModeBounds != null) {
+            // if the window went into fs mode before it was realized it may
+            // have (0,0) dimensions
+            if (windowedModeBounds.width  == 0) windowedModeBounds.width  = 1;
+            if (windowedModeBounds.height == 0) windowedModeBounds.height = 1;
             fullScreenWindow.setBounds(windowedModeBounds);
 	}
         // Set the full screen window

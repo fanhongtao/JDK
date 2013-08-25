@@ -1,5 +1,5 @@
 /*
- * @(#)SocketPermission.java	1.65 07/09/14
+ * @(#)SocketPermission.java	1.66 08/03/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,7 +112,7 @@ import sun.security.util.Debug;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.65 07/09/14
+ * @version 1.66 08/03/24
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -599,7 +599,8 @@ implements java.io.Serializable
 	    } else {
 	        cname = InetAddress.getByName(addresses[0].getHostAddress()).
                                               getHostName(false).toLowerCase();
-	        if (!trustNameService && sun.net.www.URLConnection.isProxiedHost(hostname)) {
+	        if (!trustNameService && (defaultDeny ||
+			sun.net.www.URLConnection.isProxiedHost(hostname))) {
 		    if (!match(cname, hostname) && 
 			(defaultDeny || !cname.equals(addresses[0].getHostAddress()))) {
 			// Last chance
@@ -1216,7 +1217,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.65 09/14/07
+ * @version 1.66 03/24/08
  *
  * @author Roland Schemers
  *

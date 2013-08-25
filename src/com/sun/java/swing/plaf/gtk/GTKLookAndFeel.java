@@ -1,37 +1,34 @@
 /*
- * @(#)GTKLookAndFeel.java	1.108 07/03/15
+ * @(#)GTKLookAndFeel.java	1.110 08/01/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
-import sun.swing.SwingUtilities2;
 import java.lang.ref.*;
 import javax.swing.plaf.synth.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.File;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.*;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.colorchooser.*;
 import javax.swing.plaf.*;
 import javax.swing.text.DefaultEditorKit;
-import java.io.IOException;
 
 import com.sun.java.swing.plaf.gtk.GTKConstants.PositionType;
 import com.sun.java.swing.plaf.gtk.GTKConstants.StateType;
-import sun.awt.SunToolkit;
+
+import sun.swing.SwingUtilities2;
+import sun.awt.AppContext;
 import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
 
 /**
- * @version 1.108, 03/15/07
+ * @version 1.110, 01/24/08
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -71,7 +68,12 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
      */
     private boolean inInitialize;
     
-
+    /** 
+     * If true, PropertyChangeListeners have been installed for the 
+     * Toolkit. 
+     */ 
+    private boolean pclInstalled; 
+    
     /**
      * StyleFactory needs to be created only the first time.
      */
@@ -292,7 +294,23 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         // populate the table with the values from basic.
         initSystemColorDefaults(table);
         initComponentDefaults(table);
+        installPropertyChangeListeners();
         return table;
+    }
+
+    private void installPropertyChangeListeners() {
+        if(!pclInstalled) {        
+            Toolkit kit = Toolkit.getDefaultToolkit();
+            WeakPCL pcl = new WeakPCL(this, kit, "gnome.Net/ThemeName");
+            kit.addPropertyChangeListener(pcl.getKey(), pcl);
+            pcl = new WeakPCL(this, kit, "gnome.Gtk/FontName");
+            kit.addPropertyChangeListener(pcl.getKey(), pcl);
+            pcl = new WeakPCL(this, kit, "gnome.Xft/DPI");
+            kit.addPropertyChangeListener(pcl.getKey(), pcl);
+
+            flushUnreferenced();
+            pclInstalled = true;
+        }
     }
 
     private void initResourceBundle(UIDefaults table) {
@@ -893,7 +911,6 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "Separator.thickness", new Integer(2),
 
 
-            "Slider.paintValue", Boolean.TRUE,
             "Slider.thumbWidth", new Integer(30),
             "Slider.thumbHeight", new Integer(14),
             "Slider.focusInputMap",
@@ -1255,9 +1272,16 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         if (fallbackFont != null) {
             table.put("TitledBorder.font", fallbackFont);
         }
-        aaTextInfo =
-            SwingUtilities2.AATextInfo.getAATextInfo(gtkAAFontSettingsCond);
 	table.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
+
+        // The property "Slider.paintValue" may be passed through AppContext
+        // to avoid loading Swing into plugin (6594219)
+        String key = "Slider.paintValue";
+        Object tmp = AppContext.getAppContext().get(key);
+        if (tmp == null) {
+            tmp = Boolean.TRUE;
+        }
+        table.put(key, tmp);
     }
 
     protected void initSystemColorDefaults(UIDefaults table) {
@@ -1370,14 +1394,6 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         loadStyles();
         inInitialize = false;
 
-        Toolkit kit = Toolkit.getDefaultToolkit();
-        WeakPCL pcl = new WeakPCL(this, kit, "gnome.Net/ThemeName");
-        kit.addPropertyChangeListener(pcl.getKey(), pcl);
-        pcl = new WeakPCL(this, kit, "gnome.Gtk/FontName");
-        kit.addPropertyChangeListener(pcl.getKey(), pcl);
-        pcl = new WeakPCL(this, kit, "gnome.Xft/DPI");
-        kit.addPropertyChangeListener(pcl.getKey(), pcl);
-
         /*
          * Check if system AA font settings should be used.
          * Sun's JDS (for Linux and Solaris) ships with high quality CJK
@@ -1393,15 +1409,12 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
          * XRender.
          */
         gtkAAFontSettingsCond = !isSunCJK && SwingUtilities2.isLocalDisplay();
-        pcl = new WeakPCL(this, kit, SunToolkit.DESKTOPFONTHINTS);
-        kit.addPropertyChangeListener(pcl.getKey(), pcl);
-
-        flushUnreferenced();
+        aaTextInfo = SwingUtilities2.AATextInfo.getAATextInfo(gtkAAFontSettingsCond);
     }
 
     static ReferenceQueue queue = new ReferenceQueue();
 
-    static void flushUnreferenced() {
+    private static void flushUnreferenced() {
         WeakPCL pcl;
 
         while ((pcl = (WeakPCL)queue.poll()) != null) {
@@ -1458,15 +1471,6 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
         void dispose() {
             kit.removePropertyChangeListener(key, this);
-        }
-    }
-
-    public void propertyChange(PropertyChangeEvent evt) {
-        String propertyName = evt.getPropertyName();
-        loadStyles();
-        Frame appFrames[] = Frame.getFrames();
-        for (int i = 0; i < appFrames.length; i++) {
-            SynthLookAndFeel.updateStyles(appFrames[i]);
         }
     }
 

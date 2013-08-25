@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultStyledDocument.java	1.128 06/05/04
+ * @(#)DefaultStyledDocument.java	1.129 08/03/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,6 +32,8 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 import javax.swing.SwingUtilities;
+import sun.swing.SwingUtilities2;
+import static sun.swing.SwingUtilities2.IMPLIED_CR;
 
 /**
  * A document that can be marked up with character and paragraph 
@@ -52,7 +54,7 @@ import javax.swing.SwingUtilities;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.128 05/04/06
+ * @version 1.129 03/05/08
  * @see     Document
  * @see     AbstractDocument
  */
@@ -625,9 +627,18 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
 	    // Check for the composed text element. If it is, merge the character attributes
 	    // into this element as well.
 	    if (Utilities.isComposedTextAttributeDefined(attr)) {
-	        ((MutableAttributeSet)attr).addAttributes(cattr);
-	        ((MutableAttributeSet)attr).addAttribute(AbstractDocument.ElementNameAttribute, 
-		                                         AbstractDocument.ContentElementName);
+                MutableAttributeSet mattr = (MutableAttributeSet) attr;
+	        mattr.addAttributes(cattr);
+	       mattr.addAttribute(AbstractDocument.ElementNameAttribute, 
+                                  AbstractDocument.ContentElementName);
+
+                // Assure that the composed text element is named properly
+                // and doesn't have the CR attribute defined.
+	        mattr.addAttribute(StyleConstants.NameAttribute, 
+                                   AbstractDocument.ContentElementName);
+                if (mattr.isDefined(IMPLIED_CR)) {
+                    mattr.removeAttribute(IMPLIED_CR);
+                }
 	    }
 
 	    ElementSpec[] spec = new ElementSpec[parseBuffer.size()];

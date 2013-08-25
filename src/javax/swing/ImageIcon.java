@@ -1,5 +1,5 @@
 /*
- * @(#)ImageIcon.java	1.55 06/04/07
+ * @(#)ImageIcon.java	1.56 07/09/11
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,10 @@ import java.io.IOException;
 import java.util.Locale;
 import javax.accessibility.*;
 
+import sun.awt.AppContext;
+import java.lang.reflect.Field;
+import java.security.PrivilegedAction;
+import java.security.AccessController;
 
 /**
  * An implementation of the Icon interface that paints Icons
@@ -40,7 +44,7 @@ import javax.accessibility.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.55 04/07/06
+ * @version 1.56 09/11/07
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -58,13 +62,38 @@ public class ImageIcon implements Icon, Serializable, Accessible {
     ImageObserver imageObserver;
     String description = null;
 
-    protected final static Component component = new Component() {};
-    protected final static MediaTracker tracker = new MediaTracker(component);
+    protected final static Component component;
+    protected final static MediaTracker tracker;
+
+    static {
+        component = new Component() {};
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                try {
+                    // 6482575 - clear the appContext field so as not to leak it
+                    Field appContextField =
+                                 Component.class.getDeclaredField("appContext");
+                    appContextField.setAccessible(true);
+                    appContextField.set(component, null);
+                }
+                catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                }
+                catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+        tracker = new MediaTracker(component);
+    }
 
     /**
      * Id used in loading images from MediaTracker.
      */
     private static int mediaTrackerID;
+
+    private final static Object TRACKER_KEY = new StringBuilder("TRACKER_KEY");
 
     int width = -1;
     int height = -1;
@@ -226,17 +255,18 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * @param image the image
      */
     protected void loadImage(Image image) {
-	synchronized(tracker) {
+        MediaTracker mTracker = getTracker();
+        synchronized(mTracker) {
             int id = getNextID();
 
-	    tracker.addImage(image, id);
+            mTracker.addImage(image, id);
 	    try {
-		tracker.waitForID(id, 0);
+                mTracker.waitForID(id, 0);
 	    } catch (InterruptedException e) {
 		System.out.println("INTERRUPTED while loading Image");
 	    }
-            loadStatus = tracker.statusID(id, false);
-	    tracker.removeImage(image, id);
+            loadStatus = mTracker.statusID(id, false);
+            mTracker.removeImage(image, id);
 
 	    width = image.getWidth(imageObserver);
 	    height = image.getHeight(imageObserver);
@@ -247,9 +277,29 @@ public class ImageIcon implements Icon, Serializable, Accessible {
      * Returns an ID to use with the MediaTracker in loading an image.
      */
     private int getNextID() {
-        synchronized(tracker) {
+        synchronized(getTracker()) {
             return ++mediaTrackerID;
         }
+    }
+
+    /**
+     * Returns the MediaTracker for the current AppContext, creating a new
+     * MediaTracker if necessary.
+     */
+    private MediaTracker getTracker() {
+        Object trackerObj;
+        AppContext ac = AppContext.getAppContext();
+        // Opt: Only synchronize if trackerObj comes back null?
+        // If null, synchronize, re-check for null, and put new tracker
+        synchronized(ac) {
+            trackerObj = ac.get(TRACKER_KEY);
+            if (trackerObj == null) {
+                Component comp = new Component() {};
+                trackerObj = new MediaTracker(comp);
+                ac.put(TRACKER_KEY, trackerObj);
+            }
+        }
+        return (MediaTracker) trackerObj;
     }
 
     /**

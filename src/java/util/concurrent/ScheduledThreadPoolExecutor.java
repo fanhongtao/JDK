@@ -1,5 +1,5 @@
 /*
- * @(#)ScheduledThreadPoolExecutor.java	1.8 06/03/30
+ * @(#)ScheduledThreadPoolExecutor.java	1.9 07/12/14
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -359,6 +359,7 @@ public class ScheduledThreadPoolExecutor
                                        TimeUnit unit) {
         if (command == null || unit == null)
             throw new NullPointerException();
+        if (delay < 0) delay = 0;
         long triggerTime = now() + unit.toNanos(delay);
         RunnableScheduledFuture<?> t = decorateTask(command,
             new ScheduledFutureTask<Boolean>(command, null, triggerTime));

@@ -366,6 +366,7 @@ class SymbMap implements Cloneable{
         if (cur == null || (cur.equals( obj))) {
 			return index;
         }
+        length=length-1;
         do {
 			index=index==length? 0:++index;
 			cur = set[index];

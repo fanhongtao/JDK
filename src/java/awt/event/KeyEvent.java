@@ -1,7 +1,7 @@
 /*
- * @(#)KeyEvent.java	1.79 06/10/19
+ * @(#)KeyEvent.java	1.81 08/04/30
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -114,7 +114,7 @@ import java.io.ObjectInputStream;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.79 10/19/06
+ * @version 1.81 04/30/08
  *
  * @see KeyAdapter
  * @see KeyListener
@@ -870,6 +870,12 @@ public class KeyEvent extends InputEvent {
      */
     int keyLocation;
 
+    //set from native code.
+    private transient long rawCode = 0;
+    private transient long primaryLevelUnicode = 0;
+    private transient long scancode = 0; // for MS Windows only
+    
+
     /*
      * JDK 1.1 serialVersionUID 
      */
@@ -1506,6 +1512,9 @@ public class KeyEvent extends InputEvent {
             str.append("KEY_LOCATION_UNKNOWN");
             break;
         }
+        str.append(",rawCode=").append(rawCode);
+        str.append(",primaryLevelUnicode=").append(primaryLevelUnicode);
+        str.append(",scancode=").append(scancode);
 
         return str.toString();
     }

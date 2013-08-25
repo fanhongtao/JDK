@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSliderUI.java	1.107 05/11/17
+ * @(#)BasicSliderUI.java	1.108 08/05/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import sun.swing.UIAction;
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.107 11/17/05
+ * @version 1.108 05/29/08
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
@@ -199,6 +199,9 @@ public class BasicSliderUI extends SliderUI{
         focusColor = UIManager.getColor("Slider.focus");
 
 	focusInsets = (Insets)UIManager.get( "Slider.focusInsets" );
+        // use default if missing so that BasicSliderUI can be used in other
+        // LAFs like Nimbus
+        if (focusInsets == null) focusInsets = new InsetsUIResource(2,2,2,2);
     }
 
     protected TrackListener createTrackListener(JSlider slider) {

@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphView.java	1.43 06/05/12
+ * @(#)GlyphView.java	1.45 08/03/05
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,7 @@ import javax.swing.event.*;
 import java.util.BitSet;
 
 import sun.swing.SwingUtilities2;
+import static sun.swing.SwingUtilities2.IMPLIED_CR;
 
 /**
  * A GlyphView is a styled chunk of text that represents a view
@@ -40,7 +41,7 @@ import sun.swing.SwingUtilities2;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.43 05/12/06
+ * @version 1.45 03/05/08
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -670,12 +671,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
                 return View.ExcellentBreakWeight;
             }
 	    // Nothing good to break on.
-            // breaking on the View boundary is better than splitting it
-            if (p1 == getEndOffset()) {
-                return View.GoodBreakWeight;
-            } else {
-                return View.GoodBreakWeight - 1;
-            }
+            return View.GoodBreakWeight;
 	}
 	return super.getBreakWeight(axis, pos, len);
     }
@@ -1061,7 +1057,6 @@ public class GlyphView extends View implements TabableView, Cloneable {
     int length;
     // if it is an implied newline character
     boolean impliedCR;
-    private static final String IMPLIED_CR = "CR";
     boolean skipWidth;
     
     /**

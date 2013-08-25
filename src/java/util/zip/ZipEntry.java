@@ -1,5 +1,5 @@
 /*
- * @(#)ZipEntry.java	1.40 05/11/17
+ * @(#)ZipEntry.java	1.42 08/01/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.40, 11/17/05
+ * @version	1.42, 01/02/08
  * @author	David Connelly
  */
 public
@@ -111,7 +111,13 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @see #getTime()
      */
     public void setTime(long time) {
-	this.time = javaToDosTime(time);
+        // fix for bug 6625963: we bypass time calculations while Kernel is
+        // downloading bundles, since they aren't necessary and would cause
+        // the Kernel core to depend upon the (very large) time zone data
+        if (sun.jkernel.DownloadManager.isCurrentThreadDownloading())
+            this.time = sun.jkernel.DownloadManager.KERNEL_STATIC_MODTIME;
+        else
+	    this.time = javaToDosTime(time);
     }
 
     /**

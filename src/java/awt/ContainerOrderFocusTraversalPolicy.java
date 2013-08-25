@@ -1,7 +1,7 @@
 /*
- * @(#)ContainerOrderFocusTraversalPolicy.java	1.9 05/11/17
+ * @(#)ContainerOrderFocusTraversalPolicy.java	1.10 08/04/15
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -33,7 +33,7 @@ import java.util.logging.*;
  * policy is used to perform the search operation.
  *
  * @author David Mendenhall
- * @version 1.9, 11/17/05
+ * @version 1.10, 04/15/08
  *
  * @see Container#getComponents
  * @since 1.4
@@ -118,8 +118,8 @@ public class ContainerOrderFocusTraversalPolicy extends FocusTraversalPolicy
             found.value = true;
         }
 
-        for (int i = 0; i < aContainer.ncomponents; i++) {
-            Component comp = aContainer.component[i];
+        for (int i = 0; i < aContainer.countComponents(); i++) {
+            Component comp = aContainer.getComponent(i);
             if ((comp instanceof Container) &&
                 !((Container)comp).isFocusCycleRoot()) {
                 Component retval = null;
@@ -225,8 +225,8 @@ public class ContainerOrderFocusTraversalPolicy extends FocusTraversalPolicy
 	    return null;
 	}
 
-        for (int i = aContainer.ncomponents - 1; i >= 0; i--) {
-            Component comp = aContainer.component[i];
+        for (int i = aContainer.countComponents() - 1; i >= 0; i--) {
+            Component comp = aContainer.getComponent(i);
 	    if (comp == aComponent) {
 		found.value = true;
 	    } else if ((comp instanceof Container) &&
@@ -304,8 +304,8 @@ public class ContainerOrderFocusTraversalPolicy extends FocusTraversalPolicy
                 return aContainer;
             }
 
-            for (int i = 0; i < aContainer.ncomponents; i++) {
-                Component comp = aContainer.component[i];
+            for (int i = 0; i < aContainer.countComponents(); i++) {
+                Component comp = aContainer.getComponent(i);
 		if (comp instanceof Container &&
 		    !((Container)comp).isFocusCycleRoot())
 		{
@@ -353,8 +353,8 @@ public class ContainerOrderFocusTraversalPolicy extends FocusTraversalPolicy
                 return null;
             }
 
-            for (int i = aContainer.ncomponents - 1; i >= 0; i--) {
-                Component comp = aContainer.component[i];
+            for (int i = aContainer.countComponents() - 1; i >= 0; i--) {
+                Component comp = aContainer.getComponent(i);
 		if (comp instanceof Container &&
 		    !((Container)comp).isFocusCycleRoot())
 		{

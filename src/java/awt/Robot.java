@@ -1,5 +1,5 @@
 /*
- * @(#)Robot.java	1.29 06/03/21
+ * @(#)Robot.java	1.32 08/04/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
 import sun.awt.ComponentFactory;
 import sun.awt.SunToolkit;
+import sun.awt.image.CachingSurfaceManager;
 import sun.security.util.SecurityConstants;
 
 /**
@@ -38,7 +39,7 @@ import sun.security.util.SecurityConstants;
  * Applications that use Robot for purposes other than self-testing should 
  * handle these error conditions gracefully.
  *
- * @version 	1.29, 03/21/06
+ * @version 	1.32, 04/30/08
  * @author 	Robi Khan
  * @since   	1.3
  */
@@ -116,6 +117,8 @@ public class Robot {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         if (toolkit instanceof ComponentFactory) {
             peer = ((ComponentFactory)toolkit).createRobot(this, screen);
+	    disposer = new RobotDisposer(peer);
+	    sun.java2d.Disposer.addRecord(anchor, disposer);
         }
     }
 
@@ -133,6 +136,22 @@ public class Robot {
             throw new IllegalArgumentException("not a valid screen device");
         }
     }
+
+    private transient Object anchor = new Object();
+
+    static class RobotDisposer implements sun.java2d.DisposerRecord {
+        private final RobotPeer peer;
+        public RobotDisposer(RobotPeer peer) {
+            this.peer = peer;
+        }
+        public void dispose() {
+            if (peer != null) {
+                peer.dispose();
+            }
+        }
+    }
+
+    private transient RobotDisposer disposer;
 
     /**
      * Moves mouse pointer to given screen coordinates.
@@ -300,8 +319,12 @@ public class Robot {
                          /* blue mask */   0x000000FF);
     }
 
+        // need to sync the toolkit prior to grabbing the pixels since in some
+        // cases rendering to the screen may be delayed
+        Toolkit.getDefaultToolkit().sync();
+        
 	int pixels[];
-    int[] bandmasks = new int[3];
+        int[] bandmasks = new int[3];
 
 	pixels = peer.getRGBPixels(translatedRect);
 	buffer = new DataBufferInt(pixels, pixels.length);
@@ -313,6 +336,7 @@ public class Robot {
     raster = Raster.createPackedRaster(buffer, translatedRect.width, translatedRect.height, translatedRect.width, bandmasks, null);
 
 	image = new BufferedImage(screenCapCM, raster, false, null);
+        CachingSurfaceManager.restoreLocalAcceleration(image);
 
 	return image;
     }
