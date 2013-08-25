@@ -1,5 +1,5 @@
 /*
- * @(#)ImageWriterSpi.java	1.39 05/11/17
+ * @(#)ImageWriterSpi.java	1.40 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -211,7 +211,11 @@ public abstract class ImageWriterSpi extends ImageReaderWriterSpi {
             throw new IllegalArgumentException
                 ("outputTypes.length == 0!");
         }
-        this.outputTypes = (Class[])outputTypes.clone();
+
+        this.outputTypes = (outputTypes == STANDARD_OUTPUT_TYPE) ?
+            new Class<?>[] { ImageOutputStream.class } :
+            outputTypes.clone();
+
         // If length == 0, leave it null
         if (readerSpiNames != null && readerSpiNames.length > 0) {
             this.readerSpiNames = (String[])readerSpiNames.clone();

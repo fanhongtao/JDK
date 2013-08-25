@@ -1,5 +1,5 @@
 /*
- * @(#)FileCacheImageOutputStream.java	1.26 06/01/05
+ * @(#)FileCacheImageOutputStream.java	1.27 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,6 +32,10 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
     
     // Pos after last (rightmost) byte written
     private long maxStreamPos = 0L;
+
+    /** The CloseAction that closes the stream in
+     *  the StreamCloser's shutdown hook                     */
+    private final StreamCloser.CloseAction closeAction;
 
     /**
      * Constructs a <code>FileCacheImageOutputStream</code> that will write
@@ -67,7 +71,9 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
         this.cacheFile =
             File.createTempFile("imageio", ".tmp", cacheDir);
         this.cache = new RandomAccessFile(cacheFile, "rw");
-        StreamCloser.addToQueue(this);
+
+        this.closeAction = StreamCloser.createCloseAction(this);
+        StreamCloser.addToQueue(closeAction);
     }
 
     public int read() throws IOException {
@@ -212,7 +218,7 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
         cacheFile = null;
         stream.flush();
         stream = null;
-        StreamCloser.removeFromQueue(this);
+        StreamCloser.removeFromQueue(closeAction);
     }
 
     public void flushBefore(long pos) throws IOException {

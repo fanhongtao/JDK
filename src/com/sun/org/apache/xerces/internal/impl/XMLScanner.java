@@ -20,7 +20,7 @@
 
 /*
  * $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
- * @(#)XMLScanner.java	1.19 09/04/17
+ * @(#)XMLScanner.java	1.20 09/06/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
  */
@@ -1051,6 +1051,9 @@ public abstract class XMLScanner
                     int c = fEntityScanner.peekChar();
                     if (XMLChar.isMarkup(c) || c == ']') {
                         fStringBuffer.append((char)fEntityScanner.scanChar());
+                    } else if (c != -1 && isInvalidLiteral(c)) {
+                        reportFatalError("InvalidCharInSystemID",
+                            new Object[] {Integer.toString(c, 16)});
                     }
                 } while (fEntityScanner.scanLiteral(quote, ident) != quote);
                 fStringBuffer.append(ident);

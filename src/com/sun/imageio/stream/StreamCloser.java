@@ -1,5 +1,5 @@
 /*
- * @(#)StreamCloser.java	1.4 09/01/16
+ * @(#)StreamCloser.java	1.5 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,35 +25,35 @@ import javax.imageio.stream.ImageInputStream;
  */
 public class StreamCloser {
 
-    private static WeakHashMap<ImageInputStream, Object> toCloseQueue;
+    private static WeakHashMap<CloseAction, Object> toCloseQueue;
     private static Thread streamCloser;
 
-    public static void addToQueue(ImageInputStream iis) {
+    public static void addToQueue(CloseAction ca) {
         synchronized (StreamCloser.class) {
             if (toCloseQueue == null) {
                 toCloseQueue =
-                    new WeakHashMap<ImageInputStream, Object>();
+                    new WeakHashMap<CloseAction, Object>();
             }
             
-            toCloseQueue.put(iis, null);
+            toCloseQueue.put(ca, null);
 
             if (streamCloser == null) {
                 final Runnable streamCloserRunnable = new Runnable() {
                     public void run() {
                         if (toCloseQueue != null) {
                             synchronized (StreamCloser.class) {
-                                Set<ImageInputStream> set =
+                                Set<CloseAction> set =
                                     toCloseQueue.keySet();
                                 // Make a copy of the set in order to avoid
                                 // concurrent modification (the is.close()
                                 // will in turn call removeFromQueue())
-                                ImageInputStream[] streams =
-                                    new ImageInputStream[set.size()];
-                                streams = set.toArray(streams);
-                                for (ImageInputStream is : streams) {
-                                    if (is != null) {
+                                CloseAction[] actions =
+                                    new CloseAction[set.size()];
+                                actions = set.toArray(actions);
+                                for (CloseAction ca : actions) {
+                                    if (ca != null) {
                                         try {
-                                            is.close();
+                                            ca.performAction();
                                         } catch (IOException e) {
                                         }
                                     }
@@ -88,10 +88,28 @@ public class StreamCloser {
         }
     }
 
-    public static void removeFromQueue(ImageInputStream iis) {
+    public static void removeFromQueue(CloseAction ca) {
         synchronized (StreamCloser.class) {
             if (toCloseQueue != null) {
-                toCloseQueue.remove(iis);
+                toCloseQueue.remove(ca);
+            }
+        }
+    }
+
+    public static CloseAction createCloseAction(ImageInputStream iis) {
+        return new CloseAction(iis);
+    }
+
+    public static final class CloseAction {
+        private ImageInputStream iis;
+
+        private CloseAction(ImageInputStream iis) {
+            this.iis = iis;
+        }
+
+        public void performAction() throws IOException {
+            if (iis != null) {
+                iis.close();
             }
         }
     }

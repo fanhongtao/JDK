@@ -1,5 +1,5 @@
 /*
- * @(#)OpenType.java	3.38 06/06/13
+ * @(#)OpenType.java	3.39 09/05/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import javax.management.ImmutableDescriptor;
  * as a {@code SimpleType.INTEGER} must have Java type
  * {@link Integer}.
  *
- * @version     3.38  06/06/13
+ * @version     3.39  09/05/07
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
@@ -290,7 +290,12 @@ public abstract class OpenType<T> implements Serializable {
      * @return the class name.
      */
     public String getClassName() {
+        return className;
+    }
 
+    // A version of getClassName() that can only be called from within this
+    // package and that cannot be overridden.
+    String safeGetClassName() {
 	return className;
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)LayoutQueue.java	1.7 05/11/17
+ * @(#)LayoutQueue.java	1.8 09/05/04
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,21 +7,22 @@
 package javax.swing.text;
 
 import java.util.Vector;
+import sun.awt.AppContext;
 
 /**
  * A queue of text layout tasks. 
  *
  * @author  Timothy Prinzing
- * @version 1.7 11/17/05
+ * @version 1.8 05/04/09
  * @see     AsyncBoxView
  * @since   1.3 
  */
 public class LayoutQueue {
 
-    Vector tasks;
-    Thread worker;
+    private static final Object DEFAULT_QUEUE = new Object();
 
-    static LayoutQueue defaultQueue;
+    private Vector tasks;
+    private Thread worker;
 
     /**
      * Construct a layout queue.
@@ -34,10 +35,15 @@ public class LayoutQueue {
      * Fetch the default layout queue.
      */
     public static LayoutQueue getDefaultQueue() {
-	if (defaultQueue == null) {
-	    defaultQueue = new LayoutQueue();
+        AppContext ac = AppContext.getAppContext();
+        synchronized (DEFAULT_QUEUE) {
+            LayoutQueue defaultQueue = (LayoutQueue) ac.get(DEFAULT_QUEUE);
+            if (defaultQueue == null) {
+                defaultQueue = new LayoutQueue();
+                ac.put(DEFAULT_QUEUE, defaultQueue);
+            }
+            return defaultQueue;
 	}
-	return defaultQueue;
     }
 
     /**
@@ -46,7 +52,9 @@ public class LayoutQueue {
      * @param q the new queue.
      */
     public static void setDefaultQueue(LayoutQueue q) {
-	defaultQueue = q;
+        synchronized (DEFAULT_QUEUE) {
+            AppContext.getAppContext().put(DEFAULT_QUEUE, q);
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageWriterSpi.java	1.12 07/11/26
+ * @(#)JPEGImageWriterSpi.java	1.13 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,7 @@ package com.sun.imageio.plugins.jpeg;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.spi.ServiceRegistry;
 import javax.imageio.spi.IIORegistry;
+import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.ImageWriter;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.IIOException;
@@ -31,7 +32,7 @@ public class JPEGImageWriterSpi extends ImageWriterSpi {
               JPEG.suffixes,
               JPEG.MIMETypes,
               "com.sun.imageio.plugins.jpeg.JPEGImageWriter",
-              STANDARD_OUTPUT_TYPE,
+              new Class[] { ImageOutputStream.class },
               readerSpiNames,
               true,
               JPEG.nativeStreamMetadataFormatName,

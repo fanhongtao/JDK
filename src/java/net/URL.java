@@ -1,5 +1,5 @@
 /*
- * @(#)URL.java	1.134 06/04/14
+ * @(#)URL.java	1.136 09/04/30
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -110,7 +110,7 @@ import sun.security.util.SecurityConstants;
  * as the encoding scheme defined in RFC2396.
  *
  * @author  James Gosling
- * @version 1.134, 04/14/06
+ * @version 1.136, 04/30/09
  * @since JDK1.0 
  */
 public final class URL implements java.io.Serializable {
@@ -980,16 +980,17 @@ public final class URL implements java.io.Serializable {
 	    throw new IllegalArgumentException("proxy can not be null");
 	}
 	
+	Proxy p = proxy == Proxy.NO_PROXY ? Proxy.NO_PROXY : sun.net.ApplicationProxy.create(proxy);
 	SecurityManager sm = System.getSecurityManager();
-	if (proxy.type() != Proxy.Type.DIRECT && sm != null) {
-	    InetSocketAddress epoint = (InetSocketAddress) proxy.address();
+	if (p.type() != Proxy.Type.DIRECT && sm != null) {
+	    InetSocketAddress epoint = (InetSocketAddress) p.address();
 	    if (epoint.isUnresolved())
 		sm.checkConnect(epoint.getHostName(), epoint.getPort());
 	    else
 		sm.checkConnect(epoint.getAddress().getHostAddress(),
 				epoint.getPort());
 	}
-	return handler.openConnection(this, proxy);
+	return handler.openConnection(this, p);
     }
 
     /**

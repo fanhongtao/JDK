@@ -1,5 +1,5 @@
 /*
- * @(#)WBMPImageWriterSpi.java	1.4 05/11/17 14:15:07
+ * @(#)WBMPImageWriterSpi.java	1.5 09/04/29 07:41:33
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,7 @@ package com.sun.imageio.plugins.wbmp;
 import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.spi.ServiceRegistry;
 import javax.imageio.spi.IIORegistry;
+import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.ImageWriter;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.IIOException;
@@ -36,7 +37,7 @@ public class WBMPImageWriterSpi extends ImageWriterSpi {
               entensions,
               mimeType,
               "com.sun.imageio.plugins.wbmp.WBMPImageWriter",
-              STANDARD_OUTPUT_TYPE,
+              new Class[] { ImageOutputStream.class },
               readerSpiNames,
               true,
               null, null, null, null,

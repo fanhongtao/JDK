@@ -1,5 +1,5 @@
 /*
- * @(#)GIFImageWriterSpi.java	1.2 05/11/17
+ * @(#)GIFImageWriterSpi.java	1.3 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.util.Locale;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.ImageWriter;
 import javax.imageio.spi.ImageWriterSpi;
+import javax.imageio.stream.ImageOutputStream;
 import com.sun.imageio.plugins.common.PaletteBuilder;
 
 public class GIFImageWriterSpi extends ImageWriterSpi {
@@ -41,7 +42,7 @@ public class GIFImageWriterSpi extends ImageWriterSpi {
               suffixes,
               MIMETypes,
               writerClassName,
-              STANDARD_OUTPUT_TYPE,
+              new Class[] { ImageOutputStream.class },
               readerSpiNames,
               true,
               GIFWritableStreamMetadata.NATIVE_FORMAT_NAME,

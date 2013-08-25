@@ -1,5 +1,5 @@
 /*
- * @(#)OpenMBeanAttributeInfoSupport.java	3.43 06/03/15
+ * @(#)OpenMBeanAttributeInfoSupport.java	3.44 09/05/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import com.sun.jmx.remote.util.EnvHelp;
 /**
  * Describes an attribute of an open MBean.
  *
- * @version     3.43  06/03/15
+ * @version     3.44  09/05/07
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
@@ -663,7 +663,7 @@ public class OpenMBeanAttributeInfoSupport
     private static <T> T convertFromString(String s, OpenType<T> openType) {
         Class<T> c;
         try {
-            c = (Class<T>) Class.forName(openType.getClassName());
+            c = (Class<T>) Class.forName(openType.safeGetClassName());
         } catch (ClassNotFoundException e) {
             throw new NoClassDefFoundError(e.toString());  // can't happen
         }
@@ -684,7 +684,7 @@ public class OpenMBeanAttributeInfoSupport
             } catch (Exception e) {
                 final String msg =
                     "Could not convert \"" + s + "\" using method: " + valueOf;
-                throw new IllegalArgumentException(msg);
+                throw new IllegalArgumentException(msg, e);
             }
         }
         
@@ -701,7 +701,7 @@ public class OpenMBeanAttributeInfoSupport
             } catch (Exception e) {
                 final String msg =
                     "Could not convert \"" + s + "\" using constructor: " + con;
-                throw new IllegalArgumentException(msg);
+                throw new IllegalArgumentException(msg, e);
             }
         }
         
@@ -730,7 +730,7 @@ public class OpenMBeanAttributeInfoSupport
             stringArrayClass =
                 Class.forName(squareBrackets + "Ljava.lang.String;");
             targetArrayClass =
-                Class.forName(squareBrackets + "L" + baseType.getClassName() +
+                Class.forName(squareBrackets + "L" + baseType.safeGetClassName() +
                               ";");
         } catch (ClassNotFoundException e) {
             throw new NoClassDefFoundError(e.toString());  // can't happen
@@ -742,7 +742,6 @@ public class OpenMBeanAttributeInfoSupport
                 "array with same dimensions";
             throw new IllegalArgumentException(msg);
         }
-        Class<?> targetComponentClass = targetArrayClass.getComponentType();
         OpenType<?> componentOpenType;
         if (dim == 1)
             componentOpenType = baseType;

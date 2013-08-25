@@ -56,8 +56,14 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
     */
    public abstract String engineGetURI();
 
+   /**
+    * Returns the output length of the hash/digest.
+    */
+   abstract int getDigestLength();
+
    /** Field _macAlgorithm */
    private Mac _macAlgorithm = null;
+   private boolean _HMACOutputLengthSet = false;
 
    /** Field _HMACOutputLength */
    int _HMACOutputLength = 0;
@@ -107,14 +113,16 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
            throws XMLSignatureException {
 
       try {
-         byte[] completeResult = this._macAlgorithm.doFinal();
-
-         if ((this._HMACOutputLength == 0) || (this._HMACOutputLength >= 160)) {
+         if (this._HMACOutputLengthSet && this._HMACOutputLength < getDigestLength()) {
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, 
+                    "HMACOutputLength must not be less than " + getDigestLength());
+            }
+            throw new XMLSignatureException("errorMessages.XMLSignatureException");
+         } else {
+            byte[] completeResult = this._macAlgorithm.doFinal();
             return MessageDigestAlgorithm.isEqual(completeResult, signature);
          }
-         byte[] stripped = IntegrityHmac.reduceBitLength(completeResult,
-                                 this._HMACOutputLength);
-         return MessageDigestAlgorithm.isEqual(stripped, signature);         
       } catch (IllegalStateException ex) {
          throw new XMLSignatureException("empty", ex);
       }
@@ -155,14 +163,16 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
    protected byte[] engineSign() throws XMLSignatureException {
 
       try {
-         byte[] completeResult = this._macAlgorithm.doFinal();
 
-         if ((this._HMACOutputLength == 0) || (this._HMACOutputLength >= 160)) {
-            return completeResult;
-         } 
-          return IntegrityHmac.reduceBitLength(completeResult,
-                                                 this._HMACOutputLength);
-         
+         if (this._HMACOutputLengthSet && this._HMACOutputLength < getDigestLength()) {
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, 
+                    "HMACOutputLength must not be less than " + getDigestLength());
+            }
+            throw new XMLSignatureException("errorMessages.XMLSignatureException");
+         } else {
+            return this._macAlgorithm.doFinal();
+         }
       } catch (IllegalStateException ex) {
          throw new XMLSignatureException("empty", ex);
       }
@@ -340,6 +350,7 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
     */
    protected void engineSetHMACOutputLength(int HMACOutputLength) {
       this._HMACOutputLength = HMACOutputLength;
+      this._HMACOutputLengthSet = true;
    }
 
    /**
@@ -355,12 +366,13 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
          throw new IllegalArgumentException("element null");
       }
 
-             Text hmaclength =XMLUtils.selectDsNodeText(element.getFirstChild(),
-                    Constants._TAG_HMACOUTPUTLENGTH,0);               
+      Text hmaclength =XMLUtils.selectDsNodeText(element.getFirstChild(),
+         Constants._TAG_HMACOUTPUTLENGTH,0);               
 
-            if (hmaclength != null) {
-               this._HMACOutputLength = Integer.parseInt(hmaclength.getData());
-            }
+      if (hmaclength != null) {
+         this._HMACOutputLength = Integer.parseInt(hmaclength.getData());
+         this._HMACOutputLengthSet = true;
+      }
       
    }
 
@@ -369,14 +381,13 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
     *
     * @param element
     */
-   public void engineAddContextToElement(Element element)
-           {
+   public void engineAddContextToElement(Element element) {
 
       if (element == null) {
          throw new IllegalArgumentException("null element");
       }
 
-      if (this._HMACOutputLength != 0) {
+      if (this._HMACOutputLengthSet) {
          Document doc = element.getOwnerDocument();
          Element HMElem = XMLUtils.createElementInSignatureSpace(doc,
                              Constants._TAG_HMACOUTPUTLENGTH);
@@ -415,6 +426,10 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
       public String engineGetURI() {
          return XMLSignature.ALGO_ID_MAC_HMAC_SHA1;
       }
+
+      final int getDigestLength() {
+          return 160;
+      }
    }
 
    /**
@@ -441,6 +456,10 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
        */
       public String engineGetURI() {
          return XMLSignature.ALGO_ID_MAC_HMAC_SHA256;
+      }
+
+      final int getDigestLength() {
+          return 256;
       }
    }
 
@@ -469,6 +488,10 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
       public String engineGetURI() {
          return XMLSignature.ALGO_ID_MAC_HMAC_SHA384;
       }
+
+      final int getDigestLength() {
+          return 384;
+      }
    }
 
    /**
@@ -495,6 +518,10 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
        */
       public String engineGetURI() {
          return XMLSignature.ALGO_ID_MAC_HMAC_SHA512;
+      }
+
+      final int getDigestLength() {
+          return 512;
       }
    }
 
@@ -523,6 +550,10 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
       public String engineGetURI() {
          return XMLSignature.ALGO_ID_MAC_HMAC_RIPEMD160;
       }
+
+      final int getDigestLength() {
+          return 160;
+      }
    }
 
    /**
@@ -549,6 +580,10 @@ public abstract class IntegrityHmac extends SignatureAlgorithmSpi {
        */
       public String engineGetURI() {
          return XMLSignature.ALGO_ID_MAC_HMAC_NOT_RECOMMENDED_MD5;
+      }
+
+      final int getDigestLength() {
+          return 128;
       }
    }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)GIFImageReaderSpi.java	1.22 05/12/15
+ * @(#)GIFImageReaderSpi.java	1.23 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ public class GIFImageReaderSpi extends ImageReaderSpi {
               suffixes,
               MIMETypes,
               readerClassName,
-              STANDARD_INPUT_TYPE,
+              new Class[] { ImageInputStream.class },
               writerSpiNames,
               true,
               GIFStreamMetadata.nativeMetadataFormatName,

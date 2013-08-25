@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageReaderSpi.java	1.10 07/11/26
+ * @(#)JPEGImageReaderSpi.java	1.11 09/04/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ public class JPEGImageReaderSpi extends ImageReaderSpi {
               JPEG.suffixes,
               JPEG.MIMETypes,
               "com.sun.imageio.plugins.jpeg.JPEGImageReader",
-              STANDARD_INPUT_TYPE,
+              new Class[] { ImageInputStream.class },
               writerSpiNames,
               true,
               JPEG.nativeStreamMetadataFormatName,
