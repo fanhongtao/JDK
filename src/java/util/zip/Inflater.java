@@ -1,7 +1,7 @@
 /*
- * @(#)Inflater.java	1.47 06/04/07
+ * @(#)Inflater.java	1.48 08/02/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,10 +56,12 @@ package java.util.zip;
 public
 class Inflater {
     private long strm;
-    private byte[] buf = new byte[0];
+    private byte[] buf = emptyBuf;
     private int off, len;
     private boolean finished;
     private boolean needDict;
+
+    private static byte[] emptyBuf = new byte[0];
 
     static {
 	/* Zip library is loaded from System.initializeSystemClass */
@@ -304,6 +306,7 @@ class Inflater {
 	finished = false;
 	needDict = false;
 	off = len = 0;
+        buf = emptyBuf;
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)ZipFile.java	1.78 06/07/31
+ * @(#)ZipFile.java	1.80 08/03/13
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -261,7 +261,6 @@ class ZipFile implements ZipConstants {
 	    int size = inflaters.size();
 	    if (size > 0) {
 		Inflater inf = (Inflater)inflaters.remove(size - 1);
-		inf.reset();
 		return inf;
 	    } else {
 		return new Inflater(true);
@@ -274,6 +273,7 @@ class ZipFile implements ZipConstants {
      */
     private void releaseInflater(Inflater inf) {
 	synchronized (inflaters) {
+            inf.reset();
 	    inflaters.add(inf);
 	}
     }

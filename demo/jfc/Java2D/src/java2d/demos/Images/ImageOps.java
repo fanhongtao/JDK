@@ -1,7 +1,7 @@
 /*
- * @(#)ImageOps.java	1.34 06/08/09
+ * @(#)ImageOps.java	1.35 07/05/30
  * 
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2007 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)ImageOps.java	1.34 06/08/09
+ * @(#)ImageOps.java	1.35 07/05/30
  */
 
 package java2d.demos.Images;
@@ -104,6 +104,7 @@ public class ImageOps extends ControlsSurface implements ChangeListener {
 
 
     public ImageOps() {
+        setDoubleBuffered(true);
         setBackground(Color.white);
         for (int i = 0; i < imgName.length; i++) {
             Image image = getImage(imgName[i]);
@@ -142,18 +143,14 @@ public class ImageOps extends ControlsSurface implements ChangeListener {
     public void render(int w, int h, Graphics2D g2) {
         int iw = img[imgIndex].getWidth(null);
         int ih = img[imgIndex].getHeight(null);
-        BufferedImage bi = new BufferedImage(iw,ih,BufferedImage.TYPE_INT_RGB);
-        biop[opsIndex].filter(img[imgIndex], bi);
-        g2.drawImage(bi,0,0,w,h,null);
+        AffineTransform oldXform = g2.getTransform();
+        g2.scale(((double)w) / iw, ((double)h) / ih);
+        g2.drawImage(img[imgIndex], biop[opsIndex], 0, 0);
+        g2.setTransform(oldXform);
     }
 
 
     public void stateChanged(ChangeEvent e) {
-        // when using these sliders use double buffering, which means
-        // ignoring when DemoSurface.imageType = 'On Screen'
-        if (getImageType() <= 1) {
-            setImageType(2);
-        }
         if (e.getSource().equals(slider1)) {
             if (opsIndex == 0) {
                 thresholdOp(slider1.getValue(), high);

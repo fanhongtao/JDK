@@ -1,5 +1,5 @@
 /*
- * @(#)AccessControlContext.java	1.46 06/04/07
+ * @(#)AccessControlContext.java	1.47 08/03/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -303,7 +303,7 @@ public final class AccessControlContext {
 		    debug.println("access denied " + perm);
 		}
 
-		if (Debug.isOn("failure")) {
+		if (Debug.isOn("failure") && debug != null) {
 		    // Want to make sure this is always displayed for failure,
 		    // but do not want to display again if already displayed
 		    // above.
