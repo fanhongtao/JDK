@@ -1,5 +1,5 @@
 /*
- * @(#)IIOPInputStream.java	1.75 05/11/17
+ * @(#)IIOPInputStream.java	1.76 08/11/14
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -557,6 +557,8 @@ public class IIOPInputStream
             // defaultReadObjectFVDMembers for more information.
             if (defaultReadObjectFVDMembers != null &&
                 defaultReadObjectFVDMembers.length > 0) {
+              ValueMember[] valueMembers = defaultReadObjectFVDMembers;
+              defaultReadObjectFVDMembers = null;
 
                 // WARNING:  Be very careful!  What if some of
                 // these fields actually have to do this, too?
@@ -570,7 +572,7 @@ public class IIOPInputStream
                 inputClassFields(currentObject, 
                                  currentClass, 
                                  currentClassDesc,
-                                 defaultReadObjectFVDMembers,
+                                 valueMembers,
                                  cbSender);
 
             } else {
@@ -2017,6 +2019,7 @@ public class IIOPInputStream
         // Must have this local variable since defaultReadObjectFVDMembers
         // may get mangled by recursion.
         ValueMember fields[] = defaultReadObjectFVDMembers;
+        defaultReadObjectFVDMembers = null;
 
 	try {
 

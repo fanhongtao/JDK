@@ -1,5 +1,5 @@
 /*
- * @(#)GaugeMonitor.java	1.78 05/11/17
+ * @(#)GaugeMonitor.java	1.79 08/11/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,7 +61,7 @@ import static javax.management.monitor.MonitorNotification.*;
  * (<CODE>Byte</CODE>, <CODE>Integer</CODE>, <CODE>Short</CODE>,
  * <CODE>Long</CODE>, <CODE>Float</CODE>, <CODE>Double</CODE>).
  *
- * @version     1.78     11/17/05
+ * @version     1.79     11/18/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -250,6 +250,7 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      *
      * @since.unbundled JMX 1.2
      */
+    @Override
     public synchronized Number getDerivedGauge(ObjectName object) {
         return (Number) super.getDerivedGauge(object);
     }
@@ -266,6 +267,7 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      *
      * @since.unbundled JMX 1.2
      */
+    @Override
     public synchronized long getDerivedGaugeTimeStamp(ObjectName object) {
         return super.getDerivedGaugeTimeStamp(object);
     }
@@ -470,6 +472,7 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      * name of the Java class of the notification and the notification
      * types sent by the gauge monitor.
      */
+    @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
         return notifsInfo;
     }

@@ -1,8 +1,8 @@
 /*
  * @(#)file      RequiredModelMBean.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.63
- * @(#)lastedit      07/03/30
+ * @(#)version   1.64
+ * @(#)lastedit      08/11/05
  *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
  *
@@ -1554,9 +1554,11 @@ public class RequiredModelMBean
 	    } catch (Exception e) {
 		// eat exceptions because interface doesn't have an
 		// exception on it
-		error("getAttributes(String[])","Failed to get \"" +
+		if (tracing()) { 
+                   trace("getAttributes(String[])","Failed to get \"" +
 		      attrNames[i] + "\": " + e);
-		traceX("getAttributes(String[])",e);
+		   traceX("getAttributes(String[])",e);
+                }
 	    }
 	}
 	
@@ -1707,7 +1709,7 @@ public class RequiredModelMBean
 					    attrValue.getClass().getName() +
 							   " received.");
 		    } catch (ClassNotFoundException x) {
-			error("setAttribute","Class " + attrType +
+			trace("setAttribute","Class " + attrType +
 			      " for attribute " + attrName + " not found: " +
 			      x);
 			debug("setAttribute",x);
@@ -2017,7 +2019,7 @@ public class RequiredModelMBean
 			    ntfyObj.getMessage() + " Severity = " +
 			    (String)ntfyDesc.getFieldValue("severity"));
 		    } catch (Exception e) {
-			error("sendNotification(Notification)",
+			trace("sendNotification(Notification)",
 			      "Failed to log " + ntfyObj.getType() +
 			      " notification: " + e);
 			traceX("sendNotification(Notification)",e);
@@ -2370,7 +2372,7 @@ public class RequiredModelMBean
 			   " Old value = " + oldv +
 			   " New value = " + newv);			
 		    } catch (Exception e) {
-			error(ftag,"Failed to log " + ntfyObj.getType() +
+			trace(ftag,"Failed to log " + ntfyObj.getType() +
 			      " notification: " + e);
 			traceX(ftag,e);
 		    }
@@ -2393,7 +2395,7 @@ public class RequiredModelMBean
 			   " Old value = " + oldv +
 			   " New value = " + newv);
 		    } catch (Exception e) {
-			error(ftag,"Failed to log " + ntfyObj.getType() +
+			trace(ftag,"Failed to log " + ntfyObj.getType() +
 			      " notification: " + e);
 			traceX(ftag,e);
 		    }

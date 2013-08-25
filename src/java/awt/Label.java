@@ -1,7 +1,7 @@
 /*
- * @(#)Label.java	1.59 06/04/07
+ * @(#)Label.java	1.60 08/10/31
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -30,7 +30,7 @@ import javax.accessibility.*;
  * <img src="doc-files/Label-1.gif" alt="Two labels: 'Hi There!' and 'Another label'"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.59, 04/07/06
+ * @version	1.60, 10/31/08
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -240,8 +240,8 @@ public class Label extends Component implements Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (testvalid && valid) {
-	    invalidate();
+        if (testvalid) {
+            invalidateIfValid();
 	}
     }
 

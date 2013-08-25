@@ -1,7 +1,7 @@
 /*
- * @(#)Choice.java	1.93 06/07/11
+ * @(#)Choice.java	1.94 08/10/31
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the <code>Choice</code>.
  * <p>
- * @version	1.93 07/11/06
+ * @version	1.94 10/31/08
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -190,9 +190,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (valid) {
-	    invalidate();
-	}
+        invalidateIfValid();
     }
 
     /**
@@ -252,9 +250,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (valid) {
-	    invalidate();
-	}
+        invalidateIfValid();
     }
 
     /**
@@ -282,9 +278,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (valid) {
-	    invalidate();
-	}
+        invalidateIfValid();
     }
 
     /**
@@ -306,9 +300,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (valid) {
-	    invalidate();
-	}
+        invalidateIfValid();
     }
 
     /**
@@ -350,9 +342,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (valid) {
-	    invalidate();
-	}
+        invalidateIfValid();
     }
 
     /**

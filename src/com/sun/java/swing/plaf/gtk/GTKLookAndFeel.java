@@ -1,5 +1,5 @@
 /*
- * @(#)GTKLookAndFeel.java	1.110 08/01/24
+ * @(#)GTKLookAndFeel.java	1.111 08/11/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
 
 /**
- * @version 1.110, 01/24/08
+ * @version 1.111, 11/17/08
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -125,7 +125,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                     isSunDesktop = val.booleanValue();
                 }
             }
-            if (isSunDesktop) {
+            if (isSunDesktop && !sun.java2d.SunGraphicsEnvironment.isOpenSolaris) {
                 isSunCJK = true;
             }
         }

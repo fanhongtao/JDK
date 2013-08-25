@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.436 08/04/30
+ * @(#)Component.java	1.444 08/12/12
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -70,6 +70,7 @@ import sun.awt.im.CompositionArea;
 import sun.awt.image.VSyncedBSManager;
 import sun.java2d.SunGraphics2D;
 import sun.java2d.SunGraphicsEnvironment;
+import sun.java2d.pipe.Region;
 import sun.java2d.pipe.hw.ExtendedBufferCapabilities;
 import static sun.java2d.pipe.hw.ExtendedBufferCapabilities.VSyncType.*;
 import sun.awt.RequestFocusController;
@@ -161,7 +162,7 @@ import sun.awt.RequestFocusController;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.436, 04/30/08
+ * @version     1.444, 12/12/08
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -171,6 +172,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
     private static final Logger focusLog = Logger.getLogger("java.awt.focus.Component");
     private static final Logger log = Logger.getLogger("java.awt.Component");
+    private static final Logger mixingLog = Logger.getLogger("java.awt.mixing.Component");
     /**
      * The peer of the component. The peer implements the component's
      * behavior. The peer is set when the <code>Component</code> is 
@@ -343,7 +345,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #validate
      * @see #invalidate
      */
-    boolean valid = false;
+    private volatile boolean valid = false;
 
     /**
      * The <code>DropTarget</code> associated with this component.
@@ -634,6 +636,23 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     private PropertyChangeSupport changeSupport;
 
+    /*
+     * In some cases using "this" as an object to synchronize by
+     * can lead to a deadlock if client code also uses synchronization
+     * by a component object. For every such situation revealed we should
+     * consider possibility of replacing "this" with the package private
+     * objectLock object introduced below. So far there're 2 issues known:
+     * - CR 6708322 (the getName/setName methods);
+     * - CR 6608764 (the PropertyChangeListener machinery).
+     *
+     * Note: this field is considered final, though readObject() prohibits
+     * initializing final fields.
+     */
+    private transient Object objectLock = new Object();
+    Object getObjectLock() {
+        return objectLock;
+    }
+
     boolean isPacked = false;
 
     /**
@@ -737,6 +756,35 @@ public abstract class Component implements ImageObserver, MenuContainer,
         OTHER
     }
 
+    /*
+     * The shape set with the applyCompoundShape() method. It uncludes the result 
+     * of the HW/LW mixing related shape computation. It may also include 
+     * the user-specified shape of the component.
+     * The 'null' value means the component has normal shape (or has no shape at all)
+     * and applyCompoundShape() will skip the following shape identical to normal.
+     */
+    private transient Region compoundShape = null;
+
+    /*
+     * Indicates whether addNotify() is complete
+     * (i.e. the peer is created).
+     */
+    private transient boolean isAddNotifyComplete = false;
+
+    /* Indicates whether this component should be considered opaque by
+     * the HW/LW Mixing code. If it's true, the component is considered opaque.
+     * Otherwise the mixing code uses the isOpaque() method to determine
+     * this property.
+     */
+    private transient boolean isOpaqueForMixing = false;
+
+    private static final PropertyChangeListener opaquePropertyChangeListener = 
+        new PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                ((Component)evt.getSource()).mixOnOpaqueChanging();
+            }
+        };
+
     /**
      * Should only be used in subclass getBounds to check that part of bounds
      * is actualy changing
@@ -771,6 +819,13 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
                 public boolean getBackgroundEraseDisabled(Component comp) {
                     return comp.backgroundEraseDisabled;
+                }
+
+                public void setOpaqueForMixing(Component comp, boolean opaque) {
+                    comp.isOpaqueForMixing = opaque;
+                }
+                public Rectangle getBounds(Component comp) {
+                    return new Rectangle(comp.x, comp.y, comp.width, comp.height);
                 }
             });
     }
@@ -808,7 +863,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     public String getName() {
         if (name == null && !nameExplicitlySet) {
-            synchronized(this) {
+            synchronized(getObjectLock()) {
                 if (name == null && !nameExplicitlySet)
                     name = constructComponentName();
             }
@@ -825,7 +880,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     public void setName(String name) {
         String oldName;
-        synchronized(this) {
+        synchronized(getObjectLock()) {
             oldName = this.name;
             this.name = name;
             nameExplicitlySet = true;
@@ -848,6 +903,13 @@ public abstract class Component implements ImageObserver, MenuContainer,
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
     final Container getParent_NoClientCode() {
         return parent;
+    }
+
+    // This method is overriden in the Window class to return null,
+    //    because the parent field of the Window object contains
+    //    the owner of the window, not its parent.
+    Container getContainer() {
+        return getParent();
     }
 
     /**
@@ -1001,6 +1063,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     public final Object getTreeLock() {
         return LOCK;
+    }
+    
+    final void checkTreeLock() {
+        if (!Thread.holdsLock(getTreeLock())) {
+            throw new IllegalStateException("This function should be called while holding treeLock");
+        }
     }
 
     /**
@@ -1409,6 +1477,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         if (!visible) {
             synchronized (getTreeLock()) {
                 visible = true;
+                mixOnShowing();
                 ComponentPeer peer = this.peer;
                 if (peer != null) {
                     peer.show();
@@ -1475,6 +1544,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
             clearMostRecentFocusOwnerOnHide();
             synchronized (getTreeLock()) {
                 visible = false;
+                mixOnHiding(isLightweight());
                 if (containsFocus()) {
                     autoTransferFocus(true);
                 }
@@ -1678,9 +1748,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
         // This could change the preferred size of the Component.
         // Fix for 6213660. Should compare old and new fonts and do not
         // call invalidate() if they are equal.
-        if (valid && f != oldFont && (oldFont == null ||
+        if (f != oldFont && (oldFont == null ||
                                       !oldFont.equals(f))) {
-            invalidate();
+            invalidateIfValid();
         }
     }
 
@@ -1737,9 +1807,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         firePropertyChange("locale", oldValue, l);
 
         // This could change the preferred size of the Component.
-        if (valid) {
-            invalidate();
-        }
+        invalidateIfValid();
     }
 
     /**
@@ -2025,6 +2093,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 }
                 
                 boolean needNotify = true;
+                mixOnReshaping();
                 if (peer != null) {
                     // LightwightPeer is an empty stub so can skip peer.reshape
                     if (!(peer instanceof LightweightPeer)) {                        
@@ -2043,8 +2112,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     if (resized) {
                         invalidate();
                     }
-                    if (parent != null && parent.valid) {
-                        parent.invalidate();
+                    if (parent != null) {
+                        parent.invalidateIfValid();
                     }
                 }
                 if (needNotify) {
@@ -2614,7 +2683,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
         if (!valid) {
             synchronized (getTreeLock()) {
                 ComponentPeer peer = this.peer;
-                if (!valid && peer != null) {
+            boolean wasValid = isValid();
+            if (!wasValid && peer != null) {
                     Font newfont = getFont();
                     Font oldfont = peerFont;
                     if (newfont != oldfont && (oldfont == null
@@ -2624,8 +2694,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     }
                     peer.layout();
                 }
-            }
+            
             valid = true;
+            if (!wasValid) {
+                mixOnValidating();
+            }
+            }
         }
     }
 
@@ -2654,9 +2728,17 @@ public abstract class Component implements ImageObserver, MenuContainer,
             if (!isMaximumSizeSet()) {
                 maxSize = null;
             }
-            if (parent != null && parent.valid) {
-                parent.invalidate();
+            if (parent != null) {
+                parent.invalidateIfValid();
             }
+        }
+    }
+
+    /** Invalidates the component unless it is already invalid.
+     */
+    final void invalidateIfValid() {
+        if (isValid()) {
+            invalidate();
         }
     }
 
@@ -6534,6 +6616,11 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
             peerFont = getFont();
 
+            if (getContainer() != null && !isAddNotifyComplete) {
+                getContainer().increaseComponentCount(this);
+            }
+
+
             // Update stacking order
             if (parent != null && parent.peer != null) {
                 ContainerPeer parentContPeer = (ContainerPeer) parent.peer;
@@ -6552,6 +6639,13 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     parentContPeer.restack();
                 }
             }
+                
+            if (!isAddNotifyComplete) { 
+                addPropertyChangeListener("opaque", opaquePropertyChangeListener);
+                mixOnShowing();
+            }
+            
+            isAddNotifyComplete = true;
 
             if (hierarchyListener != null ||
                 (eventMask & AWTEvent.HIERARCHY_EVENT_MASK) != 0 ||
@@ -6596,6 +6690,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     clearGlobalFocusOwner();
             }
 
+            if (getContainer() != null && isAddNotifyComplete) {
+                getContainer().decreaseComponentCount(this);
+            }
+
             int npopups = (popups != null? popups.size() : 0);
             for (int i = 0 ; i < npopups ; i++) {
                 PopupMenu popup = (PopupMenu)popups.elementAt(i);
@@ -6617,6 +6715,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
             ComponentPeer p = peer;
             if (p != null) {
+                boolean isLightweight = isLightweight();
 
                 if (bufferStrategy instanceof FlipBufferStrategy) {
                     ((FlipBufferStrategy)bufferStrategy).destroyBuffers();
@@ -6637,6 +6736,14 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     discardKeyEvents(this);
 
                 p.dispose();
+                
+                mixOnHiding(isLightweight);
+                removePropertyChangeListener("opaque", opaquePropertyChangeListener);
+                
+                isAddNotifyComplete = false;
+                // Nullifying compoundShape means that the component has normal shape
+                // (or has no shape at all).
+                this.compoundShape = null;
             }
 
             if (hierarchyListener != null ||
@@ -7672,7 +7779,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
     protected String paramString() {
         String thisName = getName();
         String str = (thisName != null? thisName : "") + "," + x + "," + y + "," + width + "x" + height;
-        if (!valid) {
+        if (!isValid()) {
             str += ",invalid";
         }
         if (!visible) {
@@ -7798,15 +7905,17 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getPropertyChangeListeners
      * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
-    public synchronized void addPropertyChangeListener(
+    public void addPropertyChangeListener(
                                                        PropertyChangeListener listener) {
-        if (listener == null) {
-            return;
+        synchronized (getObjectLock()) {
+            if (listener == null) {
+                return;
+            }
+            if (changeSupport == null) {
+                changeSupport = new PropertyChangeSupport(this);
+            }
+            changeSupport.addPropertyChangeListener(listener);
         }
-        if (changeSupport == null) {
-            changeSupport = new PropertyChangeSupport(this);
-        }
-        changeSupport.addPropertyChangeListener(listener);
     }
   
     /**
@@ -7822,12 +7931,14 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getPropertyChangeListeners
      * @see #removePropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)
      */
-    public synchronized void removePropertyChangeListener(
+    public void removePropertyChangeListener(
                                                           PropertyChangeListener listener) {
-        if (listener == null || changeSupport == null) {
-            return;
+        synchronized (getObjectLock()) {
+            if (listener == null || changeSupport == null) {
+                return;
+            }
+            changeSupport.removePropertyChangeListener(listener);
         }
-        changeSupport.removePropertyChangeListener(listener);
     }
 
     /**
@@ -7844,11 +7955,13 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see      java.beans.PropertyChangeSupport#getPropertyChangeListeners
      * @since    1.4
      */
-    public synchronized PropertyChangeListener[] getPropertyChangeListeners() {
-        if (changeSupport == null) {
-            return new PropertyChangeListener[0];
+    public PropertyChangeListener[] getPropertyChangeListeners() {
+        synchronized (getObjectLock()) {
+            if (changeSupport == null) {
+                return new PropertyChangeListener[0];
+            }
+            return changeSupport.getPropertyChangeListeners();
         }
-        return changeSupport.getPropertyChangeListeners();
     }
   
     /**
@@ -7882,16 +7995,18 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getPropertyChangeListeners(java.lang.String)
      * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
-    public synchronized void addPropertyChangeListener(
+    public void addPropertyChangeListener(
                                                        String propertyName,
                                                        PropertyChangeListener listener) {
-        if (listener == null) {
-            return;
+        synchronized (getObjectLock()) {
+            if (listener == null) {
+                return;
+            }
+            if (changeSupport == null) {
+                changeSupport = new PropertyChangeSupport(this);
+            }
+            changeSupport.addPropertyChangeListener(propertyName, listener);
         }
-        if (changeSupport == null) {
-            changeSupport = new PropertyChangeSupport(this);
-        }
-        changeSupport.addPropertyChangeListener(propertyName, listener);
     }
 
     /**
@@ -7910,13 +8025,15 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getPropertyChangeListeners(java.lang.String)
      * @see #removePropertyChangeListener(java.beans.PropertyChangeListener)
      */
-    public synchronized void removePropertyChangeListener(
+    public void removePropertyChangeListener(
                                                           String propertyName,
                                                           PropertyChangeListener listener) {
-        if (listener == null || changeSupport == null) {
-            return;
+        synchronized (getObjectLock()) {
+            if (listener == null || changeSupport == null) {
+                return;
+            }
+            changeSupport.removePropertyChangeListener(propertyName, listener);
         }
-        changeSupport.removePropertyChangeListener(propertyName, listener);
     }
 
     /**
@@ -7933,12 +8050,14 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see #getPropertyChangeListeners
      * @since 1.4
      */
-    public synchronized PropertyChangeListener[] getPropertyChangeListeners(
+    public PropertyChangeListener[] getPropertyChangeListeners(
                                                                             String propertyName) {
-        if (changeSupport == null) {
-            return new PropertyChangeListener[0];
+        synchronized (getObjectLock()) {
+            if (changeSupport == null) {
+                return new PropertyChangeListener[0];
+            }
+            return changeSupport.getPropertyChangeListeners(propertyName);
         }
-        return changeSupport.getPropertyChangeListeners(propertyName);
     }
 
     /**
@@ -7953,7 +8072,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     protected void firePropertyChange(String propertyName,
                                       Object oldValue, Object newValue) {
-        PropertyChangeSupport changeSupport = this.changeSupport;
+        PropertyChangeSupport changeSupport;
+        synchronized (getObjectLock()) {
+            changeSupport = this.changeSupport;
+        }
         if (changeSupport == null ||
             (oldValue != null && newValue != null && oldValue.equals(newValue))) {
             return;
@@ -8253,6 +8375,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException
     {
+        objectLock = new Object();
+
         s.defaultReadObject();
 
         privateKey = new Object();
@@ -8416,9 +8540,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
         firePropertyChange("componentOrientation", oldValue, o);
 
         // This could change the preferred size of the Component.
-        if (valid) {
-            invalidate();
-        }
+        invalidateIfValid();
     }
 
     /**
@@ -9412,4 +9534,375 @@ public abstract class Component implements ImageObserver, MenuContainer,
         return false;
     }
 
+
+    // ************************** MIXING CODE *******************************
+
+    /** 
+     * Check whether we can trust the current bounds of the component.
+     * The return value of false indicates that the container of the
+     * component is invalid, and therefore needs to be layed out, which would
+     * probably mean changing the bounds of its children.
+     * Null-layout of the container or absence of the container mean
+     * the bounds of the component are final and can be trusted.
+     */
+    final boolean areBoundsValid() {
+        Container cont = getContainer();
+        return cont == null || cont.isValid() || cont.getLayout() == null;
+    }
+
+    /**
+     * Applies the shape to the component
+     * @param shape Shape to be applied to the component
+     */
+    void applyCompoundShape(Region shape) {
+        checkTreeLock();
+
+        if (!areBoundsValid()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this + "; areBoundsValid = " + areBoundsValid());
+            }
+            return;
+        }
+
+        if (!isLightweight()) {
+            ComponentPeer peer = getPeer();
+            if (peer != null) {
+                // The Region class has some optimizations. That's why
+                // we should manually check whether it's empty and
+                // substitute the object ourselves. Otherwise we end up
+                // with some incorrect Region object with loX being 
+                // greater than the hiX for instance.
+                if (shape.isEmpty()) {
+                    shape = Region.getInstanceXYWH(0, 0, 0, 0);
+                }
+
+                // Note: the shape is not really copied/cloned. We create
+                // the Region object ourselves, so there's no any possibility
+                // to modify the object outside of the mixing code.
+                // Nullifying compoundShape means that the component has normal shape
+                // (or has no shape at all).
+                if (shape.equals(getNormalShape())) {
+                    if (this.compoundShape == null) {
+                        return;
+                    }
+                    this.compoundShape = null;
+                    peer.applyShape(null);
+                } else {
+		    if (shape.equals(getAppliedShape())) {
+			return;
+		    }
+                    this.compoundShape = shape;
+                    Point compAbsolute = getLocationOnWindow();
+                    if (mixingLog.isLoggable(Level.FINER)) {
+                        mixingLog.fine("this = " + this + 
+                                       "; compAbsolute=" + compAbsolute + "; shape=" + shape);
+                    }
+                    peer.applyShape(shape.getTranslatedRegion(-compAbsolute.x, -compAbsolute.y));
+		}
+            }
+        }
+    }
+
+    /**
+     * Returns the shape previously set with applyCompoundShape().
+     * If the component is LW or no shape was applied yet,
+     * the method returns the normal shape. 
+     */
+    private Region getAppliedShape() {
+        checkTreeLock();
+        //XXX: if we allow LW components to have a shape, this must be changed
+        return (this.compoundShape == null || isLightweight()) ? getNormalShape() : this.compoundShape;
+    }
+
+    Point getLocationOnWindow() {
+        checkTreeLock();
+        Point curLocation = getLocation();
+        
+        for (Container parent = getContainer(); 
+                parent != null && !(parent instanceof Window);
+                parent = parent.getContainer()) 
+        {
+            curLocation.x += parent.getX();
+            curLocation.y += parent.getY();
+        }
+        
+        return curLocation;
+    }
+
+    /**
+     * Returns the full shape of the component located in window coordinates
+     */
+    final Region getNormalShape() {
+        checkTreeLock();
+        //XXX: we may take into account a user-specified shape for this component
+        Point compAbsolute = getLocationOnWindow();
+        return 
+            Region.getInstanceXYWH(
+                    compAbsolute.x,
+                    compAbsolute.y,
+                    getWidth(),
+                    getHeight()
+            );
+    }
+
+    /**
+     * Returns the "opaque shape" of the component.
+     *
+     * The opaque shape of a lightweight components is the actual shape that
+     * needs to be cut off of the heavyweight components in order to mix this
+     * lightweight component correctly with them.
+     *
+     * The method is overriden in the java.awt.Container to handle non-opaque
+     * containers containing opaque children.
+     *
+     * See 6637655 for details.
+     */
+    Region getOpaqueShape() {
+        checkTreeLock();
+        if (isOpaqueForMixing()) {
+            return getNormalShape();
+        } else {
+            return Region.getInstanceXYWH(0, 0, 0, 0);
+        }
+    }
+
+    final int getSiblingIndexAbove() {
+        checkTreeLock();
+        Container parent = getContainer();
+        if (parent == null) {
+            return -1;
+        }
+        
+        int nextAbove = parent.getComponentZOrder(this) - 1;
+
+        return nextAbove < 0 ? -1 : nextAbove;
+    }
+
+    final int getSiblingIndexBelow() {
+        checkTreeLock();
+        Container parent = getContainer();
+        if (parent == null) {
+            return -1;
+        }
+        
+        int nextBelow = parent.getComponentZOrder(this) + 1;
+
+        return nextBelow >= parent.getComponentCount() ? -1 : nextBelow;
+    }
+
+    final boolean isOpaqueForMixing() {
+        return isOpaqueForMixing || isOpaque();
+    }
+
+    private Region calculateCurrentShape() {
+        checkTreeLock();
+        Region s = getNormalShape();
+        
+        if (mixingLog.isLoggable(Level.FINE)) {
+            mixingLog.fine("this = " + this + "; normalShape=" + s);
+        }
+
+        if (getContainer() != null) {
+            Component comp = this;
+            Container cont = comp.getContainer();
+
+            while (cont != null) {
+                for (int index = comp.getSiblingIndexAbove(); index != -1; --index) {
+                    /* It is assumed that:
+                     * 
+                     *    getComponent(getContainer().getComponentZOrder(comp)) == comp
+                     *    
+                     * The assumption has been made according to the current 
+                     * implementation of the Container class.
+                     */
+                    Component c = cont.getComponent(index);
+                    if (c.isLightweight() && c.isShowing()) {
+                        s = s.getDifference(c.getOpaqueShape());
+                    }
+                }
+
+                if (cont.isLightweight()) {
+                    s = s.getIntersection(cont.getNormalShape());
+                } else {
+                    break;
+                }
+
+                comp = cont;
+                cont = cont.getContainer();
+            }
+        }
+        
+        if (mixingLog.isLoggable(Level.FINE)) {
+            mixingLog.fine("currentShape=" + s);
+        }
+
+        return s;
+    }
+
+    void applyCurrentShape() {
+        checkTreeLock();
+        if (!areBoundsValid()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this + "; areBoundsValid = " + areBoundsValid());
+            }
+            return; // Because applyCompoundShape() ignores such components anyway
+        }
+        if (mixingLog.isLoggable(Level.FINE)) {
+            mixingLog.fine("this = " + this);
+        }
+        applyCompoundShape(calculateCurrentShape());
+    }
+
+    final void subtractAndApplyShape(Region s) {
+        checkTreeLock();
+        
+        if (mixingLog.isLoggable(Level.FINE)) {
+            mixingLog.fine("this = " + this + "; s=" + s);
+        }
+        
+        applyCompoundShape(getAppliedShape().getDifference(s));
+    }
+
+    void mixOnShowing() {
+        synchronized (getTreeLock()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this);
+            }
+            if (!isMixingNeeded()) {
+                return;
+            }
+            if (isLightweight()) {
+                Container parent = getContainer();
+                if (parent != null && isShowing()) {
+                    parent.recursiveSubtractAndApplyShape(getOpaqueShape(), getSiblingIndexBelow());
+                }
+            } else {
+                applyCurrentShape();
+            }
+        }
+    }
+
+    void mixOnHiding(boolean isLightweight) {
+        // We cannot be sure that the peer exists at this point, so we need the argument
+        //    to find out whether the hiding component is (well, actually was) a LW or a HW.
+        synchronized (getTreeLock()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this + "; isLightweight = " + isLightweight);
+            }
+            if (!isMixingNeeded()) {
+                return;
+            }
+            if (isLightweight) {
+                Container parent = getContainer();
+                if (parent != null) {
+                    parent.recursiveApplyCurrentShape(getSiblingIndexBelow());
+                }
+            } //XXX: else applyNormalShape() ???
+        }
+    }
+
+    void mixOnReshaping() {
+        synchronized (getTreeLock()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this);
+            }
+            if (!isMixingNeeded()) {
+                return;
+            }
+            if (isLightweight()) {
+                Container parent = getContainer();
+                if (parent != null) {
+                    parent.recursiveApplyCurrentShape(parent.getComponentZOrder(this));
+                }  
+            } else {
+                applyCurrentShape();
+            }
+        }
+    }
+
+    void mixOnZOrderChanging(int oldZorder, int newZorder) {
+        synchronized (getTreeLock()) {
+            boolean becameHigher = newZorder < oldZorder;
+            Container parent = getContainer();
+            
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this + 
+                    "; oldZorder=" + oldZorder + "; newZorder=" + newZorder + "; parent=" + parent);
+            }
+	    if (!isMixingNeeded()) {
+		return;
+	    }
+            if (isLightweight()) {
+                if (becameHigher) {
+                    if (parent != null && isShowing()) {
+                        parent.recursiveSubtractAndApplyShape(getOpaqueShape(), getSiblingIndexBelow(), oldZorder);
+                    }
+                } else {
+                    if (parent != null) {
+                        parent.recursiveApplyCurrentShape(oldZorder, newZorder);
+                    }
+                }
+           } else {
+                if (becameHigher) {
+                    applyCurrentShape();
+                } else {
+                    if (parent != null) {
+                        Region shape = getAppliedShape();
+
+                        for (int index = oldZorder; index < newZorder; index++) {
+                            Component c = parent.getComponent(index);
+                            if (c.isLightweight() && c.isShowing()) {
+                                shape = shape.getDifference(c.getOpaqueShape());
+                            }
+                        }
+                        applyCompoundShape(shape);
+                    }
+                }
+            }
+        }
+    }
+
+    void mixOnOpaqueChanging() {
+        synchronized (getTreeLock()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this);
+            }
+            if (!isMixingNeeded()) {
+                return;
+            }
+            if (isOpaqueForMixing()) {
+                mixOnShowing();
+            } else {
+                mixOnHiding(isLightweight());
+            }
+        }
+    }
+
+    void mixOnValidating() {
+        // This method gets overriden in the Container. Obviously, a plain
+        // non-container components don't need to handle validation.
+    }
+
+    final boolean isMixingNeeded() {
+        if (!areBoundsValid()) {
+            if (mixingLog.isLoggable(Level.FINE)) {
+                mixingLog.fine("this = " + this + "; areBoundsValid = " + areBoundsValid());
+            }
+            return false;
+        }
+	Window window = getContainingWindow();
+        if (window != null) {
+            if (!window.hasHeavyweightDescendants() || !window.hasLightweightDescendants()) {
+		if (mixingLog.isLoggable(Level.FINE)) {
+		    mixingLog.fine("containing window = " + window +
+                        "; has h/w descendants = " + window.hasHeavyweightDescendants() +
+                        "; has l/w descendants = " + window.hasLightweightDescendants());
+		}
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // ****************** END OF MIXING CODE ********************************
 }

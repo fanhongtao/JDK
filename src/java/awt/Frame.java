@@ -1,7 +1,7 @@
 /*
- * @(#)Frame.java	1.162 08/08/14
+ * @(#)Frame.java	1.163 08/10/31
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -109,7 +109,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.162, 08/14/08
+ * @version 	1.163, 10/31/08
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -574,9 +574,7 @@ public class Frame extends Window implements MenuContainer {
 		if (peer != null) {
 		    mbManagement = true;
 		    menuBar.addNotify();
-		    if (valid) {
-		        invalidate();
-		    }
+                    invalidateIfValid();
 		    peer.setMenuBar(menuBar);
 		}
 	    }
@@ -617,8 +615,8 @@ public class Frame extends Window implements MenuContainer {
 	// the insets of the Frame. If we could, we'd call invalidate()
 	// from the peer, but we need to guarantee that we're not holding
 	// the Frame lock when we call invalidate().
-	if (testvalid && valid) {
-	    invalidate();
+        if (testvalid) {
+            invalidateIfValid();
 	}
         firePropertyChange("resizable", oldResizable, resizable);
     }
@@ -852,9 +850,7 @@ public class Frame extends Window implements MenuContainer {
 		FramePeer peer = (FramePeer)this.peer;
 		if (peer != null) {
 		    mbManagement = true;
-		    if (valid) {
-		        invalidate();
-		    }
+                    invalidateIfValid();
 		    peer.setMenuBar(null);
 		    m.removeNotify();
 		}

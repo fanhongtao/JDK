@@ -1,5 +1,5 @@
 /*
- * @(#)MetalRootPaneUI.java	1.23 06/01/30
+ * @(#)MetalRootPaneUI.java	1.28 08/12/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,7 +42,7 @@ import java.security.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.23 01/30/06
+ * @version 1.28 12/02/08
  * @author Terry Kellerman
  * @since 1.4
  */
@@ -186,33 +186,39 @@ public class MetalRootPaneUI extends BasicRootPaneUI
     }
 
     /**
-     * Installs the necessary Listeners for client decorations.
+     * Installs the necessary Listeners on the parent <code>Window</code>,
+     * if there is one.
+     * <p>
+     * This takes the parent so that cleanup can be done from
+     * <code>removeNotify</code>, at which point the parent hasn't been
+     * reset yet.
+     *
+     * @param parent The parent of the JRootPane
      */
-    private void installClientDecorationListeners(JRootPane root) {
-        window = SwingUtilities.getWindowAncestor(root);
+    private void installWindowListeners(JRootPane root, Component parent) {
+        if (parent instanceof Window) {
+            window = (Window)parent;
+        }
+        else {
+            window = SwingUtilities.getWindowAncestor(parent);
+        }
         if (window != null) {
             if (mouseInputListener == null) {
-                mouseInputListener = createMouseInputListener(root);
+                mouseInputListener = createWindowMouseInputListener(root);
             }
-            root.addMouseListener(mouseInputListener);
-            root.addMouseMotionListener(mouseInputListener);
-            titlePane.addMouseListener(mouseInputListener);
-            titlePane.addMouseMotionListener(mouseInputListener);
+            window.addMouseListener(mouseInputListener);
+            window.addMouseMotionListener(mouseInputListener);
         }
     }
 
     /**
-     * Uninstalls the necessary Listeners for client decorations. This may
-     * be invoked without a corresponding installClientDecorationListeners.
+     * Uninstalls the necessary Listeners on the <code>Window</code> the
+     * Listeners were last installed on.
      */
-    private void uninstallClientDecorationListeners(JRootPane root) {
+    private void uninstallWindowListeners(JRootPane root) {
         if (window != null) {
-            root.removeMouseListener(mouseInputListener);
-            root.removeMouseMotionListener(mouseInputListener);
-            if (titlePane != null) {
-                titlePane.removeMouseListener(mouseInputListener);
-                titlePane.removeMouseMotionListener(mouseInputListener);
-            }
+            window.removeMouseListener(mouseInputListener);
+            window.removeMouseMotionListener(mouseInputListener);
         }
     }
 
@@ -249,7 +255,7 @@ public class MetalRootPaneUI extends BasicRootPaneUI
         JComponent titlePane = createTitlePane(root);
 
         setTitlePane(root, titlePane);
-        installClientDecorationListeners(root);
+        installWindowListeners(root, root.getParent());
         installLayout(root);
         if (window != null) {
             root.revalidate();
@@ -266,7 +272,7 @@ public class MetalRootPaneUI extends BasicRootPaneUI
      */
     private void uninstallClientDecorations(JRootPane root) {
         uninstallBorder(root);
-        uninstallClientDecorationListeners(root);
+        uninstallWindowListeners(root);
         setTitlePane(root, null);
         uninstallLayout(root);
 	// We have to revalidate/repaint root if the style is JRootPane.NONE
@@ -297,9 +303,9 @@ public class MetalRootPaneUI extends BasicRootPaneUI
 
     /**
      * Returns a <code>MouseListener</code> that will be added to the
-     * <code>JRootPane</code> and title pane.
+     * <code>Window</code> containing the <code>JRootPane</code>.
      */
-    private MouseInputListener createMouseInputListener(JRootPane root) {
+    private MouseInputListener createWindowMouseInputListener(JRootPane root) {
         return new MouseInputHandler();
     }
 
@@ -394,10 +400,10 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             }
         }
         else if (propertyName.equals("ancestor")) {
-            uninstallClientDecorationListeners(root);
+            uninstallWindowListeners(root);
             if (((JRootPane)e.getSource()).getWindowDecorationStyle() !=
                                            JRootPane.NONE) {
-                installClientDecorationListeners(root);
+                installWindowListeners(root, root.getParent());
             }
         }
         return;
@@ -690,15 +696,12 @@ public class MetalRootPaneUI extends BasicRootPaneUI
                 return;
             }
             Point dragWindowOffset = ev.getPoint();
-            Component source = (Component)ev.getSource();
-            Window w = windowForEvent(ev);
+            Window w = (Window)ev.getSource();
             if (w != null) {
                 w.toFront();
             }
             Point convertedDragWindowOffset = SwingUtilities.convertPoint(
-                           source, dragWindowOffset, getTitlePane());
-            dragWindowOffset = SwingUtilities.convertPoint(
-                    source, dragWindowOffset, w);
+                           w, dragWindowOffset, getTitlePane());
 
             Frame f = null;
             Dialog d = null;
@@ -754,10 +757,8 @@ public class MetalRootPaneUI extends BasicRootPaneUI
                 return;
             }
 
-            Component source = (Component)ev.getSource();
-            Window w = windowForEvent(ev);
-            Point pt = SwingUtilities.convertPoint(
-                           source, ev.getPoint(), w);
+            Window w = (Window)ev.getSource();
+
             Frame f = null;
             Dialog d = null;
 
@@ -768,7 +769,7 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             }
 
             // Update the cursor
-            int cursor = getCursor(calculateCorner(w, pt.x, pt.y));
+            int cursor = getCursor(calculateCorner(w, ev.getX(), ev.getY()));
 
             if (cursor != 0 && ((f != null && (f.isResizable() &&
                     (f.getExtendedState() & Frame.MAXIMIZED_BOTH) == 0))
@@ -805,10 +806,8 @@ public class MetalRootPaneUI extends BasicRootPaneUI
         }
 
         public void mouseDragged(MouseEvent ev) {
-            Component source = (Component)ev.getSource();
-            Window w = windowForEvent(ev);
-            Point pt = SwingUtilities.convertPoint(
-                           source, ev.getPoint(), w);
+            Window w = (Window)ev.getSource();
+            Point pt = ev.getPoint();
 
             if (isMovingWindow) {
                 Point eventLocationOnScreen = ev.getLocationOnScreen();
@@ -875,19 +874,18 @@ public class MetalRootPaneUI extends BasicRootPaneUI
         }
 
         public void mouseEntered(MouseEvent ev) {
-            Window w = windowForEvent(ev);
+            Window w = (Window)ev.getSource();
             lastCursor = w.getCursor();
             mouseMoved(ev);
         }
 
         public void mouseExited(MouseEvent ev) {
-            Window w = windowForEvent(ev);
+            Window w = (Window)ev.getSource();
             w.setCursor(lastCursor);
         }
 
         public void mouseClicked(MouseEvent ev) {
-            Component source = (Component)ev.getSource();
-            Window w = windowForEvent(ev);
+            Window w = (Window)ev.getSource();
             Frame f = null;
 
             if (w instanceof Frame) {
@@ -897,7 +895,7 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             }
 
             Point convertedPoint = SwingUtilities.convertPoint(
-                           source, ev.getPoint(), getTitlePane());
+                           w, ev.getPoint(), getTitlePane());
 
             int state = f.getExtendedState();
             if (getTitlePane() != null &&
@@ -969,13 +967,6 @@ public class MetalRootPaneUI extends BasicRootPaneUI
                 return 3;
             }
             return 2;
-        }
-
-        private Window windowForEvent(MouseEvent ev) {
-            Component source = (Component)ev.getSource();
-            return source instanceof Window ?
-                (Window)source :
-                SwingUtilities.getWindowAncestor(source);
         }
     }
 }

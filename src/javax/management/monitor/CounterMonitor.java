@@ -1,5 +1,5 @@
 /*
- * @(#)CounterMonitor.java	1.79 05/11/17
+ * @(#)CounterMonitor.java	1.80 08/11/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,7 +53,7 @@ import static javax.management.monitor.MonitorNotification.*;
  * attribute to be of the type integer (<CODE>Byte</CODE>,
  * <CODE>Integer</CODE>, <CODE>Short</CODE>, <CODE>Long</CODE>).
  *
- * @version     1.79     11/17/05
+ * @version     1.80     11/18/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -257,6 +257,7 @@ public class CounterMonitor extends Monitor implements CounterMonitorMBean {
      *
      * @since.unbundled JMX 1.2
      */
+    @Override
     public synchronized Number getDerivedGauge(ObjectName object) {
         return (Number) super.getDerivedGauge(object);
     }
@@ -273,6 +274,7 @@ public class CounterMonitor extends Monitor implements CounterMonitorMBean {
      *
      * @since.unbundled JMX 1.2
      */
+    @Override
     public synchronized long getDerivedGaugeTimeStamp(ObjectName object) {
         return super.getDerivedGaugeTimeStamp(object);
     }
@@ -591,6 +593,7 @@ public class CounterMonitor extends Monitor implements CounterMonitorMBean {
      * name of the Java class of the notification and the notification
      * types sent by the counter monitor.
      */
+    @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
         return notifsInfo;
     }

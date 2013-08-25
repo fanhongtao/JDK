@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultDesktopManager.java	1.59 06/11/30
+ * @(#)DefaultDesktopManager.java	1.62 08/12/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,6 +7,8 @@
 
 
 package javax.swing;
+
+import com.sun.awt.AWTUtilities;
 
 import java.awt.*;
 import java.beans.PropertyVetoException;
@@ -27,7 +29,7 @@ import java.awt.event.ComponentEvent;
   * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.59 11/30/06
+  * @version 1.62 12/19/08
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -298,7 +300,10 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
         dragMode = DEFAULT_DRAG_MODE;
         if (p != null) {
             String mode = (String)p.getClientProperty("JDesktopPane.dragMode");
-            if (mode != null && mode.equals("outline")) {
+            Window window = SwingUtilities.getWindowAncestor(f);
+            if (window != null && !AWTUtilities.isWindowOpaque(window)) {
+                dragMode = DEFAULT_DRAG_MODE;
+            } else if (mode != null && mode.equals("outline")) {
                 dragMode = OUTLINE_DRAG_MODE;
             } else if (mode != null && mode.equals("faster")
                     && f instanceof JInternalFrame

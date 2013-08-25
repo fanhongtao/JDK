@@ -1,5 +1,5 @@
 /*
- * @(#)WindowPeer.java	1.25 08/01/23
+ * @(#)WindowPeer.java	1.26 08/10/31
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,5 +31,7 @@ public interface WindowPeer extends ContainerPeer {
     void setOpacity(float opacity);
     void setOpaque(boolean isOpaque);
     void updateWindow(BufferedImage backBuffer);
+
+    void repositionSecurityWarning();
 }
 

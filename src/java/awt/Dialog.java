@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.129 08/08/14
+ * @(#)Dialog.java	1.130 08/10/31
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -75,7 +75,7 @@ import sun.awt.util.IdentityArrayList;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.129, 08/14/08
+ * @version	1.130, 10/31/08
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -917,6 +917,10 @@ public class Dialog extends Window {
                         enqueueKeyEvents(time.get(), toFocus);
                 }
 
+                // This call is required as the show() method of the Dialog class
+                // does not invoke the super.show(). So wried... :(
+                mixOnShowing();
+
                 peer.show(); // now guaranteed never to block
                 if (isModalBlocked()) {
                     modalBlocker.toFront();
@@ -1298,8 +1302,8 @@ public class Dialog extends Window {
         // the insets of the Dialog. If we could, we'd call invalidate()
         // from the peer, but we need to guarantee that we're not holding
         // the Dialog lock when we call invalidate().
-        if (testvalid && valid) {
-            invalidate();
+        if (testvalid) {
+            invalidateIfValid();
         }
     }
 

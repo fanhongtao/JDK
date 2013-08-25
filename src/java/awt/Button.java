@@ -1,7 +1,7 @@
 /*
- * @(#)Button.java	1.82 06/07/11
+ * @(#)Button.java	1.83 08/10/31
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import javax.accessibility.*;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.82 07/11/06
+ * @version 	1.83 10/31/08
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener
@@ -196,8 +196,8 @@ public class Button extends Component implements Accessible {
 	}
 
 	// This could change the preferred size of the Component.
-	if (testvalid && valid) {
-	    invalidate();
+        if (testvalid) {
+            invalidateIfValid();
 	}
     }
 

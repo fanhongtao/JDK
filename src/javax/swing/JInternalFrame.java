@@ -1,5 +1,5 @@
 /*
- * @(#)JInternalFrame.java	1.158 06/08/08
+ * @(#)JInternalFrame.java	1.159 08/11/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.StringBuilder;
 import java.beans.PropertyChangeListener;
 import sun.awt.AppContext;
+import sun.awt.AWTAccessor;
 import sun.swing.SwingUtilities2;
 
 
@@ -87,7 +88,7 @@ import sun.swing.SwingUtilities2;
  * @see JRootPane
  * @see javax.swing.RootPaneContainer
  *
- * @version 1.158 08/08/06
+ * @version 1.159 11/19/08
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo
@@ -323,6 +324,7 @@ public class JInternalFrame extends JComponent implements
     public JInternalFrame(String title, boolean resizable, boolean closable, 
                                 boolean maximizable, boolean iconifiable) {
         
+        AWTAccessor.getComponentAccessor().setOpaqueForMixing(this, true);
         setRootPane(createRootPane());
         setLayout(new BorderLayout());
         this.title = title;

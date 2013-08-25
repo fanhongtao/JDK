@@ -1,5 +1,5 @@
 /*
- * @(#)Monitor.java	4.55 05/12/29
+ * @(#)Monitor.java	4.58 08/11/18
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -54,7 +54,7 @@ import javax.management.openmbean.CompositeData;
  * granularity period. A gauge value (derived gauge) is derived from the values
  * of the observed attribute.
  *
- * @version     4.55     12/29/05
+ * @version     4.58     11/18/08
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5
@@ -535,7 +535,7 @@ public abstract class Monitor
         //
         ObservedObject o = createObservedObject(object);
         o.setAlreadyNotified(RESET_FLAGS_ALREADY_NOTIFIED);
-        o.setDerivedGauge(null);
+        o.setDerivedGauge(INTEGER_ZERO);
         o.setDerivedGaugeTimeStamp(System.currentTimeMillis());
         observedObjects.add(o);
 

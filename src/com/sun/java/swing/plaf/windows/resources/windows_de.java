@@ -5,9 +5,9 @@ import java.util.ListResourceBundle;
 public final class windows_de extends ListResourceBundle {
     protected final Object[][] getContents() {
         return new Object[][] {
-            { "FileChooser.detailsViewActionLabelText", "Einzelheiten" },
-            { "FileChooser.detailsViewButtonAccessibleName", "Einzelheiten" },
-            { "FileChooser.detailsViewButtonToolTipText", "Einzelheiten" },
+            { "FileChooser.detailsViewActionLabelText", "Details" },
+            { "FileChooser.detailsViewButtonAccessibleName", "Details" },
+            { "FileChooser.detailsViewButtonToolTipText", "Details" },
             { "FileChooser.fileAttrHeaderText", "Attribut" },
             { "FileChooser.fileDateHeaderText", "Ge\u00E4ndert" },
             { "FileChooser.fileNameHeaderText", "Dateiname" },

@@ -1,5 +1,5 @@
 /*
- * @(#)JEditorPane.java	1.139 06/08/08
+ * @(#)JEditorPane.java	1.140 08/10/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,7 @@ import java.lang.reflect.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
+import java.security.*;
 import java.util.*;
 
 import javax.swing.plaf.*;
@@ -168,7 +169,7 @@ import javax.accessibility.*;
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.139 08/08/06
+ * @version 1.140 10/16/08
  */
 public class JEditorPane extends JTextComponent {
 
@@ -1179,6 +1180,7 @@ public class JEditorPane extends JTextComponent {
             try {
 		Document doc = getDocument();
                 Caret caret = getCaret();
+                boolean composedTextSaved = saveComposedText2(this, caret.getDot());
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
                 if (doc instanceof AbstractDocument) {
@@ -1194,6 +1196,10 @@ public class JEditorPane extends JTextComponent {
                                          getInputAttributes());
                     }
                 }
+                if (composedTextSaved) {
+                    restoreComposedText2(this);
+                 }
+
             } catch (BadLocationException e) {
 	        UIManager.getLookAndFeel().provideErrorFeedback(JEditorPane.this);
             }
@@ -1202,6 +1208,42 @@ public class JEditorPane extends JTextComponent {
 	    super.replaceSelection(content);
 	}
     }
+
+     private final String[] composedTextMethodNames =
+                                  { "saveComposedText", "restoreComposedText" };
+     private final Method[] composedTextMethods = new Method[2];
+      
+     private Object invokeComposedTextMethod(final JTextComponent c,
+                 final int index, final Class[] argTypes, final Object[] args) {
+         return AccessController.doPrivileged(new PrivilegedAction() {
+             @Override
+             public Object run() {
+                 try {
+                     Method m = composedTextMethods[index];
+                     if (m == null) {
+                         m = JTextComponent.class.getDeclaredMethod(
+                                 composedTextMethodNames[index], argTypes);
+                         m.setAccessible(true);
+                         composedTextMethods[index] = m;
+                     }
+                     return m.invoke(c, args);
+                 } catch (Exception e) {
+                     throw new RuntimeException(e); // shouldn't happen
+                 }
+             }
+         });
+     }
+ 
+     boolean saveComposedText2(JTextComponent c, int pos) {
+          return (Boolean) invokeComposedTextMethod(
+                      c, 0, new Class[] { Integer.TYPE }, new Object[] { pos });
+      }          
+  
+      void restoreComposedText2(JTextComponent c) {
+          invokeComposedTextMethod(c, 1, new Class[0], new Object[0]);        
+      }
+ 
+ 
 
     /**
      * Creates a handler for the given type from the default registry

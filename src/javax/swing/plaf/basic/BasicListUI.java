@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.125 08/06/06
+ * @(#)BasicListUI.java	1.127 08/12/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.125 06/06/08
+ * @version 1.127 12/02/08
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
@@ -2241,7 +2241,10 @@ public class BasicListUI extends ListUI
 		}
 		else {
 		    // vertical
-		    if (direction > 0) {
+		    if (direction > 0 && 
+                             (cellBounds.y < visRect.y || 
+                                cellBounds.y + cellBounds.height  
+                                             > visRect.y + visRect.height)) { 
 			//down
 			int y = Math.max(0,
 			    cellBounds.y + cellBounds.height - visRect.height);

@@ -1,5 +1,5 @@
 /*
- * @(#)JTextPane.java	1.95 06/08/08
+ * @(#)JTextPane.java	1.96 08/10/16
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -59,7 +59,7 @@ import javax.swing.plaf.*;
  * description: A text component that can be marked up with attributes that are graphically represented.
  *
  * @author  Timothy Prinzing
- * @version 1.95 08/08/06
+ * @version 1.96 10/16/08
  * @see javax.swing.text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {
@@ -171,6 +171,7 @@ public class JTextPane extends JEditorPane {
         if (doc != null) {
             try {
                 Caret caret = getCaret();
+                boolean composedTextSaved = saveComposedText2(this, caret.getDot());
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
 		AttributeSet attr = getInputAttributes().copyAttributes();
@@ -185,6 +186,10 @@ public class JTextPane extends JEditorPane {
                         doc.insertString(p0, content, attr);
                     }
                 }
+                if (composedTextSaved) {
+                     restoreComposedText2(this);
+                 }
+
             } catch (BadLocationException e) {
 	        UIManager.getLookAndFeel().provideErrorFeedback(JTextPane.this);
             }

@@ -1,5 +1,5 @@
 /*
- * @(#)RMIConnector.java	1.130 07/11/02
+ * @(#)RMIConnector.java	1.132 08/11/06
  * 
  * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -274,7 +274,22 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
 	    if (tracing) 
 		logger.trace("connect",idstr + " getting connection...");
 	    Object credentials = usemap.get(CREDENTIALS);
-            connection = getConnection(stub, credentials, checkStub);
+
+	    try {
+		connection = getConnection(stub, credentials, checkStub);
+	    } catch (java.rmi.RemoteException re) {
+		final String pro = jmxServiceURL.getProtocol();
+		final String path = jmxServiceURL.getURLPath();
+
+		if ("rmi".equals(pro) &&
+		    path.startsWith("/jndi/iiop:")) {
+		    MalformedURLException mfe = new MalformedURLException(
+			  "Protocol is rmi but JNDI scheme is iiop: " + jmxServiceURL);
+		    mfe.initCause(re);
+		    throw mfe;
+		}
+		throw re;
+	    }
 
             // Always use one of:
             //   ClassLoader provided in Map at connect time,
@@ -2310,6 +2325,7 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
                                                boolean checkStub)
 	    throws IOException {
 	RMIConnection c = server.newClient(credentials);
+
         if (checkStub) checkStub(c, rmiConnectionImplStubClass);
 	try {
 	    if (c.getClass() == rmiConnectionImplStubClass)

@@ -1,5 +1,5 @@
 /*
- * @(#)JPopupMenu.java	1.201 07/09/21
+ * @(#)JPopupMenu.java	1.202 08/11/24
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,6 +25,8 @@ import javax.swing.plaf.basic.BasicComboPopup;
 import javax.swing.event.*;
 
 import java.applet.Applet;
+
+import sun.awt.AWTAccessor;
 
 /**
  * An implementation of a popup menu -- a small window that pops up
@@ -58,7 +60,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.201 @(#)JPopupMenu.java	1.201
+ * @version 1.202 @(#)JPopupMenu.java	1.202
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -164,6 +166,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * for the popup menu.
      */
     public JPopupMenu(String label) {
+        AWTAccessor.getComponentAccessor().setOpaqueForMixing(this, true);
         this.label = label;
         lightWeightPopup = getDefaultLightWeightPopupEnabled();
         setSelectionModel(new DefaultSingleSelectionModel());

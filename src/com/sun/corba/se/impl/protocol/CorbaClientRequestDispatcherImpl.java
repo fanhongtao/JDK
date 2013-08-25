@@ -1,5 +1,5 @@
 /*
- * @(#)CorbaClientRequestDispatcherImpl.java	1.87 05/11/17
+ * @(#)CorbaClientRequestDispatcherImpl.java	1.88 08/11/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -358,11 +358,14 @@ public class CorbaClientRequestDispatcherImpl
 	    boolean retry  =
 		getContactInfoListIterator(orb)
 	            .reportException(messageMediator.getContactInfo(), e);
-	    if (retry) {
-		// Must run interceptor end point before retrying.
+
+            // Bug 6328377: must not lose exception in PI 
+            // Must run interceptor end point before retrying.
 		Exception newException = 
 		    orb.getPIHandler().invokeClientPIEndingPoint(
                         ReplyMessage.SYSTEM_EXCEPTION, e);
+	    if (retry) {
+		
 		if (newException == e) {
 		    continueOrThrowSystemOrRemarshal(messageMediator,
 						     new RemarshalException());
@@ -371,8 +374,7 @@ public class CorbaClientRequestDispatcherImpl
 						     newException);
 		}
 	    } else {
-		// NOTE: Interceptor ending point will run in releaseReply.
-		throw e;
+		    throw e;
 	    }
 	    return null; // for compiler
 	}

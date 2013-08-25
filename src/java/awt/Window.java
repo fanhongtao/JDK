@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.265 08/08/22
+ * @(#)Window.java	1.268 08/11/19
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,6 +9,7 @@ package java.awt;
 import java.applet.Applet;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.awt.im.InputContext;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
@@ -278,6 +279,22 @@ public class Window extends Container implements Accessible {
     private static final boolean locationByPlatformProp;
 
     transient boolean isTrayIconWindow = false;
+
+    /**
+     * These fields are initialized in the native peer code.
+     */
+    private transient volatile int securityWarningWidth = 0;
+    private transient volatile int securityWarningHeight = 0;
+
+    /**
+     * These fields represent the desired location for the security
+     * warning if this window is untrusted.
+     * See com.sun.awt.SecurityWarning for more details.
+     */
+    private transient double securityWarningPointX = 2.0;
+    private transient double securityWarningPointY = 0.0;
+    private transient float securityWarningAlignmentX = RIGHT_ALIGNMENT;
+    private transient float securityWarningAlignmentY = TOP_ALIGNMENT;
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -2748,6 +2765,12 @@ public class Window extends Container implements Accessible {
          this.opacity = 1.0f;
          this.opaque = true;
          this.shape = null;
+         this.securityWarningWidth = 0;
+         this.securityWarningHeight = 0;
+         this.securityWarningPointX = 2.0;
+         this.securityWarningPointY = 0.0;
+         this.securityWarningAlignmentX = RIGHT_ALIGNMENT;
+         this.securityWarningAlignmentY = TOP_ALIGNMENT;
          
          deserializeResources(s);
     }
@@ -3166,6 +3189,45 @@ public class Window extends Container implements Accessible {
         return visible;
     }    
 
+
+    // ************************** MIXING CODE *******************************
+    
+    // A window has a parent, but it does NOT have a container
+    @Override
+    final Container getContainer() {
+        return null;
+    }
+    
+    /**
+     * Applies the shape to the component
+     * @param shape Shape to be applied to the component
+     */
+    @Override
+    final void applyCompoundShape(Region shape) {
+        // The shape calculated by mixing code is not intended to be applied 
+        // to windows or frames
+    }
+
+    @Override
+    final void applyCurrentShape() {
+        // The shape calculated by mixing code is not intended to be applied 
+        // to windows or frames
+    }
+
+    @Override
+    final void mixOnReshaping() {
+        // The shape calculated by mixing code is not intended to be applied 
+        // to windows or frames
+    }
+    
+    @Override
+    final Point getLocationOnWindow() {
+        return new Point(0, 0);
+    }
+
+    // ****************** END OF MIXING CODE ********************************
+
+
     private static boolean doesClassImplement(Class cls, String interfaceName) {
         if (cls == null) return false;
 
@@ -3315,6 +3377,18 @@ public class Window extends Container implements Accessible {
         }
     }
 
+    // This method gets the window location/size as reported by the native
+    // system since the locally cached values may represent outdated data.
+    // NOTE: this method is invoked on the toolkit thread, and therefore
+    // is not supposed to become public/user-overridable.
+    private Point2D calculateSecurityWarningPosition(double x, double y,
+            double w, double h)
+    {
+        return new Point2D.Double(
+                x + w * securityWarningAlignmentX + securityWarningPointX,
+                y + h * securityWarningAlignmentY + securityWarningPointY);
+    }
+
     static {
         AWTAccessor.setWindowAccessor(new AWTAccessor.WindowAccessor() {
             public float getOpacity(Window window) {
@@ -3357,6 +3431,33 @@ public class Window extends Container implements Accessible {
                 synchronized (window.getTreeLock()) {
                     window.updateWindow(backBuffer);
                 }
+            }
+
+            public Dimension getSecurityWarningSize(Window window) {
+                return new Dimension(window.securityWarningWidth,
+                        window.securityWarningHeight);
+            }
+            
+            public void setSecurityWarningPosition(Window window,
+                    Point2D point, float alignmentX, float alignmentY)
+            {
+                window.securityWarningPointX = point.getX();
+                window.securityWarningPointY = point.getY();
+                window.securityWarningAlignmentX = alignmentX;
+                window.securityWarningAlignmentY = alignmentY;
+                
+                synchronized (window.getTreeLock()) {
+                    WindowPeer peer = (WindowPeer)window.getPeer();
+                    if (peer != null) {
+                        peer.repositionSecurityWarning();
+                    }
+                }
+            }
+
+            public Point2D calculateSecurityWarningPosition(Window window,
+                    double x, double y, double w, double h)
+            {
+                return window.calculateSecurityWarningPosition(x, y, w, h);
             }
         });        
     }
