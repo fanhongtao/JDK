@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriter.java	1.33 03/10/01
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -175,11 +175,16 @@ public class JPEGImageWriter extends ImageWriter {
     }
 
     public void setOutput(Object output) {
-        super.setOutput(output); // validates output
-        resetInternalState();
-        ios = (ImageOutputStream) output; // so this will always work
-        // Set the native destination
-        setDest(structPointer, ios);
+        setThreadLock();
+        try {
+            super.setOutput(output); // validates output
+            resetInternalState();
+            ios = (ImageOutputStream) output; // so this will always work
+            // Set the native destination
+            setDest(structPointer, ios);
+        } finally {
+            clearThreadLock();
+        }
     }
 
     public ImageWriteParam getDefaultWriteParam() {
@@ -187,13 +192,23 @@ public class JPEGImageWriter extends ImageWriter {
     }
 
     public IIOMetadata getDefaultStreamMetadata(ImageWriteParam param) {
-        return new JPEGMetadata(param, this);
+        setThreadLock(); 
+        try { 
+            return new JPEGMetadata(param, this); 
+        } finally { 
+            clearThreadLock(); 
+        } 
     }
 
     public IIOMetadata
         getDefaultImageMetadata(ImageTypeSpecifier imageType,
                                 ImageWriteParam param) {
-        return new JPEGMetadata(imageType, param, this);
+        setThreadLock();
+        try {
+            return new JPEGMetadata(imageType, param, this);
+        } finally {
+            clearThreadLock();
+        }
     }
 
     public IIOMetadata convertStreamMetadata(IIOMetadata inData,
@@ -215,6 +230,18 @@ public class JPEGImageWriter extends ImageWriter {
         convertImageMetadata(IIOMetadata inData,
                              ImageTypeSpecifier imageType,
                              ImageWriteParam param) {
+        setThreadLock();
+        try {
+            return convertImageMetadataOnThread(inData, imageType, param);
+        } finally {
+            clearThreadLock();
+        }
+    }
+
+    private IIOMetadata
+        convertImageMetadataOnThread(IIOMetadata inData,
+                                     ImageTypeSpecifier imageType,
+                                     ImageWriteParam param) {
         // If it's one of ours, just return it
         if (inData instanceof JPEGMetadata) {
             JPEGMetadata jpegData = (JPEGMetadata) inData;
@@ -247,7 +274,7 @@ public class JPEGImageWriter extends ImageWriter {
                 return jpegData;
             }
         }
-            return null;
+        return null;
     }
 
     public int getNumThumbnailsSupported(ImageTypeSpecifier imageType,
@@ -305,6 +332,17 @@ public class JPEGImageWriter extends ImageWriter {
     }
 
     public void write(IIOMetadata streamMetadata,
+                      IIOImage image,
+                      ImageWriteParam param) throws IOException {
+        setThreadLock();
+        try {
+            writeOnThread(streamMetadata, image, param);
+        } finally {
+            clearThreadLock();
+        }
+    }
+
+    private void writeOnThread(IIOMetadata streamMetadata,
                       IIOImage image,
                       ImageWriteParam param) throws IOException {
 
@@ -1030,6 +1068,16 @@ public class JPEGImageWriter extends ImageWriter {
 
     public void prepareWriteSequence(IIOMetadata streamMetadata) 
         throws IOException {
+        setThreadLock();
+        try {
+            prepareWriteSequenceOnThread(streamMetadata);
+        } finally {
+            clearThreadLock();
+        }
+    }
+
+    private void prepareWriteSequenceOnThread(IIOMetadata streamMetadata) 
+        throws IOException {
         if (ios == null) {
             throw new IllegalStateException("Output has not been set!");
         }
@@ -1099,23 +1147,38 @@ public class JPEGImageWriter extends ImageWriter {
 
     public void writeToSequence(IIOImage image, ImageWriteParam param)
         throws IOException {
-        if (sequencePrepared == false) {
-            throw new IllegalStateException("sequencePrepared not called!");
+        setThreadLock();
+        try {
+            if (sequencePrepared == false) {
+                throw new IllegalStateException("sequencePrepared not called!");
+            }
+            // In the case of JPEG this does nothing different from write
+            write(null, image, param);
+        } finally {
+            clearThreadLock();
         }
-        // In the case of JPEG this does nothing different from write
-        write(null, image, param);
     }
 
     public void endWriteSequence() throws IOException {
-        if (sequencePrepared == false) {
-            throw new IllegalStateException("sequencePrepared not called!");
+        setThreadLock();
+        try {
+            if (sequencePrepared == false) {
+                throw new IllegalStateException("sequencePrepared not called!");
+            }
+            sequencePrepared = false;
+        } finally {
+            clearThreadLock();
         }
-        sequencePrepared = false;
     }
 
     public synchronized void abort() {
-        super.abort();
-        abortWrite(structPointer);
+        setThreadLock();
+        try {
+            super.abort();
+            abortWrite(structPointer);
+        } finally {
+            clearThreadLock();
+        }
     }
 
     private void resetInternalState() {
@@ -1131,16 +1194,24 @@ public class JPEGImageWriter extends ImageWriter {
         metadata = null;
     }
 
-    /**
-     * Note that there is no need to override reset() here, as the default
-     * implementation will call setOutput(null), which will invoke
-     * resetInternalState().
-     */
+    public void reset() {
+        setThreadLock();
+        try {
+            super.reset();
+        } finally {
+            clearThreadLock();
+        }
+    }
 
     public void dispose() {
-        if (structPointer != 0) {
-            disposerRecord.dispose();
-            structPointer = 0;
+        setThreadLock();
+        try {
+            if (structPointer != 0) {
+                disposerRecord.dispose();
+                structPointer = 0;
+            }
+        } finally {
+            clearThreadLock();
         }
     }
 
@@ -1677,6 +1748,41 @@ public class JPEGImageWriter extends ImageWriter {
                 disposeWriter(pData);
                 pData = 0;
             }
+        }
+    }
+    
+    private Thread theThread = null;
+    private int theLockCount = 0;
+
+    private synchronized void setThreadLock() {
+        Thread currThread = Thread.currentThread();
+        if (theThread != null) {
+            if (theThread != currThread) {
+                // it looks like that this reader instance is used
+                // by multiple threads.
+                throw new IllegalStateException("Attempt to use instance of " +
+                                                this + " locked on thread " +
+                                                theThread + " from thread " +
+                                                currThread);
+            } else {
+                theLockCount ++;
+            }
+        } else {
+            theThread = currThread;
+            theLockCount = 1;
+        }
+    }
+    
+    private synchronized void clearThreadLock() {
+        Thread currThread = Thread.currentThread();
+        if (theThread == null || theThread != currThread) {
+            throw new IllegalStateException("Attempt to clear thread lock form wrong thread. " +
+                                            "Locked thread: " + theThread + 
+                                            "; current thread: " + currThread);
+        }
+        theLockCount --;
+        if (theLockCount == 0) {
+            theThread = null;
         }
     }
 }

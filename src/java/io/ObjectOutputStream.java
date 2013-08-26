@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectOutputStream.java	1.160 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -132,7 +132,7 @@ import static java.io.ObjectStreamClass.processQueue;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.160, 10/03/23
+ * @version     %I%, %E%
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -174,10 +174,14 @@ public class ObjectOutputStream
     private boolean enableReplace;
 
     // values below valid only during upcalls to writeObject()/writeExternal()
-    /** object currently being serialized */
-    private Object curObj;
-    /** descriptor for current class (null if in writeExternal()) */
-    private ObjectStreamClass curDesc;
+
+    /**
+     * Context during upcalls to class-defined writeObject methods; holds
+     * object currently being serialized and descriptor for current class.
+     * Null when not during writeObject upcall.
+     */
+    private SerialCallbackContext curContext;
+
     /** current PutField object */
     private PutFieldImpl curPut;
 
@@ -409,9 +413,11 @@ public class ObjectOutputStream
      * 		<code>OutputStream</code>
      */
     public void defaultWriteObject() throws IOException {
-	if (curObj == null || curDesc == null) {
+	if (curContext == null) {
 	    throw new NotActiveException("not in call to writeObject");
 	}
+        Object curObj = curContext.getObj();
+        ObjectStreamClass curDesc = curContext.getDesc();
 	bout.setBlockDataMode(false);
 	defaultWriteFields(curObj, curDesc);
 	bout.setBlockDataMode(true);
@@ -429,9 +435,11 @@ public class ObjectOutputStream
      */
     public ObjectOutputStream.PutField putFields() throws IOException {
 	if (curPut == null) {
-	    if (curObj == null || curDesc == null) {
+	    if (curContext == null) {
 		throw new NotActiveException("not in call to writeObject");
 	    }
+            Object curObj = curContext.getObj();
+            ObjectStreamClass curDesc = curContext.getDesc();
 	    curPut = new PutFieldImpl(curDesc);
 	}
 	return curPut;
@@ -1403,19 +1411,19 @@ public class ObjectOutputStream
      * writeExternal() method.
      */
     private void writeExternalData(Externalizable obj) throws IOException {
-	Object oldObj = curObj;
-	ObjectStreamClass oldDesc = curDesc;
-	PutFieldImpl oldPut = curPut;
-	curObj = obj;
-	curDesc = null;
-	curPut = null;
-	
-	if (extendedDebugInfo) {
-	    debugInfoStack.push("writeExternal data");
-	}	
-	try {
+        PutFieldImpl oldPut = curPut;
+        curPut = null;
+
+        if (extendedDebugInfo) {
+             debugInfoStack.push("writeExternal data");
+        }
+
+        SerialCallbackContext oldContext = curContext;
+        try {
+            curContext = null;
+	    
 	    if (protocol == PROTOCOL_VERSION_1) {
-		obj.writeExternal(this);
+	        obj.writeExternal(this);
 	    } else {
 		bout.setBlockDataMode(true);
 		obj.writeExternal(this);
@@ -1423,13 +1431,13 @@ public class ObjectOutputStream
 		bout.writeByte(TC_ENDBLOCKDATA);
 	    }
 	} finally {
+            curContext = oldContext;
+
 	    if (extendedDebugInfo) {
 		debugInfoStack.pop();
 	    }     
 	}	
 
-	curObj = oldObj;
-	curDesc = oldDesc;
 	curPut = oldPut;
     }
     
@@ -1444,31 +1452,32 @@ public class ObjectOutputStream
 	for (int i = 0; i < slots.length; i++) {
 	    ObjectStreamClass slotDesc = slots[i].desc;
 	    if (slotDesc.hasWriteObjectMethod()) {
-		Object oldObj = curObj;
-		ObjectStreamClass oldDesc = curDesc;
 		PutFieldImpl oldPut = curPut;
-		curObj = obj;
-		curDesc = slotDesc;
 		curPut = null;
 
 		if (extendedDebugInfo) {
 		    debugInfoStack.push(
 			"custom writeObject data (class \"" + 
 			slotDesc.getName() + "\")");
-		}	
+		}
+
+                SerialCallbackContext oldContext = curContext;
 		try {
+                    curContext = new SerialCallbackContext(obj, slotDesc);
+
 		    bout.setBlockDataMode(true);
 		    slotDesc.invokeWriteObject(obj, this);
 		    bout.setBlockDataMode(false);
 		    bout.writeByte(TC_ENDBLOCKDATA);
 		} finally {
+                    curContext.setUsed();
+                    curContext = oldContext;
+
 		    if (extendedDebugInfo) {
 			debugInfoStack.pop();
 		    }	
 		} 
 
-		curObj = oldObj;
-		curDesc = oldDesc;
 		curPut = oldPut;
 	    } else {
 		defaultWriteFields(obj, slotDesc);

@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageReader.java	1.59 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -249,11 +249,16 @@ public class JPEGImageReader extends ImageReader {
                          boolean seekForwardOnly,
                          boolean ignoreMetadata)
     {
-        super.setInput(input, seekForwardOnly, ignoreMetadata);
-        this.ignoreMetadata = ignoreMetadata;
-        resetInternalState();
-        iis = (ImageInputStream) input; // Always works
-        setSource(structPointer, iis);
+        setThreadLock();
+        try {
+            super.setInput(input, seekForwardOnly, ignoreMetadata);
+            this.ignoreMetadata = ignoreMetadata;
+            resetInternalState();
+            iis = (ImageInputStream) input; // Always works
+            setSource(structPointer, iis);
+        } finally {
+            clearThreadLock();
+        }
     }
 
     private native void setSource(long structPointer, 
@@ -307,6 +312,16 @@ public class JPEGImageReader extends ImageReader {
     }
 
     public int getNumImages(boolean allowSearch) throws IOException {
+        setThreadLock();
+        try { // locked thread
+            return getNumImagesOnThread(allowSearch);
+        } finally {
+            clearThreadLock();
+        }
+    }
+
+    private int getNumImagesOnThread(boolean allowSearch)
+      throws IOException { 
         if (numImages != 0) {
             return numImages;
         }
@@ -612,17 +627,27 @@ public class JPEGImageReader extends ImageReader {
     }
 
     public int getWidth(int imageIndex) throws IOException {
-        if (currentImage != imageIndex) {
-            readHeader(imageIndex, true);
+        setThreadLock();
+        try {
+            if (currentImage != imageIndex) {
+                readHeader(imageIndex, true);
+            }
+            return width;
+        } finally {
+            clearThreadLock();
         }
-        return width;
     }
 
     public int getHeight(int imageIndex) throws IOException {
-        if (currentImage != imageIndex) {
-            readHeader(imageIndex, true);
+        setThreadLock();
+        try {
+            if (currentImage != imageIndex) {
+                readHeader(imageIndex, true);
+            }
+            return height;
+        } finally {
+            clearThreadLock();
         }
-        return height;
     }
 
     /////////// Color Conversion and Image Types
@@ -642,14 +667,30 @@ public class JPEGImageReader extends ImageReader {
 
     public ImageTypeSpecifier getRawImageType(int imageIndex)
         throws IOException {
-        if (currentImage != imageIndex) {
-            readHeader(imageIndex, true);
-        }
-        // Returns null if it can't be represented
-        return getImageType(colorSpaceCode).getType();
+        setThreadLock();
+        try {
+            if (currentImage != imageIndex) {
+                readHeader(imageIndex, true);
+            }
+
+            // Returns null if it can't be represented
+            return getImageType(colorSpaceCode).getType();
+        } finally {
+            clearThreadLock();
+	}
     }
 
     public Iterator getImageTypes(int imageIndex)
+        throws IOException {
+        setThreadLock();
+        try {
+            return getImageTypesOnThread(imageIndex);
+        } finally {
+             clearThreadLock();
+        }
+    }
+
+    private Iterator getImageTypesOnThread(int imageIndex)
         throws IOException {
         if (currentImage != imageIndex) {
             readHeader(imageIndex, true);
@@ -864,47 +905,61 @@ public class JPEGImageReader extends ImageReader {
     }
 
     public IIOMetadata getStreamMetadata() throws IOException {
-        if (!tablesOnlyChecked) {
-            checkTablesOnly();
+        setThreadLock();
+        try {
+            if (!tablesOnlyChecked) {
+                checkTablesOnly();
+            }
+            return streamMetadata;
+        } finally {
+            clearThreadLock();
         }
-        return streamMetadata;
     }
 
     public IIOMetadata getImageMetadata(int imageIndex)
         throws IOException {
-
-        // imageMetadataIndex will always be either a valid index or
-        // -1, in which case imageMetadata will not be null.
-        // So we can leave checking imageIndex for gotoImage.
-        if ((imageMetadataIndex == imageIndex)
-            && (imageMetadata != null)) {
+        setThreadLock();
+        try {
+            // imageMetadataIndex will always be either a valid index or
+            // -1, in which case imageMetadata will not be null.
+            // So we can leave checking imageIndex for gotoImage.
+            if ((imageMetadataIndex == imageIndex)
+                && (imageMetadata != null)) {
+                return imageMetadata;
+            }
+            
+            gotoImage(imageIndex);
+            
+            imageMetadata = new JPEGMetadata(false, false, iis, this);
+            
+            imageMetadataIndex = imageIndex;
+            
             return imageMetadata;
+        } finally {
+            clearThreadLock();
         }
-
-        gotoImage(imageIndex);
-        
-        imageMetadata = new JPEGMetadata(false, false, iis, this);
-        
-        imageMetadataIndex = imageIndex;
-
-        return imageMetadata;
-        
     }
 
     public BufferedImage read(int imageIndex, ImageReadParam param)
         throws IOException {
+        setThreadLock();
         try {
-            readInternal(imageIndex, param, false);
-        } catch (RuntimeException e) {
-            resetLibraryState(structPointer);
-            throw e;
-        } catch (IOException e) {
-            resetLibraryState(structPointer);
-            throw e;
+            try {
+                readInternal(imageIndex, param, false);
+            } catch (RuntimeException e) {
+                resetLibraryState(structPointer);
+                throw e;
+            } catch (IOException e) {
+                resetLibraryState(structPointer);
+                throw e;
+            } 
+            
+            BufferedImage ret = image;
+            image = null;  // don't keep a reference here
+            return ret;
+        } finally {
+            clearThreadLock();
         }
-        BufferedImage ret = image;
-        image = null;  // don't keep a reference here
-        return ret;
     }
 
     private Raster readInternal(int imageIndex, 
@@ -1227,8 +1282,13 @@ public class JPEGImageReader extends ImageReader {
                                      boolean wantUpdates);
     
     public void abort() {
-        super.abort();
-        abortRead(structPointer);
+        setThreadLock();
+        try {
+            super.abort();
+            abortRead(structPointer);
+        } finally {
+            clearThreadLock();
+        }
     }
 
     /** Set the C level abort flag. Keep it atomic for thread safety. */
@@ -1243,6 +1303,7 @@ public class JPEGImageReader extends ImageReader {
 
     public Raster readRaster(int imageIndex, ImageReadParam param)
         throws IOException {
+        setThreadLock();
         Raster retval = null;
         try {
 	    /*
@@ -1271,6 +1332,8 @@ public class JPEGImageReader extends ImageReader {
         } catch (IOException e) {
             resetLibraryState(structPointer);
             throw e;
+        } finally {
+            clearThreadLock();
         }
         return retval;
     }
@@ -1280,57 +1343,77 @@ public class JPEGImageReader extends ImageReader {
     }
 
     public int getNumThumbnails(int imageIndex) throws IOException {
-        getImageMetadata(imageIndex);  // checks iis state for us
-        // Now check the jfif segments
-        JFIFMarkerSegment jfif = 
-            (JFIFMarkerSegment) imageMetadata.findMarkerSegment
-            (JFIFMarkerSegment.class, true);
-        int retval = 0;
-        if (jfif != null) {
-            retval = (jfif.thumb == null) ? 0 : 1;
-            retval += jfif.extSegments.size();
+        setThreadLock();
+        try {
+            getImageMetadata(imageIndex);  // checks iis state for us
+            // Now check the jfif segments
+            JFIFMarkerSegment jfif = 
+                (JFIFMarkerSegment) imageMetadata.findMarkerSegment
+                (JFIFMarkerSegment.class, true);
+            int retval = 0;
+            if (jfif != null) {
+                retval = (jfif.thumb == null) ? 0 : 1;
+                retval += jfif.extSegments.size();
+            }
+            return retval;
+        } finally {
+            clearThreadLock();
         }
-        return retval;
     }
 
     public int getThumbnailWidth(int imageIndex, int thumbnailIndex)
         throws IOException {
-        if ((thumbnailIndex < 0) 
-            || (thumbnailIndex >= getNumThumbnails(imageIndex))) {
-            throw new IndexOutOfBoundsException("No such thumbnail");
+        setThreadLock();
+        try {
+            if ((thumbnailIndex < 0) 
+                || (thumbnailIndex >= getNumThumbnails(imageIndex))) {
+                throw new IndexOutOfBoundsException("No such thumbnail");
+            }
+            // Now we know that there is a jfif segment
+            JFIFMarkerSegment jfif = 
+                (JFIFMarkerSegment) imageMetadata.findMarkerSegment
+                (JFIFMarkerSegment.class, true);
+            return  jfif.getThumbnailWidth(thumbnailIndex);
+        } finally {
+            clearThreadLock();
         }
-        // Now we know that there is a jfif segment
-        JFIFMarkerSegment jfif = 
-            (JFIFMarkerSegment) imageMetadata.findMarkerSegment
-            (JFIFMarkerSegment.class, true);
-        return  jfif.getThumbnailWidth(thumbnailIndex);
     }
 
     public int getThumbnailHeight(int imageIndex, int thumbnailIndex)
         throws IOException {
-        if ((thumbnailIndex < 0) 
-            || (thumbnailIndex >= getNumThumbnails(imageIndex))) {
-            throw new IndexOutOfBoundsException("No such thumbnail");
+        setThreadLock();
+        try {
+            if ((thumbnailIndex < 0) 
+                || (thumbnailIndex >= getNumThumbnails(imageIndex))) {
+                throw new IndexOutOfBoundsException("No such thumbnail");
+            }
+            // Now we know that there is a jfif segment
+            JFIFMarkerSegment jfif = 
+                (JFIFMarkerSegment) imageMetadata.findMarkerSegment
+                (JFIFMarkerSegment.class, true);
+            return  jfif.getThumbnailHeight(thumbnailIndex);
+        } finally {
+            clearThreadLock();
         }
-        // Now we know that there is a jfif segment
-        JFIFMarkerSegment jfif = 
-            (JFIFMarkerSegment) imageMetadata.findMarkerSegment
-            (JFIFMarkerSegment.class, true);
-        return  jfif.getThumbnailHeight(thumbnailIndex);
     }
 
     public BufferedImage readThumbnail(int imageIndex,
                                        int thumbnailIndex)
         throws IOException {
-        if ((thumbnailIndex < 0) 
-            || (thumbnailIndex >= getNumThumbnails(imageIndex))) {
-            throw new IndexOutOfBoundsException("No such thumbnail");
+        setThreadLock();
+        try {
+            if ((thumbnailIndex < 0) 
+                || (thumbnailIndex >= getNumThumbnails(imageIndex))) {
+                throw new IndexOutOfBoundsException("No such thumbnail");
+            }
+            // Now we know that there is a jfif segment and that iis is good
+            JFIFMarkerSegment jfif = 
+                (JFIFMarkerSegment) imageMetadata.findMarkerSegment
+                (JFIFMarkerSegment.class, true);
+            return  jfif.getThumbnail(iis, thumbnailIndex, this);
+        } finally {
+            clearThreadLock();
         }
-        // Now we know that there is a jfif segment and that iis is good
-        JFIFMarkerSegment jfif = 
-            (JFIFMarkerSegment) imageMetadata.findMarkerSegment
-            (JFIFMarkerSegment.class, true);
-        return  jfif.getThumbnail(iis, thumbnailIndex, this);
     }
 
     private void resetInternalState() {
@@ -1356,18 +1439,26 @@ public class JPEGImageReader extends ImageReader {
         initProgressData();
     }
 
-    /**
-     * Note that there is no need to override reset() here, as the default
-     * implementation will call setInput(null, false, false), which will
-     * invoke resetInternalState().
-     */
+    public void reset() {
+        setThreadLock();
+        try {
+            super.reset();
+        } finally {
+            clearThreadLock();
+        }
+    }
 
     private native void resetReader(long structPointer);
 
     public void dispose() {
-        if (structPointer != 0) {
-            disposerRecord.dispose();
-            structPointer = 0;
+        setThreadLock();
+        try {
+            if (structPointer != 0) {
+                disposerRecord.dispose();
+                structPointer = 0;
+            }
+        } finally {
+            clearThreadLock();
         }
     }
 
@@ -1385,6 +1476,42 @@ public class JPEGImageReader extends ImageReader {
                 disposeReader(pData);
                 pData = 0;
             }
+        }
+    }
+
+    private Thread theThread = null;
+    private int theLockCount = 0;
+
+    private synchronized void setThreadLock() {
+        Thread currThread = Thread.currentThread();
+        if (theThread != null) {
+            if (theThread != currThread) {
+                // it looks like that this reader instance is used
+                // by multiple threads.
+                throw new IllegalStateException("Attempt to use instance of " +
+                                                this + " locked on thread " +
+                                                theThread + " from thread " +
+                                                currThread);
+            } else {
+                theLockCount ++;
+            }
+        } else {
+            theThread = currThread;
+            theLockCount = 1;
+        }
+    }
+
+    private synchronized void clearThreadLock() {
+        Thread currThread = Thread.currentThread();
+        if (theThread == null || theThread != currThread) {
+            throw new IllegalStateException("Attempt to clear thread lock " +
+                                            " form wrong thread." +
+                                            " Locked thread: " + theThread + 
+                                            "; current thread: " + currThread);
+        }
+        theLockCount --;
+        if (theLockCount == 0) {
+            theThread = null;
         }
     }
 }

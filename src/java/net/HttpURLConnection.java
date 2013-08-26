@@ -1,7 +1,7 @@
 /*
- * @(#)HttpURLConnection.java	1.46 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -326,6 +326,12 @@ abstract public class HttpURLConnection extends URLConnection {
 
 	for (int i = 0; i < methods.length; i++) {
 	    if (methods[i].equals(method)) {
+                if (method.equals("TRACE")) {
+                    SecurityManager s = System.getSecurityManager();
+                    if (s != null) {
+                        s.checkPermission(new NetPermission("allowHttpTrace"));
+                    }
+                }
 		this.method = method;
 		return;
 	    }
