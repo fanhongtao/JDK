@@ -1,8 +1,8 @@
 /*
- * @(#)Date.java	1.84 06/11/23
+ * @(#)Date.java	1.86 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -103,7 +103,7 @@ import sun.util.calendar.ZoneInfo;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.84, 11/23/06
+ * @version 1.86, 03/23/10
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -936,7 +936,7 @@ public class Date
      * without affecting its internal state.
      */
     static final long getMillisOf(Date date) {
-	if (date.cdate == null) {
+	if (date.cdate == null || date.cdate.isNormalized()) {
 	    return date.fastTime;
 	}
 	BaseCalendar.Date d = (BaseCalendar.Date) date.cdate.clone();

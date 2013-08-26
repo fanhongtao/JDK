@@ -1,8 +1,8 @@
 /*
- * @(#)DeleteOnExitHook.java	1.5 09/04/01
+ * @(#)DeleteOnExitHook.java	1.7 10/03/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.io;
 
@@ -30,19 +30,17 @@ class DeleteOnExitHook {
 
     private DeleteOnExitHook() {}
 
-    static void add(String file) {
-	synchronized(files) {
-	    if(files == null)
-		throw new IllegalStateException("Shutdown in progress");
+    static synchronized void add(String file) {
+	if(files == null)
+	    throw new IllegalStateException("Shutdown in progress");
 
-	    files.add(file);
-	}
+	files.add(file);
     }
 
     static void runHooks() {
 	LinkedHashSet<String> theFiles;
 
-	synchronized (files) {
+	synchronized (DeleteOnExitHook.class) {
 	    theFiles = files;
 	    files = null;
 	}

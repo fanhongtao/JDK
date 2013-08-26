@@ -1,8 +1,8 @@
 /*
  * @(#)SynthSliderUI.java    1.94 01/12/03
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -36,7 +36,7 @@ import sun.swing.SwingUtilities2;
 /**
  * Synth's SliderUI.
  *
- * @version 1.35, 05/30/08
+ * @version 1.37, 04/26/10
  * @author Joshua Outwater
  */
 class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
@@ -793,13 +793,17 @@ class SynthSliderUI extends BasicSliderUI implements PropertyChangeListener,
                     valueRect.y, -1);
         }
         
-        SynthContext subcontext = getContext(slider, Region.SLIDER_TRACK);
-        paintTrack(subcontext, g, trackRect);
-        subcontext.dispose();
+        if (slider.getPaintTrack() && clip.intersects(trackRect)) {
+            SynthContext subcontext = getContext(slider, Region.SLIDER_TRACK);
+            paintTrack(subcontext, g, trackRect);
+            subcontext.dispose();
+        }
 
-        subcontext = getContext(slider, Region.SLIDER_THUMB);
-        paintThumb(subcontext, g, thumbRect);
-        subcontext.dispose();
+        if (clip.intersects(thumbRect)) {
+            SynthContext subcontext = getContext(slider, Region.SLIDER_THUMB);
+            paintThumb(subcontext, g, thumbRect);
+            subcontext.dispose();
+        }
 
         if (slider.getPaintTicks() && clip.intersects(tickRect)) {
             paintTicks(g);

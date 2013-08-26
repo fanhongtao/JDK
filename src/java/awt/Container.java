@@ -1,8 +1,8 @@
 /*
- * @(#)Container.java	1.302 09/02/11
+ * @(#)Container.java	1.304 10/04/27
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -63,7 +63,7 @@ import sun.java2d.pipe.Region;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version 	1.302, 02/11/09
+ * @version 	1.304, 04/27/10
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -4267,7 +4267,10 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
             retargetMouseEvent(mouseOver, id, e);
         break;
 	    }
-	    e.consume();
+            //Consuming of wheel events is implemented in "retargetMouseEvent".
+            if (id != MouseEvent.MOUSE_WHEEL) {
+                e.consume();
+	    }
     }
     return e.isConsumed();
     }
@@ -4573,6 +4576,12 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
                 } else {
                     target.dispatchEvent(retargeted);
                 }
+            }
+            if (id == MouseEvent.MOUSE_WHEEL && retargeted.isConsumed()) {
+                //An exception for wheel bubbling to the native system.
+                //In "processMouseEvent" total event consuming for wheel events is skipped.
+                //Protection from bubbling of Java-accepted wheel events.
+                e.consume();
             }
         }
     }

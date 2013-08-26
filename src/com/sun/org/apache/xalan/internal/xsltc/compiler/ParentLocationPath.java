@@ -163,6 +163,14 @@ final class ParentLocationPath extends RelativeLocationPath {
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
+       // Compile path iterator
+       _path.translate(classGen, methodGen); // iterator on stack....
+
+       translateStep(classGen, methodGen);
+    }
+
+    public void translateStep(ClassGenerator classGen, MethodGenerator methodGen) {
+
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
 
@@ -175,8 +183,6 @@ final class ParentLocationPath extends RelativeLocationPath {
         // in temporary variables, create the object and reload the
         // arguments from the temporaries to avoid the problem.
 
-	// Compile path iterator
-	_path.translate(classGen, methodGen); // iterator on stack....
         LocalVariableGen pathTemp
                 = methodGen.addLocalVariable("parent_location_path_tmp1",
                                          Util.getJCRefType(NODE_ITERATOR_SIG),

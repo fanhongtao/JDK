@@ -32,7 +32,7 @@ import org.w3c.dom.TypeInfo;
  *
  * @author Elena Litani, IBM
  * @author Sandy Gao, IBM
- * @version $Id: XSComplexTypeDecl.java,v 1.2.6.1 2005/09/09 07:30:55 sunithareddy Exp $
+ * @version $Id: XSComplexTypeDecl.java,v 1.5 2010/04/06 19:36:36 joehw Exp $
  */
 public class XSComplexTypeDecl implements XSComplexTypeDefinition, TypeInfo {
 
@@ -71,7 +71,7 @@ public class XSComplexTypeDecl implements XSComplexTypeDefinition, TypeInfo {
     XSParticleDecl fParticle = null;
 
     // if there is a particle, the content model corresponding to that particle
-    XSCMValidator fCMValidator = null;
+    volatile XSCMValidator fCMValidator = null;
 
     // list of annotations affiliated with this type
     XSObjectListImpl fAnnotations = null;
@@ -148,10 +148,14 @@ public class XSComplexTypeDecl implements XSComplexTypeDefinition, TypeInfo {
         fMiscFlags |= CT_IS_ANONYMOUS;
     }
 
-    public synchronized XSCMValidator getContentModel(CMBuilder cmBuilder) {
-        if (fCMValidator == null)
-            fCMValidator = cmBuilder.getContentModel(this);
-
+    public XSCMValidator getContentModel(CMBuilder cmBuilder) {
+        if (fCMValidator == null) {
+            synchronized (this) {
+                if (fCMValidator == null) {
+                    fCMValidator = cmBuilder.getContentModel(this);
+                }
+            }
+        }
         return fCMValidator;
     }
 
@@ -163,12 +167,12 @@ public class XSComplexTypeDecl implements XSComplexTypeDefinition, TypeInfo {
     }
 
     public String toString() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder(192);
         appendTypeInfo(str);
         return str.toString();
     }
 
-    void appendTypeInfo(StringBuffer str) {
+    void appendTypeInfo(StringBuilder str) {
         String contentType[] = {"EMPTY", "SIMPLE", "ELEMENT", "MIXED"};
         String derivedBy[] = {"EMPTY", "EXTENSION", "RESTRICTION"};
 

@@ -1,8 +1,8 @@
 /*
- * @(#)SwingWorker.java	1.10 09/10/19
+ * @(#)SwingWorker.java	1.12 10/05/14
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -195,7 +195,7 @@ import sun.swing.AccumulativeRunnable;
  * {@link java.util.concurrent.Executor} for execution.
  *  
  * @author Igor Kushnirskiy
- * @version 1.10 10/19/09
+ * @version 1.12 05/14/10
  * 
  * @param <T> the result type returned by this {@code SwingWorker's}
  *        {@code doInBackground} and {@code get} methods
@@ -754,7 +754,7 @@ public abstract class SwingWorker<T, V> implements RunnableFuture<T> {
                 };
 
             executorService =
-                new ThreadPoolExecutor(1, MAX_WORKER_THREADS,
+                new ThreadPoolExecutor(MAX_WORKER_THREADS, MAX_WORKER_THREADS,
                                        10L, TimeUnit.MINUTES,
                                        new LinkedBlockingQueue<Runnable>(),
                                        threadFactory);

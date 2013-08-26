@@ -1,6 +1,6 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind;
@@ -382,7 +382,7 @@ import java.io.Reader;
  * </blockquote>
  * 
  * @author <ul><li>Ryan Shoemaker, Sun Microsystems, Inc.</li><li>Kohsuke Kawaguchi, Sun Microsystems, Inc.</li><li>Joe Fialli, Sun Microsystems, Inc.</li></ul>
- * @version $Revision: 1.31 $ $Date: 2005/08/15 20:54:42 $
+ * @version $Revision: 1.32 $ $Date: 2005/08/18 15:18:26 $
  * @see JAXBContext
  * @see Marshaller
  * @see Validator
@@ -689,7 +689,7 @@ public interface Unmarshaller {
      * and return the resulting content tree.
      * 
      * <p>
-     * This method implements <a href="unmarshalByDeclaredType">unmarshal by declaredType</a>.
+     * This method implements <a href="#unmarshalByDeclaredType">unmarshal by declaredType</a>.
      * <p>
      * This method assumes that the parser is on a START_DOCUMENT or
      * START_ELEMENT event. Unmarshalling will be done from this 
@@ -759,7 +759,7 @@ public interface Unmarshaller {
      * and return the resulting content tree.
      * 
      * <p>
-     * This method implements <a href="unmarshalByDeclaredType">unmarshal by declaredType</a>.
+     * This method implements <a href="#unmarshalByDeclaredType">unmarshal by declaredType</a>.
      *
      * <p>
      * This method assumes that the parser is on a START_DOCUMENT or

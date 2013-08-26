@@ -1,8 +1,8 @@
 /*
- * @(#)SynthTableUI.java	1.28 08/06/16
+ * @(#)SynthTableUI.java	1.30 10/04/26
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -41,7 +41,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * SynthTableUI implementation
  *
- * @version 1.28, 06/16/08
+ * @version 1.30, 04/26/10
  * @author Philip Milne
  */
 class SynthTableUI extends BasicTableUI implements SynthUI,
@@ -301,11 +301,13 @@ class SynthTableUI extends BasicTableUI implements SynthUI,
 	    cMax = table.getColumnCount()-1;
         }
 
-        // Paint the grid.
-        paintGrid(context, g, rMin, rMax, cMin, cMax);
-
         // Paint the cells.
-	paintCells(context, g, rMin, rMax, cMin, cMax);
+    	paintCells(context, g, rMin, rMax, cMin, cMax);
+
+        // Paint the grid.
+        // it is important to paint the grid after the cells, otherwise the grid will be overpainted
+        // because in Synth cell renderers are likely to be opaque 
+        paintGrid(context, g, rMin, rMax, cMin, cMax);
 
         paintDropLines(context, g);
     }

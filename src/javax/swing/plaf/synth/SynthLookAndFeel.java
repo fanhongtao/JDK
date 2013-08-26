@@ -1,8 +1,8 @@
 /*
  * @(#)SynthLookAndFeel.java	1.48 05/05/24
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -669,6 +669,14 @@ public class SynthLookAndFeel extends BasicLookAndFeel {
                   new Dimension(10, 10));
         table.put("ColorChooser.swatchesDefaultRecentColor", Color.RED);
         table.put("ColorChooser.swatchesSwatchSize", new Dimension(10, 10));
+
+        // These need to be defined for ImageView.
+        table.put("html.pendingImage", SwingUtilities2.makeIcon(getClass(),
+                                BasicLookAndFeel.class,
+                                "icons/image-delayed.png"));
+        table.put("html.missingImage", SwingUtilities2.makeIcon(getClass(),
+                                BasicLookAndFeel.class,
+                                "icons/image-failed.png"));
 
         // These are needed for PopupMenu.
         table.put("PopupMenu.selectedWindowInputMapBindings", new Object[] {

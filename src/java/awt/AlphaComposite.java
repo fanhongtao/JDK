@@ -1,8 +1,8 @@
 /*
- * @(#)AlphaComposite.java	1.50 06/04/07
+ * @(#)AlphaComposite.java	1.52 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -597,14 +597,15 @@ public final class AlphaComposite implements Composite {
     }
 
     private AlphaComposite(int rule, float alpha) {
-	if (alpha < 0.0f || alpha > 1.0f) {
-	    throw new IllegalArgumentException("alpha value out of range");
-	}
 	if (rule < MIN_RULE || rule > MAX_RULE) {
 	    throw new IllegalArgumentException("unknown composite rule");
 	}
-	this.rule = rule;
-	this.extraAlpha = alpha;
+	if (alpha >= 0.0f && alpha <= 1.0f) {
+	    this.rule = rule;
+	    this.extraAlpha = alpha;
+	} else {
+	    throw new IllegalArgumentException("alpha value out of range");
+	}
     }
 
     /**

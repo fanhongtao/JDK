@@ -75,6 +75,8 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
     // Document URI index, which increases by 1 at each getDocumentURI() call.
     private static int _documentURIIndex = 0;
 
+    private static final String EMPTY_STRING = "".intern();
+
     // The SAXImpl object wrapped by this class, if the RTF is a tree.
     private SAXImpl _dom;
     
@@ -678,10 +680,21 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
         endElement(qName);
     }
 
- public void addUniqueAttribute(String qName, String value, int flags)
+    public void addUniqueAttribute(String qName, String value, int flags)
         throws SAXException
     {
-        addAttribute(qName, value); 
+       // "prefix:localpart" or "localpart"
+       int colonpos = qName.indexOf(":");
+       String uri = EMPTY_STRING;
+       String localName = qName;
+       if (colonpos >0)
+       {
+           String prefix = qName.substring(0, colonpos);
+           localName = qName.substring(colonpos+1);
+           uri = _dom.getNamespaceURI(prefix);
+       }
+
+       addAttribute(uri, localName, qName, "CDATA", value);
     }
 
     public void addAttribute(String uri, String localName, String qname,

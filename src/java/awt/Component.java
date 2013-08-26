@@ -1,8 +1,8 @@
 /*
- * @(#)Component.java	1.451 09/07/29
+ * @(#)Component.java	1.453 10/04/27
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -162,7 +162,7 @@ import sun.awt.RequestFocusController;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.451, 07/29/09
+ * @version     1.453, 04/27/10
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -4778,9 +4778,13 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 // If we dispatch the event to toplevel ancestor, 
                 // this could encolse the loop: 6480024.
                 anc.dispatchEventToSelf(newMWE);
+                if (newMWE.isConsumed()) {
+                    e.consume();
+                }
+                return true;
             }
         }
-        return true;
+        return false; 
     }
     
     boolean checkWindowClosingException() {

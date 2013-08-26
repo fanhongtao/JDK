@@ -20,9 +20,9 @@
 
 /*
  * $Id: XMLStreamReaderImpl.java,v 1.8 2006/06/06 06:28:41 sunithareddy Exp $
- * @(#)XMLStreamReaderImpl.java	1.10 06/07/13
+ * @(#)XMLStreamReaderImpl.java	1.13 10/05/12
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, 2010 Oracle and/or its affiliates. All rights reserved.
  */
 
 package com.sun.org.apache.xerces.internal.impl;
@@ -60,6 +60,7 @@ import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.util.XMLStringBuffer;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
+import com.sun.org.apache.xerces.internal.util.XMLAttributesImpl;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.xni.XMLDocumentHandler;
 import com.sun.xml.internal.stream.dtd.DTDGrammarUtil;
@@ -805,7 +806,13 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeValue(String namespaceURI, String localName) {
         //State should be either START_ELEMENT or ATTRIBUTE
         if( fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.ATTRIBUTE) {
-            return fScanner.getAttributeIterator().getValue(namespaceURI, localName) ;
+            XMLAttributesImpl attributes = fScanner.getAttributeIterator();
+            if (namespaceURI == null) { //sjsxp issue 70
+                return attributes.getValue(attributes.getIndexByLocalName(localName)) ;
+            } else {
+                return fScanner.getAttributeIterator().getValue(
+                        namespaceURI.length() == 0 ? null : namespaceURI, localName) ;
+            }
         } else{
             throw new java.lang.IllegalStateException("Current state is not among the states " 
                      + getEventTypeString(XMLEvent.START_ELEMENT) + " , " 

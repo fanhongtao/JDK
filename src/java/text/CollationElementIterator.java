@@ -1,8 +1,8 @@
 /*
- * @(#)CollationElementIterator.java	1.50 05/11/17
+ * @(#)CollationElementIterator.java	1.52 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -215,7 +215,7 @@ public final class CollationElementIterator
                     buffer = makeReorderedBuffer(consonant, value, buffer, true);
                     value = buffer[0];
                     expIndex = 1;
-                } else {
+                } else if (consonant != NormalizerBase.DONE) {
                     text.previous();
                 }
             }
@@ -225,7 +225,7 @@ public final class CollationElementIterator
                     buffer = makeReorderedBuffer(consonant, value, buffer, true);
                     value = buffer[0];
                     expIndex = 1;
-                } else {
+                } else if (consonant != NormalizerBase.DONE) {
                     text.previous();
                 }
             }

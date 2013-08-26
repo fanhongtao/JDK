@@ -1,8 +1,8 @@
 /*
- * @(#)DefaultMenuLayout.java	1.9 05/11/17
+ * @(#)DefaultMenuLayout.java	1.11 10/04/26
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -11,7 +11,8 @@ import javax.swing.*;
 import javax.swing.plaf.UIResource;
 
 import java.awt.Container;
-import java.awt.Dimension;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.multi.MultiPopupMenuUI;
 
 /**
  * The default layout manager for Popup menus and menubars.  This
@@ -21,7 +22,7 @@ import java.awt.Dimension;
  *
  * Derived from javax.swing.plaf.basic.DefaultMenuLayout
  *
- * @version 1.9 11/17/05
+ * @version 1.11 04/26/10
  * @author Georges Saab
  */
 
@@ -30,11 +31,18 @@ class DefaultMenuLayout extends BoxLayout implements UIResource {
 	super(target, axis);
     }
 
+    @Override
     public void invalidateLayout(Container target) {
         if (target instanceof JPopupMenu) {
-            SynthPopupMenuUI popupUI = (SynthPopupMenuUI)((JPopupMenu)target).
-                                  getUI();
-            popupUI.resetAlignmentHints();
+            ComponentUI ui = ((JPopupMenu) target).getUI();
+            ComponentUI[] uis = ui instanceof MultiPopupMenuUI
+                    ? ((MultiPopupMenuUI) ui).getUIs()
+                    : new ComponentUI[] { ui };
+            for (ComponentUI u: uis) {
+                if (u instanceof SynthPopupMenuUI) {
+                    ((SynthPopupMenuUI) u).resetAlignmentHints();
+                }
+            }
         }
         super.invalidateLayout(target);
     }

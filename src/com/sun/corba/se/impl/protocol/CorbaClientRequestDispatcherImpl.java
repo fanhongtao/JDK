@@ -1,8 +1,8 @@
 /*
- * @(#)CorbaClientRequestDispatcherImpl.java	1.90 09/10/29
+ * @(#)CorbaClientRequestDispatcherImpl.java	1.92 10/04/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -17,6 +17,7 @@
 package com.sun.corba.se.impl.protocol;
 
 import java.io.*;
+import java.io.IOException;
 import java.util.Iterator;
 import java.rmi.RemoteException;
 
@@ -106,8 +107,6 @@ public class CorbaClientRequestDispatcherImpl
     implements
 	ClientRequestDispatcher
 {
-    // Used for locking
-    private Object lock = new Object();
 
     public OutputObject beginRequest(Object self, String opName,
 				     boolean isOneWay, ContactInfo contactInfo)
@@ -135,7 +134,8 @@ public class CorbaClientRequestDispatcherImpl
 
 	// This locking is done so that multiple connections are not created
 	// for the same endpoint
-	synchronized (lock) {
+        //6929137 - Synchronized on contactInfo to avoid blocking across multiple endpoints 
+	synchronized (contactInfo) {
 	    if (contactInfo.isConnectionBased()) {
 		if (contactInfo.shouldCacheConnection()) {
 		    connection = (CorbaConnection)
@@ -240,7 +240,7 @@ public class CorbaClientRequestDispatcherImpl
 	registerWaiter(messageMediator);
 
 	// Do connection reclaim now
-	synchronized (lock) {
+	synchronized (contactInfo) {
 	    if (contactInfo.isConnectionBased()) {
 		if (contactInfo.shouldCacheConnection()) {
 		    OutboundConnectionCache connectionCache =

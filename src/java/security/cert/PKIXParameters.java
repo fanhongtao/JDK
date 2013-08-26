@@ -1,8 +1,8 @@
 /*
- * @(#)PKIXParameters.java	1.18 05/11/17
+ * @(#)PKIXParameters.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -61,7 +61,7 @@ import java.util.Set;
  *
  * @see CertPathValidator
  *
- * @version 	1.18 11/17/05
+ * @version 	1.20 03/23/10
  * @since	1.4
  * @author	Sean Mullan
  * @author	Yassir Elley
@@ -645,16 +645,24 @@ public class PKIXParameters implements CertPathParameters {
      */
     public Object clone() {
         try {
-            Object copy = super.clone();
-	    // Must clone these because addCertStore, et al. modify them
-	    if (certStores != null) {
-		certStores = new ArrayList<CertStore>(certStores);
-	    }
-	    if (certPathCheckers != null) {	
-	        certPathCheckers = 
-			new ArrayList<PKIXCertPathChecker>(certPathCheckers);
-	    }
-	    return copy;
+            PKIXParameters copy = (PKIXParameters)super.clone();
+
+            // must clone these because addCertStore, et al. modify them
+            if (certStores != null) {
+                copy.certStores = new ArrayList<CertStore>(certStores);
+            }
+            if (certPathCheckers != null) {
+                copy.certPathCheckers =
+                    new ArrayList<PKIXCertPathChecker>(certPathCheckers.size());
+                for (PKIXCertPathChecker checker : certPathCheckers) {
+                    copy.certPathCheckers.add(
+                                    (PKIXCertPathChecker)checker.clone());
+                }
+            }
+
+            // other class fields are immutable to public, don't bother
+            // to clone the read-only fields.
+            return copy;
         } catch (CloneNotSupportedException e) {
             /* Cannot happen */
             throw new InternalError(e.toString());

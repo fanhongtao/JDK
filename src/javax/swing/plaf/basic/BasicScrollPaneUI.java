@@ -1,8 +1,8 @@
 /*
- * @(#)BasicScrollPaneUI.java	1.73 05/11/17
+ * @(#)BasicScrollPaneUI.java	1.75 10/04/27
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -34,7 +34,7 @@ import java.awt.ComponentOrientation;
 /**
  * A default L&F implementation of ScrollPaneUI.
  *
- * @version 1.73 11/17/05
+ * @version 1.75 04/27/10
  * @author Hans Muller
  */
 public class BasicScrollPaneUI
@@ -852,6 +852,8 @@ public class BasicScrollPaneUI
                     }
                     orientation = SwingConstants.HORIZONTAL;
                 }
+
+                e.consume();
 
                 if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
                     JViewport vp = scrollpane.getViewport();

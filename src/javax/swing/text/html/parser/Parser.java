@@ -1,8 +1,8 @@
 /*
- * @(#)Parser.java	1.47 06/02/26
+ * @(#)Parser.java	1.49 10/04/21
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006,2010 Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.text.html.parser;
@@ -56,12 +56,15 @@ import sun.misc.MessageUtils;
  * @see DTD
  * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.47, 02/26/06
+ * @version 1.49, 04/21/10
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
 public
 class Parser implements DTDConstants {
+
+    //Maximum codepoint value within BMP
+    private final int MAX_BMP_BOUND = 65535;
 
     private char text[] = new char[1024];
     private int textpos = 0;
@@ -935,8 +938,22 @@ class Parser implements DTDConstants {
                         ch = readCh();
                         break;
                 }
-                char data[] = {mapNumericReference((char) n)};
-                return data;
+                //Check if n codepoint is within BMP; convert into surrogate
+                //pair otherwise 
+                try { 
+		    char data[];
+		    if (n <= MAX_BMP_BOUND) { 
+                        data = Character.toChars(mapNumericReference((char) n));
+                    } else {
+                        data = Character.toChars(n);
+		    }
+                        
+		    return data; 
+                }
+                catch(IllegalArgumentException ex) {
+                    error(ex.toString()); 
+                    return new char[0]; 
+                } 
             }
             addString('#');
             if (!parseIdentifier(false)) {

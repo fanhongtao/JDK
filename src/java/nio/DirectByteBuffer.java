@@ -1,8 +1,8 @@
 /*
- * @(#)Direct-X-Buffer.java	1.51 09/09/02
+ * @(#)Direct-X-Buffer.java	1.53 10/04/29
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009,2010 Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -28,6 +28,9 @@ class DirectByteBuffer
 
     // Cached unsafe-access object
     protected static final Unsafe unsafe = Bits.unsafe();
+
+    // Cached array base offset
+    private static final long arrayBaseOffset = (long)unsafe.arrayBaseOffset(byte[].class);
 
     // Cached unaligned-access capability
     protected static final boolean unaligned = Bits.unaligned();
@@ -220,18 +223,20 @@ class DirectByteBuffer
 	    if (length > rem)
 		throw new BufferUnderflowException();
 
-	    if (order() != ByteOrder.nativeOrder())
-		Bits.copyToByteArray(ix(pos), dst,
-					  offset << 0,
-					  length << 0);
-	    else
-		Bits.copyToByteArray(ix(pos), dst,
-				     offset << 0,
-				     length << 0);
-	    position(pos + length);
-	} else {
-	    super.get(dst, offset, length);
-	}
+
+
+
+
+
+
+
+                Bits.copyToArray(ix(pos), dst, arrayBaseOffset,
+                                 offset << 0,
+                                 length << 0);
+            position(pos + length);
+        } else {
+            super.get(dst, offset, length);
+        }
 	return this;
 
 
@@ -310,16 +315,18 @@ class DirectByteBuffer
 	    if (length > rem)
 		throw new BufferOverflowException();
 
-	    if (order() != ByteOrder.nativeOrder()) 
-		Bits.copyFromByteArray(src, offset << 0,
-					    ix(pos), length << 0);
-	    else
-		Bits.copyFromByteArray(src, offset << 0,
-				       ix(pos), length << 0);
-	    position(pos + length);
-	} else {
-	    super.put(src, offset, length);
-	}
+
+
+
+
+
+
+                Bits.copyFromArray(src, arrayBaseOffset, offset << 0,
+                                   ix(pos), length << 0);
+            position(pos + length);
+        } else {
+            super.put(src, offset, length);
+        }
 	return this;
 
 

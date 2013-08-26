@@ -120,8 +120,15 @@ class FilterExpr extends Expression {
      * onto the stack.
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	if (_predicates.size() > 0) {
-	    translatePredicates(classGen, methodGen);
+       translateFilterExpr(classGen, methodGen, _predicates == null ? -1 : _predicates.size() - 1);
+    }
+
+    private void translateFilterExpr(ClassGenerator classGen,
+                                    MethodGenerator methodGen,
+                                    int predicateIndex) {
+        if (predicateIndex >= 0) {
+           translatePredicates(classGen, methodGen, predicateIndex);
+
 	}
 	else {
 	    _primary.translate(classGen, methodGen);
@@ -135,13 +142,15 @@ class FilterExpr extends Expression {
      * filter and a closure (call to translate on the predicate) and "this". 
      */
     public void translatePredicates(ClassGenerator classGen,
-				    MethodGenerator methodGen) {
+                                   MethodGenerator methodGen,
+                                   int predicateIndex) {
+
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
 
         // If not predicates left, translate primary expression
-	if (_predicates.size() == 0) {
-	    translate(classGen, methodGen);
+        if (predicateIndex < 0) {
+            translateFilterExpr(classGen, methodGen, predicateIndex);
 	}
 	else {
             // Translate predicates from right to left
@@ -160,12 +169,11 @@ class FilterExpr extends Expression {
             // in temporary variables, create the object and reload the
             // arguments from the temporaries to avoid the problem.
 
-            // Remove the next predicate to be translated
-            Predicate predicate = (Predicate)_predicates.lastElement();
-            _predicates.remove(predicate);
+            // Get the next predicate to be translated
+            Predicate predicate = (Predicate) _predicates.get(predicateIndex--);
 
             // Translate the rest of the predicates from right to left
-            translatePredicates(classGen, methodGen);
+            translatePredicates(classGen, methodGen, predicateIndex);
 
             LocalVariableGen nodeIteratorTemp =
                 methodGen.addLocalVariable("filter_expr_tmp1",

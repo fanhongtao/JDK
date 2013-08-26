@@ -1,8 +1,8 @@
 /*
- * @(#)String.java	1.205 09/02/26
+ * @(#)String.java	1.207 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -81,7 +81,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.205, 02/26/09
+ * @version 1.207, 03/23/10
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuilder
@@ -1480,10 +1480,10 @@ public final class String
      */
     public int hashCode() {
 	int h = hash;
-	if (h == 0) {
+        int len = count;
+	if (h == 0 && len > 0) {
 	    int off = offset;
 	    char val[] = value;
-	    int len = count;
 
             for (int i = 0; i < len; i++) {
                 h = 31*h + val[off++];
