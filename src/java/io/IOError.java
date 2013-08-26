@@ -1,8 +1,8 @@
 /*
- * @(#)IOError.java	1.3 06/05/02
+ * @(#)IOError.java	1.4 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -11,7 +11,7 @@ package java.io;
  * Thrown when a serious I/O error has occurred. 
  *
  * @author  Xueming Shen
- * @version 1.3 05/02/06
+ * @version 1.4 03/23/10
  * @since   1.6
  */
 public class IOError extends Error {

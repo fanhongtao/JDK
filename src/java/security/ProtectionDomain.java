@@ -1,8 +1,8 @@
 /*
- * @(#)ProtectionDomain.java	1.48 09/12/03
+ * @(#)ProtectionDomain.java	1.49 10/03/23
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -34,7 +34,7 @@ import sun.security.util.SecurityConstants;
  * is checked.
  * <p>
  * 
- * @version 	1.48, 12/03/09
+ * @version 	1.49, 03/23/10
  * @author Li Gong 
  * @author Roland Schemers
  * @author Gary Ellison

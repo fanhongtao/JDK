@@ -1,8 +1,8 @@
 /*
- * @(#)SimpleTimeZone.java	1.53 09/06/16
+ * @(#)SimpleTimeZone.java	1.54 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -126,7 +126,7 @@ import sun.util.calendar.Gregorian;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.53 06/16/09
+ * @version  1.54 03/23/10
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 

@@ -1,8 +1,8 @@
 /*
- * @(#)Clip.java	1.39 05/11/17
+ * @(#)Clip.java	1.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.sampled;
@@ -33,7 +33,7 @@ import java.io.IOException;
  * of the clip.
  *
  * @author Kara Kytle
- * @version 1.39, 05/11/17
+ * @version 1.40, 10/03/23
  * @since 1.3
  */
 public interface Clip extends DataLine {

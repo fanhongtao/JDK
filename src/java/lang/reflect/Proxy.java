@@ -1,8 +1,8 @@
 /*
- * @(#)Proxy.java	1.22 05/11/17
+ * @(#)Proxy.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
@@ -197,7 +197,7 @@ import sun.misc.ProxyGenerator;
  * successfully by the <code>invoke</code> method.
  *
  * @author	Peter Jones
- * @version	1.22, 05/11/17
+ * @version	1.23, 10/03/23
  * @see		InvocationHandler
  * @since	1.3
  */

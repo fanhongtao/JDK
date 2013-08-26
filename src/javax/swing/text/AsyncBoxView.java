@@ -1,8 +1,8 @@
 /*
- * @(#)AsyncBoxView.java	1.18 06/04/07
+ * @(#)AsyncBoxView.java	1.19 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -27,7 +27,7 @@ import javax.swing.event.DocumentEvent;
  * so that the model is stable while being accessed.
  *
  * @author  Timothy Prinzing
- * @version 1.18 04/07/06
+ * @version 1.19 03/23/10
  * @since   1.3
  */
 public class AsyncBoxView extends View {

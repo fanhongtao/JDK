@@ -1,8 +1,8 @@
 /*
- * @(#)SocketHandler.java	1.19 05/11/17
+ * @(#)SocketHandler.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -43,7 +43,7 @@ import java.net.*;
  * The output IO stream is buffered, but is flushed after each
  * <tt>LogRecord</tt> is written.
  *
- * @version 1.19, 11/17/05
+ * @version 1.20, 03/23/10
  * @since 1.4
  */
 

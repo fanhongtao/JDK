@@ -20,9 +20,9 @@
 
 /*
  * $Id: StAXStream2SAX.java,v 1.7 2007/05/16 15:03:52 spericas Exp $
- * @(#)StAXStream2SAX.java	1.7 07/05/29
+ * @(#)StAXStream2SAX.java	1.8 10/04/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;

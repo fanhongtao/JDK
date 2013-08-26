@@ -1,8 +1,8 @@
 /*
- * @(#)StringBuffer.java	1.101 05/11/17
+ * @(#)StringBuffer.java	1.102 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -58,7 +58,7 @@ package java.lang;
  * it performs no synchronization.
  *
  * @author	Arthur van Hoff
- * @version 	1.101, 11/17/05
+ * @version 	1.102, 03/23/10
  * @see     java.lang.StringBuilder
  * @see     java.lang.String
  * @since   JDK1.0

@@ -1,8 +1,8 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.62 09/08/07
+ * @(#)WindowsComboBoxUI.java	1.63 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -32,7 +32,7 @@ import sun.swing.DefaultLookup;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.62, 08/07/09
+ * @version 1.63, 03/23/10
  * @author Tom Santos
  * @author Igor Kushnirskiy
  */

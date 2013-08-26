@@ -1,8 +1,8 @@
 /*
- * @(#)Choice.java	1.94 08/10/31
+ * @(#)Choice.java	1.95 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the <code>Choice</code>.
  * <p>
- * @version	1.94 10/31/08
+ * @version	1.95 03/23/10
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

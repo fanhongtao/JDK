@@ -1,8 +1,8 @@
 /*
- * @(#)Button.java	1.83 08/10/31
+ * @(#)Button.java	1.84 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -59,7 +59,7 @@ import javax.accessibility.*;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.83 10/31/08
+ * @version 	1.84 03/23/10
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener

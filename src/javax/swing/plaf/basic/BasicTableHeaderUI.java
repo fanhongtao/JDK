@@ -1,8 +1,8 @@
 /*
- * @(#)BasicTableHeaderUI.java	1.82 09/10/16
+ * @(#)BasicTableHeaderUI.java	1.83 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -20,7 +20,7 @@ import sun.swing.*;
 /**
  * BasicTableHeaderUI implementation
  *
- * @version 1.82 10/16/09
+ * @version 1.83 03/23/10
  * @author Alan Chung
  * @author Philip Milne
  */

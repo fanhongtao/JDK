@@ -1,8 +1,8 @@
 /*
- * @(#)LdapContext.java	1.11 05/11/17
+ * @(#)LdapContext.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.naming.ldap;
@@ -152,7 +152,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.11 05/11/17
+ * @version 1.12 10/03/23
  *
  * @see InitialLdapContext
  * @see LdapReferralException#getReferralContext(java.util.Hashtable,javax.naming.ldap.Control[])

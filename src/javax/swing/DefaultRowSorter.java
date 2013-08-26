@@ -1,8 +1,8 @@
 /*
- * @(#)DefaultRowSorter.java	1.20 06/06/23
+ * @(#)DefaultRowSorter.java	1.21 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -86,7 +86,7 @@ import javax.swing.SortOrder;
  *
  * @param <M> the type of the model
  * @param <I> the type of the identifier passed to the <code>RowFilter</code>
- * @version 1.20 06/23/06
+ * @version 1.21 03/23/10
  * @see javax.swing.table.TableRowSorter
  * @see javax.swing.table.DefaultTableModel
  * @see java.text.Collator

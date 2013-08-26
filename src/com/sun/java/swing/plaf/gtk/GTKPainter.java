@@ -1,8 +1,8 @@
 /*
- * @(#)GTKPainter.java	1.84 07/03/15
+ * @(#)GTKPainter.java	1.85 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @version 1.84, 03/15/07
+ * @version 1.85, 03/23/10
  * @author Joshua Outwater
  * @author Scott Violet
  */

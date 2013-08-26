@@ -1,8 +1,8 @@
 /*
- * @(#)DataLine.java	1.34 05/11/17
+ * @(#)DataLine.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.sampled;
@@ -44,7 +44,7 @@ package javax.sound.sampled;
  * for a more complete description.
  *
  * @author Kara Kytle
- * @version 1.34, 05/11/17
+ * @version 1.35, 10/03/23
  * @see LineEvent
  * @since 1.3
  */
@@ -261,7 +261,7 @@ public interface DataLine extends Line {
      *
      * @see Line.Info
      * @author Kara Kytle
-     * @version 1.34, 05/11/17
+     * @version 1.35, 10/03/23
      * @since 1.3
      */
     public static class Info extends Line.Info {

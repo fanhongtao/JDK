@@ -1,8 +1,8 @@
 /*
- * @(#)AlgorithmParametersSpi.java	1.14 05/11/17
+ * @(#)AlgorithmParametersSpi.java	1.15 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -22,7 +22,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.14, 11/17/05
+ * @version 1.15, 03/23/10
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec

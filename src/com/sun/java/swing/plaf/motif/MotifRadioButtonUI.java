@@ -1,8 +1,8 @@
 /*
- * @(#)MotifRadioButtonUI.java	1.24 09/08/10
+ * @(#)MotifRadioButtonUI.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -27,7 +27,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 08/10/09
+ * @version 1.25 03/23/10
  * @author Rich Schiavi
  */
 public class MotifRadioButtonUI extends BasicRadioButtonUI {

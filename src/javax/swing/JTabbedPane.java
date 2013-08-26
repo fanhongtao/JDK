@@ -1,8 +1,8 @@
 /*
- * @(#)JTabbedPane.java	1.155 09/02/27
+ * @(#)JTabbedPane.java	1.156 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing;
@@ -82,7 +82,7 @@ import java.io.IOException;
  *    description: A component which provides a tab folder metaphor for 
  *                 displaying one component from a set of components.
  *
- * @version 1.155 02/27/09
+ * @version 1.156 03/23/10
  * @author Dave Moore
  * @author Philip Milne
  * @author Amy Fowler

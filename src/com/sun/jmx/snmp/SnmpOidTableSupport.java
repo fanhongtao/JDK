@@ -1,11 +1,11 @@
 /*
  * @(#)file      SnmpOidTableSupport.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.19
- * @(#)date      06/11/29
+ * @(#)version   1.20
+ * @(#)date      10/07/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 
@@ -41,7 +41,7 @@ import com.sun.jmx.trace.Trace;
  * to change without notice.</b></p>
  * @see com.sun.jmx.snmp.SnmpOidRecord
  * 
- * @version     1.19     11/17/05
+ * @version     1.20     03/23/10
  * @author      Sun Microsystems, Inc
  */
 

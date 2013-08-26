@@ -1,8 +1,8 @@
 /*
- * @(#)MidiSystem.java	1.68 06/05/02
+ * @(#)MidiSystem.java	1.69 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;
@@ -139,7 +139,7 @@ import com.sun.media.sound.AutoConnectSequencer;
  * If that fails, too, a <code>MidiUnavailableException</code>
  * is thrown.
  *
- * @version 1.68, 06/05/02
+ * @version 1.69, 10/03/23
  * @author Kara Kytle
  * @author Florian Bomers
  * @author Matthias Pfisterer

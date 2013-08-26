@@ -1,8 +1,8 @@
 /*
- * @(#)StringMonitor.java	4.46 08/12/16
+ * @(#)StringMonitor.java	4.47 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.monitor;
@@ -33,7 +33,7 @@ import static javax.management.monitor.MonitorNotification.*;
  *      the attribute value matches the string to compare value.
  * </UL>
  *
- * @version     4.46     12/16/08
+ * @version     4.47     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

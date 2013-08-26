@@ -1,6 +1,6 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind.annotation.adapters;
@@ -68,7 +68,7 @@ import static java.lang.annotation.ElementType.PACKAGE;
  * @author <ul><li>Sekhar Vajjhala, Sun Microsystems Inc.</li> <li> Kohsuke Kawaguchi, Sun Microsystems Inc.</li></ul>
  * @since JAXB2.0
  * @see XmlAdapter
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  */
 
 @Retention(RUNTIME) @Target({PACKAGE,FIELD,METHOD,TYPE,PARAMETER})        

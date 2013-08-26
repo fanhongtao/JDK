@@ -1,8 +1,8 @@
 /*
- * @(#)KeyEvent.java	1.81 08/04/30
+ * @(#)KeyEvent.java	1.82 10/03/23
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -114,7 +114,7 @@ import java.io.ObjectInputStream;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.81 04/30/08
+ * @version 1.82 03/23/10
  *
  * @see KeyAdapter
  * @see KeyListener

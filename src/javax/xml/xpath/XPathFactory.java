@@ -20,9 +20,9 @@
 
 /*
  * $Id: XPathFactory.java,v 1.4 2005/11/03 19:34:16 jeffsuttor Exp $
- * @(#)XPathFactory.java	1.18 06/06/21
+ * @(#)XPathFactory.java	1.19 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.xpath;

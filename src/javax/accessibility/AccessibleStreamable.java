@@ -1,8 +1,8 @@
 /**
- * @(#)AccessibleStreamable.java	1.5 06/04/07
+ * @(#)AccessibleStreamable.java	1.6 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.accessibility;
@@ -20,7 +20,7 @@ import java.awt.datatransfer.DataFlavor;
  * types supported by the object and a streaming interface for each MIME type to
  * get the data.
  *
- * @version 1.5 04/07/06
+ * @version 1.6 03/23/10
  * @author Lynn Monsanto
  * @author Peter Korn
  *

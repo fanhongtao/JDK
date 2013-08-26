@@ -1,8 +1,8 @@
 /*
- * @(#)ContentModel.java	1.12 05/11/17
+ * @(#)ContentModel.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.text.html.parser;
@@ -20,7 +20,7 @@ import java.io.*;
  * See Annex H on page 556 of the SGML handbook for more information.
  *
  * @author   Arthur van Hoff
- * @version  1.12,11/17/05
+ * @version  1.13,03/23/10
  *
  */
 public final class ContentModel implements Serializable {

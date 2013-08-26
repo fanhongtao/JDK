@@ -1,8 +1,8 @@
 /*
- * @(#)ConcurrentHashMap.java	1.21 07/01/02
+ * @(#)ConcurrentHashMap.java	1.22 10/03/23
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.concurrent;

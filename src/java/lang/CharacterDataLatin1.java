@@ -1,10 +1,10 @@
-// This file was generated AUTOMATICALLY from a template file Wed Nov 29 01:26:53 PST 2006
+// This file was generated AUTOMATICALLY from a template file Sat Jul 17 01:42:17 PDT 2010
 
-/* @(#)CharacterDataLatin1.java.template	1.6 04/09/14
+/* @(#)CharacterDataLatin1.java.template	1.8 10/04/01
  *
- * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1994, 2002, Oracle and/or its affiliates. All rights reserved.
  *
- * This software is the proprietary information of Sun Microsystems, Inc.
+ * This software is the proprietary information of Oracle.
  * Use is subject to license terms.
  *
  */
@@ -260,7 +260,7 @@ class CharacterDataLatin1 {
 
 
     // The following tables and code generated using:
-  // java GenerateCharacter -template ../../tools/GenerateCharacter/CharacterDataLatin1.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk6/control/build/linux-i586/gensrc/java/lang/CharacterDataLatin1.java -string -usecharforbyte -latin1 8
+  // java GenerateCharacter -template ../../tools/GenerateCharacter/CharacterDataLatin1.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk6_21/control/build/linux-i586/gensrc/java/lang/CharacterDataLatin1.java -string -usecharforbyte -latin1 8
   // The A table has 256 entries for a total of 1024 bytes.
 
   static final int A[] = new int[256];

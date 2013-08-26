@@ -1,8 +1,8 @@
 /**
- * @(#)Trees.java	1.6 06/06/26
+ * @(#)Trees.java	1.7 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  * Use and Distribution is subject to the Java Research License available
  * at <http://wwws.sun.com/software/communitysource/jrl.html>.

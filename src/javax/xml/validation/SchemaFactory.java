@@ -20,9 +20,9 @@
 
 /*
  * $Id: SchemaFactory.java,v 1.7 2006/05/19 01:08:43 jeffsuttor Exp $
- * @(#)SchemaFactory.java	1.22 06/06/21
+ * @(#)SchemaFactory.java	1.23 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.validation;

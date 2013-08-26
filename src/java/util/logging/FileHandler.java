@@ -1,8 +1,8 @@
 /*
- * @(#)FileHandler.java	1.36 06/04/07
+ * @(#)FileHandler.java	1.37 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.logging;
@@ -96,7 +96,7 @@ import java.security.*;
  * Note that the use of unique ids to avoid conflicts is only guaranteed
  * to work reliably when using a local disk file system.
  *
- * @version 1.36, 04/07/06
+ * @version 1.37, 03/23/10
  * @since 1.4
  */
 

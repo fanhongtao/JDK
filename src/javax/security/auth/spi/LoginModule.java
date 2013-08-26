@@ -1,8 +1,8 @@
 /*
- * @(#)LoginModule.java	1.54 05/11/17
+ * @(#)LoginModule.java	1.55 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth.spi;
@@ -105,7 +105,7 @@ import java.util.Map;
  * no arguments.  This allows classes which load the <code>LoginModule</code>
  * to instantiate it.
  *
- * @version 1.54, 11/17/05
+ * @version 1.55, 03/23/10
  * @see javax.security.auth.login.LoginContext
  * @see javax.security.auth.login.Configuration
  */

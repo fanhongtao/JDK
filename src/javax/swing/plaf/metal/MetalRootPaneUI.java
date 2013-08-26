@@ -1,8 +1,8 @@
 /*
- * @(#)MetalRootPaneUI.java	1.28 08/12/02
+ * @(#)MetalRootPaneUI.java	1.29 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -42,7 +42,7 @@ import java.security.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.28 12/02/08
+ * @version 1.29 03/23/10
  * @author Terry Kellerman
  * @since 1.4
  */

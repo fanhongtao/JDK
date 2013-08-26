@@ -1,8 +1,8 @@
 /*
- * @(#)MonitorNotification.java	4.23 05/11/17
+ * @(#)MonitorNotification.java	4.24 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.monitor; 
@@ -49,7 +49,7 @@ import javax.management.ObjectName;
  *     </UL>
  * </UL>
  *
- * @version     4.23     11/17/05
+ * @version     4.24     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

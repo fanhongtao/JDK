@@ -1,8 +1,8 @@
 /*
- * @(#)InflaterInputStream.java	1.40 06/04/07
+ * @(#)InflaterInputStream.java	1.41 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -18,7 +18,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.40, 04/07/06
+ * @version 	1.41, 03/23/10
  * @author 	David Connelly
  */
 public

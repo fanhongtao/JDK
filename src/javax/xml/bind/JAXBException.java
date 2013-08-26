@@ -1,6 +1,6 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind;
@@ -11,7 +11,7 @@ import java.io.PrintWriter;
  * This is the root exception class for all JAXB exceptions.
  *
  * @author <ul><li>Ryan Shoemaker, Sun Microsystems, Inc.</li></ul>
- * @version $Revision: 1.3 $ $Date: 2004/10/22 15:46:02 $
+ * @version $Revision: 1.1 $ $Date: 2004/12/14 21:50:39 $
  * @see JAXBContext
  * @see Marshaller
  * @see Unmarshaller

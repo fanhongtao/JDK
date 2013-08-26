@@ -20,9 +20,9 @@
 
 /*
  * $Id: SAXSource.java,v 1.3 2005/11/03 19:34:26 jeffsuttor Exp $
- * @(#)SAXSource.java	1.24 06/04/07
+ * @(#)SAXSource.java	1.25 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform.sax;

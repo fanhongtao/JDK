@@ -1,8 +1,8 @@
 /*
- * @(#)Event.java	1.76 05/11/17
+ * @(#)Event.java	1.77 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -38,7 +38,7 @@ import java.io.*;
  * <code>Event</code> class (<code>PGUP</code>,
  * <code>PGDN</code>, <code>F1</code>, <code>F2</code>, etc).
  *
- * @version 1.76 11/17/05
+ * @version 1.77 03/23/10
  * @author     Sami Shaio
  * @since      JDK1.0
  */

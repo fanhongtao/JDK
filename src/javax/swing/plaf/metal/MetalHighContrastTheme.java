@@ -1,8 +1,8 @@
 /*
- * @(#)MetalHighContrastTheme.java	1.5 05/11/17
+ * @(#)MetalHighContrastTheme.java	1.6 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.metal;
@@ -18,7 +18,7 @@ import java.awt.*;
  * A high contrast theme. This is used on Windows if the system property
  * awt.highContrast.on is true.
  *
- * @version @(#)MetalHighContrastTheme.java	1.5 05/11/17
+ * @version @(#)MetalHighContrastTheme.java	1.6 10/03/23
  * @author Michael C. Albers
  */
 class MetalHighContrastTheme extends DefaultMetalTheme {

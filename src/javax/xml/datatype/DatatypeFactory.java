@@ -20,9 +20,9 @@
 
 /*
  * $Id: DatatypeFactory.java,v 1.10 2006/05/19 01:08:42 jeffsuttor Exp $
- * @(#)DatatypeFactory.java	1.17 06/07/13
+ * @(#)DatatypeFactory.java	1.18 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.datatype;

@@ -1,8 +1,8 @@
 /*
- * @(#)FrameView.java	1.31 06/07/25
+ * @(#)FrameView.java	1.32 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -22,7 +22,7 @@ import sun.swing.text.html.FrameEditorPaneTag;
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.31, 07/25/06
+ * @version   1.32, 03/23/10
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {

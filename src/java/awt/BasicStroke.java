@@ -1,8 +1,8 @@
 /*
- * @(#)BasicStroke.java	1.43 06/03/09
+ * @(#)BasicStroke.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -96,7 +96,7 @@ import sun.dc.pr.Rasterizer;
  * For more information on the user space coordinate system and the 
  * rendering process, see the <code>Graphics2D</code> class comments.
  * @see Graphics2D
- * @version 1.43, 03/09/06
+ * @version 1.44, 03/23/10
  * @author Jim Graham
  */
 public class BasicStroke implements Stroke {

@@ -85,7 +85,7 @@ import org.xml.sax.InputSource;
  * @xerces.internal 
  *
  * @author Neil Graham, IBM
- * @version $Id: XMLSchemaLoader.java,v 1.3 2005/09/26 13:02:34 sunithareddy Exp $
+ * @version $Id: XMLSchemaLoader.java,v 1.5 2007/07/19 04:38:41 ofung Exp $
  */
 
 public class XMLSchemaLoader implements XMLGrammarLoader, XMLComponent,
@@ -931,6 +931,8 @@ XSLoader, DOMConfiguration {
             parser_settings = true;
         }
         if (!parser_settings || !fSettingsChanged){            
+            // need to reprocess JAXP schema sources
+            fJAXPProcessed = false;
             // reinitialize grammar bucket
             initGrammarBucket();
             return;           

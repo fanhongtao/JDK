@@ -1,8 +1,8 @@
 /*
- * @(#)JSplitPane.java	1.80 08/01/28
+ * @(#)JSplitPane.java	1.81 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -78,7 +78,7 @@ import java.io.IOException;
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.80 01/28/08
+ * @version 1.81 03/23/10
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible

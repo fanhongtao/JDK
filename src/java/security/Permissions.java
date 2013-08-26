@@ -1,8 +1,8 @@
 /*
- * @(#)Permissions.java	1.61 05/11/17
+ * @(#)Permissions.java	1.62 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -54,7 +54,7 @@ import java.io.IOException;
  * @see PermissionCollection
  * @see AllPermission
  * 
- * @version 1.61, 05/11/17
+ * @version 1.62, 10/03/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -447,7 +447,7 @@ final class PermissionsEnumerator implements Enumeration<Permission> {
  * @see Permission
  * @see Permissions
  *
- * @version 1.61, 11/17/05
+ * @version 1.62, 03/23/10
  *
  * @author Roland Schemers
  *

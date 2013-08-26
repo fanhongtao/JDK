@@ -1,8 +1,8 @@
 /*
- * @(#)UnresolvedPermission.java	1.31 05/11/17
+ * @(#)UnresolvedPermission.java	1.32 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -78,7 +78,7 @@ import java.security.cert.*;
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.31 05/11/17
+ * @version 1.32 10/03/23
  *
  * @author Roland Schemers
  */

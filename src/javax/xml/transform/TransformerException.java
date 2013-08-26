@@ -20,9 +20,9 @@
 
 /*
  * $Id: TransformerException.java,v 1.5 2005/11/03 19:34:23 jeffsuttor Exp $
- * @(#)TransformerException.java	1.28 06/06/21
+ * @(#)TransformerException.java	1.29 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform;

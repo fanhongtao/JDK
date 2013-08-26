@@ -1,8 +1,8 @@
 /*
- * @(#)FileNameExtensionFilter.java	1.1 06/02/02
+ * @(#)FileNameExtensionFilter.java	1.2 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.filechooser;
@@ -30,7 +30,7 @@ import java.util.Locale;
  * @see javax.swing.JFileChooser#addChoosableFileFilter
  * @see javax.swing.JFileChooser#getFileFilter
  *
- * @version 1.1 02/02/06
+ * @version 1.2 03/23/10
  * @since 1.6
  */
 public final class FileNameExtensionFilter extends FileFilter {

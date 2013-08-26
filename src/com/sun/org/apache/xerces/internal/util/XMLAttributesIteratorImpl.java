@@ -20,9 +20,9 @@
 
 /*
  * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)XMLAttributesIteratorImpl.java	1.6 05/11/17
+ * @(#)XMLAttributesIteratorImpl.java	1.7 10/04/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 package com.sun.org.apache.xerces.internal.util;

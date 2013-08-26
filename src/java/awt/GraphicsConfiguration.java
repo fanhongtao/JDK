@@ -1,8 +1,8 @@
 /*
- * @(#)GraphicsConfiguration.java	1.41 06/01/03
+ * @(#)GraphicsConfiguration.java	1.42 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -85,7 +85,7 @@ import sun.awt.image.SunVolatileImage;
  * capabilities and checking if the GraphicsConfiguration
  * implements the interface for that capability.
  *
- * @version 1.41, 01/03/06
+ * @version 1.42, 03/23/10
  */
 
 

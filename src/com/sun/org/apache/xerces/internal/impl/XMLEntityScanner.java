@@ -20,9 +20,9 @@
 
 /*
  * $Id: XMLEntityScanner.java,v 1.9 2006/01/20 14:13:07 sunithareddy Exp $
- * @(#)XMLEntityScanner.java	1.16 06/07/13
+ * @(#)XMLEntityScanner.java	1.17 10/04/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*

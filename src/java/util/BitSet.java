@@ -1,8 +1,8 @@
 /*
- * @(#)BitSet.java	1.67 06/04/07
+ * @(#)BitSet.java	1.68 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -37,7 +37,7 @@ import java.io.*;
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
  * @author  Martin Buchholz
- * @version 1.67, 04/07/06
+ * @version 1.68, 03/23/10
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {

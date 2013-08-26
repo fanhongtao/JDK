@@ -1,8 +1,8 @@
 /*
- * @(#)InvalidOpenTypeException.java	3.19 05/11/17
+ * @(#)InvalidOpenTypeException.java	3.20 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.openmbean;
@@ -11,7 +11,7 @@ package javax.management.openmbean;
  * This runtime exception is thrown to indicate that the <i>open type</i> of an <i>open data</i> value
  * is not the one expected.
  *
- * @version     3.19  05/11/17
+ * @version     3.20  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

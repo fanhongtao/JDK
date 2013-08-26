@@ -1,8 +1,8 @@
 /*
- * @(#)Robot.java	1.32 08/04/30
+ * @(#)Robot.java	1.33 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -39,7 +39,7 @@ import sun.security.util.SecurityConstants;
  * Applications that use Robot for purposes other than self-testing should 
  * handle these error conditions gracefully.
  *
- * @version 	1.32, 04/30/08
+ * @version 	1.33, 03/23/10
  * @author 	Robi Khan
  * @since   	1.3
  */

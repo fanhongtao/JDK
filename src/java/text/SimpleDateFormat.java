@@ -1,8 +1,8 @@
 /*
- * @(#)SimpleDateFormat.java	1.89 08/11/10 
+ * @(#)SimpleDateFormat.java	1.90 10/03/23 
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -319,7 +319,7 @@ import sun.util.resources.LocaleData;
  * @see          java.util.TimeZone
  * @see          DateFormat
  * @see          DateFormatSymbols
- * @version      1.89, 11/10/08 
+ * @version      1.90, 03/23/10 
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {

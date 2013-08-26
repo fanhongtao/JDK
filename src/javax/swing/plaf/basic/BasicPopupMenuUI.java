@@ -1,8 +1,8 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.143 09/10/15
+ * @(#)BasicPopupMenuUI.java	1.144 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -30,7 +30,7 @@ import sun.awt.AppContext;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.143 10/15/09
+ * @version 1.144 03/23/10
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

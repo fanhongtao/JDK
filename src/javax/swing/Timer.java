@@ -1,8 +1,8 @@
 /*
- * @(#)Timer.java	1.49 06/04/12
+ * @(#)Timer.java	1.50 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -120,7 +120,7 @@ import javax.swing.event.EventListenerList;
  * @see java.util.Timer <code>java.util.Timer</code>
  *
  *
- * @version 1.49 04/12/06
+ * @version 1.50 03/23/10
  * @author Dave Moore
  */
 public class Timer implements Serializable

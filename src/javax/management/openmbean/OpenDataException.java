@@ -1,8 +1,8 @@
 /*
- * @(#)OpenDataException.java	3.19 05/11/17
+ * @(#)OpenDataException.java	3.20 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.openmbean;
@@ -15,7 +15,7 @@ import javax.management.JMException;
  * This checked exception is thrown when an <i>open type</i>, an <i>open data</i>  or an <i>open MBean metadata info</i> instance 
  * could not be constructed because one or more validity constraints were not met.
  *
- * @version     3.19  05/11/17
+ * @version     3.20  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

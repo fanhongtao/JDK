@@ -1,8 +1,8 @@
 /*
- * @(#)ZipFile.java	1.80 08/03/13
+ * @(#)ZipFile.java	1.83 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;

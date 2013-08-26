@@ -1,8 +1,8 @@
 /*
- * @(#)FileInputStream.java	1.68 06/04/07
+ * @(#)FileInputStream.java	1.69 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -21,7 +21,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileReader</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.68, 04/07/06
+ * @version 1.69, 03/23/10
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream

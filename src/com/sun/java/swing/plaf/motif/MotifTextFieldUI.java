@@ -1,8 +1,8 @@
 /*
- * @(#)MotifTextFieldUI.java	1.24 05/11/17
+ * @(#)MotifTextFieldUI.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
 
@@ -22,7 +22,7 @@ import javax.swing.text.Caret;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.24 11/17/05
+ * @version 1.25 03/23/10
  */
 public class MotifTextFieldUI extends BasicTextFieldUI {
 

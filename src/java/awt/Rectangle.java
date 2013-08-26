@@ -1,8 +1,8 @@
 /*
- * @(#)Rectangle.java	1.73 06/05/18
+ * @(#)Rectangle.java	1.74 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -94,7 +94,7 @@ import java.awt.geom.Rectangle2D;
  * the range of 32-bit integers, but zero dimension along one or both
  * axes, then the stored dimensions will be zero in those axes.
  *
- * @version 	1.73, 05/18/06
+ * @version 	1.74, 03/23/10
  * @author 	Sami Shaio
  * @since 1.0
  */

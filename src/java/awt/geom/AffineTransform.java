@@ -1,8 +1,8 @@
 /*
- * @(#)AffineTransform.java	1.77 06/03/09
+ * @(#)AffineTransform.java	1.78 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -90,7 +90,7 @@ import java.awt.Shape;
  * approximately 0.0000000211 radians (or 0.00000121 degrees) around
  * small multiples of <code>Math.PI/2.0</code>.
  *
- * @version 1.77, 03/09/06
+ * @version 1.78, 03/23/10
  * @author Jim Graham
  * @since 1.2
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)SecureRandom.java	1.54 06/04/21
+ * @(#)SecureRandom.java	1.55 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
@@ -62,7 +62,7 @@ import sun.security.jca.GetInstance.Instance;
  * @see java.security.SecureRandomSpi
  * @see java.util.Random
  * 
- * @version 1.54, 04/21/06
+ * @version 1.55, 03/23/10
  * @author Benjamin Renaud
  * @author Josh Bloch 
  */

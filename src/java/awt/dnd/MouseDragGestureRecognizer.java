@@ -1,8 +1,8 @@
 /*
- * @(#)MouseDragGestureRecognizer.java	1.15 05/11/17
+ * @(#)MouseDragGestureRecognizer.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -38,7 +38,7 @@ import java.awt.event.MouseMotionListener;
  * follow this convention.
  *
  * @author Laurence P. G. Cable
- * @version 1.15
+ * @version 1.16
  *
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragGestureEvent

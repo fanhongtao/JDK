@@ -1,8 +1,8 @@
 /*
- * @(#)ListSelectionModel.java	1.23 06/07/11
+ * @(#)ListSelectionModel.java	1.24 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * a closed interval, i.e. the interval includes both index0 and
  * index1.
  * 
- * @version 1.23 07/11/06
+ * @version 1.24 03/23/10
  * @author Hans Muller
  * @author Philip Milne
  * @see DefaultListSelectionModel

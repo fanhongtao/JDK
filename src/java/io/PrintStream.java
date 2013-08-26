@@ -1,8 +1,8 @@
 /*
- * @(#)PrintStream.java	1.40 06/06/28
+ * @(#)PrintStream.java	1.41 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -29,7 +29,7 @@ import java.util.Locale;
  * PrintWriter}</code> class should be used in situations that require writing
  * characters rather than bytes.
  *
- * @version    1.40, 06/06/28
+ * @version    1.41, 10/03/23
  * @author     Frank Yellin
  * @author     Mark Reinhold
  * @since      JDK1.0

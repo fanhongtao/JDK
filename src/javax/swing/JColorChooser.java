@@ -1,8 +1,8 @@
 /*
- * @(#)JColorChooser.java	1.53 06/08/08
+ * @(#)JColorChooser.java	1.54 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -63,7 +63,7 @@ import sun.swing.SwingUtilities2;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.53 08/08/06
+ * @version 1.54 03/23/10
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson

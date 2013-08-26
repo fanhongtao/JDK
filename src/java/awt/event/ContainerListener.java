@@ -1,8 +1,8 @@
 /*
- * @(#)ContainerListener.java	1.13 06/04/13
+ * @(#)ContainerListener.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -32,7 +32,7 @@ import java.util.EventListener;
  *
  * @author Tim Prinzing
  * @author Amy Fowler
- * @version 1.13 04/13/06
+ * @version 1.14 03/23/10
  * @since 1.1
  */
 public interface ContainerListener extends EventListener {

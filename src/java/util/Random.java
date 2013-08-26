@@ -1,8 +1,8 @@
 /*
- * @(#)Random.java	1.47 06/02/07
+ * @(#)Random.java	1.48 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -33,7 +33,7 @@ import sun.misc.Unsafe;
  * Many applications will find the method {@link Math#random} simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.47, 02/07/06
+ * @version 1.48, 03/23/10
  * @since   1.0
  */
 public

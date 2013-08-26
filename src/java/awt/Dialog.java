@@ -1,8 +1,8 @@
 /*
- * @(#)Dialog.java	1.133 09/10/19
+ * @(#)Dialog.java	1.134 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -76,7 +76,7 @@ import sun.awt.util.IdentityArrayList;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.133, 10/19/09
+ * @version	1.134, 03/23/10
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0

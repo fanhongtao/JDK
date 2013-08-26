@@ -1,8 +1,8 @@
 /*
- * @(#)ArrayType.java	3.36 06/05/15
+ * @(#)ArrayType.java	3.37 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.openmbean;
@@ -74,7 +74,7 @@ import java.lang.reflect.Array;
  * ArrayType<String[][][]> a19 = new ArrayType<String[][][]>(1, a18);
  * </pre>
  *
- * @version     3.36  06/05/15
+ * @version     3.37  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

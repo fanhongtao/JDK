@@ -1,6 +1,6 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.metal;
 
@@ -12,7 +12,7 @@ import javax.swing.*;
  * DesktopProperty that only uses font height in configuring font. This
  * is only used on Windows.
  *
- * @version @(#)MetalFontDesktopProperty.java	1.5 05/11/17
+ * @version @(#)MetalFontDesktopProperty.java	1.6 10/03/23
  */
 class MetalFontDesktopProperty extends com.sun.java.swing.plaf.windows.DesktopProperty {
     /**

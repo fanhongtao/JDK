@@ -1,8 +1,8 @@
 /*
- * @(#)Security.java	1.132 06/07/13
+ * @(#)Security.java	1.133 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -24,7 +24,7 @@ import sun.security.jca.*;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.132, 07/13/06
+ * @version 1.133, 03/23/10
  */
 
 public final class Security {

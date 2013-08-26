@@ -20,9 +20,9 @@
 
 /*
  * $Id: NamespaceContextWrapper.java,v 1.4 2005/11/03 17:54:06 jeffsuttor Exp $
- * @(#)NamespaceContextWrapper.java	1.7 06/05/03
+ * @(#)NamespaceContextWrapper.java	1.8 10/04/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package com.sun.org.apache.xerces.internal.util;

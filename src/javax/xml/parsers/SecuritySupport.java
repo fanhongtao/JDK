@@ -20,9 +20,9 @@
 
 /*
  * $Id: SecuritySupport.java,v 1.3 2005/11/03 19:34:14 jeffsuttor Exp $
- * @(#)SecuritySupport.java	1.11 06/06/21
+ * @(#)SecuritySupport.java	1.12 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.parsers;

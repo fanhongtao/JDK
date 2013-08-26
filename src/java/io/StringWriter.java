@@ -1,8 +1,8 @@
 /*
- * @(#)StringWriter.java	1.26 05/11/17
+ * @(#)StringWriter.java	1.27 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -16,7 +16,7 @@ package java.io;
  * can be called after the stream has been closed without generating an
  * <tt>IOException</tt>.
  *
- * @version 	1.26, 05/11/17
+ * @version 	1.27, 10/03/23
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

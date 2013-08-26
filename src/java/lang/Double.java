@@ -1,8 +1,8 @@
 /*
- * @(#)Double.java	1.100 06/04/07
+ * @(#)Double.java	1.101 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -26,7 +26,7 @@ import sun.misc.DoubleConsts;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Joseph D. Darcy
- * @version 1.100, 04/07/06
+ * @version 1.101, 03/23/10
  * @since JDK1.0
  */
 public final class Double extends Number implements Comparable<Double> {

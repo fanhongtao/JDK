@@ -1,8 +1,8 @@
 /*
- * @(#)BasicTreeUI.java	1.199 09/10/19
+ * @(#)BasicTreeUI.java	1.200 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -33,7 +33,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.199 10/19/09
+ * @version 1.200 03/23/10
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */

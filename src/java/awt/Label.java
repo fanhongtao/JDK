@@ -1,8 +1,8 @@
 /*
- * @(#)Label.java	1.60 08/10/31
+ * @(#)Label.java	1.61 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -30,7 +30,7 @@ import javax.accessibility.*;
  * <img src="doc-files/Label-1.gif" alt="Two labels: 'Hi There!' and 'Another label'"
  * ALIGN=center HSPACE=10 VSPACE=7>
  *
- * @version	1.60, 10/31/08
+ * @version	1.61, 03/23/10
  * @author 	Sami Shaio
  * @since       JDK1.0
  */

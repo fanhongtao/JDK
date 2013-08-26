@@ -1,8 +1,8 @@
 /*
- * @(#)BufferedWriter.java	1.29 05/11/30
+ * @(#)BufferedWriter.java	1.30 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -40,7 +40,7 @@ package java.io;
  * @see FileWriter
  * @see OutputStreamWriter
  *
- * @version 	1.29, 05/11/30
+ * @version 	1.30, 10/03/23
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

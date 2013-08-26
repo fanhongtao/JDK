@@ -1,8 +1,8 @@
 /*
- * @(#)JPasswordField.java	1.60 06/08/08
+ * @(#)JPasswordField.java	1.61 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -55,7 +55,7 @@ import java.util.Arrays;
  * description: Allows the editing of a line of text but doesn't show the characters.
  *
  * @author  Timothy Prinzing
- * @version 1.60 08/08/06
+ * @version 1.61 03/23/10
  */
 public class JPasswordField extends JTextField {
 

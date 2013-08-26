@@ -1,8 +1,8 @@
 /*
- * @(#)Thread.java	1.174 08/01/23
+ * @(#)Thread.java	1.175 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -104,7 +104,7 @@ import sun.security.util.SecurityConstants;
  * a thread is created, a new name is generated for it. 
  *
  * @author  unascribed
- * @version 1.174, 01/23/08
+ * @version 1.175, 03/23/10
  * @see     Runnable
  * @see     Runtime#exit(int)
  * @see     #run()

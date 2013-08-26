@@ -1,8 +1,8 @@
 /*
- * @(#)MetalCheckBoxIcon.java	1.18 05/11/17
+ * @(#)MetalCheckBoxIcon.java	1.19 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -26,7 +26,7 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 11/17/05
+ * @version 1.19 03/23/10
  * @author Steve Wilson
  */
 public class MetalCheckBoxIcon implements Icon, UIResource, Serializable {

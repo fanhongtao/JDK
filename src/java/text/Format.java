@@ -1,8 +1,8 @@
 /*
- * @(#)Format.java	1.37 05/12/03
+ * @(#)Format.java	1.38 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -110,7 +110,7 @@ import java.io.Serializable;
  * @see          java.text.NumberFormat
  * @see          java.text.DateFormat
  * @see          java.text.MessageFormat
- * @version      1.37, 12/03/05
+ * @version      1.38, 03/23/10
  * @author       Mark Davis
  */
 public abstract class Format implements Serializable, Cloneable {

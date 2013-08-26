@@ -1,11 +1,11 @@
 /*
  * @(#)file      JDMAclBlock.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.10
- * @(#)date      06/11/29
+ * @(#)version   4.11
+ * @(#)date      10/07/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 
@@ -17,7 +17,7 @@ package com.sun.jmx.snmp.IPAcl;
 import java.util.Hashtable;
 
 /** 
- * @version     4.10     11/17/05 
+ * @version     4.11     03/23/10 
  * @author      Sun Microsystems, Inc. 
  */ 
 class JDMAclBlock extends SimpleNode {

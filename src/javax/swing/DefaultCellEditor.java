@@ -1,8 +1,8 @@
 /*
- * @(#)DefaultCellEditor.java	1.53 08/02/04
+ * @(#)DefaultCellEditor.java	1.54 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.53 02/04/08
+ * @version 1.54 03/23/10
  * @author Alan Chung
  * @author Philip Milne
  */

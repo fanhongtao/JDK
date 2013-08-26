@@ -1,8 +1,8 @@
 /*
- * @(#)Stack.java	1.30 05/11/17
+ * @(#)Stack.java	1.31 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -25,7 +25,7 @@ package java.util;
  *   Deque<Integer> stack = new ArrayDeque<Integer>();}</pre>
  *
  * @author  Jonathan Payne
- * @version 1.30, 11/17/05
+ * @version 1.31, 03/23/10
  * @since   JDK1.0
  */
 public

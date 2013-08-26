@@ -1,8 +1,8 @@
 /*
- * @(#)GTKEngine.java	1.67 06/06/07
+ * @(#)GTKEngine.java	1.68 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * GTKEngine mirrors that of a a GtkStyleClass.
  *
- * @version 1.67, 06/07/06
+ * @version 1.68, 03/23/10
  * @author Josh Outwater
  * @author Scott Violet
  */

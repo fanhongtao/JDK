@@ -1,8 +1,8 @@
 /*
- * @(#)CertStore.java	1.17 06/04/21
+ * @(#)CertStore.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -57,7 +57,7 @@ import sun.security.jca.GetInstance.Instance;
  * Multiple threads may concurrently invoke the static methods defined in
  * this class with no ill effects.
  *
- * @version 	1.17 04/21/06
+ * @version 	1.18 03/23/10
  * @since	1.4
  * @author	Sean Mullan, Steve Hanna
  */

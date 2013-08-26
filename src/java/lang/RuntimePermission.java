@@ -1,8 +1,8 @@
 /*
- * @(#)RuntimePermission.java	1.57 06/04/21
+ * @(#)RuntimePermission.java	1.58 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -307,7 +307,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.57 06/04/21
+ * @version 1.58 10/03/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers

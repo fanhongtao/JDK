@@ -1,8 +1,8 @@
 /*
- * @(#)FilePermission.java	1.80 05/11/17
+ * @(#)FilePermission.java	1.81 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.io;
@@ -70,7 +70,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.80 05/11/17
+ * @version 1.81 10/03/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -649,7 +649,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.80 11/17/05
+ * @version 1.81 03/23/10
  *
  * @author Marianne Mueller
  * @author Roland Schemers

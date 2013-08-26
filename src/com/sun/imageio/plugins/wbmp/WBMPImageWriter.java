@@ -1,8 +1,8 @@
 /*
  * @(#)WBMPImageWriter.java	1.3 03/09/20 21:28:34
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.imageio.plugins.wbmp;

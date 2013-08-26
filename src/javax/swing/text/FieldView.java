@@ -1,8 +1,8 @@
 /*
- * @(#)FieldView.java	1.27 05/11/30
+ * @(#)FieldView.java	1.28 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * current visibility settings of the JTextField.
  *
  * @author  Timothy Prinzing
- * @version 1.27 11/30/05
+ * @version 1.28 03/23/10
  * @see     View
  */
 public class FieldView extends PlainView {

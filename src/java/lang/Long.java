@@ -1,8 +1,8 @@
 /*
- * @(#)Long.java	1.82 09/02/26
+ * @(#)Long.java	1.83 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -28,7 +28,7 @@ package java.lang;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.82, 02/26/09
+ * @version 1.83, 03/23/10
  * @since   JDK1.0
  */
 public final class Long extends Number implements Comparable<Long> {

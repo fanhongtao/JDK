@@ -1,8 +1,8 @@
 /*
- * @(#)InputEvent.java	1.37 06/03/17
+ * @(#)InputEvent.java	1.38 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -24,7 +24,7 @@ import java.awt.Toolkit;
  * activated.
  *
  * @author Carl Quinn
- * @version 1.37 03/17/06
+ * @version 1.38 03/23/10
  *
  * @see KeyEvent
  * @see KeyAdapter

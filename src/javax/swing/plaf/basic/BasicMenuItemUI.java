@@ -1,8 +1,8 @@
 /*
- * @(#)BasicMenuItemUI.java	1.145 09/08/07
+ * @(#)BasicMenuItemUI.java	1.146 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
@@ -25,7 +25,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.145 08/07/09
+ * @version 1.146 03/23/10
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

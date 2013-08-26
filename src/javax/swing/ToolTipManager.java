@@ -1,8 +1,8 @@
 /*
- * @(#)ToolTipManager.java	1.76 09/08/07
+ * @(#)ToolTipManager.java	1.77 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -30,7 +30,7 @@ import sun.swing.UIAction;
  * tooltip will be shown again after <code>initialDelay</code> milliseconds.
  *
  * @see JComponent#createToolTip
- * @version 1.76 08/07/09
+ * @version 1.77 03/23/10
  * @author Dave Moore
  * @author Rich Schiavi
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)JComponent.java	2.289 09/10/26
+ * @(#)JComponent.java	2.290 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -149,7 +149,7 @@ import sun.swing.UIClientPropertyKey;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.289, 10/26/09
+ * @version 2.290, 03/23/10
  * @author Hans Muller
  * @author Arnaud Weber
  */

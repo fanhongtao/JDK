@@ -1,8 +1,8 @@
 /*
- * @(#)LinkedHashSet.java	1.18 06/04/21
+ * @(#)LinkedHashSet.java	1.19 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -88,7 +88,7 @@ package java.util;
  * @param <E> the type of elements maintained by this set
  *
  * @author  Josh Bloch
- * @version 1.18 06/04/21
+ * @version 1.19 10/03/23
  * @see     Object#hashCode()
  * @see     Collection
  * @see     Set

@@ -1,8 +1,8 @@
 /*
- * @(#)MetalUtils.java	1.39 05/11/17
+ * @(#)MetalUtils.java	1.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.metal;
@@ -19,7 +19,7 @@ import sun.swing.ImageIconUIResource;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.39 11/17/05
+ * @version 1.40 03/23/10
  * @author Steve Wilson
  */
 

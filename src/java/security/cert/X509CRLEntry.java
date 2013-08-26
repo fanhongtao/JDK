@@ -1,8 +1,8 @@
 /*
- * @(#)X509CRLEntry.java	1.17 05/11/17
+ * @(#)X509CRLEntry.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -44,7 +44,7 @@ import javax.security.auth.x500.X500Principal;
  * @see X509Extension
  *
  * @author Hemma Prafullchandra
- * @version 1.17 05/11/17
+ * @version 1.18 10/03/23
  */
 
 public abstract class X509CRLEntry implements X509Extension {

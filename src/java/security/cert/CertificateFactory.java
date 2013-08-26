@@ -1,8 +1,8 @@
 /*
- * @(#)CertificateFactory.java	1.32 06/04/21
+ * @(#)CertificateFactory.java	1.33 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -77,7 +77,7 @@ import sun.security.jca.GetInstance.Instance;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.32, 04/21/06
+ * @version 1.33, 03/23/10
  *
  * @see Certificate
  * @see X509Certificate

@@ -1,8 +1,8 @@
 /*
- * @(#)MemoryImageSource.java	1.34 05/11/17
+ * @(#)MemoryImageSource.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.image;
@@ -82,7 +82,7 @@ import java.util.Enumeration;
  *
  * @see ImageProducer
  *
- * @version	1.34 11/17/05
+ * @version	1.35 03/23/10
  * @author 	Jim Graham
  * @author	Animation capabilities inspired by the
  *		MemoryAnimationSource class written by Garth Dickie

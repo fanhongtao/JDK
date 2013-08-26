@@ -1,8 +1,8 @@
 /*
- * @(#)PushbackInputStream.java	1.43 06/06/19
+ * @(#)PushbackInputStream.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -28,7 +28,7 @@ package java.io;
  *
  * @author  David Connelly
  * @author  Jonathan Payne
- * @version 1.43, 06/19/06
+ * @version 1.44, 03/23/10
  * @since   JDK1.0
  */
 public

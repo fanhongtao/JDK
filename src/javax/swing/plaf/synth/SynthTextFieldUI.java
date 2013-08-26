@@ -1,8 +1,8 @@
 /*
- * @(#)SynthTextFieldUI.java	1.13 07/03/15
+ * @(#)SynthTextFieldUI.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -33,7 +33,7 @@ import sun.swing.plaf.synth.SynthUI;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Shannon Hickey
- * @version 1.13 03/15/07
+ * @version 1.14 03/23/10
  */
 class SynthTextFieldUI
     extends BasicTextFieldUI

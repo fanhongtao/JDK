@@ -1,8 +1,8 @@
 /*
- * @(#)SynthConstants.java	1.8 05/11/17
+ * @(#)SynthConstants.java	1.9 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -16,7 +16,7 @@ import javax.swing.*;
  * <code>PRESSED</code> or <code>DISABLED</code>, and may also contain
  * <code>FOCUSED</code>, <code>SELECTED</code> or <code>DEFAULT</code>.
  *
- * @version 1.8, 11/17/05
+ * @version 1.9, 03/23/10
  * @since 1.5
  */
 public interface SynthConstants {

@@ -1,8 +1,8 @@
 /*
- * @(#)CompositeType.java	3.32 06/05/03
+ * @(#)CompositeType.java	3.33 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -24,7 +24,7 @@ import java.util.Iterator;
  * The <code>CompositeType</code> class is the <i>open type</i> class 
  * whose instances describe the types of {@link CompositeData <code>CompositeData</code>} values.
  *
- * @version     3.32  06/05/03
+ * @version     3.33  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

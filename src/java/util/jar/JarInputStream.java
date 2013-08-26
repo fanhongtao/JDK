@@ -1,8 +1,8 @@
 /*
- * @(#)JarInputStream.java	1.37 06/04/07
+ * @(#)JarInputStream.java	1.38 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.jar;
@@ -19,7 +19,7 @@ import sun.security.util.ManifestEntryVerifier;
  * can be used to store meta-information about the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.37, 04/07/06
+ * @version 1.38, 03/23/10
  * @see	    Manifest
  * @see	    java.util.zip.ZipInputStream
  * @since   1.2

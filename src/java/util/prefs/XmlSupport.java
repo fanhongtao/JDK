@@ -1,8 +1,8 @@
 /*
- * @(#)XmlSupport.java	1.12 08/04/23
+ * @(#)XmlSupport.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.prefs;
@@ -21,7 +21,7 @@ import org.w3c.dom.*;
  * nodes and subtrees.
  *
  * @author  Josh Bloch and Mark Reinhold
- * @version 1.12, 04/23/08
+ * @version 1.13, 03/23/10
  * @see     Preferences
  * @since   1.4
  */

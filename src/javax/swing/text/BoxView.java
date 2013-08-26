@@ -1,8 +1,8 @@
 /*
- * @(#)BoxView.java	1.70 07/02/15
+ * @(#)BoxView.java	1.71 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.70 02/15/07
+ * @version 1.71 03/23/10
  */
 public class BoxView extends CompositeView {
 

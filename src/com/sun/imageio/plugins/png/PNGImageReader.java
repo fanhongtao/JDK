@@ -1,8 +1,8 @@
 /*
- * @(#)PNGImageReader.java	1.63 09/09/25
+ * @(#)PNGImageReader.java	1.64 10/03/23
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.imageio.plugins.png;

@@ -1,8 +1,8 @@
 /*
- * @(#)X500Principal.java	1.25 05/11/17
+ * @(#)X500Principal.java	1.26 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth.x500;
@@ -38,7 +38,7 @@ import sun.security.util.*;
  * <code>X509Certificate</code> return X500Principals representing the
  * issuer and subject fields of the certificate.
  *
- * @version 1.25, 11/17/05
+ * @version 1.26, 03/23/10
  * @see java.security.cert.X509Certificate
  * @since 1.4
  */

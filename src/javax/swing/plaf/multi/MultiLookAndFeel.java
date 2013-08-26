@@ -1,8 +1,8 @@
 /*
- * @(#)MultiLookAndFeel.java	1.36 06/02/19
+ * @(#)MultiLookAndFeel.java	1.37 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.multi;
 
@@ -36,7 +36,7 @@ import javax.swing.plaf.*;
  * @see UIManager#addAuxiliaryLookAndFeel
  * @see javax.swing.plaf.multi
  *
- * @version 1.36 02/19/06
+ * @version 1.37 03/23/10
  * @author Willie Walker
  */
 public class MultiLookAndFeel extends LookAndFeel {

@@ -1,8 +1,8 @@
 /*
- * @(#)BasicComboBoxRenderer.java	1.22 05/11/30
+ * @(#)BasicComboBoxRenderer.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.22 11/30/05
+ * @version 1.23 03/23/10
  * @author Arnaud Weber
  */
 public class BasicComboBoxRenderer extends JLabel

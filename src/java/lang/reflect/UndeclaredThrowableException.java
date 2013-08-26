@@ -1,8 +1,8 @@
 /*
- * @(#)UndeclaredThrowableException.java	1.15 06/04/07
+ * @(#)UndeclaredThrowableException.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
@@ -34,7 +34,7 @@ package java.lang.reflect;
  * method."
  *
  * @author	Peter Jones
- * @version	1.15, 06/04/07
+ * @version	1.16, 10/03/23
  * @see		InvocationHandler
  * @since	1.3
  */

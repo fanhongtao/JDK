@@ -1,8 +1,8 @@
 /*
- * @(#)BasicListUI.java	1.129 09/10/19
+ * @(#)BasicListUI.java	1.130 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -32,7 +32,7 @@ import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
  * {@code BasicListUI} instances cannot be shared between multiple
  * lists.
  *
- * @version 1.129 10/19/09
+ * @version 1.130 03/23/10
  * @author Hans Muller
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)

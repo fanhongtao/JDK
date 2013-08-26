@@ -1,8 +1,8 @@
 /*
- * @(#)PipedOutputStream.java	1.28 06/06/07
+ * @(#)PipedOutputStream.java	1.29 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -22,7 +22,7 @@ import java.io.*;
  * stream is no longer alive.
  *
  * @author  James Gosling
- * @version 1.28, 06/07/06
+ * @version 1.29, 03/23/10
  * @see     java.io.PipedInputStream
  * @since   JDK1.0
  */

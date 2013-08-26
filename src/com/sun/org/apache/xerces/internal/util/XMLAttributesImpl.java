@@ -1016,8 +1016,8 @@ implements XMLAttributes, XMLBufferListener {
     /**
      * Look up an attribute's value by Namespace name and
      * Local name. If Namespace is null, ignore namespace
-     * comparison. If Namespace is "", map it to null as
-     * required internally by this class.
+     * comparison. If Namespace is "", treat the name as
+     * having no Namespace URI.
      *
      * <p>See {@link #getValue(int) getValue(int)} for a description
      * of the possible values.</p>
@@ -1028,8 +1028,7 @@ implements XMLAttributes, XMLBufferListener {
      *         attribute is not in the list.
      */
     public String getValue(String uri, String localName) {
-        int index = (uri == null) ? getIndexByLocalName(localName)
-                : getIndex(uri.length() == 0 ? null : uri, localName);
+        int index = getIndex(uri, localName);
         return index != -1 ? getValue(index) : null;
     } // getValue(String,String):String
 

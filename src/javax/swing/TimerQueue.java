@@ -1,8 +1,8 @@
 /*
- * @(#)TimerQueue.java	1.41 09/10/19
+ * @(#)TimerQueue.java	1.42 10/03/23
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -20,7 +20,7 @@ import sun.awt.AppContext;
  * TimerQueue manages a queue of Timers. The Timers are chained
  * together in a linked list sorted by the order in which they will expire.
  *
- * @version 1.41 10/19/09
+ * @version 1.42 03/23/10
  * @author Dave Moore
  */
 class TimerQueue implements Runnable

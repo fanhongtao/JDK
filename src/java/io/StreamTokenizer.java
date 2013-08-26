@@ -1,8 +1,8 @@
 /*
- * @(#)StreamTokenizer.java	1.47 05/11/30
+ * @(#)StreamTokenizer.java	1.48 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -39,7 +39,7 @@ import java.util.Arrays;
  * it returns the value <code>TT_EOF</code>.
  *
  * @author  James Gosling
- * @version 1.47, 11/30/05
+ * @version 1.48, 03/23/10
  * @see     java.io.StreamTokenizer#nextToken()
  * @see     java.io.StreamTokenizer#TT_EOF
  * @since   JDK1.0

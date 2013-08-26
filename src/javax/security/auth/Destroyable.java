@@ -1,8 +1,8 @@
 /*
- * @(#)Destroyable.java	1.12 05/11/17
+ * @(#)Destroyable.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth;
@@ -11,7 +11,7 @@ package javax.security.auth;
  * Objects such as credentials may optionally implement this interface
  * to provide the capability to destroy its contents.
  * 
- * @version 1.12, 11/17/05
+ * @version 1.13, 03/23/10
  * @see javax.security.auth.Subject
  */
 public interface Destroyable {

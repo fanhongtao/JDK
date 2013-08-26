@@ -1,8 +1,8 @@
 /*
- * @(#)AnimationController.java	1.2 09/08/07
+ * @(#)AnimationController.java	1.3 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -47,7 +47,7 @@ import sun.awt.AppContext;
  *        depends on the state of animation
  * </ul>
  * 
- * @version 1.2 08/07/09
+ * @version 1.3 03/23/10
  * @author Igor Kushnirskiy
  */
 class AnimationController implements ActionListener, PropertyChangeListener {

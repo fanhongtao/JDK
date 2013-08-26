@@ -1,8 +1,8 @@
 /*
- * @(#)DateFormat.java	1.57 05/11/17
+ * @(#)DateFormat.java	1.58 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -120,7 +120,7 @@ import sun.util.LocaleServiceProviderPool;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.57 11/17/05
+ * @version      1.58 03/23/10
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {

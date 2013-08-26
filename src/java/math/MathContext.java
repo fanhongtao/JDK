@@ -1,8 +1,8 @@
 /*
- * @(#)MathContext.java	1.6 09/01/20
+ * @(#)MathContext.java	1.8 10/04/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -10,7 +10,7 @@
  *
  * Copyright IBM Corporation, 1997, 2001. All Rights Reserved.
  *
- * This software is the proprietary information of Sun Microsystems, Inc.
+ * This software is the proprietary information of Oracle.
  * and IBM Corporation.  Use is subject to license terms.
  *
  */

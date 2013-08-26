@@ -1,8 +1,8 @@
 /*
- * @(#)JSeparator.java	1.52 06/08/08
+ * @(#)JSeparator.java	1.53 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -50,7 +50,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A divider between menu items.
  *
- * @version 1.52 08/08/06
+ * @version 1.53 03/23/10
  * @author Georges Saab
  * @author Jeff Shapiro
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)Instrumentation.java	1.21 06/07/10
+ * @(#)Instrumentation.java	1.22 10/03/23
  *
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
  */
 
 package java.lang.instrument;
@@ -12,7 +12,7 @@ import  java.util.jar.JarFile;
 
 /*
  * Copyright 2003 Wily Technology, Inc.
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 /**

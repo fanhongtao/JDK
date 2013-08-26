@@ -1,8 +1,8 @@
 /*
- * @(#)Comparator.java	1.26 06/04/21
+ * @(#)Comparator.java	1.27 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -72,7 +72,7 @@ package java.util;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.26, 04/21/06
+ * @version 1.27, 03/23/10
  * @see Comparable
  * @see java.io.Serializable
  * @since 1.2

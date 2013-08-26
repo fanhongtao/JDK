@@ -1,8 +1,8 @@
 /*
- * @(#)Shutdown.java	1.14 09/04/01
+ * @(#)Shutdown.java	1.15 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
  * governing the virtual-machine shutdown sequence.
  *
  * @author   Mark Reinhold
- * @version  1.14, 09/04/01
+ * @version  1.15, 10/03/23
  * @since    1.3
  */
 

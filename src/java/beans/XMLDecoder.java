@@ -1,8 +1,8 @@
 /*
- * @(#)XMLDecoder.java	1.32 05/11/30
+ * @(#)XMLDecoder.java	1.33 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
 
@@ -45,7 +45,7 @@ import javax.xml.parsers.SAXParser;
  *
  * @since 1.4
  * 
- * @version 1.32 11/30/05
+ * @version 1.33 03/23/10
  * @author Philip Milne
  */
 public class XMLDecoder { 

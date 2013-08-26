@@ -1,8 +1,8 @@
 /*
- * @(#)SynthComboPopup.java	1.9 07/09/21
+ * @(#)SynthComboPopup.java	1.10 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -17,7 +17,7 @@ import javax.swing.plaf.basic.BasicComboPopup;
 /**
  * Synth's ComboPopup.
  *
- * @version 1.9, 09/21/07
+ * @version 1.10, 03/23/10
  * @author Scott Violet
  */
 class SynthComboPopup extends BasicComboPopup {

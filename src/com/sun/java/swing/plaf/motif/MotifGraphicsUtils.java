@@ -1,8 +1,8 @@
 /*
- * @(#)MotifGraphicsUtils.java	1.48 05/11/30
+ * @(#)MotifGraphicsUtils.java	1.49 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
 
@@ -24,7 +24,7 @@ import javax.swing.plaf.basic.*;
 import javax.swing.text.View;
 
 /*
- * @version 1.48 11/30/05
+ * @version 1.49 03/23/10
  * @author Jeff Dinkins
  * @author Dave Kloba
  */

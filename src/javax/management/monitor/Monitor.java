@@ -1,8 +1,8 @@
 /*
- * @(#)Monitor.java	4.60 08/12/17
+ * @(#)Monitor.java	4.61 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.monitor;
@@ -56,7 +56,7 @@ import javax.management.openmbean.CompositeData;
  * granularity period. A gauge value (derived gauge) is derived from the values
  * of the observed attribute.
  *
- * @version     4.60     12/17/08
+ * @version     4.61     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

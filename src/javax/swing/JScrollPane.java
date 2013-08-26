@@ -1,8 +1,8 @@
 /*
- * @(#)JScrollPane.java	1.111 07/12/03
+ * @(#)JScrollPane.java	1.112 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -147,7 +147,7 @@ import java.beans.*;
  *     attribute: containerDelegate getViewport
  *   description: A specialized container that manages a viewport, optional scrollbars and headers
  *
- * @version 1.111 @(#)JScrollPane.java	1.111
+ * @version 1.112 @(#)JScrollPane.java	1.112
  * @author Hans Muller
  */
 public class JScrollPane extends JComponent implements ScrollPaneConstants, Accessible

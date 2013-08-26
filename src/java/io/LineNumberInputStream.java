@@ -1,8 +1,8 @@
 /*
- * @(#)LineNumberInputStream.java	1.28 05/11/17
+ * @(#)LineNumberInputStream.java	1.29 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -21,7 +21,7 @@ package java.io;
  * <code>1</code> when a <code>read</code> returns a newline character.
  *
  * @author     Arthur van Hoff
- * @version    1.28, 11/17/05
+ * @version    1.29, 03/23/10
  * @see        java.io.LineNumberReader
  * @since      JDK1.0
  * @deprecated This class incorrectly assumes that bytes adequately represent

@@ -1,8 +1,8 @@
 /*
- * @(#)DataFlavor.java	1.83 06/07/28
+ * @(#)DataFlavor.java	1.84 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.datatransfer;
@@ -77,7 +77,7 @@ import sun.awt.datatransfer.DataTransferer;
  * How to Use Drag and Drop and Data Transfer</a>,
  * section in <em>Java Tutorial</em>.
  *
- * @version     1.83, 07/28/06
+ * @version     1.84, 03/23/10
  * @author      Blake Sullivan
  * @author      Laurence P. G. Cable
  * @author      Jeff Dunn

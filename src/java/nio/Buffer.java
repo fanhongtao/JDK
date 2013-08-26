@@ -1,8 +1,8 @@
 /*
- * @(#)Buffer.java	1.38 05/12/20
+ * @(#)Buffer.java	1.39 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.nio;
@@ -150,7 +150,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.38, 05/12/20
+ * @version 1.39, 10/03/23
  * @since 1.4
  */
 

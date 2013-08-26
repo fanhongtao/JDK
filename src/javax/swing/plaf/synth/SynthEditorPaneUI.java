@@ -1,8 +1,8 @@
 /*
- * @(#)SynthEditorPaneUI.java	1.10 06/01/24
+ * @(#)SynthEditorPaneUI.java	1.11 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -20,7 +20,7 @@ import sun.swing.plaf.synth.SynthUI;
  * Synth look and feel.
  *
  * @author  Shannon Hickey
- * @version 1.10 01/24/06
+ * @version 1.11 03/23/10
  */
 class SynthEditorPaneUI extends BasicEditorPaneUI implements SynthUI {
     private SynthStyle style;

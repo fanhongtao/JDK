@@ -1,8 +1,8 @@
 /*
- * @(#)Preferences.java	1.30 06/06/26
+ * @(#)Preferences.java	1.31 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.prefs;
@@ -202,7 +202,7 @@ import java.lang.Double;
  * </ol>
  *
  * @author  Josh Bloch
- * @version 1.30, 06/26/06
+ * @version 1.31, 03/23/10
  * @since   1.4
  */
 public abstract class Preferences {

@@ -1,8 +1,8 @@
 /*
- * @(#)BufferStrategyPaintManager.java	1.15 09/04/13
+ * @(#)BufferStrategyPaintManager.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -28,7 +28,7 @@ import sun.awt.SunToolkit;
  * A PaintManager implementation that uses a BufferStrategy for
  * rendering.
  *
- * @version 1.15, 04/13/09
+ * @version 1.16, 03/23/10
  * @author Scott Violet
  */
 class BufferStrategyPaintManager extends RepaintManager.PaintManager {

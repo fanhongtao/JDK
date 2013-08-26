@@ -1,8 +1,8 @@
 /*
- * @(#)ObjectStreamClass.java	1.152 06/04/21
+ * @(#)ObjectStreamClass.java	1.153 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -44,7 +44,7 @@ import sun.reflect.ReflectionFactory;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.152, 04/21/06
+ * @version 1.153, 03/23/10
  * @see ObjectStreamField
  * @see <a href="../../../platform/serialization/spec/class.html">Object Serialization Specification, Section 4, Class Descriptors</a>
  * @since   JDK1.1

@@ -1,8 +1,8 @@
 /*
- * @(#)LoggingMXBean.java	1.9 05/11/17
+ * @(#)LoggingMXBean.java	1.10 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.logging;
@@ -29,7 +29,7 @@ package java.util.logging;
  *
  * @author  Ron Mann 
  * @author  Mandy Chung
- * @version 1.9, 11/17/05
+ * @version 1.10, 03/23/10
  * @since   1.5
  *
  */

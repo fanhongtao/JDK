@@ -1,8 +1,8 @@
 /*
- * @(#)PriorityQueue.java	1.16 06/04/21
+ * @(#)PriorityQueue.java	1.17 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -56,7 +56,7 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @since 1.5
- * @version 1.16, 04/21/06
+ * @version 1.17, 03/23/10
  * @author Josh Bloch, Doug Lea
  * @param <E> the type of elements held in this collection
  */

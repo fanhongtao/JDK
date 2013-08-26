@@ -1,8 +1,8 @@
 /*
- * @(#)HTMLDocument.java	1.181 08/03/05
+ * @(#)HTMLDocument.java	1.182 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -80,7 +80,7 @@ import static sun.swing.SwingUtilities2.IMPLIED_CR;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.181 03/05/08
+ * @version 1.182 03/23/10
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**

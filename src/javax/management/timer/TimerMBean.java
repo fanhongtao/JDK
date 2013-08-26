@@ -1,8 +1,8 @@
 /*
- * @(#)TimerMBean.java	4.28 05/11/17
+ * @(#)TimerMBean.java	4.29 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.timer; 
@@ -25,7 +25,7 @@ import javax.management.InstanceNotFoundException;
 /**
  * Exposes the management interface of the timer MBean.
  *
- * @version     4.28     11/17/05
+ * @version     4.29     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

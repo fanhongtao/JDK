@@ -1,6 +1,6 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind.annotation;
@@ -360,7 +360,7 @@ import java.lang.annotation.Target;
  * @see XmlValue
  * @see XmlSchema
  * @since JAXB2.0
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  */
 
 @Retention(RUNTIME) @Target({TYPE})

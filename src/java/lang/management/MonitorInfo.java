@@ -1,8 +1,8 @@
 /*
- * @(#)MonitorInfo.java	1.5 06/05/05
+ * @(#)MonitorInfo.java	1.6 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.management;
@@ -20,7 +20,7 @@ import sun.management.MonitorInfoCompositeData;
  * the {@link #from from} method.
  *
  * @author  Mandy Chung
- * @version 1.5, 05/05/06
+ * @version 1.6, 03/23/10
  * @since   1.6
  */
 public class MonitorInfo extends LockInfo {

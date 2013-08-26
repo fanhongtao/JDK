@@ -1,8 +1,8 @@
 /*
- * @(#)MetalTheme.java	1.29 06/07/12
+ * @(#)MetalTheme.java	1.30 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.metal;
@@ -43,7 +43,7 @@ import javax.swing.*;
  * @see OceanTheme
  * @see MetalLookAndFeel#setCurrentTheme
  *
- * @version 1.29 07/12/06
+ * @version 1.30 03/23/10
  * @author Steve Wilson
  */
 public abstract class MetalTheme {

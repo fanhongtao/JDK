@@ -1,8 +1,8 @@
 /*
- * @(#)JComboBox.java	1.144 07/12/03
+ * @(#)JComboBox.java	1.145 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -53,7 +53,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.144 12/03/07
+ * @version 1.145 03/23/10
  * @author Arnaud Weber
  * @author Mark Davidson
  */

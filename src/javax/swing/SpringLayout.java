@@ -1,8 +1,8 @@
 /*
- * @(#)SpringLayout.java	1.26 06/04/07
+ * @(#)SpringLayout.java	1.27 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -161,7 +161,7 @@ import java.util.*;
  * @see Spring
  * @see SpringLayout.Constraints
  *
- * @version  1.26 04/07/06
+ * @version  1.27 03/23/10
  * @author 	Philip Milne
  * @author 	Scott Violet
  * @author 	Joe Winchester

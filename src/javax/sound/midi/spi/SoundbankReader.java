@@ -1,8 +1,8 @@
 /*
- * @(#)SoundbankReader.java	1.19 05/11/17
+ * @(#)SoundbankReader.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi.spi;
@@ -24,7 +24,7 @@ import javax.sound.midi.InvalidMidiDataException;
  * object that can be loaded into a {@link javax.sound.midi.Synthesizer}.
  *
  * @since 1.3
- * @version 1.19 05/11/17
+ * @version 1.20 10/03/23
  * @author Kara Kytle
  */
 public abstract class SoundbankReader {

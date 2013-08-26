@@ -1,8 +1,8 @@
  /*
- * @(#)ManagementFactory.java	1.24 06/03/08
+ * @(#)ManagementFactory.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.management;
@@ -264,7 +264,7 @@ import javax.management.JMX;
  * @see javax.management.MXBean
  *
  * @author  Mandy Chung
- * @version 1.24, 03/08/06 
+ * @version 1.25, 03/23/10 
  * @since   1.5
  */
 public class ManagementFactory {

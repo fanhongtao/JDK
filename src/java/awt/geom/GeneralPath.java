@@ -1,8 +1,8 @@
 /*
- * @(#)GeneralPath.java	1.64 06/03/13
+ * @(#)GeneralPath.java	1.65 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -27,7 +27,7 @@ import java.awt.Shape;
  * and used with floating point precision.  Use {@code Path2D.Double}
  * for data that requires the accuracy or range of double precision.
  *
- * @version 1.64, 03/13/06
+ * @version 1.65, 03/23/10
  * @author Jim Graham
  * @since 1.2
  */

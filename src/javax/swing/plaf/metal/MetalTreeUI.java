@@ -1,8 +1,8 @@
 /*
- * @(#)MetalTreeUI.java	1.25 07/01/08
+ * @(#)MetalTreeUI.java	1.26 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -55,7 +55,7 @@ import javax.swing.plaf.basic.*;
  * <p>
  * The default is <code>Angled</code>.
  *
- * @version 1.25 01/08/07
+ * @version 1.26 03/23/10
  * @author Tom Santos
  * @author Steve Wilson (value add stuff)
  */

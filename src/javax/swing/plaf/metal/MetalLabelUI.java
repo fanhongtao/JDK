@@ -1,8 +1,8 @@
 /*
- * @(#)MetalLabelUI.java	1.16 09/08/10
+ * @(#)MetalLabelUI.java	1.17 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -23,7 +23,7 @@ import java.awt.*;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.16 08/10/09
+ * @version 1.17 03/23/10
  * @author Hans Muller
  */
 

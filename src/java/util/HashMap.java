@@ -1,8 +1,8 @@
 /*
- *  @(#)HashMap.java	1.73 07/03/13
+ *  @(#)HashMap.java	1.74 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -95,7 +95,7 @@ import java.io.*;
  * @author  Josh Bloch
  * @author  Arthur van Hoff
  * @author  Neal Gafter
- * @version 1.73, 03/13/07
+ * @version 1.74, 03/23/10
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map

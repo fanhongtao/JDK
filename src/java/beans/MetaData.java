@@ -1,8 +1,8 @@
 /*
- * @(#)MetaData.java	1.51 09/04/29
+ * @(#)MetaData.java	1.52 10/03/23
  *
- * Copyright 2000-2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
 
@@ -37,7 +37,7 @@ import sun.swing.PrintColorUIResource;
  *
  * @see java.beans.Intropector
  *
- * @version 1.51 04/29/09
+ * @version 1.52 03/23/10
  * @author Philip Milne
  * @author Steve Langley
  */

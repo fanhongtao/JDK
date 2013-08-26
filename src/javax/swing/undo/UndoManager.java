@@ -1,8 +1,8 @@
 /*
- * @(#)UndoManager.java	1.39 06/06/23
+ * @(#)UndoManager.java	1.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.undo;
@@ -113,7 +113,7 @@ import java.util.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author Ray Ryan
- * @version 1.39, 06/23/06
+ * @version 1.40, 03/23/10
  */ 
 public class UndoManager extends CompoundEdit implements UndoableEditListener {
     int indexOfNextAdd;

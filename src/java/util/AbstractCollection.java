@@ -1,8 +1,8 @@
 /*
- * @(#)AbstractCollection.java	1.38 06/06/16
+ * @(#)AbstractCollection.java	1.39 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -36,7 +36,7 @@ package java.util;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.38, 06/16/06
+ * @version 1.39, 03/23/10
  * @see Collection
  * @since 1.2
  */

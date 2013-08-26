@@ -1,8 +1,8 @@
 /*
- * @(#)DataInputStream.java	1.77 06/06/07
+ * @(#)DataInputStream.java	1.78 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -18,7 +18,7 @@ package java.io;
  * methods in this class.
  *
  * @author  Arthur van Hoff
- * @version 1.77, 06/07/06
+ * @version 1.78, 03/23/10
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */

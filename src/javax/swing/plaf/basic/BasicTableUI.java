@@ -1,8 +1,8 @@
 /*
- * @(#)BasicTableUI.java	1.163 09/10/19
+ * @(#)BasicTableUI.java	1.164 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -28,7 +28,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.163 10/19/09
+ * @version 1.164 03/23/10
  * @author Philip Milne
  * @author Shannon Hickey (drag and drop)
  */

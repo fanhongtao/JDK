@@ -1,8 +1,8 @@
 /*
- * @(#)java.c	1.140 08/09/05
+ * @(#)java.c	1.141 10/03/23
  *
- * Copyright 2006-2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*

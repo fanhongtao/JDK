@@ -1,11 +1,11 @@
 /*
- * @(#)ProcessBuilder.java	1.10 10/01/26
+ * @(#)ProcessBuilder.java	1.11 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  * @author  Martin Buchholz
- * @version 1.10, 10/01/26
+ * @version 1.11, 10/03/23
  */
 
 package java.lang;

@@ -20,9 +20,9 @@
 
 /*
  * $Id: StreamSource.java,v 1.4 2005/11/03 19:34:27 jeffsuttor Exp $
- * @(#)StreamSource.java	1.25 05/11/30
+ * @(#)StreamSource.java	1.26 10/04/05
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform.stream;

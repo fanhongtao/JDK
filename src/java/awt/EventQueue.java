@@ -1,8 +1,8 @@
 /*
- * @(#)EventQueue.java	1.106 09/09/11
+ * @(#)EventQueue.java	1.107 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -73,7 +73,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.106, 09/11/09
+ * @version 	1.107, 03/23/10
  * @since 	1.1
  */
 public class EventQueue {

@@ -1,8 +1,8 @@
 /*
- * @(#)BasicLookAndFeel.java	1.277 07/06/01
+ * @(#)BasicLookAndFeel.java	1.278 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -81,7 +81,7 @@ import java.beans.PropertyChangeEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.277 06/01/07
+ * @version 1.278 03/23/10
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable

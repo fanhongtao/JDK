@@ -1,8 +1,8 @@
 /*
- * @(#)TexturePaint.java	1.40 05/11/17
+ * @(#)TexturePaint.java	1.41 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -28,7 +28,7 @@ import java.awt.image.ColorModel;
  * replicated <code>Rectangle2D</code>.
  * @see Paint
  * @see Graphics2D#setPaint
- * @version 1.40, 11/17/05
+ * @version 1.41, 03/23/10
  */
 
 public class TexturePaint implements Paint {

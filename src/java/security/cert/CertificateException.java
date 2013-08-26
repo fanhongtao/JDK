@@ -1,8 +1,8 @@
 /*
- * @(#)CertificateException.java	1.34 05/11/17
+ * @(#)CertificateException.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -13,7 +13,7 @@ import java.security.GeneralSecurityException;
  * This exception indicates one of a variety of certificate problems.
  *
  * @author Hemma Prafullchandra
- * @version 1.34
+ * @version 1.35
  * @see Certificate
  */
 public class CertificateException extends GeneralSecurityException {

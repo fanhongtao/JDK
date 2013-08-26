@@ -1,8 +1,8 @@
 /*
- * @(#)TableView.java	1.36 06/04/07
+ * @(#)TableView.java	1.37 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -47,7 +47,7 @@ import javax.swing.text.html.HTML;
  * spans if desired).
  * 
  * @author  Timothy Prinzing
- * @version 1.36 04/07/06
+ * @version 1.37 03/23/10
  * @see     View
  */
 public abstract class TableView extends BoxView {

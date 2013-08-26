@@ -1,8 +1,8 @@
 /*
- * @(#)TooManyListenersException.java	1.14 05/11/17
+ * @(#)TooManyListenersException.java	1.15 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -25,7 +25,7 @@ package java.util;
  * @see java.util.EventObject
  * @see java.util.EventListener
  * 
- * @version 1.14 05/11/17
+ * @version 1.15 10/03/23
  * @author Laurence P. G. Cable
  * @since  JDK1.1
  */

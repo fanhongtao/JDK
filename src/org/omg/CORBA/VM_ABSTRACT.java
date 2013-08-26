@@ -1,8 +1,8 @@
 /*
- * @(#)VM_ABSTRACT.java	1.9 05/11/17
+ * @(#)VM_ABSTRACT.java	1.10 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package org.omg.CORBA;
@@ -12,7 +12,7 @@ package org.omg.CORBA;
 * This is one of the possible results of the <code>type_modified</code>
 * method on the <code>TypeCode</code> interface.
 * @see org.omg.CORBA.TypeCode
-* @version 1.9 11/17/05
+* @version 1.10 03/23/10
 */
 public interface VM_ABSTRACT {
     /** The value representing an abstract interface value type in

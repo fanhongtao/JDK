@@ -20,9 +20,9 @@
 
 /*
  * $Id: TransformerFactory.java,v 1.5 2006/04/06 00:26:40 jeffsuttor Exp $
- * @(#)TransformerFactory.java	1.46 06/06/21
+ * @(#)TransformerFactory.java	1.47 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform;

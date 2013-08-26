@@ -1,11 +1,11 @@
 /*
  * @(#)file      AclImpl.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.12
- * @(#)date      06/11/29
+ * @(#)version   4.13
+ * @(#)date      10/07/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 
@@ -35,7 +35,7 @@ import java.util.Enumeration;
  * If negative, the permissions are to be denied.
  *
  * @see java.security.acl.Acl
- * @version     4.12     11/17/05
+ * @version     4.13     03/23/10
  * @author      Sun Microsystems, Inc
  */
 

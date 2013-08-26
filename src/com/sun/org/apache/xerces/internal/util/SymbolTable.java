@@ -22,7 +22,7 @@
  * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
  * @(#)SymbolTable.java	1.11 05/11/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -70,7 +70,7 @@ package com.sun.org.apache.xerces.internal.util;
  *
  * @author Andy Clark
  *
- * @version $Id: SymbolTable.java,v 1.3 2005/10/03 14:55:36 sunithareddy Exp $
+ * @version $Id: SymbolTable.java,v 1.5 2007/07/19 04:38:59 ofung Exp $
  */
 public class SymbolTable {
     

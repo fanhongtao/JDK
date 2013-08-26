@@ -1,8 +1,8 @@
 /*
- * @(#)JSlider.java	1.110 06/08/08
+ * @(#)JSlider.java	1.111 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -60,7 +60,7 @@ import java.beans.*;
  *      attribute: isContainer false
  *    description: A component that supports selecting a integer value from a range.
  * 
- * @version 1.110 08/08/06
+ * @version 1.111 03/23/10
  * @author David Kloba
  */
 public class JSlider extends JComponent implements SwingConstants, Accessible {

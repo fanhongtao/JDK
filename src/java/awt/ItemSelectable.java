@@ -1,8 +1,8 @@
 /*
- * @(#)ItemSelectable.java	1.17 05/11/17
+ * @(#)ItemSelectable.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -13,7 +13,7 @@ import java.awt.event.*;
  * The interface for objects which contain a set of items for
  * which zero or more can be selected.
  *
- * @version 1.17 11/17/05
+ * @version 1.18 03/23/10
  * @author Amy Fowler
  */
 

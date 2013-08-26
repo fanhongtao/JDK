@@ -1,8 +1,8 @@
 /*
- * @(#)TextLayoutStrategy.java	1.25 05/11/30
+ * @(#)TextLayoutStrategy.java	1.26 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -23,7 +23,7 @@ import sun.font.BidiUtils;
  * that uses TextLayout is plugged into the GlyphView.
  *
  * @author  Timothy Prinzing
- * @version 1.25 11/30/05
+ * @version 1.26 03/23/10
  */
 class TextLayoutStrategy extends FlowView.FlowStrategy {
 

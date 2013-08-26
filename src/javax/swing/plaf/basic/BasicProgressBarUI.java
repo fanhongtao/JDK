@@ -1,8 +1,8 @@
 /*
- * @(#)BasicProgressBarUI.java	1.74 08/05/29
+ * @(#)BasicProgressBarUI.java	1.75 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -22,7 +22,7 @@ import sun.swing.DefaultLookup;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.74 05/29/08
+ * @version 1.75 03/23/10
  * @author Michael C. Albers
  * @author Kathy Walrath
  */

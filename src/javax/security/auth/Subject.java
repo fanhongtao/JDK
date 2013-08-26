@@ -1,8 +1,8 @@
 /*
- * @(#)Subject.java	1.127 05/11/17
+ * @(#)Subject.java	1.128 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth;
@@ -77,7 +77,7 @@ import sun.security.util.SecurityConstants;
  * <code>Principal</code> implementations associated with Subjects
  * must implement <code>Serializable</code>.
  *
- * @version 1.127, 11/17/05
+ * @version 1.128, 03/23/10
  * @see java.security.Principal
  * @see java.security.DomainCombiner
  */

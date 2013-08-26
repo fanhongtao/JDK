@@ -1,8 +1,8 @@
 /*
- * @(#)java.h	1.34 05/12/20
+ * @(#)java.h	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 #ifndef _JAVA_H_

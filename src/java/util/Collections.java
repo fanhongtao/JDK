@@ -1,8 +1,8 @@
 /*
- * @(#)Collections.java	1.106 06/04/21
+ * @(#)Collections.java	1.107 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -43,7 +43,7 @@ import java.lang.reflect.Array;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.106, 04/21/06
+ * @version 1.107, 03/23/10
  * @see	    Collection
  * @see	    Set
  * @see	    List

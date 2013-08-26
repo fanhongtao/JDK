@@ -1,8 +1,8 @@
 /*
- * @(#)SynthTreeUI.java	1.37 07/12/18
+ * @(#)SynthTreeUI.java	1.38 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -36,7 +36,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Skinnable TreeUI.
  *
- * @version 1.37, 12/18/07
+ * @version 1.38, 03/23/10
  * @author Scott Violet
  */
 class SynthTreeUI extends BasicTreeUI implements PropertyChangeListener,

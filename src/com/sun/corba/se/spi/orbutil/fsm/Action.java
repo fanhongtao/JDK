@@ -1,8 +1,8 @@
 /*
  * Action.java
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.spi.orbutil.fsm;
@@ -10,7 +10,7 @@ package com.sun.corba.se.spi.orbutil.fsm;
 /**
  * Description goes here
  *
- * @version @(#)Action.java	1.12 05/11/17
+ * @version @(#)Action.java	1.13 10/03/23
  * @author Ken Cavanaugh
  */
 public interface Action

@@ -1,8 +1,8 @@
 /*
- * @(#)ZipInputStream.java	1.45 09/11/10
+ * @(#)ZipInputStream.java	1.46 10/03/23
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -22,7 +22,7 @@ import java.util.jar.JarInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.45, 11/10/09
+ * @version	1.46, 03/23/10
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {

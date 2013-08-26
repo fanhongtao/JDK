@@ -1,8 +1,8 @@
 /*
- * @(#)LineNumberReader.java	1.23 06/04/07
+ * @(#)LineNumberReader.java	1.24 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -25,7 +25,7 @@ package java.io;
  * line feed ('\n'), a carriage return ('\r'), or a carriage return followed
  * immediately by a linefeed.
  *
- * @version 	1.23, 06/04/07
+ * @version 	1.24, 10/03/23
  * @author	Mark Reinhold
  * @since       JDK1.1
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)ActionPropertyChangeListener.java	1.15 06/02/09
+ * @(#)ActionPropertyChangeListener.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -29,7 +29,7 @@ import java.lang.ref.ReferenceQueue;
  *
  * @param T the type of JComponent the underlying Action is attached to
  *
- * @version 1.15 02/09/06
+ * @version 1.16 03/23/10
  * @author Georges Saab
  * @see AbstractButton
  */

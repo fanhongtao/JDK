@@ -1,8 +1,8 @@
 /*
- * @(#)DropTarget.java	1.52 07/12/04
+ * @(#)DropTarget.java	1.53 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -44,7 +44,7 @@ import java.awt.dnd.peer.DropTargetPeer;
  * The default <code>FlavorMap</code> hereafter designates the
  * <code>FlavorMap</code> returned by <code>SystemFlavorMap.getDefaultFlavorMap()</code>. 
  * 
- * @version 	1.52, 12/04/07
+ * @version 	1.53, 03/23/10
  * @since 1.2
  */
 

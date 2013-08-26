@@ -1,8 +1,8 @@
 /*
- * @(#)GTKNativeEngine.java	1.11 07/03/15
+ * @(#)GTKNativeEngine.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -35,7 +35,7 @@ import sun.swing.ImageCache;
  * Finally, finishPainting() should be called. It fills the data buffer passed
  *   in with the image data.
  *
- * @version 1.11, 03/15/07
+ * @version 1.12, 03/23/10
  * @author Josh Outwater
  */
 public class GTKNativeEngine extends GTKEngine {

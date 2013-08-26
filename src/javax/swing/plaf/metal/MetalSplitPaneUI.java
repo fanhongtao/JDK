@@ -1,8 +1,8 @@
 /*
- * @(#)MetalSplitPaneUI.java	1.11 05/11/17
+ * @(#)MetalSplitPaneUI.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -23,7 +23,7 @@ import javax.swing.plaf.basic.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.11 11/17/05
+ * @version 1.12 03/23/10
  * @author Steve Wilson
  */
 public class MetalSplitPaneUI extends BasicSplitPaneUI

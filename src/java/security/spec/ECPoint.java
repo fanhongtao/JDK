@@ -1,8 +1,8 @@
 /*
- * @(#)ECPoint.java	1.4 05/11/17
+ * @(#)ECPoint.java	1.5 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.security.spec;
 
@@ -15,7 +15,7 @@ import java.math.BigInteger;
  * coordinates.
  *
  * @author Valerie Peng
- * @version 1.4, 11/17/05
+ * @version 1.5, 03/23/10
  *
  * @since 1.5
  */

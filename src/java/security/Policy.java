@@ -1,8 +1,8 @@
 /*
- * @(#)Policy.java	1.104 09/12/03
+ * @(#)Policy.java	1.105 10/03/23
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -72,7 +72,7 @@ import sun.security.util.SecurityConstants;
  *
  * @author Roland Schemers
  * @author Gary Ellison
- * @version 1.104, 12/03/09
+ * @version 1.105, 03/23/10
  * @see java.security.Provider
  * @see java.security.ProtectionDomain
  * @see java.security.Permission

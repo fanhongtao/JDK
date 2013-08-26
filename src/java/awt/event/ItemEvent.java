@@ -1,8 +1,8 @@
 /*
- * @(#)ItemEvent.java	1.30 06/04/13
+ * @(#)ItemEvent.java	1.31 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.event;
@@ -26,7 +26,7 @@ import java.awt.ItemSelectable;
  * clicks, and can instead process a "meaningful" (semantic) event like
  * "item selected" or "item deselected". 
  *
- * @version 1.30 04/13/06
+ * @version 1.31 03/23/10
  * @author Carl Quinn
  *
  * @see java.awt.ItemSelectable

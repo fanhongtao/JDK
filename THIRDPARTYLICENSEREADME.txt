@@ -1020,8 +1020,8 @@ of use, data or profits, whether in an action of contract, negligence or other
 tortious action, arising out of or in connection with the use or performance of
 this software.
 
-Java is a trademark of Sun Microsystems, Inc.  References to the Java
-programming language in relation to JLex are not meant to imply that Sun
+Java is a trademark of Oracle Corporation.  References to the Java
+programming language in relation to JLex are not meant to imply that Oracle
 endorses this product.
 
 %% The following software may be included in this product:  SAX v.  2.0.1; Use

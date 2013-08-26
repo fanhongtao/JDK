@@ -1,8 +1,8 @@
 /*
- * @(#)MetalBumps.java	1.27 09/08/07
+ * @(#)MetalBumps.java	1.28 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -27,7 +27,7 @@ import javax.swing.Icon;
 /**
  * Implements the bumps used throughout the Metal Look and Feel.
  * 
- * @version 1.27 08/07/09
+ * @version 1.28 03/23/10
  * @author Tom Santos
  * @author Steve Wilson
  */

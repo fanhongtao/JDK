@@ -1,8 +1,8 @@
 /*
- * @(#)JOptionPane.java	1.100 06/08/08
+ * @(#)JOptionPane.java	1.101 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -290,7 +290,7 @@ import javax.accessibility.*;
  *      attribute: isContainer true
  *    description: A component which implements standard dialog box controls.
  *
- * @version 1.100 08/08/06
+ * @version 1.101 03/23/10
  * @author James Gosling
  * @author Scott Violet
  */

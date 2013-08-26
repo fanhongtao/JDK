@@ -1,8 +1,8 @@
 /*
- * @(#)AccessibleHTML.java	1.15 06/04/07
+ * @(#)AccessibleHTML.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.text.html;
@@ -21,7 +21,7 @@ import java.text.BreakIterator;
  * The AccessibleHTML class provide information about the contents 
  * of a HTML document to assistive technologies.
  * 
- * @version 1.15 04/07/06
+ * @version 1.16 03/23/10
  * @author  Lynn Monsanto
  */
 class AccessibleHTML implements Accessible {

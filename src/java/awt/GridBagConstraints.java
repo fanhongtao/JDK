@@ -1,8 +1,8 @@
 /*
- * @(#)GridBagConstraints.java	1.41 06/05/26
+ * @(#)GridBagConstraints.java	1.42 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -11,7 +11,7 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version     1.41, 05/26/06
+ * @version     1.42, 03/23/10
  * @author Doug Stein
  * @author Bill Spitzak (orignial NeWS & OLIT implementation)
  * @see java.awt.GridBagLayout

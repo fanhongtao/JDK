@@ -1,8 +1,8 @@
 /*
- * @(#)SwingPropertyChangeSupport.java	1.23 06/02/14
+ * @(#)SwingPropertyChangeSupport.java	1.24 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.event;
@@ -18,7 +18,7 @@ import javax.swing.SwingUtilities;
  * {@code SwingPropertyChangeSupport(sourceBean, true)} it ensures
  * listeners are only ever notified on the <i>Event Dispatch Thread</i>.
  *
- * @version 1.23 02/14/06
+ * @version 1.24 03/23/10
  * @author Igor Kushnirskiy
  */
 

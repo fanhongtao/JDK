@@ -1,8 +1,8 @@
 /*
- * @(#)ArrayTable.java	1.5 05/11/17
+ * @(#)ArrayTable.java	1.6 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -21,7 +21,7 @@ import java.util.Hashtable;
  * This does no synchronization, if you need thread safety synchronize on
  * another object before calling this.
  *
- * @version 1.5 11/17/05
+ * @version 1.6 03/23/10
  * @author Georges Saab
  * @author Scott Violet
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)OpenMBeanParameterInfoSupport.java	3.39 06/03/15
+ * @(#)OpenMBeanParameterInfoSupport.java	3.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -27,7 +27,7 @@ import static javax.management.openmbean.OpenMBeanAttributeInfoSupport.*;
  * Describes a parameter used in one or more operations or
  * constructors of an open MBean.
  *
- * @version     3.39  06/03/15
+ * @version     3.40  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

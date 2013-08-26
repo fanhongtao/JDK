@@ -1,8 +1,8 @@
 /*
- * @(#)UndoableEdit.java	1.21 05/11/17
+ * @(#)UndoableEdit.java	1.22 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.undo;
@@ -45,7 +45,7 @@ import javax.swing.event.*;
  * have many smaller edits undone or redone at once.  Similar functionality
  * can also be done using the <code>addEdit</code> method.
  *
- * @version 1.21, 11/17/05
+ * @version 1.22, 03/23/10
  * @author Ray Ryan
  */
 public interface UndoableEdit {

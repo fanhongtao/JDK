@@ -1,8 +1,8 @@
 /*
- * @(#)OpenType.java	3.39 09/05/07
+ * @(#)OpenType.java	3.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.openmbean;
@@ -40,7 +40,7 @@ import javax.management.ImmutableDescriptor;
  * as a {@code SimpleType.INTEGER} must have Java type
  * {@link Integer}.
  *
- * @version     3.39  09/05/07
+ * @version     3.40  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

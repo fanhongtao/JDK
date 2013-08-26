@@ -1,8 +1,8 @@
 /*
- * @(#)ProtocolHandler.java	1.13 05/11/17
+ * @(#)ProtocolHandler.java	1.14 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.pept.protocol;

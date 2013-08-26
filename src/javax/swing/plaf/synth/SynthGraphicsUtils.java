@@ -1,8 +1,8 @@
 /*
- * @(#)SynthGraphicsUtils.java	1.19 05/11/30
+ * @(#)SynthGraphicsUtils.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -16,7 +16,7 @@ import sun.swing.plaf.synth.*;
 /**
  * Wrapper for primitive graphics calls.
  *
- * @version 1.19, 11/30/05
+ * @version 1.20, 03/23/10
  * @since 1.5
  * @author Scott Violet
  */

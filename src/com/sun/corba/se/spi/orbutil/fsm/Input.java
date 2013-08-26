@@ -1,8 +1,8 @@
 /*
- * @(#)Input.java	1.7 05/11/17
+ * @(#)Input.java	1.8 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.spi.orbutil.fsm;
@@ -14,7 +14,7 @@ package com.sun.corba.se.spi.orbutil.fsm;
  * The toString() method should also be overridden to give a concise
  * description or name of the input.
  *
- * @version @(#)Input.java	1.7 05/11/17
+ * @version @(#)Input.java	1.8 10/03/23
  * @author Ken Cavanaugh 
  */
 public interface Input

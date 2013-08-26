@@ -1,8 +1,8 @@
 /*
- * @(#)ThreadGroup.java	1.67 09/12/03
+ * @(#)ThreadGroup.java	1.68 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -22,7 +22,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.67, 12/03/09
+ * @version 1.68, 03/23/10
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the

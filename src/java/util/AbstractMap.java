@@ -1,8 +1,8 @@
 /*
- * @(#)AbstractMap.java	1.50 06/06/16
+ * @(#)AbstractMap.java	1.51 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -42,7 +42,7 @@ import java.util.Map.Entry;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.50, 06/16/06
+ * @version 1.51, 03/23/10
  * @see Map
  * @see Collection
  * @since 1.2

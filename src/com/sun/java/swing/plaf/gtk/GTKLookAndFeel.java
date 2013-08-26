@@ -1,8 +1,8 @@
 /*
- * @(#)GTKLookAndFeel.java	1.111 08/11/17
+ * @(#)GTKLookAndFeel.java	1.112 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -28,7 +28,7 @@ import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
 
 /**
- * @version 1.111, 11/17/08
+ * @version 1.112, 03/23/10
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {

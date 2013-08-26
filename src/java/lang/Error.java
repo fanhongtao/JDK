@@ -1,8 +1,8 @@
 /*
- * @(#)Error.java	1.17 05/11/17
+ * @(#)Error.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -21,7 +21,7 @@ package java.lang;
  * errors are abnormal conditions that should never occur. 
  *
  * @author  Frank Yellin
- * @version 1.17, 11/17/05
+ * @version 1.18, 03/23/10
  * @see     java.lang.ThreadDeath
  * @since   JDK1.0
  */

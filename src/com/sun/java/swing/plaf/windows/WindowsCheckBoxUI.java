@@ -1,8 +1,8 @@
 /*
- * @(#)WindowsCheckBoxUI.java	1.22 09/08/10
+ * @(#)WindowsCheckBoxUI.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -25,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 08/10/09
+ * @version 1.23 03/23/10
  * @author Jeff Dinkins
  */
 public class WindowsCheckBoxUI extends WindowsRadioButtonUI

@@ -2,8 +2,8 @@
 #pragma ident "@(#)jvmtiLib.xsl	1.38 06/08/02 23:22:31 JVM"
 #endif
 /*
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
     /* AUTOMATICALLY GENERATED FILE - DO NOT EDIT */

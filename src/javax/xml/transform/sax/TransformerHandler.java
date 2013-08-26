@@ -20,9 +20,9 @@
 
 /*
  * $Id: TransformerHandler.java,v 1.3 2005/11/03 19:34:26 jeffsuttor Exp $
- * @(#)TransformerHandler.java	1.22 06/04/07
+ * @(#)TransformerHandler.java	1.23 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform.sax;

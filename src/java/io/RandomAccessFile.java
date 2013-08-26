@@ -1,8 +1,8 @@
 /*
- * @(#)RandomAccessFile.java	1.81 06/04/10
+ * @(#)RandomAccessFile.java	1.82 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -35,7 +35,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.81, 04/10/06
+ * @version 1.82, 03/23/10
  * @since   JDK1.0
  */
 

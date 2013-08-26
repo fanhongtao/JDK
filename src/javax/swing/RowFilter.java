@@ -1,8 +1,8 @@
 /*
- * @(#)RowFilter.java	1.6 06/03/15
+ * @(#)RowFilter.java	1.7 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
  * @param <M> the type of the model; for example <code>PersonModel</code>
  * @param <I> the type of the identifier; when using
  *            <code>TableRowSorter</code> this will be <code>Integer</code>
- * @version 1.6 03/15/06
+ * @version 1.7 03/23/10
  * @see javax.swing.table.TableRowSorter
  * @since 1.6
  */

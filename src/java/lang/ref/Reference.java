@@ -1,8 +1,8 @@
 /*
- * @(#)Reference.java	1.43 06/04/10
+ * @(#)Reference.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.ref;
@@ -16,7 +16,7 @@ import sun.misc.Cleaner;
  * implemented in close cooperation with the garbage collector, this class may
  * not be subclassed directly.
  *
- * @version  1.43, 04/10/06
+ * @version  1.44, 03/23/10
  * @author   Mark Reinhold
  * @since    1.2
  */

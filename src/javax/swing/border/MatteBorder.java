@@ -1,8 +1,8 @@
 /*
- * @(#)MatteBorder.java	1.24 06/04/07
+ * @(#)MatteBorder.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
 
@@ -27,7 +27,7 @@ import javax.swing.Icon;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.24 04/07/06
+ * @version 1.25 03/23/10
  * @author Amy Fowler
  */
 public class MatteBorder extends EmptyBorder

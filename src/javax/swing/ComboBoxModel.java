@@ -1,8 +1,8 @@
 /*
- * @(#)ComboBoxModel.java	1.16 05/11/17
+ * @(#)ComboBoxModel.java	1.17 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -15,7 +15,7 @@ package javax.swing;
  * <code>ListModel</code>. This disjoint behavior allows for the temporary 
  * storage and retrieval of a selected item in the model.
  *
- * @version 1.16 11/17/05
+ * @version 1.17 03/23/10
  * @author Arnaud Weber
  */
 public interface ComboBoxModel extends ListModel {

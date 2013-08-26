@@ -1,8 +1,8 @@
 /*
- * @(#)Comparable.java	1.26 06/04/21
+ * @(#)Comparable.java	1.27 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -72,7 +72,7 @@ import java.util.*;
  * @param <T> the type of objects that this object may be compared to
  *
  * @author  Josh Bloch
- * @version 1.26, 04/21/06
+ * @version 1.27, 03/23/10
  * @see java.util.Comparator
  * @since 1.2
  */

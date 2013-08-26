@@ -1,8 +1,8 @@
 /*
- * @(#)Map.java	1.10 06/03/28
+ * @(#)Map.java	1.11 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -18,7 +18,7 @@ import javax.swing.text.AttributeSet;
  * you can test if a point falls inside the map via the contains method.
  *
  * @author  Scott Violet
- * @version 1.10 03/28/06
+ * @version 1.11 03/23/10
  */
 class Map implements Serializable {
     /** Name of the Map. */

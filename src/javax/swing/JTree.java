@@ -1,8 +1,8 @@
 /*
- * @(#)JTree.java	1.197 08/07/23
+ * @(#)JTree.java	1.198 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -120,7 +120,7 @@ import static sun.swing.SwingUtilities2.Section.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.197, 07/23/08
+ * @version 1.198, 03/23/10
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet

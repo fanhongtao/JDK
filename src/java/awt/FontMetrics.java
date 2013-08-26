@@ -1,8 +1,8 @@
 /*
- * @(#)FontMetrics.java	1.59 05/11/17
+ * @(#)FontMetrics.java	1.60 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -74,7 +74,7 @@ import java.text.CharacterIterator;
  * generally independent of the rotation applied to the font (modulo
  * possible grid hinting effects).  See {@link java.awt.Font Font}.
  * 
- * @version 	1.59 11/17/05
+ * @version 	1.60 03/23/10
  * @author 	Jim Graham
  * @see         java.awt.Font
  * @since       JDK1.0

@@ -1,8 +1,8 @@
 /*
- * @(#)KeyRep.java	1.10 06/04/24
+ * @(#)KeyRep.java	1.11 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -33,7 +33,7 @@ import javax.crypto.spec.SecretKeySpec;
  * @see java.security.spec.X509EncodedKeySpec
  * @see java.security.spec.PKCS8EncodedKeySpec
  *
- * @version 1.10, 06/04/24
+ * @version 1.11, 10/03/23
  * @since 1.5
  */
 

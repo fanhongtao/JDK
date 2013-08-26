@@ -1,8 +1,8 @@
 /*
- * @(#)DigitList.java	1.34 06/01/26
+ * @(#)DigitList.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -50,7 +50,7 @@ import java.math.RoundingMode;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.34 01/26/06
+ * @version      1.35 03/23/10
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {

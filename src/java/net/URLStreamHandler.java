@@ -1,8 +1,8 @@
 /*
- * @(#)URLStreamHandler.java	1.73 06/04/07
+ * @(#)URLStreamHandler.java	1.74 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -29,7 +29,7 @@ import sun.net.www.ParseUtil;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.73, 04/07/06
+ * @version 1.74, 03/23/10
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */

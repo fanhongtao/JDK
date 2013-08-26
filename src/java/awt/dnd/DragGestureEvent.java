@@ -1,8 +1,8 @@
 /*
- * @(#)DragGestureEvent.java	1.24 05/11/17
+ * @(#)DragGestureEvent.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -38,7 +38,7 @@ import java.io.Serializable;
  * platform dependent drag initiating gesture has occurred 
  * on the <code>Component</code> that it is tracking.
  * 
- * @version 1.24
+ * @version 1.25
  * @see java.awt.dnd.DragGestureRecognizer
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragSource

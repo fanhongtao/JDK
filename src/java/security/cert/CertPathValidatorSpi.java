@@ -1,8 +1,8 @@
 /*
- * @(#)CertPathValidatorSpi.java	1.6 05/11/17
+ * @(#)CertPathValidatorSpi.java	1.7 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -32,7 +32,7 @@ import java.security.InvalidAlgorithmParameterException;
  * manipulating a different <code>CertPathValidatorSpi</code> instance need not
  * synchronize.
  *
- * @version 	1.6 11/17/05
+ * @version 	1.7 03/23/10
  * @since	1.4
  * @author	Yassir Elley
  */

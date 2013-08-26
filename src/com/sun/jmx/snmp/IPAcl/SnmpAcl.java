@@ -1,11 +1,11 @@
 /*
  * @(#)file      SnmpAcl.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.34
- * @(#)date      06/11/29
+ * @(#)version   4.35
+ * @(#)date      10/07/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 
@@ -45,7 +45,7 @@ import com.sun.jmx.trace.Trace;
   *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     4.34     04/07/06
+ * @version     4.35     03/23/10
  * @author      Sun Microsystems, Inc
  */
 

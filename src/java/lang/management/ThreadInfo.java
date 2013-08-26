@@ -1,8 +1,8 @@
 /*
- * @(#)ThreadInfo.java	1.25 06/05/05
+ * @(#)ThreadInfo.java	1.26 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.management;
@@ -67,7 +67,7 @@ import static java.lang.Thread.State.*;
  * @see ThreadMXBean#dumpAllThreads
  *
  * @author  Mandy Chung
- * @version 1.25, 05/05/06 
+ * @version 1.26, 03/23/10 
  * @since   1.5
  */
 

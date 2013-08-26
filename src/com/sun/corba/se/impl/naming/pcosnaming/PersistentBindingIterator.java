@@ -1,13 +1,13 @@
 /*
- * @(#)PersistentBindingIterator.java	1.11 05/11/17
+ * @(#)PersistentBindingIterator.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
  * @(#)TransientBindingIterator.java	1.36 99/07/16
  * 
- * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road, 
+ * Copyright (c) 1993, 1997, Oracle and/or its affiliates. All rights reserved. 901 San Antonio Road, 
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.
  * 
  * This software is the confidential and proprietary information of Sun

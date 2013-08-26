@@ -1,8 +1,8 @@
 /*
- * @(#)BasicCheckBoxMenuItemUI.java	1.54 05/11/17
+ * @(#)BasicCheckBoxMenuItemUI.java	1.55 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
@@ -18,7 +18,7 @@ import java.io.Serializable;
 /**
  * BasicCheckboxMenuItem implementation
  *
- * @version 1.54 11/17/05
+ * @version 1.55 03/23/10
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

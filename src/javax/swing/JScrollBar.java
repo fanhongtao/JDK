@@ -1,8 +1,8 @@
 /*
- * @(#)JScrollBar.java	1.81 06/08/08
+ * @(#)JScrollBar.java	1.82 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -58,7 +58,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A component that helps determine the visible content range of an area.
  *
- * @version 1.81 08/08/06
+ * @version 1.82 03/23/10
  * @author David Kloba
  */
 public class JScrollBar extends JComponent implements Adjustable, Accessible

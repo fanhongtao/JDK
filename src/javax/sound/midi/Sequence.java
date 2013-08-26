@@ -1,8 +1,8 @@
 /*
- * @(#)Sequence.java	1.28 05/11/17
+ * @(#)Sequence.java	1.29 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;
@@ -32,7 +32,7 @@ import com.sun.media.sound.MidiUtils;
  * @see Track#add(MidiEvent)
  * @see MidiFileFormat
  *
- * @version 1.28, 05/11/17
+ * @version 1.29, 10/03/23
  * @author Kara Kytle
  */
 public class Sequence {

@@ -1,8 +1,8 @@
 /*
- * @(#)Observable.java	1.39 05/11/17
+ * @(#)Observable.java	1.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -35,7 +35,7 @@ package java.util;
  * <tt>equals</tt> method returns true for them.
  *
  * @author  Chris Warth
- * @version 1.39, 11/17/05
+ * @version 1.40, 03/23/10
  * @see     java.util.Observable#notifyObservers()
  * @see     java.util.Observable#notifyObservers(java.lang.Object)
  * @see     java.util.Observer

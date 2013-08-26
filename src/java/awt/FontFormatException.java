@@ -1,8 +1,8 @@
 /*
- * @(#)FontFormatException.java	1.10 05/11/17
+ * @(#)FontFormatException.java	1.11 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -12,7 +12,7 @@ package java.awt;
  * that the specified font is bad. 
  *
  * @author  Parry Kejriwal
- * @version 1.10, 11/17/05
+ * @version 1.11, 03/23/10
  * @see     java.awt.Font
  * @since   1.3
  */

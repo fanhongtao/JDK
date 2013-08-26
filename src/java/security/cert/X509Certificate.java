@@ -1,8 +1,8 @@
 /*
- * @(#)X509Certificate.java	1.40 05/11/17
+ * @(#)X509Certificate.java	1.41 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security.cert;
@@ -80,7 +80,7 @@ import sun.security.x509.X509CertImpl;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.40
+ * @version 1.41
  *
  * @see Certificate
  * @see CertificateFactory

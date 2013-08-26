@@ -1,13 +1,13 @@
 /*
- * @(#)RepositoryImpl.java	1.46 05/11/17
+ * @(#)RepositoryImpl.java	1.47 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /* 
  * @(#)RepositoryImpl.java 1.1 97/10/17 
  *
- * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road,
+ * Copyright (c) 1993, 1997, Oracle and/or its affiliates. All rights reserved. 901 San Antonio Road,
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.
  *
  * This software is the confidential and proprietary information of Sun

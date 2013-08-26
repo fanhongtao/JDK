@@ -1,8 +1,8 @@
 /*
- * @(#)JMenu.java	1.181 06/08/08
+ * @(#)JMenu.java	1.182 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -83,7 +83,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.181 08/08/06
+ * @version 1.182 03/23/10
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

@@ -1,8 +1,8 @@
 /*
- * @(#)TableColumnModel.java	1.26 05/11/17
+ * @(#)TableColumnModel.java	1.27 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.table;
@@ -17,7 +17,7 @@ import javax.swing.*;
  * Defines the requirements for a table column model object suitable for
  * use with <code>JTable</code>.
  *
- * @version 1.26 11/17/05
+ * @version 1.27 03/23/10
  * @author Alan Chung
  * @author Philip Milne
  * @see DefaultTableColumnModel

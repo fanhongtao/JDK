@@ -1,8 +1,8 @@
 /*
- * @(#)SyntheticImage.java	1.25 05/11/17
+ * @(#)SyntheticImage.java	1.26 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.colorchooser;
@@ -34,7 +34,7 @@ import java.awt.image.*;
  *  frame has started.  It is acceptable (expected?) for computeRow(0,r)
  *  to pause until the appropriate time to start the next frame.
  *
- *  @version 1.25 11/17/05
+ *  @version 1.26 03/23/10
  *  @author James Gosling
  */
 abstract class SyntheticImage implements ImageProducer {

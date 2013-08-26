@@ -1,7 +1,7 @@
 /*
- * @(#)UNIXProcess.java.linux	1.39 06/09/12
+ * @(#)UNIXProcess.java.linux	1.40 10/03/23
  *
- * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1995, 2000, Oracle and/or its affiliates. All rights reserved.
  *
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.

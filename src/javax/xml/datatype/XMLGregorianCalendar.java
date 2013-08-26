@@ -20,9 +20,9 @@
 
 /*
  * $Id: XMLGregorianCalendar.java,v 1.7 2006/01/12 18:53:55 ndw Exp $
- * @(#)XMLGregorianCalendar.java	1.28 06/03/23
+ * @(#)XMLGregorianCalendar.java	1.29 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.datatype;

@@ -1,8 +1,8 @@
 /*
- * @(#)Dictionary.java	1.24 05/11/17
+ * @(#)Dictionary.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -22,7 +22,7 @@ package java.util;
  * implement the Map interface, rather than extending this class.</strong>
  *
  * @author  unascribed
- * @version 1.24, 11/17/05
+ * @version 1.25, 03/23/10
  * @see	    java.util.Map
  * @see     java.lang.Object#equals(java.lang.Object)
  * @see     java.lang.Object#hashCode()

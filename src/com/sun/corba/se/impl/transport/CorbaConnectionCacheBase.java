@@ -1,8 +1,8 @@
 /*
- * @(#)CorbaConnectionCacheBase.java	1.29 09/04/01
+ * @(#)CorbaConnectionCacheBase.java	1.30 10/03/23
  * 
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.impl.transport;

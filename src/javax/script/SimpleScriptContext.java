@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleScriptContext.java	1.6 06/06/19 20:55:48
+ * @(#)SimpleScriptContext.java	1.7 10/03/23 17:34:57
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTAIL. Use is subject to license terms.
  */
 

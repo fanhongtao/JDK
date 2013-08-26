@@ -1,8 +1,8 @@
 /*
- * @(#)SecurityManager.java	1.139 06/04/21
+ * @(#)SecurityManager.java	1.140 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -182,7 +182,7 @@ import sun.security.util.SecurityConstants;
  * @author  Arthur van Hoff
  * @author  Roland Schemers
  *
- * @version 1.139, 04/21/06
+ * @version 1.140, 03/23/10
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)

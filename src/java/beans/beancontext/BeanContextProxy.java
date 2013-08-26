@@ -1,8 +1,8 @@
 /*
- * @(#)BeanContextProxy.java	1.12 05/11/17
+ * @(#)BeanContextProxy.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans.beancontext;
@@ -49,7 +49,7 @@ package java.beans.beancontext;
  * instance
  * </p>
  * @author Laurence P. G. Cable
- * @version 1.12, 11/17/05
+ * @version 1.13, 03/23/10
  * @since 1.2
  *
  * @see java.beans.beancontext.BeanContextChild

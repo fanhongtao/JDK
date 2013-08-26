@@ -1,8 +1,8 @@
 /*
- * @(#)Scrollbar.java	1.112 06/07/11
+ * @(#)Scrollbar.java	1.113 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -140,7 +140,7 @@ import javax.accessibility.*;
  * encounter issues with painting, key handling, sizing and 
  * positioning.
  *
- * @version 	1.112, 07/11/06
+ * @version 	1.113, 03/23/10
  * @author 	Sami Shaio
  * @see         java.awt.event.AdjustmentEvent
  * @see         java.awt.event.AdjustmentListener

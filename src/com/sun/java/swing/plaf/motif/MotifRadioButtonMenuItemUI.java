@@ -1,8 +1,8 @@
 /*
- * @(#)MotifRadioButtonMenuItemUI.java	1.45 06/07/17
+ * @(#)MotifRadioButtonMenuItemUI.java	1.46 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package com.sun.java.swing.plaf.motif;
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.45 07/17/06
+ * @version 1.46 03/23/10
  * @author Georges Saab
  * @author Rich Schiavi
  */

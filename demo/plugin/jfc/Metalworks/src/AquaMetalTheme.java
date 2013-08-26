@@ -1,7 +1,7 @@
 /*
- * @(#)AquaMetalTheme.java	1.12 10/01/12
+ * @(#)AquaMetalTheme.java	1.13 10/03/23
  * 
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  this list of conditions and the following disclaimer in the documentation
  *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * Neither the name of Oracle or the names of contributors may 
  * be used to endorse or promote products derived from this software without 
  * specific prior written permission.
  * 
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)AquaMetalTheme.java	1.12 10/01/12
+ * @(#)AquaMetalTheme.java	1.13 10/03/23
  */
 
 
@@ -48,7 +48,7 @@ import java.awt.*;
 /**
  * This class describes a theme using "blue-green" colors.
  *
- * @version 1.12 01/12/10
+ * @version 1.13 03/23/10
  * @author Steve Wilson
  */
 public class AquaMetalTheme extends DefaultMetalTheme {

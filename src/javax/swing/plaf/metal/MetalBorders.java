@@ -1,8 +1,8 @@
 /*
- * @(#)MetalBorders.java	1.43 09/08/07
+ * @(#)MetalBorders.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -25,7 +25,7 @@ import java.awt.Window;
 /**
  * Factory object that can vend Borders appropriate for the metal L & F.
  * @author Steve Wilson
- * @version 1.43 08/07/09
+ * @version 1.44 03/23/10
  */
 
 public class MetalBorders {

@@ -20,9 +20,9 @@
 
 /*
  * $Id: StAXResult.java,v 1.4 2006/04/24 13:42:26 ndw Exp $
- * @(#)StAXResult.java	1.11 06/07/13
+ * @(#)StAXResult.java	1.12 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform.stax;

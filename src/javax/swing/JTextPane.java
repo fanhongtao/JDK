@@ -1,8 +1,8 @@
 /*
- * @(#)JTextPane.java	1.96 08/10/16
+ * @(#)JTextPane.java	1.97 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -59,7 +59,7 @@ import javax.swing.plaf.*;
  * description: A text component that can be marked up with attributes that are graphically represented.
  *
  * @author  Timothy Prinzing
- * @version 1.96 10/16/08
+ * @version 1.97 03/23/10
  * @see javax.swing.text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {

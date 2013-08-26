@@ -1,8 +1,8 @@
 /*
- * @(#)Highlighter.java	1.23 05/11/17
+ * @(#)Highlighter.java	1.24 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -15,7 +15,7 @@ import java.awt.Shape;
  * with colored areas.
  *
  * @author  Timothy Prinzing
- * @version 1.23 11/17/05
+ * @version 1.24 03/23/10
  */
 public interface Highlighter {
 

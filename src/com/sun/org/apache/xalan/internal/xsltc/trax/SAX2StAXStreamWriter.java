@@ -20,9 +20,9 @@
 
 /*
  * $Id: SAX2StAXStreamWriter.java,v 1.7 2006/04/12 08:52:20 sunithareddy Exp $
- * @(#)SAX2StAXStreamWriter.java	1.10 06/06/21
+ * @(#)SAX2StAXStreamWriter.java	1.11 10/04/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;

@@ -1,8 +1,8 @@
 /*
- * @(#)MenuComponent.java	1.82 09/04/13
+ * @(#)MenuComponent.java	1.83 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -24,7 +24,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.82, 04/13/09
+ * @version 	1.83, 03/23/10
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */

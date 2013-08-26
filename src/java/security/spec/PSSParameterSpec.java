@@ -1,8 +1,8 @@
 /*
- * @(#)PSSParameterSpec.java	1.9 06/07/20
+ * @(#)PSSParameterSpec.java	1.10 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.spec;
@@ -53,7 +53,7 @@ import java.security.spec.MGF1ParameterSpec;
  *
  * @author Valerie Peng
  *
- * @version 1.9 06/07/20
+ * @version 1.10 10/03/23
  *
  * @since 1.4
  */

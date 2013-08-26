@@ -1,8 +1,8 @@
 /*
- * @(#)ImageIcon.java	1.57 09/08/07
+ * @(#)ImageIcon.java	1.58 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -44,7 +44,7 @@ import java.security.AccessController;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.57 08/07/09
+ * @version 1.58 03/23/10
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */

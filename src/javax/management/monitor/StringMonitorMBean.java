@@ -1,8 +1,8 @@
 /*
- * @(#)StringMonitorMBean.java	4.25 05/11/17
+ * @(#)StringMonitorMBean.java	4.26 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.monitor; 
@@ -14,7 +14,7 @@ import javax.management.ObjectName;
 /**
  * Exposes the remote management interface of the string monitor MBean.
  *
- * @version     4.25     11/17/05
+ * @version     4.26     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

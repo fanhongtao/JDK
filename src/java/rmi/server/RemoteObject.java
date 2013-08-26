@@ -1,8 +1,8 @@
 /*
- * @(#)RemoteObject.java	1.34 05/11/17
+ * @(#)RemoteObject.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.server;
@@ -21,7 +21,7 @@ import sun.rmi.server.Util;
  * @author	Ann Wollrath
  * @author	Laird Dornin
  * @author	Peter Jones
- * @version	1.34, 05/11/17
+ * @version	1.35, 10/03/23
  * @since	JDK1.1
  */
 public abstract class RemoteObject implements Remote, java.io.Serializable {

@@ -1,8 +1,8 @@
 /*
- * @(#)SynthButtonUI.java	1.29 07/11/22
+ * @(#)SynthButtonUI.java	1.30 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -25,7 +25,7 @@ import sun.swing.plaf.synth.DefaultSynthStyle;
 /**
  * Synth's ButtonUI implementation.
  *
- * @version 1.29, 11/22/07
+ * @version 1.30, 03/23/10
  * @author Scott Violet
  */
 class SynthButtonUI extends BasicButtonUI implements

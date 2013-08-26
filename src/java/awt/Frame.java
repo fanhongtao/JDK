@@ -1,8 +1,8 @@
 /*
- * @(#)Frame.java	1.163 08/10/31
+ * @(#)Frame.java	1.164 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -109,7 +109,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.163, 10/31/08
+ * @version 	1.164, 03/23/10
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener

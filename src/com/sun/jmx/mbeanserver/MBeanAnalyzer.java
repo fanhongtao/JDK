@@ -1,8 +1,8 @@
 /*
- * @(#)MBeanAnalyzer.java	1.17 07/01/29
+ * @(#)MBeanAnalyzer.java	1.18 10/03/23
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.jmx.mbeanserver;

@@ -1,8 +1,8 @@
 /*
- * @(#)ListDataEvent.java	1.19 05/11/17
+ * @(#)ListDataEvent.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.event;
@@ -22,7 +22,7 @@ import java.util.EventObject;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 11/17/05
+ * @version 1.20 03/23/10
  * @author Hans Muller
  */
 public class ListDataEvent extends EventObject 

@@ -1,8 +1,8 @@
 /*
- * @(#)GTKIconFactory.java	1.32 06/06/07
+ * @(#)GTKIconFactory.java	1.33 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -20,7 +20,7 @@ import com.sun.java.swing.plaf.gtk.GTKConstants.Orientation;
 import com.sun.java.swing.plaf.gtk.GTKConstants.ShadowType;
 
 /**
- * @version 1.32, 06/07/06
+ * @version 1.33, 03/23/10
  */
 class GTKIconFactory {
     private static final String RADIO_BUTTON_ICON    = "paintRadioButtonIcon";

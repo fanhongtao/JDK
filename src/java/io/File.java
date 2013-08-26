@@ -1,8 +1,8 @@
 /*
- * @(#)File.java	1.143 09/12/06
+ * @(#)File.java	1.144 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -112,7 +112,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.143, 12/06/09
+ * @version 1.144, 03/23/10
  * @author  unascribed
  * @since   JDK1.0
  */

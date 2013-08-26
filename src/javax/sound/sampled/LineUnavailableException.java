@@ -1,8 +1,8 @@
 /*
- * @(#)LineUnavailableException.java	1.10 05/11/17
+ * @(#)LineUnavailableException.java	1.11 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.sampled;		  
@@ -14,7 +14,7 @@ package javax.sound.sampled;
  * by another application.
  *
  * @author Kara Kytle
- * @version 1.10 05/11/17
+ * @version 1.11 10/03/23
  * @since 1.3
  */
 /*
@@ -23,7 +23,7 @@ package javax.sound.sampled;
  * arises most commonly when a line is requested when it is already in use 
  * by another application.
  *
- * @version 1.10 05/11/17
+ * @version 1.11 10/03/23
  * @author Kara Kytle
  */
 

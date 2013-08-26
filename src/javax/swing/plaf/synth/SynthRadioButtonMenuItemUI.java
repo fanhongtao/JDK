@@ -1,8 +1,8 @@
 /*
- * @(#)SynthRadioButtonMenuItemUI.java	1.6 05/11/17
+ * @(#)SynthRadioButtonMenuItemUI.java	1.7 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -16,7 +16,7 @@ import javax.swing.border.*;
 /**
  * Synth's RadioButtonMenuItemUI.
  *
- * @version 1.6, 11/17/05
+ * @version 1.7, 03/23/10
  * @author Georges Saab
  * @author David Karlton
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)SynthMenuBarUI.java	1.11 05/11/17
+ * @(#)SynthMenuBarUI.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -28,7 +28,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's MenuBarUI.
  *
- * @version 1.11, 11/17/05
+ * @version 1.12, 03/23/10
  * @author Scott Violet
  */
 class SynthMenuBarUI extends BasicMenuBarUI implements PropertyChangeListener,

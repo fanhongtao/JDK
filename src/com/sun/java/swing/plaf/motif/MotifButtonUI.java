@@ -1,8 +1,8 @@
 /*
- * @(#)MotifButtonUI.java	1.28 09/08/10
+ * @(#)MotifButtonUI.java	1.29 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package com.sun.java.swing.plaf.motif;
@@ -26,7 +26,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.28 08/10/09
+ * @version 1.29 03/23/10
  * @author Rich Schiavi
  */
 public class MotifButtonUI extends BasicButtonUI {

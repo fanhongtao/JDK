@@ -1,8 +1,8 @@
 /*
- * @(#)JarVerifier.java	1.41 10/02/01
+ * @(#)JarVerifier.java	1.42 10/03/23
  *
- * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.jar;
@@ -21,7 +21,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.41 10/02/01
+ * @version 	1.42 10/03/23
  * @author	Roland Schemers
  */
 class JarVerifier {

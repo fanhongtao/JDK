@@ -1,10 +1,10 @@
 /*
  * GTKNativeStyle.java
  *
- * @(#)GTKNativeStyle.java	1.7 07/03/15
+ * @(#)GTKNativeStyle.java	1.8 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.gtk;
@@ -23,7 +23,7 @@ import sun.awt.UNIXToolkit;
 
 /**
  *
- * @version 1.7, 03/15/07
+ * @version 1.8, 03/23/10
  * @author Kirill Kirichenko
  */
 class GTKNativeStyle extends GTKStyle {

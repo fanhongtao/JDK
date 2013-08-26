@@ -1,8 +1,8 @@
 /*
- * @(#)BasicPermission.java	1.44 05/11/17
+ * @(#)BasicPermission.java	1.45 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -53,7 +53,7 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.44 05/11/17
+ * @version 1.45 10/03/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -296,7 +296,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.44 11/17/05
+ * @version 1.45 03/23/10
  *
  * @author Roland Schemers
  *

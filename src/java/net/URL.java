@@ -1,8 +1,8 @@
 /*
- * @(#)URL.java	1.136 09/04/30
+ * @(#)URL.java	1.137 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -110,7 +110,7 @@ import sun.security.util.SecurityConstants;
  * as the encoding scheme defined in RFC2396.
  *
  * @author  James Gosling
- * @version 1.136, 04/30/09
+ * @version 1.137, 03/23/10
  * @since JDK1.0 
  */
 public final class URL implements java.io.Serializable {

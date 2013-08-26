@@ -20,9 +20,9 @@
 
 /*
  * $Id: DocumentBuilderFactory.java,v 1.5 2005/11/03 19:34:14 jeffsuttor Exp $
- * @(#)DocumentBuilderFactory.java	1.50 06/06/21
+ * @(#)DocumentBuilderFactory.java	1.51 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.parsers;

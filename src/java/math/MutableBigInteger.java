@@ -1,10 +1,10 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)MutableBigInteger.java	1.17 09/03/20
+ * @(#)MutableBigInteger.java	1.18 10/03/23
  */
 
 package java.math;
@@ -21,7 +21,7 @@ package java.math;
  * BigIntegers.
  *
  * @see     BigInteger
- * @version 1.17, 03/20/09
+ * @version 1.18, 03/23/10
  * @author  Michael McCloskey
  * @since   1.3
  */

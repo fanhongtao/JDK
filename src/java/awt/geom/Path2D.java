@@ -1,8 +1,8 @@
 /*
- * @(#)Path2D.java	1.4 06/04/19
+ * @(#)Path2D.java	1.5 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -46,7 +46,7 @@ import java.util.Arrays;
  * that control how to determine which regions are inside or outside
  * the path.
  * 
- * @version 1.4, 04/19/06
+ * @version 1.5, 03/23/10
  * @author Jim Graham
  * @since 1.6
  */

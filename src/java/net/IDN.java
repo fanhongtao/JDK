@@ -1,8 +1,8 @@
 /*
- * @(#)IDN.java	1.3 05/11/17
+ * @(#)IDN.java	1.4 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
 
@@ -50,7 +50,7 @@ import sun.text.normalizer.UCharacterIterator;
  * Applications are responsible for taking adequate security measures when using
  * international domain names.
  *
- * @version 1.3, 05/11/17
+ * @version 1.4, 10/03/23
  * @author Edward Wang
  * @since 1.6
  *

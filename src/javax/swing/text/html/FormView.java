@@ -1,8 +1,8 @@
 /*
- * @(#)FormView.java	1.29 06/07/25
+ * @(#)FormView.java	1.30 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -85,7 +85,7 @@ import javax.swing.text.*;
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.29 07/25/06
+ * @version 1.30 03/23/10
  */
 public class FormView extends ComponentView implements ActionListener {
 

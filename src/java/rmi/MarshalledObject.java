@@ -1,8 +1,8 @@
 /*
- * @(#)MarshalledObject.java	1.35 05/11/17
+ * @(#)MarshalledObject.java	1.36 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi;
@@ -46,7 +46,7 @@ import sun.rmi.server.MarshalOutputStream;
  * @param <T> the type of the object contained in this
  * <code>MarshalledObject</code>
  *
- * @version 1.35, 11/17/05
+ * @version 1.36, 03/23/10
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2

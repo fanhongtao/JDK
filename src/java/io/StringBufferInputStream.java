@@ -1,8 +1,8 @@
 /*
- * @(#)StringBufferInputStream.java	1.27 05/11/17
+ * @(#)StringBufferInputStream.java	1.28 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -17,7 +17,7 @@ package java.io;
  * this class.
  *
  * @author     Arthur van Hoff
- * @version    1.27, 11/17/05
+ * @version    1.28, 03/23/10
  * @see        java.io.ByteArrayInputStream
  * @see        java.io.StringReader
  * @since      JDK1.0

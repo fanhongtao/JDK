@@ -1,11 +1,11 @@
 /*
  * @(#)file      SnmpTableEntryNotification.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.15
- * @(#)date      06/11/29
+ * @(#)version   4.16
+ * @(#)date      10/07/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 
@@ -35,7 +35,7 @@ import javax.management.ObjectName;
  * 
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     4.15     11/17/05
+ * @version     4.16     03/23/10
  * @author      Sun Microsystems, Inc
  */
 

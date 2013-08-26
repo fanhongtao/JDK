@@ -1,8 +1,8 @@
 /*
- * @(#)TabExpander.java	1.16 05/11/17
+ * @(#)TabExpander.java	1.17 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -12,7 +12,7 @@ package javax.swing.text;
  * implementations of tab expansion.
  *
  * @author  Timothy Prinzing
- * @version 1.16 11/17/05
+ * @version 1.17 03/23/10
  */
 public interface TabExpander {
 

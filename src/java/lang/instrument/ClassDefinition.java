@@ -1,7 +1,7 @@
 /*
- * @(#)ClassDefinition.java	1.5 06/04/07
+ * @(#)ClassDefinition.java	1.6 10/03/23
  *
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
  */
 
 package java.lang.instrument;

@@ -1,8 +1,8 @@
 /*
- * @(#)LdapName.java	1.8 05/11/17
+ * @(#)LdapName.java	1.9 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.naming.ldap;
@@ -81,7 +81,7 @@ import java.io.IOException;
  * NullPointerException to be thrown.
  *
  * @author Scott Seligman
- * @version 1.8 05/11/17
+ * @version 1.9 10/03/23
  * @since 1.5
  */
 

@@ -1,8 +1,8 @@
 /*
- * @(#)InvalidMidiDataException.java	1.12 05/11/17
+ * @(#)InvalidMidiDataException.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;		  
@@ -18,7 +18,7 @@ package javax.sound.midi;
  * For example, a file reader might not be able to parse a Type 2 MIDI file, even
  * though that format is defined in the MIDI specification.
  *
- * @version 1.12, 11/17/05
+ * @version 1.13, 03/23/10
  * @author Kara Kytle
  */
 public class InvalidMidiDataException extends Exception {

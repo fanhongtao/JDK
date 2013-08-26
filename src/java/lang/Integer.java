@@ -1,8 +1,8 @@
 /*
- * @(#)Integer.java	1.93 09/02/26
+ * @(#)Integer.java	1.94 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -31,7 +31,7 @@ import java.util.Properties;
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.93, 02/26/09
+ * @version 1.94, 03/23/10
  * @since JDK1.0
  */
 public final class Integer extends Number implements Comparable<Integer> {

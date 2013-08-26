@@ -1,8 +1,8 @@
 /*
- * @(#)ObjID.java	1.31 06/02/23
+ * @(#)ObjID.java	1.32 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
 
@@ -47,7 +47,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.31, 06/02/23
+ * @version	1.32, 10/03/23
  * @since	JDK1.1
  */
 public final class ObjID implements Serializable {

@@ -1,8 +1,8 @@
 /*
- * @(#)DefaultTreeSelectionModel.java	1.51 05/11/17
+ * @(#)DefaultTreeSelectionModel.java	1.52 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.tree;
@@ -41,7 +41,7 @@ import javax.swing.DefaultListSelectionModel;
  *
  * @see javax.swing.JTree
  *
- * @version 1.51 11/17/05
+ * @version 1.52 03/23/10
  * @author Scott Violet
  */
 public class DefaultTreeSelectionModel extends Object implements Cloneable, Serializable, TreeSelectionModel

@@ -1,8 +1,8 @@
 /*
- * @(#)JPopupMenu.java	1.204 09/08/07
+ * @(#)JPopupMenu.java	1.205 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -53,7 +53,7 @@ import javax.swing.event.*;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.204 @(#)JPopupMenu.java	1.204
+ * @version 1.205 @(#)JPopupMenu.java	1.205
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

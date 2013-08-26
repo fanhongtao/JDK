@@ -1,8 +1,8 @@
 /*
- * @(#)DragSourceContext.java	1.53 06/04/04
+ * @(#)DragSourceContext.java	1.54 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -52,7 +52,7 @@ import java.util.TooManyListenersException;
  *
  * @see DragSourceListener
  * @see DragSourceMotionListener
- * @version 1.53, 04/04/06
+ * @version 1.54, 03/23/10
  * @since 1.2
  */
 

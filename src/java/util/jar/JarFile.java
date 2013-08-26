@@ -1,8 +1,8 @@
 /*
- * @(#)JarFile.java	1.69 09/12/16
+ * @(#)JarFile.java	1.70 10/03/23
  *
- * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.jar;
@@ -33,7 +33,7 @@ import sun.misc.SharedSecrets;
  * thrown.
  *
  * @author  David Connelly
- * @version 1.69, 12/16/09
+ * @version 1.70, 03/23/10
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry

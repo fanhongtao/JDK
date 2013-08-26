@@ -20,9 +20,9 @@
 
 /*
  * $Id: SecuritySupport.java,v 1.4 2006/06/09 10:59:33 sunithareddy Exp $
- * @(#)SecuritySupport.java	1.1 06/07/13
+ * @(#)SecuritySupport.java	1.2 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.stream;

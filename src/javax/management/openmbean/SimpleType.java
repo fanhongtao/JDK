@@ -1,8 +1,8 @@
 /*
- * @(#)SimpleType.java	3.26 05/11/17
+ * @(#)SimpleType.java	3.27 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -37,7 +37,7 @@ import javax.management.ObjectName;
  * In other words, its methods <code>getClassName</code>, <code>getTypeName</code> and <code>getDescription</code>
  * all return the same string value <i>className</i>.
  *
- * @version     3.26  05/11/17
+ * @version     3.27  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

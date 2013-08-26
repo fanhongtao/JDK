@@ -1,8 +1,8 @@
 @echo off
 REM 
-REM @(#)memory.bat	1.1 06/08/07
+REM @(#)memory.bat	1.3 10/04/05
 REM
-REM Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+REM Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
 REM
 REM Redistribution and use in source and binary forms, with or without
 REM modification, are permitted provided that the following conditions are met:
@@ -14,7 +14,7 @@ REM -Redistribution in binary form must reproduce the above copyright notice,
 REM  this list of conditions and the following disclaimer in the documentation
 REM  and/or other materials provided with the distribution.
 REM
-REM Neither the name of Sun Microsystems, Inc. or the names of contributors may
+REM Neither the name of Oracle or the names of contributors may
 REM be used to endorse or promote products derived from this software without
 REM specific prior written permission.
 REM

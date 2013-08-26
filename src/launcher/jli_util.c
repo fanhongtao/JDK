@@ -1,7 +1,7 @@
 /*
- * @(#)jli_util.c	1.2	06/02/25
+ * @(#)jli_util.c	1.3	10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * Use is subject to license terms.
  */
 

@@ -20,9 +20,9 @@
 
 /*
  * $Id: SAXParserFactory.java,v 1.5 2006/04/24 13:41:47 ndw Exp $
- * @(#)SAXParserFactory.java	1.52 06/06/21
+ * @(#)SAXParserFactory.java	1.53 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.parsers;

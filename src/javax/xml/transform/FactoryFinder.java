@@ -20,9 +20,9 @@
 
 /*
  * $Id: FactoryFinder.java,v 1.5.2.1 2006/12/04 18:45:41 spericas Exp $
- * @(#)FactoryFinder.java	1.18 07/01/24
+ * @(#)FactoryFinder.java	1.19 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform;

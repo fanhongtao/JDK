@@ -1,11 +1,11 @@
 #
-# @(#)README.txt	1.5 06/01/28
+# @(#)README.txt	1.6 10/03/23
 #
-# Copyright 2006 Sun Microsystems, Inc. All rights reserved.
-# SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+# Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+# ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
 #
 
-waiters: @(#)README.txt	1.5 06/01/28
+waiters: @(#)README.txt	1.6 10/03/23
 
 This agent library can be used to track threads that wait on monitors.
 This agent is written in C++.

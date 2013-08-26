@@ -1,8 +1,8 @@
 /*
- * @(#)SynthBorder.java	1.15 06/11/30
+ * @(#)SynthBorder.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -17,7 +17,7 @@ import sun.swing.plaf.synth.SynthUI;
  * SynthBorder is a border that delegates to a Painter. The Insets
  * are determined at construction time.
  *
- * @version 1.15, 11/30/06
+ * @version 1.16, 03/23/10
  * @author Scott Violet
  */
 class SynthBorder extends AbstractBorder implements UIResource {

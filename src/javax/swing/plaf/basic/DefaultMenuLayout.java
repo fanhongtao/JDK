@@ -1,8 +1,8 @@
 /*
- * @(#)DefaultMenuLayout.java	1.13 06/12/15
+ * @(#)DefaultMenuLayout.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -20,7 +20,7 @@ import static sun.swing.SwingUtilities2.BASICMENUITEMUI_MAX_TEXT_OFFSET;
  * so that plauggable L&Fs can distinguish it from user-installed
  * layout managers on menus.
  *
- * @version 1.13 12/15/06
+ * @version 1.14 03/23/10
  * @author Georges Saab
  */
 

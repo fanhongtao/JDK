@@ -1,8 +1,8 @@
 /*
- * @(#)Activator.java	1.20 05/11/17
+ * @(#)Activator.java	1.21 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.activation;
@@ -38,7 +38,7 @@ import java.rmi.activation.UnknownObjectException;
  * to groups and active object's within those groups.<p>
  *
  * @author 	Ann Wollrath
- * @version	1.20, 11/17/05
+ * @version	1.21, 03/23/10
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID

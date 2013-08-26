@@ -1,8 +1,8 @@
 /*
- * @(#)MetalTitlePane.java	1.22 06/07/17
+ * @(#)MetalTitlePane.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -28,7 +28,7 @@ import javax.accessibility.*;
  * decoration style, and that if the style changes, a new one will
  * be created.
  *
- * @version 1.22 07/17/06
+ * @version 1.23 03/23/10
  * @author Terry Kellerman
  * @since 1.4
  */

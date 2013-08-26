@@ -1,8 +1,8 @@
 /*
- * @(#)BasicMenuUI.java	1.163 09/08/24
+ * @(#)BasicMenuUI.java	1.164 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.163 08/24/09
+ * @version 1.164 03/23/10
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

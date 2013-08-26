@@ -1,8 +1,8 @@
 /*
- * @(#)CardLayout.java	1.42 06/03/28
+ * @(#)CardLayout.java	1.43 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -33,7 +33,7 @@ import java.io.IOException;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.42 03/28/06
+ * @version 	1.43 03/23/10
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0

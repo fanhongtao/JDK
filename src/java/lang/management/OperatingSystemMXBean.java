@@ -1,8 +1,8 @@
 /*
- * @(#)OperatingSystemMXBean.java	1.11 05/12/09
+ * @(#)OperatingSystemMXBean.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.management;
@@ -36,7 +36,7 @@ package java.lang.management;
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.11, 12/09/05 
+ * @version 1.12, 03/23/10 
  * @since   1.5
  */
 public interface OperatingSystemMXBean {

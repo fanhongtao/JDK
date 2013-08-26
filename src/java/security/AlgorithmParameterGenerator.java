@@ -1,8 +1,8 @@
 /*
- * @(#)AlgorithmParameterGenerator.java	1.43 06/04/21
+ * @(#)AlgorithmParameterGenerator.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -50,7 +50,7 @@ import java.security.spec.AlgorithmParameterSpec;
  *
  * @author Jan Luehe
  *
- * @version 1.43, 04/21/06
+ * @version 1.44, 03/23/10
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec

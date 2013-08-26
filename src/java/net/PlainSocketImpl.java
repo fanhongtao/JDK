@@ -1,8 +1,8 @@
 /*
- * @(#)PlainSocketImpl.java	1.68 09/03/18
+ * @(#)PlainSocketImpl.java	1.69 10/03/23
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.68, 03/18/09
+ * @version 1.69, 03/23/10
  */
 class PlainSocketImpl extends SocketImpl
 {

@@ -1,8 +1,8 @@
 /*
- * @(#)ButtonModel.java	1.29 06/02/14
+ * @(#)ButtonModel.java	1.30 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -53,7 +53,7 @@ import javax.swing.event.*;
  * the model to unarmed and unpressed, triggers the button, and causes an
  * <code>ActionEvent</code> to be fired.
  *
- * @version 1.29 02/14/06
+ * @version 1.30 03/23/10
  * @author Jeff Dinkins
  */
 public interface ButtonModel extends ItemSelectable {

@@ -1,8 +1,8 @@
 /*
- * @(#)X500PrivateCredential.java	1.9 05/11/17
+ * @(#)X500PrivateCredential.java	1.10 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth.x500;
@@ -18,7 +18,7 @@ import javax.security.auth.Destroyable;
  * This enables looking up the private credentials for an X.500 principal
  * in a subject. 
  *
- * @version 1.9, 11/17/05
+ * @version 1.10, 03/23/10
  */
 public final class X500PrivateCredential implements Destroyable {
     private X509Certificate cert;

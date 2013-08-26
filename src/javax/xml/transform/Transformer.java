@@ -20,9 +20,9 @@
 
 /*
  * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)Transformer.java	1.34 05/11/17
+ * @(#)Transformer.java	1.35 10/04/05
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform;

@@ -1,8 +1,8 @@
 /*
- * @(#)FilterInputStream.java	1.33 06/04/07
+ * @(#)FilterInputStream.java	1.34 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -22,7 +22,7 @@ package java.io;
  * and fields.
  *
  * @author  Jonathan Payne
- * @version 1.33, 04/07/06
+ * @version 1.34, 03/23/10
  * @since   JDK1.0
  */
 public

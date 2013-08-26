@@ -1,8 +1,8 @@
 /*
- * @(#)LineIterator.java	1.11 05/11/17
+ * @(#)LineIterator.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -13,7 +13,7 @@ import java.util.*;
  * A utility class to iterate over the path segments of a line segment
  * through the PathIterator interface.
  *
- * @version 	1.11, 11/17/05
+ * @version 	1.12, 03/23/10
  * @author	Jim Graham
  */
 class LineIterator implements PathIterator {

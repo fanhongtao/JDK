@@ -20,9 +20,9 @@
 
 /*
  * $Id: QName.java,v 1.5 2005/11/03 19:34:20 jeffsuttor Exp $
- * @(#)QName.java	1.17 06/04/07
+ * @(#)QName.java	1.18 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.namespace;

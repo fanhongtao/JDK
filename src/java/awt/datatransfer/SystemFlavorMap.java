@@ -1,8 +1,8 @@
 /*
- * @(#)SystemFlavorMap.java	1.38 07/12/04
+ * @(#)SystemFlavorMap.java	1.39 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.datatransfer;
@@ -44,7 +44,7 @@ import sun.awt.datatransfer.DataTransferer;
  * <code>AWT.DnD.flavorMapFileURL</code>. See <code>flavormap.properties</code>
  * for details.
  *
- * @version 1.38, 12/04/07
+ * @version 1.39, 03/23/10
  * @since 1.2
  */
 public final class SystemFlavorMap implements FlavorMap, FlavorTable {

@@ -1,8 +1,8 @@
 /*
- * @(#)ImageView.java	1.58 05/11/30
+ * @(#)ImageView.java	1.59 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * as of 1.4.
  *
  * @author  Scott Violet
- * @version 1.58 11/30/05
+ * @version 1.59 03/23/10
  * @see IconView
  * @since 1.4
  */

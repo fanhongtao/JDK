@@ -1,8 +1,8 @@
 /*
- * @(#)SynthToggleButtonUI.java	1.8 08/02/19
+ * @(#)SynthToggleButtonUI.java	1.9 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.synth;
@@ -15,7 +15,7 @@ import javax.swing.plaf.ComponentUI;
 /**
  * Synth's ToggleButtonUI.
  * <p>
- * @version 1.8, 02/19/08
+ * @version 1.9, 03/23/10
  * @author Jeff Dinkins
  */
 class SynthToggleButtonUI extends SynthButtonUI {

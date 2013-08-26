@@ -1,8 +1,8 @@
 /*
- * @(#)CertStoreSpi.java	1.8 05/11/17
+ * @(#)CertStoreSpi.java	1.9 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -34,7 +34,7 @@ import java.util.Collection;
  * <code>engineGetCertificates</code> and <code>engineGetCRLs</code> methods.
  * More sophisticated ones may allow truly concurrent access.
  *
- * @version 	1.8 11/17/05
+ * @version 	1.9 03/23/10
  * @since	1.4
  * @author	Steve Hanna
  */

@@ -1,6 +1,6 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind.annotation;
@@ -101,7 +101,7 @@ import static java.lang.annotation.RetentionPolicy.*;
  *
  * </pre>
  * @author Sekhar Vajjhala, Sun Microsystems, Inc.
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * @see XmlType
  * @since JAXB2.0
  */

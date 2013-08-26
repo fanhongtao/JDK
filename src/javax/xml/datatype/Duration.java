@@ -20,9 +20,9 @@
 
 /*
  * $Id: Duration.java,v 1.7 2006/01/12 18:49:19 ndw Exp $
- * @(#)Duration.java	1.25 06/04/07
+ * @(#)Duration.java	1.26 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.datatype;

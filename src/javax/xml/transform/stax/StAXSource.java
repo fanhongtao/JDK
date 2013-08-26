@@ -22,7 +22,7 @@
  * $Id: StAXSource.java,v 1.4 2006/04/24 13:42:27 ndw Exp $
  * @(#)StAXSource.java	1.11 06/07/13
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.transform.stax;
@@ -48,7 +48,7 @@ import javax.xml.transform.Source;
  *
  * @author <a href="mailto:Neeraj.Bajaj@Sun.com">Neeraj Bajaj</a>
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.4 $, $Date: 2006/04/24 13:42:27 $
+ * @version $Revision: 1.10 $, $Date: 2007/07/19 04:34:33 $
  *
  * @see <a href="http://jcp.org/en/jsr/detail?id=173">
  *  JSR 173: Streaming API for XML</a>

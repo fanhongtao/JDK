@@ -1,8 +1,8 @@
 /*
- * @(#)RepaintManager.java	1.77 09/10/16
+ * @(#)RepaintManager.java	1.78 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -35,7 +35,7 @@ import com.sun.java.swing.SwingUtilities3;
  * Any calls to <code>repaint</code> on one of these will call into the
  * appropriate <code>addDirtyRegion</code> method.
  *
- * @version 1.77 10/16/09
+ * @version 1.78 03/23/10
  * @author Arnaud Weber
  */
 public class RepaintManager 

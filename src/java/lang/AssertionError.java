@@ -1,8 +1,8 @@
 /*
- * @(#)AssertionError.java	1.9 06/04/07
+ * @(#)AssertionError.java	1.10 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -22,7 +22,7 @@ package java.lang;
  * <a href="http://java.sun.com/docs/books/jls/second_edition/html/expressions.doc.html#40220">
  * Section  15.18.1.1</a>), regardless of the type of <i>expression</i>.
  *
- * @version 1.9, 04/07/06
+ * @version 1.10, 03/23/10
  * @since   1.4
  */
 public class AssertionError extends Error {

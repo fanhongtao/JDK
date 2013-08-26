@@ -1,8 +1,8 @@
 /*
- *  @(#)WeakHashMap.java	1.39 06/05/24
+ *  @(#)WeakHashMap.java	1.40 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -101,7 +101,7 @@ import java.lang.ref.ReferenceQueue;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  *
- * @version	1.39, 05/24/06
+ * @version	1.40, 03/23/10
  * @author      Doug Lea
  * @author      Josh Bloch
  * @author	Mark Reinhold

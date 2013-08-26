@@ -1,8 +1,8 @@
 /*
- * @(#)Checkbox.java	1.89 08/10/31
+ * @(#)Checkbox.java	1.90 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -50,7 +50,7 @@ import javax.accessibility.*;
  * forces any other check box in the same group that is on
  * into the "off" state.
  *
- * @version	1.89 10/31/08
+ * @version	1.90 03/23/10
  * @author 	Sami Shaio
  * @see         java.awt.GridLayout
  * @see         java.awt.CheckboxGroup

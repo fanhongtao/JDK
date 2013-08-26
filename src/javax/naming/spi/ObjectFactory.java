@@ -1,8 +1,8 @@
 /*
- * @(#)ObjectFactory.java	1.11 05/11/17
+ * @(#)ObjectFactory.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.naming.spi;
@@ -41,7 +41,7 @@ import javax.naming.*;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.11 05/11/17
+  * @version 1.12 10/03/23
   *
   * @see NamingManager#getObjectInstance
   * @see NamingManager#getURLContext

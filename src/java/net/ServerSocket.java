@@ -1,8 +1,8 @@
 /*
- * @(#)ServerSocket.java	1.91 07/03/08
+ * @(#)ServerSocket.java	1.92 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -25,7 +25,7 @@ import java.security.PrivilegedExceptionAction;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.91, 03/08/07
+ * @version 1.92, 03/23/10
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel

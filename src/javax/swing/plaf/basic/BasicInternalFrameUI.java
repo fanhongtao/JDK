@@ -1,8 +1,8 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.130 07/08/20
+ * @(#)BasicInternalFrameUI.java	1.131 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -25,7 +25,7 @@ import sun.swing.UIAction;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.130 08/20/07
+ * @version 1.131 03/23/10
  * @author David Kloba
  * @author Rich Schiavi
  */

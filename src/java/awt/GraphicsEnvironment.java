@@ -1,8 +1,8 @@
 /*
- * @(#)GraphicsEnvironment.java	1.68 07/02/13
+ * @(#)GraphicsEnvironment.java	1.69 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -30,7 +30,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 	1.68, 02/13/07
+ * @version 	1.69, 03/23/10
  */
 
 public abstract class GraphicsEnvironment {

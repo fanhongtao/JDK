@@ -1,8 +1,8 @@
 /*
- * @(#)RoundRectangle2D.java	1.22 06/02/24
+ * @(#)RoundRectangle2D.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -20,7 +20,7 @@ import java.io.Serializable;
  * The actual storage representation of the coordinates is left to
  * the subclass.
  *
- * @version 1.22, 02/24/06
+ * @version 1.23, 03/23/10
  * @author	Jim Graham
  * @since 1.2
  */

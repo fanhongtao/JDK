@@ -1,8 +1,8 @@
 /*
- * @(#)OpenMBeanAttributeInfo.java	3.21 05/11/17
+ * @(#)OpenMBeanAttributeInfo.java	3.22 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -25,7 +25,7 @@ package javax.management.openmbean;
  * interface (typically {@link OpenMBeanAttributeInfoSupport}) should
  * extend {@link javax.management.MBeanAttributeInfo}.</p>
  *
- * @version     3.21  05/11/17
+ * @version     3.22  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

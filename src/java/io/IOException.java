@@ -1,8 +1,8 @@
 /*
- * @(#)IOException.java	1.24 06/03/29
+ * @(#)IOException.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -13,7 +13,7 @@ package java.io;
  * interrupted I/O operations.
  *
  * @author  unascribed
- * @version 1.24, 03/29/06
+ * @version 1.25, 03/23/10
  * @see     java.io.InputStream
  * @see     java.io.OutputStream
  * @since   JDK1.0

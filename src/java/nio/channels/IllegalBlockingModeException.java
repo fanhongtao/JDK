@@ -1,9 +1,9 @@
 /*
  * @(#)IllegalBlockingModeException.java	1.9 01/11/19
  *
- * Copyright 2000 by Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
  * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
+ * This software is the proprietary information of Oracle.
  * Use is subject to license terms.
  */
 

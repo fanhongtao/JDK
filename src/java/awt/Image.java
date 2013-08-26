@@ -1,8 +1,8 @@
 /*
- * @(#)Image.java	1.43 06/04/07
+ * @(#)Image.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -20,7 +20,7 @@ import sun.awt.image.SurfaceManager;
  * classes that represent graphical images. The image must be 
  * obtained in a platform-specific manner.
  *
- * @version 	1.43, 04/07/06
+ * @version 	1.44, 03/23/10
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

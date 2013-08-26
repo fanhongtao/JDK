@@ -1,8 +1,8 @@
 /*
- * @(#)URLEncoder.java	1.32 06/04/22
+ * @(#)URLEncoder.java	1.33 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -60,7 +60,7 @@ import sun.security.action.GetPropertyAction;
  * character @ is encoded as one byte 40 (hex).
  *
  * @author  Herb Jellinek
- * @version 1.32, 04/22/06
+ * @version 1.33, 03/23/10
  * @since   JDK1.0
  */
 public class URLEncoder {

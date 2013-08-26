@@ -1,8 +1,8 @@
 /*
- * @(#)DatagramSocket.java	1.102 09/12/02
+ * @(#)DatagramSocket.java	1.103 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
@@ -42,7 +42,7 @@ import java.security.PrivilegedExceptionAction;
  * UDP port 8888.
  *
  * @author  Pavani Diwanji
- * @version 1.102, 12/02/09
+ * @version 1.103, 03/23/10
  * @see     java.net.DatagramPacket
  * @see     java.nio.channels.DatagramChannel
  * @since JDK1.0

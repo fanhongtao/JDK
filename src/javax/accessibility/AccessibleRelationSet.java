@@ -1,8 +1,8 @@
 /*
- * @(#)AccessibleRelationSet.java	1.15 06/04/07
+ * @(#)AccessibleRelationSet.java	1.16 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.accessibility;
@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
  *
  * @see AccessibleRelation
  *
- * @version     1.15 04/07/06
+ * @version     1.16 03/23/10
  * @author      Lynn Monsanto
  * @since 1.3
  */

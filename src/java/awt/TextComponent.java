@@ -1,8 +1,8 @@
 /*
- * @(#)TextComponent.java	1.90 06/07/11
+ * @(#)TextComponent.java	1.91 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -35,7 +35,7 @@ import java.awt.im.InputMethodRequests;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.90, 07/11/06
+ * @version	1.91, 03/23/10
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0

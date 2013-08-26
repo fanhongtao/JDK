@@ -1,8 +1,8 @@
 /*
- * @(#)Direct-X-Buffer.java	1.51 09/09/02
+ * @(#)Direct-X-Buffer.java	1.53 10/04/29
  *
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2009,2010 Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -23,6 +23,9 @@ class DirectShortBufferRU
 
     implements DirectBuffer
 {
+
+
+
 
 
 
@@ -240,6 +243,8 @@ class DirectShortBufferRU
 
 
 
+
+
     public ShortBuffer put(short x) {
 
 
@@ -300,6 +305,8 @@ class DirectShortBufferRU
     }
 
     public ShortBuffer put(short[] src, int offset, int length) {
+
+
 
 
 

@@ -1,8 +1,8 @@
 /*
- * @(#)InflaterOutputStream.java	1.1 06/02/28
+ * @(#)InflaterOutputStream.java	1.2 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -15,7 +15,7 @@ import java.io.OutputStream;
  * Implements an output stream filter for uncompressing data stored in the
  * "deflate" compression format.
  *
- * @version	1.1
+ * @version	1.2
  * @since	1.6
  * @author	David R Tribble (david@tribble.com)
  *

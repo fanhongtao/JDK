@@ -1,8 +1,8 @@
 /*
- * @(#)GridLayout.java	1.42 05/11/17
+ * @(#)GridLayout.java	1.43 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -69,7 +69,7 @@ package java.awt;
  * the number of columns affects the layout only when the 
  * number of rows is set to zero.
  *
- * @version 1.42, 11/17/05
+ * @version 1.43, 03/23/10
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)AbstractCellEditor.java	1.13 06/04/07
+ * @(#)AbstractCellEditor.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing; 
@@ -12,7 +12,7 @@ import java.util.EventObject;
 import java.io.Serializable;
 
 /**
- * @version 1.13 04/07/06 
+ * @version 1.14 03/23/10 
  * 
  * A base class for <code>CellEditors</code>, providing default
  * implementations for the methods in the <code>CellEditor</code>

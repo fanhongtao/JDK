@@ -1,8 +1,8 @@
 /*
- * @(#)InputContext.java	1.37 05/12/03
+ * @(#)InputContext.java	1.38 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.im;
@@ -50,7 +50,7 @@ import sun.awt.im.InputMethodContext;
  *
  * @see java.awt.Component#getInputContext
  * @see java.awt.Component#enableInputMethods
- * @version 	1.37, 12/03/05
+ * @version 	1.38, 03/23/10
  * @author JavaSoft Asia/Pacific
  * @since 1.2
  */

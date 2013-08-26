@@ -1,8 +1,8 @@
 /*
- * @(#)SwingUtilities.java	1.148 09/08/07
+ * @(#)SwingUtilities.java	1.149 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -29,7 +29,7 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.148 08/07/09
+ * @version 1.149 03/23/10
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants

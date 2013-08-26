@@ -1,8 +1,8 @@
 /*
- * @(#)OpenMBeanAttributeInfoSupport.java	3.44 09/05/07
+ * @(#)OpenMBeanAttributeInfoSupport.java	3.45 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -31,7 +31,7 @@ import com.sun.jmx.remote.util.EnvHelp;
 /**
  * Describes an attribute of an open MBean.
  *
- * @version     3.44  09/05/07
+ * @version     3.45  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

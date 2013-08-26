@@ -1,8 +1,8 @@
 /*
- * @(#)PangoFonts.java	1.17 07/03/15
+ * @(#)PangoFonts.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.gtk;
@@ -16,7 +16,7 @@ import sun.font.FontManager;
 /**
  * @author Shannon Hickey
  * @author Leif Samuelsson
- * @version 1.17 03/15/07
+ * @version 1.18 03/23/10
  */
 class PangoFonts {
 

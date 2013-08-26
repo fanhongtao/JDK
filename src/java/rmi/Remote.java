@@ -1,8 +1,8 @@
 /*
- * @(#)Remote.java	1.18 06/04/21
+ * @(#)Remote.java	1.19 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi;
@@ -24,7 +24,7 @@ package java.rmi;
  * <p>For complete details on RMI, see the <a
  href=../../../platform/rmi/spec/rmiTOC.html>RMI Specification</a> which describes the RMI API and system.
  *
- * @version 1.18, 04/21/06
+ * @version 1.19, 03/23/10
  * @since   JDK1.1
  * @author  Ann Wollrath
  * @see	    java.rmi.server.UnicastRemoteObject

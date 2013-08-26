@@ -1,8 +1,8 @@
 /*
- * @(#)SynthMenuUI.java	1.13 05/11/17
+ * @(#)SynthMenuUI.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.synth;
 
@@ -22,7 +22,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's MenuUI.
  *
- * @version 1.13, 11/17/05
+ * @version 1.14, 03/23/10
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

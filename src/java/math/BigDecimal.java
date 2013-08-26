@@ -1,17 +1,17 @@
 /*
- * @(#)BigDecimal.java	1.69 09/09/01
+ * @(#)BigDecimal.java	1.71 10/04/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
  * @(#)BigDecimal.java  1.x 01/xx/xx
  *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1996, 2001, Oracle and/or its affiliates. All rights reserved.
  * Portions Copyright IBM Corporation, 2001. All Rights Reserved.
  *
- * This software is the proprietary information of Sun Microsystems, Inc.
+ * This software is the proprietary information of Oracle.
  * Use is subject to license terms.
  *
  */

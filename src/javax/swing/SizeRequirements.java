@@ -1,8 +1,8 @@
 /*
- * @(#)SizeRequirements.java	1.34 06/04/07
+ * @(#)SizeRequirements.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -73,7 +73,7 @@ import java.io.Serializable;
  * @see Component#getAlignmentX
  * @see Component#getAlignmentY
  *
- * @version 1.34 04/07/06
+ * @version 1.35 03/23/10
  * @author Timothy Prinzing
  */
 public class SizeRequirements implements Serializable {

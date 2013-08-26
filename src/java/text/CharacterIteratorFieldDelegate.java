@@ -1,8 +1,8 @@
 /*
- * @(#)CharacterIteratorFieldDelegate.java	1.5 05/11/17
+ * @(#)CharacterIteratorFieldDelegate.java	1.6 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.text;
 
@@ -14,7 +14,7 @@ import java.util.ArrayList;
  * <code>AttributedCharacterIterator</code> can be retrieved by way of
  * the <code>getIterator</code> method.
  *
- * @version 1.5 11/17/05
+ * @version 1.6 03/23/10
  */
 class CharacterIteratorFieldDelegate implements Format.FieldDelegate {
     /**

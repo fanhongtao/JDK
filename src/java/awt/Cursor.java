@@ -1,8 +1,8 @@
 /*
- * @(#)Cursor.java	1.47 09/05/04
+ * @(#)Cursor.java	1.48 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -26,7 +26,7 @@ import sun.awt.DebugHelper;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.47, 05/04/09
+ * @version 	1.48, 03/23/10
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {

@@ -1,8 +1,8 @@
 /*
- * @(#)Timer.java	1.19 06/01/27
+ * @(#)Timer.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -50,7 +50,7 @@ import java.util.Date;
  * <p>Implementation note: All constructors start a timer thread.
  *
  * @author  Josh Bloch
- * @version 1.19, 01/27/06
+ * @version 1.20, 03/23/10
  * @see     TimerTask
  * @see     Object#wait(long)
  * @since   1.3

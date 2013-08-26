@@ -1,8 +1,8 @@
 /*
- * @(#)CertPath.java	1.11 06/04/07
+ * @(#)CertPath.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -83,7 +83,7 @@ import java.util.List;
  * @see CertificateFactory
  * @see CertPathBuilder
  *
- * @version 1.11 04/07/06
+ * @version 1.12 03/23/10
  * @author	Yassir Elley
  * @since	1.4
  */

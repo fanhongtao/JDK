@@ -1,8 +1,8 @@
 /*
- * @(#)RootPaneUI.java	1.8 06/04/07
+ * @(#)RootPaneUI.java	1.9 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf;
@@ -10,7 +10,7 @@ package javax.swing.plaf;
 /**
  * Pluggable look and feel interface for JRootPane.
  *
- * @version 1.8 04/07/06
+ * @version 1.9 03/23/10
  * @author Scott Violet
  * @since 1.3
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)IllegalPathStateException.java	1.13 05/11/17
+ * @(#)IllegalPathStateException.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.geom;
@@ -14,7 +14,7 @@ package java.awt.geom;
  * operation being performed, such as appending a path segment 
  * to a {@link GeneralPath} without an initial moveto.
  *
- * @version 	1.13, 11/17/05
+ * @version 	1.14, 03/23/10
  */
 
 public class IllegalPathStateException extends RuntimeException {

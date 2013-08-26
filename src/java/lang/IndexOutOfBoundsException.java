@@ -1,8 +1,8 @@
 /*
- * @(#)IndexOutOfBoundsException.java	1.12 05/11/17
+ * @(#)IndexOutOfBoundsException.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -14,7 +14,7 @@ package java.lang;
  * Applications can subclass this class to indicate similar exceptions. 
  *
  * @author  Frank Yellin
- * @version 1.12, 11/17/05
+ * @version 1.13, 03/23/10
  * @since   JDK1.0
  */
 public

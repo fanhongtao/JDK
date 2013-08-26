@@ -1,8 +1,8 @@
 /*
- * @(#)InlineView.java	1.27 06/05/12
+ * @(#)InlineView.java	1.28 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -16,7 +16,7 @@ import javax.swing.text.*;
  * based upon css attributes.
  *
  * @author  Timothy Prinzing
- * @version 1.27 05/12/06
+ * @version 1.28 03/23/10
  */
 public class InlineView extends LabelView {
 

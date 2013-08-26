@@ -1,8 +1,8 @@
 /*
- * @(#)SynthTabbedPaneUI.java	1.42 08/01/28
+ * @(#)SynthTabbedPaneUI.java	1.43 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -23,7 +23,7 @@ import sun.swing.SwingUtilities2;
 /**
  * A Synth L&F implementation of TabbedPaneUI.
  *
- * @version 1.42, 01/28/08
+ * @version 1.43, 03/23/10
  * @author Scott Violet
  */
 /**

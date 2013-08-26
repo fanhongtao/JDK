@@ -1,8 +1,8 @@
 /*
- * @(#)ButtonUI.java	1.21 05/11/17
+ * @(#)ButtonUI.java	1.22 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf;
 
@@ -15,7 +15,7 @@ import java.awt.Insets;
 /**
  * Pluggable look and feel interface for JButton.
  *
- * @version 1.21 11/17/05
+ * @version 1.22 03/23/10
  * @author Jeff Dinkins
  */
 public abstract class ButtonUI extends ComponentUI {

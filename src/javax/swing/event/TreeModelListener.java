@@ -1,8 +1,8 @@
 /*
- * @(#)TreeModelListener.java	1.18 05/11/17
+ * @(#)TreeModelListener.java	1.19 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.event;
@@ -17,7 +17,7 @@ import java.util.EventListener;
  href="http://java.sun.com/docs/books/tutorial/uiswing/events/treemodellistener.html">How to Write a Tree Model Listener</a>,
  * a section in <em>The Java Tutorial.</em>
  *
- * @version 1.18 11/17/05
+ * @version 1.19 03/23/10
  * @author Rob Davis
  * @author Ray Ryan
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)Class.java	1.202 09/04/01
+ * @(#)Class.java	1.203 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -91,7 +91,7 @@ import sun.reflect.annotation.*;
  * unknown.
  *
  * @author  unascribed
- * @version 1.202, 04/01/09
+ * @version 1.203, 03/23/10
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
  * @since   JDK1.0
  */

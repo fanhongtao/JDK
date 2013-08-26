@@ -1,8 +1,8 @@
 /*
- * @(#)MessageFormat.java	1.62 06/04/07
+ * @(#)MessageFormat.java	1.63 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -326,7 +326,7 @@ import java.util.Locale;
  * @see          NumberFormat
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.62, 04/07/06
+ * @version      1.63, 03/23/10
  * @author       Mark Davis
  */
 

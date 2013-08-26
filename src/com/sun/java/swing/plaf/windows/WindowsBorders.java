@@ -1,8 +1,8 @@
 /*
- * @(#)WindowsBorders.java	1.34 05/11/17
+ * @(#)WindowsBorders.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -26,7 +26,7 @@ import static com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
 /**
  * Factory object that can vend Borders appropriate for the Windows 95 L & F.
- * @version 1.34 11/17/05
+ * @version 1.35 03/23/10
  * @author Rich Schiavi
  */
 

@@ -1,8 +1,8 @@
 /*
- * @(#)Elements.java	1.11 06/08/16
+ * @(#)Elements.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.lang.model.util;
@@ -24,7 +24,7 @@ import javax.lang.model.type.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.11 06/08/16
+ * @version 1.12 10/03/23
  * @see javax.annotation.processing.ProcessingEnvironment#getElementUtils
  * @since 1.6
  */

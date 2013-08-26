@@ -1,8 +1,8 @@
 /*
- * @(#)TabularType.java	3.27 06/05/03
+ * @(#)TabularType.java	3.28 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -25,7 +25,7 @@ import java.util.Collections;
  * The <code>TabularType</code> class is the <i> open type</i> class
  * whose instances describe the types of {@link TabularData <code>TabularData</code>} values.
  *
- * @version     3.27  06/05/03
+ * @version     3.28  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

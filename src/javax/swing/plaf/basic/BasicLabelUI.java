@@ -1,8 +1,8 @@
 /*
- * @(#)BasicLabelUI.java	1.93 09/08/10
+ * @(#)BasicLabelUI.java	1.94 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -34,7 +34,7 @@ import java.beans.PropertyChangeListener;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.93 08/10/09
+ * @version 1.94 03/23/10
  * @author Hans Muller
  */
 public class BasicLabelUI extends LabelUI implements  PropertyChangeListener

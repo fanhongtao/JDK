@@ -1,8 +1,8 @@
 /*
- * @(#)BasicTextAreaUI.java	1.75 06/04/20
+ * @(#)BasicTextAreaUI.java	1.76 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
@@ -30,7 +30,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.75 04/20/06
+ * @version 1.76 03/23/10
  */
 public class BasicTextAreaUI extends BasicTextUI {
     

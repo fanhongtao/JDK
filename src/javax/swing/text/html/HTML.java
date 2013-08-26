@@ -1,8 +1,8 @@
 /*
- * @(#)HTML.java	1.43 05/11/17
+ * @(#)HTML.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -19,7 +19,7 @@ import javax.swing.text.StyleContext;
  * @author  Timothy Prinzing
  * @author  Sunita Mani
  *
- * @version 1.43 11/17/05
+ * @version 1.44 03/23/10
  */
 public class HTML {
 

@@ -1,8 +1,8 @@
 /*
- * @(#)GraphicsDevice.java	1.44 08/02/12
+ * @(#)GraphicsDevice.java	1.45 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -54,7 +54,7 @@ import sun.awt.AWTAccessor;
  *
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.44, 02/12/08
+ * @version 1.45, 03/23/10
  */
 public abstract class GraphicsDevice {
 

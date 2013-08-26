@@ -1,8 +1,8 @@
 /*
- * @(#)CertPathHelperImpl.java	1.6 09/02/17
+ * @(#)CertPathHelperImpl.java	1.7 10/03/23
  *
- * Copyright 2006-2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
@@ -20,7 +20,7 @@ import sun.security.x509.GeneralNameInterface;
  * implementation dependent APIs in CertPath framework.
  *
  * @author Andreas Sterbenz
- * @version 1.6, 02/17/09
+ * @version 1.7, 03/23/10
  */
 class CertPathHelperImpl extends CertPathHelper {
     

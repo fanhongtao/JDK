@@ -1,13 +1,13 @@
 /*
- * @(#)BadServerIdHandler.java	1.13 05/11/17
+ * @(#)BadServerIdHandler.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
- * @(#)BadServerIdHandler.java 1.13 06/11/29
+ * @(#)BadServerIdHandler.java 1.14 10/07/17
  *
- * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road,
+ * Copyright (c) 1993, 1997, Oracle and/or its affiliates. All rights reserved. 901 San Antonio Road,
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.
  *
  * This software is the confidential and proprietary information of Sun

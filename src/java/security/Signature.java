@@ -1,8 +1,8 @@
 /*
- * @(#)Signature.java	1.103 06/04/21
+ * @(#)Signature.java	1.104 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
 package java.security;
@@ -82,7 +82,7 @@ import sun.security.jca.GetInstance.Instance;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.103, 04/21/06
+ * @version 1.104, 03/23/10
  */
 
 public abstract class Signature extends SignatureSpi {

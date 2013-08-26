@@ -1,8 +1,8 @@
 /*
- * @(#)Graphics2D.java	1.84 05/11/17
+ * @(#)Graphics2D.java	1.85 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -383,7 +383,7 @@ import java.util.Map;
  * </pre>
  * </ol>
  *
- * @version 	1.84, 11/17/05
+ * @version 	1.85, 03/23/10
  * @author Jim Graham
  * @see java.awt.RenderingHints
  */

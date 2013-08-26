@@ -20,9 +20,9 @@
 
 /*
  * $Id: FactoryFinder.java,v 1.5.2.2 2007/01/23 06:25:57 joehw Exp $
- * @(#)FactoryFinder.java	1.13 07/01/24
+ * @(#)FactoryFinder.java	1.14 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.stream;

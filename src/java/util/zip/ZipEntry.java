@@ -1,8 +1,8 @@
 /*
- * @(#)ZipEntry.java	1.42 08/01/02
+ * @(#)ZipEntry.java	1.43 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.42, 01/02/08
+ * @version	1.43, 03/23/10
  * @author	David Connelly
  */
 public

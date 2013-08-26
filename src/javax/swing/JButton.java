@@ -1,8 +1,8 @@
 /*
- * @(#)JButton.java	1.100 06/08/08
+ * @(#)JButton.java	1.101 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -55,7 +55,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: An implementation of a \"push\" button.
  *
- * @version 1.100 08/08/06
+ * @version 1.101 03/23/10
  * @author Jeff Dinkins
  */
 public class JButton extends AbstractButton implements Accessible {

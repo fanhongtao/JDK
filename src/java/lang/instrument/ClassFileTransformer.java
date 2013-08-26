@@ -1,7 +1,7 @@
 /*
- * @(#)ClassFileTransformer.java	1.9 06/05/08
+ * @(#)ClassFileTransformer.java	1.10 10/03/23
  *
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
  */
 
 package java.lang.instrument;

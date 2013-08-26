@@ -1,6 +1,6 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.xml.bind.helpers;
 
@@ -46,7 +46,7 @@ import java.net.URL;
  * @author <ul>
  *         <li>Kohsuke Kawaguchi, Sun Microsystems, Inc.</li>
  *         </ul>
- * @version $Revision: 1.13 $ $Date: 2005/07/28 22:18:12 $
+ * @version $Revision: 1.14 $ $Date: 2006/03/08 17:01:00 $
  * @see javax.xml.bind.Unmarshaller
  * @since JAXB1.0
  */

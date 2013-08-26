@@ -1,8 +1,8 @@
 /*
- * @(#)LogManager.java	1.56 09/09/18
+ * @(#)LogManager.java	1.57 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -123,7 +123,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.56, 09/18/09
+ * @version 1.57, 03/23/10
  * @since 1.4
 */
 

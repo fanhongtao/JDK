@@ -1,8 +1,8 @@
 /*
- * @(#)JInternalFrame.java	1.161 09/08/07
+ * @(#)JInternalFrame.java	1.162 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -82,7 +82,7 @@ import sun.swing.SwingUtilities2;
  * @see JRootPane
  * @see javax.swing.RootPaneContainer
  *
- * @version 1.161 08/07/09
+ * @version 1.162 03/23/10
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo

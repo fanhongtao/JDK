@@ -1,8 +1,8 @@
 /*
- * @(#)Formatter.java	1.27 09/02/04
+ * @(#)Formatter.java	1.28 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -1799,7 +1799,7 @@ import sun.misc.FormattedFloatingDecimal;
  * NullPointerException} to be thrown.
  *
  * @author  Iris Clark
- * @version 	1.27, 02/04/09
+ * @version 	1.28, 03/23/10
  * @since 1.5
  */
 public final class Formatter implements Closeable, Flushable {

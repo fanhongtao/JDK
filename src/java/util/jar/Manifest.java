@@ -1,8 +1,8 @@
 /*
- * @(#)Manifest.java	1.50 06/04/21
+ * @(#)Manifest.java	1.51 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.jar;
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.50, 04/21/06
+ * @version 1.51, 03/23/10
  * @see	    Attributes
  * @since   1.2
  */

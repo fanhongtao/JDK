@@ -1,8 +1,8 @@
 /*
- * @(#)KeyStore.java	1.53 06/07/28
+ * @(#)KeyStore.java	1.54 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security;
@@ -146,7 +146,7 @@ import javax.security.auth.callback.*;
  *
  * @author Jan Luehe
  *
- * @version 1.53, 07/28/06
+ * @version 1.54, 03/23/10
  *
  * @see java.security.PrivateKey
  * @see javax.crypto.SecretKey

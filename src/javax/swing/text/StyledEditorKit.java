@@ -1,8 +1,8 @@
 /*
- * @(#)StyledEditorKit.java	1.46 05/11/17
+ * @(#)StyledEditorKit.java	1.47 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
@@ -25,7 +25,7 @@ import javax.swing.UIManager;
  * provides a minimal set of actions for editing styled text.
  *
  * @author  Timothy Prinzing
- * @version 1.46 11/17/05
+ * @version 1.47 03/23/10
  */
 public class StyledEditorKit extends DefaultEditorKit {
 

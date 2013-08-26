@@ -1,8 +1,8 @@
 /*
- * @(#)SynthToolBarUI.java	1.16 09/03/20
+ * @(#)SynthToolBarUI.java	1.17 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.synth;
@@ -31,7 +31,7 @@ import sun.swing.plaf.synth.SynthUI;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.16, 03/20/09
+ * @version 1.17, 03/23/10
  */
 class SynthToolBarUI extends BasicToolBarUI implements PropertyChangeListener,
            SynthUI {

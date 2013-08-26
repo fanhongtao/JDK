@@ -1,8 +1,8 @@
 /**
- * @(#)PrintWriter.java	1.43 06/08/07
+ * @(#)PrintWriter.java	1.44 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -26,7 +26,7 @@ import java.util.Locale;
  * constructors may.  The client may inquire as to whether any errors have
  * occurred by invoking {@link #checkError checkError()}.
  *
- * @version 	1.43, 08/07/06
+ * @version 	1.44, 03/23/10
  * @author	Frank Yellin
  * @author	Mark Reinhold
  * @since	JDK1.1

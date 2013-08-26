@@ -1,8 +1,8 @@
 /*
- * @(#)ReferralException.java	1.12 05/11/17
+ * @(#)ReferralException.java	1.13 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.naming;
@@ -45,7 +45,7 @@ import java.util.Hashtable;
  * 
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.12 05/11/17
+ * @version 1.13 10/03/23
  *
  * @since 1.3
  *

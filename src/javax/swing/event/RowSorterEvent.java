@@ -1,8 +1,8 @@
 /*
- * @(#)RowSorterEvent.java	1.3 05/11/17
+ * @(#)RowSorterEvent.java	1.4 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
 
@@ -19,7 +19,7 @@ import javax.swing.RowSorter;
  *     been sorted or filtered.
  * </ul>
  *
- * @version 1.3 11/17/05
+ * @version 1.4 03/23/10
  * @see javax.swing.RowSorter
  * @since 1.6
  */

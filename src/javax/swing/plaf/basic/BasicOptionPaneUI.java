@@ -1,8 +1,8 @@
 /*
- * @(#)BasicOptionPaneUI.java	1.61 06/04/04
+ * @(#)BasicOptionPaneUI.java	1.62 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -55,7 +55,7 @@ import sun.security.action.GetPropertyAction;
  * The <code>Container</code>, message, icon, and buttons are all
  * determined from abstract methods.
  * 
- * @version 1.61 04/04/06
+ * @version 1.62 03/23/10
  * @author James Gosling
  * @author Scott Violet
  * @author Amy Fowler

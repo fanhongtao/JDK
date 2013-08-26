@@ -1,8 +1,8 @@
 /*
- * @(#)IllegalThreadStateException.java	1.22 05/11/17
+ * @(#)IllegalThreadStateException.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -14,7 +14,7 @@ package java.lang;
  * <code>Thread</code>. 
  *
  * @author  unascribed
- * @version 1.22, 11/17/05
+ * @version 1.23, 03/23/10
  * @see     java.lang.Thread#resume()
  * @see     java.lang.Thread#suspend()
  * @since   JDK1.0

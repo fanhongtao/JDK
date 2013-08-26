@@ -20,9 +20,9 @@
 
 /*
  * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)SchemaFactoryLoader.java	1.11 06/08/06
+ * @(#)SchemaFactoryLoader.java	1.12 10/04/05
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.validation;

@@ -1,8 +1,8 @@
 /*
- * @(#)WindowsGraphicsUtils.java	1.24 06/12/15
+ * @(#)WindowsGraphicsUtils.java	1.25 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -20,7 +20,7 @@ import static com.sun.java.swing.plaf.windows.TMSchema.*;
  * A collection of static utility methods used for rendering the Windows look 
  * and feel.
  * 
- * @version 1.24 12/15/06
+ * @version 1.25 03/23/10
  * @author Mark Davidson
  * @since 1.4
  */

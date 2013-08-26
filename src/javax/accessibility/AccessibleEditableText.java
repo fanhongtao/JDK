@@ -1,8 +1,8 @@
 /*
- * @(#)AccessibleEditableText.java	1.6 06/04/07
+ * @(#)AccessibleEditableText.java	1.7 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.accessibility;
@@ -29,7 +29,7 @@ import javax.swing.text.*;
  * @see AccessibleContext#getAccessibleText
  * @see AccessibleContext#getAccessibleEditableText
  *
- * @version	1.6 @(#)AccessibleEditableText.java	1.6
+ * @version	1.7 @(#)AccessibleEditableText.java	1.7
  * @author	Lynn Monsanto
  * @since 1.4
  */

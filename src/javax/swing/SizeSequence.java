@@ -1,8 +1,8 @@
 /*
- * @(#)SizeSequence.java	1.17 06/04/07
+ * @(#)SizeSequence.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing; 
@@ -91,7 +91,7 @@ package javax.swing;
  * a set of integer sizes, copying it into the new array, and then 
  * reforming the hybrid representation in place. 
  *
- * @version 1.17 04/07/06
+ * @version 1.18 03/23/10
  * @author Philip Milne
  * @since 1.3
  */   

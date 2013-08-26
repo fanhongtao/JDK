@@ -1,8 +1,8 @@
 /*
- * @(#)TabularDataSupport.java	3.36 06/03/29
+ * @(#)TabularDataSupport.java	3.37 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -32,7 +32,7 @@ import java.util.List;
  * The <tt>TabularDataSupport</tt> class is the <i>open data</i> class which implements the <tt>TabularData</tt> 
  * and the <tt>Map</tt> interfaces, and which is internally based on a hash map data structure.
  *
- * @version     3.36  06/03/29
+ * @version     3.37  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

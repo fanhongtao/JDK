@@ -1,8 +1,8 @@
 /*
  * @(#)file      InvalidTargetObjectTypeException.java
  * @(#)author    IBM Corp.
- * @(#)version   1.29
- * @(#)lastedit      05/12/01
+ * @(#)version   1.30
+ * @(#)lastedit      10/03/23
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,7 +13,7 @@
  * liable for any damages suffered by you or any third party claim against 
  * you regarding the Program.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  * 

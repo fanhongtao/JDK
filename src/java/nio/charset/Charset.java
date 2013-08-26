@@ -1,8 +1,8 @@
 /*
- * @(#)Charset.java	1.54 08/04/07
+ * @(#)Charset.java	1.55 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.nio.charset;
@@ -228,7 +228,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.54, 08/04/07
+ * @version 1.55, 10/03/23
  * @since 1.4
  *
  * @see CharsetDecoder

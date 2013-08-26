@@ -1,8 +1,8 @@
 /*
- * @(#)WindowsButtonUI.java	1.46 09/08/10
+ * @(#)WindowsButtonUI.java	1.47 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -30,7 +30,7 @@ import sun.awt.AppContext;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.46 08/10/09
+ * @version 1.47 03/23/10
  * @author Jeff Dinkins
  *
  */

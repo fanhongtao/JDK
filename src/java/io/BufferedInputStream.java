@@ -1,8 +1,8 @@
 /*
- * @(#)BufferedInputStream.java	1.57 06/06/07
+ * @(#)BufferedInputStream.java	1.58 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * the contained input stream.
  *
  * @author  Arthur van Hoff
- * @version 1.57, 06/07/06
+ * @version 1.58, 03/23/10
  * @since   JDK1.0
  */
 public

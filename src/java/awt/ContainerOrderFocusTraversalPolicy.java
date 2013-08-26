@@ -1,8 +1,8 @@
 /*
- * @(#)ContainerOrderFocusTraversalPolicy.java	1.10 08/04/15
+ * @(#)ContainerOrderFocusTraversalPolicy.java	1.11 10/03/23
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
@@ -33,7 +33,7 @@ import java.util.logging.*;
  * policy is used to perform the search operation.
  *
  * @author David Mendenhall
- * @version 1.10, 04/15/08
+ * @version 1.11, 03/23/10
  *
  * @see Container#getComponents
  * @since 1.4

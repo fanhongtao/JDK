@@ -1,8 +1,8 @@
 /*
- * @(#)JToolBar.java	1.115 06/08/08
+ * @(#)JToolBar.java	1.116 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -64,7 +64,7 @@ import java.util.Hashtable;
  *   attribute: isContainer true
  * description: A component which displays commonly used controls or Actions.
  *
- * @version 1.115 08/08/06
+ * @version 1.116 03/23/10
  * @author Georges Saab
  * @author Jeff Shapiro
  * @see Action

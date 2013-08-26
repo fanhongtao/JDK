@@ -1,6 +1,6 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.xml.bind;
@@ -123,7 +123,7 @@ public class JAXBElement<T> implements Serializable {
      * <p>Set the content model and attributes of this xml element.</p>
      *
      * <p>When this property is set to <tt>null</tt>, <tt>isNil()</tt> must by <tt>true</tt>.
-     *    Details of constraint are described at {@link #isNil()}.</p>
+     *    Details of constraint are described at {@link #isNil()}.</pp>
      *
      * @see #isTypeSubstituted()
      */

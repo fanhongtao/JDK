@@ -1,8 +1,8 @@
 /*
- * @(#)StyleSheet.java	1.91 05/11/30
+ * @(#)StyleSheet.java	1.92 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
@@ -107,7 +107,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.91 11/30/05
+ * @version 1.92 03/23/10
  */
 public class StyleSheet extends StyleContext {
     // As the javadoc states, this class maintains a mapping between

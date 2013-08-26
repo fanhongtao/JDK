@@ -22,7 +22,7 @@
  * $Id: XMLNSDocumentScannerImpl.java,v 1.8 2006/02/08 07:40:59 sunithareddy Exp $
  * @(#)XMLNSDocumentScannerImpl.java	1.19 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -81,7 +81,7 @@ import javax.xml.stream.events.XMLEvent;
  * @author Neeraj Bajaj, Sun Microsystems
  * @author Venugopal Rao K, Sun Microsystems
  * @author Elena Litani, IBM
- * @version $Id: XMLNSDocumentScannerImpl.java,v 1.8 2006/02/08 07:40:59 sunithareddy Exp $
+ * @version $Id: XMLNSDocumentScannerImpl.java,v 1.10 2007/07/19 04:38:24 ofung Exp $
  */
 public class XMLNSDocumentScannerImpl
         extends XMLDocumentScannerImpl {

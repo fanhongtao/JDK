@@ -1,8 +1,8 @@
 /*
- * @(#)ConfigFile.java	1.22 05/11/17
+ * @(#)ConfigFile.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package com.sun.security.auth.login;
@@ -68,7 +68,7 @@ import sun.security.util.PropertyExpander;
  * is exactly that syntax specified in the
  * <code>javax.security.auth.login.Configuration</code> class.
  * 
- * @version 1.22, 11/17/05
+ * @version 1.23, 03/23/10
  * @see javax.security.auth.login.LoginContext
  */
 public class ConfigFile extends javax.security.auth.login.Configuration {

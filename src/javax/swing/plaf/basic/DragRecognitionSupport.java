@@ -1,8 +1,8 @@
 /*
- * @(#)DragRecognitionSupport.java	1.2 05/11/17
+ * @(#)DragRecognitionSupport.java	1.3 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
 
@@ -21,7 +21,7 @@ import sun.awt.AppContext;
  * public static methods call into the appropriate instance.
  * 
  * @author Shannon Hickey
- * @version 1.2 11/17/05
+ * @version 1.3 03/23/10
  */
 class DragRecognitionSupport {
     private int motionThreshold;

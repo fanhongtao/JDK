@@ -1,8 +1,8 @@
 /*
- * @(#)ByteArrayInputStream.java	1.47 05/11/17
+ * @(#)ByteArrayInputStream.java	1.48 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -19,7 +19,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.47, 11/17/05
+ * @version 1.48, 03/23/10
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */

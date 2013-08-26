@@ -1,8 +1,8 @@
 /*
- * @(#)JList.java	1.138 07/01/17
+ * @(#)JList.java	1.139 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
@@ -244,7 +244,7 @@ import static sun.swing.SwingUtilities2.Section.*;
  *   attribute: isContainer false
  * description: A component which allows for the selection of one or more objects from a list.
  *
- * @version 1.138 01/17/07
+ * @version 1.139 03/23/10
  * @author Hans Muller
  */
 public class JList extends JComponent implements Scrollable, Accessible

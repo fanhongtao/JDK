@@ -1,8 +1,8 @@
 /*
- * @(#)PropertyPermission.java	1.35 06/04/21
+ * @(#)PropertyPermission.java	1.36 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -64,7 +64,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.35 06/04/21
+ * @version 1.36 10/03/23
  *
  * @author Roland Schemers
  * @since 1.2
@@ -412,7 +412,7 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.35, 04/21/06
+ * @version 1.36, 03/23/10
  *
  * @author Roland Schemers
  *

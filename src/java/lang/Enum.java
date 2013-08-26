@@ -1,8 +1,8 @@
 /*
- * @(#)Enum.java	1.16 08/03/31
+ * @(#)Enum.java	1.17 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
@@ -18,7 +18,7 @@ import java.io.ObjectStreamException;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.16, 03/31/08
+ * @version 1.17, 03/23/10
  * @since   1.5
  */
 public abstract class Enum<E extends Enum<E>>

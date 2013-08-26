@@ -1,8 +1,8 @@
 /*
- * @(#)GregorianCalendar.java	1.92 06/06/20
+ * @(#)GregorianCalendar.java	1.93 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
@@ -275,7 +275,7 @@ import sun.util.calendar.ZoneInfo;
  * </blockquote>
  *
  * @see          TimeZone
- * @version      1.92
+ * @version      1.93
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */

@@ -1,8 +1,8 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.50 07/01/26
+ * @(#)SubjectDomainCombiner.java	1.51 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth;
@@ -29,7 +29,7 @@ import java.lang.ref.WeakReference;
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.50, 01/26/07
+ * @version 1.51, 03/23/10
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 

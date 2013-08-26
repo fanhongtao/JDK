@@ -1,8 +1,8 @@
 /*
- * @(#)LayoutFocusTraversalPolicy.java	1.13 09/04/13
+ * @(#)LayoutFocusTraversalPolicy.java	1.14 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -23,7 +23,7 @@ import sun.awt.SunToolkit;
  * <code>ComponentOrientation</code> for more information. All columns in a
  * row are fully traversed before proceeding to the next row.
  *
- * @version 1.13, 04/13/09
+ * @version 1.14, 03/23/10
  * @author David Mendenhall
  *
  * @see java.awt.ComponentOrientation

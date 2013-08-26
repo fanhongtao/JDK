@@ -1,8 +1,8 @@
 /*
- * @(#)SourceOrderDeclScanner.java	1.7 05/11/17
+ * @(#)SourceOrderDeclScanner.java	1.8 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
 package com.sun.mirror.util;
@@ -26,7 +26,7 @@ import java.util.TreeSet;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.7 05/11/17
+ * @version 1.8 10/03/23
  * @since 1.5
  */
 class SourceOrderDeclScanner extends DeclarationScanner {

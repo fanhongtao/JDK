@@ -1,9 +1,9 @@
 
-/* @(#)CharacterDataUndefined.java.template	1.2 03/07/26
+/* @(#)CharacterDataUndefined.java.template	1.4 10/04/01
  *
- * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 1994, 2002, Oracle and/or its affiliates. All rights reserved.
  *
- * This software is the proprietary information of Sun Microsystems, Inc.
+ * This software is the proprietary information of Oracle.
  * Use is subject to license terms.
  *
  */

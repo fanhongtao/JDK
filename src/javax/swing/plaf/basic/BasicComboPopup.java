@@ -1,8 +1,8 @@
 /*
- * @(#)BasicComboPopup.java	1.86 09/09/15
+ * @(#)BasicComboPopup.java	1.87 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.86 09/15/09
+ * @version 1.87 03/23/10
  * @author Tom Santos
  * @author Mark Davidson
  */

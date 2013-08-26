@@ -1,8 +1,8 @@
 /*
- * @(#)SerializablePermission.java	1.23 06/04/21
+ * @(#)SerializablePermission.java	1.24 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.23, 04/21/06
+ * @version 1.24, 03/23/10
  *
  * @author Joe Fialli
  * @since 1.2

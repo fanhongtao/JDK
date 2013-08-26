@@ -1,8 +1,8 @@
 /*
- * @(#)Timer.java	4.64 08/02/26
+ * @(#)Timer.java	4.65 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.timer;
@@ -63,7 +63,7 @@ import com.sun.jmx.trace.Trace;
  * executions.  See {@link NotificationBroadcasterSupport}.
  * </OL>
  *
- * @version     4.64     02/26/08
+ * @version     4.65     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

@@ -1,7 +1,7 @@
 /*
- * @(#)Invocable.java	1.4 06/06/19 20:34:27
+ * @(#)Invocable.java	1.5 10/03/23 17:34:57
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTAIL. Use is subject to license terms.
  */
 

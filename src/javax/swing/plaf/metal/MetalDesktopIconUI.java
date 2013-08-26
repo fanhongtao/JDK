@@ -1,8 +1,8 @@
 /*
- * @(#)MetalDesktopIconUI.java	1.22 05/11/17
+ * @(#)MetalDesktopIconUI.java	1.23 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -20,7 +20,7 @@ import javax.swing.plaf.basic.BasicDesktopIconUI;
 /**
  * Metal desktop icon.
  *
- * @version 1.22 11/17/05
+ * @version 1.23 03/23/10
  * @author Steve Wilson
  */
 public class MetalDesktopIconUI extends BasicDesktopIconUI

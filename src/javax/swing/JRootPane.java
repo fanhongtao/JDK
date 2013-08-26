@@ -1,8 +1,8 @@
 /*
- * @(#)JRootPane.java	1.100 09/02/04
+ * @(#)JRootPane.java	1.101 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -178,7 +178,7 @@ import sun.security.action.GetBooleanAction;
  * @see <a href="http://java.sun.com/products/jfc/tsc/articles/mixing/">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.100 02/04/09
+ * @version 1.101 03/23/10
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?

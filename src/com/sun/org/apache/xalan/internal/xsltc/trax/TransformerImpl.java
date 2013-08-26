@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TransformerImpl.java,v 1.10 2007/06/13 01:57:09 joehw Exp $
+ * $Id: TransformerImpl.java,v 1.14 2010/03/03 07:10:09 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -1373,6 +1373,7 @@ public final class TransformerImpl extends Transformer
         _parameters = null;
         _indentNumber = 0;
         setOutputProperties (null);
-
+        _tohFactory = null;
+        _ostream = null;
     }
 }

@@ -1,8 +1,8 @@
 /*
- * @(#)ToolBarSeparatorPainter.java	1.2 08/02/19
+ * @(#)ToolBarSeparatorPainter.java	1.3 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.nimbus;
@@ -22,7 +22,7 @@ import javax.swing.JComponent;
  * repeated patterns, then we can remove this class.
  * <p>
  *
- * @version 1.2, 02/19/08
+ * @version 1.3, 03/23/10
  */
 final class ToolBarSeparatorPainter extends AbstractRegionPainter {
     private static final int SPACE = 3;

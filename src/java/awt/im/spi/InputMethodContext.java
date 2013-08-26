@@ -1,8 +1,8 @@
 /*
- * @(#)InputMethodContext.java	1.17 05/11/17
+ * @(#)InputMethodContext.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.im.spi;
@@ -25,7 +25,7 @@ import javax.swing.JFrame;
  *
  * @since 1.3
  *
- * @version 	1.17, 11/17/05
+ * @version 	1.18, 03/23/10
  * @author JavaSoft International
  */
 

@@ -1,8 +1,8 @@
 /*
- * @(#)BasicComboBoxUI.java	1.195 09/10/19
+ * @(#)BasicComboBoxUI.java	1.196 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
@@ -40,7 +40,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.195 10/19/09
+ * @version 1.196 03/23/10
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson

@@ -1,8 +1,8 @@
 /*
- * @(#)WindowsDesktopManager.java	1.21 06/05/10
+ * @(#)WindowsDesktopManager.java	1.22 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -31,7 +31,7 @@ import java.lang.ref.WeakReference;
  * and another window is selected, that new window will be maximized.
  *
  * @see javax.swing.DefaultDesktopManager
- * @version 1.21 05/10/06
+ * @version 1.22 03/23/10
  * @author Thomas Ball
  */
 public class WindowsDesktopManager extends DefaultDesktopManager 

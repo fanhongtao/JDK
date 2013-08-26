@@ -1,8 +1,8 @@
 /*
- * @(#)LoginContext.java	1.100 05/11/17
+ * @(#)LoginContext.java	1.101 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth.login;
@@ -175,7 +175,7 @@ import sun.security.util.ResourcesMgr;
  * &lt;JAVA_HOME&gt; refers to the value of the java.home system property,
  * and specifies the directory where the JRE is installed.
  * 
- * @version 1.100, 11/17/05
+ * @version 1.101, 03/23/10
  * @see java.security.Security
  * @see javax.security.auth.AuthPermission
  * @see javax.security.auth.Subject

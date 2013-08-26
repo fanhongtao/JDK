@@ -1,8 +1,8 @@
 /*
- * @(#)MetaEventListener.java	1.17 05/11/17
+ * @(#)MetaEventListener.java	1.18 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;		  	 
@@ -19,7 +19,7 @@ import java.util.EventListener;
  * <code>{@link Sequencer#addMetaEventListener(MetaEventListener) addMetaEventListener}</code>
  * method of <code>Sequencer</code>.
  *
- * @version 1.17, 05/11/17
+ * @version 1.18, 10/03/23
  * @author Kara Kytle
  */
 public interface MetaEventListener extends EventListener {

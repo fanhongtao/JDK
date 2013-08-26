@@ -1,8 +1,8 @@
 /*
- * @(#)SocketChannel.java	1.34 05/11/17
+ * @(#)SocketChannel.java	1.35 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.nio.channels;
@@ -72,7 +72,7 @@ import java.nio.channels.spi.*;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.34, 05/11/17
+ * @version 1.35, 10/03/23
  * @since 1.4
  */
 

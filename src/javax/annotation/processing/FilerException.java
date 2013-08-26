@@ -1,8 +1,8 @@
 /*
- * @(#)FilerException.java	1.6 06/08/15
+ * @(#)FilerException.java	1.7 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
  */
 
 package javax.annotation.processing;
@@ -20,7 +20,7 @@ import javax.annotation.processing.Filer;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.6 06/08/15
+ * @version 1.7 10/03/23
  * @since 1.6
  */
 public class FilerException extends IOException {

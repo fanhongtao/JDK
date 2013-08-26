@@ -1,8 +1,8 @@
 /*
- * @(#)InputMismatchException.java	1.5 06/03/24
+ * @(#)InputMismatchException.java	1.6 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -13,7 +13,7 @@ package java.util;
  * that the token is out of range for the expected type.
  *
  * @author  unascribed
- * @version 1.5 03/24/06
+ * @version 1.6 03/23/10
  * @see     java.util.Scanner
  * @since   1.5
  */

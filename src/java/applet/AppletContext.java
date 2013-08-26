@@ -1,8 +1,8 @@
 /*
- * @(#)AppletContext.java	1.35 06/04/07
+ * @(#)AppletContext.java	1.36 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.applet;
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * information about its environment.
  *
  * @author 	Arthur van Hoff
- * @version     1.35, 04/07/06
+ * @version     1.36, 03/23/10
  * @since       JDK1.0
  */
 public interface AppletContext {

@@ -1,8 +1,8 @@
 /*
- * @(#)AWTEvent.java	1.62 09/04/13
+ * @(#)AWTEvent.java	1.63 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt;
@@ -53,7 +53,7 @@ import sun.awt.AWTAccessor;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.62 04/13/09
+ * @version 1.63 03/23/10
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {

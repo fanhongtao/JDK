@@ -20,9 +20,9 @@
 
 /*
  * $Id: DatatypeConstants.java,v 1.4 2006/01/24 01:23:06 jeffsuttor Exp $
- * @(#)DatatypeConstants.java	1.12 06/04/07
+ * @(#)DatatypeConstants.java	1.13 10/04/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 package javax.xml.datatype;

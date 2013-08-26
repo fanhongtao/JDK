@@ -1,8 +1,8 @@
 /*
- * @(#)DragSourceListener.java	1.21 05/11/17
+ * @(#)DragSourceListener.java	1.22 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.dnd;
@@ -25,7 +25,7 @@ import java.util.EventListener;
  * <li> is not followed by a <code>dragExit()</code> invocation on this listener.
  * </ul>
  *
- * @version 	1.21, 11/17/05
+ * @version 	1.22, 03/23/10
  * @since 1.2
  */
 

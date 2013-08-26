@@ -1,8 +1,8 @@
 /*
- * @(#)RobotPeer.java	1.11 08/04/30
+ * @(#)RobotPeer.java	1.12 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.peer;
@@ -17,7 +17,7 @@ import java.awt.*;
  * java.awt.* hierarchy; it is not to be considered public and is subject
  * to change.
  *
- * @version 	1.11, 04/30/08
+ * @version 	1.12, 03/23/10
  * @author 	Robi Khan
  */
 public interface RobotPeer

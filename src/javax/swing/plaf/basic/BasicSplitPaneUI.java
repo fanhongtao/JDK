@@ -1,8 +1,8 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.85 09/08/07
+ * @(#)BasicSplitPaneUI.java	1.86 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -28,7 +28,7 @@ import sun.swing.SwingUtilities2;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.85 08/07/09
+ * @version 1.86 03/23/10
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar

@@ -1,8 +1,8 @@
 /*
- * @(#)MetalToolBarUI.java	1.42 05/11/30
+ * @(#)MetalToolBarUI.java	1.43 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
@@ -34,7 +34,7 @@ import javax.swing.plaf.basic.*;
  * is a "combined" view/controller.
  * <p>
  *
- * @version 1.42 11/30/05
+ * @version 1.43 03/23/10
  * @author Jeff Shapiro
  */
 public class MetalToolBarUI extends BasicToolBarUI

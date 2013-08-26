@@ -1,8 +1,8 @@
 /*
- * @(#)SoftReference.java	1.36 09/02/26
+ * @(#)SoftReference.java	1.37 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.ref;
@@ -39,7 +39,7 @@ package java.lang.ref;
  * strong referents to those entries, leaving the remaining entries to be
  * discarded at the discretion of the garbage collector.
  *
- * @version  1.36, 02/26/09
+ * @version  1.37, 03/23/10
  * @author   Mark Reinhold
  * @since    1.2
  */

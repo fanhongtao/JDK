@@ -1,8 +1,8 @@
 /*
- * @(#)OpenMBeanInfo.java	3.23 05/11/17
+ * @(#)OpenMBeanInfo.java	3.24 10/03/23
  * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
@@ -42,7 +42,7 @@ import javax.management.MBeanNotificationInfo;
  * OpenMBeanAttributeInfo}, {@link OpenMBeanOperationInfo} or {@link
  * OpenMBeanConstructorInfo} interface respectively.
  *
- * @version     3.23  05/11/17
+ * @version     3.24  10/03/23
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5

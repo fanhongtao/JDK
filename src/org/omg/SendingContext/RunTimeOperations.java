@@ -1,8 +1,8 @@
 /*
- * @(#)RunTimeOperations.java	1.14 05/11/17
+ * @(#)RunTimeOperations.java	1.15 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
  * Licensed Materials - Property of IBM
@@ -21,7 +21,7 @@ package org.omg.SendingContext;
 * when a value type is marshalled on a GIOP Request message, the receiver
 * of the value type may need to ask the sender about the CodeBase for the
 * implementation of the value type.
-* @version 1.14 11/17/05
+* @version 1.15 03/23/10
 */
 public interface RunTimeOperations 
 {

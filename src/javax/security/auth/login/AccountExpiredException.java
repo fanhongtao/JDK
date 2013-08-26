@@ -1,8 +1,8 @@
 /*
- * @(#)AccountExpiredException.java	1.19 05/11/17
+ * @(#)AccountExpiredException.java	1.20 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.security.auth.login;
@@ -17,7 +17,7 @@ package javax.security.auth.login;
  * throws this exception to notify the application.  The application can
  * then take the appropriate steps to notify the user.
  *
- * @version 1.19, 11/17/05
+ * @version 1.20, 03/23/10
  */
 public class AccountExpiredException extends AccountException {
 

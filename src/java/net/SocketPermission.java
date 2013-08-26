@@ -1,8 +1,8 @@
 /*
- * @(#)SocketPermission.java	1.67 09/02/24
+ * @(#)SocketPermission.java	1.68 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.net;
@@ -112,7 +112,7 @@ import sun.security.util.Debug;
  * @see java.security.Permissions
  * @see SocketPermission
  *
- * @version 1.67 09/02/24
+ * @version 1.68 10/03/23
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
@@ -1236,7 +1236,7 @@ else its the cname?
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.67 02/24/09
+ * @version 1.68 03/23/10
  *
  * @author Roland Schemers
  *

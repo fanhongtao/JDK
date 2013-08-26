@@ -1,8 +1,8 @@
 /*
- * 1.4 05/11/17
+ * 1.5 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -20,7 +20,7 @@ import java.io.IOException;
  * interface from Exception, it is not intended to be Serializable. Appropriate
  * serialization methods are implemented to throw NotSerializableException.
  *
- * @version 1.4 05/11/17
+ * @version 1.5 10/03/23
  * @see     Properties
  * @since   1.5
  * @serial exclude

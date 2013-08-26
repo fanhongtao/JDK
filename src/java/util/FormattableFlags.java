@@ -1,8 +1,8 @@
 /*
- * @(#)FormattableFlags.java	1.2 05/11/17
+ * @(#)FormattableFlags.java	1.3 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
@@ -13,7 +13,7 @@ package java.util;
  * Formattable Formattables}.  Implementations of {@link Formattable} are
  * responsible for interpreting and validating any flags.
  *
- * @version 	1.2, 11/17/05
+ * @version 	1.3, 03/23/10
  * @since  1.5
  */
 public class FormattableFlags {

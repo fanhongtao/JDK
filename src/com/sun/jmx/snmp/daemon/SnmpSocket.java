@@ -1,11 +1,11 @@
 /*
  * @(#)file      SnmpSocket.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.9
- * @(#)date      06/11/29
+ * @(#)version   1.10
+ * @(#)date      10/07/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  */
 

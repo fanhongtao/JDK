@@ -1,8 +1,8 @@
 /*
- * @(#)TableRowSorter.java	1.8 06/03/31
+ * @(#)TableRowSorter.java	1.9 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.table;
 
@@ -102,7 +102,7 @@ import javax.swing.SortOrder;
  *
  * @param <M> the type of the model, which must be an implementation of
  *            <code>TableModel</code>
- * @version 1.8 03/31/06
+ * @version 1.9 03/23/10
  * @see javax.swing.JTable
  * @see javax.swing.RowFilter
  * @see javax.swing.table.DefaultTableModel

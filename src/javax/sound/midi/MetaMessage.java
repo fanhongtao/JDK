@@ -1,8 +1,8 @@
 /*
- * @(#)MetaMessage.java	1.25 05/11/17
+ * @(#)MetaMessage.java	1.26 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;
@@ -36,7 +36,7 @@ import java.io.IOException;
  *
  * @see MetaEventListener
  *
- * @version 1.25, 05/11/17
+ * @version 1.26, 10/03/23
  * @author David Rivas
  * @author Kara Kytle
  */

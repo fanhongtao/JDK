@@ -1,8 +1,8 @@
 /*
- * @(#)GaugeMonitor.java	1.80 08/12/16
+ * @(#)GaugeMonitor.java	1.81 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management.monitor;
@@ -61,7 +61,7 @@ import static javax.management.monitor.MonitorNotification.*;
  * (<CODE>Byte</CODE>, <CODE>Integer</CODE>, <CODE>Short</CODE>,
  * <CODE>Long</CODE>, <CODE>Float</CODE>, <CODE>Double</CODE>).
  *
- * @version     1.80     12/16/08
+ * @version     1.81     03/23/10
  * @author      Sun Microsystems, Inc
  *
  * @since 1.5

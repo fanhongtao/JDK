@@ -1,8 +1,8 @@
 /*
- * @(#)RowSorter.java	1.7 06/06/23
+ * @(#)RowSorter.java	1.8 10/03/23
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
@@ -71,7 +71,7 @@ import java.util.*;
  * <code>rowsUpdated</code>.
  *
  * @param <M> the type of the underlying model
- * @version 1.7 06/23/06
+ * @version 1.8 03/23/10
  * @see javax.swing.table.TableRowSorter
  * @since 1.6
  */
