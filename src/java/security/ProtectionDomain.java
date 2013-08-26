@@ -1,15 +1,21 @@
 /*
- * @(#)ProtectionDomain.java	1.47 05/11/17
+ * @(#)ProtectionDomain.java	1.48 09/12/03
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.WeakHashMap;
+import sun.misc.JavaSecurityProtectionDomainAccess;
+import static sun.misc.JavaSecurityProtectionDomainAccess.ProtectionDomainCache;
+import sun.misc.SharedSecrets;
 import sun.security.util.Debug;
 import sun.security.util.SecurityConstants;
 
@@ -28,7 +34,7 @@ import sun.security.util.SecurityConstants;
  * is checked.
  * <p>
  * 
- * @version 	1.47, 11/17/05
+ * @version 	1.48, 12/03/09
  * @author Li Gong 
  * @author Roland Schemers
  * @author Gary Ellison
@@ -54,6 +60,11 @@ public class ProtectionDomain {
     /* the PermissionCollection is static (pre 1.4 constructor)
        or dynamic (via a policy refresh) */
     private boolean staticPermissions;
+
+    /* 
+     * An object used as a key when the ProtectionDomain is stored in a Map.
+     */
+    final Key key = new Key();
 
     private static final Debug debug = Debug.getInstance("domain");
 
@@ -222,7 +233,7 @@ public class ProtectionDomain {
     /**
      * Convert a ProtectionDomain to a String.
      */
-    public String toString() {
+    @Override public String toString() {
 	String pals = "<no principals>";
 	if (principals != null && principals.length > 0) {
 	    StringBuilder palBuf = new StringBuilder("(principals ");
@@ -380,5 +391,30 @@ public class ProtectionDomain {
 	}
 
 	return mergedPerms;
+    }
+
+    /**
+     * Used for storing ProtectionDomains as keys in a Map.
+     */
+    final class Key {}
+
+    static {
+        SharedSecrets.setJavaSecurityProtectionDomainAccess(
+            new JavaSecurityProtectionDomainAccess() {
+                public ProtectionDomainCache getProtectionDomainCache() {
+                    return new ProtectionDomainCache() {
+                        private final Map<Key, PermissionCollection> map = 
+                            Collections.synchronizedMap
+                                (new WeakHashMap<Key, PermissionCollection>());
+                        public void put(ProtectionDomain pd, 
+                            PermissionCollection pc) {
+                            map.put((pd == null ? null : pd.key), pc);
+                        }
+                        public PermissionCollection get(ProtectionDomain pd) {
+                            return pd == null ? map.get(null) : map.get(pd.key);
+                        }
+                    };
+                }
+            });
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)CorbaClientRequestDispatcherImpl.java	1.89 09/09/11
+ * @(#)CorbaClientRequestDispatcherImpl.java	1.90 09/10/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@
 
 package com.sun.corba.se.impl.protocol;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Iterator;
 import java.rmi.RemoteException;
 
@@ -387,6 +387,13 @@ public class CorbaClientRequestDispatcherImpl
 						     newException);
 		}
 	    } else {
+                    if (newException instanceof RuntimeException){
+			throw (RuntimeException)newException;
+                    }
+                    else if (newException instanceof RemarshalException)
+                    {
+			throw (RemarshalException)newException;
+                    }
 		    throw e;
 	    }
 	    return null; // for compiler

@@ -1,5 +1,5 @@
 /*
- * @(#)FileSystemView.java	1.49 06/04/07
+ * @(#)FileSystemView.java	1.50 10/02/12
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -43,7 +43,7 @@ import sun.awt.shell.*;
  * Java Licensees may want to provide a different implementation of
  * FileSystemView to better handle a given operating system.
  *
- * @version 1.49 04/07/06
+ * @version 1.50 02/12/10
  * @author Jeff Dinkins
  */
 
@@ -149,23 +149,28 @@ public abstract class FileSystemView {
      * @since 1.4
      */
     public String getSystemDisplayName(File f) {
-	String name = null;
-	if (f != null) {
-	    name = f.getName();
-	    if (!name.equals("..") && !name.equals(".") &&
-                (useSystemExtensionsHiding ||
-                 !isFileSystem(f) ||
-                 isFileSystemRoot(f)) &&
-		((f instanceof ShellFolder) ||
-		 f.exists())) {
+        if (f == null) {
+            return null;
+        }
 
-		name = getShellFolder(f).getDisplayName();
-		if (name == null || name.length() == 0) {
-		    name = f.getPath();	// e.g. "/"
-		}
-	    }
-	}
-	return name;
+        String name = f.getName();
+
+        if (!name.equals("..") && !name.equals(".") &&
+                (useSystemExtensionsHiding || !isFileSystem(f) || isFileSystemRoot(f)) &&
+                (f instanceof ShellFolder || f.exists())) {
+
+            try {
+                name = getShellFolder(f).getDisplayName();
+            } catch (FileNotFoundException e) {
+                return null;
+            }
+
+            if (name == null || name.length() == 0) {
+                name = f.getPath(); // e.g. "/"
+            }
+        }
+
+        return name;
     }
 
     /**
@@ -198,17 +203,25 @@ public abstract class FileSystemView {
      * @since 1.4
      */
     public Icon getSystemIcon(File f) {
-	if (f != null) {
-	    ShellFolder sf = getShellFolder(f);
-	    Image img = sf.getIcon(false);
-	    if (img != null) {
-		return new ImageIcon(img, sf.getFolderType());
-	    } else {
-		return UIManager.getIcon(f.isDirectory() ? "FileView.directoryIcon" : "FileView.fileIcon");
-	    }
-	} else {
-	    return null;
-	}
+        if (f == null) {
+            return null;
+        }
+
+        ShellFolder sf;
+
+        try {
+            sf = getShellFolder(f);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+
+        Image img = sf.getIcon(false);
+
+        if (img != null) {
+            return new ImageIcon(img, sf.getFolderType());
+        } else {
+            return UIManager.getIcon(f.isDirectory() ? "FileView.directoryIcon" : "FileView.fileIcon");
+        }
     }
 
     /**
@@ -422,46 +435,50 @@ public abstract class FileSystemView {
      * Gets the list of shown (i.e. not hidden) files.
      */
     public File[] getFiles(File dir, boolean useFileHiding) {
-	Vector files = new Vector();
+        List<File> files = new ArrayList<File>();
 
+        // add all files in dir
+        if (!(dir instanceof ShellFolder)) {
+            try {
+                dir = getShellFolder(dir);
+            } catch (FileNotFoundException e) {
+                return new File[0];
+            }
+        }
 
-	// add all files in dir
-	File[] names;
-	    if (!(dir instanceof ShellFolder)) {
-		dir = getShellFolder(dir);
-	    }
+        File[] names = ((ShellFolder) dir).listFiles(!useFileHiding);
 
-	    names = ((ShellFolder)dir).listFiles(!useFileHiding);
-	File f;
+        if (names == null) {
+            return new File[0];
+        }
 
-	int nameCount = (names == null) ? 0 : names.length;
-	for (int i = 0; i < nameCount; i++) {
-	    if (Thread.currentThread().isInterrupted()) {
-		break;
-	    }
-	    f = names[i];
-	    if (!(f instanceof ShellFolder)) {
-		if (isFileSystemRoot(f)) {
-		    f = createFileSystemRoot(f);
-		}
-		try {
-		    f = ShellFolder.getShellFolder(f);
-		} catch (FileNotFoundException e) {
-		    // Not a valid file (wouldn't show in native file chooser)
-		    // Example: C:\pagefile.sys
-		    continue;
-		} catch (InternalError e) {
-		    // Not a valid file (wouldn't show in native file chooser)
-		    // Example C:\Winnt\Profiles\joe\history\History.IE5
-		    continue;
-		}
-	    }
-	    if (!useFileHiding || !isHiddenFile(f)) {
-		files.addElement(f);
-	    }
-	}
+        for (File f : names) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
 
-	return (File[])files.toArray(new File[files.size()]);
+            if (!(f instanceof ShellFolder)) {
+                if (isFileSystemRoot(f)) {
+                    f = createFileSystemRoot(f);
+                }
+                try {
+                    f = ShellFolder.getShellFolder(f);
+                } catch (FileNotFoundException e) {
+                    // Not a valid file (wouldn't show in native file chooser)
+                    // Example: C:\pagefile.sys
+                    continue;
+                } catch (InternalError e) {
+                    // Not a valid file (wouldn't show in native file chooser)
+                    // Example C:\Winnt\Profiles\joe\history\History.IE5
+                    continue;
+                }
+            }
+            if (!useFileHiding || !isHiddenFile(f)) {
+                files.add(f);
+            }
+        }
+
+        return files.toArray(new File[files.size()]);
     }
 
 
@@ -473,47 +490,55 @@ public abstract class FileSystemView {
      *   <code>null</code> if <code>dir</code> is <code>null</code>
      */
     public File getParentDirectory(File dir) {
-	if (dir != null && dir.exists()) {
-	    ShellFolder sf = getShellFolder(dir);
-	    File psf = sf.getParentFile();
-	    if (psf != null) {
-		if (isFileSystem(psf)) {
-		    File f = psf;
-		    if (f != null && !f.exists()) {
-			// This could be a node under "Network Neighborhood".
-			File ppsf = psf.getParentFile();
-			if (ppsf == null || !isFileSystem(ppsf)) {
-			    // We're mostly after the exists() override for windows below.
-			    f = createFileSystemRoot(f);
-			}
-		    }
-		    return f;
-		} else {
-		    return psf;
-		}
-	    }
-	}
-	return null;
+        if (dir == null || !dir.exists()) {
+            return null;
+        }
+
+        ShellFolder sf;
+
+        try {
+            sf = getShellFolder(dir);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+
+        File psf = sf.getParentFile();
+
+        if (psf == null) {
+            return null;
+        }
+
+        if (isFileSystem(psf)) {
+            File f = psf;
+            if (!f.exists()) {
+                // This could be a node under "Network Neighborhood".
+                File ppsf = psf.getParentFile();
+                if (ppsf == null || !isFileSystem(ppsf)) {
+                    // We're mostly after the exists() override for windows below.
+                    f = createFileSystemRoot(f);
+                }
+            }
+            return f;
+        } else {
+            return psf;
+        }
     }
 
-    ShellFolder getShellFolder(File f) {
-	if (!(f instanceof ShellFolder)
-	    && !(f instanceof FileSystemRoot)
-	    && isFileSystemRoot(f)) {
+    /**
+     * Throws {@code FileNotFoundException} if file not found or current thread was interrupted
+     */
+    ShellFolder getShellFolder(File f) throws FileNotFoundException {
+        if (!(f instanceof ShellFolder) && !(f instanceof FileSystemRoot) && isFileSystemRoot(f)) {
+            f = createFileSystemRoot(f);
+        }
 
-	    f = createFileSystemRoot(f);
-	}
-	try {
-	    return ShellFolder.getShellFolder(f);
-	} catch (FileNotFoundException e) {
-	    System.err.println("FileSystemView.getShellFolder: f="+f);
-	    e.printStackTrace();
-	    return null;
-	} catch (InternalError e) {
-	    System.err.println("FileSystemView.getShellFolder: f="+f);
-	    e.printStackTrace();
-	    return null;
-	}
+        try {
+            return ShellFolder.getShellFolder(f);
+        } catch (InternalError e) {
+            System.err.println("FileSystemView.getShellFolder: f="+f);
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -657,11 +682,15 @@ class WindowsFileSystemView extends FileSystemView {
      * The Windows implementation gets information from the ShellFolder class.
      */
     public String getSystemTypeDescription(File f) {
-	if (f != null) {
-	    return getShellFolder(f).getFolderType();
-	} else {
-	    return null;
-	}
+        if (f == null) {
+            return null;
+        }
+
+        try {
+            return getShellFolder(f).getFolderType();
+        } catch (FileNotFoundException e) {
+            return null;
+        }
     }
 
     /**

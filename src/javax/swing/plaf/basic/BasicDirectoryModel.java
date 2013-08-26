@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDirectoryModel.java	1.39 09/10/18
+ * @(#)BasicDirectoryModel.java	1.40 09/12/21
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -213,54 +213,49 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
         }
 
         public void run0() {
+            FileSystemView fileSystem = filechooser.getFileSystemView();
+
+            File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());
+
+            if (isInterrupted()) {
+                return;
+            }
+
+            final Vector newFileCache = new Vector();
+            Vector newFiles = new Vector();
+
+            // run through the file list, add directories and selectable files to fileCache
+            // Note that this block must be OUTSIDE of Invoker thread because of
+            // deadlock possibility with custom synchronized FileSystemView
+            for (File file : list) {
+                if (filechooser.accept(file)) {
+                    boolean isTraversable = filechooser.isTraversable(file);
+
+                    if (isTraversable) {
+                        newFileCache.addElement(file);
+                    } else if (filechooser.isFileSelectionEnabled()) {
+                        newFiles.addElement(file);
+                    }
+
+                    if (isInterrupted()) {
+                        return;
+                    }
+                }
+            }
+
+            // First sort alphabetically by filename
+            sort(newFileCache);
+            sort(newFiles);
+
+            newFileCache.addAll(newFiles);
+
+            // To avoid loads of synchronizations with Invoker and improve performance we
+            // execute the whole block on the COM thread
             DoChangeContents doChangeContents = ShellFolder.invoke(new Callable<DoChangeContents>() {
                 public DoChangeContents call() {
-                    FileSystemView fileSystem = filechooser.getFileSystemView();
-                    
-                    File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());
-        
-                    Vector<File> acceptsList = new Vector<File>();
-        
-                    if (isInterrupted()) {
-                        return null;
-                    }
-        
-                    // run through the file list, add directories and selectable files to fileCache
-                    for (int i = 0; i < list.length; i++) {
-                        if(filechooser.accept(list[i])) {
-                            acceptsList.addElement(list[i]);
-                        }
-                    }
-        
-                    if (isInterrupted()) {
-                        return null;
-                    }
-        
-                    // First sort alphabetically by filename
-                    sort(acceptsList);
-        
-                    Vector newDirectories = new Vector(50);
-                    Vector newFiles = new Vector();
-                    // run through list grabbing directories in chunks of ten
-                    for(int i = 0; i < acceptsList.size(); i++) {
-                        File f = (File) acceptsList.elementAt(i);
-                        boolean isTraversable = filechooser.isTraversable(f);
-                        if (isTraversable) {
-                            newDirectories.addElement(f);
-                        } else if (!isTraversable && filechooser.isFileSelectionEnabled()) {
-                            newFiles.addElement(f);
-                        }
-                        if(isInterrupted()) {
-                            return null;
-                        }
-                    }
-        
-                    Vector newFileCache = new Vector(newDirectories);
-                    newFileCache.addAll(newFiles);
-        
                     int newSize = newFileCache.size();
                     int oldSize = fileCache.size();
-        
+
                     if (newSize > oldSize) {
                         //see if interval is added
                         int start = oldSize;

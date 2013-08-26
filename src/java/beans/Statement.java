@@ -1,5 +1,5 @@
 /*
- * @(#)Statement.java	1.31 06/05/23
+ * @(#)Statement.java	1.32 09/12/23
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,6 +11,10 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 
 import com.sun.beans.ObjectHandler;
 import sun.reflect.misc.MethodUtil;
@@ -29,7 +33,7 @@ import sun.reflect.misc.MethodUtil;
  *
  * @since 1.4
  *
- * @version 1.31 05/23/06
+ * @version 1.32 12/23/09
  * @author Philip Milne
  */
 public class Statement {
@@ -44,9 +48,10 @@ public class Statement {
         }
     };
 
-    Object target;
-    String methodName;
-    Object[] arguments;
+    private final AccessControlContext acc = AccessController.getContext();
+    private final Object target;
+    private final String methodName;
+    private final Object[] arguments;
 
     /**
      * Creates a new <code>Statement</code> object with a <code>target</code>,
@@ -124,6 +129,26 @@ public class Statement {
     }
 
     Object invoke() throws Exception {
+        AccessControlContext acc = this.acc;
+        if ((acc == null) && (System.getSecurityManager() != null)) {
+            throw new SecurityException("AccessControlContext is not set");
+        }
+        try {
+            return AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<Object>() {
+                        public Object run() throws Exception {
+                            return invokeInternal();
+                        }
+                    },
+                    acc
+            );
+        }
+        catch (PrivilegedActionException exception) {
+            throw exception.getException();
+        }
+    }
+
+    private Object invokeInternal() throws Exception {
         Object target = getTarget();
         String methodName = getMethodName();
 

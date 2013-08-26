@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.293 09/09/25
+ * @(#)JTable.java	1.294 09/12/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,6 +39,7 @@ import sun.swing.SwingUtilities2;
 import sun.swing.SwingUtilities2.Section;
 import static sun.swing.SwingUtilities2.Section.*;
 import sun.swing.PrintingStatus;
+import sun.swing.SwingLazyValue;
 
 /**
  * The <code>JTable</code> is used to display and edit regular two-dimensional tables
@@ -186,7 +187,7 @@ import sun.swing.PrintingStatus;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.293 09/25/09
+ * @version 1.294 12/07/09
  * @author Philip Milne
  * @author Shannon Hickey (printing support)
  * @see javax.swing.table.DefaultTableModel
@@ -5293,7 +5294,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     private void setLazyValue(Hashtable h, Class c, String s) {
-	h.put(c, new UIDefaults.ProxyLazyValue(s));
+	h.put(c, new SwingLazyValue(s));
     }
 
     private void setLazyRenderer(Class c, String s) {

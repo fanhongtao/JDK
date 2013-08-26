@@ -1,5 +1,5 @@
 /*
- * @(#)AtomicReferenceArray.java	1.12 06/06/15
+ * @(#)AtomicReferenceArray.java	1.13 09/11/17
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ public class AtomicReferenceArray<E> implements java.io.Serializable {
     private long rawIndex(int i) {
         if (i < 0 || i >= array.length)
             throw new IndexOutOfBoundsException("index " + i);
-        return base + i * scale;
+        return base + (long) i * scale;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)parse_manifest.c	1.25 07/08/15
+ * @(#)parse_manifest.c	1.26 09/10/29
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -59,7 +59,7 @@ inflate_file(int fd, zentry *entry, int *size_out)
     char	*out;
     z_stream	zs;
 
-    if (entry->csize == 0xffffffff || entry->isize == 0xffffffff)
+    if (entry->csize == (size_t) -1 || entry->isize == (size_t) -1)
 	return (NULL);
     if (lseek(fd, entry->offset, SEEK_SET) < (off_t)0)
 	return (NULL);

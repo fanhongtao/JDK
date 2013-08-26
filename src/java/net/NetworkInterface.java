@@ -1,5 +1,5 @@
 /*
- * @(#)NetworkInterface.java	1.22 08/11/03
+ * @(#)NetworkInterface.java	1.23 09/12/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -261,8 +261,12 @@ public final class NetworkInterface {
      *          If the specified address is <tt>null</tt>.
      */
     public static NetworkInterface getByInetAddress(InetAddress addr) throws SocketException {
-	if (addr == null)
+	if (addr == null) {
 	    throw new NullPointerException();
+	}
+        if (!(addr instanceof Inet4Address || addr instanceof Inet6Address)) {
+            throw new IllegalArgumentException ("invalid address type");
+        }
 	return getByInetAddress0(addr);
     }
 

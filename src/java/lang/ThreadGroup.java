@@ -1,5 +1,5 @@
 /*
- * @(#)ThreadGroup.java	1.66 08/03/13
+ * @(#)ThreadGroup.java	1.67 09/12/03
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.66, 03/13/08
+ * @version 1.67, 12/03/09
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -38,7 +38,7 @@ import sun.misc.VM;
  */
 public
 class ThreadGroup implements Thread.UncaughtExceptionHandler {
-    ThreadGroup parent;
+    private final ThreadGroup parent;
     String name;
     int maxPriority;
     boolean destroyed;
@@ -59,6 +59,7 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
     private ThreadGroup() {	// called from C code
 	this.name = "system";
 	this.maxPriority = Thread.MAX_PRIORITY;
+        this.parent = null;
     }
 
     /**
@@ -96,16 +97,26 @@ class ThreadGroup implements Thread.UncaughtExceptionHandler {
      * @since   JDK1.0
      */
     public ThreadGroup(ThreadGroup parent, String name) {
-	if (parent == null) {
-	    throw new NullPointerException();
-	}
-	parent.checkAccess();
+        this(checkParentAccess(parent), parent, name);
+    }
+
+    private ThreadGroup(Void unused, ThreadGroup parent, String name) {
 	this.name = name;
 	this.maxPriority = parent.maxPriority;
 	this.daemon = parent.daemon;
 	this.vmAllowSuspension = parent.vmAllowSuspension;
 	this.parent = parent;
 	parent.add(this);
+    }
+
+    /*
+     * @throws  NullPointerException  if the parent argument is {@code null}
+     * @throws  SecurityException     if the current thread cannot create a
+     *                                thread in the specified thread group.
+     */
+    private static Void checkParentAccess(ThreadGroup parent) {
+        parent.checkAccess();
+        return null;
     }
 
     /**

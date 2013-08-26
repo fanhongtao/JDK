@@ -1,11 +1,11 @@
 /*
- * @(#)ProcessBuilder.java	1.9 06/03/22
+ * @(#)ProcessBuilder.java	1.10 10/01/26
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  * @author  Martin Buchholz
- * @version 1.9, 06/03/22
+ * @version 1.10, 10/01/26
  */
 
 package java.lang;
@@ -436,6 +436,7 @@ public final class ProcessBuilder
 	// Must convert to array first -- a malicious user-supplied
 	// list might try to circumvent the security check.
 	String[] cmdarray = command.toArray(new String[command.size()]);
+        cmdarray = cmdarray.clone();
 	for (String arg : cmdarray)
 	    if (arg == null)
 		throw new NullPointerException();

@@ -1,5 +1,5 @@
 /*
- * @(#)File.java	1.142 09/04/01
+ * @(#)File.java	1.143 09/12/06
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,7 +112,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.142, 04/01/09
+ * @version 1.143, 12/06/09
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -1924,11 +1924,12 @@ public class File
     private synchronized void readObject(java.io.ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
-	s.defaultReadObject();
+        ObjectInputStream.GetField fields = s.readFields();
+        String pathField = (String)fields.get("path", null);
 	char sep = s.readChar(); // read the previous separator char
 	if (sep != separatorChar)
-	    this.path = this.path.replace(sep, separatorChar);
-	this.path = fs.normalize(this.path);
+            pathField = pathField.replace(sep, separatorChar);
+	this.path = fs.normalize(pathField);
 	this.prefixLength = fs.prefixLength(this.path);
     }
 

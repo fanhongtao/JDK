@@ -1,5 +1,5 @@
 /*
- * @(#)OceanTheme.java	1.21 06/07/12
+ * @(#)OceanTheme.java	1.22 09/12/07
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,7 @@ import javax.swing.*;
 import javax.swing.plaf.*;
 import sun.swing.SwingUtilities2;
 import sun.swing.PrintColorUIResource;
+import sun.swing.SwingLazyValue;
 
 /**
  * The default theme for the {@code MetalLookAndFeel}.
@@ -29,7 +30,7 @@ import sun.swing.PrintColorUIResource;
  * All colors returned by {@code OceanTheme} are completely
  * opaque.
  *
- * @version 1.21 07/12/06
+ * @version 1.22 12/07/09
  * @since 1.5
  * @see MetalLookAndFeel#setCurrentTheme
  */
@@ -111,7 +112,7 @@ public class OceanTheme extends DefaultMetalTheme {
      * @throws NullPointerException if {@code table} is {@code null}
      */
     public void addCustomEntriesToTable(UIDefaults table) {
-        Object focusBorder = new UIDefaults.ProxyLazyValue(
+        Object focusBorder = new SwingLazyValue(
                       "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
                       new Object[] {getPrimary1()});
         // .30 0 DDE8F3 white secondary2

@@ -1,5 +1,5 @@
 /*
- * @(#)Inflater.java	1.48 08/02/29
+ * @(#)Inflater.java	1.52 09/12/07
  *
  * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -55,7 +55,7 @@ package java.util.zip;
  */
 public
 class Inflater {
-    private long strm;
+    private final ZStreamRef zsRef;
     private byte[] buf = emptyBuf;
     private int off, len;
     private boolean finished;
@@ -80,7 +80,7 @@ class Inflater {
      * @param nowrap if true then support GZIP compatible compression
      */
     public Inflater(boolean nowrap) {
-	strm = init(nowrap);
+        zsRef = new ZStreamRef(init(nowrap));
     }
 
     /**
@@ -99,16 +99,18 @@ class Inflater {
      * @param len the length of the input data
      * @see Inflater#needsInput
      */
-    public synchronized void setInput(byte[] b, int off, int len) {
-	if (b == null) {
-	    throw new NullPointerException();
-	}
-	if (off < 0 || len < 0 || off > b.length - len) {
-	    throw new ArrayIndexOutOfBoundsException();
-	}
-	this.buf = b;
-	this.off = off;
-	this.len = len;
+    public void setInput(byte[] b, int off, int len) {
+        if (b == null) {
+            throw new NullPointerException();
+        }
+        if (off < 0 || len < 0 || off > b.length - len) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        synchronized (zsRef) {
+            this.buf = b;
+            this.off = off;
+            this.len = len;
+        }
     }
 
     /**
@@ -133,15 +135,18 @@ class Inflater {
      * @see Inflater#needsDictionary
      * @see Inflater#getAdler
      */
-    public synchronized void setDictionary(byte[] b, int off, int len) {
-	if (strm == 0 || b == null) {
+    public void setDictionary(byte[] b, int off, int len) {
+	if (b == null) {
 	    throw new NullPointerException();
 	}
 	if (off < 0 || len < 0 || off > b.length - len) {
 	    throw new ArrayIndexOutOfBoundsException();
 	}
-	setDictionary(strm, b, off, len);
-	needDict = false;
+        synchronized (zsRef) {
+            ensureOpen();
+            setDictionary(zsRef.address(), b, off, len);
+            needDict = false;
+        }
     }
 
     /**
@@ -163,8 +168,10 @@ class Inflater {
      * buffer after decompression has finished.
      * @return the total number of bytes remaining in the input buffer
      */
-    public synchronized int getRemaining() {
-	return len;
+    public int getRemaining() {
+        synchronized (zsRef) {
+            return len;
+        }
     }
 
     /**
@@ -173,8 +180,10 @@ class Inflater {
      * to provide more input.
      * @return true if no data remains in the input buffer
      */
-    public synchronized boolean needsInput() {
-	return len <= 0;
+    public boolean needsInput() {
+        synchronized (zsRef) {
+            return len <= 0;
+        }
     }
 
     /**
@@ -182,8 +191,10 @@ class Inflater {
      * @return true if a preset dictionary is needed for decompression
      * @see Inflater#setDictionary
      */
-    public synchronized boolean needsDictionary() {
-	return needDict;
+    public boolean needsDictionary() {
+        synchronized (zsRef) {
+            return needDict;
+        }
     }
 
     /**
@@ -192,8 +203,10 @@ class Inflater {
      * @return true if the end of the compressed data stream has been
      * reached
      */
-    public synchronized boolean finished() {
-	return finished;
+    public boolean finished() {
+        synchronized (zsRef) {
+            return finished;
+        }
     }
 
     /**
@@ -211,16 +224,19 @@ class Inflater {
      * @see Inflater#needsInput
      * @see Inflater#needsDictionary
      */
-    public synchronized int inflate(byte[] b, int off, int len)
-	throws DataFormatException
+    public int inflate(byte[] b, int off, int len)
+        throws DataFormatException
     {
-	if (b == null) {
-	    throw new NullPointerException();
-	}
-	if (off < 0 || len < 0 || off > b.length - len) {
-	    throw new ArrayIndexOutOfBoundsException();
-	}
-	return inflateBytes(b, off, len);
+        if (b == null) {
+            throw new NullPointerException();
+        }
+        if (off < 0 || len < 0 || off > b.length - len) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        synchronized (zsRef) {
+            ensureOpen();
+            return inflateBytes(zsRef.address(), b, off, len);
+        }
     }
 
     /**
@@ -244,9 +260,11 @@ class Inflater {
      * Returns the ADLER-32 value of the uncompressed data.
      * @return the ADLER-32 value of the uncompressed data
      */
-    public synchronized int getAdler() {
-	ensureOpen();
-	return getAdler(strm);
+    public int getAdler() {
+        synchronized (zsRef) {
+            ensureOpen();
+            return getAdler(zsRef.address());
+        }
     }
 
     /**
@@ -268,9 +286,11 @@ class Inflater {
      * @return the total (non-negative) number of compressed bytes input so far
      * @since 1.5
      */
-    public synchronized long getBytesRead() {
-	ensureOpen();
-	return getBytesRead(strm);
+    public long getBytesRead() {
+        synchronized (zsRef) {
+            ensureOpen();
+            return getBytesRead(zsRef.address());
+        }
     }
 
     /**
@@ -292,21 +312,25 @@ class Inflater {
      * @return the total (non-negative) number of uncompressed bytes output so far
      * @since 1.5
      */
-    public synchronized long getBytesWritten() {
-	ensureOpen();
-	return getBytesWritten(strm);
+    public long getBytesWritten() {
+        synchronized (zsRef) {
+            ensureOpen();
+            return getBytesWritten(zsRef.address());
+        }
     }
 
     /**
      * Resets inflater so that a new set of input data can be processed.
      */
-    public synchronized void reset() {
-	ensureOpen();
-	reset(strm);
-	finished = false;
-	needDict = false;
-	off = len = 0;
-        buf = emptyBuf;
+    public void reset() {
+        synchronized (zsRef) {
+            ensureOpen();
+            reset(zsRef.address());
+            buf = emptyBuf;
+            finished = false;
+            needDict = false;
+            off = len = 0;
+        }
     }
 
     /**
@@ -316,12 +340,15 @@ class Inflater {
      * method. Once this method is called, the behavior of the Inflater
      * object is undefined.
      */
-    public synchronized void end() {
-	if (strm != 0) {
-	    end(strm);
-	    strm = 0;
-	    buf = null;
-	}
+    public void end() {
+        synchronized (zsRef) {
+            long addr = zsRef.address();
+            zsRef.clear();
+            if (addr != 0) {
+                end(addr);
+                buf = null;
+            }
+        }
     }
 
     /**
@@ -332,19 +359,20 @@ class Inflater {
     }
 
     private void ensureOpen () {
-	if (strm == 0)
-	    throw new NullPointerException();
+        assert Thread.holdsLock(zsRef);
+        if (zsRef.address() == 0)
+            throw new NullPointerException("Inflater has been closed");
     }
 
     private native static void initIDs();
     private native static long init(boolean nowrap);
-    private native static void setDictionary(long strm, byte[] b, int off,
+    private native static void setDictionary(long addr, byte[] b, int off,
 					     int len);
-    private native int inflateBytes(byte[] b, int off, int len)
+    private native int inflateBytes(long addr, byte[] b, int off, int len)
 	    throws DataFormatException;
-    private native static int getAdler(long strm);
-    private native static long getBytesRead(long strm);
-    private native static long getBytesWritten(long strm);
-    private native static void reset(long strm);
-    private native static void end(long strm);
+    private native static int getAdler(long addr);
+    private native static long getBytesRead(long addr);
+    private native static long getBytesWritten(long addr);
+    private native static void reset(long addr);
+    private native static void end(long addr);
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)InetAddress.java	1.116 07/09/05
+ * @(#)InetAddress.java	1.117 09/12/02
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.security.AccessController;
 import java.io.ObjectStreamException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import sun.security.action.*;
 import sun.net.InetAddressCachePolicy;
 import sun.net.util.IPAddressUtil;
@@ -151,7 +152,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.116, 09/05/07
+ * @version 1.117, 12/02/09
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -1415,6 +1416,23 @@ class InetAddress implements java.io.Serializable {
 
 	return impl;
     }
+
+     private void readObjectNoData (ObjectInputStream s) throws
+                          IOException, ClassNotFoundException {
+         if (getClass().getClassLoader() != null) {
+             throw new SecurityException ("invalid address type");
+         }
+     }
+ 
+     private void readObject (ObjectInputStream s) throws
+                          IOException, ClassNotFoundException {
+         s.defaultReadObject ();
+         if (getClass().getClassLoader() != null) {
+             hostName = null;
+             address = 0;
+             throw new SecurityException ("invalid address type");
+         }
+     }
 }
 
 /*
