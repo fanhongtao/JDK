@@ -1,5 +1,5 @@
 /*
- * @(#)Java2DemoApplet.java	1.22 06/08/25
+ * @(#)Java2DemoApplet.java	1.23 10/01/12
  * 
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -20,7 +20,7 @@
  * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN")
  * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
  * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
  * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
@@ -59,7 +59,7 @@ import javax.swing.*;
               <param name="verbose" value=" ">
               <param name="zoom" value=" ">
  *
- * @version @(#)Java2DemoApplet.java	1.22 06/08/25
+ * @version @(#)Java2DemoApplet.java	1.23 10/01/12
  * @author Brian Lichtenwalter  (Framework, Intro, demos)
  * @author Jim Graham           (demos)
  */

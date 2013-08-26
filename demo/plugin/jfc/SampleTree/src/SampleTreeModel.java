@@ -1,5 +1,5 @@
 /*
- * @(#)SampleTreeModel.java	1.13 05/11/17
+ * @(#)SampleTreeModel.java	1.14 10/01/12
  * 
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -20,7 +20,7 @@
  * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN")
  * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
  * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
  * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)SampleTreeModel.java	1.13 05/11/17
+ * @(#)SampleTreeModel.java	1.14 10/01/12
  */
 
 import javax.swing.tree.DefaultTreeModel;
@@ -51,7 +51,7 @@ import java.awt.Color;
   * and the user object of the TreeNodes is not a String, then you're going
   * to have to subclass JTreeModel as this example does.
   *
-  * @version 1.13 11/17/05
+  * @version 1.14 01/12/10
   * @author Scott Violet
   */
 
