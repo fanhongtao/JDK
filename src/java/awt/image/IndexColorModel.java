@@ -1,5 +1,5 @@
 /*
- * @(#)IndexColorModel.java	1.102 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,6 +112,8 @@ public class IndexColorModel extends ColorModel {
     private boolean allgrayopaque;
     private BigInteger validBits;
     
+    private sun.awt.image.BufImgSurfaceData.ICMColorData colorData = null;
+
     private static int[] opaqueBits = {8, 8, 8};
     private static int[] alphaBits = {8, 8, 8, 8};
 
@@ -1494,7 +1496,6 @@ public class IndexColorModel extends ColorModel {
      * longer referenced.
      */    
     public void finalize() {
-	sun.awt.image.BufImgSurfaceData.freeNativeICMData(this);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)OperationFactory.java	1.26 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,6 +7,7 @@
 package com.sun.corba.se.spi.orb ;
 
 import java.util.StringTokenizer ;
+import java.util.Arrays ;
 
 import java.lang.reflect.Array ;
 
@@ -428,7 +429,7 @@ public abstract class OperationFactory {
 	public String toString() { 
 	    return "sequenceAction(separator=\"" + sep + 
 		"\",actions=" + 
-		ObjectUtility.compactObjectToString(actions) + ")" ; 
+		Arrays.toString(actions) + ")" ; 
 	}
     }
 
@@ -515,7 +516,7 @@ public abstract class OperationFactory {
 
 	public String toString() { 
 	    return "mapSequenceAction(" + 
-		ObjectUtility.compactObjectToString(op) + ")" ;
+		Arrays.toString(op) + ")" ;
 	}
     }
 

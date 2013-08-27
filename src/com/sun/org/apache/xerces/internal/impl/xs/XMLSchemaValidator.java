@@ -757,6 +757,7 @@ public class XMLSchemaValidator
         text = handleCharacters(text);
         
         if (fSawOnlyWhitespaceInElementContent) {
+            fSawOnlyWhitespaceInElementContent = false;
             if (!reportWhitespace) {
                 ignorableWhitespace(text, augs);
                 return;

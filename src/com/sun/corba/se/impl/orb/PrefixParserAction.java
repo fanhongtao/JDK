@@ -1,5 +1,5 @@
 /*
- * @(#)PrefixParserAction.java	1.19 10/03/23
+ * %W% %E%
  * 
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -92,7 +92,7 @@ public class PrefixParserAction extends ParserActionBase {
 		    throw wrapper.couldNotSetArray( thr,
 			getPropertyName(), new Integer(ctr), 
 			componentType, new Integer(size),
-			ObjectUtility.compactObjectToString( obj )) ;
+			obj.toString() ) ;
 		}
 		ctr++ ;
 	    }
