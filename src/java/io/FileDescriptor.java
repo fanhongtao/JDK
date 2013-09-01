@@ -7,6 +7,8 @@
 
 package java.io;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Instances of the file descriptor class serve as an opaque handle
  * to the underlying machine-specific structure representing an open
@@ -28,15 +30,24 @@ public final class FileDescriptor {
     private int fd;
 
     /**
+     * A counter for tracking the FIS/FOS/RAF instances that
+     * use this FileDescriptor. The FIS/FOS.finalize() will not release
+     * the FileDescriptor if it is still under user by a stream.
+     */
+    private AtomicInteger useCount;
+
+    /**
      * Constructs an (invalid) FileDescriptor
      * object.
      */
     public /**/ FileDescriptor() {
 	fd = -1;
+        useCount = new AtomicInteger();
     }
 
     private /* */ FileDescriptor(int fd) {
 	this.fd = fd;
+        useCount = new AtomicInteger();
     }
 
     /**
@@ -83,7 +94,7 @@ public final class FileDescriptor {
      * relevant device(s).  In particular, if this FileDescriptor
      * refers to a physical storage medium, such as a file in a file
      * system, sync will not return until all in-memory modified copies
-     * of buffers associated with this FileDesecriptor have been
+     * of buffers associated with this FileDescriptor have been
      * written to the physical medium.
      *
      * sync is meant to be used by code that requires physical
@@ -135,4 +146,15 @@ public final class FileDescriptor {
             }
         );
     }
+
+    // package private methods used by FIS, FOS and RAF
+
+    int incrementAndGetUseCount() {
+        return useCount.incrementAndGet();
+    }
+
+    int decrementAndGetUseCount() {
+        return useCount.decrementAndGet();
+    }
+
 }

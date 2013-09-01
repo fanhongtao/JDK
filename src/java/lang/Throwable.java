@@ -1,5 +1,5 @@
 /*
- * @(#)Throwable.java	1.57 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -124,7 +124,7 @@ import  java.io.*;
  * @author  unascribed
  * @author  Josh Bloch (Added exception chaining and programmatic access to
  *          stack trace in 1.4.)
- * @version 1.57, 03/23/10
+ * @version %I%, %G%
  * @since JDK1.0
  */
 public class Throwable implements Serializable {
@@ -629,17 +629,21 @@ public class Throwable implements Serializable {
     /**
      * Returns the number of elements in the stack trace (or 0 if the stack
      * trace is unavailable).
+     *
+     * package-protection for use by SharedSecrets.
      */
-    private native int getStackTraceDepth();
+    native int getStackTraceDepth();
 
     /**
      * Returns the specified element of the stack trace.
+     *
+     * package-protection for use by SharedSecrets.
      *
      * @param index index of the element to return.
      * @throws IndexOutOfBoundsException if <tt>index &lt; 0 ||
      *         index &gt;= getStackTraceDepth() </tt>
      */
-    private native StackTraceElement getStackTraceElement(int index);
+    native StackTraceElement getStackTraceElement(int index);
 
     private synchronized void writeObject(java.io.ObjectOutputStream s)
         throws IOException

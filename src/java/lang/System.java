@@ -1,5 +1,5 @@
 /*
- * @(#)System.java	1.164 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1144,6 +1144,13 @@ public final class System {
             }
             public void registerShutdownHook(int slot, Runnable r) {
                 Shutdown.add(slot, r);
+            }
+
+            public int getStackTraceDepth(Throwable t) {
+                return t.getStackTraceDepth();
+            }
+            public StackTraceElement getStackTraceElement(Throwable t, int i) {
+                return t.getStackTraceElement(i);
             }
         });
     }

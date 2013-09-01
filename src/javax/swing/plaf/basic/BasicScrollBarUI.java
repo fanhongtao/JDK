@@ -1,5 +1,5 @@
 /*
- * @(#)BasicScrollBarUI.java	1.91 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.91 03/23/10
+ * @version %I% %G%
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -1570,6 +1570,7 @@ public class BasicScrollBarUI
 	        BoundedRangeModel newModel = (BoundedRangeModel)e.getNewValue();
 		oldModel.removeChangeListener(modelListener);
 		newModel.addChangeListener(modelListener);
+                scrollBarValue = scrollbar.getValue();
 		scrollbar.repaint();
 		scrollbar.revalidate();
 	    } else if ("orientation" == propertyName) {

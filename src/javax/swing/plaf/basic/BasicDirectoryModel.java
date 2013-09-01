@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDirectoryModel.java	1.41 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -467,7 +467,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
                 }
                 if (remSize > 0 && addSize == 0) {
                     fireIntervalRemoved(BasicDirectoryModel.this, remStart, remStart + remSize - 1);
-                } else if (addSize > 0 && remSize == 0 && fileCache.size() > addSize) {
+                } else if (addSize > 0 && remSize == 0 && addStart + addSize <= fileCache.size()) {
                     fireIntervalAdded(BasicDirectoryModel.this, addStart, addStart + addSize - 1);
                 } else {
                     fireContentsChanged();
@@ -476,4 +476,3 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
         }
     }
 }
-

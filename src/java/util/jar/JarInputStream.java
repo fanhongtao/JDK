@@ -1,7 +1,5 @@
 /*
- * @(#)JarInputStream.java	1.38 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +8,7 @@ package java.util.jar;
 import java.util.zip.*;
 import java.io.*;
 import sun.security.util.ManifestEntryVerifier;
+import sun.misc.JarIndex;
 
 /**
  * The <code>JarInputStream</code> class is used to read the contents of
@@ -19,7 +18,7 @@ import sun.security.util.ManifestEntryVerifier;
  * can be used to store meta-information about the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.38, 03/23/10
+ * @version %I%, %G%
  * @see	    Manifest
  * @see	    java.util.zip.ZipInputStream
  * @since   1.2
@@ -30,6 +29,8 @@ class JarInputStream extends ZipInputStream {
     private JarEntry first;
     private JarVerifier jv;
     private ManifestEntryVerifier mev;
+    private final boolean doVerify;
+    private boolean tryManifest;
 
 
     /**
@@ -55,8 +56,21 @@ class JarInputStream extends ZipInputStream {
      */
     public JarInputStream(InputStream in, boolean verify) throws IOException {
 	super(in);
-	JarEntry e = (JarEntry)super.getNextEntry();
+	this.doVerify = verify;
 
+        // This implementation assumes the META-INF/MANIFEST.MF entry
+        // should be either the first or the second entry (when preceded
+        // by the dir META-INF/). It skips the META-INF/ and then
+        // "consumes" the MANIFEST.MF to initialize the Manifest object.
+        JarEntry e = (JarEntry)super.getNextEntry();
+        if (e != null && e.getName().equalsIgnoreCase("META-INF/"))
+            e = (JarEntry)super.getNextEntry();
+        first = checkManifest(e);
+    }
+
+    private JarEntry checkManifest(JarEntry e)
+        throws IOException
+    {
         if (e != null && e.getName().equalsIgnoreCase("META-INF/"))
             e = (JarEntry)super.getNextEntry();
 
@@ -64,16 +78,14 @@ class JarInputStream extends ZipInputStream {
             man = new Manifest();
             byte bytes[] = getBytes(new BufferedInputStream(this));
             man.read(new ByteArrayInputStream(bytes));
-            //man.read(new BufferedInputStream(this));
             closeEntry();
-            if (verify) {
+            if (doVerify) {
                 jv = new JarVerifier(bytes);
                 mev = new ManifestEntryVerifier(man);
             }
-            first = getNextJarEntry();
-        } else {
-            first = e;
+            return (JarEntry)super.getNextEntry();
         }
+        return e;
     }
 
     private byte[] getBytes(InputStream is)
@@ -116,8 +128,14 @@ class JarInputStream extends ZipInputStream {
 	JarEntry e;
 	if (first == null) {
 	    e = (JarEntry)super.getNextEntry();
+            if (tryManifest) {
+                e = checkManifest(e);
+                tryManifest = false;
+            }
 	} else {
 	    e = first;
+	    if (first.getName().equalsIgnoreCase(JarIndex.INDEX_NAME))
+	        tryManifest = true;
 	    first = null;
 	}
 	if (jv != null && e != null) {

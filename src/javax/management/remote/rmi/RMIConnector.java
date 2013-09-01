@@ -278,15 +278,17 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
 	    try {
 		connection = getConnection(stub, credentials, checkStub);
 	    } catch (java.rmi.RemoteException re) {
-		final String pro = jmxServiceURL.getProtocol();
-		final String path = jmxServiceURL.getURLPath();
+		if (jmxServiceURL != null) {
+		    final String pro = jmxServiceURL.getProtocol();
+		    final String path = jmxServiceURL.getURLPath();
 
-		if ("rmi".equals(pro) &&
-		    path.startsWith("/jndi/iiop:")) {
-		    MalformedURLException mfe = new MalformedURLException(
-			  "Protocol is rmi but JNDI scheme is iiop: " + jmxServiceURL);
-		    mfe.initCause(re);
-		    throw mfe;
+		    if ("rmi".equals(pro) &&
+		        path.startsWith("/jndi/iiop:")) {
+		        MalformedURLException mfe = new MalformedURLException(
+			      "Protocol is rmi but JNDI scheme is iiop: " + jmxServiceURL);
+		        mfe.initCause(re);
+		        throw mfe;
+		    }
 		}
 		throw re;
 	    }

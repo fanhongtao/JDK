@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboPopup.java	1.87 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.87 03/23/10
+ * @version %I% %G%
  * @author Tom Santos
  * @author Mark Davidson
  */
@@ -185,8 +185,8 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * Implementation of ComboPopup.show().
      */
     public void show() {
+        comboBox.firePopupMenuWillBecomeVisible();
 	setListSelection(comboBox.getSelectedIndex());
-
 	Point location = getPopupLocation();
         show( comboBox, location.x, location.y );
     }
@@ -327,7 +327,8 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
 
     protected void firePopupMenuWillBecomeVisible() {
 	super.firePopupMenuWillBecomeVisible();
-	comboBox.firePopupMenuWillBecomeVisible();
+        // comboBox.firePopupMenuWillBecomeVisible() is called from BasicComboPopup.show() method
+        // to let the user change the popup menu from the PopupMenuListener.popupMenuWillBecomeVisible()
     }
     
     protected void firePopupMenuWillBecomeInvisible() {
@@ -1275,5 +1276,3 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     // end Utility methods
     //=================================================================
 }
-
-

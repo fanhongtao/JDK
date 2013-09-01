@@ -1,7 +1,6 @@
 /*
- * @(#)ClassLoader.java	1.189 05/11/17
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.lang;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.AccessControlContext;
@@ -170,7 +168,8 @@ public abstract class ClassLoader {
 
     // The packages defined in this class loader.  Each package name is mapped
     // to its corresponding Package object.
-    private HashMap packages = new HashMap();
+    private final HashMap<String, Package> packages =
+                                new HashMap<String, Package>();
 
     private static Void checkCreateClassLoader() {
         SecurityManager security = System.getSecurityManager();
@@ -1472,20 +1471,25 @@ public abstract class ClassLoader {
      * @since  1.2
      */
     protected Package getPackage(String name) {
-	synchronized (packages) {
-	    Package pkg = (Package)packages.get(name);
-	    if (pkg == null) {
-		if (parent != null) {
-		    pkg = parent.getPackage(name);
-		} else {
-		    pkg = Package.getSystemPackage(name);
-		}
-		if (pkg != null) {
-		    packages.put(name, pkg);
-		}
+        Package pkg;
+        synchronized(packages) {
+	    pkg = packages.get(name);
+        }
+	if (pkg == null) {
+	    if (parent != null) {
+		pkg = parent.getPackage(name);
+            } else {
+	        pkg = Package.getSystemPackage(name);
 	    }
-	    return pkg;
+	    if (pkg != null) {
+                synchronized(packages) {
+                    if (packages.get(name) != null) {
+                        packages.put(name, pkg);
+                    }
+                }
+	    }
 	}
+	return pkg;
     }
 
     /**

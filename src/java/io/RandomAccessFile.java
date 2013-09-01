@@ -1,5 +1,5 @@
 /*
- * @(#)RandomAccessFile.java	1.82 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.82, 03/23/10
+ * @version %I%, %G%
  * @since   JDK1.0
  */
 
@@ -44,6 +44,9 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
     private FileDescriptor fd;
     private FileChannel channel = null;
     private boolean rw;
+
+    private Object closeLock = new Object();
+    private volatile boolean closed = false;
 
     private static final int O_RDONLY = 1;
     private static final int O_RDWR =   2;
@@ -209,6 +212,7 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
             throw new NullPointerException();
         }
 	fd = new FileDescriptor();
+        fd.incrementAndGetUseCount();
 	open(name, imode);
     }
 
@@ -245,8 +249,20 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
      */
     public final FileChannel getChannel() {
 	synchronized (this) {
-	    if (channel == null)
+	    if (channel == null) {
 		channel = FileChannelImpl.open(fd, true, rw, this);
+
+                /*
+                 * FileDescriptor could be shared by FileInputStream or
+                 * FileOutputStream.
+                 * Ensure that FD is GC'ed only when all the streams/channels
+                 * are done using it.
+                 * Increment fd's use count. Invoking the channel's close()
+                 * method will result in decrementing the use count set for
+                 * the channel.
+                 */
+                fd.incrementAndGetUseCount();
+            }
 	    return channel;
 	}
     }
@@ -537,9 +553,27 @@ public class RandomAccessFile implements DataOutput, DataInput, Closeable {
      * @spec JSR-51
      */
     public void close() throws IOException {
-        if (channel != null)
+        synchronized (closeLock) {
+            if (closed) {
+                return;
+            }
+                closed = true;
+        }
+        if (channel != null) {
+            /*
+             * Decrement FD use count associated with the channel. The FD use
+             * count is incremented whenever a new channel is obtained from
+             * this stream.
+             */
+            fd.decrementAndGetUseCount();
             channel.close();
+        }
 
+        /*
+         * Decrement FD use count associated with this stream.
+         * The count got incremented by FileDescriptor during its construction.
+         */
+        fd.decrementAndGetUseCount();
         close0();
     }
     

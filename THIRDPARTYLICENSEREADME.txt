@@ -1,1 +1,1 @@
-Please see http://www.oracle.com/technetwork/goto/javase/thirdpartyreadme/6
+Please refer to http://java.com/thirdpartylicense
