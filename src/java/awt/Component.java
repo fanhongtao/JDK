@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.453 10/04/27
+ * %W% %E%
  *
  * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -48,6 +48,7 @@ import javax.accessibility.*;
 import java.awt.GraphicsConfiguration;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.AccessControlContext;
 import javax.accessibility.*;
 import java.lang.ref.*;
 import java.util.logging.*;
@@ -162,7 +163,7 @@ import sun.awt.RequestFocusController;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.453, 04/27/10
+ * @version     %I%, %G%
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -451,6 +452,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
     static final Object LOCK = new AWTTreeLock();
     static class AWTTreeLock {}
 
+    /*
+     * The component's AccessControlContext.
+     */
+    private transient volatile AccessControlContext acc =
+        AccessController.getContext();
+
     /**
      * Minimum size.
      * (This field perhaps should have been transient).
@@ -651,6 +658,16 @@ public abstract class Component implements ImageObserver, MenuContainer,
     private transient Object objectLock = new Object();
     Object getObjectLock() {
         return objectLock;
+    }
+
+    /*
+     * Returns the acc this component was constructed with.
+     */
+    final AccessControlContext getAccessControlContext() {
+        if (acc == null) {
+            throw new SecurityException("Component is missing AccessControlContext");
+        }
+        return acc;
     }
 
     boolean isPacked = false;
@@ -874,6 +891,11 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 public ComponentPeer getPeer(Component comp) {
                     return comp.peer;
                 }
+
+                public AccessControlContext getAccessControlContext(Component comp) {
+                    return comp.getAccessControlContext();
+                }
+
             });
     }
 
@@ -8425,6 +8447,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
       throws ClassNotFoundException, IOException
     {
         objectLock = new Object();
+
+        acc = AccessController.getContext();
 
         s.defaultReadObject();
 

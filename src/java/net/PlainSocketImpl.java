@@ -1,5 +1,5 @@
 /*
- * @(#)PlainSocketImpl.java	1.69 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,7 @@ import java.io.FileDescriptor;
 import java.io.ByteArrayOutputStream;
 
 import sun.net.ConnectionResetException;
+import sun.net.ResourceManager;
 
 /**
  * Default Socket Implementation. This implementation does
@@ -22,7 +23,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.69, 03/23/10
+ * @version %I%, %G%
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -75,6 +76,10 @@ class PlainSocketImpl extends SocketImpl
      */
     private int lastfd = -1;
 
+    /* whether this Socket is a stream (TCP) socket or not (UDP)
+     */
+    private boolean stream;
+
     /**
      * Load net library into runtime.
      */
@@ -104,7 +109,20 @@ class PlainSocketImpl extends SocketImpl
     protected synchronized void create(boolean stream) throws IOException {
 	fd = new FileDescriptor();
 	fd1 = new FileDescriptor();
-	socketCreate(stream);
+	this.stream = stream;
+        if (!stream) {
+	    ResourceManager.beforeUdpCreate();
+            try {
+    		socketCreate(false);
+	    } catch (IOException ioe) {
+	    	ResourceManager.afterUdpClose();
+		fd = null;
+		fd1 = null;
+		throw ioe;
+	    }
+	} else {
+	    socketCreate(true);
+	}
 	if (socket != null)
 	    socket.setCreated();
 	if (serverSocket != null)
@@ -474,6 +492,9 @@ class PlainSocketImpl extends SocketImpl
     protected void close() throws IOException {
 	synchronized(fdLock) {
 	    if (fd != null || fd1 != null) {
+                if (!stream) {
+                    ResourceManager.afterUdpClose();
+		}
 		if (fdUseCount == 0) {
 		    if (closePending) {
 			return;

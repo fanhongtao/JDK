@@ -1,5 +1,5 @@
 /*
- * @(#)EventQueue.java	1.107 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,6 +30,12 @@ import sun.awt.SunToolkit;
 import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
 import sun.awt.AppContext;
+
+import java.security.AccessControlContext;
+import java.security.ProtectionDomain;
+
+import sun.misc.SharedSecrets;
+import sun.misc.JavaSecurityAccess;
 
 /**
  * <code>EventQueue</code> is a platform-independent class
@@ -73,7 +79,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.107, 03/23/10
+ * @version 	%I%, %G%
  * @since 	1.1
  */
 public class EventQueue {
@@ -549,6 +555,9 @@ public class EventQueue {
         return null;
     }
 
+    private static final JavaSecurityAccess javaSecurityAccess =
+        SharedSecrets.getJavaSecurityAccess();
+
     /**
      * Dispatches an event. The manner in which the event is
      * dispatched depends upon the type of the event and the
@@ -587,13 +596,49 @@ public class EventQueue {
      * @throws NullPointerException if <code>event</code> is <code>null</code>
      * @since           1.2
      */
-    protected void dispatchEvent(AWTEvent event) {
+    protected void dispatchEvent(final AWTEvent event) {
+        final Object src = event.getSource();
+        final PrivilegedAction<Void> action = new PrivilegedAction<Void>() {
+            public Void run() {
+                dispatchEventImpl(event, src);
+                return null;
+            }
+        };
+
+        final AccessControlContext stack = AccessController.getContext();
+        final AccessControlContext srcAcc = getAccessControlContextFrom(src);
+        final AccessControlContext eventAcc = event.getAccessControlContext();
+        if (srcAcc == null) {
+            javaSecurityAccess.doIntersectionPrivilege(action, stack, eventAcc);
+        } else {
+            javaSecurityAccess.doIntersectionPrivilege(
+                new PrivilegedAction<Void>() {
+                    public Void run() {
+                        javaSecurityAccess.doIntersectionPrivilege(action, eventAcc);
+                        return null;
+                    }
+                }, stack, srcAcc);
+        }
+    }
+
+    private static AccessControlContext getAccessControlContextFrom(Object src) {
+        return src instanceof Component ?
+            ((Component)src).getAccessControlContext() :
+            src instanceof MenuComponent ?
+                ((MenuComponent)src).getAccessControlContext() :
+                src instanceof TrayIcon ?
+                    ((TrayIcon)src).getAccessControlContext() :
+                    null;
+    }
+
+    /**
+     * Called from dispatchEvent() under a correct AccessControlContext  
+     */
+    private void dispatchEventImpl(final AWTEvent event, final Object src) {
         event.isPosted = true;
-        Object src = event.getSource();
         if (event instanceof ActiveEvent) {
             // This could become the sole method of dispatching in time.
             setCurrentEventAndMostRecentTimeImpl(event);
-
             ((ActiveEvent)event).dispatch();
         } else if (src instanceof Component) {
             ((Component)src).dispatchEvent(event);

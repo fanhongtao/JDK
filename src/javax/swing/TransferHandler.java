@@ -1,5 +1,5 @@
 /*
- * @(#)TransferHandler.java	1.50 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,6 +22,16 @@ import sun.reflect.misc.MethodUtil;
 import sun.swing.SwingUtilities2;
 import sun.awt.AppContext;
 import sun.swing.*;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+import java.security.AccessControlContext;
+import java.security.ProtectionDomain;
+import sun.misc.SharedSecrets;
+import sun.misc.JavaSecurityAccess;
+
+import sun.awt.AWTAccessor;
 
 /**
  * This class is used to handle the transfer of a <code>Transferable</code>
@@ -53,7 +63,7 @@ import sun.swing.*;
  *
  * @author Timothy Prinzing
  * @author Shannon Hickey
- * @version 1.50 03/23/10
+ * @version %I% %G%
  * @since 1.4
  */
 @SuppressWarnings("serial")
@@ -1623,13 +1633,44 @@ public class TransferHandler implements Serializable {
             return true;
         }
 
-        public void actionPerformed(ActionEvent e) {
-	    Object src = e.getSource();
-	    if (src instanceof JComponent) {
-		JComponent c = (JComponent) src;
-		TransferHandler th = c.getTransferHandler();
-		Clipboard clipboard = getClipboard(c);
-		String name = (String) getValue(Action.NAME);
+
+        private static final JavaSecurityAccess javaSecurityAccess =
+            SharedSecrets.getJavaSecurityAccess();
+
+        public void actionPerformed(final ActionEvent e) {
+            final Object src = e.getSource();
+
+            final PrivilegedAction<Void> action = new PrivilegedAction<Void>() {
+                public Void run() {
+                    actionPerformedImpl(e);
+                    return null;
+                }
+            };
+
+            final AccessControlContext stack = AccessController.getContext();
+            final AccessControlContext srcAcc = AWTAccessor.getComponentAccessor().getAccessControlContext((Component)src);
+            final AccessControlContext eventAcc = AWTAccessor.getAWTEventAccessor().getAccessControlContext(e);
+
+                if (srcAcc == null) {
+                    javaSecurityAccess.doIntersectionPrivilege(action, stack, eventAcc);
+                } else {
+                    javaSecurityAccess.doIntersectionPrivilege(
+                        new PrivilegedAction<Void>() {
+                            public Void run() {
+                                javaSecurityAccess.doIntersectionPrivilege(action, eventAcc);
+                                return null;
+                             }
+                    }, stack, srcAcc);
+                }
+        }
+
+        private void actionPerformedImpl(ActionEvent e) {
+            Object src = e.getSource();
+            if (src instanceof JComponent) {
+                JComponent c = (JComponent) src;
+                TransferHandler th = c.getTransferHandler();
+                Clipboard clipboard = getClipboard(c);
+                String name = (String) getValue(Action.NAME);
 
                 Transferable trans = null;
 
@@ -1654,8 +1695,8 @@ public class TransferHandler implements Serializable {
                 if (trans != null) {
                     th.importData(new TransferSupport(c, trans));
                 }
-	    }
-	}
+            }
+        }
 
 	/**
 	 * Returns the clipboard to use for cut/copy/paste.

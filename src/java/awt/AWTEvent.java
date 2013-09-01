@@ -1,5 +1,5 @@
 /*
- * @(#)AWTEvent.java	1.63 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,11 @@ import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
 import java.lang.reflect.Field;
 import sun.awt.AWTAccessor;
+
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 
 /**
  * The root event class for all AWT events.
@@ -53,7 +58,7 @@ import sun.awt.AWTAccessor;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.63 03/23/10
+ * @version %I% %G%
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {
@@ -77,6 +82,23 @@ public abstract class AWTEvent extends EventObject {
      * @see #isConsumed
      */
     protected boolean consumed = false;
+
+    /*
+     * The event's AccessControlContext.
+     */
+     private transient volatile AccessControlContext acc =
+        AccessController.getContext();
+     
+    /*
+     * Returns the acc this event was constructed with.
+     */
+     final AccessControlContext getAccessControlContext() {
+         if (acc == null) {
+            throw new SecurityException("AWTEvent is missing AccessControlContext");
+         }
+         return acc;
+     }
+
   
     transient boolean focusManagerIsDispatching = false;
     transient boolean isPosted;
@@ -228,6 +250,10 @@ public abstract class AWTEvent extends EventObject {
 
                 public void setPosted(AWTEvent ev) {
                     ev.isPosted = true;
+                }
+                
+                public AccessControlContext getAccessControlContext(AWTEvent ev) {
+                    return ev.getAccessControlContext();
                 }
             });
     }
@@ -552,6 +578,13 @@ public abstract class AWTEvent extends EventObject {
                 } 
             }
         }
-    }            
+    }
+ 
+    private void readObject(ObjectInputStream in) 
+        throws ClassNotFoundException, IOException
+    {
+        this.acc = AccessController.getContext();
+        in.defaultReadObject();
+    }
 } // class AWTEvent
 

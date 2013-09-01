@@ -1,5 +1,5 @@
 /*
- * @(#)AccessControlContext.java	1.49 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import sun.security.util.Debug;
 import sun.security.util.SecurityConstants;
+import sun.misc.JavaSecurityAccess;
+import sun.misc.SharedSecrets;
+
 
 /** 
  * An AccessControlContext is used to make system resource access decisions
@@ -68,6 +71,36 @@ public final class AccessControlContext {
 
     private static boolean debugInit = false;
     private static Debug debug = null;
+
+    static {
+        // Set up JavaSecurityAccess in SharedSecrets
+        SharedSecrets.setJavaSecurityAccess(
+            new JavaSecurityAccess() {
+                public <T> T doIntersectionPrivilege(
+                    PrivilegedAction<T> action,
+                    final AccessControlContext stack,
+                    final AccessControlContext context)
+                {
+                    if (action == null) {
+                        throw new NullPointerException();
+                    }
+                    return AccessController.doPrivileged(
+                        action,
+                        new AccessControlContext(
+                            stack.getContext(), context).optimize()
+                    );
+                }
+
+                public <T> T doIntersectionPrivilege(
+                    PrivilegedAction<T> action,
+                    AccessControlContext context)
+                {
+                    return doIntersectionPrivilege(action,
+                        AccessController.getContext(), context);
+                }
+            }
+       );
+    }
 
     static Debug getDebug()
     {
@@ -172,6 +205,24 @@ public final class AccessControlContext {
     {
 	this.context = context;
 	this.isPrivileged = isPrivileged;
+    }
+
+    /**
+     * Constructor for JavaSecurityAccess.doIntersectionPrivilege()
+     */
+    AccessControlContext(ProtectionDomain[] context,
+                         AccessControlContext privilegedContext)
+    {
+        this.context = context;
+        this.privilegedContext = privilegedContext;
+        this.isPrivileged = true;
+    }
+
+    /**
+     * Returns this context's context.
+     */
+    ProtectionDomain[] getContext() {
+        return context;
     }
 
     /**

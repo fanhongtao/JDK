@@ -1,5 +1,5 @@
 /*
- * @(#)java_md.c	1.77 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -473,7 +473,7 @@ CreateExecutionEnvironment(int *_argcp,
        * LD_LIBRARY_PATH.  Note that this prevents any possible infinite
        * loop of execv() because we test for the prefix, above.
        */
-      if (runpath != 0) {
+      if ((runpath != 0) && (runpath[0] != '\0')) {
 	strcat(new_runpath, ":");
 	strcat(new_runpath, runpath);
       }

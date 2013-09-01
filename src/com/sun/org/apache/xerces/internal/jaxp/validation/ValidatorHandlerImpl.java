@@ -43,6 +43,7 @@ import com.sun.org.apache.xerces.internal.util.AttributesProxy;
 import com.sun.org.apache.xerces.internal.util.SAXLocatorWrapper;
 import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
+import com.sun.org.apache.xerces.internal.util.SecurityManager;
 import com.sun.org.apache.xerces.internal.util.URI;
 import com.sun.org.apache.xerces.internal.util.XMLAttributesImpl;
 import com.sun.org.apache.xerces.internal.util.XMLSymbols;
@@ -86,7 +87,7 @@ import org.xml.sax.ext.EntityResolver2;
  * @author Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
  * @author Michael Glavassevich, IBM
  * 
- * @version $Id: ValidatorHandlerImpl.java,v 1.3.2.1 2007/01/23 06:25:58 joehw Exp $
+ * @version $Id: ValidatorHandlerImpl.java,v 1.5 2007/07/19 04:38:53 ofung Exp $
  */
 final class ValidatorHandlerImpl extends ValidatorHandler implements
     DTDHandler, EntityState, PSVIProvider, ValidatorHelper, XMLDocumentHandler {

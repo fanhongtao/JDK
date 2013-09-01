@@ -1,5 +1,5 @@
 /*
- * @(#)EventDispatchThread.java	1.63 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.awt.EventQueueDelegate;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.63, 03/23/10
+ * @version %I%, %G%
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -281,10 +281,7 @@ class EventDispatchThread extends Thread {
                           // Threads in the AppContext
 
         }
-        // Can get and throw only unchecked exceptions
-        catch (RuntimeException e) {
-            processException(e, modalFiltersCount > 0);
-        } catch (Error e) {
+        catch (Throwable e) {
             processException(e, modalFiltersCount > 0);
         }
         return true;

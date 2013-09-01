@@ -1,9 +1,10 @@
 /*
- * Copyright 2005 The Apache Software Foundation.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  * 
  *      http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -57,7 +58,7 @@ import org.xml.sax.SAXParseException;
  * {@link SchemaFactory} for XML Schema.
  *
  * @author Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
- * @version $Id: XMLSchemaFactory.java,v 1.2.2.2 2007/10/20 17:56:45 joehw Exp $
+ * @version $Id: XMLSchemaFactory.java,v 1.4 2007/10/19 22:22:58 joehw Exp $
  */
 public final class XMLSchemaFactory extends SchemaFactory {
     
@@ -225,21 +226,26 @@ public final class XMLSchemaFactory extends SchemaFactory {
         
         // Select Schema implementation based on grammar count.
         final int grammarCount = pool.getGrammarCount();
+        AbstractXMLSchema schema = null;
         if (grammarCount > 1) {
-            return new XMLSchema(new ReadOnlyGrammarPool(pool));
+            schema = new XMLSchema(new ReadOnlyGrammarPool(pool));
         }
         else if (grammarCount == 1) {
             Grammar[] grammars = pool.retrieveInitialGrammarSet(XMLGrammarDescription.XML_SCHEMA);
-            return new SimpleXMLSchema(grammars[0]);
+            schema = new SimpleXMLSchema(grammars[0]);
         }
         else {
-            return EmptyXMLSchema.getInstance();
+            schema = new EmptyXMLSchema();
         }
+        propagateFeatures(schema);
+        return schema;
     }
     
     public Schema newSchema() throws SAXException {
         // Use a Schema that uses the system id as the equality source.
-        return new WeakReferenceXMLSchema();
+        AbstractXMLSchema schema = new WeakReferenceXMLSchema();
+        propagateFeatures(schema);
+        return schema;
     }
     
     public boolean getFeature(String name) 
@@ -361,6 +367,15 @@ public final class XMLSchemaFactory extends SchemaFactory {
                         SAXMessageFormatter.formatMessage(Locale.getDefault(), 
                         "property-not-supported", new Object [] {identifier}));
             }
+        }
+    }
+
+    private void propagateFeatures(AbstractXMLSchema schema) {
+        schema.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, fSecurityManager != null);
+        String[] features = fXMLSchemaLoader.getRecognizedFeatures();
+        for (int i = 0; i < features.length; ++i) {
+            boolean state = fXMLSchemaLoader.getFeature(features[i]);
+            schema.setFeature(features[i], state);
         }
     }
     

@@ -1,5 +1,5 @@
 /*
- * @(#)MenuComponent.java	1.83 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,9 @@ import sun.awt.SunToolkit;
 import sun.awt.AWTAccessor; 
 import javax.accessibility.*;
 
+import java.security.AccessControlContext;
+import java.security.AccessController;
+
 /**
  * The abstract class <code>MenuComponent</code> is the superclass 
  * of all menu-related components. In this respect, the class
@@ -24,7 +27,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.83, 03/23/10
+ * @version 	%I%, %G%
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -82,6 +85,23 @@ public abstract class MenuComponent implements java.io.Serializable {
      */
     boolean newEventsOnly = false;
  
+    /*
+     * The menu's AccessControlContext.
+     */
+    private transient volatile AccessControlContext acc =
+            AccessController.getContext();
+    
+    /*
+     * Returns the acc this menu component was constructed with.
+     */
+    final AccessControlContext getAccessControlContext() {
+        if (acc == null) {
+            throw new SecurityException(
+                    "MenuComponent is missing AccessControlContext");
+        }
+        return acc;
+    }
+
     /*
      * Internal constants for serialization.
      */
@@ -390,6 +410,9 @@ public abstract class MenuComponent implements java.io.Serializable {
         throws ClassNotFoundException, IOException, HeadlessException
     {
         GraphicsEnvironment.checkHeadless();
+
+        acc = AccessController.getContext();
+
         s.defaultReadObject();
 
         privateKey = new Object();

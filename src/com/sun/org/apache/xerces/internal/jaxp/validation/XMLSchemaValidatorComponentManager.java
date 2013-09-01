@@ -1,9 +1,10 @@
 /*
- * Copyright 2005 The Apache Software Foundation.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  * 
  *      http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -17,6 +18,9 @@
 package com.sun.org.apache.xerces.internal.jaxp.validation;
 
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 
@@ -147,6 +151,20 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
     /** Validation manager. */
     private ValidationManager fValidationManager;
     
+
+    //
+    // Configuration
+    //
+
+    /** Stores initial feature values for validator reset. */
+    private final HashMap fInitFeatures = new HashMap();
+ 
+    /** Stores initial property values for validator reset. */
+    private final HashMap fInitProperties = new HashMap();
+ 
+    /** Stores the initial security manager. */
+    private final SecurityManager fInitSecurityManager;
+
     //
     // User Objects
     //
@@ -189,9 +207,19 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
         fErrorReporter.putMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN, new XSMessageFormatter());
         
         // add all recognized features and properties and apply their defaults
-        addRecognizedParamsAndSetDefaults(fEntityManager);
-        addRecognizedParamsAndSetDefaults(fErrorReporter);
-        addRecognizedParamsAndSetDefaults(fSchemaValidator); 
+        addRecognizedParamsAndSetDefaults(fEntityManager, grammarContainer);
+        addRecognizedParamsAndSetDefaults(fErrorReporter, grammarContainer);
+        addRecognizedParamsAndSetDefaults(fSchemaValidator, grammarContainer);
+
+        // if the secure processing feature is set to true, add a security manager to the configuration
+        Boolean secureProcessing = grammarContainer.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING);
+        if (Boolean.TRUE.equals(secureProcessing)) {
+            fInitSecurityManager = new SecurityManager();
+        }
+        else {
+            fInitSecurityManager = null;
+        }
+        fComponents.put(SECURITY_MANAGER, fInitSecurityManager);
     }
 
     /**
@@ -244,14 +272,18 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
         else if (USE_GRAMMAR_POOL_ONLY.equals(featureId) && value != fUseGrammarPoolOnly) {
             throw new XMLConfigurationException(XMLConfigurationException.NOT_SUPPORTED, featureId);
         }
-        fConfigUpdated = true;
         if (XMLConstants.FEATURE_SECURE_PROCESSING.equals(featureId)) {
             setProperty(SECURITY_MANAGER, value ? new SecurityManager() : null);
             return;
         }
+        fConfigUpdated = true;
         fEntityManager.setFeature(featureId, value);
         fErrorReporter.setFeature(featureId, value);
         fSchemaValidator.setFeature(featureId, value);
+        if (!fInitFeatures.containsKey(featureId)) {
+            boolean current = super.getFeature(featureId);
+            fInitFeatures.put(featureId, current ? Boolean.TRUE : Boolean.FALSE);
+        }
         super.setFeature(featureId, value);
     }
     
@@ -303,6 +335,9 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
             fComponents.put(propertyId, value);
             return;
         }
+        if (!fInitProperties.containsKey(propertyId)) {
+            fInitProperties.put(propertyId, super.getProperty(propertyId));
+        }
         super.setProperty(propertyId, value);
     }
     
@@ -315,7 +350,7 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
      * @param component The component whose recognized features
      * and properties will be added to the configuration
      */
-    public void addRecognizedParamsAndSetDefaults(XMLComponent component) {
+    public void addRecognizedParamsAndSetDefaults(XMLComponent component, XSGrammarPoolContainer grammarContainer) {
         
         // register component's recognized features
         final String[] recognizedFeatures = component.getRecognizedFeatures();
@@ -326,7 +361,7 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
         addRecognizedProperties(recognizedProperties);
 
         // set default values
-        setFeatureDefaults(component, recognizedFeatures);
+        setFeatureDefaults(component, recognizedFeatures, grammarContainer);
         setPropertyDefaults(component, recognizedProperties);
     }
     
@@ -364,29 +399,47 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
     void restoreInitialState() {
         fConfigUpdated = true;
         
-        // Clear feature and property tables.
-        fFeatures.clear();
-        fProperties.clear();
-        
         // Remove error resolver and error handler
         fComponents.put(ENTITY_RESOLVER, null);
         fComponents.put(ERROR_HANDLER, null);
         
         // Restore component defaults.
-        setFeatureDefaults(fEntityManager, fEntityManager.getRecognizedFeatures());
-        setPropertyDefaults(fEntityManager, fEntityManager.getRecognizedProperties());
-        setFeatureDefaults(fErrorReporter, fErrorReporter.getRecognizedFeatures());
-        setPropertyDefaults(fErrorReporter, fErrorReporter.getRecognizedProperties());
-        setFeatureDefaults(fSchemaValidator, fSchemaValidator.getRecognizedFeatures());
-        setPropertyDefaults(fSchemaValidator, fSchemaValidator.getRecognizedProperties());
+        // Restore initial security manager
+        fComponents.put(SECURITY_MANAGER, fInitSecurityManager);
+ 
+        // Reset feature and property values to their initial values
+        if (!fInitFeatures.isEmpty()) {
+            Iterator iter = fInitFeatures.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry entry = (Map.Entry) iter.next();
+                String name = (String) entry.getKey();
+                boolean value = ((Boolean) entry.getValue()).booleanValue();
+                super.setFeature(name, value);
+            }
+            fInitFeatures.clear();
+        }
+        if (!fInitProperties.isEmpty()) {
+            Iterator iter = fInitProperties.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry entry = (Map.Entry) iter.next();
+                String name = (String) entry.getKey();
+                Object value = entry.getValue();
+                super.setProperty(name, value);
+            }
+            fInitProperties.clear();
+        }
     }
     
     /** Sets feature defaults for the given component on this configuration. */
-    private void setFeatureDefaults(final XMLComponent component, final String [] recognizedFeatures) {
+    private void setFeatureDefaults(final XMLComponent component,
+           final String [] recognizedFeatures, XSGrammarPoolContainer grammarContainer) {
         if (recognizedFeatures != null) {
             for (int i = 0; i < recognizedFeatures.length; ++i) {
                 String featureId = recognizedFeatures[i];
-                Boolean state = component.getFeatureDefault(featureId);
+                Boolean state = grammarContainer.getFeature(featureId);
+                if (state == null) {
+                    state = component.getFeatureDefault(featureId);
+                }
                 if (state != null) {
                     // Do not overwrite values already set on the configuration.
                     if (!fFeatures.containsKey(featureId)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 Sun Microsystems, Inc. All rights reserved. Use is
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved. Use is
  * subject to license terms.
  */
 
@@ -20,6 +20,8 @@ import sun.awt.AppContext;
 import sun.awt.SunToolkit;
 import sun.awt.AWTAccessor;
 import java.util.EventObject;
+import java.security.AccessControlContext;
+import java.security.AccessController;
 
 /**
  * A <code>TrayIcon</code> object represents a tray icon that can be
@@ -70,6 +72,7 @@ import java.util.EventObject;
  * @author Anton Tarasov
  */
 public class TrayIcon {
+
     private Image image;
     private String tooltip;
     private PopupMenu popup;
@@ -87,6 +90,24 @@ public class TrayIcon {
      * This object is used as a key for internal hashtables.
      */
     transient private Object privateKey = new Object();
+
+    /*
+     * The tray icon's AccessControlContext.
+     *
+     * Unlike the acc in Component, this field is made final
+     * because TrayIcon is not serializable.
+     */
+    private final AccessControlContext acc = AccessController.getContext();
+    
+    /*
+     * Returns the acc this tray icon was constructed with.
+     */
+    final AccessControlContext getAccessControlContext() {
+        if (acc == null) {
+            throw new SecurityException("TrayIcon is missing AccessControlContext");
+        }
+        return acc;
+    }
 
     static {
         AWTAccessor.setTrayIconAccessor(new AWTAccessor.TrayIconAccessor() {

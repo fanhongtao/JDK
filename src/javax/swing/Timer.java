@@ -1,5 +1,5 @@
 /*
- * @(#)Timer.java	1.50 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,10 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Serializable;
+import java.io.*;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import javax.swing.event.EventListenerList;
 
 
@@ -120,7 +124,7 @@ import javax.swing.event.EventListenerList;
  * @see java.util.Timer <code>java.util.Timer</code>
  *
  *
- * @version 1.50 03/23/10
+ * @version %I% %G%
  * @author Dave Moore
  */
 public class Timer implements Serializable
@@ -149,6 +153,22 @@ public class Timer implements Serializable
 
     private static boolean logTimers;
 
+    /*
+     * The timer's AccessControlContext.
+     */
+     private transient volatile AccessControlContext acc =
+            AccessController.getContext();
+    
+    /**
+      * Returns the acc this timer was constructed with.
+      */
+     final AccessControlContext getAccessControlContext() {
+       if (acc == null) {
+           throw new SecurityException(
+                   "Timer is missing AccessControlContext");
+       }
+       return acc;
+     }
 
     // These fields are maintained by TimerQueue.
     // eventQueued can also be reset by the TimerQueue, but will only ever
@@ -555,11 +575,22 @@ public class Timer implements Serializable
         notify = false;
     }
 
-
     synchronized void post() {
         if (notify == false || !coalesce) {
             notify = true;
-            SwingUtilities.invokeLater(doPostEvent);
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                public Void run() {
+                    SwingUtilities.invokeLater(doPostEvent);
+                    return null;
+                }
+            }, getAccessControlContext());
         }
-    }
+     }
+
+     private void readObject(ObjectInputStream in) 
+        throws ClassNotFoundException, IOException
+     {
+        this.acc = AccessController.getContext();
+        in.defaultReadObject();
+     }
 }

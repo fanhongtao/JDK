@@ -1,9 +1,10 @@
 /*
- * Copyright 2005 The Apache Software Foundation.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  * 
  *      http://www.apache.org/licenses/LICENSE-2.0
  * 
@@ -22,7 +23,7 @@ import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
  * <p>A container for grammar pools which only contain schema grammars.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: XSGrammarPoolContainer.java,v 1.1.4.1 2005/09/05 11:49:36 sunithareddy Exp $
+ * @version $Id: XSGrammarPoolContainer.java,v 1.3 2007/07/19 04:38:53 ofung Exp $
  */
 public interface XSGrammarPoolContainer {
     
@@ -43,5 +44,12 @@ public interface XSGrammarPoolContainer {
      * can be considered to be a fully composed schema
      */
     public boolean isFullyComposed();
+
+    /**
+    * Returns the initial value of a feature for validators created
+    * using this grammar pool container or null if the validators
+    * should use the default value.
+    */
+    public Boolean getFeature(String featureId);
     
 }
