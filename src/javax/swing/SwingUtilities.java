@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities.java	1.149 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.149 03/23/10
+ * @version %I% %G%
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -954,6 +954,7 @@ public class SwingUtilities implements SwingConstants
 
         boolean textIsEmpty = (text == null) || text.equals("");
         int lsb = 0;
+        int rsb = 0;
         /* Unless both text and icon are non-null, we effectively ignore
          * the value of textIconGap.
          */
@@ -1090,6 +1091,11 @@ public class SwingUtilities implements SwingConstants
             // lsb is negative. Shift the x location so that the text is
             // visually drawn at the right location.
             textR.x -= lsb;
+            
+            textR.width += lsb;
+        }
+        if (rsb > 0) {
+            textR.width -= rsb;
         }
 
         return text;

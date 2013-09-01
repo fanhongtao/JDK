@@ -1,5 +1,5 @@
 /*
- * @(#)ServerSocket.java	1.92 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.security.PrivilegedExceptionAction;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.92, 03/23/10
+ * @version %I%, %G%
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -50,6 +50,15 @@ class ServerSocket {
      * Are we using an older SocketImpl?
      */
     private boolean oldImpl = false;
+
+    /**
+     * Package-private constructor to create a ServerSocket associated with
+     * the given SocketImpl.
+     */
+    ServerSocket(SocketImpl impl) {
+        this.impl = impl;
+        impl.setServerSocket(this);
+    }
 
     /**
      * Creates an unbound server socket.

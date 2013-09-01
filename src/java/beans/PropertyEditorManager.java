@@ -1,11 +1,13 @@
 /*
- * @(#)PropertyEditorManager.java	1.47 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans;
+
+import java.util.Hashtable;
 
 /**
  * The PropertyEditorManager can be used to locate a property editor for
@@ -55,11 +57,10 @@ public class PropertyEditorManager {
 	if (sm != null) {
 	    sm.checkPropertiesAccess();
 	}
-	initialize();
 	if (editorClass == null) {
-	    registry.remove(targetType);
+            getRegistry().remove(targetType);
 	} else {
-	    registry.put(targetType, editorClass);
+            getRegistry().put(targetType, editorClass);
 	}
     }
 
@@ -71,9 +72,8 @@ public class PropertyEditorManager {
      * The result is null if no suitable editor can be found.
      */
 
-    public static synchronized PropertyEditor findEditor(Class<?> targetType) {
-	initialize();
-	Class editorClass = (Class)registry.get(targetType);
+    public static PropertyEditor findEditor(Class<?> targetType) {
+	Class editorClass = (Class) getRegistry().get(targetType);
 	if (editorClass != null) {
 	    try {
 		Object o = editorClass.newInstance();
@@ -98,6 +98,7 @@ public class PropertyEditorManager {
    	while (editorName.indexOf('.') > 0) {
 	    editorName = editorName.substring(editorName.indexOf('.')+1);
 	}
+        String[] searchPath = getEditorSearchPath();
 	for (int i = 0; i < searchPath.length; i++) {
 	    String name = searchPath[i] + "." + editorName + "Editor";
 	    try {
@@ -147,14 +148,14 @@ public class PropertyEditorManager {
 	if (sm != null) {
 	    sm.checkPropertiesAccess();
 	}
-	initialize();
+	getRegistry();
 	if (path == null) {
 	    path = new String[0];
 	}
 	searchPath = path;
     }
 
-    private static synchronized void load(Class targetType, String name) {
+    private static void load(Class targetType, String name) {
 	String editorName = name;
 	for (int i = 0; i < searchPath.length; i++) {
 	    try {
@@ -171,11 +172,11 @@ public class PropertyEditorManager {
     }
 
 
-    private static synchronized void initialize() {
+    private static synchronized Hashtable getRegistry() {
 	if (registry != null) {
-	    return;
+            return registry;
 	}
-	registry = new java.util.Hashtable();
+	registry = new Hashtable();
 	load(Byte.TYPE, "ByteEditor");
 	load(Short.TYPE, "ShortEditor");
 	load(Integer.TYPE, "IntEditor");
@@ -183,8 +184,9 @@ public class PropertyEditorManager {
 	load(Boolean.TYPE, "BoolEditor");
 	load(Float.TYPE, "FloatEditor");
 	load(Double.TYPE, "DoubleEditor");
+        return registry;
     }
 
     private static String[] searchPath = { "sun.beans.editors" };
-    private static java.util.Hashtable registry;
+    private static Hashtable registry;
 }

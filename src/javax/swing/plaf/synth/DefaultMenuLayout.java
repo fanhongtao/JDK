@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultMenuLayout.java	1.11 10/04/26
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.plaf.UIResource;
 
 import java.awt.Container;
+import java.awt.Dimension;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.multi.MultiPopupMenuUI;
 
@@ -22,7 +23,7 @@ import javax.swing.plaf.multi.MultiPopupMenuUI;
  *
  * Derived from javax.swing.plaf.basic.DefaultMenuLayout
  *
- * @version 1.11 04/26/10
+ * @version %I% %G%
  * @author Georges Saab
  */
 
@@ -32,18 +33,22 @@ class DefaultMenuLayout extends BoxLayout implements UIResource {
     }
 
     @Override
-    public void invalidateLayout(Container target) {
+    public Dimension preferredLayoutSize(Container target) {
         if (target instanceof JPopupMenu) {
-            ComponentUI ui = ((JPopupMenu) target).getUI();
-            ComponentUI[] uis = ui instanceof MultiPopupMenuUI
-                    ? ((MultiPopupMenuUI) ui).getUIs()
-                    : new ComponentUI[] { ui };
-            for (ComponentUI u: uis) {
-                if (u instanceof SynthPopupMenuUI) {
-                    ((SynthPopupMenuUI) u).resetAlignmentHints();
-                }
+            JPopupMenu popupMenu = (JPopupMenu) target;
+
+            popupMenu.putClientProperty(
+                    SynthMenuItemLayoutHelper.MAX_ACC_OR_ARROW_WIDTH, null);
+            sun.swing.MenuItemLayoutHelper.clearUsedClientProperties(popupMenu);
+
+            if (popupMenu.getComponentCount() == 0) {
+                return new Dimension(0, 0);
             }
         }
+
+        // Make BoxLayout recalculate cached preferred sizes
         super.invalidateLayout(target);
-    }
+
+     return super.preferredLayoutSize(target);
+   }
 }

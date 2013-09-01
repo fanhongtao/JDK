@@ -1,5 +1,5 @@
 /*
- * @(#)Introspector.java	1.149 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -153,20 +153,23 @@ public class Introspector {
 	if (!ReflectUtil.isPackageAccessible(beanClass)) {
 	    return (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
 	}
+        Map<Class<?>, BeanInfo> beanInfoCache;
+        BeanInfo beanInfo;
         synchronized (BEANINFO_CACHE) {
-           Map<Class<?>, BeanInfo> beanInfoCache = (Map<Class<?>, BeanInfo>) AppContext.getAppContext().get(BEANINFO_CACHE);
-         if (beanInfoCache == null) {
-            beanInfoCache = new WeakHashMap<Class<?>, BeanInfo>();
-            AppContext.getAppContext().put(BEANINFO_CACHE, beanInfoCache);
-          }
-          BeanInfo beanInfo = beanInfoCache.get(beanClass);
-          if (beanInfo == null) {
-              beanInfo = (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
-              beanInfoCache.put(beanClass, beanInfo);
-          }
-          return beanInfo;
+            beanInfoCache = (Map<Class<?>, BeanInfo>) AppContext.getAppContext().get(BEANINFO_CACHE);
+            if (beanInfoCache == null) {
+                beanInfoCache = new WeakHashMap<Class<?>, BeanInfo>();
+                AppContext.getAppContext().put(BEANINFO_CACHE, beanInfoCache);
+            }
+            beanInfo = beanInfoCache.get(beanClass);
         }
-
+        if (beanInfo == null) {
+            beanInfo = new Introspector(beanClass, null, USE_ALL_BEANINFO).getBeanInfo();
+            synchronized (BEANINFO_CACHE) {
+                beanInfoCache.put(beanClass, beanInfo);
+            }
+        }
+        return beanInfo;
     }
 
     /**
@@ -422,7 +425,7 @@ public class Introspector {
      *
      * @return Instance of an explicit BeanInfo class or null if one isn't found.
      */
-    private static synchronized BeanInfo findExplicitBeanInfo(Class beanClass) {
+    private static BeanInfo findExplicitBeanInfo(Class beanClass) {
 	String name = beanClass.getName() + BEANINFO_SUFFIX;
         try {
 	    return (java.beans.BeanInfo)instantiate(beanClass, name);
@@ -441,6 +444,7 @@ public class Introspector {
 	// Now try looking for <searchPath>.fooBeanInfo
  	name = name.substring(name.lastIndexOf('.')+1);
 
+        String[] searchPath = getBeanInfoSearchPath();
 	for (int i = 0; i < searchPath.length; i++) {
 	    // This optimization will only use the BeanInfo search path if is has changed
 	    // from the original or trying to get the ComponentBeanInfo. 

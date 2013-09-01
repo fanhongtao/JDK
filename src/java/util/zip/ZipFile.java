@@ -1,7 +1,7 @@
 /*
- * @(#)ZipFile.java	1.83 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,8 @@ import java.io.File;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import java.security.AccessController;
+import sun.security.action.GetPropertyAction;
 
 /**
  * This class is used to read entries from a zip file.
@@ -55,6 +57,17 @@ class ZipFile implements ZipConstants {
     }
 
     private static native void initIDs();
+
+    private static final boolean usemmap;
+
+    static {
+        // A system property to disable mmap use to avoid vm crash when
+        // in-use zip file is accidently overwritten by others.
+        String prop = AccessController.doPrivileged(
+            new GetPropertyAction("sun.zip.disableMemoryMapping"));
+        usemmap = (prop == null ||
+                   !(prop.length() == 0 || prop.equalsIgnoreCase("true")));
+    }
 
     /**
      * Opens a zip file for reading.
@@ -111,7 +124,7 @@ class ZipFile implements ZipConstants {
 		sm.checkDelete(name);
 	    }
 	}
-	jzfile = open(name, mode, file.lastModified());
+        jzfile = open(name, mode, file.lastModified(), usemmap);
 
 	this.name = name;
 	this.total = getTotal(jzfile);
@@ -496,6 +509,10 @@ class ZipFile implements ZipConstants {
         }
 
     }
+
+
+    private static native long open(String name, int mode, long lastModified,
+                                    boolean usemmap) throws IOException;
 
     private static native int read(long jzfile, long jzentry,
 				   long pos, byte[] b, int off, int len);

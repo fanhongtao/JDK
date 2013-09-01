@@ -1,5 +1,5 @@
 /*
- * @(#)FileDescriptor.java	1.23 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ package java.io;
  * Applications should not create their own file descriptors.
  *
  * @author  Pavani Diwanji
- * @version 1.23, 03/23/10
+ * @version %I%, %G%
  * @see	    java.io.FileInputStream
  * @see	    java.io.FileOutputStream
  * @since   JDK1.0
@@ -111,5 +111,28 @@ public final class FileDescriptor {
 
     static {
 	initIDs();
+    }
+
+    // Set up JavaIOFileDescriptorAccess in SharedSecrets
+    static {
+        sun.misc.SharedSecrets.setJavaIOFileDescriptorAccess(
+            new sun.misc.JavaIOFileDescriptorAccess() {
+                public void set(FileDescriptor obj, int fd) {
+                    obj.fd = fd;
+                }
+
+                public int get(FileDescriptor obj) {
+                    return obj.fd;
+                }
+
+                public void setHandle(FileDescriptor obj, long handle) {
+                    throw new UnsupportedOperationException();
+                }
+
+                public long getHandle(FileDescriptor obj) {
+                    throw new UnsupportedOperationException();
+                }
+            }
+        );
     }
 }

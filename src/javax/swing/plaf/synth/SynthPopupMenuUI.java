@@ -1,5 +1,5 @@
 /*
- * @(#)SynthPopupMenuUI.java	1.24 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,30 +34,13 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's PopupMenuUI.
  *
- * @version 1.24, 03/23/10
+ * @version %I%, %G%
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
  */
 class SynthPopupMenuUI extends BasicPopupMenuUI implements
                 PropertyChangeListener, SynthUI {
-    /**
-     * Maximum size of the text portion of the children menu items.
-     */
-    private int maxTextWidth;
-
-    /**
-     * Maximum size of the text for the acclerator portion of the children
-     * menu items.
-     */
-    private int maxAcceleratorWidth;
-
-    /*
-     * Maximum icon and text offsets of the children menu items.
-     */
-    private int maxTextOffset;
-    private int maxIconOffset;
-
     private SynthStyle style;
 
     public static ComponentUI createUI(JComponent x) {
@@ -123,73 +106,6 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
 
     private int getComponentState(JComponent c) {
         return SynthLookAndFeel.getComponentState(c);
-    }
-
-    /**
-     * Resets the max text and accerator widths, 
-     * text and icon offsets.
-     */
-    void resetAlignmentHints() {
-        maxTextWidth = maxAcceleratorWidth
-                     = maxTextOffset = maxIconOffset = 0;
-    }
-
-    /**
-     * Adjusts the width needed to display the maximum menu item string.
-     *
-     * @param width Text width.
-     * @return max width
-     */
-    int adjustTextWidth(int width) {
-        maxTextWidth = Math.max(maxTextWidth, width);
-        return maxTextWidth;
-    }
-
-    /**
-     * Adjusts the width needed to display the maximum accelerator.
-     *
-     * @param width Text width.
-     * @return max width
-     */
-    int adjustAcceleratorWidth(int width) {
-        maxAcceleratorWidth = Math.max(maxAcceleratorWidth, width);
-        return maxAcceleratorWidth;
-    }
-
-    /**
-     * Maximum size to display text of children menu items.
-     */
-    int getMaxTextWidth() {
-        return maxTextWidth;
-    }
-
-    /**
-     * Maximum size needed to display accelerators of children menu items.
-     */
-    int getMaxAcceleratorWidth() {
-        return maxAcceleratorWidth;
-    }
-
-    /**
-     * Adjusts the text offset needed to align text horizontally.
-     *
-     * @param offset Text offset
-     * @return max offset
-     */
-    int adjustTextOffset(int offset) {
-        maxTextOffset = Math.max(maxTextOffset, offset);
-        return maxTextOffset;
-    }
-
-   /**
-    * Adjusts the icon offset needed to align icons horizontally
-    *
-    * @param offset Icon offset
-    * @return max offset
-    */
-    int adjustIconOffset(int offset) {
-        maxIconOffset = Math.max(maxIconOffset, offset);
-        return maxIconOffset;
     }
 
     public void update(Graphics g, JComponent c) {

@@ -1,7 +1,6 @@
 /*
- * @(#)NimbusIcon.java	1.10 10/03/23
  *
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.nimbus;
@@ -66,6 +65,8 @@ class NimbusIcon extends SynthIcon {
                         translatex = 1;
                     }
                 }
+            } else if (c instanceof JMenu) {
+                flip = ! c.getComponentOrientation().isLeftToRight();
             }
             if (g instanceof Graphics2D){
                 Graphics2D gfx = (Graphics2D)g;

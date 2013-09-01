@@ -1,7 +1,7 @@
 /*
- * @(#)Toolkit.java	1.223 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -838,7 +838,20 @@ public abstract class Toolkit {
                                     try {
                                         cls = cl.loadClass(nm);
                                     } catch (ClassNotFoundException ee) {
-                                        throw new AWTError("Toolkit not found: " + nm);
+                                        if (GraphicsEnvironment.isHeadless()) {
+                                            nm = "sun.awt.HToolkit";
+                                            try {
+                                                cls = Class.forName(nm);
+                                            } catch (ClassNotFoundException xe) {
+                                                try {
+                                                    cls = cl.loadClass(nm);
+                                                } catch (ClassNotFoundException xee) {
+                                                    throw new AWTError("Toolkit not found: " + nm);
+                                                } 
+                                            }
+                                        }
+                                        else
+                                            throw new AWTError("Toolkit not found: " + nm);
                                     }
                                 }
                             }

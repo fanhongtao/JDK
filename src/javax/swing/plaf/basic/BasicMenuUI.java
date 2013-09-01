@@ -1,7 +1,7 @@
 /*
- * @(#)BasicMenuUI.java	1.164 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.164 03/23/10
+ * @version %I% %G%
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -178,6 +178,10 @@ public class BasicMenuUI extends BasicMenuItemUI
 
     protected MenuDragMouseListener createMenuDragMouseListener(JComponent c) {
 	return getHandler();
+    }
+
+    protected MenuKeyListener createMenuKeyListener(JComponent c) {
+        return (MenuKeyListener)getHandler();
     }
     
     public Dimension getMaximumSize(JComponent c) {
@@ -381,7 +385,7 @@ public class BasicMenuUI extends BasicMenuItemUI
         public void stateChanged(ChangeEvent e) { }
     }
 
-    private class Handler extends BasicMenuItemUI.Handler {
+    private class Handler extends BasicMenuItemUI.Handler implements MenuKeyListener {
         //
         // PropertyChangeListener
         //
@@ -562,6 +566,49 @@ public class BasicMenuUI extends BasicMenuItemUI
 	}
 	public void menuDragMouseExited(MenuDragMouseEvent e) {}
 	public void menuDragMouseReleased(MenuDragMouseEvent e) {}	    
+
+        //
+        // MenuKeyListener
+        //
+        /**
+         * Open the Menu
+         */
+        public void menuKeyTyped(MenuKeyEvent e) {
+            if (!crossMenuMnemonic && BasicPopupMenuUI.getLastPopup() != null) {
+                // when crossMenuMnemonic is not set, we don't open a toplevel
+                // menu if another toplevel menu is already open
+                return;
+            }
+
+            if (BasicPopupMenuUI.getPopups().size() != 0) {
+                //Fix 6939261: to return in case not on the main menu
+                //and has a pop-up. 
+                //after return code will be handled in BasicPopupMenuUI.java
+                return;
+            }
+
+            char key = Character.toLowerCase((char)menuItem.getMnemonic());
+            MenuElement path[] = e.getPath();
+            if (key == Character.toLowerCase(e.getKeyChar())) {
+                JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
+                ArrayList newList = new ArrayList(Arrays.asList(path));
+                newList.add(popupMenu);
+                MenuElement subs[] = popupMenu.getSubElements();
+                MenuElement sub =
+                        BasicPopupMenuUI.findEnabledChild(subs, -1, true);
+                if(sub != null) {
+                    newList.add(sub);
+                }
+                MenuSelectionManager manager = e.getMenuSelectionManager();
+                MenuElement newPath[] = new MenuElement[0];;
+                newPath = (MenuElement[]) newList.toArray(newPath);
+                manager.setSelectedPath(newPath);
+                e.consume();
+            }
+        }
+
+        public void menuKeyPressed(MenuKeyEvent e) {}
+        public void menuKeyReleased(MenuKeyEvent e) {}
 
     }
 }

@@ -5,14 +5,12 @@
 package javax.swing.plaf.metal;
 
 import java.awt.*;
-import java.beans.*;
-import javax.swing.*;
 
 /**
  * DesktopProperty that only uses font height in configuring font. This
  * is only used on Windows.
  *
- * @version @(#)MetalFontDesktopProperty.java	1.6 10/03/23
+ * @version %W% %E%
  */
 class MetalFontDesktopProperty extends com.sun.java.swing.plaf.windows.DesktopProperty {
     /**
@@ -41,7 +39,7 @@ class MetalFontDesktopProperty extends com.sun.java.swing.plaf.windows.DesktopPr
      * @param type MetalTheme font type.
      */
     MetalFontDesktopProperty(int type) {
-        this(propertyMapping[type], Toolkit.getDefaultToolkit(), type);
+	this(propertyMapping[type], type);        
     }
 
     /**
@@ -53,8 +51,8 @@ class MetalFontDesktopProperty extends com.sun.java.swing.plaf.windows.DesktopPr
      * @param type Type of font being used, corresponds to MetalTheme font
      *        type.
      */
-    MetalFontDesktopProperty(String key, Toolkit kit, int type) {
-        super(key, null, kit);
+    MetalFontDesktopProperty(String key, int type) {
+        super(key, null);
         this.type = type;
     }
 

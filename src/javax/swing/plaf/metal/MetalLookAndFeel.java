@@ -1,5 +1,5 @@
 /*
- * @(#)MetalLookAndFeel.java	1.207 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -70,7 +70,7 @@ import sun.swing.SwingUtilities2;
  * @see DefaultMetalTheme
  * @see OceanTheme
  *
- * @version @(#)MetalLookAndFeel.java	1.207 10/03/23
+ * @version %W% %E%
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
@@ -1538,10 +1538,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         table.putDefaults(defaults);
 
         if (isWindows() && useSystemFonts() && theme.isSystemTheme()) {
-            Toolkit kit = Toolkit.getDefaultToolkit();
             Object messageFont = new MetalFontDesktopProperty(
-                              "win.messagebox.font.height", kit, MetalTheme.
-                              CONTROL_TEXT_FONT);
+                              "win.messagebox.font.height", MetalTheme.CONTROL_TEXT_FONT);
 
             defaults = new Object[] {
                 "OptionPane.messageFont", messageFont,
