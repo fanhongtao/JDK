@@ -1,7 +1,5 @@
 /*
- * @(#)MetalFileChooserUI.java	1.96 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +11,6 @@ import javax.swing.filechooser.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
-import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
@@ -27,12 +24,10 @@ import javax.accessibility.*;
 
 import sun.awt.shell.ShellFolder;
 import sun.swing.*;
-import sun.swing.SwingUtilities2;
 
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.96 03/23/10
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -92,6 +87,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
     private int    fileNameLabelMnemonic = 0;
     private String fileNameLabelText = null;
+    private int    folderNameLabelMnemonic = 0;
+    private String folderNameLabelText = null;
 
     private int    filesOfTypeLabelMnemonic = 0;
     private String filesOfTypeLabelText = null;
@@ -110,6 +107,18 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
     private String detailsViewButtonToolTipText = null;
     private String detailsViewButtonAccessibleName = null;
+
+    private AlignedLabel fileNameLabel;
+
+    private void populateFileNameLabel() {
+        if (getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) {
+            fileNameLabel.setText(folderNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(folderNameLabelMnemonic);
+        } else {
+            fileNameLabel.setText(fileNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
+        }
+    }
 
     //
     // ComponentUI Interface Implementation methods
@@ -355,8 +364,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	bottomPanel.add(fileNamePanel);
 	bottomPanel.add(Box.createRigidArea(vstrut5));
 
-     	AlignedLabel fileNameLabel = new AlignedLabel(fileNameLabelText);
-     	fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
+        fileNameLabel = new AlignedLabel();
+        populateFileNameLabel();
 	fileNamePanel.add(fileNameLabel);
 
 	fileNameTextField = new JTextField(35) {
@@ -459,6 +468,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	
 	fileNameLabelMnemonic = UIManager.getInt("FileChooser.fileNameLabelMnemonic");  
 	fileNameLabelText = UIManager.getString("FileChooser.fileNameLabelText",l); 
+        folderNameLabelMnemonic = UIManager.getInt("FileChooser.folderNameLabelMnemonic");
+        folderNameLabelText = UIManager.getString("FileChooser.folderNameLabelText",l);
 	
 	filesOfTypeLabelMnemonic = UIManager.getInt("FileChooser.filesOfTypeLabelMnemonic");  
 	filesOfTypeLabelText = UIManager.getString("FileChooser.filesOfTypeLabelText",l); 
@@ -662,6 +673,9 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     private void doFileSelectionModeChanged(PropertyChangeEvent e) {
+        if (fileNameLabel != null) {
+            populateFileNameLabel();
+        }
 	clearIconCache();
 
 	JFileChooser fc = getFileChooser();
@@ -1229,6 +1243,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     private class AlignedLabel extends JLabel {
 	private AlignedLabel[] group;
 	private int maxWidth = 0;
+
+        AlignedLabel() {
+            super();
+            setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        }
 
 	AlignedLabel(String text) {
 	    super(text);

@@ -1,7 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.53 10/04/29
- *
- * Copyright (c) 2009,2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,9 +37,10 @@ class DirectLongBufferS
     // NOTE: moved up to Buffer.java for speed in JNI GetDirectBufferAddress
     //    protected long address;
 
-    // If this buffer is a view of another buffer then we keep a reference to
-    // that buffer so that its memory isn't freed before we're done with it
-    protected Object viewedBuffer = null;
+    // An object attached to this buffer. If this buffer is a view of another
+    // buffer then we use this field to keep a reference to that buffer to
+    // ensure that its memory isn't freed before we are done with it.
+    private final Object viewedBuffer;
 
     public Object viewedBuffer() {
         return viewedBuffer;
@@ -144,6 +143,18 @@ class DirectLongBufferS
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     // For duplicates and slices
     //
     DirectLongBufferS(DirectBuffer db,	        // package-private
@@ -153,10 +164,10 @@ class DirectLongBufferS
 
 	super(mark, pos, lim, cap);
 	address = db.address() + off;
-	viewedBuffer = db;
 
 
 
+        viewedBuffer = db;
 
 
 

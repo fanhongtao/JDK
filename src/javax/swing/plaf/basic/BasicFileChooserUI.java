@@ -1,7 +1,5 @@
 /*
- * @(#)BasicFileChooserUI.java	1.77 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1099,11 +1097,16 @@ public class BasicFileChooserUI extends FileChooserUI {
                 ShellFolder shellFolder = ShellFolder.getShellFolder(dir);
                 if (shellFolder.isLink()) {
                     File linkedTo = shellFolder.getLinkLocation();
-                    if (linkedTo != null && fc.isTraversable(linkedTo)) {
-                        dir = linkedTo;
-                    } else {
-                        return;
-                    }
+                    // If linkedTo is null we try to use dir
+                    if (linkedTo != null) {
+                        if (fc.isTraversable(linkedTo)) { 
+                            dir = linkedTo;
+                    	} else {
+                       	    return;
+                    	}
+		    } else {
+			dir = shellFolder;
+		    }
                 }
 	    } catch (FileNotFoundException ex) {
 		return;

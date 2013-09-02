@@ -15,6 +15,7 @@ public final class windows_fr extends ListResourceBundle {
             { "FileChooser.fileSizeHeaderText", "Taille" },
             { "FileChooser.fileTypeHeaderText", "Type" },
             { "FileChooser.filesOfTypeLabelText", "Fichiers du type :" },
+            { "FileChooser.folderNameLabelText", "Nom du dossier :" },
             { "FileChooser.homeFolderAccessibleName", "Accueil" },
             { "FileChooser.homeFolderToolTipText", "R\u00E9pertoire d'accueil" },
             { "FileChooser.listViewActionLabelText", "Liste" },

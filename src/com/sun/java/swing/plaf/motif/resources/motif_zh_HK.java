@@ -9,6 +9,7 @@ public final class motif_zh_HK extends ListResourceBundle {
             { "FileChooser.cancelButtonText", "\u53D6\u6D88" },
             { "FileChooser.cancelButtonToolTipText", "\u4E2D\u65B7\u300C\u6A94\u6848\u9078\u64C7\u5668\u300D\u5C0D\u8A71\u65B9\u584A\u3002" },
             { "FileChooser.enterFileNameLabelText", "\u8F38\u5165\u6A94\u6848\u540D\u7A31\uFE55" },
+            { "FileChooser.enterFolderNameLabelText", "\u8F38\u5165\u8CC7\u6599\u593E\u540D\u7A31:" },
             { "FileChooser.filesLabelText", "\u6A94\u6848" },
             { "FileChooser.filterLabelText", "\u904E\u6FFE\u5668" },
             { "FileChooser.foldersLabelText", "\u6A94\u6848\u593E" },

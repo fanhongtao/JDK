@@ -22,7 +22,7 @@
  * $Id: XMLDocumentFragmentScannerImpl.java,v 1.13 2007/05/09 15:23:31 ndw Exp $
  * @(#)XMLDocumentFragmentScannerImpl.java	1.24 08/03/28
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -2673,6 +2673,7 @@ public class XMLDocumentFragmentScannerImpl
          */
         
         public int next() throws IOException, XNIException {
+           while (true) {
             try {
                 if(DEBUG_NEXT){
                     System.out.println("NOW IN FragmentContentDriver");
@@ -2809,7 +2810,7 @@ public class XMLDocumentFragmentScannerImpl
                                     fLastSectionWasCharacterData = true;
                                     fContentBuffer.append(fTempString);
                                     fTempString.length = 0;
-                                    return fDriver.next();
+                                    continue;
                                 }
                             }
                             //in case last section was either entity reference or cdata or character data -- we should be using buffer
@@ -2916,7 +2917,7 @@ public class XMLDocumentFragmentScannerImpl
                         //if fIsCoalesce is true there might be more data so call fDriver.next()
                         if(fIsCoalesce){
                             fLastSectionWasCharacterData = true ;
-                            return fDriver.next();
+                            continue;
                         }else{
                             if(dtdGrammarUtil!= null && dtdGrammarUtil.isIgnorableWhiteSpace(fContentBuffer)){
                                 if(DEBUG)System.out.println("Return SPACE EVENT");
@@ -2994,7 +2995,7 @@ public class XMLDocumentFragmentScannerImpl
                         if(fIsCoalesce){
                             fLastSectionWasCData = true ;
                             //there might be more data to coalesce.
-                            return fDriver.next();
+                            continue;
                         }else if(fReportCdataEvent){
                             return XMLEvent.CDATA;
                         } else{
@@ -3040,14 +3041,14 @@ public class XMLDocumentFragmentScannerImpl
                             //if there was a text declaration, call next() it will be taken care.
                             if(fScannerState == SCANNER_STATE_TEXT_DECL){
                                 fLastSectionWasEntityReference = true ;
-                                return fDriver.next();
+                                continue;
                             }
                             
                             if(fScannerState == SCANNER_STATE_REFERENCE){
                                 setScannerState(SCANNER_STATE_CONTENT);
                                 if (fReplaceEntityReferences && fEntityStore.isDeclaredEntity(fCurrentEntityName)) {
                                     // Skip the entity reference, we don't care
-                                    return fDriver.next();
+                                    continue;
                                 }
                                 return XMLEvent.ENTITY_REFERENCE;
                             }
@@ -3056,7 +3057,7 @@ public class XMLDocumentFragmentScannerImpl
                         //set the next possible state to SCANNER_STATE_CONTENT
                         setScannerState(SCANNER_STATE_CONTENT);
                         fLastSectionWasEntityReference = true ;
-                        return fDriver.next();
+                        continue;
                     }
                     
                     case SCANNER_STATE_TEXT_DECL: {
@@ -3095,7 +3096,7 @@ public class XMLDocumentFragmentScannerImpl
                         //xxx: we don't return any state, so how do we get to know about TEXT declarations.
                         //it seems we have to careful when to allow function issue a callback
                         //and when to allow adapter issue a callback.
-                        return fDriver.next();
+                        continue;
                     }
                     
                     
@@ -3125,7 +3126,7 @@ public class XMLDocumentFragmentScannerImpl
                 endOfFileHook(e);
                 return -1;
             }            
-            
+           } // while loop 
         }//next
         
         

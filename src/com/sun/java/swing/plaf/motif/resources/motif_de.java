@@ -9,6 +9,7 @@ public final class motif_de extends ListResourceBundle {
             { "FileChooser.cancelButtonText", "Abbrechen" },
             { "FileChooser.cancelButtonToolTipText", "Dialogfeld f\u00FCr Dateiauswahl abbrechen" },
             { "FileChooser.enterFileNameLabelText", "Filternamen eingeben:" },
+            { "FileChooser.enterFolderNameLabelText", "Ordnernamen eingeben:" },
             { "FileChooser.filesLabelText", "Dateien" },
             { "FileChooser.filterLabelText", "Filter" },
             { "FileChooser.foldersLabelText", "Ordner" },

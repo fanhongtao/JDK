@@ -15,6 +15,7 @@ public final class windows_sv extends ListResourceBundle {
             { "FileChooser.fileSizeHeaderText", "Storlek" },
             { "FileChooser.fileTypeHeaderText", "Typ" },
             { "FileChooser.filesOfTypeLabelText", "Filformat:" },
+            { "FileChooser.folderNameLabelText", "Mapp:" },
             { "FileChooser.homeFolderAccessibleName", "Hem" },
             { "FileChooser.homeFolderToolTipText", "Hem" },
             { "FileChooser.listViewActionLabelText", "Lista" },

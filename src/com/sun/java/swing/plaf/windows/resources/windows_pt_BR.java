@@ -15,6 +15,7 @@ public final class windows_pt_BR extends ListResourceBundle {
             { "FileChooser.fileSizeHeaderText", "Tamanho" },
             { "FileChooser.fileTypeHeaderText", "Tipo" },
             { "FileChooser.filesOfTypeLabelText", "Arquivos de tipo:" },
+            { "FileChooser.folderNameLabelText", "Nome da pasta:" },
             { "FileChooser.homeFolderAccessibleName", "In\u00EDcio" },
             { "FileChooser.homeFolderToolTipText", "In\u00EDcio" },
             { "FileChooser.listViewActionLabelText", "Lista" },

@@ -1,7 +1,7 @@
 /*
  * %W% %E%
  *
- * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -130,7 +130,6 @@ class ZipFile implements ZipConstants {
 	this.total = getTotal(jzfile);
     }
 
-    private static native long open(String name, int mode, long lastModified);
     private static native int getTotal(long jzfile);
 
 

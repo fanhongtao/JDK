@@ -1,7 +1,5 @@
 /*
- * @(#)HttpCookie.java	1.7 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +31,7 @@ import java.util.Locale;
  *
  * <p>HttpCookie class can accept all these 3 forms of syntax.
  *
- * @version 1.7, 10/03/23
+ * @version %I%, %E%
  * @author Edward Wang
  * @since 1.6
  */
@@ -705,9 +703,6 @@ public final class HttpCookie implements Cloneable {
      *   would be accepted.</li>
      *   <li>A Set-Cookie2 with Domain=.com or Domain=.com., will always be
      *   rejected, because there is no embedded dot.</li>
-     *   <li>A Set-Cookie2 with Domain=ajax.com will be accepted, and the
-     *   value for Domain will be taken to be .ajax.com, because a dot
-     *   gets prepended to the value.</li>
      *   <li>A Set-Cookie2 from request-host example for Domain=.local will
      *   be accepted, because the effective host name for the request-
      *   host is example.local, and example.local domain-matches .local.</li>

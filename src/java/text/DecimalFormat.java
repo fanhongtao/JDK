@@ -1,7 +1,5 @@
 /*
- * @(#)DecimalFormat.java	1.89 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,9 +26,10 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Currency;
-import java.util.Hashtable;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import sun.util.resources.LocaleData;
@@ -353,7 +352,7 @@ import sun.util.resources.LocaleData;
  * @see          NumberFormat
  * @see          DecimalFormatSymbols
  * @see          ParsePosition
- * @version      1.89 03/23/10
+ * @version      %I% %G%
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -377,14 +376,14 @@ public class DecimalFormat extends NumberFormat {
     public DecimalFormat() {
         Locale def = Locale.getDefault();
         // try to get the pattern from the cache
-        String pattern = (String) cachedLocaleData.get(def);
+        String pattern = cachedLocaleData.get(def);
         if (pattern == null) {  /* cache miss */
             // Get the pattern for the default locale.
             ResourceBundle rb = LocaleData.getNumberFormatData(def);
             String[] all = rb.getStringArray("NumberPatterns");
             pattern = all[0];
             /* update cache */
-            cachedLocaleData.put(def, pattern);
+            cachedLocaleData.putIfAbsent(def, pattern);
         }
 
         // Always applyPattern after the symbols are set
@@ -3255,5 +3254,7 @@ public class DecimalFormat extends NumberFormat {
     /**
      * Cache to hold the NumberPattern of a Locale.
      */
-    private static Hashtable cachedLocaleData = new Hashtable(3);
+    private static final ConcurrentMap<Locale, String> cachedLocaleData
+        = new ConcurrentHashMap<Locale, String>(3);
+
 }

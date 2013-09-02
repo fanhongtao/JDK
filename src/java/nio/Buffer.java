@@ -1,7 +1,5 @@
 /*
- * @(#)Buffer.java	1.39 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -150,7 +148,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.39, 10/03/23
+ * @version %I%, %E%
  * @since 1.4
  */
 
@@ -523,6 +521,13 @@ public abstract class Buffer {
 
     final int markValue() {				// package-private
 	return mark;
+    }
+
+    final void truncate() {                             // package-private
+        mark = -1;
+        position = 0;
+        limit = 0;
+        capacity = 0;
     }
 
     static void checkBounds(int off, int len, int size) { // package-private

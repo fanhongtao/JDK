@@ -9,6 +9,7 @@ public final class motif_pt_BR extends ListResourceBundle {
             { "FileChooser.cancelButtonText", "Cancelar" },
             { "FileChooser.cancelButtonToolTipText", "Anular caixa de di\u00E1logo do seletor de arquivos." },
             { "FileChooser.enterFileNameLabelText", "Inserir nome de arquivo:" },
+            { "FileChooser.enterFolderNameLabelText", "Informar nome da pasta:" },
             { "FileChooser.filesLabelText", "Arquivos" },
             { "FileChooser.filterLabelText", "Filtro" },
             { "FileChooser.foldersLabelText", "Pastas" },

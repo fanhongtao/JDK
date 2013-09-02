@@ -1,7 +1,5 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.104 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +29,6 @@ import javax.accessibility.*;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.104 03/23/10
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -93,6 +90,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private int    fileNameLabelMnemonic = 0;
     private String fileNameLabelText = null;
+    private int    folderNameLabelMnemonic = 0;
+    private String folderNameLabelText = null;
 
     private int    filesOfTypeLabelMnemonic = 0;
     private String filesOfTypeLabelText = null;
@@ -113,6 +112,18 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     private String detailsViewButtonAccessibleName = null;
 
     private BasicFileView fileView = new WindowsFileView();
+
+    private JLabel fileNameLabel;
+
+    private void populateFileNameLabel() {
+        if (getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) {
+            fileNameLabel.setText(folderNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(folderNameLabelMnemonic);
+        } else {
+            fileNameLabel.setText(fileNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
+        }
+    }
 
     //
     // ComponentUI Interface Implementation methods
@@ -396,10 +407,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.PAGE_AXIS));
         labelPanel.add(Box.createRigidArea(vstrut4));
 
-     	JLabel fnl = new JLabel(fileNameLabelText);
-     	fnl.setDisplayedMnemonic(fileNameLabelMnemonic);
-	fnl.setAlignmentY(0);
-	labelPanel.add(fnl);
+        fileNameLabel = new JLabel();
+        populateFileNameLabel();
+	fileNameLabel.setAlignmentY(0);
+	labelPanel.add(fileNameLabel);
 
 	labelPanel.add(Box.createRigidArea(new Dimension(1,12)));
 
@@ -422,7 +433,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    }
 	};
 
-	fnl.setLabelFor(filenameTextField);
+	fileNameLabel.setLabelFor(filenameTextField);
         filenameTextField.addFocusListener(
 	    new FocusAdapter() {
 		public void focusGained(FocusEvent e) {
@@ -541,6 +552,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	
 	fileNameLabelMnemonic = UIManager.getInt("FileChooser.fileNameLabelMnemonic");  
 	fileNameLabelText = UIManager.getString("FileChooser.fileNameLabelText",l); 
+        folderNameLabelMnemonic = UIManager.getInt("FileChooser.folderNameLabelMnemonic");
+        folderNameLabelText = UIManager.getString("FileChooser.folderNameLabelText",l);
 	
 	filesOfTypeLabelMnemonic = UIManager.getInt("FileChooser.filesOfTypeLabelMnemonic");  
 	filesOfTypeLabelText = UIManager.getString("FileChooser.filesOfTypeLabelText",l); 
@@ -749,6 +762,9 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     }
 
     private void doFileSelectionModeChanged(PropertyChangeEvent e) {
+        if (fileNameLabel != null) {
+            populateFileNameLabel();
+        }
 	clearIconCache();
 
 	JFileChooser fc = getFileChooser();

@@ -1,7 +1,6 @@
 /*
- * @(#)Bits.java	1.22 10/04/29
  *
- * Copyright (c) 2006,2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -643,7 +642,19 @@ class Bits {				// package-private
 	}
     }
 
-
+    static {
+        // setup access to this package in SharedSecrets
+        sun.misc.SharedSecrets.setJavaNioAccess(
+            new sun.misc.JavaNioAccess() {
+                public ByteBuffer newDirectByteBuffer(long addr, int cap, Object ob) {
+                    return new DirectByteBuffer(addr, cap, ob);
+                }
+                public void truncate(Buffer buf) {
+                    buf.truncate();
+                }
+        });
+    }
+
     // -- Bulk get/put acceleration --
 
     // These numbers represent the point at which we have empirically

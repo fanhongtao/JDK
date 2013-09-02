@@ -1,7 +1,6 @@
-/*
- * @(#)InetAddress.java	1.118 10/03/23
+/* 
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -152,7 +151,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.118, 03/23/10
+ * @version %I%, %G%
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -1168,6 +1167,7 @@ class InetAddress implements java.io.Serializable {
     {
 	Object obj = null;
 	boolean success = false;
+	UnknownHostException ex = null;
 
 	// Check whether the host is in the lookupTable.
 	// 1) If the host isn't in the lookupTable when
@@ -1188,30 +1188,31 @@ class InetAddress implements java.io.Serializable {
 	//         lookupTable and return null so the
 	//         following code would do  a lookup itself.
 	if ((obj = checkLookupTable(host)) == null) {
-	    // This is the first thread which looks up the address 
-	    // this host or the cache entry for this host has been
-	    // expired so this thread should do the lookup.
-	    try {
-		/*
-		 * Do not put the call to lookup() inside the
-		 * constructor.  if you do you will still be
-		 * allocating space when the lookup fails.
-		 */
+	    try{
+		// This is the first thread which looks up the address 
+		// this host or the cache entry for this host has been
+		// expired so this thread should do the lookup.
+		try {
+		    /*
+		    * Do not put the call to lookup() inside the
+		    * constructor.  if you do you will still be
+		    * allocating space when the lookup fails.
+		    */
 		 
-		obj = nameService.lookupAllHostAddr(host);
-		success = true;
-	    } catch (UnknownHostException uhe) {
-		if (host.equalsIgnoreCase("localhost")) {
-		    InetAddress[] local = new InetAddress[] { impl.loopbackAddress() };
-		    obj = local;
+		    obj = nameService.lookupAllHostAddr(host);
 		    success = true;
-		}
-		else {
-		    obj  = unknown_array; 
-		    success = false;
-		    throw uhe;
-		}
-	    } finally {
+		} catch (UnknownHostException uhe) {
+		    if (host.equalsIgnoreCase("localhost")) {
+			InetAddress[] local = new InetAddress[] { impl.loopbackAddress() };
+			obj = local;
+			success = true;
+		    }
+		    else {
+			obj  = unknown_array; 
+			success = false;
+			ex = uhe;
+		    }
+		} 
 		// More to do?
 		InetAddress[] addrs = (InetAddress[])obj;
 		if (reqAddr != null && addrs.length > 1 && !addrs[0].equals(reqAddr)) {
@@ -1219,7 +1220,7 @@ class InetAddress implements java.io.Serializable {
 		    int i = 1;
 		    for (; i < addrs.length; i++) {
 			if (addrs[i].equals(reqAddr)) {
-			    break;
+			   break;
 			}
 		    }
 		    // Rotate
@@ -1235,6 +1236,11 @@ class InetAddress implements java.io.Serializable {
 		}
 		// Cache the address.
 		cacheAddress(host, obj, success);
+		
+		if (!success && ex != null)
+		    throw ex;
+		
+	    } finally {
 		// Delete the host from the lookupTable, and
 		// notify all threads waiting for the monitor
 		// for lookupTable.

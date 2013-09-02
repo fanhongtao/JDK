@@ -1,7 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.53 10/04/29
- *
- * Copyright (c) 2009,2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,6 +21,19 @@ class DirectCharBufferRU
 
     implements DirectBuffer
 {
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

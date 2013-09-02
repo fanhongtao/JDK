@@ -1,7 +1,5 @@
 /*
- * @(#)LockSupport.java	1.13 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -251,6 +249,8 @@ public class LockSupport {
      * @since 1.6
      */
     public static Object getBlocker(Thread t) {
+        if (t == null)
+            throw new NullPointerException();
         return unsafe.getObjectVolatile(t, parkBlockerOffset);
     }
 

@@ -1,7 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.53 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +22,6 @@ import sun.swing.SwingUtilities2;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.53 03/23/10
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -61,6 +58,8 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
     protected JButton approveButton;
 
+    private String enterFolderNameLabelText = null;
+    private int enterFolderNameLabelMnemonic = 0;
     private String enterFileNameLabelText = null;
     private int enterFileNameLabelMnemonic = 0;
 
@@ -75,6 +74,18 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
     private String filterLabelText = null;
     private int filterLabelMnemonic = 0;
+
+    private JLabel fileNameLabel;
+
+    private void populateFileNameLabel() {
+        if (getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) {
+            fileNameLabel.setText(enterFolderNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(enterFolderNameLabelMnemonic);
+        } else {
+            fileNameLabel.setText(enterFileNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(enterFileNameLabelMnemonic);
+        }
+    }
 
     private String fileNameString(File file) {
         if (file == null) {
@@ -183,6 +194,9 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 			}
 		    }
 		} else if(prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
+                    if (fileNameLabel != null) {
+                        populateFileNameLabel();
+                    }
 		    directoryList.clearSelection();
 		} else if(prop == JFileChooser.MULTI_SELECTION_ENABLED_CHANGED_PROPERTY) {
 		    if(getFileChooser().isMultiSelectionEnabled()) {
@@ -374,10 +388,10 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	interior.add(Box.createRigidArea(vstrut10));
 
 	// add the filename field PENDING(jeff) - I18N
-	l = new JLabel(enterFileNameLabelText);
-	l.setDisplayedMnemonic(enterFileNameLabelMnemonic);
-	align(l);
-	interior.add(l);
+        fileNameLabel = new JLabel();
+        populateFileNameLabel();
+	align(fileNameLabel);
+	interior.add(fileNameLabel);
 
 	filenameTextField = new JTextField() {
 	    public Dimension getMaximumSize() {
@@ -387,7 +401,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	    }
 	};
         filenameTextField.setInheritsPopupMenu(true);
-	l.setLabelFor(filenameTextField);
+	fileNameLabel.setLabelFor(filenameTextField);
 	filenameTextField.addActionListener(getApproveSelectionAction());
 	align(filenameTextField);
 	filenameTextField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
@@ -492,6 +506,8 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
         Locale l = fc.getLocale();
 
+        enterFolderNameLabelText = UIManager.getString("FileChooser.enterFolderNameLabelText",l);
+        enterFolderNameLabelMnemonic = UIManager.getInt("FileChooser.enterFolderNameLabelMnemonic");
 	enterFileNameLabelText = UIManager.getString("FileChooser.enterFileNameLabelText",l);
 	enterFileNameLabelMnemonic = UIManager.getInt("FileChooser.enterFileNameLabelMnemonic"); 
 	

@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaClientRequestDispatcherImpl.java	1.92 10/04/29
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,6 +98,9 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.ReferenceAddr;
 import com.sun.corba.se.impl.transport.CorbaContactInfoListIteratorImpl;
 import com.sun.corba.se.impl.util.JDKBridge;
 
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * ClientDelegate is the RMI client-side subcontract or representation
  * It implements RMI delegate as well as our internal ClientRequestDispatcher
@@ -107,6 +110,8 @@ public class CorbaClientRequestDispatcherImpl
     implements
 	ClientRequestDispatcher
 {
+    // 7016182 - synchronisation on a single monitor for equal contactInfo parameters
+    private ConcurrentMap<ContactInfo, Object> locks = new ConcurrentHashMap<ContactInfo, Object>();
 
     public OutputObject beginRequest(Object self, String opName,
 				     boolean isOneWay, ContactInfo contactInfo)
@@ -134,8 +139,22 @@ public class CorbaClientRequestDispatcherImpl
 
 	// This locking is done so that multiple connections are not created
 	// for the same endpoint
-        //6929137 - Synchronized on contactInfo to avoid blocking across multiple endpoints 
-	synchronized (contactInfo) {
+        // 6929137 - Synchronized on contactInfo to avoid blocking across multiple endpoints
+        // 7016182 - Synchronisation on a single monitor for contactInfo parameters
+        // with identical hashCode(), so we lock on same monitor for equal parameters
+        // (which can refer to equal (in terms of equals()) but not the same objects)
+
+        Object lock = locks.get(contactInfo);
+
+        if (lock == null) {
+            Object newLock = new Object();
+            lock = locks.putIfAbsent(contactInfo, newLock);
+            if (lock == null) {
+                lock = newLock;
+            }
+        }
+
+	synchronized (lock) {
 	    if (contactInfo.isConnectionBased()) {
 		if (contactInfo.shouldCacheConnection()) {
 		    connection = (CorbaConnection)
@@ -240,7 +259,7 @@ public class CorbaClientRequestDispatcherImpl
 	registerWaiter(messageMediator);
 
 	// Do connection reclaim now
-	synchronized (contactInfo) {
+	synchronized (lock) {
 	    if (contactInfo.isConnectionBased()) {
 		if (contactInfo.shouldCacheConnection()) {
 		    OutboundConnectionCache connectionCache =
@@ -309,7 +328,7 @@ public class CorbaClientRequestDispatcherImpl
 	return outputObject;
 
       } finally {
-	if (orb.subcontractDebugFlag) {
+        if (orb.subcontractDebugFlag) {
 	    dprint(".beginRequest<-: op/" + opName);
 	}
       }

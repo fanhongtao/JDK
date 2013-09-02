@@ -15,6 +15,7 @@ public final class windows_es extends ListResourceBundle {
             { "FileChooser.fileSizeHeaderText", "Tama\u00F1o" },
             { "FileChooser.fileTypeHeaderText", "Tipo" },
             { "FileChooser.filesOfTypeLabelText", "Archivos de tipo:" },
+            { "FileChooser.folderNameLabelText", "Nombre de la Carpeta:" },
             { "FileChooser.homeFolderAccessibleName", "Principal" },
             { "FileChooser.homeFolderToolTipText", "Principal" },
             { "FileChooser.listViewActionLabelText", "Lista" },

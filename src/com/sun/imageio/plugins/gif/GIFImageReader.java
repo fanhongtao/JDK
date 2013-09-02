@@ -1,7 +1,7 @@
 /*
- * @(#)GIFImageReader.java	1.47 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -692,10 +692,28 @@ public class GIFImageReader extends ImageReader {
                     } else if (label == 0xff) { // Application extension
                         int blockSize = stream.readUnsignedByte();
                         byte[] applicationID = new byte[8];
-                        stream.readFully(applicationID);
                         byte[] authCode = new byte[3];
-                        stream.readFully(authCode);
+                        
+                        // read available data
+                        byte[] blockData = new byte[blockSize];
+                        stream.readFully(blockData);
+                        
+                        int offset = copyData(blockData, 0, applicationID);
+                        offset = copyData(blockData, offset, authCode);
+
                         byte[] applicationData = concatenateBlocks();
+                        
+                        if (offset < blockSize) {
+                            int len = blockSize - offset;
+                            byte[] data =
+                                new byte[len + applicationData.length];
+
+                            System.arraycopy(blockData, offset, data, 0, len);
+                            System.arraycopy(applicationData, 0, data, len,
+                                             applicationData.length);
+                                
+                            applicationData = data;
+                        }
 
                         // Init lists if necessary
                         if (imageMetadata.applicationIDs == null) {
@@ -728,6 +746,16 @@ public class GIFImageReader extends ImageReader {
         } catch (IOException ioe) {
             throw new IIOException("I/O error reading image metadata!", ioe);
         }
+    }
+    
+    private int copyData(byte[] src, int offset, byte[] dst) {
+        int len = dst.length;
+        int rest = src.length - offset;
+        if (len > rest) {
+            len = rest;
+        }
+        System.arraycopy(src, offset, dst, 0, len);
+        return offset + len;
     }
 
     private void startPass(int pass) {

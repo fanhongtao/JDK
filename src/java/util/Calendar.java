@@ -1,7 +1,5 @@
 /*
- * @(#)Calendar.java	1.90 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,6 +31,8 @@ import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import sun.util.BuddhistCalendar;
 import sun.util.calendar.ZoneInfo;
 import sun.util.resources.LocaleData;
@@ -284,7 +284,7 @@ import sun.util.resources.LocaleData;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.90, 03/23/10
+ * @version      %I%, %G%
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -820,7 +820,8 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * Cache to hold the firstDayOfWeek and minimalDaysInFirstWeek
      * of a Locale.
      */
-    private static Hashtable<Locale, int[]> cachedLocaleData = new Hashtable<Locale, int[]>(3);
+    private static final ConcurrentMap<Locale, int[]> cachedLocaleData
+        = new ConcurrentHashMap<Locale, int[]>(3);
 
     // Special values of stamp[]
     /**
@@ -2453,7 +2454,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 	    data = new int[2];
 	    data[0] = Integer.parseInt(bundle.getString("firstDayOfWeek"));
 	    data[1] = Integer.parseInt(bundle.getString("minimalDaysInFirstWeek"));
-	    cachedLocaleData.put(desiredLocale, data);
+	    cachedLocaleData.putIfAbsent(desiredLocale, data);
 	}
 	firstDayOfWeek = data[0];
 	minimalDaysInFirstWeek = data[1];

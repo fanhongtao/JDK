@@ -1,5 +1,5 @@
 /*
- * @(#)Frame.java	1.164 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -109,7 +109,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.164, 03/23/10
+ * @version 	%I%, %G%
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -673,11 +673,15 @@ public class Frame extends Window implements MenuContainer {
      * @see     java.awt.Toolkit#isFrameStateSupported(int)
      * @since   1.4
      */
-    public synchronized void setExtendedState(int state) {
+    public void setExtendedState(int state) {
         if ( !isFrameStateSupported( state ) ) {
             return;
         }    
-        this.state = state;
+        synchronized (getObjectLock()) {
+            this.state = state;
+        }
+        // peer.setState must be called outside of object lock
+        // synchronization block to avoid possible deadlock
         FramePeer peer = (FramePeer)this.peer;
         if (peer != null) {
             peer.setState(state);
@@ -739,12 +743,27 @@ public class Frame extends Window implements MenuContainer {
      * @see     #setExtendedState(int)
      * @since 1.4
      */
-    public synchronized int getExtendedState() {
-        FramePeer peer = (FramePeer)this.peer;
-        if (peer != null) {
-            state = peer.getState();
+    public int getExtendedState() {
+        synchronized (getObjectLock()) {
+            return state;
         }
-        return state;
+    }
+
+    static {
+        AWTAccessor.setFrameAccessor(
+            new AWTAccessor.FrameAccessor() {
+                public void setExtendedState(Frame frame, int state) {
+                    synchronized(frame.getObjectLock()) {
+                        frame.state = state;
+                    }
+                }
+                public int getExtendedState(Frame frame) {
+                    synchronized(frame.getObjectLock()) {
+                        return frame.state;
+                    }
+                }
+            }
+        );
     }
 
     /**
@@ -912,7 +931,7 @@ public class Frame extends Window implements MenuContainer {
 	if (resizable) {
 	    str += ",resizable";
 	}
-	getExtendedState();	// sync with peer
+	int state = getExtendedState();
 	if (state == NORMAL) {
 	    str += ",normal";
 	}
