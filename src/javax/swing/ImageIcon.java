@@ -1,7 +1,5 @@
 /*
- * @(#)ImageIcon.java	1.58 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -20,8 +18,7 @@ import javax.accessibility.*;
 
 import sun.awt.AppContext;
 import java.lang.reflect.Field;
-import java.security.PrivilegedAction;
-import java.security.AccessController;
+import java.security.*;
 
 /**
  * An implementation of the Icon interface that paints Icons
@@ -44,7 +41,7 @@ import java.security.AccessController;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.58 03/23/10
+ * @version %I% %G%
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -62,30 +59,47 @@ public class ImageIcon implements Icon, Serializable, Accessible {
     ImageObserver imageObserver;
     String description = null;
 
+    // Fields for twisted backward compatibility only. DO NOT USE.
     protected final static Component component;
     protected final static MediaTracker tracker;
 
     static {
-        component = new Component() {};
-        AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+        component = AccessController.doPrivileged(new PrivilegedAction<Component>() {
+            public Component run() {
                 try {
+                    final Component component = createNoPermsComponent();
+
                     // 6482575 - clear the appContext field so as not to leak it
                     Field appContextField =
                                  Component.class.getDeclaredField("appContext");
                     appContextField.setAccessible(true);
                     appContextField.set(component, null);
-                }
-                catch (NoSuchFieldException e) {
+                    return component;
+                } catch (Throwable e) {
+                    // We don't care about component.
+                    // So don't prevent class initialisation.
                     e.printStackTrace();
+                    return null;
                 }
-                catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                return null;
             }
         });
         tracker = new MediaTracker(component);
+    }
+
+    private static Component createNoPermsComponent() {
+        // 7020198 - set acc field to no permissions and no subject
+        // Note, will have appContext set.
+        return AccessController.doPrivileged(
+                new PrivilegedAction<Component>() {
+                    public Component run() {
+                        return new Component() {
+                        };
+                    }
+                },
+                new AccessControlContext(new ProtectionDomain[]{
+                        new ProtectionDomain(null, null)
+                })
+        );
     }
 
     /**
