@@ -1,5 +1,5 @@
 /*
- * @(#)JRootPane.java	1.101 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -178,7 +178,7 @@ import sun.security.action.GetBooleanAction;
  * @see <a href="http://java.sun.com/products/jfc/tsc/articles/mixing/">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.101 03/23/10
+ * @version %I% %G%
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -735,22 +735,15 @@ public class JRootPane extends JComponent implements Accessible {
      * root pane. 
      */
     public void addNotify() {
-	SystemEventQueueUtilities.addRunnableCanvas(this);
         super.addNotify();
         enableEvents(AWTEvent.KEY_EVENT_MASK);
     }
-
-    // Note: These links don't work because the target
-    //       class is package private
-    // @see SystemEventQueueUtilities#addRunnableCanvas
-    // @see SystemEventQueueUtilities#removeRunnableCanvas
 
     /**
      * Unregister ourselves from <code>SystemEventQueueUtils</code>.
      * @see #addNotify
      */
     public void removeNotify() {
-	SystemEventQueueUtilities.removeRunnableCanvas(this);
         super.removeNotify();
     }
 

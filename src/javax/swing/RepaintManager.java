@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.78 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import com.sun.java.swing.SwingUtilities3;
  * Any calls to <code>repaint</code> on one of these will call into the
  * appropriate <code>addDirtyRegion</code> method.
  *
- * @version 1.78 03/23/10
+ * @version %I% %G%
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -148,6 +148,10 @@ public class RepaintManager
      */
     private Thread paintThread;
 
+    /**
+     * Runnable used to process all repaint/revalidate requests.
+     */
+    private final ProcessingRunnable processingRunnable;
 
     static {
 	volatileImageBufferEnabled = "true".equals(AccessController.
@@ -192,11 +196,9 @@ public class RepaintManager
      * @return the RepaintManager object
      */
     public static RepaintManager currentManager(Component c) {
-        // Note: SystemEventQueueUtilities.ComponentWorkRequest and
-        // DisplayChangedRunnable pass in null as the component, so if
+        // Note: DisplayChangedRunnable passes in null as the component, so if 
         // component is ever used to determine the current
-        // RepaintManager, SystemEventQueueUtilities and
-        // DisplayChangedRunnable will need to be modified
+        // RepaintManager, DisplayChangedRunnable will need to be modified 
         // accordingly.
         return currentManager(AppContext.getAppContext());
     }
@@ -267,6 +269,7 @@ public class RepaintManager
             this.bufferStrategyType = bufferStrategyType;
             hwDirtyComponents = new IdentityHashMap<Container,Rectangle>();
         }
+        processingRunnable = new ProcessingRunnable();
     }
 
     private void displayChanged() {
@@ -346,10 +349,9 @@ public class RepaintManager
 	}
 	invalidComponents.add(validateRoot);
 
-	/* Queues a Runnable that calls RepaintManager.validateInvalidComponents() 
-	 * and RepaintManager.paintDirtyRegions() with SwingUtilities.invokeLater().
-	 */
-	SystemEventQueueUtilities.queueComponentWorkRequest(root);
+    // Queue a Runnable to invoke paintDirtyRegions and 
+    // validateInvalidComponents. 
+    scheduleProcessingRunnable(); 
     }
 
 
@@ -436,10 +438,9 @@ public class RepaintManager
             dirtyComponents.put(c, new Rectangle(x, y, w, h));
         }
 
-	/* Queues a Runnable that calls validateInvalidComponents() and
-	 * rm.paintDirtyRegions() with SwingUtilities.invokeLater().
-	 */
-	SystemEventQueueUtilities.queueComponentWorkRequest(root);
+        // Queue a Runnable to invoke paintDirtyRegions and 
+        // validateInvalidComponents. 
+        scheduleProcessingRunnable(); 
     }
 
     /** 
@@ -544,7 +545,7 @@ public class RepaintManager
                                               x, y, w, h, dirty));
                 }
             }
-            SystemEventQueueUtilities.queueComponentWorkRequest(c, appContext);
+            scheduleProcessingRunnable(appContext); 
         }
     }
 
@@ -560,7 +561,7 @@ public class RepaintManager
             }
             runnableList.add(r);
         }
-        SystemEventQueueUtilities.queueComponentWorkRequest(c, appContext);
+        scheduleProcessingRunnable(appContext); 
     }
 
     /**
@@ -672,12 +673,12 @@ public class RepaintManager
     
 
     /**
-     * This is invoked from SystemEventQueueUtilities.  It's needed
+     * This is invoked to process paint requests.  It's needed 
      * for backward compatability in so far as RepaintManager would previously
      * not see paint requests for top levels, so, we have to make sure
      * a subclass correctly paints any dirty top levels.
      */
-    void seqPaintDirtyRegions() {
+    private void prePaintDirtyRegions() { 
         Map<Component,Rectangle> dirtyComponents;
         java.util.List<Runnable> runnableList;
         synchronized(this) {
@@ -1359,6 +1360,17 @@ public class RepaintManager
         return paintManager;
     }
 
+    private void scheduleProcessingRunnable() {
+        scheduleProcessingRunnable(AppContext.getAppContext());
+    }
+
+    private void scheduleProcessingRunnable(AppContext context) {
+        if (processingRunnable.markPending()) {
+            SunToolkit.getSystemEventQueueImplPP(context).
+                    postEvent(new InvocationEvent(Toolkit.getDefaultToolkit(),
+                            processingRunnable));
+        }
+    }
 
     /**
      * PaintManager is used to handle all double buffered painting for
@@ -1587,4 +1599,43 @@ public class RepaintManager
         } 
         return delegate;
     }
+
+    /**
+     * Runnable used to process all repaint/revalidate requests.
+     */
+    private final class ProcessingRunnable implements Runnable {
+        // If true, we're wainting on the EventQueue.
+        private boolean pending;
+
+        /**
+         * Marks this processing runnable as pending. If this was not
+         * already marked as pending, true is returned.
+         */
+        public synchronized boolean markPending() {
+            if (!pending) {
+                pending = true;
+                return true;
+            }
+            return false;
+        }
+
+        public void run() {
+            synchronized (this) {
+                pending = false;
+            }
+            // First pass, flush any heavy paint events into real paint
+            // events.  If there are pending heavy weight requests this will
+            // result in q'ing this request up one more time.  As
+            // long as no other requests come in between now and the time
+            // the second one is processed nothing will happen.  This is not
+            // ideal, but the logic needed to suppress the second request is
+            // more headache than it's worth.
+            scheduleHeavyWeightPaints();
+            // Do the actual validation and painting.
+            validateInvalidComponents();
+            prePaintDirtyRegions();
+        }
+    }
 }
+    
+

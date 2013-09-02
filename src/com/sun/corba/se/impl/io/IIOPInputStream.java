@@ -1,9 +1,8 @@
 /*
- * %W% %E%
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
@@ -2230,6 +2229,10 @@ public class IIOPInputStream
 		}
 
 		try {
+                    Class fieldCl = fields[i].getClazz();
+                    if (objectValue != null && !fieldCl.isInstance(objectValue)) {
+                        throw new IllegalArgumentException();
+                    }
 		    bridge.putObject( o, fields[i].getFieldID(), objectValue ) ;
 		    // reflective code: fields[i].getField().set( o, objectValue ) ;
 		} catch (IllegalArgumentException e) {
@@ -2540,6 +2543,10 @@ public class IIOPInputStream
     {
 	try {
 	    Field fld = c.getDeclaredField( fieldName ) ;
+            Class fieldCl = fld.getType();
+            if(v != null && !fieldCl.isInstance(v)) {
+                throw new Exception();
+            }
 	    long key = bridge.objectFieldOffset( fld ) ;
 	    bridge.putObject( o, key, v ) ;
 	} catch (Exception e) {

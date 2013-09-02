@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -164,7 +164,7 @@ public class Logger {
     // We keep weak references from parents to children, but strong
     // references from children to parents.
     private Logger parent;    // our nearest parent.
-    private ArrayList kids;   // WeakReferences to loggers that have us as parent
+    private ArrayList<LogManager.LoggerWeakRef> kids;   // WeakReferences to loggers that have us as parent
     private Level levelObject;
     private volatile int levelValue;  // current effective level value
 
@@ -361,13 +361,8 @@ public class Logger {
      *
      * @return a newly created private Logger
      */
-    public static synchronized Logger getAnonymousLogger() {
-	LogManager manager = LogManager.getLogManager();
-	Logger result = new Logger(null, null);
-	result.anonymous = true;
-	Logger root = manager.getLogger("");
-	result.doSetParent(root);
-	return result;
+    public static Logger getAnonymousLogger() {
+        return getAnonymousLogger(null);
     }
 
     /**
@@ -395,6 +390,8 @@ public class Logger {
      */
     public static synchronized Logger getAnonymousLogger(String resourceBundleName) {
 	LogManager manager = LogManager.getLogManager();
+        // cleanup some Loggers that have been GC'ed
+        manager.drainLoggerRefQueueBounded();
 	Logger result = new Logger(null, resourceBundleName);
 	result.anonymous = true;
 	Logger root = manager.getLogger("");
@@ -1387,14 +1384,18 @@ public class Logger {
 	synchronized (treeLock) {
 
 	    // Remove ourself from any previous parent.
+            LogManager.LoggerWeakRef ref = null;
 	    if (parent != null) {
 		// assert parent.kids != null;
-		for (Iterator iter = parent.kids.iterator(); iter.hasNext(); ) {
-		    WeakReference ref = (WeakReference) iter.next();
+                for (Iterator<LogManager.LoggerWeakRef> iter = parent.kids.iterator(); iter.hasNext(); ) {
+                    ref = iter.next();
 		    Logger kid = (Logger) ref.get();
 		    if (kid == this) {
+                        // ref is used down below to complete the reparenting
 		        iter.remove();
 			break;
+                    } else {
+                        ref = null;
 		    }
 	 	}
 		// We have now removed ourself from our parents' kids.
@@ -1403,15 +1404,35 @@ public class Logger {
 	    // Set our new parent.
 	    parent = newParent;
 	    if (parent.kids == null) {
-	        parent.kids = new ArrayList(2);
+                parent.kids = new ArrayList<LogManager.LoggerWeakRef>(2);
 	    }
-	    parent.kids.add(new WeakReference(this));
+            if (ref == null) {
+                // we didn't have a previous parent
+                ref = manager.new LoggerWeakRef(this);
+            }
+            ref.setParentRef(new WeakReference<Logger>(parent));
+            parent.kids.add(ref);
 
 	    // As a result of the reparenting, the effective level
 	    // may have changed for us and our children.
 	    updateEffectiveLevel();
 
 	}
+    }
+
+    // Package-level method.
+    // Remove the weak reference for the specified child Logger from the
+    // kid list. We should only be called from LoggerWeakRef.dispose().
+    final void removeChildLogger(LogManager.LoggerWeakRef child) {
+        synchronized (treeLock) {
+            for (Iterator<LogManager.LoggerWeakRef> iter = kids.iterator(); iter.hasNext(); ) {
+                LogManager.LoggerWeakRef ref = iter.next();
+                if (ref == child) {
+                    iter.remove();
+                    return;
+                }
+            }
+        }
     }
 
     // Recalculate the effective level for this node and
@@ -1445,7 +1466,7 @@ public class Logger {
 	// Recursively update the level on each of our kids.
 	if (kids != null) {
 	    for (int i = 0; i < kids.size(); i++) {
-	        WeakReference ref = (WeakReference)kids.get(i);
+                LogManager.LoggerWeakRef ref = kids.get(i);
 		Logger kid = (Logger) ref.get();
 		if (kid != null) {
 		    kid.updateEffectiveLevel();
